@@ -1,0 +1,5 @@
+% the example shows the use of the bindaction/2 term of the graphics library
+
+init :- graphics(300,300),bindaction('Print text',(rnd(300,X),rnd(300,Y),cursor(X,Y),print('hello action'))),bindaction('Exit',halt),repeat,pause(10),fail.
+
+?-init.

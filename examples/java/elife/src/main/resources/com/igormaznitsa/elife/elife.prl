@@ -1,0 +1,15 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The E-Life game in Prolog   (written to show possibilities of the Prol interpreter)
+% !! It's not a full pure prolog e-life implementation, it's an example of use PROL and the script is the hi-level layer of the application
+% Author: Igor Maznitsa (igor.maznitsa@igormaznitsa.com)                             
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+process_life(W,H):-life_col(0,W,H),!.
+
+life_col(X,W,H):-X1 is X+1,X1=<W,!,(life_row(X,0,H);true),life_col(X1,W,H).
+life_row(X,Y,H):-Y1 is Y+1,Y1=<H,!,get_cell_state(X,Y,S),get_cell_neighbours(X,Y,N),process_cell_life(X,Y,N,S),life_row(X,Y1,H).
+
+process_cell_life(X,Y,3,empty):-!,create_cell(X,Y).
+process_cell_life(_,_,_,empty).
+process_cell_life(X,Y,N,cell):-(N<2 ; N>3), delete_cell(X,Y),!.
+process_cell_life(X,Y,_,cell).

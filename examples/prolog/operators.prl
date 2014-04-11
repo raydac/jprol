@@ -1,0 +1,17 @@
+:-op(100,xfx,in).
+:-op(300,fx,concatenating).
+:-op(200,xfx,gives).
+:-op(100,xfx,and).
+:-op(300,fx,deleting).
+:-op(100,xfx,from).
+
+Item in [Item | List].
+Item in [First | Rest] :- Item in Rest.
+
+concatenating [] and List gives List.
+concatenating [X | L1] and L2 gives [X | L3] :- concatenating L1 and L2 gives L3.
+
+deleting Item from [Item | Rest] gives Rest.
+deleting Item from [First | Rest] gives [First | NewRest] :- deleting Item from Rest gives NewRest.
+
+?-concatenating [1,2,3] and [4,5,6] gives X, deleting 5 from X gives Y.

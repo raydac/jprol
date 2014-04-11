@@ -1,0 +1,14 @@
+%
+% This exampe shows how to use the async/1 and waitasync/0 predicates  to organise multithread graphic work
+% It draws 3000 000 color dots with three threads and shows the taken time (my notebook spends about 50 sec)
+%
+% Author: Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
+% SPb, RF, 2010
+%
+
+threadRed(P):-for(I,0,P),lock(gfx),pencolor(red),rnd(500,X),rnd(400,Y),dot(X,Y),unlock(gfx),fail.
+threadGreen(P):-for(I,0,P),lock(gfx),pencolor(green),rnd(500,X),rnd(400,Y),dot(X,Y),unlock(gfx),fail.
+threadBlue(P):-for(I,0,P),lock(gfx),pencolor(blue),rnd(500,X),rnd(400,Y),dot(X,Y),unlock(gfx),fail.
+
+?-time((P=1000000, graphics(500,400), async(threadRed(P)),async(threadGreen(P)),async(threadBlue(P)),waitasync)).
+

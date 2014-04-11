@@ -1,0 +1,8 @@
+:-regtrigger(planet/1,onassert,planetasserthandler).
+:-regtrigger(planet/1,onretract,planetretracthandler).
+
+planetasserthandler:-planet(X),!,write('asserted '),write(X),nl.
+planetretracthandler:-((planet(X),!,write('first planet is '),write(X));write('planet list is empty')),nl.
+
+:-asserta(planet('Mercury')),asserta(planet('Venus')),asserta(planet('Earth')).
+:-retracta(planet(_)),retracta(planet(_)),retract(planet(_)).

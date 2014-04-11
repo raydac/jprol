@@ -1,0 +1,14 @@
+%
+% This exampe shows how to use the fork/1 predicate to organise multithread graphic work
+% It draws 3000 000 color dots with three threads and shows the taken time (my notebook spends about 50 sec)
+%
+% Author: Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
+% SPb, RF, 2010
+%
+
+threadRed(P):-for(I,0,P),rnd(500,X),rnd(400,Y),lock(gfx),pencolor(red),dot(X,Y),unlock(gfx),fail.
+threadGreen(P):-for(I,0,P),rnd(500,X),rnd(400,Y),lock(gfx),pencolor(green),dot(X,Y),unlock(gfx),fail.
+threadBlue(P):-for(I,0,P),rnd(500,X),rnd(400,Y),lock(gfx),pencolor(blue),dot(X,Y),unlock(gfx),fail.
+
+?-P=1000000, time((graphics(500,400),fork([threadRed(P),threadGreen(P),threadBlue(P)]))).
+
