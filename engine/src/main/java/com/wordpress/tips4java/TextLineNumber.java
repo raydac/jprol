@@ -16,36 +16,15 @@
 package com.wordpress.tips4java;
 
 import com.igormaznitsa.prol.easygui.AbstractProlEditor;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import java.awt.*;
+import java.beans.*;
 import java.util.HashMap;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
-import javax.swing.border.CompoundBorder;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.MatteBorder;
-import javax.swing.event.CaretEvent;
-import javax.swing.event.CaretListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.UndoableEditListener;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Element;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.Utilities;
+import javax.swing.*;
+import javax.swing.border.*;
+import javax.swing.event.*;
+import javax.swing.text.*;
 import javax.swing.undo.UndoManager;
 
 /**
@@ -499,6 +478,9 @@ public class TextLineNumber extends AbstractProlEditor {
     editor.setBackground(Color.WHITE);
     editor.setCaretColor(Color.BLACK);
     editor.setFont(new Font("Courier", Font.BOLD, 14));
+    
+    editor.setVisible(true);
+    
     setEnabled(true);
 
     undoManager = new UndoManager();
@@ -509,6 +491,15 @@ public class TextLineNumber extends AbstractProlEditor {
     scrollPane.setRowHeaderView(lineNumerator);
   }
 
+  public synchronized int getCaretPosition() {
+    return this.editor.getCaretPosition();
+  }
+
+  public synchronized void setCaretPosition(final int pos){
+    this.editor.setCaretPosition(pos);
+    this.editor.getCaret().setVisible(true);
+  }
+  
   public synchronized void setCaretPosition(final int line, final int pos) {
     try {
       final Element rootelement = editor.getDocument().getDefaultRootElement();
@@ -531,8 +522,6 @@ public class TextLineNumber extends AbstractProlEditor {
     setEdForeground(new Color(prefs.getInt("sourceforegroundcolor", 0xFFFFFF)));
     setEdWordWrap(prefs.getBoolean("sourcewordwrap", true));
     setEdFont(loadFontFromPrefs(prefs, "sourcefont"));
-    
-    
   }
 
   @Override

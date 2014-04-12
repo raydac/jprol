@@ -97,7 +97,12 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
   protected final JMenuItem POPUP_CUT = new JMenuItem("Cut",UIUtils.loadIcon("cut"));
   protected final JMenuItem POPUP_PASTE = new JMenuItem("Paste",UIUtils.loadIcon("page_paste"));
 
- 
+  private final String nameID;
+  
+  public String getNameID(){
+    return this.nameID;
+  }
+  
   public Font getEdFont() {
     return editor.getFont();
   }
@@ -164,6 +169,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     scrollPane = new JScrollPane(editor);
 
     setBorder(new TitledBorder(title));
+    nameID = title;
     editor.setEditable(true);
 
     setLayout(new BorderLayout(0, 0));
@@ -223,7 +229,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
 
   @Override
   public String toString() {
-    return ((TitledBorder) getBorder()).getTitle();
+    return this.nameID;
   }
 
   public synchronized void setTitle(String title) {

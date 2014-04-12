@@ -18,6 +18,7 @@ package com.igormaznitsa.prol.easygui;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
+import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
@@ -29,6 +30,40 @@ public final class UIUtils {
   private UIUtils(){
     
   }
+  
+  public static Pattern makePattern(final String str) {
+    if (str.isEmpty()) {
+      return null;
+    }
+
+    final StringBuilder buffer = new StringBuilder(str.length() << 1);
+
+    for (final char c : str.toCharArray()) {
+      if (Character.isAlphabetic(c) || Character.isDigit(c)) {
+        buffer.append(c);
+      }
+      else {
+        if (Character.isWhitespace(c)) {
+          buffer.append("\\s");
+        }
+        else {
+          switch (c) {
+            case '*':
+              buffer.append(".*");
+              break;
+            case '?':
+              buffer.append(".");
+              break;
+            default:
+              buffer.append("\\").append(c);
+          }
+        }
+      }
+    }
+    return Pattern.compile(buffer.toString(), Pattern.CASE_INSENSITIVE);
+  }
+
+  
   
   public static ImageIcon loadIcon(final String name) {
     try {

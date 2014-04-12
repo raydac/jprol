@@ -15,64 +15,30 @@
  */
 package com.igormaznitsa.prol.easygui;
 
-import com.igormaznitsa.prol.annotations.Determined;
-import com.igormaznitsa.prol.annotations.Predicate;
-import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.data.TermStruct;
-import com.igormaznitsa.prol.exceptions.ParserException;
-import com.igormaznitsa.prol.exceptions.ProlHaltExecutionException;
+import com.igormaznitsa.prol.annotations.*;
+import com.igormaznitsa.prol.data.*;
+import com.igormaznitsa.prol.exceptions.*;
 import com.igormaznitsa.prol.io.ProlStreamManager;
-import com.igormaznitsa.prol.libraries.ProlAbstractLibrary;
-import com.igormaznitsa.prol.libraries.ProlCoreLibrary;
-import com.igormaznitsa.prol.logic.Goal;
-import com.igormaznitsa.prol.logic.ProlContext;
+import com.igormaznitsa.prol.libraries.*;
+import com.igormaznitsa.prol.logic.*;
 import com.igormaznitsa.prol.parser.ProlConsult;
 import com.igormaznitsa.prol.trace.TraceListener;
 import com.igormaznitsa.prol.utils.Utils;
-import java.awt.Dimension;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Locale;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 import java.util.prefs.Preferences;
-import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JRadioButtonMenuItem;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.swing.*;
 import javax.swing.UIManager.LookAndFeelInfo;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
-import javax.swing.event.UndoableEditEvent;
-import javax.swing.event.UndoableEditListener;
+import javax.swing.event.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.tree.TreeModel;
-import javax.swing.undo.CannotRedoException;
-import javax.swing.undo.CannotUndoException;
-import javax.swing.undo.UndoManager;
+import javax.swing.undo.*;
 
 /**
  * The class implements the main frame of the Prol Pad IDE (a small UI utility
@@ -202,8 +168,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     Dimension scr = dt.getScreenSize();
     setSize((scr.width * 10) / 12, (scr.height * 10) / 12);
 
-    TextLineNumber.addUndoableEditListener(this);
-    TextLineNumber.addDocumentListener(this);
+    editorSource.addUndoableEditListener(this);
+    editorSource.addDocumentListener(this);
     messageEditor.addHyperlinkListener(this);
     addWindowListener(this);
     ExecutingPanel.setVisible(false);
@@ -223,7 +189,26 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     newFile();
 
-    menuItemWordWrapSources.setState(TextLineNumber.isWordWrap());
+    menuItemWordWrapSources.setState(editorSource.isWordWrap());
+    
+    final Action action = new AbstractAction("closeFindPanel") {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (panelFindText.isVisible()){
+          panelFindText.setVisible(false);
+          textFind.setText("");
+        }
+      }
+
+    };
+    
+    final KeyStroke escKey = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+    action.putValue(Action.ACCELERATOR_KEY, escKey);
+    buttonCloseFind.getActionMap().put("closeFind", action);
+    buttonCloseFind.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escKey, "closeFind");
+    
+    panelFindText.setVisible(false);
   }
 
   private void fillLAndFeelMenu() {
@@ -308,12 +293,17 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     SplitPaneMain = new javax.swing.JSplitPane();
     SplitPaneTop = new javax.swing.JSplitPane();
-    TextLineNumber = new com.wordpress.tips4java.TextLineNumber();
     try {
       dialogEditor = new com.igormaznitsa.prol.easygui.DialogEditor();
     } catch (java.io.IOException e1) {
       e1.printStackTrace();
     }
+    editorPanel = new javax.swing.JPanel();
+    editorSource = new com.wordpress.tips4java.TextLineNumber();
+    panelFindText = new javax.swing.JPanel();
+    labelFind = new javax.swing.JLabel();
+    textFind = new javax.swing.JTextField();
+    buttonCloseFind = new javax.swing.JButton();
     SplitPanelDown = new javax.swing.JSplitPane();
     messageEditor = new com.igormaznitsa.prol.easygui.MessageEditor();
     traceEditor = new com.igormaznitsa.prol.easygui.TraceDialog();
@@ -339,8 +329,10 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     MenuEditCommentSelected = new javax.swing.JMenuItem();
     MenuEditUncommentSelected = new javax.swing.JMenuItem();
     jSeparator3 = new javax.swing.JPopupMenu.Separator();
+    menuitemFindText = new javax.swing.JMenuItem();
     menuItemWordWrapSources = new javax.swing.JCheckBoxMenuItem();
     menuItemFullScreen = new javax.swing.JMenuItem();
+    jSeparator5 = new javax.swing.JPopupMenu.Separator();
     MenuEditOptions = new javax.swing.JMenuItem();
     MenuRun = new javax.swing.JMenu();
     MenuRunScript = new javax.swing.JMenuItem();
@@ -365,12 +357,42 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     SplitPaneTop.setResizeWeight(0.9);
     SplitPaneTop.setOneTouchExpandable(true);
 
-    TextLineNumber.setToolTipText("The editor allows to enter and edit text of a program");
-    TextLineNumber.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
-    SplitPaneTop.setLeftComponent(TextLineNumber);
-
     dialogEditor.setToolTipText("The window allows to communicate with a user");
     SplitPaneTop.setRightComponent(dialogEditor);
+
+    editorPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Editor"));
+    editorPanel.setLayout(new java.awt.BorderLayout());
+
+    editorSource.setBorder(null);
+    editorSource.setToolTipText("The editor allows to enter and edit text of a program");
+    editorSource.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
+    editorPanel.add(editorSource, java.awt.BorderLayout.CENTER);
+
+    panelFindText.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 5, 0));
+
+    labelFind.setText("Find:");
+    panelFindText.add(labelFind);
+
+    textFind.setToolTipText("Enter text for search (wildcard chars ? and * are supported)");
+    textFind.setPreferredSize(new java.awt.Dimension(300, 19));
+    textFind.addKeyListener(new java.awt.event.KeyAdapter() {
+      public void keyReleased(java.awt.event.KeyEvent evt) {
+        textFindKeyReleased(evt);
+      }
+    });
+    panelFindText.add(textFind);
+
+    buttonCloseFind.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/cross.png"))); // NOI18N
+    buttonCloseFind.setToolTipText("Hide the find text panel (ESC)");
+    buttonCloseFind.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+    buttonCloseFind.setIconTextGap(0);
+    buttonCloseFind.setMargin(new java.awt.Insets(0, 0, 0, 0));
+    buttonCloseFind.setOpaque(false);
+    panelFindText.add(buttonCloseFind);
+
+    editorPanel.add(panelFindText, java.awt.BorderLayout.PAGE_END);
+
+    SplitPaneTop.setLeftComponent(editorPanel);
 
     SplitPaneMain.setTopComponent(SplitPaneTop);
 
@@ -552,6 +574,16 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     MenuEdit.add(MenuEditUncommentSelected);
     MenuEdit.add(jSeparator3);
 
+    menuitemFindText.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, java.awt.event.InputEvent.CTRL_MASK));
+    menuitemFindText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/zoom.png"))); // NOI18N
+    menuitemFindText.setText("Find text");
+    menuitemFindText.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        menuitemFindTextActionPerformed(evt);
+      }
+    });
+    MenuEdit.add(menuitemFindText);
+
     menuItemWordWrapSources.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_W, java.awt.event.InputEvent.CTRL_MASK));
     menuItemWordWrapSources.setSelected(true);
     menuItemWordWrapSources.setText("Word wrap");
@@ -565,7 +597,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     MenuEdit.add(menuItemWordWrapSources);
 
     menuItemFullScreen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, java.awt.event.InputEvent.SHIFT_MASK | java.awt.event.InputEvent.CTRL_MASK));
-    menuItemFullScreen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/zoom.png"))); // NOI18N
+    menuItemFullScreen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/shape_move_forwards.png"))); // NOI18N
     menuItemFullScreen.setText("Full screen");
     menuItemFullScreen.setToolTipText("Turn on the full screen mode if it is supported by the device");
     menuItemFullScreen.addActionListener(new java.awt.event.ActionListener() {
@@ -574,6 +606,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       }
     });
     MenuEdit.add(menuItemFullScreen);
+    MenuEdit.add(jSeparator5);
 
     MenuEditOptions.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/cog.png"))); // NOI18N
     MenuEditOptions.setText("Options");
@@ -716,11 +749,11 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     private void MenuUndoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuUndoActionPerformed
       try {
-        TextLineNumber.getUndoManager().undo();
+        editorSource.getUndoManager().undo();
       }
       catch (CannotUndoException ex) {
       }
-      UndoManager undo = TextLineNumber.getUndoManager();
+      UndoManager undo = editorSource.getUndoManager();
       MenuUndo.setEnabled(undo.canUndo());
       MenuRedo.setEnabled(undo.canRedo());
 
@@ -728,11 +761,11 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     private void MenuRedoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuRedoActionPerformed
       try {
-        TextLineNumber.getUndoManager().redo();
+        editorSource.getUndoManager().redo();
       }
       catch (CannotRedoException ex) {
       }
-      UndoManager undo = TextLineNumber.getUndoManager();
+      UndoManager undo = editorSource.getUndoManager();
       MenuUndo.setEnabled(undo.canUndo());
       MenuRedo.setEnabled(undo.canRedo());
 
@@ -743,10 +776,10 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }//GEN-LAST:event_MenuExitActionPerformed
 
     private void MenuClearTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuClearTextActionPerformed
-      if (TextLineNumber.getEditor().getDocument().getLength() > 10) {
+      if (editorSource.getEditor().getDocument().getLength() > 10) {
         if (JOptionPane.showConfirmDialog(this, "Do you really want to clear the text?", "Confirmation", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-          TextLineNumber.getUndoManager().discardAllEdits();
-          TextLineNumber.clearText();
+          editorSource.getUndoManager().discardAllEdits();
+          editorSource.clearText();
         }
       }
     }//GEN-LAST:event_MenuClearTextActionPerformed
@@ -810,7 +843,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }//GEN-LAST:event_MenuHelpHelpActionPerformed
 
     private void MenuEditOptionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuEditOptionsActionPerformed
-      OptionsDialog dialog = new OptionsDialog(this, new TreeModel[]{TextLineNumber, dialogEditor, messageEditor, traceEditor});
+      OptionsDialog dialog = new OptionsDialog(this, new TreeModel[]{editorSource, dialogEditor, messageEditor, traceEditor});
       dialog.setVisible(true);
     }//GEN-LAST:event_MenuEditOptionsActionPerformed
 
@@ -834,7 +867,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }//GEN-LAST:event_MenuItemLibraryInfoActionPerformed
 
     private void menuItemWordWrapSourcesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItemWordWrapSourcesActionPerformed
-      TextLineNumber.setWordWrap(menuItemWordWrapSources.isSelected());
+      editorSource.setWordWrap(menuItemWordWrapSources.isSelected());
     }//GEN-LAST:event_menuItemWordWrapSourcesActionPerformed
 
     private void MenuFileNewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuFileNewActionPerformed
@@ -934,14 +967,14 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     private void MenuEditCommentSelectedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuEditCommentSelectedActionPerformed
       // TODO add your handling code here:
-      if (TextLineNumber.commentSelectedLines()) {
+      if (editorSource.commentSelectedLines()) {
         documentChanged();
       }
     }//GEN-LAST:event_MenuEditCommentSelectedActionPerformed
 
     private void MenuEditUncommentSelectedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuEditUncommentSelectedActionPerformed
       // TODO add your handling code here:
-      if (TextLineNumber.uncommentSelectedLines()) {
+      if (editorSource.uncommentSelectedLines()) {
         documentChanged();
       }
     }//GEN-LAST:event_MenuEditUncommentSelectedActionPerformed
@@ -957,6 +990,40 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       }
     }
   }//GEN-LAST:event_menuItemFullScreenActionPerformed
+
+  private void menuitemFindTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuitemFindTextActionPerformed
+    panelFindText.setVisible(true);
+    textFind.setText("");
+    textFind.requestFocus();
+  }//GEN-LAST:event_menuitemFindTextActionPerformed
+
+  private int searchText(final String text, final Pattern pattern, final int cursorPos){
+    if (cursorPos>=text.length()) return -1;
+    
+    final Matcher matcher = pattern.matcher(text);
+    if (matcher.find(cursorPos)){
+      return matcher.start();
+    }
+    return -1;
+  }
+  
+  private void textFindKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_textFindKeyReleased
+    if (evt.getKeyCode() == KeyEvent.VK_ENTER){
+      final Pattern patternToFind = UIUtils.makePattern(textFind.getText());
+      
+      final String text = this.editorSource.getText();
+      
+      int cursorPos = searchText(text, patternToFind, this.editorSource.getCaretPosition() + 1);
+      
+      if (cursorPos<0){
+        cursorPos = searchText(text, patternToFind, 0);
+      }
+      
+      if (cursorPos>=0){
+        this.editorSource.setCaretPosition(cursorPos);
+      }
+    }
+  }//GEN-LAST:event_textFindKeyReleased
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JButton ButtonStopExecuting;
@@ -991,16 +1058,23 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   private javax.swing.JSplitPane SplitPaneTop;
   private javax.swing.JSplitPane SplitPanelDown;
   private javax.swing.JProgressBar TaskProgressBar;
-  private com.wordpress.tips4java.TextLineNumber TextLineNumber;
+  private javax.swing.JButton buttonCloseFind;
   private com.igormaznitsa.prol.easygui.DialogEditor dialogEditor;
+  private javax.swing.JPanel editorPanel;
+  private com.wordpress.tips4java.TextLineNumber editorSource;
   private javax.swing.JMenuBar jMenuBar1;
   private javax.swing.JPopupMenu.Separator jSeparator1;
   private javax.swing.JPopupMenu.Separator jSeparator2;
   private javax.swing.JPopupMenu.Separator jSeparator3;
   private javax.swing.JPopupMenu.Separator jSeparator4;
+  private javax.swing.JPopupMenu.Separator jSeparator5;
+  private javax.swing.JLabel labelFind;
   private javax.swing.JMenuItem menuItemFullScreen;
   private javax.swing.JCheckBoxMenuItem menuItemWordWrapSources;
+  private javax.swing.JMenuItem menuitemFindText;
   private com.igormaznitsa.prol.easygui.MessageEditor messageEditor;
+  private javax.swing.JPanel panelFindText;
+  private javax.swing.JTextField textFind;
   private com.igormaznitsa.prol.easygui.TraceDialog traceEditor;
   // End of variables declaration//GEN-END:variables
 
@@ -1111,7 +1185,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       }
 
       messageEditor.addInfoText("Consult with the script... ");
-      consult = new ProlConsult(TextLineNumber.getText(), context);
+      consult = new ProlConsult(editorSource.getText(), context);
 
       startTime = System.currentTimeMillis();
 
@@ -1207,7 +1281,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
   @Override
   public void undoableEditHappened(final UndoableEditEvent e) {
-    final UndoManager undo = TextLineNumber.getUndoManager();
+    final UndoManager undo = editorSource.getUndoManager();
     undo.addEdit(e.getEdit());
     MenuUndo.setEnabled(undo.canUndo());
     MenuRedo.setEnabled(undo.canRedo());
@@ -1280,7 +1354,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       dialogEditor.requestFocus();
     }
     else {
-      TextLineNumber.requestFocus();
+      editorSource.requestFocus();
     }
 
   }
@@ -1315,8 +1389,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   }
 
   private void setTextToDocument(final String text) {
-    TextLineNumber.clearText();
-    TextLineNumber.getEditor().setText(text);
+    editorSource.clearText();
+    editorSource.getEditor().setText(text);
 
     if (currentOpenedFile != null) {
       MenuFileSave.setEnabled(true);
@@ -1325,7 +1399,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       MenuFileSave.setEnabled(false);
     }
 
-    TextLineNumber.getUndoManager().discardAllEdits();
+    editorSource.getUndoManager().discardAllEdits();
     MenuUndo.setEnabled(false);
     MenuRedo.setEnabled(false);
 
@@ -1367,7 +1441,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     FileWriter writer = null;
 
     try {
-      String text = TextLineNumber.getEditor().getText();
+      String text = editorSource.getEditor().getText();
       writer = new FileWriter(file, false);
       writer.write(text);
       writer.flush();
@@ -1393,7 +1467,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     lastOpenedFile = currentOpenedFile;
     setTitle(currentOpenedFile.getAbsolutePath());
 
-    TextLineNumber.getUndoManager().discardAllEdits();
+    editorSource.getUndoManager().discardAllEdits();
     MenuFileSave.setEnabled(true);
     documentHasBeenChangedFlag = false;
   }
@@ -1401,7 +1475,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   private void newFile() {
     // make new
 
-    TextLineNumber.clearText();
+    editorSource.clearText();
 
     clearTextAtAllWindowsExcludeSource();
 
@@ -1517,7 +1591,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
           int line = Integer.parseInt(parsed[0].trim());
           int pos = Integer.parseInt(parsed[1].trim());
 
-          TextLineNumber.setCaretPosition(line, pos + 1);
+          editorSource.setCaretPosition(line, pos + 1);
         }
         catch (Exception ex) {
           ex.printStackTrace();
@@ -1563,7 +1637,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       lastOpenedFile = null;
     }
 
-    TextLineNumber.loadPreferences(prefs);
+    editorSource.loadPreferences(prefs);
     messageEditor.loadPreferences(prefs);
     dialogEditor.loadPreferences(prefs);
     traceEditor.loadPreferences(prefs);
@@ -1593,7 +1667,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     prefs.put("lastfile", lastOpenedFile == null ? "" : lastOpenedFile.getAbsolutePath());
 
-    TextLineNumber.savePreferences(prefs);
+    editorSource.savePreferences(prefs);
     messageEditor.savePreferences(prefs);
     dialogEditor.savePreferences(prefs);
     traceEditor.savePreferences(prefs);

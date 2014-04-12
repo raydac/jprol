@@ -59,38 +59,6 @@ public final class LibraryInfoDialog extends javax.swing.JDialog {
     }
   }
 
-  private static Pattern makePattern(final String str) {
-    if (str.isEmpty()) {
-      return null;
-    }
-
-    final StringBuilder buffer = new StringBuilder(str.length() << 1);
-
-    for (final char c : str.toCharArray()) {
-      if (Character.isAlphabetic(c) || Character.isDigit(c)) {
-        buffer.append(c);
-      }
-      else {
-        if (Character.isWhitespace(c)) {
-          buffer.append("\\s");
-        }
-        else {
-          switch (c) {
-            case '*':
-              buffer.append(".*");
-              break;
-            case '?':
-              buffer.append(".");
-              break;
-            default:
-              buffer.append("\\").append(c);
-          }
-        }
-      }
-    }
-    return Pattern.compile(buffer.toString(), Pattern.CASE_INSENSITIVE);
-  }
-
   private boolean searchTextFromPosition(final Matcher matcher, final int startPos) {
     textPaneLibText.getHighlighter().removeAllHighlights();
 
@@ -125,7 +93,7 @@ public final class LibraryInfoDialog extends javax.swing.JDialog {
         return;
       }
 
-      final Pattern patternToFindText = makePattern(textToSearch);
+      final Pattern patternToFindText = UIUtils.makePattern(textToSearch);
       int curIndex = textPaneLibText.getCaretPosition();
 
       final Matcher matcher = patternToFindText.matcher(getDocText());
