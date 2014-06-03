@@ -165,7 +165,7 @@
                   <headerType>gui</headerType>
                   <jar>${project.build.directory}/${artifactId}-${version}.jar</jar>
                   <outfile>${project.build.directory}/prolpad_${project.version}.exe</outfile>
-                  <downloadUrl>http://igormaznitsa.com</downloadUrl>
+                  <downloadUrl>http://www.oracle.com/technetwork/java/javase/downloads</downloadUrl>
                   <classPath>
                     <mainClass>com.igormaznitsa.prol.easygui.main</mainClass>
                     <preCp>anything</preCp>
