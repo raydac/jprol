@@ -6,6 +6,10 @@ PROL is a small embeddable monolitic (one uberjar) Prolog engine developed in 20
 
 In 2014 I was asked by Yuki Katsura to open sources and now I have opened them as an OSS project under Apache License 2.0
 
+License
+========
+The Engine is under [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
 Graphics User Interface
 ========================
 ![Screenshot](https://github.com/raydac/jprol/blob/master/screenshotprolpad.jpg)
