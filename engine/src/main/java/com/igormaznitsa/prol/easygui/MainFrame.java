@@ -192,6 +192,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     menuItemWordWrapSources.setState(editorSource.isWordWrap());
     
     final Action action = new AbstractAction("closeFindPanel") {
+      private static final long serialVersionUID = 4377386270269629176L;
 
       @Override
       public void actionPerformed(ActionEvent e) {

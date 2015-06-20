@@ -39,7 +39,7 @@ public final class UIUtils {
     final StringBuilder buffer = new StringBuilder(str.length() << 1);
 
     for (final char c : str.toCharArray()) {
-      if (Character.isAlphabetic(c) || Character.isDigit(c)) {
+      if (Character.isLetter(c) || Character.isDigit(c)) {
         buffer.append(c);
       }
       else {

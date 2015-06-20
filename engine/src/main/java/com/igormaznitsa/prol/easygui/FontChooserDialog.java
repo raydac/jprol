@@ -80,7 +80,7 @@ public class FontChooserDialog extends javax.swing.JDialog implements ActionList
     ComboBoxFont.setSelectedItem(font.getFamily());
     SpinnerSize.setValue(font.getSize());
 
-    String style = null;
+    String style;
     switch (font.getStyle()) {
       case Font.BOLD: {
         style = "BOLD";
