@@ -92,3 +92,7 @@ threadRed(P) :- for(_, 0, P), rnd(500, X), rnd(400, Y), lock(gfx), pencolor(red)
 End word
 =========
 I am very impressed by power of Prolog, I think it is one of the greatest computer languages (may be it is the best computer language at all) and the language makes a programmer to write really thinking software. Please keep in your mind that PROL is an Academic project and it was not developed to be used in production but it helps make some experiments and learn Prolog. 
+
+# Donation   
+If you like the software you can make some donation to the author   
+[![https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AHWJHJFBAWGL2)
