@@ -21,7 +21,7 @@ Prebuilt versions of the Windows executable file (based on Launch4j) and the JAR
 How to use from Java
 =====================
 ## Technical requirements
-The Engine needs Java version 1.6+. For development I use NetBeans? 7.4-8.0 and all GUI forms developed in NetBeans? editor. The Engine actively uses stack but very very deep recursion can make troubles and even crash or hang JVM!
+The Engine needs Java version 1.6+. For development I use NetBeans IDE 7.4+ and all GUI forms developed with the NetBeans GUI Form  editor. **NB! The Engine doesn't have any optimizations for work with recursion so that a deep recursion can throw StackOverFlow, in the case the only way to resolve the situation is to increase allowed JVM stack depth through JVM -Xss option, like `-Xss5m` but it will increase JVM memory consumption!**
 
 ## Start in GUI mode
 To start the GUI editor you can use below CLI commands
