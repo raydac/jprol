@@ -54,7 +54,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   /**
    * The version of the IDE
    */
-  private final String VERSION = getString(this.getClass().getPackage().getImplementationVersion(),"<Unknown>");
+  private final String VERSION = getString(this.getClass().getPackage().getImplementationVersion(),"<Development>");
   /**
    * Inside logger
    */
@@ -824,7 +824,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }//GEN-LAST:event_ButtonStopExecutingActionPerformed
 
     private void MenuAboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuAboutActionPerformed
-      JOptionPane.showMessageDialog(this, "The Prol Notepad utility\r\n==================================\r\nVersion: " + VERSION + "\r\nAuthor: Igor Maznitsa (http://www.igormaznitsa.com)\r\n\r\n(C)2010-2014 Igor A. Maznitsa. Apache 2.0 License\r\nIcons from the free icon set http://www.famfamfam.com/lab/icons/silk/", "About", JOptionPane.INFORMATION_MESSAGE, new ImageIcon(this.getIconImage()));
+      JOptionPane.showMessageDialog(this, "The Prol Notepad utility\r\n==================================\r\nVersion: " + VERSION + "\r\nProject URL: https://github.com/raydac/jprol\r\nAuthor: Igor Maznitsa (http://www.igormaznitsa.com)\r\n\r\n(C)2010-2015 Igor A. Maznitsa. Apache 2.0 License\r\nIcons from the free icon set http://www.famfamfam.com/lab/icons/silk/", "About", JOptionPane.INFORMATION_MESSAGE, new ImageIcon(this.getIconImage()));
     }//GEN-LAST:event_MenuAboutActionPerformed
 
     private void MenuViewKnowledgeBaseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuViewKnowledgeBaseActionPerformed
@@ -1439,14 +1439,14 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       }
     }
 
-    FileWriter writer = null;
+    final String textFromEditor = editorSource.getEditor().getText();
+    
+    Writer writer = null;
 
     try {
-      String text = editorSource.getEditor().getText();
-      writer = new FileWriter(file, false);
-      writer.write(text);
+      writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false),"UTF-8"));
+      writer.write(textFromEditor);
       writer.flush();
-
       recentFiles.put(file.getAbsolutePath());
     }
     catch (Throwable thr) {
@@ -1514,26 +1514,18 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
       lastOpenedFile = fileToOpen;
 
-      FileReader reader = null;
+      Reader reader = null;
 
       try {
-        reader = new FileReader(fileToOpen);
-
-        final int possiblelength = (int) fileToOpen.length();
-
-        final StringBuilder builder = new StringBuilder(possiblelength);
-
-        char[] buff = new char[8096];
-
-        while (true) {
-          int readlen = reader.read(buff, 0, buff.length);
-          if (readlen < 0) {
-            break;
-          }
-          builder.append(buff, 0, readlen);
+        reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileToOpen),"UTF-8"));
+        final StringBuilder buffer = new StringBuilder((int)fileToOpen.length() < 0 ? 16384 : (int)fileToOpen.length());
+        while(true){
+          final int chr = reader.read();
+          if (chr < 0) break;
+          buffer.append((char)chr);
         }
 
-        setTextToDocument(builder.toString());
+        setTextToDocument(buffer.toString());
         currentOpenedFile = fileToOpen;
         setTitle(currentOpenedFile.getCanonicalPath());
         this.repaint();

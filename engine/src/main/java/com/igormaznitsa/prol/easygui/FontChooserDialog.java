@@ -46,7 +46,7 @@ public class FontChooserDialog extends javax.swing.JDialog implements ActionList
    * @param font
    * @param testText
    */
-  @SuppressWarnings("rawtypes")
+  @SuppressWarnings({"rawtypes","unchecked"})
   public FontChooserDialog(final Dialog parent, final String title, Font font, String testText) {
     super(parent, true);
     initComponents();
