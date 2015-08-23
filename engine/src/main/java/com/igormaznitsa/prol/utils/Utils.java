@@ -69,12 +69,16 @@ public final class Utils {
   }
 
   /**
-   * Get a hashmap filled by variables found in a term, the variables can be
-   * accessed by their string names
+   * Get a hash-map filled by variables found in a term, the variables can be
+   * accessed by their string names.
+   * <b>NB! Variables are mutable object and the operation doesn't make any copy
+   * of them, their state will be changed during any next JProl operation, thus
+   * consider the map as temporary data storage which values you should process
+   * as soon as possible!</b>
    *
    * @param term the term which variables should be returned, must not be null
-   * @return a HashMap object contains variables from the term accessibled by
-   * their String names
+   * @return a HashMap object contains pairs name-variables extracted from the term
+   * @see #fillTableWithVarValues(com.igormaznitsa.prol.data.Term) 
    */
   public static Map<String, Var> fillTableWithVars(final Term term) {
     final Map<String, Var> vars = new HashMap<String, Var>();
@@ -82,6 +86,33 @@ public final class Utils {
     return vars;
   }
 
+  /**
+   * Extract content of all instantiated non-anonymous variables from the provided term. 
+   * <b>NB! Both Non-instantiated and anonymous variables will be ignored in the result.</b>
+   * @param term term to be processes, must not be null
+   * @param map a map to be filled by pairs, it can be null and in the case it will be created
+   * @return a name-value map for all instantiated variables detected in the provided term
+   */
+  public static Map<String, Term> fillTableWithFoundVarContent(final Term term, final Map<String,Term> map){
+    final Map<String,Var> vars = fillTableWithVars(term);
+    final Map<String,Term> result;
+    if (map == null){
+      result = new HashMap<String, Term>();
+    }else{
+      map.clear();
+      result = map;
+    }
+    
+    for(final Map.Entry<String,Var> e : vars.entrySet()){
+      final String name = e.getKey();
+      final Var value = e.getValue();
+      if (!(value.isAnonymous() || value.isUndefined())){
+        result.put(name, value.getValue());
+      }
+    }
+    return result;
+  }
+  
   /**
    * Return a Number object from a Term if it is possible.
    *

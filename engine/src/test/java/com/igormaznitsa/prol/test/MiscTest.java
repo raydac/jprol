@@ -17,6 +17,7 @@ package com.igormaznitsa.prol.test;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermInteger;
+import com.igormaznitsa.prol.data.TermList;
 import com.igormaznitsa.prol.data.Var;
 import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
 import com.igormaznitsa.prol.logic.Goal;
@@ -29,22 +30,26 @@ import java.util.Map;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
+/**
+ * Set of miscellaneous tests.
+ */
 public class MiscTest {
   
   @Test
   public void testGetAllGoalsAndConvertThem() throws Exception {
     final ProlContext context = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
-    final ProlConsult consult = new ProlConsult("map(one,1). map(two,2). map(three,3).", context);
+    final ProlConsult consult = new ProlConsult("map(one,1,a). map(two,2,b). map(three,3,c).", context);
     consult.consult();
     
-    final Goal goal = new Goal("map(X,Y).", context);
+    final Goal goal = new Goal("map(X,Y,_).", context);
 
     final class Result {
       final String name;
       final int value;
-      Result(final Map<String,Var> map){
-        this.name = map.get("X").getValue().getText();
-        this.value = (Integer)((TermInteger)map.get("Y").getValue()).getNumericValue();
+      Result(final Map<String,Term> map){
+        assertEquals(2,map.size());
+        this.name = map.get("X").getText();
+        this.value = (Integer)((TermInteger)map.get("Y")).getNumericValue();
       }
       
       @Override
@@ -57,7 +62,7 @@ public class MiscTest {
     while(true){
       final Term t = goal.solve();
       if (t == null) break;
-      result.add(new Result(Utils.fillTableWithVars(t)));
+      result.add(new Result(Utils.fillTableWithFoundVarContent(t,null)));
     }
     
     assertEquals(3,result.size());
@@ -70,4 +75,30 @@ public class MiscTest {
     
     System.out.println("List: "+result);
   }
+  
+  @Test
+  public void findAllTest() throws Exception {
+    ProlContext context;
+    context = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
+    final ProlConsult consult = new ProlConsult("powerSet([],[]).powerSet([_|Xt],Y) :- powerSet(Xt,Y).powerSet([Xh|Xt],[Xh|Yt]) :- powerSet(Xt,Yt).", context);
+    consult.consult();
+    final Goal goal = new Goal("findall(X,powerSet([a,b],X),Y).", context);
+
+    Var result = null;
+
+    while (true) {
+      final Term t = goal.solve();
+      if (t == null) {
+        break;
+      }
+      final Var valy = goal.getVarForName("Y");
+      assertNull(result);
+      result = valy;
+    }
+
+    assertNotNull(result);
+    assertTrue(result.getValue() instanceof TermList);
+    assertEquals("[[],['b'],['a'],['a','b']]", result.getValue().toString());
+  }
+
 }
