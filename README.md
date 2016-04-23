@@ -1,3 +1,9 @@
+[![License Apache 2.0](https://img.shields.io/badge/license-Apache%20License%202.0-green.svg)](http://www.apache.org/licenses/LICENSE-2.0)
+[![Codacy Badge](https://api.codacy.com/project/badge/grade/6cec4cb9ac42419aa003a27597c3c357)](https://www.codacy.com/app/rrg4400/netbeans-mmd-plugin)
+[![Java 6.0+](https://img.shields.io/badge/java-7.0%2b-green.svg)](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+[![PayPal donation](https://img.shields.io/badge/donation-PayPal-red.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AHWJHJFBAWGL2)
+[![Yandex.Money donation](https://img.shields.io/badge/donation-Я.деньги-yellow.svg)](https://money.yandex.ru/embed/small.xml?account=41001158080699&quickpay=small&yamoney-payment-type=on&button-text=01&button-size=l&button-color=orange&targets=%D0%9F%D0%BE%D0%B6%D0%B5%D1%80%D1%82%D0%B2%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5+%D0%BD%D0%B0+%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D1%8B+%D1%81+%D0%BE%D1%82%D0%BA%D1%80%D1%8B%D1%82%D1%8B%D0%BC+%D0%B8%D1%81%D1%85%D0%BE%D0%B4%D0%BD%D1%8B%D0%BC+%D0%BA%D0%BE%D0%B4%D0%BE%D0%BC&default-sum=100&successURL=)
+
 Introduction
 =============
 I bought a book of Ivan Bratko titled as "Prolog Programming for Artificial Intelligence" in 1990 but didn't have time to read that thus the book was placed into my shelf and forgotten for years till 2009. In 2009 I had read the book and was so impressed by the power of Prolog that to learn it better I decided to develop a small Prolog engine to be used with Java and the PROL was born.
@@ -92,7 +98,3 @@ threadRed(P) :- for(_, 0, P), rnd(500, X), rnd(400, Y), lock(gfx), pencolor(red)
 End word
 =========
 I am very impressed by power of Prolog, I think it is one of the greatest computer languages (may be it is the best computer language at all) and the language makes a programmer to write really thinking software. Please keep in your mind that PROL is an Academic project and it was not developed to be used in production but it helps make some experiments and learn Prolog. 
-
-# Donation   
-If you like the software you can make some donation to the author   
-[![https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AHWJHJFBAWGL2)
