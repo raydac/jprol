@@ -137,7 +137,7 @@
                 <configuration>
                   <headerType>gui</headerType>
                   <jar>${project.build.directory}/${app.name}.jar</jar>
-                  <outfile>${app.name}.exe</outfile>
+                  <outfile>${project.build.directory}/${app.name}.exe</outfile>
                   <downloadUrl>http://www.oracle.com/technetwork/java/javase/downloads</downloadUrl>
                   <classPath>
                     <mainClass>com.igormaznitsa.prol.easygui.main</mainClass>
