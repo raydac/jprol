@@ -8,12 +8,12 @@ I bought a book of Ivan Bratko titled as "Prolog Programming for Artificial Inte
 JProl is a small embeddable monolitic (one uberjar) Prolog engine developed in 2010 with number of libraries out of the box. It supports Edinburgh Prolog style and has a small GUI editor which is very useful for experiments. The Engine is not very optimal one and I would not recommend to use it in any production, it is good only for learning and teaching purposes.
 In 2014 I was asked by Yuki Katsura to open sources and now I have opened them as an OSS project under Apache License 2.0
 
-# GUI Editor
-The Application provides some small primitive GUI editor to edit one Prolog script and execute it with some dialog options. It provides library to work with graphic and save images.
-![Screenshot](https://github.com/raydac/jprol/blob/master/screenshotprolpad.jpg)
-
 # Prebuilt versions
 Prebuilt versions provided for main OSes (I can test only for Linux, so that notify me about issues under Windows and MacOS). [Executable files can be downloaded from the latest release page](https://github.com/raydac/jprol/releases/latest)
+
+# Embedded GUI editor
+The Engine has very small end restricted embedded GUI editor to create, edit and execute one Prolog program.
+![GUIEditor](https://github.com/raydac/jprol/blob/master/jprolguieditor.png)
 
 # How to define a predicate in Java
 The Engine was also used as proof-of-concept of usage Java methods as predicates and it allows to mark methods by special annotations and call them from Prolog.
@@ -65,8 +65,8 @@ final ProlContext context = new ProlContext("test",DefaultProlStreamManagerImpl.
             }
 ```
 
-## Graphics from Prolog
-As Example of Graphics calls you can take a look at Prolog program to draw a Koch snowflake fractal.
+## Prolog and Graphics
+JProl GUI editor provides some predicates to draw graphics and save images, as example of Graphics calls you can take a look at Prolog program to draw a Koch snowflake fractal.
 ```Prolog
 kochsnowflake(N,L) :- settitle('Koch snowflake'), brushcolor(white), graphics(300,300), pencolor(red), time((fractal(N,30,80,L,0,X1,Y1), fractal(N,X1,Y1,L,2.0943951024,X2,Y2), fractal(N,X2,Y2,L,4.1887902048,_,_))).
 
@@ -75,7 +75,7 @@ fractal(I,X,Y,L,A,XN,YN):- II is I-1, LL is L/3, A2 is A-1.0471975512, A3 is A+1
 
 ?-kochsnowflake(5,300).
 ```
-![Screenshot](https://github.com/raydac/jprol/blob/master/jprolgui.png)
+![KochSnowflake](https://github.com/raydac/jprol/blob/master/jprolgui.png)
 
 # Multithreading
 It was interesting for me to implement support of multithreading in the engine to take a look how it is compatible with Prolog and it looks nice and much easy than in Java. The engine allows to use pair predicates to span new threads fork/1 and async/1, also it has special predicate waitasync/0 for synchronization you can wait the end of all executing spawned threads (by the main thread). The waitasync/0 predicate must be used only from the main thread (I mean the root goal). Also there are lockers which allow to create critical sections with lock/1, unlock/1 and trylock/1 predicates. Take a look at the example of their usage below, I have shown an application which draws 3000000 color dots on the graphic screen (provided by embedded GUI library), each thread paints its own color dots in its own thread. 
