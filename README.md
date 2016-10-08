@@ -1,39 +1,24 @@
-Introduction
-=============
-I bought a book of Ivan Bratko titled as "Prolog Programming for Artificial Intelligence" in 1990 but didn't have time to read that thus the book was placed into my shelf and forgotten for years till 2009. In 2009 I had read the book and was so impressed by the power of Prolog that to learn it better I decided to develop a small Prolog engine to be used with Java and the PROL was born.
+[![License Apache 2.0](https://img.shields.io/badge/license-Apache%20License%202.0-green.svg)](http://www.apache.org/licenses/LICENSE-2.0)
+[![Java 6.0+](https://img.shields.io/badge/java-6.0%2b-green.svg)](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+[![PayPal donation](https://img.shields.io/badge/donation-PayPal-red.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AHWJHJFBAWGL2)
+[![Yandex.Money donation](https://img.shields.io/badge/donation-Я.деньги-yellow.svg)](https://money.yandex.ru/embed/small.xml?account=41001158080699&quickpay=small&yamoney-payment-type=on&button-text=01&button-size=l&button-color=orange&targets=%D0%9F%D0%BE%D0%B6%D0%B5%D1%80%D1%82%D0%B2%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5+%D0%BD%D0%B0+%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D1%8B+%D1%81+%D0%BE%D1%82%D0%BA%D1%80%D1%8B%D1%82%D1%8B%D0%BC+%D0%B8%D1%81%D1%85%D0%BE%D0%B4%D0%BD%D1%8B%D0%BC+%D0%BA%D0%BE%D0%B4%D0%BE%D0%BC&default-sum=100&successURL=)
 
-PROL is a small embeddable monolitic (one uberjar) Prolog engine developed in 2010 with number of libraries on the board. It supports Edinburgh Prolog style and has a small editor working out of the box for experiments. it has been covered tests for about 38% so that not recommended to be used in production but for research only. I didn't spend much time to optimize it so that Einsten's puzzle it resolves in 2 seconds.
-
+# Introduction
+I bought a book of Ivan Bratko titled as "Prolog Programming for Artificial Intelligence" in 1990 but didn't have enough time to read it so that the book was placed into a shelf and forgotten for years till 2009. In 2009 I had read the book and was so impressed by the power of computer language that to learn it better I developed small Java based Prolog engine and called it JProl.
+JProl is a small embeddable monolitic (one uberjar) Prolog engine developed in 2010 with number of libraries out of the box. It supports Edinburgh Prolog style and has a small GUI editor which is very useful for experiments. The Engine is not very optimal one and I would not recommend to use it in any production, it is good only for learning and teaching purposes.
 In 2014 I was asked by Yuki Katsura to open sources and now I have opened them as an OSS project under Apache License 2.0
 
-License
-========
-The Engine is under [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0)
-
-Graphics User Interface
-========================
+# GUI Editor
+The Application provides some small primitive GUI editor to edit one Prolog script and execute it with some dialog options. It provides library to work with graphic and save images.
 ![Screenshot](https://github.com/raydac/jprol/blob/master/screenshotprolpad.jpg)
 
 Prebuilt versions
 ==================
 Prebuilt versions of the Windows executable file (based on Launch4j) and the JAR version you can find in [my Google drive folder](https://googledrive.com/host/0BxHnNp97IgMRSEN0VDFCMGYtZkk/)
 
-How to use from Java
-=====================
-## Technical requirements
-The Engine needs Java version 1.6+. For development I use NetBeans IDE 7.4+ and all GUI forms developed with the NetBeans GUI Form  editor. **NB! The Engine doesn't have any optimizations for work with recursion so that a deep recursion can throw StackOverFlow, in the case the only way to resolve the situation is to increase allowed JVM stack depth through JVM -Xss option, like `-Xss5m` but it will increase JVM memory consumption!**
-
-## Start in GUI mode
-To start the GUI editor you can use below CLI commands
-```
-   java -jar jprol-1.1.3-SNAPSHOT.jar
-```
-or
-```
-   java -cp jprol-1.1.3-SNAPSHOT.jar com.igormaznitsa.prol.easygui.main
-```
-## How to define a predicate in Java
-It is very easy to define new predicates in Java. For instance, I am going to show you how a SORT/2 predicate has been implemented in the core Prol library. As you can see below, you should just place @Predicate annotation for a method which implements the functionality. Of course the method must be in the special format and it must have two arguments Goal and TermStruct.
+# How to define a predicate in Java
+The Engine was also used as proof-of-concept of usage Java methods as predicates and it allows to mark methods by special annotations and call them from Prolog.
+For instance, I am going to show you how SORT/2 predicate has been implemented in the core JProl library. As you can see below, the method is just marked by @Predicate annotation. Of course it is impossible just mark any method but the method must process specific Prolog arguments : Goal and TermStruct.
 ```Java
 @Predicate(Signature = "sort/2", Template = {"+list,?list"},Reference="True if Sorted can be unified with a list holding the elements  of List, sorted to the standard order of terms")
     @Determined
@@ -46,8 +31,8 @@ It is very easy to define new predicates in Java. For instance, I am going to sh
         return sorted.Equ(sortedList);
     }
 ```
-## How to define new operators in a library
-If you want to define more than one operator in your library, you should use the ProlOperators annotation which should be placed for your library class.
+# How to define new operators in library
+If you want to define more than one operator in your library, you should use ProlOperators annotation for your library class.
 ```Java
 @ProlOperators(Operators = {
     @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "is"),
@@ -62,8 +47,8 @@ If you want to define more than one operator in your library, you should use the
 public class ProlCoreLibrary extends ProlAbstractLibrary {
 ...
 ```
-## Call the engine from Java
-Below you can see the example shows how to use the Prol engine to solve the well known puzzle "Eight queens". It describes task, solve that and print all found solutions. It is a good example that the knowledge base can be defined through annotations just in Java code.
+# Call the Engine from Java
+Below you can see the example shows calls to the Engine to solve the well known puzzle "Eight queens". It describes task in Prolog, solve it and print all found solutions. It is good example how Knowledge base can be defined just through annotations directly in Java code.
 ```Java
 final ProlContext context = new ProlContext("test",DefaultProlStreamManagerImpl.getInstance());
            final ProlConsult consult = new ProlConsult("solution([]). solution([X/Y|Others]):-solution(Others),member(Y,[1,2,3,4,5,6,7,8]),notattack(X/Y,Others). notattack(_,[]). notattack(X/Y,[X1/Y1 | Others]):- Y=\\=Y1, Y1-Y=\\=X1-X, Y1-Y=\\=X-X1, notattack(X/Y,Others). member(Item,[Item|Rest]). member(Item,[First|Rest]):-member(Item,Rest). template([1/Y1,2/Y2,3/Y3,4/Y4,5/Y5,6/Y6,7/Y7,8/Y8]).", context);
@@ -80,7 +65,19 @@ final ProlContext context = new ProlContext("test",DefaultProlStreamManagerImpl.
                 Utils.printTermState(result);
             }
 ```
-## Multithreading
+
+## Graphics from Prolog
+As Example of Graphics calls you can take a look at Prolog program to draw a Koch snowflake fractal.
+```Prolog
+kochsnowflake(N,L) :- settitle('Koch snowflake'), brushcolor(white), graphics(300,300), pencolor(red), time((fractal(N,30,80,L,0,X1,Y1), fractal(N,X1,Y1,L,2.0943951024,X2,Y2), fractal(N,X2,Y2,L,4.1887902048,_,_))).
+
+fractal(0,X,Y,L,A,XN,YN):- !, XN is X+L*cos(A), YN is Y+L*sin(A), XX is round(X),XXN is round(XN), YY is round(Y),YYN is round(YN), plot(XX,YY,XXN,YYN).
+fractal(I,X,Y,L,A,XN,YN):- II is I-1, LL is L/3, A2 is A-1.0471975512, A3 is A+1.0471975512, fractal(II,X,Y,LL,A,X1,Y1), fractal(II,X1,Y1,LL,A2,X2,Y2), fractal(II,X2,Y2,LL,A3,X3,Y3), fractal(II,X3,Y3,LL,A,XN,YN).
+
+?-kochsnowflake(5,300).
+```
+
+# Multithreading
 It was interesting for me to implement support of multithreading in the engine to take a look how it is compatible with Prolog and it looks nice and much easy than in Java. The engine allows to use pair predicates to span new threads fork/1 and async/1, also it has special predicate waitasync/0 for synchronization you can wait the end of all executing spawned threads (by the main thread). The waitasync/0 predicate must be used only from the main thread (I mean the root goal). Also there are lockers which allow to create critical sections with lock/1, unlock/1 and trylock/1 predicates. Take a look at the example of their usage below, I have shown an application which draws 3000000 color dots on the graphic screen (provided by embedded GUI library), each thread paints its own color dots in its own thread. 
 ```Prolog
 threadRed(P) :- for(_, 0, P), rnd(500, X), rnd(400, Y), lock(gfx), pencolor(red), dot(X, Y), unlock(gfx), fail.
@@ -89,10 +86,3 @@ threadRed(P) :- for(_, 0, P), rnd(500, X), rnd(400, Y), lock(gfx), pencolor(red)
 
     ?- P = 1000000, time((graphics(500,400), fork([threadRed(P), threadGreen(P), threadBlue(P)]))).
 ```
-End word
-=========
-I am very impressed by power of Prolog, I think it is one of the greatest computer languages (may be it is the best computer language at all) and the language makes a programmer to write really thinking software. Please keep in your mind that PROL is an Academic project and it was not developed to be used in production but it helps make some experiments and learn Prolog. 
-
-# Donation   
-If you like the software you can make some donation to the author   
-[![https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AHWJHJFBAWGL2)
