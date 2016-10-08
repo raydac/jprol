@@ -12,9 +12,8 @@ In 2014 I was asked by Yuki Katsura to open sources and now I have opened them a
 The Application provides some small primitive GUI editor to edit one Prolog script and execute it with some dialog options. It provides library to work with graphic and save images.
 ![Screenshot](https://github.com/raydac/jprol/blob/master/screenshotprolpad.jpg)
 
-Prebuilt versions
-==================
-Prebuilt versions of the Windows executable file (based on Launch4j) and the JAR version you can find in [my Google drive folder](https://googledrive.com/host/0BxHnNp97IgMRSEN0VDFCMGYtZkk/)
+# Prebuilt versions
+Prebuilt versions provided for main OSes (I can test only for Linux, so that notify me about issues under Windows and MacOS). [Executable files can be downloaded from the latest release page](https://github.com/raydac/jprol/releases/latest)
 
 # How to define a predicate in Java
 The Engine was also used as proof-of-concept of usage Java methods as predicates and it allows to mark methods by special annotations and call them from Prolog.
@@ -76,6 +75,7 @@ fractal(I,X,Y,L,A,XN,YN):- II is I-1, LL is L/3, A2 is A-1.0471975512, A3 is A+1
 
 ?-kochsnowflake(5,300).
 ```
+![Screenshot](https://github.com/raydac/jprol/blob/master/jprolgui.png)
 
 # Multithreading
 It was interesting for me to implement support of multithreading in the engine to take a look how it is compatible with Prolog and it looks nice and much easy than in Java. The engine allows to use pair predicates to span new threads fork/1 and async/1, also it has special predicate waitasync/0 for synchronization you can wait the end of all executing spawned threads (by the main thread). The waitasync/0 predicate must be used only from the main thread (I mean the root goal). Also there are lockers which allow to create critical sections with lock/1, unlock/1 and trylock/1 predicates. Take a look at the example of their usage below, I have shown an application which draws 3000000 color dots on the graphic screen (provided by embedded GUI library), each thread paints its own color dots in its own thread. 
