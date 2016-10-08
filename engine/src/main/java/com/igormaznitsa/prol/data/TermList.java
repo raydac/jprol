@@ -91,13 +91,13 @@ public final class TermList extends TermStruct {
    * (for '|' case), must not be null (if it is not the NULL LIST)
    */
   public Term getTail() {
-    Term tail = terms[INDEX_TAIL];
+    final Term tail = this.terms[INDEX_TAIL];
     switch (tail.getTermType()) {
       case TYPE_LIST:
         return tail;
       case TYPE_VAR: {
-        Var var = (Var) tail;
-        Term val = var.getValue();
+        final Var var = (Var) tail;
+        final Term val = var.getValue();
         return val == null ? var : val;
       }
       default:
@@ -114,7 +114,7 @@ public final class TermList extends TermStruct {
     if (this == NULLLIST) {
       return 0;
     }
-    final Term tail = terms[INDEX_TAIL];
+    final Term tail = this.terms[INDEX_TAIL];
     switch (tail.getTermType()) {
       case TYPE_LIST: {
         return ((TermList) tail).calculateLength() + 1;
@@ -130,12 +130,10 @@ public final class TermList extends TermStruct {
    * @param newTail the new tail value, must not be null
    */
   public void setTail(final Term newTail) {
-    terms[INDEX_TAIL] = newTail;
     if (newTail == null) {
-      Thread.dumpStack();
-      System.out.println("QQQ");
+      throw new NullPointerException("NULL as Tail in list");
     }
-
+    this.terms[INDEX_TAIL] = newTail;
   }
 
   @Override

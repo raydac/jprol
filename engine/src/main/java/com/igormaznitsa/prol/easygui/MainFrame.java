@@ -61,27 +61,27 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   private static final Logger LOG = Logger.getLogger("PROL_NOTE_PAD");
 
   private final ThreadGroup executingScripts = new ThreadGroup("ProlExecutingScripts");
-  private final String PROL_STACK_DEPTH = "prol.stack.depth";
+  private final String PROPERTY_PROL_STACK_DEPTH = "prol.stack.depth";
 
   @Override
-  public boolean onProlGoalCall(Goal goal) {
+  public boolean onProlGoalCall(final Goal goal) {
     traceEditor.addCallText(goal.getGoalTerm().forWrite());
     return true;
   }
 
   @Override
-  public boolean onProlGoalRedo(Goal goal) {
+  public boolean onProlGoalRedo(final Goal goal) {
     traceEditor.addRedoText(goal.getGoalTerm().forWrite());
     return true;
   }
 
   @Override
-  public void onProlGoalFail(Goal goal) {
+  public void onProlGoalFail(final Goal goal) {
     traceEditor.addFailText(goal.getGoalTerm().forWrite());
   }
 
   @Override
-  public void onProlGoalExit(Goal goal) {
+  public void onProlGoalExit(final Goal goal) {
     traceEditor.addExitText(goal.getGoalTerm().forWrite());
   }
 
@@ -95,7 +95,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   protected final class LogLibrary extends ProlAbstractLibrary {
 
     public LogLibrary() {
-      super("ProlNotepadLog");
+      super("JProlNotepadLog");
     }
 
     @Predicate(Signature = "msgerror/1", Reference = "The predicate allows to output information marked as error at the message window.")
@@ -126,15 +126,17 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }
   }
   protected final LogLibrary logLibrary;
-  protected HashMap<String, LookAndFeelInfo> lfTable;
+  protected HashMap<String, LookAndFeelInfo> lookAndFeelMap;
   protected volatile Thread currentExecutedScriptThread;
-  protected static final String PROL_EXTENSION = ".prl";
   protected File currentOpenedFile;
   protected File lastOpenedFile;
   protected boolean startInTraceMode;
   protected boolean documentHasBeenChangedFlag;
   static final String[] PROL_LIBRARIES = new String[]{"com.igormaznitsa.prol.libraries.ProlGraphicLibrary", "com.igormaznitsa.prol.libraries.ProlStringLibrary"};
   protected volatile ProlContext lastContext;
+
+  protected static final String PROL_EXTENSION = ".prl";
+
   private static final FileFilter PROL_FILE_FILTER = new FileFilter() {
 
     @Override
@@ -188,7 +190,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     newFile();
 
-    menuItemWordWrapSources.setState(editorSource.isWordWrap());
+    this.menuItemWordWrapSources.setState(editorSource.isWordWrap());
 
     final Action action = new AbstractAction("closeFindPanel") {
       private static final long serialVersionUID = 4377386270269629176L;
@@ -205,15 +207,15 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     final KeyStroke escKey = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
     action.putValue(Action.ACCELERATOR_KEY, escKey);
-    buttonCloseFind.getActionMap().put("closeFind", action);
-    buttonCloseFind.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escKey, "closeFind");
+    this.buttonCloseFind.getActionMap().put("closeFind", action);
+    this.buttonCloseFind.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escKey, "closeFind");
 
-    panelFindText.setVisible(false);
+    this.panelFindText.setVisible(false);
   }
 
   private void fillLAndFeelMenu() {
     final LookAndFeelInfo plaf[] = UIManager.getInstalledLookAndFeels();
-    lfTable = new HashMap<String, LookAndFeelInfo>();
+    this.lookAndFeelMap = new HashMap<String, LookAndFeelInfo>();
     final ButtonGroup lfGroup = new ButtonGroup();
 
     final ActionListener lfListener = new ActionListener() {
@@ -232,35 +234,35 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         continue;
       }
 
-      lfTable.put(lfName, plaf[i]);
+      lookAndFeelMap.put(lfName, plaf[i]);
       JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem(lfName);
 
       menuItem.addActionListener(lfListener);
 
       lfGroup.add(menuItem);
-      MenuLookAndFeel.add(menuItem);
+      menuLookAndFeel.add(menuItem);
     }
   }
 
-  private void setSelectedLookAndFeel(String lfName) {
+  private void setSelectedLookAndFeel(String lookAndFeelName) {
 
-    if (lfName != null) {
-      if (!lfTable.containsKey(lfName)) {
-        lfName = null;
+    if (lookAndFeelName != null) {
+      if (!this.lookAndFeelMap.containsKey(lookAndFeelName)) {
+        lookAndFeelName = null;
       }
     }
 
-    if (lfName == null) {
+    if (lookAndFeelName == null) {
       // set the first
-      lfName = MenuLookAndFeel.getItem(0).getText();
+      lookAndFeelName = this.menuLookAndFeel.getItem(0).getText();
     }
 
-    final LookAndFeelInfo feelInfo = lfTable.get(lfName);
+    final LookAndFeelInfo feelInfo = this.lookAndFeelMap.get(lookAndFeelName);
     final JFrame thisFrame = this;
 
-    for (int li = 0; li < MenuLookAndFeel.getItemCount(); li++) {
-      final JRadioButtonMenuItem menuItem = (JRadioButtonMenuItem) MenuLookAndFeel.getItem(li);
-      if (menuItem.getText().equals(lfName)) {
+    for (int li = 0; li < this.menuLookAndFeel.getItemCount(); li++) {
+      final JRadioButtonMenuItem menuItem = (JRadioButtonMenuItem) this.menuLookAndFeel.getItem(li);
+      if (menuItem.getText().equals(lookAndFeelName)) {
         if (!menuItem.isSelected()) {
           menuItem.setSelected(true);
         }
@@ -291,8 +293,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   private void initComponents() {
     java.awt.GridBagConstraints gridBagConstraints;
 
-    SplitPaneMain = new javax.swing.JSplitPane();
-    SplitPaneTop = new javax.swing.JSplitPane();
+    splitPaneMain = new javax.swing.JSplitPane();
+    splitPaneTop = new javax.swing.JSplitPane();
     try {
       dialogEditor = new com.igormaznitsa.prol.easygui.DialogEditor();
     } catch (java.io.IOException e1) {
@@ -305,60 +307,60 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     textFind = new javax.swing.JTextField();
     buttonCloseFind = new javax.swing.JButton();
     filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
-    SplitPanelDown = new javax.swing.JSplitPane();
+    splitPanelDown = new javax.swing.JSplitPane();
     messageEditor = new com.igormaznitsa.prol.easygui.MessageEditor();
     traceEditor = new com.igormaznitsa.prol.easygui.TraceDialog();
     panelProgress = new javax.swing.JPanel();
     progressBarTask = new javax.swing.JProgressBar();
-    ButtonStopExecuting = new javax.swing.JButton();
+    buttonStopExecuting = new javax.swing.JButton();
     jMenuBar1 = new javax.swing.JMenuBar();
-    MenuFile = new javax.swing.JMenu();
-    MenuFileNew = new javax.swing.JMenuItem();
-    MenuFileOpen = new javax.swing.JMenuItem();
-    MenuFileSaveAs = new javax.swing.JMenuItem();
-    MenuFileSave = new javax.swing.JMenuItem();
+    menuFile = new javax.swing.JMenu();
+    menuFileNew = new javax.swing.JMenuItem();
+    menuFileOpen = new javax.swing.JMenuItem();
+    menuFileSaveAs = new javax.swing.JMenuItem();
+    menuFileSave = new javax.swing.JMenuItem();
     jSeparator1 = new javax.swing.JPopupMenu.Separator();
-    MenuFileRecentFiles = new javax.swing.JMenu();
+    menuFileRecentFiles = new javax.swing.JMenu();
     jSeparator4 = new javax.swing.JPopupMenu.Separator();
-    MenuExit = new javax.swing.JMenuItem();
-    MenuEdit = new javax.swing.JMenu();
-    MenuUndo = new javax.swing.JMenuItem();
-    MenuRedo = new javax.swing.JMenuItem();
+    menuExit = new javax.swing.JMenuItem();
+    menuEdit = new javax.swing.JMenu();
+    menuUndo = new javax.swing.JMenuItem();
+    menuRedo = new javax.swing.JMenuItem();
     jSeparator2 = new javax.swing.JPopupMenu.Separator();
-    MenuClearText = new javax.swing.JMenuItem();
-    MenuEditCommentSelected = new javax.swing.JMenuItem();
-    MenuEditUncommentSelected = new javax.swing.JMenuItem();
+    menuClearText = new javax.swing.JMenuItem();
+    menuEditCommentSelected = new javax.swing.JMenuItem();
+    menuEditUncommentSelected = new javax.swing.JMenuItem();
     jSeparator3 = new javax.swing.JPopupMenu.Separator();
     menuitemFindText = new javax.swing.JMenuItem();
     menuItemWordWrapSources = new javax.swing.JCheckBoxMenuItem();
     menuItemFullScreen = new javax.swing.JMenuItem();
     jSeparator5 = new javax.swing.JPopupMenu.Separator();
-    MenuEditOptions = new javax.swing.JMenuItem();
-    MenuRun = new javax.swing.JMenu();
-    MenuRunScript = new javax.swing.JMenuItem();
-    MenuTraceScript = new javax.swing.JMenuItem();
+    menuEditOptions = new javax.swing.JMenuItem();
+    menuRun = new javax.swing.JMenu();
+    menuRunScript = new javax.swing.JMenuItem();
+    menuTraceScript = new javax.swing.JMenuItem();
     menuRunStop = new javax.swing.JMenuItem();
-    MenuView = new javax.swing.JMenu();
-    MenuViewKnowledgeBase = new javax.swing.JMenuItem();
-    MenuItemLibraryInfo = new javax.swing.JMenuItem();
-    MenuLookAndFeel = new javax.swing.JMenu();
-    MenuHelp = new javax.swing.JMenu();
-    MenuHelpHelp = new javax.swing.JMenuItem();
-    MenuAbout = new javax.swing.JMenuItem();
+    menuView = new javax.swing.JMenu();
+    menuViewKnowledgeBase = new javax.swing.JMenuItem();
+    menuItemLibraryInfo = new javax.swing.JMenuItem();
+    menuLookAndFeel = new javax.swing.JMenu();
+    menuHelp = new javax.swing.JMenu();
+    menuHelpHelp = new javax.swing.JMenuItem();
+    menuAbout = new javax.swing.JMenuItem();
 
     setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
 
-    SplitPaneMain.setDividerLocation(350);
-    SplitPaneMain.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
-    SplitPaneMain.setResizeWeight(0.8);
-    SplitPaneMain.setOneTouchExpandable(true);
+    splitPaneMain.setDividerLocation(350);
+    splitPaneMain.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+    splitPaneMain.setResizeWeight(0.8);
+    splitPaneMain.setOneTouchExpandable(true);
 
-    SplitPaneTop.setDividerLocation(500);
-    SplitPaneTop.setResizeWeight(0.9);
-    SplitPaneTop.setOneTouchExpandable(true);
+    splitPaneTop.setDividerLocation(500);
+    splitPaneTop.setResizeWeight(0.9);
+    splitPaneTop.setOneTouchExpandable(true);
 
     dialogEditor.setToolTipText("The window allows to communicate with a user");
-    SplitPaneTop.setRightComponent(dialogEditor);
+    splitPaneTop.setRightComponent(dialogEditor);
 
     editorPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Editor"));
     editorPanel.setLayout(new java.awt.BorderLayout());
@@ -405,23 +407,23 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     editorPanel.add(panelFindText, java.awt.BorderLayout.PAGE_END);
 
-    SplitPaneTop.setLeftComponent(editorPanel);
+    splitPaneTop.setLeftComponent(editorPanel);
 
-    SplitPaneMain.setTopComponent(SplitPaneTop);
+    splitPaneMain.setTopComponent(splitPaneTop);
 
-    SplitPanelDown.setDividerLocation(500);
-    SplitPanelDown.setResizeWeight(0.8);
-    SplitPanelDown.setOneTouchExpandable(true);
+    splitPanelDown.setDividerLocation(500);
+    splitPanelDown.setResizeWeight(0.8);
+    splitPanelDown.setOneTouchExpandable(true);
 
     messageEditor.setToolTipText("The window shows messages during an execution of the script");
-    SplitPanelDown.setLeftComponent(messageEditor);
+    splitPanelDown.setLeftComponent(messageEditor);
 
     traceEditor.setToolTipText("The window shows trace information if the engine is being started at the trace mode");
-    SplitPanelDown.setRightComponent(traceEditor);
+    splitPanelDown.setRightComponent(traceEditor);
 
-    SplitPaneMain.setBottomComponent(SplitPanelDown);
+    splitPaneMain.setBottomComponent(splitPanelDown);
 
-    getContentPane().add(SplitPaneMain, java.awt.BorderLayout.CENTER);
+    getContentPane().add(splitPaneMain, java.awt.BorderLayout.CENTER);
 
     panelProgress.setBorder(javax.swing.BorderFactory.createEtchedBorder());
     panelProgress.setLayout(new java.awt.GridBagLayout());
@@ -433,157 +435,157 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     gridBagConstraints.weightx = 1000.0;
     panelProgress.add(progressBarTask, gridBagConstraints);
 
-    ButtonStopExecuting.setBackground(new java.awt.Color(255, 156, 156));
-    ButtonStopExecuting.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
-    ButtonStopExecuting.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/flag_red.png"))); // NOI18N
-    ButtonStopExecuting.setText("STOP EXECUTION");
-    ButtonStopExecuting.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
-    ButtonStopExecuting.setMaximumSize(new java.awt.Dimension(100, 23));
-    ButtonStopExecuting.setMinimumSize(new java.awt.Dimension(60, 23));
-    ButtonStopExecuting.addActionListener(new java.awt.event.ActionListener() {
+    buttonStopExecuting.setBackground(new java.awt.Color(255, 156, 156));
+    buttonStopExecuting.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
+    buttonStopExecuting.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/flag_red.png"))); // NOI18N
+    buttonStopExecuting.setText("STOP EXECUTION");
+    buttonStopExecuting.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+    buttonStopExecuting.setMaximumSize(new java.awt.Dimension(100, 23));
+    buttonStopExecuting.setMinimumSize(new java.awt.Dimension(60, 23));
+    buttonStopExecuting.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        ButtonStopExecutingActionPerformed(evt);
+        buttonStopExecutingActionPerformed(evt);
       }
     });
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-    panelProgress.add(ButtonStopExecuting, gridBagConstraints);
+    panelProgress.add(buttonStopExecuting, gridBagConstraints);
 
     getContentPane().add(panelProgress, java.awt.BorderLayout.SOUTH);
 
-    MenuFile.setText("File");
+    menuFile.setText("File");
 
-    MenuFileNew.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/page.png"))); // NOI18N
-    MenuFileNew.setText("New");
-    MenuFileNew.setToolTipText("Create new document");
-    MenuFileNew.addActionListener(new java.awt.event.ActionListener() {
+    menuFileNew.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/page.png"))); // NOI18N
+    menuFileNew.setText("New");
+    menuFileNew.setToolTipText("Create new document");
+    menuFileNew.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        MenuFileNewActionPerformed(evt);
+        menuFileNewActionPerformed(evt);
       }
     });
-    MenuFile.add(MenuFileNew);
+    menuFile.add(menuFileNew);
 
-    MenuFileOpen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
-    MenuFileOpen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/page_edit.png"))); // NOI18N
-    MenuFileOpen.setText("Open");
-    MenuFileOpen.setToolTipText("Open a saved document");
-    MenuFileOpen.addActionListener(new java.awt.event.ActionListener() {
+    menuFileOpen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
+    menuFileOpen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/page_edit.png"))); // NOI18N
+    menuFileOpen.setText("Open");
+    menuFileOpen.setToolTipText("Open a saved document");
+    menuFileOpen.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        MenuFileOpenActionPerformed(evt);
+        menuFileOpenActionPerformed(evt);
       }
     });
-    MenuFile.add(MenuFileOpen);
+    menuFile.add(menuFileOpen);
 
-    MenuFileSaveAs.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/page_save.png"))); // NOI18N
-    MenuFileSaveAs.setText("Save As..");
-    MenuFileSaveAs.setToolTipText("Save the current document as a file");
-    MenuFileSaveAs.addActionListener(new java.awt.event.ActionListener() {
+    menuFileSaveAs.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/page_save.png"))); // NOI18N
+    menuFileSaveAs.setText("Save As..");
+    menuFileSaveAs.setToolTipText("Save the current document as a file");
+    menuFileSaveAs.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        MenuFileSaveAsActionPerformed(evt);
+        menuFileSaveAsActionPerformed(evt);
       }
     });
-    MenuFile.add(MenuFileSaveAs);
+    menuFile.add(menuFileSaveAs);
 
-    MenuFileSave.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
-    MenuFileSave.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/page_go.png"))); // NOI18N
-    MenuFileSave.setText("Save");
-    MenuFileSave.setToolTipText("Save the current document");
-    MenuFileSave.addActionListener(new java.awt.event.ActionListener() {
+    menuFileSave.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
+    menuFileSave.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/page_go.png"))); // NOI18N
+    menuFileSave.setText("Save");
+    menuFileSave.setToolTipText("Save the current document");
+    menuFileSave.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        MenuFileSaveActionPerformed(evt);
+        menuFileSaveActionPerformed(evt);
       }
     });
-    MenuFile.add(MenuFileSave);
-    MenuFile.add(jSeparator1);
+    menuFile.add(menuFileSave);
+    menuFile.add(jSeparator1);
 
-    MenuFileRecentFiles.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/folder.png"))); // NOI18N
-    MenuFileRecentFiles.setText("Recent files...");
-    MenuFileRecentFiles.setToolTipText("List of files opened early");
-    MenuFileRecentFiles.addMenuListener(new javax.swing.event.MenuListener() {
+    menuFileRecentFiles.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/folder.png"))); // NOI18N
+    menuFileRecentFiles.setText("Recent files...");
+    menuFileRecentFiles.setToolTipText("List of files opened early");
+    menuFileRecentFiles.addMenuListener(new javax.swing.event.MenuListener() {
       public void menuSelected(javax.swing.event.MenuEvent evt) {
-        MenuFileRecentFilesMenuSelected(evt);
+        menuFileRecentFilesMenuSelected(evt);
       }
       public void menuDeselected(javax.swing.event.MenuEvent evt) {
       }
       public void menuCanceled(javax.swing.event.MenuEvent evt) {
       }
     });
-    MenuFile.add(MenuFileRecentFiles);
-    MenuFile.add(jSeparator4);
+    menuFile.add(menuFileRecentFiles);
+    menuFile.add(jSeparator4);
 
-    MenuExit.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F4, java.awt.event.InputEvent.ALT_MASK));
-    MenuExit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/door_in.png"))); // NOI18N
-    MenuExit.setText("Exit");
-    MenuExit.setToolTipText("Close the editor");
-    MenuExit.addActionListener(new java.awt.event.ActionListener() {
+    menuExit.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F4, java.awt.event.InputEvent.ALT_MASK));
+    menuExit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/door_in.png"))); // NOI18N
+    menuExit.setText("Exit");
+    menuExit.setToolTipText("Close the editor");
+    menuExit.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        MenuExitActionPerformed(evt);
+        menuExitActionPerformed(evt);
       }
     });
-    MenuFile.add(MenuExit);
+    menuFile.add(menuExit);
 
-    jMenuBar1.add(MenuFile);
+    jMenuBar1.add(menuFile);
 
-    MenuEdit.setText("Edit");
+    menuEdit.setText("Edit");
 
-    MenuUndo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, java.awt.event.InputEvent.CTRL_MASK));
-    MenuUndo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/book_previous.png"))); // NOI18N
-    MenuUndo.setText("Undo");
-    MenuUndo.setToolTipText("Undo last changes in the document");
-    MenuUndo.setEnabled(false);
-    MenuUndo.addActionListener(new java.awt.event.ActionListener() {
+    menuUndo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, java.awt.event.InputEvent.CTRL_MASK));
+    menuUndo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/book_previous.png"))); // NOI18N
+    menuUndo.setText("Undo");
+    menuUndo.setToolTipText("Undo last changes in the document");
+    menuUndo.setEnabled(false);
+    menuUndo.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        MenuUndoActionPerformed(evt);
+        menuUndoActionPerformed(evt);
       }
     });
-    MenuEdit.add(MenuUndo);
+    menuEdit.add(menuUndo);
 
-    MenuRedo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Y, java.awt.event.InputEvent.CTRL_MASK));
-    MenuRedo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/book_next.png"))); // NOI18N
-    MenuRedo.setText("Redo");
-    MenuRedo.setToolTipText("Redo canceled changes in the document");
-    MenuRedo.setEnabled(false);
-    MenuRedo.addActionListener(new java.awt.event.ActionListener() {
+    menuRedo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Y, java.awt.event.InputEvent.CTRL_MASK));
+    menuRedo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/book_next.png"))); // NOI18N
+    menuRedo.setText("Redo");
+    menuRedo.setToolTipText("Redo canceled changes in the document");
+    menuRedo.setEnabled(false);
+    menuRedo.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        MenuRedoActionPerformed(evt);
+        menuRedoActionPerformed(evt);
       }
     });
-    MenuEdit.add(MenuRedo);
-    MenuEdit.add(jSeparator2);
+    menuEdit.add(menuRedo);
+    menuEdit.add(jSeparator2);
 
-    MenuClearText.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, java.awt.event.InputEvent.CTRL_MASK));
-    MenuClearText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/page_white.png"))); // NOI18N
-    MenuClearText.setText("Clear");
-    MenuClearText.setToolTipText("Just clear text in the current document");
-    MenuClearText.addActionListener(new java.awt.event.ActionListener() {
+    menuClearText.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, java.awt.event.InputEvent.CTRL_MASK));
+    menuClearText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/page_white.png"))); // NOI18N
+    menuClearText.setText("Clear");
+    menuClearText.setToolTipText("Just clear text in the current document");
+    menuClearText.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        MenuClearTextActionPerformed(evt);
+        menuClearTextActionPerformed(evt);
       }
     });
-    MenuEdit.add(MenuClearText);
+    menuEdit.add(menuClearText);
 
-    MenuEditCommentSelected.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_5, java.awt.event.InputEvent.CTRL_MASK));
-    MenuEditCommentSelected.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/comment_add.png"))); // NOI18N
-    MenuEditCommentSelected.setText("Comment selection");
-    MenuEditCommentSelected.setToolTipText("Place the commenting symbol as the first one into selected lines");
-    MenuEditCommentSelected.addActionListener(new java.awt.event.ActionListener() {
+    menuEditCommentSelected.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_5, java.awt.event.InputEvent.CTRL_MASK));
+    menuEditCommentSelected.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/comment_add.png"))); // NOI18N
+    menuEditCommentSelected.setText("Comment selection");
+    menuEditCommentSelected.setToolTipText("Place the commenting symbol as the first one into selected lines");
+    menuEditCommentSelected.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        MenuEditCommentSelectedActionPerformed(evt);
+        menuEditCommentSelectedActionPerformed(evt);
       }
     });
-    MenuEdit.add(MenuEditCommentSelected);
+    menuEdit.add(menuEditCommentSelected);
 
-    MenuEditUncommentSelected.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_U, java.awt.event.InputEvent.CTRL_MASK));
-    MenuEditUncommentSelected.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/comment_delete.png"))); // NOI18N
-    MenuEditUncommentSelected.setText("Uncomment selection");
-    MenuEditUncommentSelected.setToolTipText("Remove the first commenting symbol from selected lines");
-    MenuEditUncommentSelected.addActionListener(new java.awt.event.ActionListener() {
+    menuEditUncommentSelected.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_U, java.awt.event.InputEvent.CTRL_MASK));
+    menuEditUncommentSelected.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/comment_delete.png"))); // NOI18N
+    menuEditUncommentSelected.setText("Uncomment selection");
+    menuEditUncommentSelected.setToolTipText("Remove the first commenting symbol from selected lines");
+    menuEditUncommentSelected.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        MenuEditUncommentSelectedActionPerformed(evt);
+        menuEditUncommentSelectedActionPerformed(evt);
       }
     });
-    MenuEdit.add(MenuEditUncommentSelected);
-    MenuEdit.add(jSeparator3);
+    menuEdit.add(menuEditUncommentSelected);
+    menuEdit.add(jSeparator3);
 
     menuitemFindText.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, java.awt.event.InputEvent.CTRL_MASK));
     menuitemFindText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/zoom.png"))); // NOI18N
@@ -593,7 +595,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         menuitemFindTextActionPerformed(evt);
       }
     });
-    MenuEdit.add(menuitemFindText);
+    menuEdit.add(menuitemFindText);
 
     menuItemWordWrapSources.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_W, java.awt.event.InputEvent.CTRL_MASK));
     menuItemWordWrapSources.setSelected(true);
@@ -605,7 +607,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         menuItemWordWrapSourcesActionPerformed(evt);
       }
     });
-    MenuEdit.add(menuItemWordWrapSources);
+    menuEdit.add(menuItemWordWrapSources);
 
     menuItemFullScreen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, java.awt.event.InputEvent.SHIFT_MASK | java.awt.event.InputEvent.CTRL_MASK));
     menuItemFullScreen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/shape_move_forwards.png"))); // NOI18N
@@ -616,43 +618,43 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         menuItemFullScreenActionPerformed(evt);
       }
     });
-    MenuEdit.add(menuItemFullScreen);
-    MenuEdit.add(jSeparator5);
+    menuEdit.add(menuItemFullScreen);
+    menuEdit.add(jSeparator5);
 
-    MenuEditOptions.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/cog.png"))); // NOI18N
-    MenuEditOptions.setText("Options");
-    MenuEditOptions.setToolTipText("Open editor options");
-    MenuEditOptions.addActionListener(new java.awt.event.ActionListener() {
+    menuEditOptions.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/cog.png"))); // NOI18N
+    menuEditOptions.setText("Options");
+    menuEditOptions.setToolTipText("Open editor options");
+    menuEditOptions.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        MenuEditOptionsActionPerformed(evt);
+        menuEditOptionsActionPerformed(evt);
       }
     });
-    MenuEdit.add(MenuEditOptions);
+    menuEdit.add(menuEditOptions);
 
-    jMenuBar1.add(MenuEdit);
+    jMenuBar1.add(menuEdit);
 
-    MenuRun.setText("Run");
+    menuRun.setText("Run");
 
-    MenuRunScript.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F5, 0));
-    MenuRunScript.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/flag_green.png"))); // NOI18N
-    MenuRunScript.setText("Start");
-    MenuRunScript.setToolTipText("Execute the current document");
-    MenuRunScript.addActionListener(new java.awt.event.ActionListener() {
+    menuRunScript.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F5, 0));
+    menuRunScript.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/flag_green.png"))); // NOI18N
+    menuRunScript.setText("Start");
+    menuRunScript.setToolTipText("Execute the current document");
+    menuRunScript.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        MenuRunScriptActionPerformed(evt);
+        menuRunScriptActionPerformed(evt);
       }
     });
-    MenuRun.add(MenuRunScript);
+    menuRun.add(menuRunScript);
 
-    MenuTraceScript.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/flag_blue.png"))); // NOI18N
-    MenuTraceScript.setText("Trace");
-    MenuTraceScript.setToolTipText("Execute the current document with tracing");
-    MenuTraceScript.addActionListener(new java.awt.event.ActionListener() {
+    menuTraceScript.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/flag_blue.png"))); // NOI18N
+    menuTraceScript.setText("Trace");
+    menuTraceScript.setToolTipText("Execute the current document with tracing");
+    menuTraceScript.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        MenuTraceScriptActionPerformed(evt);
+        menuTraceScriptActionPerformed(evt);
       }
     });
-    MenuRun.add(MenuTraceScript);
+    menuRun.add(menuTraceScript);
 
     menuRunStop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/flag_red.png"))); // NOI18N
     menuRunStop.setText("Stop");
@@ -663,84 +665,84 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         menuRunStopActionPerformed(evt);
       }
     });
-    MenuRun.add(menuRunStop);
+    menuRun.add(menuRunStop);
 
-    jMenuBar1.add(MenuRun);
+    jMenuBar1.add(menuRun);
 
-    MenuView.setText("View");
+    menuView.setText("View");
 
-    MenuViewKnowledgeBase.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F12, 0));
-    MenuViewKnowledgeBase.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/eye.png"))); // NOI18N
-    MenuViewKnowledgeBase.setText("See the knowledge base");
-    MenuViewKnowledgeBase.setToolTipText("Take and show the snapshot of the current knowledge base saved in the memory");
-    MenuViewKnowledgeBase.setEnabled(false);
-    MenuViewKnowledgeBase.addActionListener(new java.awt.event.ActionListener() {
+    menuViewKnowledgeBase.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F12, 0));
+    menuViewKnowledgeBase.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/eye.png"))); // NOI18N
+    menuViewKnowledgeBase.setText("See the knowledge base");
+    menuViewKnowledgeBase.setToolTipText("Take and show the snapshot of the current knowledge base saved in the memory");
+    menuViewKnowledgeBase.setEnabled(false);
+    menuViewKnowledgeBase.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        MenuViewKnowledgeBaseActionPerformed(evt);
+        menuViewKnowledgeBaseActionPerformed(evt);
       }
     });
-    MenuView.add(MenuViewKnowledgeBase);
+    menuView.add(menuViewKnowledgeBase);
 
-    MenuItemLibraryInfo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F1, 0));
-    MenuItemLibraryInfo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/table.png"))); // NOI18N
-    MenuItemLibraryInfo.setText("Library info");
-    MenuItemLibraryInfo.setToolTipText("Show all predicates found in embedded libraries");
-    MenuItemLibraryInfo.addActionListener(new java.awt.event.ActionListener() {
+    menuItemLibraryInfo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F1, 0));
+    menuItemLibraryInfo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/table.png"))); // NOI18N
+    menuItemLibraryInfo.setText("Library info");
+    menuItemLibraryInfo.setToolTipText("Show all predicates found in embedded libraries");
+    menuItemLibraryInfo.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        MenuItemLibraryInfoActionPerformed(evt);
+        menuItemLibraryInfoActionPerformed(evt);
       }
     });
-    MenuView.add(MenuItemLibraryInfo);
+    menuView.add(menuItemLibraryInfo);
 
-    jMenuBar1.add(MenuView);
+    jMenuBar1.add(menuView);
 
-    MenuLookAndFeel.setText("Look&Feel");
-    jMenuBar1.add(MenuLookAndFeel);
+    menuLookAndFeel.setText("Look&Feel");
+    jMenuBar1.add(menuLookAndFeel);
 
-    MenuHelp.setText("Help");
+    menuHelp.setText("Help");
 
-    MenuHelpHelp.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/information.png"))); // NOI18N
-    MenuHelpHelp.setText("Help");
-    MenuHelpHelp.setToolTipText("Show information about usage of the utility");
-    MenuHelpHelp.addActionListener(new java.awt.event.ActionListener() {
+    menuHelpHelp.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/information.png"))); // NOI18N
+    menuHelpHelp.setText("Help");
+    menuHelpHelp.setToolTipText("Show information about usage of the utility");
+    menuHelpHelp.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        MenuHelpHelpActionPerformed(evt);
+        menuHelpHelpActionPerformed(evt);
       }
     });
-    MenuHelp.add(MenuHelpHelp);
+    menuHelp.add(menuHelpHelp);
 
-    MenuAbout.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/emoticon_smile.png"))); // NOI18N
-    MenuAbout.setText("About");
-    MenuAbout.setToolTipText("Show the information about the application and license");
-    MenuAbout.addActionListener(new java.awt.event.ActionListener() {
+    menuAbout.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/emoticon_smile.png"))); // NOI18N
+    menuAbout.setText("About");
+    menuAbout.setToolTipText("Show the information about the application and license");
+    menuAbout.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        MenuAboutActionPerformed(evt);
+        menuAboutActionPerformed(evt);
       }
     });
-    MenuHelp.add(MenuAbout);
+    menuHelp.add(menuAbout);
 
-    jMenuBar1.add(MenuHelp);
+    jMenuBar1.add(menuHelp);
 
     setJMenuBar(jMenuBar1);
 
     pack();
   }// </editor-fold>//GEN-END:initComponents
 
-    private void MenuRunScriptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuRunScriptActionPerformed
-      if (currentExecutedScriptThread != null && currentExecutedScriptThread.isAlive()) {
+    private void menuRunScriptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuRunScriptActionPerformed
+      if (this.currentExecutedScriptThread != null && this.currentExecutedScriptThread.isAlive()) {
         JOptionPane.showMessageDialog(this, "Script is already executing.", "Can't start", JOptionPane.WARNING_MESSAGE);
       }
       else {
-        startInTraceMode = false;
+        this.startInTraceMode = false;
 
         clearTextAtAllWindowsExcludeSource();
 
-        dialogEditor.initBeforeSession();
+        this.dialogEditor.initBeforeSession();
 
         final long stackSize = extractStackDepth();
-        System.out.println("Execute script with the stack depth " + stackSize + " bytes");
+        LOG.info("Start execution with the stack depth " + stackSize + " bytes");
 
-        currentExecutedScriptThread = new Thread(executingScripts, this, "ProlScriptExecutingThread", stackSize);
+        this.currentExecutedScriptThread = new Thread(this.executingScripts, this, "ProlScriptExecutingThread", stackSize);
         currentExecutedScriptThread.setDaemon(false);
 
         SwingUtilities.invokeLater(new Runnable() {
@@ -752,59 +754,59 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
           }
         });
       }
-    }//GEN-LAST:event_MenuRunScriptActionPerformed
+    }//GEN-LAST:event_menuRunScriptActionPerformed
 
-    private void MenuUndoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuUndoActionPerformed
+    private void menuUndoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuUndoActionPerformed
       try {
-        editorSource.getUndoManager().undo();
+        this.editorSource.getUndoManager().undo();
       }
       catch (CannotUndoException ex) {
       }
       UndoManager undo = editorSource.getUndoManager();
-      MenuUndo.setEnabled(undo.canUndo());
-      MenuRedo.setEnabled(undo.canRedo());
+      this.menuUndo.setEnabled(undo.canUndo());
+      this.menuRedo.setEnabled(undo.canRedo());
 
-    }//GEN-LAST:event_MenuUndoActionPerformed
+    }//GEN-LAST:event_menuUndoActionPerformed
 
-    private void MenuRedoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuRedoActionPerformed
+    private void menuRedoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuRedoActionPerformed
       try {
-        editorSource.getUndoManager().redo();
+        this.editorSource.getUndoManager().redo();
       }
       catch (CannotRedoException ex) {
       }
-      UndoManager undo = editorSource.getUndoManager();
-      MenuUndo.setEnabled(undo.canUndo());
-      MenuRedo.setEnabled(undo.canRedo());
+      UndoManager undo = this.editorSource.getUndoManager();
+      this.menuUndo.setEnabled(undo.canUndo());
+      this.menuRedo.setEnabled(undo.canRedo());
 
-    }//GEN-LAST:event_MenuRedoActionPerformed
+    }//GEN-LAST:event_menuRedoActionPerformed
 
-    private void MenuExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuExitActionPerformed
+    private void menuExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuExitActionPerformed
       windowClosing(null);
-    }//GEN-LAST:event_MenuExitActionPerformed
+    }//GEN-LAST:event_menuExitActionPerformed
 
-    private void MenuClearTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuClearTextActionPerformed
-      if (editorSource.getEditor().getDocument().getLength() > 10) {
-        if (JOptionPane.showConfirmDialog(this, "Do you really want to clear the text?", "Confirmation", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-          editorSource.getUndoManager().discardAllEdits();
-          editorSource.clearText();
+    private void menuClearTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuClearTextActionPerformed
+      if (this.editorSource.getEditor().getDocument().getLength() > 10) {
+        if (JOptionPane.showConfirmDialog(this, "Do you really want to clean?", "Confirmation", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+          this.editorSource.getUndoManager().discardAllEdits();
+          this.editorSource.clearText();
         }
       }
-    }//GEN-LAST:event_MenuClearTextActionPerformed
+    }//GEN-LAST:event_menuClearTextActionPerformed
 
-    private void MenuFileOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuFileOpenActionPerformed
-      loadFile(lastOpenedFile, false);
-    }//GEN-LAST:event_MenuFileOpenActionPerformed
+    private void menuFileOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuFileOpenActionPerformed
+      loadFile(this.lastOpenedFile, false);
+    }//GEN-LAST:event_menuFileOpenActionPerformed
 
-    private void MenuFileSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuFileSaveActionPerformed
+    private void menuFileSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuFileSaveActionPerformed
       saveFile(false);
-    }//GEN-LAST:event_MenuFileSaveActionPerformed
+    }//GEN-LAST:event_menuFileSaveActionPerformed
 
-    private void MenuFileSaveAsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuFileSaveAsActionPerformed
+    private void menuFileSaveAsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuFileSaveAsActionPerformed
       saveFile(true);
-    }//GEN-LAST:event_MenuFileSaveAsActionPerformed
+    }//GEN-LAST:event_menuFileSaveAsActionPerformed
 
-    private void ButtonStopExecutingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ButtonStopExecutingActionPerformed
-      final Thread thr = currentExecutedScriptThread;
+    private void buttonStopExecutingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonStopExecutingActionPerformed
+      final Thread thr = this.currentExecutedScriptThread;
 
       SwingUtilities.invokeLater(new Runnable() {
 
@@ -827,9 +829,9 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         }
       });
 
-    }//GEN-LAST:event_ButtonStopExecutingActionPerformed
+    }//GEN-LAST:event_buttonStopExecutingActionPerformed
 
-    private void MenuAboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuAboutActionPerformed
+    private void menuAboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuAboutActionPerformed
       final JHtmlLabel label = new JHtmlLabel("<html><body><h1>JProl Notepad</h1>Version: " + VERSION + "<br><b>Project page:</b> <a href=\"https://github.com/raydac/jprol\">https://github.com/raydac/jprol</a><br><b>Author:</b> Igor Maznitsa (<a href=\"http://www.igormaznitsa.com\">http://www.igormaznitsa.com</a>)<br><br>(C)2010-2016 Igor A. Maznitsa. <a href=\"https://www.apache.org/licenses/LICENSE-2.0\">Apache 2.0 License</a><br>Icons from the free icon set <a href=\"http://www.famfamfam.com/lab/icons/silk/\">http://www.famfamfam.com/lab/icons/silk/</a></body></html>");
       label.addLinkListener(new JHtmlLabel.LinkListener() {
         @Override
@@ -845,9 +847,9 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         }
       });
       JOptionPane.showMessageDialog(this, label, "About", JOptionPane.INFORMATION_MESSAGE, new ImageIcon(this.getIconImage()));
-    }//GEN-LAST:event_MenuAboutActionPerformed
+    }//GEN-LAST:event_menuAboutActionPerformed
 
-    private void MenuViewKnowledgeBaseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuViewKnowledgeBaseActionPerformed
+    private void menuViewKnowledgeBaseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuViewKnowledgeBaseActionPerformed
       if (lastContext == null) {
         return;
       }
@@ -859,23 +861,23 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       dialog.setLocationRelativeTo(this);
 
       dialog.setVisible(true);
-    }//GEN-LAST:event_MenuViewKnowledgeBaseActionPerformed
+    }//GEN-LAST:event_menuViewKnowledgeBaseActionPerformed
 
     private void menuRunStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuRunStopActionPerformed
-      ButtonStopExecutingActionPerformed(evt);
+      buttonStopExecutingActionPerformed(evt);
     }//GEN-LAST:event_menuRunStopActionPerformed
 
-    private void MenuHelpHelpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuHelpHelpActionPerformed
-      new HelpDialog(this);
-    }//GEN-LAST:event_MenuHelpHelpActionPerformed
+    private void menuHelpHelpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuHelpHelpActionPerformed
+      new HelpDialog(this).setVisible(true);
+    }//GEN-LAST:event_menuHelpHelpActionPerformed
 
-    private void MenuEditOptionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuEditOptionsActionPerformed
+    private void menuEditOptionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuEditOptionsActionPerformed
       OptionsDialog dialog = new OptionsDialog(this, new TreeModel[]{editorSource, dialogEditor, messageEditor, traceEditor});
       dialog.setVisible(true);
-    }//GEN-LAST:event_MenuEditOptionsActionPerformed
+    }//GEN-LAST:event_menuEditOptionsActionPerformed
 
-    private void MenuItemLibraryInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuItemLibraryInfoActionPerformed
-      ArrayList<String> list = new ArrayList<String>(PROL_LIBRARIES.length + 2);
+    private void menuItemLibraryInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItemLibraryInfoActionPerformed
+      final java.util.List<String> list = new ArrayList<String>(PROL_LIBRARIES.length + 2);
       list.add(ProlCoreLibrary.class.getCanonicalName());
       list.addAll(Arrays.asList(PROL_LIBRARIES));
       list.add(MainFrame.class.getCanonicalName() + "$LogLibrary");
@@ -886,7 +888,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       }
       catch (Exception ex) {
         LOG.throwing(this.getClass().getCanonicalName(), "MenuItemLibraryInfoActionPerformed()", ex);
-        messageEditor.addErrorText("Can't show library info dialog [" + ex.getMessage() + ']');
+        this.messageEditor.addErrorText("Can't show library info dialog [" + ex.getMessage() + ']');
         return;
       }
 
@@ -896,19 +898,19 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
       infoDialog.setVisible(true);
       infoDialog.dispose();
-    }//GEN-LAST:event_MenuItemLibraryInfoActionPerformed
+    }//GEN-LAST:event_menuItemLibraryInfoActionPerformed
 
     private void menuItemWordWrapSourcesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItemWordWrapSourcesActionPerformed
-      editorSource.setWordWrap(menuItemWordWrapSources.isSelected());
+      this.editorSource.setWordWrap(this.menuItemWordWrapSources.isSelected());
     }//GEN-LAST:event_menuItemWordWrapSourcesActionPerformed
 
-    private void MenuFileNewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuFileNewActionPerformed
-      if (currentExecutedScriptThread != null && currentExecutedScriptThread.isAlive()) {
+    private void menuFileNewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuFileNewActionPerformed
+      if (this.currentExecutedScriptThread != null && this.currentExecutedScriptThread.isAlive()) {
         JOptionPane.showMessageDialog(this, "The current script is executing.", "Can't make new", JOptionPane.ERROR_MESSAGE);
       }
       else {
-        if (documentHasBeenChangedFlag) {
-          if (JOptionPane.showConfirmDialog(this, "The current document changed and non-saved! Do you really want to make new one?", "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION) {
+        if (this.documentHasBeenChangedFlag) {
+          if (JOptionPane.showConfirmDialog(this, "Document is changed and not saved. Do you really want to make new one?", "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION) {
             newFile();
           }
         }
@@ -916,13 +918,13 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
           newFile();
         }
       }
-    }//GEN-LAST:event_MenuFileNewActionPerformed
+    }//GEN-LAST:event_menuFileNewActionPerformed
 
   private long extractStackDepth() {
     final long MINIMAL_STACK = 5 * 1024 * 1024;
 
     long stackSize = MINIMAL_STACK;
-    final String definedProlStackDepth = System.getProperty(PROL_STACK_DEPTH);
+    final String definedProlStackDepth = System.getProperty(PROPERTY_PROL_STACK_DEPTH);
     if (definedProlStackDepth != null) {
       int scale = 1;
       final String trimmed = definedProlStackDepth.trim().toLowerCase(Locale.ENGLISH);
@@ -939,26 +941,26 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         stackSize = Math.max(MINIMAL_STACK, Long.parseLong(text) * scale);
       }
       catch (NumberFormatException ex) {
-        ex.printStackTrace();
+        LOG.log(Level.SEVERE, "Can't extract stack depth value [" + definedProlStackDepth + ']', ex);
       }
     }
     return stackSize;
   }
 
-    private void MenuTraceScriptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuTraceScriptActionPerformed
-      if (currentExecutedScriptThread != null && currentExecutedScriptThread.isAlive()) {
+    private void menuTraceScriptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuTraceScriptActionPerformed
+      if (this.currentExecutedScriptThread != null && this.currentExecutedScriptThread.isAlive()) {
         JOptionPane.showMessageDialog(this, "Script is already executing.", "Can't start", JOptionPane.WARNING_MESSAGE);
       }
       else {
-        startInTraceMode = true;
+        this.startInTraceMode = true;
         clearTextAtAllWindowsExcludeSource();
-        dialogEditor.initBeforeSession();
+        this.dialogEditor.initBeforeSession();
 
         final long stackSize = extractStackDepth();
-        System.out.println("Execute script with the stack depth " + stackSize + " bytes");
+        LOG.info("Start traced execution with the stack depth " + stackSize + " bytes");
 
-        currentExecutedScriptThread = new Thread(executingScripts, this, "ProlScriptExecutingThread", stackSize);
-        currentExecutedScriptThread.setDaemon(false);
+        this.currentExecutedScriptThread = new Thread(this.executingScripts, this, "ProlScriptTracedExecutingThread", stackSize);
+        this.currentExecutedScriptThread.setDaemon(false);
 
         SwingUtilities.invokeLater(new Runnable() {
 
@@ -969,12 +971,12 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
           }
         });
       }
-    }//GEN-LAST:event_MenuTraceScriptActionPerformed
+    }//GEN-LAST:event_menuTraceScriptActionPerformed
 
-    private void MenuFileRecentFilesMenuSelected(javax.swing.event.MenuEvent evt) {//GEN-FIRST:event_MenuFileRecentFilesMenuSelected
+    private void menuFileRecentFilesMenuSelected(javax.swing.event.MenuEvent evt) {//GEN-FIRST:event_menuFileRecentFilesMenuSelected
       JMenu menu = (JMenu) evt.getSource();
       menu.removeAll();
-      for (final String path : recentFiles.getCollection()) {
+      for (final String path : this.recentFiles.getCollection()) {
         final JMenuItem newItem = new JMenuItem(path);
         newItem.setActionCommand(path);
         newItem.addActionListener(new ActionListener() {
@@ -995,21 +997,21 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         });
         menu.add(newItem);
       }
-    }//GEN-LAST:event_MenuFileRecentFilesMenuSelected
+    }//GEN-LAST:event_menuFileRecentFilesMenuSelected
 
-    private void MenuEditCommentSelectedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuEditCommentSelectedActionPerformed
+    private void menuEditCommentSelectedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuEditCommentSelectedActionPerformed
       // TODO add your handling code here:
-      if (editorSource.commentSelectedLines()) {
+      if (this.editorSource.commentSelectedLines()) {
         documentChanged();
       }
-    }//GEN-LAST:event_MenuEditCommentSelectedActionPerformed
+    }//GEN-LAST:event_menuEditCommentSelectedActionPerformed
 
-    private void MenuEditUncommentSelectedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuEditUncommentSelectedActionPerformed
+    private void menuEditUncommentSelectedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuEditUncommentSelectedActionPerformed
       // TODO add your handling code here:
-      if (editorSource.uncommentSelectedLines()) {
+      if (this.editorSource.uncommentSelectedLines()) {
         documentChanged();
       }
-    }//GEN-LAST:event_MenuEditUncommentSelectedActionPerformed
+    }//GEN-LAST:event_menuEditUncommentSelectedActionPerformed
 
   private void menuItemFullScreenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItemFullScreenActionPerformed
     final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
@@ -1024,9 +1026,9 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   }//GEN-LAST:event_menuItemFullScreenActionPerformed
 
   private void menuitemFindTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuitemFindTextActionPerformed
-    panelFindText.setVisible(true);
-    textFind.setText("");
-    textFind.requestFocus();
+    this.panelFindText.setVisible(true);
+    this.textFind.setText("");
+    this.textFind.requestFocus();
   }//GEN-LAST:event_menuitemFindTextActionPerformed
 
   private int searchText(final String text, final Pattern pattern, final int cursorPos) {
@@ -1060,35 +1062,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   }//GEN-LAST:event_textFindKeyReleased
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
-  private javax.swing.JButton ButtonStopExecuting;
-  private javax.swing.JMenuItem MenuAbout;
-  private javax.swing.JMenuItem MenuClearText;
-  private javax.swing.JMenu MenuEdit;
-  private javax.swing.JMenuItem MenuEditCommentSelected;
-  private javax.swing.JMenuItem MenuEditOptions;
-  private javax.swing.JMenuItem MenuEditUncommentSelected;
-  private javax.swing.JMenuItem MenuExit;
-  private javax.swing.JMenu MenuFile;
-  private javax.swing.JMenuItem MenuFileNew;
-  private javax.swing.JMenuItem MenuFileOpen;
-  private javax.swing.JMenu MenuFileRecentFiles;
-  private javax.swing.JMenuItem MenuFileSave;
-  private javax.swing.JMenuItem MenuFileSaveAs;
-  private javax.swing.JMenu MenuHelp;
-  private javax.swing.JMenuItem MenuHelpHelp;
-  private javax.swing.JMenuItem MenuItemLibraryInfo;
-  private javax.swing.JMenu MenuLookAndFeel;
-  private javax.swing.JMenuItem MenuRedo;
-  private javax.swing.JMenu MenuRun;
-  private javax.swing.JMenuItem MenuRunScript;
-  private javax.swing.JMenuItem MenuTraceScript;
-  private javax.swing.JMenuItem MenuUndo;
-  private javax.swing.JMenu MenuView;
-  private javax.swing.JMenuItem MenuViewKnowledgeBase;
-  private javax.swing.JSplitPane SplitPaneMain;
-  private javax.swing.JSplitPane SplitPaneTop;
-  private javax.swing.JSplitPane SplitPanelDown;
   private javax.swing.JButton buttonCloseFind;
+  private javax.swing.JButton buttonStopExecuting;
   private com.igormaznitsa.prol.easygui.DialogEditor dialogEditor;
   private javax.swing.JPanel editorPanel;
   private com.wordpress.tips4java.TextLineNumber editorSource;
@@ -1100,21 +1075,48 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   private javax.swing.JPopupMenu.Separator jSeparator4;
   private javax.swing.JPopupMenu.Separator jSeparator5;
   private javax.swing.JLabel labelFind;
+  private javax.swing.JMenuItem menuAbout;
+  private javax.swing.JMenuItem menuClearText;
+  private javax.swing.JMenu menuEdit;
+  private javax.swing.JMenuItem menuEditCommentSelected;
+  private javax.swing.JMenuItem menuEditOptions;
+  private javax.swing.JMenuItem menuEditUncommentSelected;
+  private javax.swing.JMenuItem menuExit;
+  private javax.swing.JMenu menuFile;
+  private javax.swing.JMenuItem menuFileNew;
+  private javax.swing.JMenuItem menuFileOpen;
+  private javax.swing.JMenu menuFileRecentFiles;
+  private javax.swing.JMenuItem menuFileSave;
+  private javax.swing.JMenuItem menuFileSaveAs;
+  private javax.swing.JMenu menuHelp;
+  private javax.swing.JMenuItem menuHelpHelp;
   private javax.swing.JMenuItem menuItemFullScreen;
+  private javax.swing.JMenuItem menuItemLibraryInfo;
   private javax.swing.JCheckBoxMenuItem menuItemWordWrapSources;
+  private javax.swing.JMenu menuLookAndFeel;
+  private javax.swing.JMenuItem menuRedo;
+  private javax.swing.JMenu menuRun;
+  private javax.swing.JMenuItem menuRunScript;
   private javax.swing.JMenuItem menuRunStop;
+  private javax.swing.JMenuItem menuTraceScript;
+  private javax.swing.JMenuItem menuUndo;
+  private javax.swing.JMenu menuView;
+  private javax.swing.JMenuItem menuViewKnowledgeBase;
   private javax.swing.JMenuItem menuitemFindText;
   private com.igormaznitsa.prol.easygui.MessageEditor messageEditor;
   private javax.swing.JPanel panelFindText;
   private javax.swing.JPanel panelProgress;
   private javax.swing.JProgressBar progressBarTask;
+  private javax.swing.JSplitPane splitPaneMain;
+  private javax.swing.JSplitPane splitPaneTop;
+  private javax.swing.JSplitPane splitPanelDown;
   private javax.swing.JTextField textFind;
   private com.igormaznitsa.prol.easygui.TraceDialog traceEditor;
   // End of variables declaration//GEN-END:variables
 
   private void setLastContext(ProlContext context) {
-    lastContext = context;
-    MenuViewKnowledgeBase.setEnabled(lastContext != null);
+    this.lastContext = context;
+    this.menuViewKnowledgeBase.setEnabled(lastContext != null);
   }
 
   @Override
@@ -1125,7 +1127,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       if (resourceName.equals("user")) {
         successful = true;
         notTraceable = true;
-        return dialogEditor.getInputReader();
+        return this.dialogEditor.getInputReader();
       }
       else {
         final FileReader reader = new FileReader(resourceName);
@@ -1137,10 +1139,10 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     finally {
       if (!notTraceable) {
         if (successful) {
-          messageEditor.addInfoText("The reader for \'" + resourceName + "\' has been opened.");
+          this.messageEditor.addInfoText("The reader for \'" + resourceName + "\' has been opened.");
         }
         else {
-          messageEditor.addWarningText("The reader for \'" + resourceName + "\' can't be opened.");
+          this.messageEditor.addWarningText("The reader for \'" + resourceName + "\' can't be opened.");
         }
       }
     }
@@ -1155,7 +1157,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       if (resourceName.equals("user")) {
         successful = true;
         notTraceable = true;
-        return dialogEditor.getOutputWriter();
+        return this.dialogEditor.getOutputWriter();
       }
       else {
         final Writer writer = new FileWriter(resourceName);
@@ -1168,10 +1170,10 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     finally {
       if (!notTraceable) {
         if (successful) {
-          messageEditor.addInfoText("The writer for \'" + resourceName + "\' has been opened.");
+          this.messageEditor.addInfoText("The writer for \'" + resourceName + "\' has been opened.");
         }
         else {
-          messageEditor.addWarningText("The writer for \'" + resourceName + "\' can't be opened.");
+          this.messageEditor.addWarningText("The writer for \'" + resourceName + "\' can't be opened.");
         }
       }
     }
@@ -1189,14 +1191,14 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     long startTime = 0;
 
     try {
-      dialogEditor.setEnabled(true);
-      dialogEditor.requestFocus();
+      this.dialogEditor.setEnabled(true);
+      this.dialogEditor.requestFocus();
 
-      messageEditor.addInfoText("Creating Context...");
+      this.messageEditor.addInfoText("Creating Context...");
 
       try {
         context = new ProlContext("ProlScript", this);
-        if (startInTraceMode) {
+        if (this.startInTraceMode) {
           context.setDefaultTraceListener(this);
         }
 
@@ -1204,21 +1206,21 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
           final ProlAbstractLibrary lib = (ProlAbstractLibrary) Class.forName(str).newInstance();
 
           context.addLibrary(lib);
-          messageEditor.addInfoText("Library \'" + lib.getLibraryUID() + "\' has been added...");
+          this.messageEditor.addInfoText("Library \'" + lib.getLibraryUID() + "\' has been added...");
         }
 
         context.addLibrary(logLibrary);
-        messageEditor.addInfoText("Library \'" + logLibrary.getLibraryUID() + "\' has been added...");
+        this.messageEditor.addInfoText("Library \'" + logLibrary.getLibraryUID() + "\' has been added...");
 
         setLastContext(context);
       }
       catch (Throwable ex) {
         LOG.log(Level.WARNING, "ExecutionThread.run()", ex);
-        messageEditor.addErrorText("Can't create context for exception [" + ex.getMessage() + ']');
+        this.messageEditor.addErrorText("Can't create context for exception [" + ex.getMessage() + ']');
         return;
       }
 
-      messageEditor.addInfoText("Consult with the script... ");
+      this.messageEditor.addInfoText("Consult with the script... ");
       consult = new ProlConsult(editorSource.getText(), context);
 
       startTime = System.currentTimeMillis();
@@ -1236,12 +1238,12 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         final Throwable cause = ex.getCause();
 
         if (cause instanceof StackOverflowError) {
-          messageEditor.addErrorText("Stack Overflow!");
+          this.messageEditor.addErrorText("Stack Overflow!");
           JOptionPane.showMessageDialog(this, "Stack overflow exception detected!", "Error", JOptionPane.ERROR_MESSAGE);
           return;
         }
         else if (cause instanceof OutOfMemoryError) {
-          messageEditor.addErrorText("Out of Memory!");
+          this.messageEditor.addErrorText("Out of Memory!");
           JOptionPane.showMessageDialog(this, "Out of Memory exception  detected!", "Error", JOptionPane.ERROR_MESSAGE);
           return;
         }
@@ -1253,7 +1255,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
           canceled = true;
         }
         else {
-          messageEditor.addText("Parser exception [" + ex.getMessage() + ']', MessageEditor.TYPE_ERROR, "source://" + ex.getLine() + ';' + ex.getPos(), "line " + ex.getLine() + ":" + ex.getPos());
+          this.messageEditor.addText("Parser exception [" + ex.getMessage() + ']', MessageEditor.TYPE_ERROR, "source://" + ex.getLine() + ';' + ex.getPos(), "line " + ex.getLine() + ":" + ex.getPos());
           return;
         }
       }
@@ -1272,7 +1274,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
           }
         }
         else {
-          messageEditor.addErrorText("Can't parse script for exception [" + ex.getMessage() + ']');
+          this.messageEditor.addErrorText("Can't parse script for exception [" + ex.getMessage() + ']');
           return;
         }
       }
@@ -1282,23 +1284,23 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }
     finally {
       try {
-        messageEditor.addInfoText("Total time " + ((System.currentTimeMillis() - startTime) / 1000f) + " sec.");
+        this.messageEditor.addInfoText("Total time " + ((System.currentTimeMillis() - startTime) / 1000f) + " sec.");
 
         if (halted == null) {
           if (!canceled) {
             if (successfully) {
-              messageEditor.addInfoText("Completed successfully.");
+              this.messageEditor.addInfoText("Completed successfully.");
             }
             else {
-              messageEditor.addErrorText("Completed with errors or not started.");
+              this.messageEditor.addErrorText("Completed with errors or not started.");
             }
           }
         }
         else {
-          messageEditor.addText("Halted [" + halted.getMessage() + ']', MessageEditor.TYPE_WARNING, parserException != null ? ("source://" + parserException.getLine() + ';' + parserException.getPos()) : null, parserException != null ? ("line " + parserException.getLine() + ":" + parserException.getPos()) : null);
+          this.messageEditor.addText("Halted [" + halted.getMessage() + ']', MessageEditor.TYPE_WARNING, parserException != null ? ("source://" + parserException.getLine() + ';' + parserException.getPos()) : null, parserException != null ? ("line " + parserException.getLine() + ":" + parserException.getPos()) : null);
         }
-        dialogEditor.setEnabled(false);
-        currentExecutedScriptThread = null;
+        this.dialogEditor.setEnabled(false);
+        this.currentExecutedScriptThread = null;
       }
       finally {
         if (context != null) {
@@ -1315,32 +1317,32 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
   @Override
   public void undoableEditHappened(final UndoableEditEvent e) {
-    final UndoManager undo = editorSource.getUndoManager();
+    final UndoManager undo = this.editorSource.getUndoManager();
     undo.addEdit(e.getEdit());
-    MenuUndo.setEnabled(undo.canUndo());
-    MenuRedo.setEnabled(undo.canRedo());
+    this.menuUndo.setEnabled(undo.canUndo());
+    this.menuRedo.setEnabled(undo.canRedo());
 
   }
 
   @Override
-  public void windowOpened(WindowEvent e) {
+  public void windowOpened(final WindowEvent e) {
   }
 
   @Override
-  public void windowClosing(WindowEvent e) {
-    if (documentHasBeenChangedFlag) {
+  public void windowClosing(final WindowEvent e) {
+    if (this.documentHasBeenChangedFlag) {
       if (JOptionPane.showConfirmDialog(this, "Document is changed but not saved. Do you really want to exit?", "Confirmation", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION) {
         return;
       }
     }
 
-    if (currentExecutedScriptThread != null) {
-      if (JOptionPane.showConfirmDialog(this, "In Run mode. Do you really want to exit?", "Confirmation", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+    if (this.currentExecutedScriptThread != null) {
+      if (JOptionPane.showConfirmDialog(this, "Task is under execution. Do you really want to exit?", "Confirmation", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 
-        dialogEditor.cancelRead();
-        dialogEditor.close();
+        this.dialogEditor.cancelRead();
+        this.dialogEditor.close();
 
-        final Thread thrd = currentExecutedScriptThread;
+        final Thread thrd = this.currentExecutedScriptThread;
 
         try {
           thrd.interrupt();
@@ -1354,8 +1356,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       }
     }
     else {
-      dialogEditor.cancelRead();
-      dialogEditor.close();
+      this.dialogEditor.cancelRead();
+      this.dialogEditor.close();
     }
 
     savePreferences();
@@ -1371,39 +1373,39 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   }
 
   @Override
-  public void windowClosed(WindowEvent e) {
+  public void windowClosed(final WindowEvent e) {
   }
 
   @Override
-  public void windowIconified(WindowEvent e) {
+  public void windowIconified(final WindowEvent e) {
   }
 
   @Override
-  public void windowDeiconified(WindowEvent e) {
+  public void windowDeiconified(final WindowEvent e) {
   }
 
   @Override
-  public void windowActivated(WindowEvent e) {
-    if (currentExecutedScriptThread != null) {
-      dialogEditor.requestFocus();
+  public void windowActivated(final WindowEvent e) {
+    if (this.currentExecutedScriptThread != null) {
+      this.dialogEditor.requestFocus();
     }
     else {
-      editorSource.requestFocus();
+      this.editorSource.requestFocus();
     }
 
   }
 
   @Override
-  public void windowDeactivated(WindowEvent e) {
+  public void windowDeactivated(final WindowEvent e) {
   }
 
   @Override
-  public void insertUpdate(DocumentEvent e) {
+  public void insertUpdate(final DocumentEvent e) {
     documentChanged();
   }
 
   @Override
-  public void removeUpdate(DocumentEvent e) {
+  public void removeUpdate(final DocumentEvent e) {
     documentChanged();
   }
 
@@ -1413,36 +1415,36 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   }
 
   private void documentChanged() {
-    if (!documentHasBeenChangedFlag) {
-      documentHasBeenChangedFlag = true;
-      if (currentOpenedFile != null) {
-        MenuFileSave.setEnabled(true);
+    if (!this.documentHasBeenChangedFlag) {
+      this.documentHasBeenChangedFlag = true;
+      if (this.currentOpenedFile != null) {
+        this.menuFileSave.setEnabled(true);
       }
       setTitle("*" + getTitle());
     }
   }
 
   private void setTextToDocument(final String text) {
-    editorSource.clearText();
-    editorSource.getEditor().setText(text);
+    this.editorSource.clearText();
+    this.editorSource.getEditor().setText(text);
 
-    if (currentOpenedFile != null) {
-      MenuFileSave.setEnabled(true);
+    if (this.currentOpenedFile != null) {
+      this.menuFileSave.setEnabled(true);
     }
     else {
-      MenuFileSave.setEnabled(false);
+      this.menuFileSave.setEnabled(false);
     }
 
-    editorSource.getUndoManager().discardAllEdits();
-    MenuUndo.setEnabled(false);
-    MenuRedo.setEnabled(false);
+    this.editorSource.getUndoManager().discardAllEdits();
+    this.menuUndo.setEnabled(false);
+    this.menuRedo.setEnabled(false);
 
-    documentHasBeenChangedFlag = false;
+    this.documentHasBeenChangedFlag = false;
   }
 
   private void saveFile(final boolean saveAs) {
-    File file = currentOpenedFile;
-    if (saveAs || currentOpenedFile == null) {
+    File file = this.currentOpenedFile;
+    if (saveAs || this.currentOpenedFile == null) {
       JFileChooser fileChooser = new JFileChooser(file);
       fileChooser.addChoosableFileFilter(PROL_FILE_FILTER);
       fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -1459,7 +1461,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
           }
         }
 
-        if (saveAs || !file.equals(currentOpenedFile)) {
+        if (saveAs || !file.equals(this.currentOpenedFile)) {
           if (file.exists()) {
             if (JOptionPane.showConfirmDialog(this, "File \'" + file.getAbsolutePath() + "\' exists, to overwrite it?", "File exists", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION) {
               return;
@@ -1472,7 +1474,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       }
     }
 
-    final String textFromEditor = editorSource.getEditor().getText();
+    final String textFromEditor = this.editorSource.getEditor().getText();
 
     Writer writer = null;
 
@@ -1480,7 +1482,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false), "UTF-8"));
       writer.write(textFromEditor);
       writer.flush();
-      recentFiles.put(file.getAbsolutePath());
+      this.recentFiles.put(file.getAbsolutePath());
     }
     catch (Throwable thr) {
       LOG.throwing(this.getClass().getCanonicalName(), "saveFile()", thr);
@@ -1497,24 +1499,24 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       }
     }
 
-    currentOpenedFile = file;
-    lastOpenedFile = currentOpenedFile;
-    setTitle(currentOpenedFile.getAbsolutePath());
+    this.currentOpenedFile = file;
+    this.lastOpenedFile = currentOpenedFile;
+    setTitle(this.currentOpenedFile.getAbsolutePath());
 
-    editorSource.getUndoManager().discardAllEdits();
-    MenuFileSave.setEnabled(true);
-    documentHasBeenChangedFlag = false;
+    this.editorSource.getUndoManager().discardAllEdits();
+    this.menuFileSave.setEnabled(true);
+    this.documentHasBeenChangedFlag = false;
   }
 
   private void newFile() {
     // make new
 
-    editorSource.clearText();
+    this.editorSource.clearText();
 
     clearTextAtAllWindowsExcludeSource();
 
-    currentOpenedFile = null;
-    documentHasBeenChangedFlag = false;
+    this.currentOpenedFile = null;
+    this.documentHasBeenChangedFlag = false;
 
     setTitle("The Prol Notepad utility. Version: " + VERSION);
 
@@ -1522,13 +1524,13 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   }
 
   private void clearTextAtAllWindowsExcludeSource() {
-    traceEditor.clearText();
-    dialogEditor.clearText();
-    messageEditor.clearText();
+    this.traceEditor.clearText();
+    this.dialogEditor.clearText();
+    this.messageEditor.clearText();
   }
 
   private void loadFile(final File file, final boolean justLoadFile) {
-    if (documentHasBeenChangedFlag) {
+    if (this.documentHasBeenChangedFlag) {
       if (JOptionPane.showConfirmDialog(this, "Document is changed and not saved. To load new one?", "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.NO_OPTION) {
         return;
       }
@@ -1546,7 +1548,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     if (justLoadFile || fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
       File fileToOpen = justLoadFile ? file : fileChooser.getSelectedFile();
 
-      lastOpenedFile = fileToOpen;
+      this.lastOpenedFile = fileToOpen;
 
       Reader reader = null;
 
@@ -1562,17 +1564,17 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         }
 
         setTextToDocument(buffer.toString());
-        currentOpenedFile = fileToOpen;
-        setTitle(currentOpenedFile.getCanonicalPath());
+        this.currentOpenedFile = fileToOpen;
+        setTitle(this.currentOpenedFile.getCanonicalPath());
         this.repaint();
 
-        recentFiles.put(fileToOpen.getAbsolutePath());
+        this.recentFiles.put(fileToOpen.getAbsolutePath());
 
       }
       catch (Throwable thr) {
         LOG.throwing(this.getClass().getCanonicalName(), "loadFile()", thr);
         JOptionPane.showMessageDialog(this, "Can't load file " + fileToOpen.getAbsolutePath() + " [" + thr.getMessage() + "]");
-        recentFiles.remove(fileToOpen.getAbsolutePath());
+        this.recentFiles.remove(fileToOpen.getAbsolutePath());
       }
       finally {
         if (reader != null) {
@@ -1588,9 +1590,9 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   }
 
   private void showTaskControlPanel() {
-    panelProgress.setVisible(true);
-    progressBarTask.setIndeterminate(true);
-    menuRunStop.setEnabled(true);
+    this.panelProgress.setVisible(true);
+    this.progressBarTask.setIndeterminate(true);
+    this.menuRunStop.setEnabled(true);
   }
 
   private void hideTaskControlPanel() {
@@ -1620,7 +1622,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
           int line = Integer.parseInt(parsed[0].trim());
           int pos = Integer.parseInt(parsed[1].trim());
 
-          editorSource.setCaretPosition(line, pos + 1);
+          this.editorSource.setCaretPosition(line, pos + 1);
         }
         catch (Exception ex) {
           ex.printStackTrace();
@@ -1630,18 +1632,18 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   }
 
   private void loadPreferences() {
-    Preferences prefs = Preferences.userNodeForPackage(this.getClass());
+    final Preferences prefs = Preferences.userNodeForPackage(this.getClass());
 
-    setSelectedLookAndFeel(prefs.get("lookandfeel", MenuLookAndFeel.getItem(0).getText()));
+    setSelectedLookAndFeel(prefs.get("lookandfeel", menuLookAndFeel.getItem(0).getText()));
 
     int recentFileIndex = 1;
-    recentFiles.clear();
+    this.recentFiles.clear();
     while (true) {
       final String path = prefs.get("RecentFile" + recentFileIndex, null);
       if (path == null) {
         break;
       }
-      recentFiles.add(path);
+      this.recentFiles.add(path);
       recentFileIndex++;
     }
 
@@ -1655,25 +1657,25 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       setLocation(prefs.getInt("mainx", 0), prefs.getInt("mainy", 0));
     }
 
-    SplitPaneMain.setDividerLocation(prefs.getInt("splitpanemainpos", 400));
-    SplitPaneTop.setDividerLocation(prefs.getInt("splitpanetoppos", 300));
+    this.splitPaneMain.setDividerLocation(prefs.getInt("splitpanemainpos", 400));
+    this.splitPaneTop.setDividerLocation(prefs.getInt("splitpanetoppos", 300));
 
-    String lastFile = prefs.get("lastfile", "");
+    final String lastFile = prefs.get("lastfile", "");
     if (lastFile.length() > 0) {
-      lastOpenedFile = new File(lastFile);
+      this.lastOpenedFile = new File(lastFile);
     }
     else {
-      lastOpenedFile = null;
+      this.lastOpenedFile = null;
     }
 
-    editorSource.loadPreferences(prefs);
-    messageEditor.loadPreferences(prefs);
-    dialogEditor.loadPreferences(prefs);
-    traceEditor.loadPreferences(prefs);
+    this.editorSource.loadPreferences(prefs);
+    this.messageEditor.loadPreferences(prefs);
+    this.dialogEditor.loadPreferences(prefs);
+    this.traceEditor.loadPreferences(prefs);
   }
 
   private void savePreferences() {
-    Preferences prefs = Preferences.userNodeForPackage(this.getClass());
+    final Preferences prefs = Preferences.userNodeForPackage(this.getClass());
 
     LookAndFeelInfo currentInfo = null;
     final String landfClass = UIManager.getLookAndFeel().getClass().getName();
@@ -1688,7 +1690,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }
 
     int recentFileIndex = 1;
-    for (final String recentFile : recentFiles.getCollection()) {
+    for (final String recentFile : this.recentFiles.getCollection()) {
       prefs.put("RecentFile" + recentFileIndex, recentFile);
       recentFileIndex++;
     }
@@ -1701,14 +1703,14 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     prefs.putInt("mainx", getX());
     prefs.putInt("mainy", getY());
 
-    prefs.putInt("splitpanemainpos", SplitPaneMain.getDividerLocation());
-    prefs.putInt("splitpanetoppos", SplitPaneTop.getDividerLocation());
+    prefs.putInt("splitpanemainpos", splitPaneMain.getDividerLocation());
+    prefs.putInt("splitpanetoppos", splitPaneTop.getDividerLocation());
 
-    prefs.put("lastfile", lastOpenedFile == null ? "" : lastOpenedFile.getAbsolutePath());
+    prefs.put("lastfile", this.lastOpenedFile == null ? "" : this.lastOpenedFile.getAbsolutePath());
 
-    editorSource.savePreferences(prefs);
-    messageEditor.savePreferences(prefs);
-    dialogEditor.savePreferences(prefs);
-    traceEditor.savePreferences(prefs);
+    this.editorSource.savePreferences(prefs);
+    this.messageEditor.savePreferences(prefs);
+    this.dialogEditor.savePreferences(prefs);
+    this.traceEditor.savePreferences(prefs);
   }
 }

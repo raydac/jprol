@@ -230,7 +230,7 @@ public class ProlConsult {
                       final int chr = userreader.read();
                       if (chr < 0) {
                         if (userwriter != null) {
-                          userwriter.append("    Can't get the key value, it is possible the execution has been canceled.");
+                          userwriter.append("    Can't get the key value, it is possible that execution was canceled.");
                         }
                         break;
                       }
@@ -255,7 +255,7 @@ public class ProlConsult {
                     userwriter.flush();
                   }
 
-                  throw new ProlHaltExecutionException("Halted because a goal failed.", 1);
+                  throw new ProlHaltExecutionException("Halted because goal failed.", 1);
                 }
                 else {
                   base.assertZ(struct);
@@ -270,7 +270,7 @@ public class ProlConsult {
           }
           break;
           default: {
-            throw new ProlKnowledgeBaseException("Such element can't be saved at the knowledge base [" + nextItem + ']');
+            throw new ProlKnowledgeBaseException("Such element can't be saved at knowledge base [" + nextItem + ']');
           }
         }
       }

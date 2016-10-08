@@ -34,7 +34,6 @@ public class HelpDialog extends javax.swing.JDialog {
     this.textHelp.setCaretPosition(0);
     this.setSize(512, 400);
     this.getRootPane().setDefaultButton(this.buttonClose);
-    setVisible(true);
   }
 
   /**
