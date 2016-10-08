@@ -98,8 +98,18 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
   protected final JMenuItem POPUP_PASTE = new JMenuItem("Paste",UIUtils.loadIcon("page_paste"));
 
   private final String nameID;
-  
-  public String getNameID(){
+
+  protected static Color extractColor(final Preferences prefs, final String name) {
+    final int value = prefs.getInt(name, 0xFFFFFFFF);
+    return value == 0xFFFFFFFF ? null : new Color(value & 0xFFFFFF);
+  }
+
+  protected static Color extractColor(final Preferences prefs, final String name, final Color dflt) {
+    final int value = prefs.getInt(name, 0xFFFFFFFF);
+    return value == 0xFFFFFFFF ? dflt : new Color(value & 0xFFFFFF);
+  }
+
+  public String getNameID() {
     return this.nameID;
   }
   

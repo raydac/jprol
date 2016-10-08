@@ -180,12 +180,31 @@ public class TraceDialog extends AbstractProlEditor implements ActionListener {
 
   @Override
   public void loadPreferences(Preferences prefs) {
-    setEdBackground(new Color(prefs.getInt("tracebackcolor", 0x7C005A)));
-    setEdCallColor(new Color(prefs.getInt("tracecallcolor", 0xBF9430)));
-    setEdRedoColor(new Color(prefs.getInt("traceredocolor", 0xA67300)));
-    setEdExitColor(new Color(prefs.getInt("traceexitcolor", 0x00B060)));
-    setEdFailColor(new Color(prefs.getInt("tracefailcolor", 0xFF4500)));
-    setEdOtherColor(new Color(prefs.getInt("traceothercolor", 0xA62D00)));
+    final Color bgColor = extractColor(prefs, "tracebackcolor", Color.LIGHT_GRAY);
+    final Color callColor = extractColor(prefs, "tracecallcolor", Color.BLACK);
+    final Color redoColor = extractColor(prefs, "traceredocolor", Color.DARK_GRAY);
+    final Color exitColor = extractColor(prefs, "traceexitcolor", Color.BLUE);
+    final Color failColor = extractColor(prefs, "tracefailcolor", Color.RED);
+    final Color otherColor = extractColor(prefs, "traceothercolor", Color.YELLOW);
+
+    if (bgColor != null) {
+      setEdBackground(bgColor);
+    }
+    if (callColor != null) {
+      setEdCallColor(callColor);
+    }
+    if (redoColor != null) {
+      setEdRedoColor(redoColor);
+    }
+    if (exitColor != null) {
+      setEdExitColor(exitColor);
+    }
+    if (failColor != null) {
+      setEdFailColor(failColor);
+    }
+    if (otherColor != null) {
+      setEdOtherColor(otherColor);
+    }
 
     setEdWordWrap(prefs.getBoolean("tracewordwrap", false));
 

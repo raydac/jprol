@@ -218,10 +218,23 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
 
   @Override
   public void loadPreferences(Preferences prefs) {
-    setEdBackground(new Color(prefs.getInt("dialogbackcolor", 0x7908AA  )));
-    setEdInputColor(new Color(prefs.getInt("dialoginputcolor", 0x34D800)));
-    setEdOutputColor(new Color(prefs.getInt("dialogoutputcolor", 0xF3FD00)));
-    setEdCaretColor(new Color(prefs.getInt("dialogcaretcolor", 0xF30021)));
+    final Color bgColor = extractColor(prefs, "dialogbackcolor", Color.BLUE.darker());
+    final Color inColor = extractColor(prefs, "dialoginputcolor", Color.GREEN);
+    final Color outColor = extractColor(prefs, "dialogoutputcolor", Color.ORANGE);
+    final Color caretColor = extractColor(prefs, "dialogcaretcolor", Color.GREEN);
+
+    if (bgColor != null) {
+      setEdBackground(bgColor);
+    }
+    if (inColor != null) {
+      setEdInputColor(inColor);
+    }
+    if (outColor != null) {
+      setEdOutputColor(outColor);
+    }
+    if (caretColor != null) {
+      setEdCaretColor(caretColor);
+    }
     setEdWordWrap(prefs.getBoolean("dialogwordwrap", true));
     setEdFont(loadFontFromPrefs(prefs, "dialogoutputfont"));
   }

@@ -502,9 +502,19 @@ public class TextLineNumber extends AbstractProlEditor {
 
   @Override
   public void loadPreferences(final Preferences prefs) {
-    setEdBackground(new Color(prefs.getInt("sourceedbackcolor", 0x1437AD)));
-    setEdCaretColor(new Color(prefs.getInt("sourcecaretcolor", 0xFFFF40)));
-    setEdForeground(new Color(prefs.getInt("sourceforegroundcolor", 0xFFFFFF)));
+    final Color backColor = extractColor(prefs, "sourceedbackcolor");
+    final Color caretColor = extractColor(prefs, "sourcecaretcolor");
+    final Color fgColor = extractColor(prefs, "sourceforegroundcolor");
+
+    if (backColor != null) {
+      setEdBackground(backColor);
+    }
+    if (caretColor != null) {
+      setEdCaretColor(caretColor);
+    }
+    if (fgColor != null) {
+      setEdForeground(fgColor);
+    }
     setEdWordWrap(prefs.getBoolean("sourcewordwrap", true));
     setEdFont(loadFontFromPrefs(prefs, "sourcefont"));
   }

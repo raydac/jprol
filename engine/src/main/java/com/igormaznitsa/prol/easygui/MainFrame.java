@@ -41,9 +41,8 @@ import javax.swing.tree.TreeModel;
 import javax.swing.undo.*;
 
 /**
- * The class implements the main frame of the Prol Pad IDE (a small UI utility
- * to edit and run prol scripts) because it is a very specialized auxiliary
- * class, it is not described very precisely
+ * The class implements the main frame of the Prol Pad IDE (a small UI utility to edit and run prol scripts) because it is a very specialized auxiliary class, it is not described
+ * very precisely
  *
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
@@ -54,7 +53,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   /**
    * The version of the IDE
    */
-  private final String VERSION = getString(this.getClass().getPackage().getImplementationVersion(),"<Development>");
+  private final String VERSION = getString(this.getClass().getPackage().getImplementationVersion(), "<Development>");
   /**
    * Inside logger
    */
@@ -85,13 +84,12 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     traceEditor.addExitText(goal.getGoalTerm().forWrite());
   }
 
-  private static String getString(final String str, final String def){
+  private static String getString(final String str, final String def) {
     return str == null ? def : str;
   }
-  
+
   /**
-   * This class is a helper Prol library to allow a user to print messages at
-   * the Message dialog window (and the log too) directly from its scripts
+   * This class is a helper Prol library to allow a user to print messages at the Message dialog window (and the log too) directly from its scripts
    */
   protected final class LogLibrary extends ProlAbstractLibrary {
 
@@ -190,44 +188,49 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     newFile();
 
     menuItemWordWrapSources.setState(editorSource.isWordWrap());
-    
+
     final Action action = new AbstractAction("closeFindPanel") {
       private static final long serialVersionUID = 4377386270269629176L;
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (panelFindText.isVisible()){
+        if (panelFindText.isVisible()) {
           panelFindText.setVisible(false);
           textFind.setText("");
         }
       }
 
     };
-    
+
     final KeyStroke escKey = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
     action.putValue(Action.ACCELERATOR_KEY, escKey);
     buttonCloseFind.getActionMap().put("closeFind", action);
     buttonCloseFind.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escKey, "closeFind");
-    
+
     panelFindText.setVisible(false);
   }
 
   private void fillLAndFeelMenu() {
-    LookAndFeelInfo plaf[] = UIManager.getInstalledLookAndFeels();
+    final LookAndFeelInfo plaf[] = UIManager.getInstalledLookAndFeels();
     lfTable = new HashMap<String, LookAndFeelInfo>();
-    ButtonGroup lfGroup = new ButtonGroup();
+    final ButtonGroup lfGroup = new ButtonGroup();
 
     final ActionListener lfListener = new ActionListener() {
 
       @Override
-      public void actionPerformed(ActionEvent e) {
-        JRadioButtonMenuItem item = (JRadioButtonMenuItem) e.getSource();
+      public void actionPerformed(final ActionEvent e) {
+        final JRadioButtonMenuItem item = (JRadioButtonMenuItem) e.getSource();
         setSelectedLookAndFeel(item.getText());
       }
     };
 
     for (int i = 0, n = plaf.length; i < n; i++) {
-      String lfName = plaf[i].getName();
+      final String lfName = plaf[i].getName();
+
+      if (lfName.toLowerCase(Locale.ENGLISH).contains("nimbus")) {
+        continue;
+      }
+
       lfTable.put(lfName, plaf[i]);
       JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem(lfName);
 
@@ -238,44 +241,50 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }
   }
 
-  private void setSelectedLookAndFeel(String name) {
+  private void setSelectedLookAndFeel(String lfName) {
 
-    if (name != null) {
-      if (!lfTable.containsKey(name)) {
-        name = null;
+    if (lfName != null) {
+      if (!lfTable.containsKey(lfName)) {
+        lfName = null;
       }
     }
 
-    if (name == null) {
+    if (lfName == null) {
       // set the first
-      name = MenuLookAndFeel.getItem(0).getText();
+      lfName = MenuLookAndFeel.getItem(0).getText();
     }
 
-    final LookAndFeelInfo feelInfo = lfTable.get(name);
+    final LookAndFeelInfo feelInfo = lfTable.get(lfName);
     final JFrame thisFrame = this;
 
     for (int li = 0; li < MenuLookAndFeel.getItemCount(); li++) {
-      JRadioButtonMenuItem menuItem = (JRadioButtonMenuItem) MenuLookAndFeel.getItem(li);
-      if (menuItem.getText().equals(name)) {
+      final JRadioButtonMenuItem menuItem = (JRadioButtonMenuItem) MenuLookAndFeel.getItem(li);
+      if (menuItem.getText().equals(lfName)) {
         if (!menuItem.isSelected()) {
           menuItem.setSelected(true);
         }
-        SwingUtilities.invokeLater(new Runnable() {
-
-          @Override
-          public void run() {
-            try {
-              UIManager.setLookAndFeel(feelInfo.getClassName());
-              SwingUtilities.updateComponentTreeUI(thisFrame);
-            }
-            catch (Throwable e) {
-              LOG.throwing(thisFrame.getClass().getCanonicalName(), "L&F", e);
-            }
-          }
-        });
         break;
       }
     }
+    try {
+      UIManager.setLookAndFeel(feelInfo.getClassName());
+    }
+    catch (Exception ex) {
+      LOG.throwing(thisFrame.getClass().getCanonicalName(), "L&F", ex);
+    }
+
+    if (feelInfo.getName().toLowerCase(Locale.ENGLISH).contains("nimbus")) {
+      UIManager.put("TextPane[Enabled].backgroundPainter", new Painter<JComponent>() {
+        @Override
+        public void paint(final Graphics2D g, final JComponent comp, final int width, final int height) {
+          g.setColor(comp.getBackground());
+          g.fillRect(0, 0, width, height);
+        }
+      });
+    }
+
+    SwingUtilities.updateComponentTreeUI(thisFrame);
+
   }
 
   public MainFrame(final File initFile) {
@@ -284,13 +293,13 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   }
 
   /**
-   * This method is called from within the constructor to initialize the form.
-   * WARNING: Do NOT modify this code. The content of this method is always
-   * regenerated by the Form Editor.
+   * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The content of this method is always regenerated by the Form
+   * Editor.
    */
   @SuppressWarnings("unchecked")
   // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
   private void initComponents() {
+    java.awt.GridBagConstraints gridBagConstraints;
 
     SplitPaneMain = new javax.swing.JSplitPane();
     SplitPaneTop = new javax.swing.JSplitPane();
@@ -305,6 +314,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     labelFind = new javax.swing.JLabel();
     textFind = new javax.swing.JTextField();
     buttonCloseFind = new javax.swing.JButton();
+    filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
     SplitPanelDown = new javax.swing.JSplitPane();
     messageEditor = new com.igormaznitsa.prol.easygui.MessageEditor();
     traceEditor = new com.igormaznitsa.prol.easygui.TraceDialog();
@@ -369,27 +379,40 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     editorSource.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
     editorPanel.add(editorSource, java.awt.BorderLayout.CENTER);
 
-    panelFindText.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 5, 0));
+    panelFindText.setLayout(new java.awt.GridBagLayout());
 
     labelFind.setText("Find:");
-    panelFindText.add(labelFind);
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 1;
+    gridBagConstraints.gridy = 0;
+    panelFindText.add(labelFind, gridBagConstraints);
 
     textFind.setToolTipText("Enter text for search (wildcard chars ? and * are supported)");
-    textFind.setPreferredSize(new java.awt.Dimension(300, 19));
     textFind.addKeyListener(new java.awt.event.KeyAdapter() {
       public void keyReleased(java.awt.event.KeyEvent evt) {
         textFindKeyReleased(evt);
       }
     });
-    panelFindText.add(textFind);
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 2;
+    gridBagConstraints.gridy = 0;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+    gridBagConstraints.ipadx = 300;
+    panelFindText.add(textFind, gridBagConstraints);
 
     buttonCloseFind.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/cross.png"))); // NOI18N
     buttonCloseFind.setToolTipText("Hide the find text panel (ESC)");
     buttonCloseFind.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
     buttonCloseFind.setIconTextGap(0);
-    buttonCloseFind.setMargin(new java.awt.Insets(0, 0, 0, 0));
-    buttonCloseFind.setOpaque(false);
-    panelFindText.add(buttonCloseFind);
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 3;
+    gridBagConstraints.gridy = 0;
+    panelFindText.add(buttonCloseFind, gridBagConstraints);
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 0;
+    gridBagConstraints.gridy = 0;
+    gridBagConstraints.weightx = 1000.0;
+    panelFindText.add(filler1, gridBagConstraints);
 
     editorPanel.add(panelFindText, java.awt.BorderLayout.PAGE_END);
 
@@ -489,12 +512,12 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     MenuFileRecentFiles.setText("Recent files...");
     MenuFileRecentFiles.setToolTipText("List of files opened early");
     MenuFileRecentFiles.addMenuListener(new javax.swing.event.MenuListener() {
-      public void menuCanceled(javax.swing.event.MenuEvent evt) {
+      public void menuSelected(javax.swing.event.MenuEvent evt) {
+        MenuFileRecentFilesMenuSelected(evt);
       }
       public void menuDeselected(javax.swing.event.MenuEvent evt) {
       }
-      public void menuSelected(javax.swing.event.MenuEvent evt) {
-        MenuFileRecentFilesMenuSelected(evt);
+      public void menuCanceled(javax.swing.event.MenuEvent evt) {
       }
     });
     MenuFile.add(MenuFileRecentFiles);
@@ -831,7 +854,13 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       if (lastContext == null) {
         return;
       }
-      KnowledgeBaseSnapshotViewDialog dialog = new KnowledgeBaseSnapshotViewDialog(this, lastContext);
+      
+      final KnowledgeBaseSnapshotViewDialog dialog = new KnowledgeBaseSnapshotViewDialog(this, lastContext);
+
+      dialog.setSize(600, 400);
+
+      dialog.setLocationRelativeTo(this);
+
       dialog.setVisible(true);
     }//GEN-LAST:event_MenuViewKnowledgeBaseActionPerformed
 
@@ -863,6 +892,11 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         messageEditor.addErrorText("Can't show library info dialog [" + ex.getMessage() + ']');
         return;
       }
+
+      infoDialog.setSize(512,480);
+
+      infoDialog.setLocationRelativeTo(this);
+
       infoDialog.setVisible(true);
       infoDialog.dispose();
     }//GEN-LAST:event_MenuItemLibraryInfoActionPerformed
@@ -887,33 +921,33 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       }
     }//GEN-LAST:event_MenuFileNewActionPerformed
 
-    private long extractStackDepth(){
-      final long MINIMAL_STACK = 5 * 1024 * 1024;
+  private long extractStackDepth() {
+    final long MINIMAL_STACK = 5 * 1024 * 1024;
 
-      long stackSize = MINIMAL_STACK;
-      final String definedProlStackDepth = System.getProperty(PROL_STACK_DEPTH);
-      if (definedProlStackDepth != null) {
-        int scale = 1;
-        final String trimmed = definedProlStackDepth.trim().toLowerCase(Locale.ENGLISH);
-        String text = trimmed;
-        if (trimmed.endsWith("m")) {
-          scale = 1024 * 1024;
-          text = trimmed.substring(0, trimmed.length() - 1);
-        }
-        else if (trimmed.endsWith("k")) {
-          scale = 1024;
-          text = trimmed.substring(0, trimmed.length() - 1);
-        }
-        try {
-          stackSize = Math.max(MINIMAL_STACK, Long.parseLong(text) * scale);
-        }
-        catch (NumberFormatException ex) {
-          ex.printStackTrace();
-        }
+    long stackSize = MINIMAL_STACK;
+    final String definedProlStackDepth = System.getProperty(PROL_STACK_DEPTH);
+    if (definedProlStackDepth != null) {
+      int scale = 1;
+      final String trimmed = definedProlStackDepth.trim().toLowerCase(Locale.ENGLISH);
+      String text = trimmed;
+      if (trimmed.endsWith("m")) {
+        scale = 1024 * 1024;
+        text = trimmed.substring(0, trimmed.length() - 1);
       }
-      return stackSize;
+      else if (trimmed.endsWith("k")) {
+        scale = 1024;
+        text = trimmed.substring(0, trimmed.length() - 1);
+      }
+      try {
+        stackSize = Math.max(MINIMAL_STACK, Long.parseLong(text) * scale);
+      }
+      catch (NumberFormatException ex) {
+        ex.printStackTrace();
+      }
     }
-    
+    return stackSize;
+  }
+
     private void MenuTraceScriptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuTraceScriptActionPerformed
       if (currentExecutedScriptThread != null && currentExecutedScriptThread.isAlive()) {
         JOptionPane.showMessageDialog(this, "Script is already executing.", "Can't start", JOptionPane.WARNING_MESSAGE);
@@ -924,8 +958,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         dialogEditor.initBeforeSession();
 
         final long stackSize = extractStackDepth();
-        System.out.println("Execute script with the stack depth "+stackSize+" bytes");
-        
+        System.out.println("Execute script with the stack depth " + stackSize + " bytes");
+
         currentExecutedScriptThread = new Thread(executingScripts, this, "ProlScriptExecutingThread", stackSize);
         currentExecutedScriptThread.setDaemon(false);
 
@@ -998,29 +1032,31 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     textFind.requestFocus();
   }//GEN-LAST:event_menuitemFindTextActionPerformed
 
-  private int searchText(final String text, final Pattern pattern, final int cursorPos){
-    if (cursorPos>=text.length()) return -1;
-    
+  private int searchText(final String text, final Pattern pattern, final int cursorPos) {
+    if (cursorPos >= text.length()) {
+      return -1;
+    }
+
     final Matcher matcher = pattern.matcher(text);
-    if (matcher.find(cursorPos)){
+    if (matcher.find(cursorPos)) {
       return matcher.start();
     }
     return -1;
   }
-  
+
   private void textFindKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_textFindKeyReleased
-    if (evt.getKeyCode() == KeyEvent.VK_ENTER){
+    if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
       final Pattern patternToFind = UIUtils.makePattern(textFind.getText());
-      
+
       final String text = this.editorSource.getText();
-      
+
       int cursorPos = searchText(text, patternToFind, this.editorSource.getCaretPosition() + 1);
-      
-      if (cursorPos<0){
+
+      if (cursorPos < 0) {
         cursorPos = searchText(text, patternToFind, 0);
       }
-      
-      if (cursorPos>=0){
+
+      if (cursorPos >= 0) {
         this.editorSource.setCaretPosition(cursorPos);
       }
     }
@@ -1063,6 +1099,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   private com.igormaznitsa.prol.easygui.DialogEditor dialogEditor;
   private javax.swing.JPanel editorPanel;
   private com.wordpress.tips4java.TextLineNumber editorSource;
+  private javax.swing.Box.Filler filler1;
   private javax.swing.JMenuBar jMenuBar1;
   private javax.swing.JPopupMenu.Separator jSeparator1;
   private javax.swing.JPopupMenu.Separator jSeparator2;
@@ -1440,11 +1477,11 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }
 
     final String textFromEditor = editorSource.getEditor().getText();
-    
+
     Writer writer = null;
 
     try {
-      writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false),"UTF-8"));
+      writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false), "UTF-8"));
       writer.write(textFromEditor);
       writer.flush();
       recentFiles.put(file.getAbsolutePath());
@@ -1517,12 +1554,14 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       Reader reader = null;
 
       try {
-        reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileToOpen),"UTF-8"));
-        final StringBuilder buffer = new StringBuilder((int)fileToOpen.length() < 0 ? 16384 : (int)fileToOpen.length());
-        while(true){
+        reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileToOpen), "UTF-8"));
+        final StringBuilder buffer = new StringBuilder((int) fileToOpen.length() < 0 ? 16384 : (int) fileToOpen.length());
+        while (true) {
           final int chr = reader.read();
-          if (chr < 0) break;
-          buffer.append((char)chr);
+          if (chr < 0) {
+            break;
+          }
+          buffer.append((char) chr);
         }
 
         setTextToDocument(buffer.toString());
@@ -1639,7 +1678,17 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   private void savePreferences() {
     Preferences prefs = Preferences.userNodeForPackage(this.getClass());
 
-    prefs.put("lookandfeel", UIManager.getLookAndFeel().getName());
+    LookAndFeelInfo currentInfo = null;
+    final String landfClass = UIManager.getLookAndFeel().getClass().getName();
+    for(final LookAndFeelInfo i : UIManager.getInstalledLookAndFeels()){
+      if (i.getClassName().equals(landfClass)){
+        currentInfo = i;
+        break;
+      }
+    }
+    if (currentInfo != null) {
+      prefs.put("lookandfeel", currentInfo.getName());
+    }
 
     int recentFileIndex = 1;
     for (final String recentFile : recentFiles.getCollection()) {

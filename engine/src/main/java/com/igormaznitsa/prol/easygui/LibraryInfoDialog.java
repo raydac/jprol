@@ -20,7 +20,11 @@ import java.awt.Color;
 import java.awt.event.*;
 import java.io.*;
 import java.util.regex.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.KeyStroke;
 import javax.swing.text.*;
 
 /**
@@ -44,9 +48,15 @@ public final class LibraryInfoDialog extends javax.swing.JDialog {
 
     textPaneLibText.setText(fillTextInfoFromLibraries(libraries));
     textPaneLibText.setCaretPosition(0);
-;
-
     textFieldTextToSearch.requestFocus();
+
+    this.ButtonClose.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CloseForm");
+    this.ButtonClose.getActionMap().put("CloseForm", new AbstractAction() {
+      @Override
+      public void actionPerformed(final ActionEvent e) {
+        ButtonClose.doClick();
+      }
+    });
   }
 
   private String getDocText() {
@@ -132,6 +142,7 @@ public final class LibraryInfoDialog extends javax.swing.JDialog {
   @SuppressWarnings("unchecked")
   // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
   private void initComponents() {
+    java.awt.GridBagConstraints gridBagConstraints;
 
     jScrollPane1 = new javax.swing.JScrollPane();
     textPaneLibText = new javax.swing.JTextPane();
@@ -142,11 +153,21 @@ public final class LibraryInfoDialog extends javax.swing.JDialog {
     setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
     setTitle("Information about libraries");
     setLocationByPlatform(true);
+    getContentPane().setLayout(new java.awt.GridBagLayout());
 
     textPaneLibText.setEditable(false);
     textPaneLibText.setForeground(new java.awt.Color(0, 0, 0));
     textPaneLibText.setCaretColor(new java.awt.Color(153, 153, 255));
     jScrollPane1.setViewportView(textPaneLibText);
+
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 0;
+    gridBagConstraints.gridy = 0;
+    gridBagConstraints.gridwidth = 3;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+    gridBagConstraints.weightx = 1000.0;
+    gridBagConstraints.weighty = 1000.0;
+    getContentPane().add(jScrollPane1, gridBagConstraints);
 
     ButtonClose.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/cross.png"))); // NOI18N
     ButtonClose.setText("Close");
@@ -156,6 +177,13 @@ public final class LibraryInfoDialog extends javax.swing.JDialog {
         ButtonCloseActionPerformed(evt);
       }
     });
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 2;
+    gridBagConstraints.gridy = 1;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+    gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+    gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
+    getContentPane().add(ButtonClose, gridBagConstraints);
 
     textFieldTextToSearch.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
     textFieldTextToSearch.setToolTipText("Enter word to find and press enter (? and * wildcard characters are supported)");
@@ -164,40 +192,22 @@ public final class LibraryInfoDialog extends javax.swing.JDialog {
         textFieldTextToSearchKeyReleased(evt);
       }
     });
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 1;
+    gridBagConstraints.gridy = 1;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+    gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+    gridBagConstraints.weightx = 1000.0;
+    getContentPane().add(textFieldTextToSearch, gridBagConstraints);
 
     labelTextToSearch.setText("Text to search:");
-
-    javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-    getContentPane().setLayout(layout);
-    layout.setHorizontalGroup(
-      layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-        .addContainerGap()
-        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-          .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 717, Short.MAX_VALUE)
-          .addGroup(layout.createSequentialGroup()
-            .addComponent(labelTextToSearch)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(textFieldTextToSearch, javax.swing.GroupLayout.DEFAULT_SIZE, 434, Short.MAX_VALUE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(ButtonClose, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)))
-        .addContainerGap())
-    );
-    layout.setVerticalGroup(
-      layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGroup(layout.createSequentialGroup()
-        .addContainerGap()
-        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 354, Short.MAX_VALUE)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-          .addComponent(ButtonClose)
-          .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE, false)
-            .addComponent(labelTextToSearch)
-            .addComponent(textFieldTextToSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-        .addContainerGap())
-    );
-
-    layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {ButtonClose, labelTextToSearch, textFieldTextToSearch});
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 0;
+    gridBagConstraints.gridy = 1;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+    gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+    gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 8);
+    getContentPane().add(labelTextToSearch, gridBagConstraints);
 
     pack();
   }// </editor-fold>//GEN-END:initComponents

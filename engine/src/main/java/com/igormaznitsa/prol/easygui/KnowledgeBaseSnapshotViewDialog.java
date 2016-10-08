@@ -48,6 +48,7 @@ public class KnowledgeBaseSnapshotViewDialog extends javax.swing.JDialog {
       SnapshotViewer.getEditor().setText(charArray.toString());
     }
 
+    this.getRootPane().setDefaultButton(this.ButtonClose);
   }
 
   /**
@@ -58,12 +59,22 @@ public class KnowledgeBaseSnapshotViewDialog extends javax.swing.JDialog {
   @SuppressWarnings("unchecked")
   // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
   private void initComponents() {
+    java.awt.GridBagConstraints gridBagConstraints;
 
     SnapshotViewer = new com.wordpress.tips4java.TextLineNumber();
     ButtonClose = new javax.swing.JButton();
 
     setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
     setTitle("Current or last knowledge base snapshot");
+    getContentPane().setLayout(new java.awt.GridBagLayout());
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 0;
+    gridBagConstraints.gridy = 0;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+    gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+    gridBagConstraints.weightx = 1000.0;
+    gridBagConstraints.weighty = 1000.0;
+    getContentPane().add(SnapshotViewer, gridBagConstraints);
 
     ButtonClose.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/cross.png"))); // NOI18N
     ButtonClose.setText("Close");
@@ -72,26 +83,13 @@ public class KnowledgeBaseSnapshotViewDialog extends javax.swing.JDialog {
         ButtonCloseActionPerformed(evt);
       }
     });
-
-    javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-    getContentPane().setLayout(layout);
-    layout.setHorizontalGroup(
-      layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-        .addContainerGap()
-        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-          .addComponent(ButtonClose, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
-          .addComponent(SnapshotViewer, javax.swing.GroupLayout.DEFAULT_SIZE, 580, Short.MAX_VALUE))
-        .addContainerGap())
-    );
-    layout.setVerticalGroup(
-      layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGroup(layout.createSequentialGroup()
-        .addComponent(SnapshotViewer, javax.swing.GroupLayout.DEFAULT_SIZE, 385, Short.MAX_VALUE)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addComponent(ButtonClose)
-        .addContainerGap())
-    );
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 0;
+    gridBagConstraints.gridy = 1;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+    gridBagConstraints.ipadx = 8;
+    gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+    getContentPane().add(ButtonClose, gridBagConstraints);
 
     pack();
   }// </editor-fold>//GEN-END:initComponents

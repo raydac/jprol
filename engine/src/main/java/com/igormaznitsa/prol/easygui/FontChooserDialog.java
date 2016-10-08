@@ -109,6 +109,8 @@ public class FontChooserDialog extends javax.swing.JDialog implements ActionList
     updateSampleFont();
 
     result = null;
+
+    this.setLocationRelativeTo(parent);
   }
 
   /**

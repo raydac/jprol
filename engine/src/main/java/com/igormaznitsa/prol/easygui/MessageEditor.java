@@ -181,12 +181,23 @@ public class MessageEditor extends AbstractProlEditor {
 
   @Override
   public void loadPreferences(Preferences prefs) {
-    setEdBackground(new Color(prefs.getInt("messagesbackcolor", 0x3E13AF)));
-    setEdErrorColor(new Color(prefs.getInt("messageserrorcolor", 0xC10087)));
-    setEdInfoColor(new Color(prefs.getInt("messagesinfocolor", 0xB1F100)));
-    setEdWarningColor(new Color(prefs.getInt("messageswarningcolor", 0xFFD700
-    
-    )));
+    final Color bgColor = extractColor(prefs, "messagesbackcolor", Color.BLACK);
+    final Color errColor = extractColor(prefs, "messageserrorcolor", Color.RED);
+    final Color infColor = extractColor(prefs, "messagesinfocolor", Color.GREEN);
+    final Color wrnColor = extractColor(prefs, "messageswarningcolor", Color.YELLOW);
+
+    if (bgColor != null) {
+      setEdBackground(bgColor);
+    }
+    if (errColor != null) {
+      setEdErrorColor(errColor);
+    }
+    if (infColor != null) {
+      setEdInfoColor(infColor);
+    }
+    if (wrnColor != null) {
+      setEdWarningColor(wrnColor);
+    }
     setEdFont(loadFontFromPrefs(prefs, "messagesfont"));
   }
 
