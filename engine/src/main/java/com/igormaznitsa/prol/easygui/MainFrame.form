@@ -303,7 +303,7 @@
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                   <Image iconType="3" name="/com/igormaznitsa/prol/easygui/icons/eye.png"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="See the knowledge base"/>
+                <Property name="text" type="java.lang.String" value="Show Knowledge base"/>
                 <Property name="toolTipText" type="java.lang.String" value="Take and show the snapshot of the current knowledge base saved in the memory"/>
                 <Property name="enabled" type="boolean" value="false"/>
               </Properties>
