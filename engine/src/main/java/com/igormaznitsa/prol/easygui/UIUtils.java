@@ -18,6 +18,7 @@ package com.igormaznitsa.prol.easygui;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
+import java.util.Locale;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -54,13 +55,16 @@ public final class UIUtils {
             case '?':
               buffer.append(".");
               break;
-            default:
-              buffer.append("\\").append(c);
+            default: {
+              final String ucode = Integer.toHexString(c).toUpperCase(Locale.ENGLISH);
+              buffer.append("\\u").append("0000".substring(4 - ucode.length())).append(ucode);
+            }
+            break;
           }
         }
       }
     }
-    return Pattern.compile(buffer.toString(), Pattern.CASE_INSENSITIVE);
+    return Pattern.compile(buffer.toString(), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
   }
 
   

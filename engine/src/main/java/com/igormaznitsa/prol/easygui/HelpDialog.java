@@ -31,6 +31,9 @@ public class HelpDialog extends javax.swing.JDialog {
   public HelpDialog(final java.awt.Frame parent) {
     super(parent, true);
     initComponents();
+    this.textHelp.setCaretPosition(0);
+    this.setSize(512, 400);
+    this.getRootPane().setDefaultButton(this.buttonClose);
     setVisible(true);
   }
 
@@ -42,6 +45,7 @@ public class HelpDialog extends javax.swing.JDialog {
   @SuppressWarnings("unchecked")
   // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
   private void initComponents() {
+    java.awt.GridBagConstraints gridBagConstraints;
 
     scrollTextHelp = new javax.swing.JScrollPane();
     textHelp = new javax.swing.JTextArea();
@@ -50,6 +54,7 @@ public class HelpDialog extends javax.swing.JDialog {
     setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
     setTitle("HELP");
     setLocationByPlatform(true);
+    getContentPane().setLayout(new java.awt.GridBagLayout());
 
     textHelp.setEditable(false);
     textHelp.setColumns(20);
@@ -59,6 +64,15 @@ public class HelpDialog extends javax.swing.JDialog {
     textHelp.setWrapStyleWord(true);
     scrollTextHelp.setViewportView(textHelp);
 
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 0;
+    gridBagConstraints.gridy = 0;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+    gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+    gridBagConstraints.weightx = 1000.0;
+    gridBagConstraints.weighty = 1000.0;
+    getContentPane().add(scrollTextHelp, gridBagConstraints);
+
     buttonClose.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/cross.png"))); // NOI18N
     buttonClose.setText("Close");
     buttonClose.addActionListener(new java.awt.event.ActionListener() {
@@ -66,25 +80,12 @@ public class HelpDialog extends javax.swing.JDialog {
         buttonCloseActionPerformed(evt);
       }
     });
-
-    javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-    getContentPane().setLayout(layout);
-    layout.setHorizontalGroup(
-      layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addComponent(scrollTextHelp, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 590, Short.MAX_VALUE)
-      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        .addComponent(buttonClose, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)
-        .addContainerGap())
-    );
-    layout.setVerticalGroup(
-      layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-        .addComponent(scrollTextHelp, javax.swing.GroupLayout.DEFAULT_SIZE, 374, Short.MAX_VALUE)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addComponent(buttonClose)
-        .addContainerGap())
-    );
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.gridx = 0;
+    gridBagConstraints.gridy = 1;
+    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+    gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+    getContentPane().add(buttonClose, gridBagConstraints);
 
     pack();
   }// </editor-fold>//GEN-END:initComponents

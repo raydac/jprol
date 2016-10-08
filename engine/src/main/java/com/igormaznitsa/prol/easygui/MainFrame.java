@@ -27,6 +27,7 @@ import com.igormaznitsa.prol.utils.Utils;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.net.URI;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.*;
@@ -170,7 +171,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     editorSource.addDocumentListener(this);
     messageEditor.addHyperlinkListener(this);
     addWindowListener(this);
-    ExecutingPanel.setVisible(false);
+    panelProgress.setVisible(false);
 
     logLibrary = new LogLibrary();
 
@@ -307,9 +308,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     SplitPanelDown = new javax.swing.JSplitPane();
     messageEditor = new com.igormaznitsa.prol.easygui.MessageEditor();
     traceEditor = new com.igormaznitsa.prol.easygui.TraceDialog();
-    MessagePanel = new javax.swing.JPanel();
-    ExecutingPanel = new javax.swing.JPanel();
-    TaskProgressBar = new javax.swing.JProgressBar();
+    panelProgress = new javax.swing.JPanel();
+    progressBarTask = new javax.swing.JProgressBar();
     ButtonStopExecuting = new javax.swing.JButton();
     jMenuBar1 = new javax.swing.JMenuBar();
     MenuFile = new javax.swing.JMenu();
@@ -337,7 +337,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     MenuRun = new javax.swing.JMenu();
     MenuRunScript = new javax.swing.JMenuItem();
     MenuTraceScript = new javax.swing.JMenuItem();
-    MenuRunStop = new javax.swing.JMenuItem();
+    menuRunStop = new javax.swing.JMenuItem();
     MenuView = new javax.swing.JMenu();
     MenuViewKnowledgeBase = new javax.swing.JMenuItem();
     MenuItemLibraryInfo = new javax.swing.JMenuItem();
@@ -423,20 +423,20 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     getContentPane().add(SplitPaneMain, java.awt.BorderLayout.CENTER);
 
-    MessagePanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
-    MessagePanel.setLayout(new javax.swing.BoxLayout(MessagePanel, javax.swing.BoxLayout.LINE_AXIS));
+    panelProgress.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+    panelProgress.setLayout(new java.awt.GridBagLayout());
 
-    ExecutingPanel.setLayout(new javax.swing.BoxLayout(ExecutingPanel, javax.swing.BoxLayout.LINE_AXIS));
-
-    TaskProgressBar.setMaximumSize(new java.awt.Dimension(100, 20));
-    TaskProgressBar.setPreferredSize(new java.awt.Dimension(40, 20));
-    ExecutingPanel.add(TaskProgressBar);
+    progressBarTask.setMaximumSize(new java.awt.Dimension(100, 20));
+    progressBarTask.setPreferredSize(new java.awt.Dimension(40, 20));
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+    gridBagConstraints.weightx = 1000.0;
+    panelProgress.add(progressBarTask, gridBagConstraints);
 
     ButtonStopExecuting.setBackground(new java.awt.Color(255, 156, 156));
     ButtonStopExecuting.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
     ButtonStopExecuting.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/flag_red.png"))); // NOI18N
-    ButtonStopExecuting.setText("STOP");
-    ButtonStopExecuting.setToolTipText("Stop current execution");
+    ButtonStopExecuting.setText("STOP EXECUTION");
     ButtonStopExecuting.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
     ButtonStopExecuting.setMaximumSize(new java.awt.Dimension(100, 23));
     ButtonStopExecuting.setMinimumSize(new java.awt.Dimension(60, 23));
@@ -445,14 +445,13 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         ButtonStopExecutingActionPerformed(evt);
       }
     });
-    ExecutingPanel.add(ButtonStopExecuting);
+    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+    panelProgress.add(ButtonStopExecuting, gridBagConstraints);
 
-    MessagePanel.add(ExecutingPanel);
-
-    getContentPane().add(MessagePanel, java.awt.BorderLayout.SOUTH);
+    getContentPane().add(panelProgress, java.awt.BorderLayout.SOUTH);
 
     MenuFile.setText("File");
-    MenuFile.setToolTipText("File operations");
 
     MenuFileNew.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/page.png"))); // NOI18N
     MenuFileNew.setText("New");
@@ -526,7 +525,6 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     jMenuBar1.add(MenuFile);
 
     MenuEdit.setText("Edit");
-    MenuEdit.setToolTipText("Editing operations for the current document");
 
     MenuUndo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, java.awt.event.InputEvent.CTRL_MASK));
     MenuUndo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/book_previous.png"))); // NOI18N
@@ -634,7 +632,6 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     jMenuBar1.add(MenuEdit);
 
     MenuRun.setText("Run");
-    MenuRun.setToolTipText("Start/Stop operations");
 
     MenuRunScript.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F5, 0));
     MenuRunScript.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/flag_green.png"))); // NOI18N
@@ -657,21 +654,20 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     });
     MenuRun.add(MenuTraceScript);
 
-    MenuRunStop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/flag_red.png"))); // NOI18N
-    MenuRunStop.setText("Stop");
-    MenuRunStop.setToolTipText("Stop the current execution");
-    MenuRunStop.setEnabled(false);
-    MenuRunStop.addActionListener(new java.awt.event.ActionListener() {
+    menuRunStop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/flag_red.png"))); // NOI18N
+    menuRunStop.setText("Stop");
+    menuRunStop.setToolTipText("Stop the current execution");
+    menuRunStop.setEnabled(false);
+    menuRunStop.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        MenuRunStopActionPerformed(evt);
+        menuRunStopActionPerformed(evt);
       }
     });
-    MenuRun.add(MenuRunStop);
+    MenuRun.add(menuRunStop);
 
     jMenuBar1.add(MenuRun);
 
     MenuView.setText("View");
-    MenuView.setToolTipText("Auxiliary operations");
 
     MenuViewKnowledgeBase.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F12, 0));
     MenuViewKnowledgeBase.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/eye.png"))); // NOI18N
@@ -699,11 +695,9 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     jMenuBar1.add(MenuView);
 
     MenuLookAndFeel.setText("Look&Feel");
-    MenuLookAndFeel.setToolTipText("List of accessile L&F styles");
     jMenuBar1.add(MenuLookAndFeel);
 
     MenuHelp.setText("Help");
-    MenuHelp.setToolTipText("Misc info");
 
     MenuHelpHelp.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/information.png"))); // NOI18N
     MenuHelpHelp.setText("Help");
@@ -828,7 +822,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
             finally {
               hideTaskControlPanel();
             }
-            messageEditor.addWarningText("The script execution has been canceled.");
+            messageEditor.addWarningText("Execution is canceled.");
           }
         }
       });
@@ -836,7 +830,21 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }//GEN-LAST:event_ButtonStopExecutingActionPerformed
 
     private void MenuAboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuAboutActionPerformed
-      JOptionPane.showMessageDialog(this, "The Prol Notepad utility\r\n==================================\r\nVersion: " + VERSION + "\r\nProject URL: https://github.com/raydac/jprol\r\nAuthor: Igor Maznitsa (http://www.igormaznitsa.com)\r\n\r\n(C)2010-2015 Igor A. Maznitsa. Apache 2.0 License\r\nIcons from the free icon set http://www.famfamfam.com/lab/icons/silk/", "About", JOptionPane.INFORMATION_MESSAGE, new ImageIcon(this.getIconImage()));
+      final JHtmlLabel label = new JHtmlLabel("<html><body><h1>JProl Notepad</h1>Version: " + VERSION + "<br><b>Project page:</b> <a href=\"https://github.com/raydac/jprol\">https://github.com/raydac/jprol</a><br><b>Author:</b> Igor Maznitsa (<a href=\"http://www.igormaznitsa.com\">http://www.igormaznitsa.com</a>)<br><br>(C)2010-2016 Igor A. Maznitsa. <a href=\"https://www.apache.org/licenses/LICENSE-2.0\">Apache 2.0 License</a><br>Icons from the free icon set <a href=\"http://www.famfamfam.com/lab/icons/silk/\">http://www.famfamfam.com/lab/icons/silk/</a></body></html>");
+      label.addLinkListener(new JHtmlLabel.LinkListener() {
+        @Override
+        public void onLinkActivated(final JHtmlLabel source, final String link) {
+          try{
+            final Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+            if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+                desktop.browse(new URI(link));
+            }
+          }catch(Exception ex){
+            LOG.log(Level.SEVERE, "Can't open URL : " + link, ex);
+          }
+        }
+      });
+      JOptionPane.showMessageDialog(this, label, "About", JOptionPane.INFORMATION_MESSAGE, new ImageIcon(this.getIconImage()));
     }//GEN-LAST:event_MenuAboutActionPerformed
 
     private void MenuViewKnowledgeBaseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuViewKnowledgeBaseActionPerformed
@@ -853,9 +861,9 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       dialog.setVisible(true);
     }//GEN-LAST:event_MenuViewKnowledgeBaseActionPerformed
 
-    private void MenuRunStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuRunStopActionPerformed
+    private void menuRunStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuRunStopActionPerformed
       ButtonStopExecutingActionPerformed(evt);
-    }//GEN-LAST:event_MenuRunStopActionPerformed
+    }//GEN-LAST:event_menuRunStopActionPerformed
 
     private void MenuHelpHelpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_MenuHelpHelpActionPerformed
       new HelpDialog(this);
@@ -1053,7 +1061,6 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JButton ButtonStopExecuting;
-  private javax.swing.JPanel ExecutingPanel;
   private javax.swing.JMenuItem MenuAbout;
   private javax.swing.JMenuItem MenuClearText;
   private javax.swing.JMenu MenuEdit;
@@ -1074,16 +1081,13 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   private javax.swing.JMenuItem MenuRedo;
   private javax.swing.JMenu MenuRun;
   private javax.swing.JMenuItem MenuRunScript;
-  private javax.swing.JMenuItem MenuRunStop;
   private javax.swing.JMenuItem MenuTraceScript;
   private javax.swing.JMenuItem MenuUndo;
   private javax.swing.JMenu MenuView;
   private javax.swing.JMenuItem MenuViewKnowledgeBase;
-  private javax.swing.JPanel MessagePanel;
   private javax.swing.JSplitPane SplitPaneMain;
   private javax.swing.JSplitPane SplitPaneTop;
   private javax.swing.JSplitPane SplitPanelDown;
-  private javax.swing.JProgressBar TaskProgressBar;
   private javax.swing.JButton buttonCloseFind;
   private com.igormaznitsa.prol.easygui.DialogEditor dialogEditor;
   private javax.swing.JPanel editorPanel;
@@ -1098,9 +1102,12 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   private javax.swing.JLabel labelFind;
   private javax.swing.JMenuItem menuItemFullScreen;
   private javax.swing.JCheckBoxMenuItem menuItemWordWrapSources;
+  private javax.swing.JMenuItem menuRunStop;
   private javax.swing.JMenuItem menuitemFindText;
   private com.igormaznitsa.prol.easygui.MessageEditor messageEditor;
   private javax.swing.JPanel panelFindText;
+  private javax.swing.JPanel panelProgress;
+  private javax.swing.JProgressBar progressBarTask;
   private javax.swing.JTextField textFind;
   private com.igormaznitsa.prol.easygui.TraceDialog traceEditor;
   // End of variables declaration//GEN-END:variables
@@ -1185,7 +1192,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       dialogEditor.setEnabled(true);
       dialogEditor.requestFocus();
 
-      messageEditor.addInfoText("Creating the context...");
+      messageEditor.addInfoText("Creating Context...");
 
       try {
         context = new ProlContext("ProlScript", this);
@@ -1197,17 +1204,17 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
           final ProlAbstractLibrary lib = (ProlAbstractLibrary) Class.forName(str).newInstance();
 
           context.addLibrary(lib);
-          messageEditor.addInfoText("The library \'" + lib.getLibraryUID() + "\' has been added...");
+          messageEditor.addInfoText("Library \'" + lib.getLibraryUID() + "\' has been added...");
         }
 
         context.addLibrary(logLibrary);
-        messageEditor.addInfoText("The library \'" + logLibrary.getLibraryUID() + "\' has been added...");
+        messageEditor.addInfoText("Library \'" + logLibrary.getLibraryUID() + "\' has been added...");
 
         setLastContext(context);
       }
       catch (Throwable ex) {
         LOG.log(Level.WARNING, "ExecutionThread.run()", ex);
-        messageEditor.addErrorText("Can't create context because there is an exception [" + ex.getMessage() + ']');
+        messageEditor.addErrorText("Can't create context for exception [" + ex.getMessage() + ']');
         return;
       }
 
@@ -1229,13 +1236,13 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         final Throwable cause = ex.getCause();
 
         if (cause instanceof StackOverflowError) {
-          messageEditor.addErrorText("Stack overflow detected!");
-          JOptionPane.showMessageDialog(this, "Stack overflow detected...", "Error", JOptionPane.ERROR_MESSAGE);
+          messageEditor.addErrorText("Stack Overflow!");
+          JOptionPane.showMessageDialog(this, "Stack overflow exception detected!", "Error", JOptionPane.ERROR_MESSAGE);
           return;
         }
         else if (cause instanceof OutOfMemoryError) {
-          messageEditor.addErrorText("Out of memory error detected!");
-          JOptionPane.showMessageDialog(this, "Out of memory error detected...", "Error", JOptionPane.ERROR_MESSAGE);
+          messageEditor.addErrorText("Out of Memory!");
+          JOptionPane.showMessageDialog(this, "Out of Memory exception  detected!", "Error", JOptionPane.ERROR_MESSAGE);
           return;
         }
 
@@ -1265,7 +1272,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
           }
         }
         else {
-          messageEditor.addErrorText("Can't parse script because there is an exception [" + ex.getMessage() + ']');
+          messageEditor.addErrorText("Can't parse script for exception [" + ex.getMessage() + ']');
           return;
         }
       }
@@ -1275,20 +1282,20 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }
     finally {
       try {
-        messageEditor.addInfoText("Total execution time " + ((System.currentTimeMillis() - startTime) / 1000f) + " sec.");
+        messageEditor.addInfoText("Total time " + ((System.currentTimeMillis() - startTime) / 1000f) + " sec.");
 
         if (halted == null) {
           if (!canceled) {
             if (successfully) {
-              messageEditor.addInfoText("The script has been executed successfully.");
+              messageEditor.addInfoText("Completed successfully.");
             }
             else {
-              messageEditor.addErrorText("The script has been executed with errors or not-executed at all.");
+              messageEditor.addErrorText("Completed with errors or not started.");
             }
           }
         }
         else {
-          messageEditor.addText("Script has been halted [" + halted.getMessage() + ']', MessageEditor.TYPE_WARNING, parserException != null ? ("source://" + parserException.getLine() + ';' + parserException.getPos()) : null, parserException != null ? ("line " + parserException.getLine() + ":" + parserException.getPos()) : null);
+          messageEditor.addText("Halted [" + halted.getMessage() + ']', MessageEditor.TYPE_WARNING, parserException != null ? ("source://" + parserException.getLine() + ';' + parserException.getPos()) : null, parserException != null ? ("line " + parserException.getLine() + ":" + parserException.getPos()) : null);
         }
         dialogEditor.setEnabled(false);
         currentExecutedScriptThread = null;
@@ -1322,13 +1329,13 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   @Override
   public void windowClosing(WindowEvent e) {
     if (documentHasBeenChangedFlag) {
-      if (JOptionPane.showConfirmDialog(this, "The document has been changed and non-saved. Do you really want to exit?", "Confirmation", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION) {
+      if (JOptionPane.showConfirmDialog(this, "Document is changed but not saved. Do you really want to exit?", "Confirmation", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION) {
         return;
       }
     }
 
     if (currentExecutedScriptThread != null) {
-      if (JOptionPane.showConfirmDialog(this, "The script is being executed. Do you really want to exit?", "Confirmation", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+      if (JOptionPane.showConfirmDialog(this, "In Run mode. Do you really want to exit?", "Confirmation", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 
         dialogEditor.cancelRead();
         dialogEditor.close();
@@ -1454,7 +1461,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
         if (saveAs || !file.equals(currentOpenedFile)) {
           if (file.exists()) {
-            if (JOptionPane.showConfirmDialog(this, "File \'" + file.getAbsolutePath() + "\' exists, do you really want to overwrite it?", "File exists", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION) {
+            if (JOptionPane.showConfirmDialog(this, "File \'" + file.getAbsolutePath() + "\' exists, to overwrite it?", "File exists", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION) {
               return;
             }
           }
@@ -1477,7 +1484,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }
     catch (Throwable thr) {
       LOG.throwing(this.getClass().getCanonicalName(), "saveFile()", thr);
-      JOptionPane.showMessageDialog(this, "Can't save file because \'" + (thr.getMessage() == null ? thr.getClass().getCanonicalName() : thr.getLocalizedMessage()), "Can't save file", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(this, "Can't save file for error \'" + (thr.getMessage() == null ? thr.getClass().getCanonicalName() : thr.getLocalizedMessage()), "Can't save file", JOptionPane.ERROR_MESSAGE);
       return;
     }
     finally {
@@ -1522,7 +1529,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
   private void loadFile(final File file, final boolean justLoadFile) {
     if (documentHasBeenChangedFlag) {
-      if (JOptionPane.showConfirmDialog(this, "The current document changed and non-saved! Do you really want to load new one?", "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.NO_OPTION) {
+      if (JOptionPane.showConfirmDialog(this, "Document is changed and not saved. To load new one?", "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.NO_OPTION) {
         return;
       }
     }
@@ -1581,9 +1588,9 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   }
 
   private void showTaskControlPanel() {
-    ExecutingPanel.setVisible(true);
-    TaskProgressBar.setIndeterminate(true);
-    MenuRunStop.setEnabled(true);
+    panelProgress.setVisible(true);
+    progressBarTask.setIndeterminate(true);
+    menuRunStop.setEnabled(true);
   }
 
   private void hideTaskControlPanel() {
@@ -1591,9 +1598,9 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
       @Override
       public void run() {
-        ExecutingPanel.setVisible(false);
-        TaskProgressBar.setIndeterminate(false);
-        MenuRunStop.setEnabled(false);
+        panelProgress.setVisible(false);
+        progressBarTask.setIndeterminate(false);
+        menuRunStop.setEnabled(false);
       }
     });
   }
