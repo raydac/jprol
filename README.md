@@ -4,8 +4,10 @@
 [![Yandex.Money donation](https://img.shields.io/badge/donation-Я.деньги-yellow.svg)](https://money.yandex.ru/embed/small.xml?account=41001158080699&quickpay=small&yamoney-payment-type=on&button-text=01&button-size=l&button-color=orange&targets=%D0%9F%D0%BE%D0%B6%D0%B5%D1%80%D1%82%D0%B2%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5+%D0%BD%D0%B0+%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D1%8B+%D1%81+%D0%BE%D1%82%D0%BA%D1%80%D1%8B%D1%82%D1%8B%D0%BC+%D0%B8%D1%81%D1%85%D0%BE%D0%B4%D0%BD%D1%8B%D0%BC+%D0%BA%D0%BE%D0%B4%D0%BE%D0%BC&default-sum=100&successURL=)
 
 # Introduction
-I bought a book of Ivan Bratko titled as "Prolog Programming for Artificial Intelligence" in 1990 but didn't have enough time to read it so that the book was placed into a shelf and forgotten for years till 2009. In 2009 I had read the book and was so impressed by the power of computer language that to learn it better I developed small Java based Prolog engine and called it JProl.
-JProl is a small embeddable monolitic (one uberjar) Prolog engine developed in 2010 with number of libraries out of the box. It supports Edinburgh Prolog style and has a small GUI editor which is very useful for experiments. The Engine is not very optimal one and I would not recommend to use it in any production, it is good only for learning and teaching purposes.
+I bought a book of Ivan Bratko titled as "Prolog Programming for Artificial Intelligence" in 1990 but didn't have enough time to read it so that the book was placed into a shelf and forgotten for years till 2009. In 2009 I had read the book and was so impressed by the power of computer language that to learn it better I developed small Java based Prolog engine and called it JProl.   
+
+JProl is a small embeddable monolitic (one uberjar) Prolog engine developed in 2010 with number of libraries out of the box. It supports Edinburgh Prolog style and has a small GUI editor which is very useful for experiments. The Engine is not very optimal one and I would not recommend to use it in any production, it is good only for learning and teaching purposes.   
+
 In 2014 I was asked by Yuki Katsura to open sources and now I have opened them as an OSS project under Apache License 2.0
 
 # Prebuilt versions
@@ -77,8 +79,8 @@ fractal(I,X,Y,L,A,XN,YN):- II is I-1, LL is L/3, A2 is A-1.0471975512, A3 is A+1
 ```
 ![KochSnowflake](https://github.com/raydac/jprol/blob/master/jprolgui.png)
 
-# Multithreading
-It was interesting for me to implement support of multithreading in the engine to take a look how it is compatible with Prolog and it looks nice and much easy than in Java. The engine allows to use pair predicates to span new threads fork/1 and async/1, also it has special predicate waitasync/0 for synchronization you can wait the end of all executing spawned threads (by the main thread). The waitasync/0 predicate must be used only from the main thread (I mean the root goal). Also there are lockers which allow to create critical sections with lock/1, unlock/1 and trylock/1 predicates. Take a look at the example of their usage below, I have shown an application which draws 3000000 color dots on the graphic screen (provided by embedded GUI library), each thread paints its own color dots in its own thread. 
+# Multi-threading
+It was interesting for me to implement and check support of multi-threading in the engine. The engine allows to use pair predicates to span new threads `fork/1` and `async/1`, also it has special predicate `waitasync/0` for synchronization you can wait the end of all executing spawned threads (by the main thread). `waitasync/0` predicate must be used only from the main thread (I mean the root goal). Also there are lockers which allow to create critical sections with `lock/1`, `unlock/1` and `trylock/1` predicates. Take a look at the example of their usage below, I have shown an application which draws 3000000 color dots on the graphic screen (provided by embedded GUI library), each thread paints its own color dots in its own thread. 
 ```Prolog
 threadRed(P) :- for(_, 0, P), rnd(500, X), rnd(400, Y), lock(gfx), pencolor(red), dot(X, Y), unlock(gfx), fail.
     threadGreen(P) :- for(_, 0, P), rnd(500,X), rnd(400, Y), lock(gfx), pencolor(green), dot(X, Y), unlock(gfx), fail.
