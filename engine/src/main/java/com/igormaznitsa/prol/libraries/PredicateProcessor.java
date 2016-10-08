@@ -26,7 +26,6 @@ import com.igormaznitsa.prol.exceptions.ProlEvaluationErrorException;
 import com.igormaznitsa.prol.exceptions.ProlException;
 import com.igormaznitsa.prol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.prol.logic.Goal;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -83,10 +82,10 @@ public final class PredicateProcessor {
    */
   private final PredicateTemplate[][] templates;
   //---inside constants for classes -------
-  private static final Class<?> voidResultClass = void.class;
-  private static final Class<Determined> annotationDeterminedClass = Determined.class;
-  private static final Class<Evaluable> annotationEvaluableClass = Evaluable.class;
-  private static final Class<ItChangesGoalChain> changesGoalChainClass = ItChangesGoalChain.class;
+  private static final Class<?> CLASS_RESULT_VOID = void.class;
+  private static final Class<Determined> CLASS_ANNOTATION_DETERMINED = Determined.class;
+  private static final Class<Evaluable> CLASS_ANNOTATION_EVALUABLE = Evaluable.class;
+  private static final Class<ItChangesGoalChain> CLASS_CHANGE_GOAL_CHAIN = ItChangesGoalChain.class;
   //---------------------------------------
   /**
    * The constant describes a NULL_PROCESSOR which does nothing
@@ -118,10 +117,10 @@ public final class PredicateProcessor {
       changesGoalChain = false;
     }
     else {
-      voidResult = method.getReturnType() == voidResultClass;
-      determined = method.isAnnotationPresent(annotationDeterminedClass);
-      evaluable = method.isAnnotationPresent(annotationEvaluableClass);
-      changesGoalChain = method.isAnnotationPresent(changesGoalChainClass);
+      voidResult = method.getReturnType() == CLASS_RESULT_VOID;
+      determined = method.isAnnotationPresent(CLASS_ANNOTATION_DETERMINED);
+      evaluable = method.isAnnotationPresent(CLASS_ANNOTATION_EVALUABLE);
+      changesGoalChain = method.isAnnotationPresent(CLASS_CHANGE_GOAL_CHAIN);
     }
   }
 

@@ -134,7 +134,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   protected boolean documentHasBeenChangedFlag;
   static final String[] PROL_LIBRARIES = new String[]{"com.igormaznitsa.prol.libraries.ProlGraphicLibrary", "com.igormaznitsa.prol.libraries.ProlStringLibrary"};
   protected volatile ProlContext lastContext;
-  private static final FileFilter prolFilter = new FileFilter() {
+  private static final FileFilter PROL_FILE_FILTER = new FileFilter() {
 
     @Override
     public boolean accept(File f) {
@@ -273,18 +273,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       LOG.throwing(thisFrame.getClass().getCanonicalName(), "L&F", ex);
     }
 
-    if (feelInfo.getName().toLowerCase(Locale.ENGLISH).contains("nimbus")) {
-      UIManager.put("TextPane[Enabled].backgroundPainter", new Painter<JComponent>() {
-        @Override
-        public void paint(final Graphics2D g, final JComponent comp, final int width, final int height) {
-          g.setColor(comp.getBackground());
-          g.fillRect(0, 0, width, height);
-        }
-      });
-    }
-
     SwingUtilities.updateComponentTreeUI(thisFrame);
-
   }
 
   public MainFrame(final File initFile) {
@@ -1448,7 +1437,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     File file = currentOpenedFile;
     if (saveAs || currentOpenedFile == null) {
       JFileChooser fileChooser = new JFileChooser(file);
-      fileChooser.addChoosableFileFilter(prolFilter);
+      fileChooser.addChoosableFileFilter(PROL_FILE_FILTER);
       fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
       fileChooser.setDragEnabled(false);
       fileChooser.setMultiSelectionEnabled(false);
@@ -1456,7 +1445,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
         file = fileChooser.getSelectedFile();
 
-        if (!file.exists() && fileChooser.getFileFilter().equals(prolFilter)) {
+        if (!file.exists() && fileChooser.getFileFilter().equals(PROL_FILE_FILTER)) {
           // ake auto extension
           if (!file.getName().toLowerCase().endsWith(PROL_EXTENSION)) {
             file = new File(file.getAbsolutePath() + PROL_EXTENSION);
@@ -1540,10 +1529,11 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     JFileChooser fileChooser = new JFileChooser(file);
     if (!justLoadFile) {
-      fileChooser.addChoosableFileFilter(prolFilter);
+      fileChooser.addChoosableFileFilter(PROL_FILE_FILTER);
       fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
       fileChooser.setDragEnabled(false);
       fileChooser.setMultiSelectionEnabled(false);
+      fileChooser.setFileFilter(PROL_FILE_FILTER);
     }
 
     if (justLoadFile || fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {

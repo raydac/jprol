@@ -535,7 +535,6 @@ public final class ProlTreeBuilder {
         else {
           listOfAtoms.add(block);
         }
-        continue;
       }
       else if (")".equals(nextText)) {
         // end of the structure

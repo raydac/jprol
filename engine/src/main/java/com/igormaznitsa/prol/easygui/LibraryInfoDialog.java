@@ -21,7 +21,6 @@ import java.awt.event.*;
 import java.io.*;
 import java.util.regex.*;
 import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.KeyStroke;
@@ -37,7 +36,7 @@ import javax.swing.text.*;
 public final class LibraryInfoDialog extends javax.swing.JDialog {
 
   private static final long serialVersionUID = 8821096803790541482L;
-  private static final DefaultHighlighter.DefaultHighlightPainter highlightPainter = new DefaultHighlighter.DefaultHighlightPainter(new Color(0x00CED1));
+  private static final DefaultHighlighter.DefaultHighlightPainter HIGHLIGHT_PAINTER = new DefaultHighlighter.DefaultHighlightPainter(new Color(0x00CED1));
 
   /**
    * Creates new form LibraryInfoDialog
@@ -52,6 +51,8 @@ public final class LibraryInfoDialog extends javax.swing.JDialog {
 
     this.ButtonClose.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CloseForm");
     this.ButtonClose.getActionMap().put("CloseForm", new AbstractAction() {
+      private static final long serialVersionUID = -5644390861803492172L;
+
       @Override
       public void actionPerformed(final ActionEvent e) {
         ButtonClose.doClick();
@@ -82,7 +83,7 @@ public final class LibraryInfoDialog extends javax.swing.JDialog {
 //      textPaneLibText.setCaretPosition(foundStart);
 
       try{
-        textPaneLibText.getHighlighter().addHighlight(foundStart, foundEnd, highlightPainter);
+        textPaneLibText.getHighlighter().addHighlight(foundStart, foundEnd, HIGHLIGHT_PAINTER);
       }catch(BadLocationException ex){
       }
 

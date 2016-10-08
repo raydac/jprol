@@ -162,12 +162,9 @@ public class TraceDialog extends AbstractProlEditor implements ActionListener {
     }
     catch (Exception ex) {
       ex.printStackTrace();
-
       if (ex instanceof InterruptedException) {
         Thread.currentThread().interrupt();
       }
-
-      return;
     }
   }
 

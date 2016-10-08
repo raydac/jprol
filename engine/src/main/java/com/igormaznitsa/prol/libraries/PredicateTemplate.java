@@ -327,8 +327,7 @@ public class PredicateTemplate {
     switch (Type) {
       case TYPE_ATOM: {
         boolean error = true;
-        if (checkAtom != null) {
-          switch (checkAtom.getTermType()) {
+        switch (checkAtom.getTermType()) {
             case Term.TYPE_LIST: {
               error = !((TermList) checkAtom).isNullList();
             }
@@ -338,7 +337,6 @@ public class PredicateTemplate {
             }
             break;
           }
-        }
         if (error) {
           throw new ProlInstantiationErrorException("Should be atom \'" + term + '\'', term);
         }

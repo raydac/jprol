@@ -34,11 +34,11 @@ public final class Var extends Term {
    * The counter is used to get unique id for new created variable, it is very
    * important
    */
-  private static final AtomicInteger NonamedVariableCounter = new AtomicInteger(0);
+  private static final AtomicInteger VAR_COUNTER_ANONYM = new AtomicInteger(0);
   /**
    * The counter is used to generate UID for every new generated Variable
    */
-  private static final AtomicInteger VariableUIDCounter = new AtomicInteger(0);
+  private static final AtomicInteger VAR_COUNTER_UID = new AtomicInteger(0);
   /**
    * The value of the variable, if the variable is not instantiated, it contains
    * null or other variable
@@ -63,14 +63,14 @@ public final class Var extends Term {
    */
   public Var(final String name) {
     super(name);
-    variableUID = VariableUIDCounter.incrementAndGet();
+    variableUID = VAR_COUNTER_UID.incrementAndGet();
   }
 
   /**
    * A constructor to create an anonymous variable
    */
   public Var() {
-    this("_$" + Long.toHexString(NonamedVariableCounter.incrementAndGet()));
+    this("_$" + Long.toHexString(VAR_COUNTER_ANONYM.incrementAndGet()));
     anonymous = true;
   }
 

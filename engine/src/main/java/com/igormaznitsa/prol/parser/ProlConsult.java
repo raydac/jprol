@@ -239,7 +239,6 @@ public class ProlConsult {
                           if (userwriter != null) {
                             userwriter.append("\r\n");
                           }
-                          continue;
                         }
                         else {
 

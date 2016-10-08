@@ -163,7 +163,7 @@ public class MessageEditor extends AbstractProlEditor {
 
     bldr.append("<span style=\"color:").append(color).append("\">").append(text);
     if (linkRef != null) {
-      bldr.append("&nbsp;<a href=\"" + linkRef + "\">");
+      bldr.append("&nbsp;<a href=\"").append(linkRef).append("\">");
       bldr.append(linkText == null ? escapeHTML(linkRef) : escapeHTML(linkText));
       bldr.append("</a>");
     }

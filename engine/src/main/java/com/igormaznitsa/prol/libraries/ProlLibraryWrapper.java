@@ -330,11 +330,7 @@ public final class ProlLibraryWrapper extends ProlAbstractLibrary {
     if (Character.isDigit(firstChar)) {
       return false;
     }
-    if (firstChar == '_') {
-      return false;
-    }
-
-    return true;
+    return firstChar != '_';
   }
 
   /**
@@ -563,15 +559,10 @@ public final class ProlLibraryWrapper extends ProlAbstractLibrary {
         }
         else if (argclass == boolean.class) {
           if (term instanceof NumericTerm) {
-            result = ((NumericTerm) term).getNumericValue().intValue() == 0 ? false : true;
+            result = ((NumericTerm) term).getNumericValue().intValue() != 0;
           }
           else {
-            if ("true".equalsIgnoreCase(term.getText())) {
-              result = true;
-            }
-            else {
-              result = false;
-            }
+            result = "true".equalsIgnoreCase(term.getText());
           }
         }
         else if (argclass == byte.class) {

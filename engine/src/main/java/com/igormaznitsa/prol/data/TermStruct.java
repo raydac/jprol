@@ -18,7 +18,6 @@ package com.igormaznitsa.prol.data;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 import com.igormaznitsa.prol.libraries.PredicateProcessor;
 import com.igormaznitsa.prol.utils.Utils;
-import java.util.Arrays;
 import java.util.Map;
 
 /**

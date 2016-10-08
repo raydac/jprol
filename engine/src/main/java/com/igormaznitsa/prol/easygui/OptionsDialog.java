@@ -41,23 +41,23 @@ public class OptionsDialog extends javax.swing.JDialog implements TreeSelectionL
 
     private static final long serialVersionUID = 4008482488500265205L;
 
-    private static final Icon close_Icon = UIUtils.loadIcon("folder_wrench");
-    private static final Icon open_Icon = UIUtils.loadIcon("folder");
-    private static final Icon leaf_Icon = UIUtils.loadIcon("wrench");
+    private static final Icon ICON_CLOSE = UIUtils.loadIcon("folder_wrench");
+    private static final Icon ICON_OPEN = UIUtils.loadIcon("folder");
+    private static final Icon ICON_LEAF = UIUtils.loadIcon("wrench");
 
     @Override
     public Icon getLeafIcon() {
-      return leaf_Icon;
+      return ICON_LEAF;
     }
 
     @Override
     public Icon getClosedIcon() {
-      return close_Icon;
+      return ICON_CLOSE;
     }
 
     @Override
     public Icon getOpenIcon() {
-      return open_Icon;
+      return ICON_OPEN;
     }
   }
 

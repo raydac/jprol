@@ -778,14 +778,4 @@ public class Goal {
   public boolean isCompleted() {
     return rootGoal.rootLastGoalAtChain == null || noMoreVariantsFlag;
   }
-
-  /**
-   * Get the variable snapshot of the goal
-   *
-   * @return the variable snapshot for the goal, it can be null if the goal
-   * doesn't have any snapshot
-   */
-  public VariableStateSnapshot getVariableSnapshot() {
-    return varSnapshot;
-  }
 }

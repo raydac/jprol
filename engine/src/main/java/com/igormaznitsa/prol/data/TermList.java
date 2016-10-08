@@ -16,7 +16,6 @@
 package com.igormaznitsa.prol.data;
 
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
-import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -463,12 +462,7 @@ public final class TermList extends TermStruct {
     TermList thatList = (TermList) atom;
 
     if (thisList == NULLLIST) {
-      if (thisList == thatList) {
-        return false;
-      }
-      else {
-        return true;
-      }
+      return thisList != thatList;
     }
     else if (thatList == NULLLIST) {
       return true;
