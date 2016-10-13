@@ -4,6 +4,7 @@ import com.igormaznitsa.prol.easygui.AbstractProlEditor;
 import java.awt.*;
 import java.beans.*;
 import java.util.HashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.*;
@@ -243,16 +244,23 @@ public class TextLineNumber extends AbstractProlEditor {
 
           //  Get the line number as a string and then determine the
           //  "X" and "Y" offsets for drawing the string.
-          String lineNumber = getTextLineNumber(rowStartOffset);
-          int stringWidth = fontMetrics.stringWidth(lineNumber);
-          int x = getOffsetX(availableWidth, stringWidth) + insets.left;
-          int y = getOffsetY(rowStartOffset, fontMetrics);
+          final String lineNumber = getTextLineNumber(rowStartOffset);
+          final int stringWidth = fontMetrics.stringWidth(lineNumber);
+          final int x = getOffsetX(availableWidth, stringWidth) + insets.left;
+          final int y = getOffsetY(rowStartOffset, fontMetrics);
+
+          if (y < 0) {
+            break;
+          }
+
           g.drawString(lineNumber, x, y);
 
           //  Move to the next row
           rowStartOffset = Utilities.getRowEnd(component, rowStartOffset) + 1;
         }
-        catch (Exception e) {
+        catch (final Exception e) {
+          LOG.log(Level.SEVERE, "Exception at textLineNumber", e);
+          break;
         }
       }
     }
@@ -292,14 +300,20 @@ public class TextLineNumber extends AbstractProlEditor {
       return (int) ((availableWidth - stringWidth) * digitAlignment);
     }
 
-    /*
-     *  Determine the Y offset for the current row
+    /**
+     * Determine the Y offset for the current row
+     * @return coordinate or -1 if component has not size
      */
     private int getOffsetY(final int rowStartOffset, final FontMetrics fontMetrics)
             throws BadLocationException {
       //  Get the bounding rectangle of the row
 
       final Rectangle r = component.modelToView(rowStartOffset);
+
+      if (r == null) {
+        return -1;
+      }
+
       final int lineHeight = fontMetrics.getHeight();
       final int y = r.y + r.height;
       int descent = 0;
