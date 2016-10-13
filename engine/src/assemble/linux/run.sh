@@ -1,7 +1,7 @@
 #!/bin/bash
 
 JPROL_HOME="$(dirname ${BASH_SOURCE[0]})"
-LOG_FILE=$SCIARETO_HOME/console.log
+LOG_FILE=$JPROL_HOME/console.log
 
 # JAVA_EXTRA_GFX_FLAGS="-Dsun.java2d.opengl=true"
 
