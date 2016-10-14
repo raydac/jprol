@@ -169,8 +169,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     Dimension scr = dt.getScreenSize();
     setSize((scr.width * 10) / 12, (scr.height * 10) / 12);
 
-    editorSource.addUndoableEditListener(this);
-    editorSource.addDocumentListener(this);
+    sourceEditor.addUndoableEditListener(this);
+    sourceEditor.addDocumentListener(this);
     messageEditor.addHyperlinkListener(this);
     addWindowListener(this);
     panelProgress.setVisible(false);
@@ -190,7 +190,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     newFile();
 
-    this.menuItemWordWrapSources.setState(editorSource.getEdWordWrap());
+    this.menuItemWordWrapSources.setState(sourceEditor.getEdWordWrap());
 
     final Action action = new AbstractAction("closeFindPanel") {
       private static final long serialVersionUID = 4377386270269629176L;
@@ -301,7 +301,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       e1.printStackTrace();
     }
     editorPanel = new javax.swing.JPanel();
-    editorSource = new com.wordpress.tips4java.TextLineNumber();
+    sourceEditor = new com.wordpress.tips4java.TextLineNumber();
     panelFindText = new javax.swing.JPanel();
     labelFind = new javax.swing.JLabel();
     textFind = new javax.swing.JTextField();
@@ -365,10 +365,10 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     editorPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Editor"));
     editorPanel.setLayout(new java.awt.BorderLayout());
 
-    editorSource.setBorder(null);
-    editorSource.setToolTipText("The editor allows to enter and edit text of a program");
-    editorSource.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
-    editorPanel.add(editorSource, java.awt.BorderLayout.CENTER);
+    sourceEditor.setBorder(null);
+    sourceEditor.setToolTipText("The editor allows to enter and edit text of a program");
+    sourceEditor.setFont(new java.awt.Font("DejaVu Sans", 1, 13)); // NOI18N
+    editorPanel.add(sourceEditor, java.awt.BorderLayout.CENTER);
 
     panelFindText.setLayout(new java.awt.GridBagLayout());
 
@@ -758,11 +758,11 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     private void menuUndoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuUndoActionPerformed
       try {
-        this.editorSource.getUndoManager().undo();
+        this.sourceEditor.getUndoManager().undo();
       }
       catch (CannotUndoException ex) {
       }
-      UndoManager undo = editorSource.getUndoManager();
+      UndoManager undo = sourceEditor.getUndoManager();
       this.menuUndo.setEnabled(undo.canUndo());
       this.menuRedo.setEnabled(undo.canRedo());
 
@@ -770,11 +770,11 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     private void menuRedoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuRedoActionPerformed
       try {
-        this.editorSource.getUndoManager().redo();
+        this.sourceEditor.getUndoManager().redo();
       }
       catch (CannotRedoException ex) {
       }
-      UndoManager undo = this.editorSource.getUndoManager();
+      UndoManager undo = this.sourceEditor.getUndoManager();
       this.menuUndo.setEnabled(undo.canUndo());
       this.menuRedo.setEnabled(undo.canRedo());
 
@@ -785,10 +785,10 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }//GEN-LAST:event_menuExitActionPerformed
 
     private void menuClearTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuClearTextActionPerformed
-      if (this.editorSource.getEditor().getDocument().getLength() > 10) {
+      if (this.sourceEditor.getEditor().getDocument().getLength() > 10) {
         if (JOptionPane.showConfirmDialog(this, "Do you really want to clean?", "Confirmation", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-          this.editorSource.getUndoManager().discardAllEdits();
-          this.editorSource.clearText();
+          this.sourceEditor.getUndoManager().discardAllEdits();
+          this.sourceEditor.clearText();
         }
       }
     }//GEN-LAST:event_menuClearTextActionPerformed
@@ -872,7 +872,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }//GEN-LAST:event_menuHelpHelpActionPerformed
 
     private void menuEditOptionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuEditOptionsActionPerformed
-      OptionsDialog dialog = new OptionsDialog(this, new TreeModel[]{editorSource, dialogEditor, messageEditor, traceEditor});
+      OptionsDialog dialog = new OptionsDialog(this, new TreeModel[]{sourceEditor, dialogEditor, messageEditor, traceEditor});
       dialog.setVisible(true);
     }//GEN-LAST:event_menuEditOptionsActionPerformed
 
@@ -901,7 +901,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }//GEN-LAST:event_menuItemLibraryInfoActionPerformed
 
     private void menuItemWordWrapSourcesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItemWordWrapSourcesActionPerformed
-      this.editorSource.setEdWordWrap(this.menuItemWordWrapSources.isSelected());
+      this.sourceEditor.setEdWordWrap(this.menuItemWordWrapSources.isSelected());
     }//GEN-LAST:event_menuItemWordWrapSourcesActionPerformed
 
     private void menuFileNewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuFileNewActionPerformed
@@ -1001,14 +1001,14 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     private void menuEditCommentSelectedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuEditCommentSelectedActionPerformed
       // TODO add your handling code here:
-      if (this.editorSource.commentSelectedLines()) {
+      if (this.sourceEditor.commentSelectedLines()) {
         documentChanged();
       }
     }//GEN-LAST:event_menuEditCommentSelectedActionPerformed
 
     private void menuEditUncommentSelectedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuEditUncommentSelectedActionPerformed
       // TODO add your handling code here:
-      if (this.editorSource.uncommentSelectedLines()) {
+      if (this.sourceEditor.uncommentSelectedLines()) {
         documentChanged();
       }
     }//GEN-LAST:event_menuEditUncommentSelectedActionPerformed
@@ -1047,16 +1047,16 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
       final Pattern patternToFind = UIUtils.makePattern(textFind.getText());
 
-      final String text = this.editorSource.getText();
+      final String text = this.sourceEditor.getText();
 
-      int cursorPos = searchText(text, patternToFind, this.editorSource.getCaretPosition() + 1);
+      int cursorPos = searchText(text, patternToFind, this.sourceEditor.getCaretPosition() + 1);
 
       if (cursorPos < 0) {
         cursorPos = searchText(text, patternToFind, 0);
       }
 
       if (cursorPos >= 0) {
-        this.editorSource.setCaretPosition(cursorPos);
+        this.sourceEditor.setCaretPosition(cursorPos);
       }
     }
   }//GEN-LAST:event_textFindKeyReleased
@@ -1066,7 +1066,6 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   private javax.swing.JButton buttonStopExecuting;
   private com.igormaznitsa.prol.easygui.DialogEditor dialogEditor;
   private javax.swing.JPanel editorPanel;
-  private com.wordpress.tips4java.TextLineNumber editorSource;
   private javax.swing.Box.Filler filler1;
   private javax.swing.JMenuBar jMenuBar1;
   private javax.swing.JPopupMenu.Separator jSeparator1;
@@ -1107,6 +1106,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   private javax.swing.JPanel panelFindText;
   private javax.swing.JPanel panelProgress;
   private javax.swing.JProgressBar progressBarTask;
+  private com.wordpress.tips4java.TextLineNumber sourceEditor;
   private javax.swing.JSplitPane splitPaneMain;
   private javax.swing.JSplitPane splitPaneTop;
   private javax.swing.JSplitPane splitPanelDown;
@@ -1221,7 +1221,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       }
 
       this.messageEditor.addInfoText("Consult with the script... ");
-      consult = new ProlConsult(editorSource.getText(), context);
+      consult = new ProlConsult(sourceEditor.getText(), context);
 
       startTime = System.currentTimeMillis();
 
@@ -1317,7 +1317,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
   @Override
   public void undoableEditHappened(final UndoableEditEvent e) {
-    final UndoManager undo = this.editorSource.getUndoManager();
+    final UndoManager undo = this.sourceEditor.getUndoManager();
     undo.addEdit(e.getEdit());
     this.menuUndo.setEnabled(undo.canUndo());
     this.menuRedo.setEnabled(undo.canRedo());
@@ -1390,7 +1390,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       this.dialogEditor.requestFocus();
     }
     else {
-      this.editorSource.requestFocus();
+      this.sourceEditor.requestFocus();
     }
 
   }
@@ -1425,8 +1425,9 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   }
 
   private void setTextToDocument(final String text) {
-    this.editorSource.clearText();
-    this.editorSource.getEditor().setText(text);
+    this.sourceEditor.clearText();
+    this.sourceEditor.getEditor().setText(text);
+    this.sourceEditor.setCaretPosition(0);
 
     if (this.currentOpenedFile != null) {
       this.menuFileSave.setEnabled(true);
@@ -1435,7 +1436,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       this.menuFileSave.setEnabled(false);
     }
 
-    this.editorSource.getUndoManager().discardAllEdits();
+    this.sourceEditor.getUndoManager().discardAllEdits();
     this.menuUndo.setEnabled(false);
     this.menuRedo.setEnabled(false);
 
@@ -1474,7 +1475,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       }
     }
 
-    final String textFromEditor = this.editorSource.getEditor().getText();
+    final String textFromEditor = this.sourceEditor.getEditor().getText();
 
     Writer writer = null;
 
@@ -1503,7 +1504,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     this.lastOpenedFile = currentOpenedFile;
     setTitle(this.currentOpenedFile.getAbsolutePath());
 
-    this.editorSource.getUndoManager().discardAllEdits();
+    this.sourceEditor.getUndoManager().discardAllEdits();
     this.menuFileSave.setEnabled(true);
     this.documentHasBeenChangedFlag = false;
   }
@@ -1511,7 +1512,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   private void newFile() {
     // make new
 
-    this.editorSource.clearText();
+    this.sourceEditor.clearText();
 
     clearTextAtAllWindowsExcludeSource();
 
@@ -1622,7 +1623,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
           int line = Integer.parseInt(parsed[0].trim());
           int pos = Integer.parseInt(parsed[1].trim());
 
-          this.editorSource.setCaretPosition(line, pos + 1);
+          this.sourceEditor.setCaretPosition(line, pos + 1);
         }
         catch (Exception ex) {
           ex.printStackTrace();
@@ -1668,7 +1669,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       this.lastOpenedFile = null;
     }
 
-    this.editorSource.loadPreferences(prefs);
+    this.sourceEditor.loadPreferences(prefs);
     this.messageEditor.loadPreferences(prefs);
     this.dialogEditor.loadPreferences(prefs);
     this.traceEditor.loadPreferences(prefs);
@@ -1708,7 +1709,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     prefs.put("lastfile", this.lastOpenedFile == null ? "" : this.lastOpenedFile.getAbsolutePath());
 
-    this.editorSource.savePreferences(prefs);
+    this.sourceEditor.savePreferences(prefs);
     this.messageEditor.savePreferences(prefs);
     this.dialogEditor.savePreferences(prefs);
     this.traceEditor.savePreferences(prefs);

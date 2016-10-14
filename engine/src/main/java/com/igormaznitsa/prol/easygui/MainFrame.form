@@ -448,7 +448,7 @@
 
               <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout"/>
               <SubComponents>
-                <Component class="com.wordpress.tips4java.TextLineNumber" name="editorSource">
+                <Component class="com.wordpress.tips4java.TextLineNumber" name="sourceEditor">
                   <Properties>
                     <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                       <Border info="null"/>
