@@ -557,7 +557,7 @@ public final class ProlContext {
 
       @Override
       public void run() {
-        Goal asyncGoal = null;
+        final Goal asyncGoal;
         try {
           asyncGoal = new Goal(goal, thisContext, traceListener);
         }

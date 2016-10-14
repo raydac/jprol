@@ -441,14 +441,6 @@ public class TextLineNumber extends AbstractProlEditor {
     return editor.getText();
   }
 
-  public synchronized void setWordWrap(final boolean flag) {
-    editor.setWordWrap(flag);
-  }
-
-  public synchronized boolean isWordWrap() {
-    return editor.isWordWrap();
-  }
-
   public synchronized UndoManager getUndoManager() {
     return undoManager;
   }

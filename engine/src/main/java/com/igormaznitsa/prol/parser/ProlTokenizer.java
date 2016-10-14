@@ -33,8 +33,7 @@ import java.io.IOException;
 public final class ProlTokenizer {
 
   /**
-   * Inside class which used to present a token read from the source input
-   * stream
+   * Inside class which used to present a token read from the source input stream
    *
    * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
    */
@@ -49,13 +48,11 @@ public final class ProlTokenizer {
      */
     public static final int STATE_ATOM = 1;
     /**
-     * A type for the result. The type shows that a string (an atom bounded by
-     * \') has been found
+     * A type for the result. The type shows that a string (an atom bounded by \') has been found
      */
     public static final int STATE_STRING = 2;
     /**
-     * A type for the result. The type shows that an operator has been found
-     * (the operator has been found at current context)
+     * A type for the result. The type shows that an operator has been found (the operator has been found at current context)
      */
     public static final int STATE_OPERATOR = 3;
     /**
@@ -67,8 +64,7 @@ public final class ProlTokenizer {
      */
     private final Term term;
     /**
-     * The variable contains the state which was associated by the state machine
-     * with the read atom
+     * The variable contains the state which was associated by the state machine with the read atom
      */
     private final int state;
 
@@ -121,8 +117,7 @@ public final class ProlTokenizer {
     }
   }
   /**
-   * The variable contains the last pushed term. The term had been read but the
-   * reader pushed it back to reread it lately
+   * The variable contains the last pushed term. The term had been read but the reader pushed it back to reread it lately
    */
   private ProlTokenizerResult lastPushedTerm;
   /**
@@ -142,38 +137,31 @@ public final class ProlTokenizer {
    */
   private int lastReadTokenStrPos;
   /**
-   * Inside state for the state machine shows that the state machine is looking
-   * for the next token
+   * Inside state for the state machine shows that the state machine is looking for the next token
    */
   private static final int INSIDE_STATE_LOOKFOR = 0;
   /**
-   * Inside state for the state machine shows that the state machine has an atom
-   * in its buffer
+   * Inside state for the state machine shows that the state machine has an atom in its buffer
    */
   private static final int INSIDE_STATE_ATOM = 1;
   /**
-   * Inside state for the state machine shows that the state machine has a
-   * string in its buffer
+   * Inside state for the state machine shows that the state machine has a string in its buffer
    */
   private static final int INSIDE_STATE_STRING = 2;
   /**
-   * Inside state for the state machine shows that the state machine has an
-   * operator in its buffer
+   * Inside state for the state machine shows that the state machine has an operator in its buffer
    */
   private static final int INSIDE_STATE_OPERATOR = 3;
   /**
-   * Inside state for the state machine shows that the state machine has a
-   * variable in its buffer
+   * Inside state for the state machine shows that the state machine has a variable in its buffer
    */
   private static final int INSIDE_STATE_VARIABLE = 4;
   /**
-   * Inside state for the state machine shows that the state machine has an
-   * integer value in its buffer
+   * Inside state for the state machine shows that the state machine has an integer value in its buffer
    */
   private static final int INSIDE_STATE_INTEGER = 5;
   /**
-   * Inside state for the state machine shows that the state machine has an
-   * float value in its buffer
+   * Inside state for the state machine shows that the state machine has an float value in its buffer
    */
   private static final int INSIDE_STATE_FLOAT = 6;
 
@@ -187,8 +175,7 @@ public final class ProlTokenizer {
   /**
    * Push a read object back into buffer to read it lately
    *
-   * @param object the object to be pushed back into buffer, null will clear the
-   * buffer
+   * @param object the object to be pushed back into buffer, null will clear the buffer
    */
   public void pushTermBack(final ProlTokenizerResult object) {
     if (lastPushedTerm != null) {
@@ -198,14 +185,11 @@ public final class ProlTokenizer {
   }
 
   /**
-   * Peek the next token from the incomming stream. The token will be read and
-   * available but it will not be removed from the incomming stream.
+   * Peek the next token from the incomming stream. The token will be read and available but it will not be removed from the incomming stream.
    *
    * @param reader the reader to get the incomming token, must not be null
-   * @param voc the knowledge base which will be used for the operation, must
-   * not be null
-   * @return a read token as a ProlTokenizerResult, or null if there is not any
-   * token in the stream
+   * @param voc the knowledge base which will be used for the operation, must not be null
+   * @return a read token as a ProlTokenizerResult, or null if there is not any token in the stream
    * @throws IOException it will be throws if there is any transport problem
    */
   public ProlTokenizerResult peekToken(final ProlReader reader, final KnowledgeBase voc) throws IOException {
@@ -241,8 +225,7 @@ public final class ProlTokenizer {
   /**
    * Inside function to fix current read position of string and line numbers
    *
-   * @param reader the reader which position shoul be fixed in the inside
-   * variables, must not be null
+   * @param reader the reader which position shoul be fixed in the inside variables, must not be null
    */
   private void fixPosition(final ProlReader reader) {
     prevReadTokenLineNum = lastReadTokenLineNum;
@@ -255,8 +238,7 @@ public final class ProlTokenizer {
    * Skip all comments (started with %) in the incomming stream
    *
    * @param reader the reader whose comments should be skipped, must nit be null
-   * @throws IOException it will be thrown if there will be any transport
-   * problem during the operation
+   * @throws IOException it will be thrown if there will be any transport problem during the operation
    */
   private void skipComments(final ProlReader reader) throws IOException {
     while (true) {
@@ -270,13 +252,10 @@ public final class ProlTokenizer {
   /**
    * Read next token from a reader
    *
-   * @param reader the reader which will be used to read next token, must not be
-   * null
-   * @param voc the knowledge base which will be used for the operation, must
-   * not be null
+   * @param reader the reader which will be used to read next token, must not be null
+   * @param voc the knowledge base which will be used for the operation, must not be null
    * @return next token as a ProlTokenizerResult object
-   * @throws IOException it will be thrown if there is any transport error
-   * during the operation
+   * @throws IOException it will be thrown if there is any transport error during the operation
    */
   public ProlTokenizerResult nextToken(final ProlReader reader, final KnowledgeBase voc) throws IOException {
 
@@ -434,37 +413,39 @@ public final class ProlTokenizer {
             strbuffer.append(chr);
           }
           else {
-            if (chr == '-' || chr == '+') {
-              if (strbuffer.charAt(strbuffer.length() - 1) == 'e') {
-                strbuffer.append(chr);
-              }
-              else {
+            switch (chr) {
+              case '-':
+              case '+':
+                if (strbuffer.charAt(strbuffer.length() - 1) == 'e') {
+                  strbuffer.append(chr);
+                }
+                else {
+                  reader.pushCharBack(chr);
+                  return new ProlTokenizerResult(makeTermFromString(strbuffer.toString(), INSIDE_STATE_FLOAT), INSIDE_STATE_ATOM);
+                }
+                break;
+              case 'e':
+              case 'E':
+                if (strbuffer.indexOf("e") < 0) {
+                  strbuffer.append('e');
+                }
+                else {
+                  reader.pushCharBack(chr);
+                  return new ProlTokenizerResult(makeTermFromString(strbuffer.substring(0, strbuffer.length() - 1), INSIDE_STATE_FLOAT), INSIDE_STATE_ATOM);
+                }
+                break;
+              default:
                 reader.pushCharBack(chr);
-                return new ProlTokenizerResult(makeTermFromString(strbuffer.toString(), INSIDE_STATE_FLOAT), INSIDE_STATE_ATOM);
-              }
-            }
-            else if (chr == 'e' || chr == 'E') {
-              if (strbuffer.indexOf("e") < 0) {
-                strbuffer.append('e');
-              }
-              else {
-                reader.pushCharBack(chr);
-                return new ProlTokenizerResult(makeTermFromString(strbuffer.substring(0, strbuffer.length() - 1), INSIDE_STATE_FLOAT), INSIDE_STATE_ATOM);
-              }
-            }
-            else {
 
-              reader.pushCharBack(chr);
-
-              if (strbuffer.charAt(strbuffer.length() - 1) == '.') {
-                // it was an integer
-                reader.pushCharBack('.');
-                return new ProlTokenizerResult(makeTermFromString(strbuffer.substring(0, strbuffer.length() - 1), INSIDE_STATE_INTEGER), INSIDE_STATE_ATOM);
-              }
-              else {
-                // it is float
-                return new ProlTokenizerResult(makeTermFromString(strbuffer.toString(), state), INSIDE_STATE_ATOM);
-              }
+                if (strbuffer.charAt(strbuffer.length() - 1) == '.') {
+                  // it was an integer
+                  reader.pushCharBack('.');
+                  return new ProlTokenizerResult(makeTermFromString(strbuffer.substring(0, strbuffer.length() - 1), INSIDE_STATE_INTEGER), INSIDE_STATE_ATOM);
+                }
+                else {
+                  // it is float
+                  return new ProlTokenizerResult(makeTermFromString(strbuffer.toString(), state), INSIDE_STATE_ATOM);
+                }
             }
           }
         }
@@ -602,8 +583,7 @@ public final class ProlTokenizer {
    * Inside auxulary function to make a term from a String
    *
    * @param string the source string object, must not be null
-   * @param state the state of inside state machine which was used to read the
-   * term
+   * @param state the state of inside state machine which was used to read the term
    * @return a Term object as the result, must not be null
    */
   private Term makeTermFromString(final String string, final int state) {

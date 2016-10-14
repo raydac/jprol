@@ -19,12 +19,12 @@ import java.awt.event.*;
 import javax.swing.*;
 
 /**
- * The class implements the Editor pane for the IDE because it is a very
- * specialized auxiliary class, it is not described very precisely
+ * The class implements the Editor pane for the IDE.
  *
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public class EditorPane extends JTextPane {
+
   private static final long serialVersionUID = 2384993058573194751L;
 
   public interface EventReplacer {
@@ -32,7 +32,6 @@ public class EditorPane extends JTextPane {
   }
   
   private volatile JPopupMenu popupMenu;
-  private volatile boolean wordWrap;
   private volatile EventReplacer replacer;
 
   public void setEventReplacer(final EventReplacer replacer) {
@@ -41,7 +40,6 @@ public class EditorPane extends JTextPane {
 
   public EditorPane() {
     super();
-    wordWrap = true;
 
     addMouseListener(new MouseAdapter() {
 
@@ -61,30 +59,6 @@ public class EditorPane extends JTextPane {
     this.popupMenu = menu;
   }
   
-  public boolean isWordWrap() {
-    return wordWrap;
-  }
-
-  public void setWordWrap(final boolean state) {
-    if (wordWrap != state) {
-      wordWrap = state;
-
-      SwingUtilities.invokeLater(new Runnable() {
-        @Override
-        public void run() {
-          invalidate();
-          updateUI();
-          repaint();
-        }
-      });
-    }
-  }
-
-  @Override
-  public boolean getScrollableTracksViewportWidth() {
-    return wordWrap;
-  }
-
   private void showMenuIfPopupTrigger(final MouseEvent e) {
     final JPopupMenu thePopup = this.popupMenu;
     

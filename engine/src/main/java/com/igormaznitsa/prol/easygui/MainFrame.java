@@ -190,7 +190,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     newFile();
 
-    this.menuItemWordWrapSources.setState(editorSource.isWordWrap());
+    this.menuItemWordWrapSources.setState(editorSource.getEdWordWrap());
 
     final Action action = new AbstractAction("closeFindPanel") {
       private static final long serialVersionUID = 4377386270269629176L;
@@ -901,7 +901,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }//GEN-LAST:event_menuItemLibraryInfoActionPerformed
 
     private void menuItemWordWrapSourcesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItemWordWrapSourcesActionPerformed
-      this.editorSource.setWordWrap(this.menuItemWordWrapSources.isSelected());
+      this.editorSource.setEdWordWrap(this.menuItemWordWrapSources.isSelected());
     }//GEN-LAST:event_menuItemWordWrapSourcesActionPerformed
 
     private void menuFileNewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuFileNewActionPerformed

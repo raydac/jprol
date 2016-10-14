@@ -572,7 +572,7 @@ public final class ProlLibraryWrapper extends ProlAbstractLibrary {
         }
         else if (argclass == char.class) {
           if (term instanceof NumericTerm) {
-            result = new Character((char) ((NumericTerm) term).getNumericValue().shortValue());
+            result = Character.valueOf((char) ((NumericTerm) term).getNumericValue().shortValue());
           }
           else if (term.getTermType() == Term.TYPE_ATOM) {
             final String text = term.getText();

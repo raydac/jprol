@@ -98,6 +98,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
   protected final JMenuItem POPUP_PASTE = new JMenuItem("Paste",UIUtils.loadIcon("page_paste"));
 
   private final String nameID;
+  private boolean wordWrap;
 
   protected static Color extractColor(final Preferences prefs, final String name) {
     final int value = prefs.getInt(name, 0xFFFFFFFF);
@@ -135,11 +136,33 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
   }
 
   public boolean getEdWordWrap() {
-    return editor.isWordWrap();
+    return this.wordWrap;
   }
 
   public void setEdWordWrap(final Boolean value) {
-    editor.setWordWrap(value);
+    final Component c = this.scrollPane.getViewport().getView();
+    if (c != null) {
+      this.scrollPane.getViewport().remove(c);
+    }
+
+    final Container editorParent = this.editor.getParent();
+    if (editorParent != null) {
+      editorParent.remove(this.editor);
+    }
+
+    this.wordWrap = value;
+
+    if (value) {
+      this.scrollPane.getViewport().setView(this.editor);
+    }
+    else {
+      final JPanel wrapper = new JPanel(new BorderLayout(0, 0));
+      wrapper.add(this.editor, BorderLayout.CENTER);
+      this.scrollPane.getViewport().setView(wrapper);
+    }
+
+    this.scrollPane.revalidate();
+    this.scrollPane.repaint();
   }
 
   public Color getEdForeground() {
@@ -169,21 +192,23 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
   }
 
   protected final synchronized void addPropertyToList(final PropertyLink link) {
-    editableProperties.add(link);
+    this.editableProperties.add(link);
   }
 
   public AbstractProlEditor(final String title) {
     super();
-    editableProperties = new ArrayList<PropertyLink>();
-    editor = new EditorPane();
-    scrollPane = new JScrollPane(editor);
+    this.editableProperties = new ArrayList<PropertyLink>();
+    this.editor = new EditorPane();
+    this.scrollPane = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+    this.setEdWordWrap(false);
 
     setBorder(new TitledBorder(title));
-    nameID = title;
-    editor.setEditable(true);
+    this.nameID = title;
+    this.editor.setEditable(true);
 
     setLayout(new BorderLayout(0, 0));
-    add(scrollPane, BorderLayout.CENTER);
+    add(this.scrollPane, BorderLayout.CENTER);
 
     // add properties
     addPropertyToList(new PropertyLink(this, "Font", "EdFont"));
@@ -192,7 +217,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     addPropertyToList(new PropertyLink(this, "Caret color", "EdCaretColor"));
     addPropertyToList(new PropertyLink(this, "Word wrap", "EdWordWrap"));
 
-    POPUP_CLEARTEXT.addActionListener(new ActionListener() {
+    this.POPUP_CLEARTEXT.addActionListener(new ActionListener() {
 
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -200,7 +225,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
       }
     });
 
-    POPUP_COPY.addActionListener(new ActionListener() {
+    this.POPUP_COPY.addActionListener(new ActionListener() {
 
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -208,7 +233,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
       }
     });
 
-    POPUP_PASTE.addActionListener(new ActionListener() {
+    this.POPUP_PASTE.addActionListener(new ActionListener() {
 
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -216,7 +241,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
       }
     });
 
-    POPUP_CUT.addActionListener(new ActionListener() {
+    this.POPUP_CUT.addActionListener(new ActionListener() {
 
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -226,15 +251,15 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
 
     // add popup
     if (doesSupportTextCut()) {
-      POPUP_MENU.add(POPUP_CUT);
+      this.POPUP_MENU.add(this.POPUP_CUT);
     }
-    POPUP_MENU.add(POPUP_COPY);
+    this.POPUP_MENU.add(this.POPUP_COPY);
     if (doesSupportTextPaste()) {
-      POPUP_MENU.add(POPUP_PASTE);
+      POPUP_MENU.add(this.POPUP_PASTE);
     }
-    POPUP_MENU.add(POPUP_CLEARTEXT);
+    this.POPUP_MENU.add(this.POPUP_CLEARTEXT);
 
-    editor.setPopupMenu(POPUP_MENU);
+    this.editor.setPopupMenu(this.POPUP_MENU);
   }
 
   @Override
