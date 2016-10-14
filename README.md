@@ -8,7 +8,7 @@ I bought a book of Ivan Bratko titled as "Prolog Programming for Artificial Inte
 
 JProl is a small embeddable monolitic (one uberjar) Prolog engine developed in 2010 with number of libraries out of the box. It supports Edinburgh Prolog style and has a small GUI editor which is very useful for experiments. The Engine is not very optimal one and I would not recommend to use it in any production, it is good only for learning and teaching purposes.   
 
-In 2014 I was asked by Yuki Katsura to open sources and now I have opened them as an OSS project under Apache License 2.0
+In 2014 I was asked by [Yuki Katsura](http://iprolog.appstor.io/) to open sources of the engine (he then converted it into iPad version) and the project was published as OSS under Apache License 2.0
 
 # Prebuilt versions
 Prebuilt versions provided for main OSes (I can test only for Linux, so that notify me about issues under Windows and MacOS). [Executable files can be downloaded from the latest release page](https://github.com/raydac/jprol/releases/latest)
