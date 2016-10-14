@@ -30,7 +30,8 @@ import java.io.PipedReader;
 import java.io.PipedWriter;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.prefs.Preferences;
 import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
@@ -144,10 +145,10 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
 
   public final static class NonClossableWriter extends PipedWriter {
 
-    protected final LinkedList<Character> buffer;
+    protected final List<Character> buffer;
 
     public NonClossableWriter() {
-      buffer = new LinkedList<Character>();
+      buffer = new ArrayList<Character>();
     }
 
     @Override
@@ -178,19 +179,15 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
     }
 
     protected int readChar() {
-      synchronized (buffer) {
-        if (buffer.isEmpty()) {
-          return -1;
+      int result = -1;
+      if (!Thread.currentThread().isInterrupted()) {
+        synchronized (this.buffer) {
+          if (!this.buffer.isEmpty()) {
+            result = buffer.remove(0);
+          }
         }
-
-        final Thread thisThread = Thread.currentThread();
-
-        char first = buffer.removeFirst();
-        if (thisThread.isInterrupted()) {
-          return -1;
-        }
-        return first;
       }
+      return result;
     }
 
     @Override
@@ -202,8 +199,8 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
     }
 
     public void clearBuffer() {
-      synchronized (buffer) {
-        buffer.clear();
+      synchronized (this.buffer) {
+        this.buffer.clear();
       }
     }
   }

@@ -29,7 +29,7 @@ import com.igormaznitsa.prol.parser.ProlTreeBuilder;
 import com.igormaznitsa.prol.trace.TraceListener;
 import com.igormaznitsa.prol.utils.Utils;
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -148,7 +148,7 @@ public class Goal {
    * @return a List object contains all goals at the goal chain of the root goal
    */
   public List<Goal> getChainAsList() {
-    final List<Goal> result = new LinkedList<Goal>();
+    final List<Goal> result = new ArrayList<Goal>();
 
     Goal curgoal = rootGoal.rootLastGoalAtChain;
     while (curgoal != null) {

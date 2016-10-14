@@ -22,7 +22,6 @@ import com.igormaznitsa.prol.data.Var;
 import com.igormaznitsa.prol.utils.IntegerHashSet;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -56,15 +55,15 @@ final class VariableStateSnapshot {
      * @param var the source var which one will be saved into the container
      */
     public VariableContainer(final Var var) {
-      variable = var;
-      etalonValue = var.getThisValue();
+      this.variable = var;
+      this.etalonValue = var.getThisValue();
     }
 
     /**
      * Reset the variable's value to the etalon value
      */
     public void resetToEtalon() {
-      variable.setThisValue(etalonValue);
+      this.variable.setThisValue(this.etalonValue);
     }
 
     /**
@@ -73,7 +72,7 @@ final class VariableStateSnapshot {
      * @return true if the variable was changed, else false
      */
     public boolean isChanged() {
-      return variable.getThisValue() != etalonValue;
+      return this.variable.getThisValue() != this.etalonValue;
     }
   }
 
@@ -95,14 +94,14 @@ final class VariableStateSnapshot {
    * must not be null
    */
   public VariableStateSnapshot(final VariableStateSnapshot snapshot) {
-    containers = new LinkedList<VariableContainer>();
+    this.containers = new ArrayList<VariableContainer>();
 
     final List<VariableContainer> thatContainers = snapshot.containers;
 
     final Iterator<VariableContainer> iterator = thatContainers.iterator();
     List<VariableContainer> changed = null;
 
-    processedVariables = new IntegerHashSet();
+    this.processedVariables = new IntegerHashSet();
 
     while (iterator.hasNext()) {
       final VariableContainer container = iterator.next();
@@ -113,8 +112,8 @@ final class VariableStateSnapshot {
         changed.add(container);
       }
       else {
-        processedVariables.add(container.variable.getVarUID());
-        containers.add(container);
+        this.processedVariables.add(container.variable.getVarUID());
+        this.containers.add(container);
       }
     }
 
@@ -123,14 +122,14 @@ final class VariableStateSnapshot {
       while (iter.hasNext()) {
         final VariableContainer container = iter.next();
         final int uid = container.variable.getVarUID();
-        if (!processedVariables.contains(uid)) {
-          processedVariables.add(uid);
-          containers.add(new VariableContainer(container.variable));
+        if (!this.processedVariables.contains(uid)) {
+          this.processedVariables.add(uid);
+          this.containers.add(new VariableContainer(container.variable));
           extractAllVariables(container.variable.getThisValue());
         }
       }
     }
-    processedVariables = null;
+    this.processedVariables = null;
   }
 
   /**
@@ -140,9 +139,9 @@ final class VariableStateSnapshot {
    * not be null
    */
   public VariableStateSnapshot(final Term source) {
-    containers = new LinkedList<VariableContainer>();
+    this.containers = new ArrayList<VariableContainer>();
     extractAllVariables(source);
-    processedVariables = null;
+    this.processedVariables = null;
   }
 
   /**
@@ -173,14 +172,14 @@ final class VariableStateSnapshot {
       }
       break;
       case Term.TYPE_VAR: {
-        if (processedVariables == null) {
-          processedVariables = new IntegerHashSet();
+        if (this.processedVariables == null) {
+          this.processedVariables = new IntegerHashSet();
         }
         final Var var = (Var) src;
         final Integer uid = var.getVarUID();
-        if (!processedVariables.contains(uid)) {
-          processedVariables.add(uid);
-          containers.add(new VariableContainer(var));
+        if (!this.processedVariables.contains(uid)) {
+          this.processedVariables.add(uid);
+          this.containers.add(new VariableContainer(var));
           final Term value = var.getThisValue();
           if (value != null) {
             extractAllVariables(value);
@@ -195,7 +194,7 @@ final class VariableStateSnapshot {
    * Reset all saved variables to their saved original states
    */
   public void resetToState() {
-    final Iterator<VariableContainer> iterator = containers.iterator();
+    final Iterator<VariableContainer> iterator = this.containers.iterator();
     while (iterator.hasNext()) {
       iterator.next().resetToEtalon();
     }
@@ -207,7 +206,7 @@ final class VariableStateSnapshot {
    * @return the number of variables saved in the snapshot
    */
   public int getSize() {
-    return containers.size();
+    return this.containers.size();
   }
 
   @Override
@@ -215,7 +214,7 @@ final class VariableStateSnapshot {
     final StringBuilder buffer = new StringBuilder();
     buffer.append(super.toString());
     buffer.append('[');
-    final Iterator<VariableContainer> iter = containers.iterator();
+    final Iterator<VariableContainer> iter = this.containers.iterator();
     boolean notfirst = false;
     while (iter.hasNext()) {
       final VariableContainer varcont = iter.next();

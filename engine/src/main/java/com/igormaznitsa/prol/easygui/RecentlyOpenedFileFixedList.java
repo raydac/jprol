@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -30,51 +29,51 @@ import java.util.List;
 public class RecentlyOpenedFileFixedList {
 
   private final int maxLen;
-  private final List<String> paths = new LinkedList<String>();
+  private final List<String> paths = new ArrayList<String>();
 
   public RecentlyOpenedFileFixedList(final int maxlen) {
-    maxLen = maxlen;
+    this.maxLen = maxlen;
   }
 
   public synchronized void clear() {
-    paths.clear();
+    this.paths.clear();
   }
 
   public synchronized void put(final String path) {
-    if (paths.contains(path)) {
+    if (this.paths.contains(path)) {
       // remove it to make as the last one
-      paths.remove(path);
+      this.paths.remove(path);
     }
     paths.add(0, path);
     
-    while(paths.size()>maxLen){
-      paths.remove(paths.size()-1);
+    while (this.paths.size() > maxLen) {
+      this.paths.remove(paths.size() - 1);
     }
   }
 
   public  synchronized void add(final String path){
-    if (paths.contains(path)) {
+    if (this.paths.contains(path)) {
       // remove it to make as the last one
-      paths.remove(path);
+      this.paths.remove(path);
     }
-    if (paths.size()<maxLen){
-      paths.add(path);
+    if (this.paths.size() < maxLen) {
+      this.paths.add(path);
     }
   }
   
   public synchronized boolean isEmpty() {
-    return paths.isEmpty();
+    return this.paths.isEmpty();
   }
 
   public synchronized Iterator<String> getIterator() {
-    return new LinkedList<String>(paths).iterator();
+    return new ArrayList<String>(this.paths).iterator();
   }
 
   public synchronized Collection<String> getCollection() {
-    return Collections.unmodifiableCollection(new ArrayList<String>(paths));
+    return Collections.unmodifiableCollection(new ArrayList<String>(this.paths));
   }
 
   public synchronized void remove(final String path) {
-    paths.remove(path);
+    this.paths.remove(path);
   }
 }
