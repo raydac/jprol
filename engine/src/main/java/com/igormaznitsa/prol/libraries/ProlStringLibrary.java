@@ -120,7 +120,7 @@ public class ProlStringLibrary extends ProlAbstractLibrary {
 
     if (argLeft.getTermType() == Term.TYPE_ATOM) {
       // the first case
-      TermInteger result = null;
+      final TermInteger result;
       try {
         result = new TermInteger(argLeft.getText().trim());
       }
@@ -144,7 +144,7 @@ public class ProlStringLibrary extends ProlAbstractLibrary {
 
     if (argLeft.getTermType() == Term.TYPE_ATOM) {
       // the first case
-      TermFloat result = null;
+      final TermFloat result;
       try {
         result = new TermFloat(argLeft.getText().trim());
       }

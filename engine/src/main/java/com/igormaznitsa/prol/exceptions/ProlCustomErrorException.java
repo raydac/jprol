@@ -63,7 +63,7 @@ public class ProlCustomErrorException extends ProlAbstractCatcheableException {
 
   @Override
   public TermStruct getAsStruct() {
-    TermStruct result = null;
+    final TermStruct result;
     if (error.getTermType() == Term.TYPE_STRUCT) {
       result = (TermStruct) error;
     }

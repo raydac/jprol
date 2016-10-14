@@ -33,6 +33,7 @@ import java.util.logging.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
+import com.igormaznitsa.prol.easygui.MainFrame;
 
 /**
  * The class implements the Prol Graphic library and it can be used to show to
@@ -167,13 +168,14 @@ public final class ProlGraphicLibrary extends ProlAbstractLibrary implements Win
    */
   public ProlGraphicLibrary() {
     super("ProlGraphicLib");
-    graphicFrame = new JFrame("Prol Graphic Screen");
-    graphicFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-    graphicFrame.setResizable(false);
-    graphicFrame.addWindowListener(this);
 
-    penColor = Color.green;
-    brushColor = Color.black;
+    this.graphicFrame = new JFrame("JProl Graphics");
+    this.graphicFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+    this.graphicFrame.setResizable(false);
+    this.graphicFrame.addWindowListener(this);
+
+    this.penColor = Color.green;
+    this.brushColor = Color.black;
 
     label = new JLabel();
 
@@ -181,39 +183,46 @@ public final class ProlGraphicLibrary extends ProlAbstractLibrary implements Win
     rootPanel.add(label, BorderLayout.CENTER);
 
     final JMenu saveMenu = new JMenu("Save");
-    final JMenuItem menuItemSaveImage = new JMenuItem("To disk", UIUtils.loadIcon("disk"));
+
+    final JMenuItem menuItemSaveImage = new JMenuItem("To Disk", UIUtils.loadIcon("disk"));
     menuItemSaveImage.setActionCommand("DISK");
     menuItemSaveImage.addActionListener(this);
-    final JMenuItem menuItemCopyToClipboard = new JMenuItem("To clipboard", UIUtils.loadIcon("page_copy"));
+
+    final JMenuItem menuItemCopyToClipboard = new JMenuItem("To Clipboard", UIUtils.loadIcon("page_copy"));
     menuItemCopyToClipboard.addActionListener(this);
     menuItemCopyToClipboard.setActionCommand("CLIPBOARD");
 
-    menuItemSaveImage.setToolTipText("Save the current image as a PNG file");
-    menuItemCopyToClipboard.setToolTipText("Copy the current image into the system clipboard");
+    menuItemSaveImage.setToolTipText("Save graphics in PNG file");
+    menuItemCopyToClipboard.setToolTipText("Save current screenshot from the graphics window into system clipboard");
 
     saveMenu.add(menuItemSaveImage);
     saveMenu.add(menuItemCopyToClipboard);
 
-    menuBar.add(saveMenu);
-    graphicFrame.setJMenuBar(menuBar);
+    this.menuBar.add(saveMenu);
+    this.graphicFrame.setJMenuBar(this.menuBar);
 
-    graphicFrame.setContentPane(rootPanel);
+    this.graphicFrame.setContentPane(rootPanel);
 
-    lastPointX = 0;
-    lastPointY = 0;
+    this.lastPointX = 0;
+    this.lastPointY = 0;
 
     changeResolution(128, 128);
 
-    graphicFrame.setAlwaysOnTop(true);
-    graphicFrame.setVisible(false);
+    this.graphicFrame.setAlwaysOnTop(true);
+    this.graphicFrame.setVisible(false);
 
-    graphicFrame.setIconImage(UIUtils.loadIcon("appico").getImage());
+    this.graphicFrame.setIconImage(UIUtils.loadIcon("appico").getImage());
 
-    graphicFrame.pack();
+    this.graphicFrame.pack();
+
+    final JFrame mainFrame = MainFrame.MAIN_FRAME_INSTANCE.get();
+    if (mainFrame != null) {
+      this.graphicFrame.setLocationRelativeTo(mainFrame);
+    }
   }
 
   private void saveImageAsFile(final BufferedImage image) {
-    final JFileChooser fileChooser = new JFileChooser(lastSavedImage);
+    final JFileChooser fileChooser = new JFileChooser(this.lastSavedImage);
     fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     fileChooser.setFileFilter(new FileFilter() {
 
@@ -231,7 +240,7 @@ public final class ProlGraphicLibrary extends ProlAbstractLibrary implements Win
       }
     });
 
-    if (fileChooser.showSaveDialog(graphicFrame) == JFileChooser.APPROVE_OPTION) {
+    if (fileChooser.showSaveDialog(this.graphicFrame) == JFileChooser.APPROVE_OPTION) {
       File choosed = fileChooser.getSelectedFile();
 
       if (choosed != null) {
@@ -247,7 +256,7 @@ public final class ProlGraphicLibrary extends ProlAbstractLibrary implements Win
         }
         catch (Exception ex) {
           LOG.log(Level.WARNING, "Can't save an image file", ex);
-          JOptionPane.showMessageDialog(graphicFrame, "Can't save the image as a file [" + ex.getMessage() + ']', "Error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(this.graphicFrame, "Can't save the image as a file [" + ex.getMessage() + ']', "Error", JOptionPane.ERROR_MESSAGE);
         }
       }
     }
@@ -284,8 +293,7 @@ public final class ProlGraphicLibrary extends ProlAbstractLibrary implements Win
       saveImageAsFile(bufferCopy);
     }
     else if ("CLIPBOARD".equals(command)) {
-      Clipboard clipboard = null;
-      clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+      final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 
       if (clipboard != null) {
         try {
@@ -608,8 +616,13 @@ public final class ProlGraphicLibrary extends ProlAbstractLibrary implements Win
   }
 
   private static Color getColorForName(final String color) {
-    Color result = null;
-    if (color != null && color.charAt(0) == '#') {
+
+    if (color == null) {
+      throw new NullPointerException("Color name is null");
+    }
+
+    final Color result;
+    if (color.charAt(0) == '#') {
       final int hex = Integer.parseInt(color.substring(1), 16);
       result = new Color(hex);
     }
@@ -638,9 +651,9 @@ public final class ProlGraphicLibrary extends ProlAbstractLibrary implements Win
       }
     }
 
-    Color color = null;
     final String text = arg.getText();
 
+    final Color color;
     try {
       color = getColorForName(text);
 
@@ -689,9 +702,9 @@ public final class ProlGraphicLibrary extends ProlAbstractLibrary implements Win
       }
     }
 
-    Color color = null;
     final String text = arg.getText();
 
+    final Color color;
     try {
       color = getColorForName(text);
 
@@ -856,6 +869,7 @@ public final class ProlGraphicLibrary extends ProlAbstractLibrary implements Win
       }
 
       changeResolution(width2, height2);
+
       activateFrame();
     }
     finally {
@@ -903,32 +917,34 @@ public final class ProlGraphicLibrary extends ProlAbstractLibrary implements Win
     final BufferedImage newImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     final Graphics gfx = newImage.getGraphics();
 
-    final ReentrantLock locker = insideLocker;
+    final ReentrantLock locker = this.insideLocker;
 
     locker.lock();
     try {
-      gfx.setColor(brushColor);
+      gfx.setColor(this.brushColor);
       gfx.fillRect(0, 0, width, height);
 
-      bufferedImage = newImage;
-      bufferGraphics = gfx;
+      this.bufferedImage = newImage;
+      this.bufferGraphics = gfx;
 
-      label.setIcon(new ImageIcon(bufferedImage));
-      label.invalidate();
+      this.label.setIcon(new ImageIcon(this.bufferedImage));
+      this.label.invalidate();
     }
     finally {
       locker.unlock();
     }
-    graphicFrame.invalidate();
-    graphicFrame.pack();
+    this.graphicFrame.invalidate();
+    this.graphicFrame.pack();
+    this.graphicFrame.repaint();
   }
 
   /**
-   * Inside function to make inside frame visibled
+   * Inside function to make inside frame visible.
    */
   private void activateFrame() {
-    if (graphicFrame != null) {
-      graphicFrame.setVisible(true);
+    if (this.graphicFrame != null) {
+      this.graphicFrame.setVisible(true);
+      this.graphicFrame.toFront();
     }
   }
 

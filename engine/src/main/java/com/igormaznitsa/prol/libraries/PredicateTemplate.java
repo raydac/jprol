@@ -317,11 +317,11 @@ public class PredicateTemplate {
   }
 
   /**
-   * An auxulary function to check a term for compatibility with the template
+   * Auxiliary function to check a term for compatibility with the template
    *
    * @param term a term to be checked, must not be null
    */
-  private final void checkTermForTemplate(final Term term) {
+  private void checkTermForTemplate(final Term term) {
     final Term checkAtom = Utils.getTermFromElement(term);
 
     switch (Type) {
@@ -843,7 +843,7 @@ public class PredicateTemplate {
       }
       break;
       case TYPE_OPERATOR_SPECIFIER: {
-        boolean error = false;
+        boolean error;
         if (checkAtom != null) {
           if (checkAtom.getTermType() == Term.TYPE_ATOM && !(checkAtom instanceof NumericTerm)) {
             final String text = checkAtom.getText();

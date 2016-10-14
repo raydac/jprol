@@ -555,8 +555,7 @@ public class Goal {
 
           final TermStruct structFromBase = clauseIterator.next();
 
-          Term goalTermForEqu = null;
-
+          final Term goalTermForEqu;
           if (((TermStruct) goalTerm).isFunctorLikeRuleDefinition()) {
             goalTermForEqu = ((TermStruct) goalTerm).getElement(0).makeClone();
           }

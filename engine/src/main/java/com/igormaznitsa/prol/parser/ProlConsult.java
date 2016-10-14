@@ -322,9 +322,7 @@ public class ProlConsult {
   public boolean processGoal(final Term goalterm, final Map<String, Var> varTable) throws InterruptedException {
     final Goal goal = new Goal(goalterm, context, null);
 
-    Term result = null;
-
-    result = goal.solve();
+    Term result = goal.solve();
 
     if (result != null && varTable != null) {
       result.fillVarables(varTable);
@@ -344,7 +342,7 @@ public class ProlConsult {
    * @throws InterruptedException it will be thrown if the thread has been
    * interruped
    */
-  private final boolean solveGoal(final Goal goal, final Map<String, Var> varTable) throws InterruptedException {
+  private boolean solveGoal(final Goal goal, final Map<String, Var> varTable) throws InterruptedException {
     final Term result = goal.solve();
 
     if (result != null && varTable != null) {
@@ -364,7 +362,7 @@ public class ProlConsult {
    * operations
    * @throws InterruptedException it will be thrown if the goal is interrupted
    */
-  private final boolean processDirective(final Term directive) throws IOException, InterruptedException {
+  private boolean processDirective(final Term directive) throws IOException, InterruptedException {
     final Goal goal = new Goal(directive, context, null);
     return goal.solve() != null;
   }

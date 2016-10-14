@@ -136,7 +136,7 @@ public final class ProlTreeBuilder {
      *
      * @return the priority of the term
      */
-    private final int getPriority() {
+    private int getPriority() {
       if (atBrakes) {
         return 0;
       }
@@ -148,7 +148,7 @@ public final class ProlTreeBuilder {
      *
      * @param item the right branch for the term
      */
-    private final void setRightBranch(final TreeItem item) {
+    private void setRightBranch(final TreeItem item) {
       rightBranch = item;
       if (item != null) {
         item.owner = this;
@@ -162,7 +162,7 @@ public final class ProlTreeBuilder {
      * @return the item which will be used as the root, it can be this item or
      * setted item (it depends on priorities)
      */
-    private final TreeItem makeAsRightBranch(final TreeItem item) {
+    private TreeItem makeAsRightBranch(final TreeItem item) {
       TreeItem currentSubbranch = rightBranch;
       setRightBranch(item);
       item.setLeftBranch(currentSubbranch);
@@ -179,7 +179,7 @@ public final class ProlTreeBuilder {
      * @return the item which will be used as the root, it can be this item or
      * setted item (it depends on priorities)
      */
-    private final TreeItem makeAsOwnerWithLeftBranch(final TreeItem item) {
+    private TreeItem makeAsOwnerWithLeftBranch(final TreeItem item) {
       this.replaceForOwner(item);
       item.setLeftBranch(this);
       return item;
@@ -190,7 +190,7 @@ public final class ProlTreeBuilder {
      *
      * @return the right branch or null
      */
-    private final TreeItem getRightBranch() {
+    private TreeItem getRightBranch() {
       return rightBranch;
     }
 
@@ -199,7 +199,7 @@ public final class ProlTreeBuilder {
      *
      * @param item the left branch for the item
      */
-    private final void setLeftBranch(final TreeItem item) {
+    private void setLeftBranch(final TreeItem item) {
       leftBranch = item;
       if (item != null) {
         item.owner = this;
@@ -211,7 +211,7 @@ public final class ProlTreeBuilder {
      *
      * @return the left branch of the item or null
      */
-    private final TreeItem getLeftBranch() {
+    private TreeItem getLeftBranch() {
       return leftBranch;
     }
 
@@ -220,7 +220,7 @@ public final class ProlTreeBuilder {
      *
      * @return
      */
-    private final int getItemType() {
+    private int getItemType() {
       return savedterm.getTermType();
     }
 
@@ -229,7 +229,7 @@ public final class ProlTreeBuilder {
      *
      * @return the root item for the tree where the item has been placed
      */
-    private final TreeItem findRoot() {
+    private TreeItem findRoot() {
       if (owner == null) {
         return this;
       }
@@ -244,8 +244,8 @@ public final class ProlTreeBuilder {
      * @return found root itemn which has the equal or less priority than the
      * value.
      */
-    private final TreeItem findFirstNodeWithSuchOrLowerPriority(final int priority) {
-      TreeItem result = null;
+    private TreeItem findFirstNodeWithSuchOrLowerPriority(final int priority) {
+      final TreeItem result;
       if (getPriority() >= priority || owner == null) {
         result = this;
       }
@@ -260,7 +260,7 @@ public final class ProlTreeBuilder {
      *
      * @param newItem the item to replace current owner
      */
-    private final void replaceForOwner(final TreeItem newItem) {
+    private void replaceForOwner(final TreeItem newItem) {
       if (owner == null) {
         newItem.owner = null;
         return;
@@ -279,7 +279,7 @@ public final class ProlTreeBuilder {
      *
      * @return the operator type as integer
      */
-    private final int getOperatorType() {
+    private int getOperatorType() {
       return ((Operator) savedterm).getOperatorType();
     }
 
@@ -288,7 +288,7 @@ public final class ProlTreeBuilder {
      *
      * @return true if the tree item is valid and false if it's not
      */
-    private final boolean validate() {
+    private boolean validate() {
       if (savedterm.getTermType() == Term.TYPE_OPERATOR) {
         final int priority = getPriority();
 
@@ -333,11 +333,11 @@ public final class ProlTreeBuilder {
      *
      * @return the tree item converted into a term
      */
-    private final Term convertTreeItemIntoTerm() {
+    private Term convertTreeItemIntoTerm() {
       Term result = null;
       switch (savedterm.getTermType()) {
         case Term.TYPE_OPERATOR: {
-          TermStruct operatorStruct = null;
+          final TermStruct operatorStruct;
           if (!validate()) {
             throw new ParserException("Wrong operator", lineNum, strPos);
           }
@@ -396,7 +396,7 @@ public final class ProlTreeBuilder {
    * it can be null so the result will be false
    * @return true if the array contains the operator else false
    */
-  private static final boolean isEndOperator(final Term operator, final OperatorContainer[] endOperators) {
+  private static boolean isEndOperator(final Term operator, final OperatorContainer[] endOperators) {
     if (operator == null) {
       return true;
     }
@@ -518,7 +518,7 @@ public final class ProlTreeBuilder {
    * @throws InterruptedException it will be thrown if the thread has been
    * interrupted
    */
-  private final TermStruct readStruct(final Term functor, final ProlReader reader) throws IOException {
+  private TermStruct readStruct(final Term functor, final ProlReader reader) throws IOException {
     final ArrayList<Term> listOfAtoms = new ArrayList<Term>();
 
     while (true) {
@@ -558,7 +558,7 @@ public final class ProlTreeBuilder {
    * @return the read list or null if the stream end reached
    * @throws IOException it will be thrown if there is any transport error
    */
-  private final Term readList(final ProlReader reader) throws IOException {
+  private Term readList(final ProlReader reader) throws IOException {
     TermList leftPart = TermList.NULLLIST;
     TermList leftPartFirst = leftPart;
     Term rightPart = null;
@@ -624,9 +624,6 @@ public final class ProlTreeBuilder {
 
     if (hasSeparator) {
       // '|' separator was found at the list
-      if (leftPart == null) {
-        leftPart = TermList.NULLLIST;
-      }
       if (rightPart == null) {
         throw new ParserException("There is not any term as the tail at the list", tokenizer.getLastTokenLineNum(), tokenizer.getLastTokenStrPos());
       }
@@ -645,7 +642,7 @@ public final class ProlTreeBuilder {
    * reached
    * @throws IOException it will be thrown if there is any transport error
    */
-  private final Term readBlock(final ProlReader reader, final OperatorContainer[] endOperators) throws IOException {
+  private Term readBlock(final ProlReader reader, final OperatorContainer[] endOperators) throws IOException {
     // the variable will contain last processed tree item contains either atom or operator
     TreeItem currentTreeItem = null;
 
@@ -704,7 +701,6 @@ public final class ProlTreeBuilder {
 
           final boolean rightPresented = !isEndOperator(tokenizer.peekToken(reader, knowledgeBase).getTerm(), endOperators);
 
-          readAtomContainer = null;
           readAtom = readOperators.getCompatibleOperator(leftPresented, rightPresented);
 
           if (readAtom == null) {
@@ -716,7 +712,6 @@ public final class ProlTreeBuilder {
           readAtomPriority = readAtom.getPriority();
         }
         else {
-          readAtomContainer = null;
           readAtom = readOperator;
           final String operatorText = readOperator.getText();
           if (operatorText.length() == 1) {
@@ -728,7 +723,6 @@ public final class ProlTreeBuilder {
             else if ("(".equals(operatorText)) {
               // read subblock
               atBrakes = true;
-              readAtomContainer = null;
               readAtom = readBlock(reader, OPERATORS_SUBBLOCK);
               readAtomPriority = 0;
               final Term closingAtom = tokenizer.nextToken(reader, knowledgeBase).getTerm();
@@ -763,7 +757,6 @@ public final class ProlTreeBuilder {
 
           // check read atom to be zero-struct
           if (readAtomContainer.getState() == ProlTokenizerResult.STATE_ATOM && context.hasPredicateAtLibraryForSignature(readAtom.getText() + "/0")) {
-            readAtomContainer = null;
             readAtom = new TermStruct(readAtom);
           }
         }

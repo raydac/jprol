@@ -255,7 +255,7 @@ public final class TermInteger extends Term implements NumericTerm {
         return 1;
       case Term.TYPE_ATOM: {
         if (atom instanceof NumericTerm) {
-          int value = 0;
+          final int value;
           if (atom instanceof TermFloat) {
             value = Math.round(((TermFloat) atom).getNumericValue().floatValue());
           }

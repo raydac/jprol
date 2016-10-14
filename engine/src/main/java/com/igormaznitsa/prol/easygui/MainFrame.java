@@ -27,6 +27,7 @@ import com.igormaznitsa.prol.utils.Utils;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -139,6 +140,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
   protected static final String PROL_EXTENSION = ".prl";
 
+  public static volatile WeakReference<MainFrame> MAIN_FRAME_INSTANCE;
+
   private static final FileFilter PROL_FILE_FILTER = new FileFilter() {
 
     @Override
@@ -165,7 +168,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
    * Creates new form MainFrame
    */
   public MainFrame() {
-    initComponents();
+    try {
+      initComponents();
 
     Toolkit dt = Toolkit.getDefaultToolkit();
     Dimension scr = dt.getScreenSize();
@@ -212,7 +216,11 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     this.buttonCloseFind.getActionMap().put("closeFind", action);
     this.buttonCloseFind.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escKey, "closeFind");
 
-    this.panelFindText.setVisible(false);
+      this.panelFindText.setVisible(false);
+    }
+    finally {
+      MAIN_FRAME_INSTANCE = new WeakReference<MainFrame>(this);
+    }
   }
 
   private void fillLAndFeelMenu() {
@@ -861,7 +869,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       list.addAll(Arrays.asList(PROL_LIBRARIES));
       list.add(MainFrame.class.getCanonicalName() + "$LogLibrary");
 
-      LibraryInfoDialog infoDialog = null;
+      final LibraryInfoDialog infoDialog;
       try {
         infoDialog = new LibraryInfoDialog(this, list.toArray(new String[list.size()]));
       }
@@ -1179,7 +1187,6 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   @Override
   public void run() {
     ProlContext context = null;
-    ProlConsult consult = null;
     boolean successfully = false;
     boolean canceled = false;
     ProlHaltExecutionException halted = null;
@@ -1220,7 +1227,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       }
 
       this.messageEditor.addInfoText("Consult with the script... ");
-      consult = new ProlConsult(sourceEditor.getText(), context);
+      final ProlConsult consult = new ProlConsult(sourceEditor.getText(), context);
 
       startTime = System.currentTimeMillis();
 

@@ -274,7 +274,7 @@ public final class TermList extends TermStruct {
    * null
    * @return the source like representation of the term
    */
-  private static final String elementToSourceString(final Term term) {
+  private static String elementToSourceString(final Term term) {
     switch (term.getTermType()) {
       case Term.TYPE_ATOM: {
         return term.getSourceLikeRepresentation();

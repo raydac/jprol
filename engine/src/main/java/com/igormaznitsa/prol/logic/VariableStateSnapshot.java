@@ -226,19 +226,18 @@ final class VariableStateSnapshot {
         notfirst = true;
       }
 
-      String valueTxt = null;
-      final Term value = varcont.variable;
+      final String valueTxt;
+      final Var value = varcont.variable;
       if (value == null) {
         valueTxt = ".NULL";
       }
       else {
         if (value.getTermType() == Term.TYPE_VAR) {
-          final Var var = (Var) value;
-          if (var.isUndefined()) {
-            valueTxt = var.getSourceLikeRepresentation() + '{' + var.getVarUID() + '}';
+          if (value.isUndefined()) {
+            valueTxt = value.getSourceLikeRepresentation() + '{' + value.getVarUID() + '}';
           }
           else {
-            valueTxt = var.getSourceLikeRepresentation() + '{' + var.getVarUID() + '}' + '[' + var.getValue().toString() + ']';
+            valueTxt = value.getSourceLikeRepresentation() + '{' + value.getVarUID() + '}' + '[' + value.getValue().toString() + ']';
           }
         }
         else {
@@ -246,9 +245,7 @@ final class VariableStateSnapshot {
         }
       }
 
-      final Var variable = varcont.variable;
-
-      buffer.append(variable.getSourceLikeRepresentation()).append('{').append(variable.getVarUID()).append('}').append('=').append(valueTxt);
+      buffer.append(value == null ? valueTxt : value.getSourceLikeRepresentation()).append('{').append(value == null ? "<NULL>" : value.getVarUID()).append('}').append('=').append(valueTxt);
     }
     buffer.append(']');
     return buffer.toString();

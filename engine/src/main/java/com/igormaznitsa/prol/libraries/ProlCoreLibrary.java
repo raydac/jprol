@@ -1397,7 +1397,7 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
   public final boolean predicateReadReal(final Goal goal, final TermStruct predicate) {
     final Term arg = Utils.getTermFromElement(predicate.getElement(0));
     final String str = readFromCurrentInputStreamUntilNL(goal, predicate).trim();
-    Term term = null;
+    final Term term;
     if (str.equals(ProlStream.END_OF_FILE_STR)) {
       term = ProlStream.END_OF_FILE;
     }
@@ -1842,8 +1842,8 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
     if (term.getTermType() == Term.TYPE_LIST) {
 
       final TermList list = (TermList) term;
-      Term result = null;
 
+      final Term result;
       if (list.isNullList()) {
         result = TermList.NULLLIST;
       }
@@ -2523,7 +2523,7 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
         // ---- we have to check that user doesn't try share noninstantiated variables between parallel goals
         if (term.getTermType() != Term.TYPE_ATOM) {
           // find vars
-          Map<String, Var> varTable = Utils.fillTableWithVars(term);
+          final Map<String, Var> varTable = Utils.fillTableWithVars(term);
           if (!varTable.isEmpty()) {
             if (varFlagTable == null) {
               varFlagTable = new HashSet<Integer>();
@@ -2543,7 +2543,6 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
               }
             }
           }
-          varTable = null;
         }
         //----------------------------------------------------
 

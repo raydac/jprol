@@ -239,7 +239,7 @@ public final class Utils {
         }
       }
 
-      TermStruct result = null;
+      final TermStruct result;
       if (length == 1) {
         result = new TermStruct(list.getHead());
       }
@@ -659,7 +659,7 @@ public final class Utils {
       throw new IllegalArgumentException("There is a null as an argument");
     }
 
-    InputStream inStream = null;
+    final InputStream inStream;
     if (url.startsWith("this://")) {
       final String purePath = url.substring(7); // remove the prefix
       inStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(purePath);
@@ -842,7 +842,7 @@ public final class Utils {
         }
 
         // ok. the first part is ok, check the second part
-        int arity = 0;
+        final int arity;
         try {
           arity = Integer.parseInt(parsed[1].trim());
           if (arity < 0) {

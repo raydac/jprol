@@ -285,7 +285,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
    */
   private boolean assertClause(final TermStruct clause, final boolean asFirst) {
     try {
-      String uid = null;
+      final String uid;
       if (clause.isFunctorLikeRuleDefinition()) {
         // it's clause
         // get left part

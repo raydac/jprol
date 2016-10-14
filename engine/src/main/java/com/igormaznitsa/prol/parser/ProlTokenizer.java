@@ -193,7 +193,7 @@ public final class ProlTokenizer {
    * @throws IOException it will be throws if there is any transport problem
    */
   public ProlTokenizerResult peekToken(final ProlReader reader, final KnowledgeBase voc) throws IOException {
-    ProlTokenizerResult result = null;
+    final ProlTokenizerResult result;
     if (lastPushedTerm == null) {
       result = nextToken(reader, voc);
       pushTermBack(result);

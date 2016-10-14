@@ -192,7 +192,7 @@ public final class PredicateProcessor {
    * @return mainly null, but if there is elements of a template which should
    * not be changed during processing, they will be returned as the array
    */
-  private final Term[] checkTemplates(final TermStruct predicate) {
+  private Term[] checkTemplates(final TermStruct predicate) {
     final PredicateTemplate[][] templatesarray = this.templates;
 
     final int len = templatesarray.length;
@@ -255,8 +255,7 @@ public final class PredicateProcessor {
         nonchangeable = checkTemplates(predicate);
       }
 
-      Object result = null;
-      result = method.invoke(ownerLibrary, goal, predicate);
+      final Object result = method.invoke(ownerLibrary, goal, predicate);
 
       if (nonchangeable != null) {
         final Term[] elements = predicate.getElementsAsArray();
@@ -312,12 +311,8 @@ public final class PredicateProcessor {
       if (templates != null) {
         nonchangeable = checkTemplates(predicate);
       }
-      if (templates != null) {
-        checkTemplates(predicate);
-      }
 
-      Object result = null;
-      result = method.invoke(ownerLibrary, goal, predicate);
+      final Object result = method.invoke(ownerLibrary, goal, predicate);
 
       if (nonchangeable != null) {
         final Term[] elements = predicate.getElementsAsArray();

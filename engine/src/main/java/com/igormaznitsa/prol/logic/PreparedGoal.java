@@ -94,7 +94,7 @@ public class PreparedGoal {
    * @param goal a term object containing parsed tree of original goal text,
    * must not be null
    */
-  private final void setParsedGoal(final Term goal) {
+  private void setParsedGoal(final Term goal) {
     this.parsedGoal = goal;
   }
 
@@ -112,7 +112,7 @@ public class PreparedGoal {
    *
    * @param context the work prol context for the goal, must not be null
    */
-  private final void setContext(final ProlContext context) {
+  private void setContext(final ProlContext context) {
     this.context = context;
   }
 
@@ -130,7 +130,7 @@ public class PreparedGoal {
    *
    * @param text a String object contains prepared goal text, must not be null
    */
-  private final void setGoalAsText(final String text) {
+  private void setGoalAsText(final String text) {
     this.goalAsText = text;
   }
 

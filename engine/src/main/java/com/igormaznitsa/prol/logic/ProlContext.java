@@ -79,11 +79,9 @@ public final class ProlContext {
    */
   private static final class ProlContextInsideThreadFactory implements ThreadFactory, Thread.UncaughtExceptionHandler, RejectedExecutionHandler {
 
-    private final Logger ownLOG;
     private final String ownercontextName;
 
     ProlContextInsideThreadFactory(final ProlContext owner) {
-      this.ownLOG = ProlContext.LOG;
       this.ownercontextName = owner.contextName;
     }
 

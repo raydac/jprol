@@ -240,7 +240,7 @@ public class TermStruct extends Term {
    * @return the representation of the structure as String object, must not be
    * null
    */
-  private final String getStringRepresentation(final boolean sourceLike) {
+  private String getStringRepresentation(final boolean sourceLike) {
     if (functor.getTermType() != Term.TYPE_OPERATOR) {
       // just struct
       final StringBuilder buffer = new StringBuilder(Utils.encodeTextSourceLike(getText()));
