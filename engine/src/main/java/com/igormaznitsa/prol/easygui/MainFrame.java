@@ -599,7 +599,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     menuItemWordWrapSources.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_W, java.awt.event.InputEvent.CTRL_MASK));
     menuItemWordWrapSources.setSelected(true);
-    menuItemWordWrapSources.setText("Word wrap sources");
+    menuItemWordWrapSources.setText("Word wrap (editor)");
     menuItemWordWrapSources.setToolTipText("Word-wrap mode for the document editor");
     menuItemWordWrapSources.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/text_align_justify.png"))); // NOI18N
     menuItemWordWrapSources.addActionListener(new java.awt.event.ActionListener() {

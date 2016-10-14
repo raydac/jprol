@@ -202,7 +202,7 @@
                   <KeyStroke key="Ctrl+W"/>
                 </Property>
                 <Property name="selected" type="boolean" value="true"/>
-                <Property name="text" type="java.lang.String" value="Word wrap sources"/>
+                <Property name="text" type="java.lang.String" value="Word wrap (editor)"/>
                 <Property name="toolTipText" type="java.lang.String" value="Word-wrap mode for the document editor"/>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                   <Image iconType="3" name="/com/igormaznitsa/prol/easygui/icons/text_align_justify.png"/>
