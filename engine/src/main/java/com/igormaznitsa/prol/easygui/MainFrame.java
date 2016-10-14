@@ -30,6 +30,8 @@ import java.io.*;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.*;
 import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
@@ -126,11 +128,11 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }
   }
   protected final LogLibrary logLibrary;
-  protected HashMap<String, LookAndFeelInfo> lookAndFeelMap;
-  protected volatile Thread currentExecutedScriptThread;
+  protected Map<String, LookAndFeelInfo> lookAndFeelMap;
+  protected final AtomicReference<Thread> currentExecutedScriptThread = new AtomicReference<Thread>();
   protected File currentOpenedFile;
   protected File lastOpenedFile;
-  protected boolean startInTraceMode;
+  protected final AtomicBoolean startedInTracing = new AtomicBoolean();
   protected boolean documentHasBeenChangedFlag;
   static final String[] PROL_LIBRARIES = new String[]{"com.igormaznitsa.prol.libraries.ProlGraphicLibrary", "com.igormaznitsa.prol.libraries.ProlStringLibrary"};
   protected volatile ProlContext lastContext;
@@ -729,31 +731,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   }// </editor-fold>//GEN-END:initComponents
 
     private void menuRunScriptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuRunScriptActionPerformed
-      if (this.currentExecutedScriptThread != null && this.currentExecutedScriptThread.isAlive()) {
-        JOptionPane.showMessageDialog(this, "Script is already executing.", "Can't start", JOptionPane.WARNING_MESSAGE);
-      }
-      else {
-        this.startInTraceMode = false;
-
-        clearTextAtAllWindowsExcludeSource();
-
-        this.dialogEditor.initBeforeSession();
-
-        final long stackSize = extractStackDepth();
-        LOG.info("Start execution with the stack depth " + stackSize + " bytes");
-
-        this.currentExecutedScriptThread = new Thread(this.executingScripts, this, "ProlScriptExecutingThread", stackSize);
-        currentExecutedScriptThread.setDaemon(false);
-
-        SwingUtilities.invokeLater(new Runnable() {
-
-          @Override
-          public void run() {
-            showTaskControlPanel();
-            currentExecutedScriptThread.start();
-          }
-        });
-      }
+      startExecution(false);
     }//GEN-LAST:event_menuRunScriptActionPerformed
 
     private void menuUndoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuUndoActionPerformed
@@ -806,17 +784,17 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }//GEN-LAST:event_menuFileSaveAsActionPerformed
 
     private void buttonStopExecutingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonStopExecutingActionPerformed
-      final Thread thr = this.currentExecutedScriptThread;
+      final Thread executingThread = this.currentExecutedScriptThread.get();
 
       SwingUtilities.invokeLater(new Runnable() {
 
         @Override
         public void run() {
-          if (thr != null) {
+          if (executingThread != null) {
             try {
-              thr.interrupt();
+              executingThread.interrupt();
               dialogEditor.cancelRead();
-              thr.join();
+              executingThread.join();
             }
             catch (Throwable tr) {
               tr.printStackTrace();
@@ -836,12 +814,13 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       label.addLinkListener(new JHtmlLabel.LinkListener() {
         @Override
         public void onLinkActivated(final JHtmlLabel source, final String link) {
-          try{
+          try {
             final Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
             if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
-                desktop.browse(new URI(link));
+              desktop.browse(new URI(link));
             }
-          }catch(Exception ex){
+          }
+          catch (Exception ex) {
             LOG.log(Level.SEVERE, "Can't open URL : " + link, ex);
           }
         }
@@ -853,7 +832,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       if (lastContext == null) {
         return;
       }
-      
+
       final KnowledgeBaseSnapshotViewDialog dialog = new KnowledgeBaseSnapshotViewDialog(this, lastContext);
 
       dialog.setSize(600, 400);
@@ -892,7 +871,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         return;
       }
 
-      infoDialog.setSize(512,480);
+      infoDialog.setSize(512, 480);
 
       infoDialog.setLocationRelativeTo(this);
 
@@ -905,8 +884,9 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }//GEN-LAST:event_menuItemWordWrapSourcesActionPerformed
 
     private void menuFileNewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuFileNewActionPerformed
-      if (this.currentExecutedScriptThread != null && this.currentExecutedScriptThread.isAlive()) {
-        JOptionPane.showMessageDialog(this, "The current script is executing.", "Can't make new", JOptionPane.ERROR_MESSAGE);
+      final Thread executingThread = this.currentExecutedScriptThread.get();
+      if (executingThread != null && executingThread.isAlive()) {
+        JOptionPane.showMessageDialog(this, "Wait until current Prolog application is completed.", "Can't create new one", JOptionPane.WARNING_MESSAGE);
       }
       else {
         if (this.documentHasBeenChangedFlag) {
@@ -947,30 +927,47 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     return stackSize;
   }
 
-    private void menuTraceScriptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuTraceScriptActionPerformed
-      if (this.currentExecutedScriptThread != null && this.currentExecutedScriptThread.isAlive()) {
-        JOptionPane.showMessageDialog(this, "Script is already executing.", "Can't start", JOptionPane.WARNING_MESSAGE);
+  private void startExecution(final boolean tracing) {
+    final Thread executingThread = this.currentExecutedScriptThread.get();
+
+    if (executingThread != null && executingThread.isAlive()) {
+      JOptionPane.showMessageDialog(this, "Prolog program is already started!.", "Can't trace", JOptionPane.WARNING_MESSAGE);
+    }
+    else {
+      if (!this.currentExecutedScriptThread.compareAndSet(executingThread, null)) {
+        return;
+      }
+
+
+      final long stackSize = extractStackDepth();
+      if (tracing) {
+        LOG.info("Start TRACING with the stack depth " + stackSize + " bytes");
       }
       else {
-        this.startInTraceMode = true;
-        clearTextAtAllWindowsExcludeSource();
-        this.dialogEditor.initBeforeSession();
+        LOG.info("Start execution with the stack depth " + stackSize + " bytes");
+      }
 
-        final long stackSize = extractStackDepth();
-        LOG.info("Start traced execution with the stack depth " + stackSize + " bytes");
+      final Thread newThread = new Thread(this.executingScripts, this, tracing ? "JPROL_TRACING_EXEC" : "JPROL_EXEC", stackSize);
+      newThread.setDaemon(false);
 
-        this.currentExecutedScriptThread = new Thread(this.executingScripts, this, "ProlScriptTracedExecutingThread", stackSize);
-        this.currentExecutedScriptThread.setDaemon(false);
-
+      if (this.currentExecutedScriptThread.compareAndSet(null, newThread)) {
+        this.startedInTracing.set(tracing);
         SwingUtilities.invokeLater(new Runnable() {
 
           @Override
           public void run() {
+            clearTextAtAllWindowsExcludeSource();
+            dialogEditor.initBeforeSession();
             showTaskControlPanel();
-            currentExecutedScriptThread.start();
+            newThread.start();
           }
         });
       }
+    }
+  }
+
+    private void menuTraceScriptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuTraceScriptActionPerformed
+      startExecution(true);
     }//GEN-LAST:event_menuTraceScriptActionPerformed
 
     private void menuFileRecentFilesMenuSelected(javax.swing.event.MenuEvent evt) {//GEN-FIRST:event_menuFileRecentFilesMenuSelected
@@ -1190,6 +1187,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     long startTime = 0;
 
+    final Thread executing = this.currentExecutedScriptThread.get();
+
     try {
       this.dialogEditor.setEnabled(true);
       this.dialogEditor.requestFocus();
@@ -1198,7 +1197,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
       try {
         context = new ProlContext("ProlScript", this);
-        if (this.startInTraceMode) {
+        if (this.startedInTracing.get()) {
           context.setDefaultTraceListener(this);
         }
 
@@ -1300,7 +1299,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
           this.messageEditor.addText("Halted [" + halted.getMessage() + ']', MessageEditor.TYPE_WARNING, parserException != null ? ("source://" + parserException.getLine() + ';' + parserException.getPos()) : null, parserException != null ? ("line " + parserException.getLine() + ":" + parserException.getPos()) : null);
         }
         this.dialogEditor.setEnabled(false);
-        this.currentExecutedScriptThread = null;
+        this.currentExecutedScriptThread.compareAndSet(executing, null);
       }
       finally {
         if (context != null) {
@@ -1336,17 +1335,17 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       }
     }
 
-    if (this.currentExecutedScriptThread != null) {
+    if (this.currentExecutedScriptThread.get() != null) {
       if (JOptionPane.showConfirmDialog(this, "Task is under execution. Do you really want to exit?", "Confirmation", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 
         this.dialogEditor.cancelRead();
         this.dialogEditor.close();
 
-        final Thread thrd = this.currentExecutedScriptThread;
+        final Thread executingThread = this.currentExecutedScriptThread.get();
 
         try {
-          thrd.interrupt();
-          thrd.join();
+          executingThread.interrupt();
+          executingThread.join();
         }
         catch (Throwable thr) {
         }
@@ -1680,8 +1679,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     LookAndFeelInfo currentInfo = null;
     final String landfClass = UIManager.getLookAndFeel().getClass().getName();
-    for(final LookAndFeelInfo i : UIManager.getInstalledLookAndFeels()){
-      if (i.getClassName().equals(landfClass)){
+    for (final LookAndFeelInfo i : UIManager.getInstalledLookAndFeels()) {
+      if (i.getClassName().equals(landfClass)) {
         currentInfo = i;
         break;
       }

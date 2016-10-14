@@ -37,14 +37,15 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleConstants.CharacterConstants;
+import com.igormaznitsa.prol.utils.Utils;
 
 /**
- * The class implements the Dialog editor for the IDE because it is a very
- * specialized auxiliary class, it is not described very precisely
+ * The class implements the Dialog editor for the IDE because it is a very specialized auxiliary class, it is not described very precisely
  *
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public class DialogEditor extends AbstractProlEditor implements KeyListener, FocusListener, Runnable, EditorPane.EventReplacer {
+
   private static final long serialVersionUID = 5005224218702033782L;
 
   public class NonClossableReader extends PipedReader {
@@ -279,7 +280,8 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
 
   @Override
   @SuppressWarnings("empty-statement")
-  public synchronized void clearText() {
+  public void clearText() {
+    Utils.assertSwingThread();
     super.clearText();
     // clear input cache
     inputWriter.clearBuffer();
@@ -301,12 +303,10 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
         @Override
         public void run() {
           try {
-            synchronized (editor.getDocument()) {
-              editor.getDocument().insertString(editor.getDocument().getLength(), text, consoleAttribute);
-              int textLength = editor.getDocument().getLength();
-              editor.setCharacterAttributes(userAttribute, false);
-              editor.setCaretPosition(textLength);
-            }
+            editor.getDocument().insertString(editor.getDocument().getLength(), text, consoleAttribute);
+            int textLength = editor.getDocument().getLength();
+            editor.setCharacterAttributes(userAttribute, false);
+            editor.setCaretPosition(textLength);
           }
           catch (BadLocationException ex) {
             ex.printStackTrace();
@@ -432,10 +432,11 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
           }
         }
         else {
-          try{
+          try {
             Thread.sleep(200);
-          }catch(InterruptedException ex){
-            
+          }
+          catch (InterruptedException ex) {
+
           }
         }
       }

@@ -39,6 +39,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 
 /**
  * It is an auxulary class which contains different useful functions for work
@@ -865,5 +866,12 @@ public final class Utils {
       }
     }
     return null;
+  }
+
+  public static void assertSwingThread() {
+    if (!SwingUtilities.isEventDispatchThread()) {
+      throw new Error("Must e called in Swing Dispatch Event Thread");
+
+    }
   }
 }
