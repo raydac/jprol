@@ -1115,6 +1115,34 @@ public final class ProlContext {
   }
 
   /**
+   * Check that in libraries presented zero-arity predicate.
+   *
+   * @param name name of predicate
+   * @return true if presented, false otherwise
+   */
+  public boolean hasZeroArityPredicateForName(final String name) {
+    final ReentrantLock locker = this.libLocker;
+
+    locker.lock();
+    try {
+      int li = this.libraries.size() - 1;
+      boolean result = false;
+      while (li >= 0) {
+        final ProlAbstractLibrary lib = this.libraries.get(li);
+        if (lib.hasZeroArityPredicateForName(name)) {
+          result = true;
+          break;
+        }
+        li--;
+      }
+      return result;
+    }
+    finally {
+      locker.unlock();
+    }
+  }
+
+  /**
    * Check that as minimum one from libraries in the context has a predicate has
    * a signature
    *
@@ -1122,13 +1150,13 @@ public final class ProlContext {
    * @return true if a predicate has been found, else false
    */
   public boolean hasPredicateAtLibraryForSignature(final String signature) {
-    final ReentrantLock locker = libLocker;
+    final ReentrantLock locker = this.libLocker;
 
     locker.lock();
     try {
-      int li = libraries.size() - 1;
+      int li = this.libraries.size() - 1;
       while (li >= 0) {
-        final ProlAbstractLibrary lib = libraries.get(li);
+        final ProlAbstractLibrary lib = this.libraries.get(li);
         if (lib.hasPredicateForSignature(signature)) {
           return true;
         }
@@ -1148,7 +1176,7 @@ public final class ProlContext {
    * @return true if there is such a system operator else false
    */
   public boolean isSystemOperator(final String name) {
-    final ReentrantLock locker = libLocker;
+    final ReentrantLock locker = this.libLocker;
 
     locker.lock();
     try {

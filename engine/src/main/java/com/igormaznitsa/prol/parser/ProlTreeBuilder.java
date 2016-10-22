@@ -756,7 +756,7 @@ public final class ProlTreeBuilder {
           tokenizer.pushTermBack(nextToken);
 
           // check read atom to be zero-struct
-          if (readAtomContainer.getState() == ProlTokenizerResult.STATE_ATOM && context.hasPredicateAtLibraryForSignature(readAtom.getText() + "/0")) {
+          if (readAtomContainer.getState() == ProlTokenizerResult.STATE_ATOM && context.hasZeroArityPredicateForName(readAtom.getText())) {
             readAtom = new TermStruct(readAtom);
           }
         }

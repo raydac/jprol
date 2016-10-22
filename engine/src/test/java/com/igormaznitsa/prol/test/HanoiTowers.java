@@ -8,7 +8,6 @@ import com.igormaznitsa.prol.parser.ProlConsult;
 import java.nio.charset.Charset;
 import junit.framework.TestCase;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 public class HanoiTowers extends TestCase {
 

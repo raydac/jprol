@@ -231,11 +231,11 @@ public class Goal {
    * @return the generated goal object
    */
   public Goal replaceLastGoalAtChain(final Term goal) {
-    if (tracer != null) {
-      tracer.onProlGoalExit(this.rootGoal.rootLastGoalAtChain);
+    if (this.tracer != null) {
+      this.tracer.onProlGoalExit(this.rootGoal.rootLastGoalAtChain);
     }
 
-    final Goal newGoal = new Goal(this.rootGoal, goal, context, rootGoal.tracer);
+    final Goal newGoal = new Goal(this.rootGoal, goal, context, this.rootGoal.tracer);
     final Goal prevGoal = newGoal.prevGoalAtChain;
     if (prevGoal != null) {
       newGoal.prevGoalAtChain = prevGoal.prevGoalAtChain;
@@ -433,6 +433,8 @@ public class Goal {
     boolean loop = true;
     final ProlContext localcontext = this.context;
 
+    final boolean tracingOn = this.tracer != null;
+
     while (loop) {
       // check that the context is halted and throw an execption if it is
       if (localcontext.isHalted()) {
@@ -447,24 +449,24 @@ public class Goal {
         if (!goalToProcess.noMoreVariantsFlag) {
           switch (goalToProcess._solve()) {
             case GOALRESULT_FAIL: {
-              if (tracer != null) {
-                tracer.onProlGoalFail(goalToProcess);
-                tracer.onProlGoalExit(goalToProcess);
+              if (tracingOn) {
+                this.tracer.onProlGoalFail(goalToProcess);
+                this.tracer.onProlGoalExit(goalToProcess);
               }
 
-              rootGoal.rootLastGoalAtChain = goalToProcess.prevGoalAtChain;
+              this.rootGoal.rootLastGoalAtChain = goalToProcess.prevGoalAtChain;
             }
             break;
             case GOALRESULT_SOLVED: {
               // we have to renew data about last chain goal because it can be changed during the operation
-              goalToProcess = rootGoal.rootLastGoalAtChain;
+              goalToProcess = this.rootGoal.rootLastGoalAtChain;
 
               if (goalToProcess.nextAndTerm != null) {
-                final Goal nextGoal = new Goal(rootGoal, goalToProcess.nextAndTerm, localcontext, rootGoal.tracer);
+                final Goal nextGoal = new Goal(this.rootGoal, goalToProcess.nextAndTerm, localcontext, this.rootGoal.tracer);
                 nextGoal.nextAndTerm = goalToProcess.nextAndTermForNextGoal;
               }
               else {
-                result = rootGoal.goalTerm;
+                result = this.rootGoal.goalTerm;
                 loop = false;
               }
             }
@@ -475,10 +477,10 @@ public class Goal {
           }
         }
         else {
-          if (tracer != null) {
-            tracer.onProlGoalExit(goalToProcess);
+          if (tracingOn) {
+            this.tracer.onProlGoalExit(goalToProcess);
           }
-          rootGoal.rootLastGoalAtChain = goalToProcess.prevGoalAtChain;
+          this.rootGoal.rootLastGoalAtChain = goalToProcess.prevGoalAtChain;
         }
       }
 
@@ -591,7 +593,7 @@ public class Goal {
       switch (goalTerm.getTermType()) {
         case Term.TYPE_ATOM: {
           final String text = goalTerm.getText();
-          result = context.hasPredicateAtLibraryForSignature(text + "/0") ? GOALRESULT_SOLVED : GOALRESULT_FAIL;
+          result = context.hasZeroArityPredicateForName(text) ? GOALRESULT_SOLVED : GOALRESULT_FAIL;
           noMoreVariants();
           loop = false;
         }
@@ -603,14 +605,14 @@ public class Goal {
           if (struct.isFunctorLikeRuleDefinition()) {
             final TermStruct structClone = (TermStruct) struct.makeClone();
 
-            thisConnector = struct.getElement(0);
-            subGoalConnector = structClone.getElement(0);
+            this.thisConnector = struct.getElement(0);
+            this.subGoalConnector = structClone.getElement(0);
 
             if (arity == 1) {
-              subGoal = new Goal(structClone.getElement(0), context, tracer);
+              this.subGoal = new Goal(structClone.getElement(0), this.context, this.tracer);
             }
             else {
-              subGoal = new Goal(structClone.getElement(1), context, tracer);
+              this.subGoal = new Goal(structClone.getElement(1), this.context, this.tracer);
             }
           }
           else {
@@ -629,14 +631,14 @@ public class Goal {
                   process = false;
                   loop = false;
                   result = GOALRESULT_SOLVED;
-                  noMoreVariantsFlag = true;
+                  this.noMoreVariantsFlag = true;
                 }
                 else if (len == 2 && "!!".equals(functorText)) {
                   // cut local
                   cutLocal();
                   process = false;
                   loop = false;
-                  noMoreVariantsFlag = true;
+                  this.noMoreVariantsFlag = true;
                   result = GOALRESULT_SOLVED;
                 }
               }

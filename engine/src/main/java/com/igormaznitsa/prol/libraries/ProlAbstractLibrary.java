@@ -27,8 +27,10 @@ import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.utils.Utils;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,13 +51,18 @@ public abstract class ProlAbstractLibrary {
    */
   protected final Map<String, OperatorContainer> libraryOperators = new HashMap<String, OperatorContainer>();
   /**
-   * The variable contains the texte representation of library UID
+   * The variable contains the text representation of library UID
    */
   protected final String libraryUID;
   /**
    * the table contains all predicate which have been defined in the library
    */
   protected final Map<String, PredicateProcessor> predicateMethodsMap = new HashMap<String, PredicateProcessor>();
+
+  /**
+   * Set for all zero arity predicate names
+   */
+  protected final Set<String> zeroArityPredicateNames = new HashSet<String>();
 
   /**
    * The constructor
@@ -76,11 +83,11 @@ public abstract class ProlAbstractLibrary {
   /**
    * Check that the library contains a predicate for a signature
    *
-   * @param signature a predicate signature ("<functor>/<arity>")
+   * @param signature a predicate signature ("[FUNCTOR]/[ARITY]")
    * @return true if the library contains such predicate, else false
    */
   public boolean hasPredicateForSignature(final String signature) {
-    return predicateMethodsMap.containsKey(signature);
+    return this.predicateMethodsMap.containsKey(signature);
   }
 
   /**
@@ -92,7 +99,11 @@ public abstract class ProlAbstractLibrary {
    * @see com.igormaznitsa.prol.libraries.PredicateProcessor
    */
   public PredicateProcessor findProcessorForPredicate(final TermStruct predicate) {
-    return predicateMethodsMap.get(predicate.getSignature());
+    return this.predicateMethodsMap.get(predicate.getSignature());
+  }
+
+  public boolean hasZeroArityPredicateForName(final String name) {
+    return this.zeroArityPredicateNames.contains(name);
   }
 
   /**
@@ -101,7 +112,7 @@ public abstract class ProlAbstractLibrary {
    * @return the library ID as String, must not be null
    */
   public String getLibraryUID() {
-    return libraryUID;
+    return this.libraryUID;
   }
 
   /**
@@ -109,8 +120,9 @@ public abstract class ProlAbstractLibrary {
    */
   public void release() {
     try {
-      predicateMethodsMap.clear();
-      libraryOperators.clear();
+      this.predicateMethodsMap.clear();
+      this.libraryOperators.clear();
+      this.zeroArityPredicateNames.clear();
     }
     catch (Exception thr) {
       Logger.getLogger(this.getClass().getCanonicalName()).log(Level.WARNING, "release()", thr);
@@ -119,7 +131,7 @@ public abstract class ProlAbstractLibrary {
 
   @Override
   public int hashCode() {
-    return libraryUID.hashCode();
+    return this.libraryUID.hashCode();
   }
 
   @Override
@@ -147,7 +159,7 @@ public abstract class ProlAbstractLibrary {
     final Class<?> thisClass = this.getClass();
     final Method[] methods = thisClass.getMethods();
 
-    predicateMethodsMap.clear();
+    this.predicateMethodsMap.clear();
 
     for (int li = 0; li < methods.length; li++) {
       final Method method = methods[li];
@@ -180,12 +192,19 @@ public abstract class ProlAbstractLibrary {
         }
 
         final PredicateProcessor processor = new PredicateProcessor(this, signature, method, templates);
-        predicateMethodsMap.put(signature, processor);
+        this.predicateMethodsMap.put(signature, processor);
+        if (signature.endsWith("/0")) {
+          this.zeroArityPredicateNames.add(signature.substring(0, signature.lastIndexOf('/')));
+        }
 
         if (synonims != null) {
           final String[] synonimSignatures = synonims.Signatures();
           for (int lz = 0; lz < synonimSignatures.length; lz++) {
-            predicateMethodsMap.put(synonimSignatures[lz].trim(), processor);
+            final String sig = synonimSignatures[lz].trim();
+            this.predicateMethodsMap.put(sig, processor);
+            if (sig.endsWith("/0")) {
+              this.zeroArityPredicateNames.add(sig.substring(0, sig.lastIndexOf('/')));
+            }
           }
         }
       }
