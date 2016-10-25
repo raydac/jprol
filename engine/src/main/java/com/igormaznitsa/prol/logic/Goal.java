@@ -176,12 +176,10 @@ public class Goal {
     final Term value = var.getValue();
     if (value == null) {
       return null;
-    }
-    else {
+    } else {
       if (value instanceof NumericTerm) {
         return ((NumericTerm) value).getNumericValue();
-      }
-      else {
+      } else {
         throw new NumberFormatException("The variable contains a non-numeric value");
       }
     }
@@ -203,8 +201,7 @@ public class Goal {
     final Term value = var.getValue();
     if (value == null) {
       return null;
-    }
-    else {
+    } else {
       return value.toString();
     }
   }
@@ -246,7 +243,7 @@ public class Goal {
   }
 
   /**
-   * Inside special constructor
+   * Special internal constructor
    *
    * @param rootGoal the root goal for the new goal, if it is null then the new
    * goal will be the root goal for itself
@@ -290,20 +287,17 @@ public class Goal {
       if (goal.getTermType() == Term.TYPE_ATOM) {
         varSnapshot = null;
         variables = null;
-      }
-      else {
+      } else {
         variables = Utils.fillTableWithVars(goal);
         varSnapshot = new VariableStateSnapshot(goal);
       }
       rootLastGoalAtChain = this;
       prevGoalAtChain = null;
-    }
-    else {
+    } else {
       variables = null;
       if (goal.getTermType() == Term.TYPE_ATOM) {
         varSnapshot = null;
-      }
-      else {
+      } else {
         varSnapshot = new VariableStateSnapshot(rootGoal.varSnapshot);// new VariableStateSnapshot(rootGoal.goalTerm);
       }
       this.prevGoalAtChain = rootGoal.rootLastGoalAtChain;
@@ -441,13 +435,12 @@ public class Goal {
         throw new ProlHaltExecutionException();
       }
 
-      Goal goalToProcess = rootGoal.rootLastGoalAtChain;
+      Goal goalToProcess = this.rootGoal.rootLastGoalAtChain;
       if (goalToProcess == null) {
         break;
-      }
-      else {
+      } else {
         if (!goalToProcess.noMoreVariantsFlag) {
-          switch (goalToProcess._solve()) {
+          switch (goalToProcess.resolve()) {
             case GOALRESULT_FAIL: {
               if (tracingOn) {
                 this.tracer.onProlGoalFail(goalToProcess);
@@ -464,8 +457,7 @@ public class Goal {
               if (goalToProcess.nextAndTerm != null) {
                 final Goal nextGoal = new Goal(this.rootGoal, goalToProcess.nextAndTerm, localcontext, this.rootGoal.tracer);
                 nextGoal.nextAndTerm = goalToProcess.nextAndTermForNextGoal;
-              }
-              else {
+              } else {
                 result = this.rootGoal.goalTerm;
                 loop = false;
               }
@@ -474,9 +466,10 @@ public class Goal {
             case GOALRESULT_STACK_CHANGED: {
             }
             break;
+            default:
+              throw new Error("Unexpected result");
           }
-        }
-        else {
+        } else {
           if (tracingOn) {
             this.tracer.onProlGoalExit(goalToProcess);
           }
@@ -490,7 +483,7 @@ public class Goal {
   }
 
   /**
-   * Inside solve function allows to work with the goal chain
+   * Internal resolving function allows to work with the goal chain
    *
    * @return GOALRESULT_FAIL if the goal failed, GOALRESULT_SOLVED if the goal
    * solved and GOALRESULT_STACK_CHANGED if the goal stack is changed and need
@@ -498,20 +491,19 @@ public class Goal {
    * @throws InterruptedException it will be thrown if the process is
    * interrupted
    */
-  private int _solve() throws InterruptedException {
+  private int resolve() throws InterruptedException {
     if (Thread.currentThread().isInterrupted()) {
       throw new InterruptedException();
     }
 
-    if (tracer != null) {
-      if (notFirstProve) {
-        if (!tracer.onProlGoalRedo(this)) {
+    if (this.tracer != null) {
+      if (this.notFirstProve) {
+        if (!this.tracer.onProlGoalRedo(this)) {
           return GOALRESULT_FAIL;
         }
-      }
-      else {
-        notFirstProve = true;
-        if (!tracer.onProlGoalCall(this)) {
+      } else {
+        this.notFirstProve = true;
+        if (!this.tracer.onProlGoalCall(this)) {
           return GOALRESULT_FAIL;
         }
       }
@@ -522,28 +514,27 @@ public class Goal {
     boolean loop = true;
 
     while (loop) {
-      // reset the variables to their initing state
-      if (varSnapshot != null) {
-        varSnapshot.resetToState();
+      // reset variables to their initial state
+      if (this.varSnapshot != null) {
+        this.varSnapshot.resetToState();
       }
 
-      if (subGoal != null) {
+      if (this.subGoal != null) {
         // solve subgoal
-        final Term solvedTerm = subGoal.solve();
+        final Term solvedTerm = this.subGoal.solve();
 
-        if (subGoal.cutMeet) {
-          clauseIterator = null;
+        if (this.subGoal.cutMeet) {
+          this.clauseIterator = null;
         }
 
         if (solvedTerm == null) {
-          subGoal = null;
-          if (clauseIterator == null) {
+          this.subGoal = null;
+          if (this.clauseIterator == null) {
             result = GOALRESULT_FAIL;
             break;
           }
-        }
-        else {
-          if (!thisConnector.Equ(subGoalConnector)) {
+        } else {
+          if (!this.thisConnector.Equ(this.subGoalConnector)) {
             throw new ProlCriticalError("Critical error #980234");
           }
           result = GOALRESULT_SOLVED;
@@ -551,18 +542,17 @@ public class Goal {
         }
       }
 
-      if (clauseIterator != null) {
+      if (this.clauseIterator != null) {
         // next clause
-        if (clauseIterator.hasNext()) {
+        if (this.clauseIterator.hasNext()) {
 
           final TermStruct structFromBase = clauseIterator.next();
 
           final Term goalTermForEqu;
-          if (((TermStruct) goalTerm).isFunctorLikeRuleDefinition()) {
-            goalTermForEqu = ((TermStruct) goalTerm).getElement(0).makeClone();
-          }
-          else {
-            goalTermForEqu = goalTerm.makeClone();
+          if (((TermStruct) this.goalTerm).isFunctorLikeRuleDefinition()) {
+            goalTermForEqu = ((TermStruct) this.goalTerm).getElement(0).makeClone();
+          } else {
+            goalTermForEqu = this.goalTerm.makeClone();
           }
 
           if (!goalTermForEqu.Equ(structFromBase.isFunctorLikeRuleDefinition() ? structFromBase.getElement(0) : structFromBase)) {
@@ -570,30 +560,28 @@ public class Goal {
           }
 
           if (structFromBase.isFunctorLikeRuleDefinition()) {
-            thisConnector = goalTerm;
-            subGoalConnector = structFromBase.getElement(0);
-            subGoal = new Goal(structFromBase.getElement(1), context, tracer);
+            this.thisConnector = goalTerm;
+            this.subGoalConnector = structFromBase.getElement(0);
+            this.subGoal = new Goal(structFromBase.getElement(1), context, tracer);
             continue;
-          }
-          else {
-            if (!goalTerm.Equ(structFromBase)) {
+          } else {
+            if (!this.goalTerm.Equ(structFromBase)) {
               throw new ProlCriticalError("Impossible situation #0009824");
             }
             result = GOALRESULT_SOLVED;
             break;
           }
-        }
-        else {
-          clauseIterator = null;
+        } else {
+          this.clauseIterator = null;
           noMoreVariants();
           break;
         }
       }
 
-      switch (goalTerm.getTermType()) {
+      switch (this.goalTerm.getTermType()) {
         case Term.TYPE_ATOM: {
-          final String text = goalTerm.getText();
-          result = context.hasZeroArityPredicateForName(text) ? GOALRESULT_SOLVED : GOALRESULT_FAIL;
+          final String text = this.goalTerm.getText();
+          result = this.context.hasZeroArityPredicateForName(text) ? GOALRESULT_SOLVED : GOALRESULT_FAIL;
           noMoreVariants();
           loop = false;
         }
@@ -610,12 +598,10 @@ public class Goal {
 
             if (arity == 1) {
               this.subGoal = new Goal(structClone.getElement(0), this.context, this.tracer);
-            }
-            else {
+            } else {
               this.subGoal = new Goal(structClone.getElement(1), this.context, this.tracer);
             }
-          }
-          else {
+          } else {
 
             final Term functor = struct.getFunctor();
             final String functorText = functor.getText();
@@ -632,8 +618,7 @@ public class Goal {
                   loop = false;
                   result = GOALRESULT_SOLVED;
                   this.noMoreVariantsFlag = true;
-                }
-                else if (len == 2 && "!!".equals(functorText)) {
+                } else if (len == 2 && "!!".equals(functorText)) {
                   // cut local
                   cutLocal();
                   process = false;
@@ -666,8 +651,7 @@ public class Goal {
                         final Goal leftSubbranch = new Goal(rootGoal, struct.getElement(0), context, tracer);
                         leftSubbranch.nextAndTerm = this.nextAndTerm;
                         setAuxObject(leftSubbranch);
-                      }
-                      else {
+                      } else {
                         // right subbranch
                         replaceLastGoalAtChain(struct.getElement(1));
                       }
@@ -687,14 +671,13 @@ public class Goal {
               if (processor == PredicateProcessor.NULL_PROCESSOR) {
                 // just a struct
                 // find it at knowledge base
-                clauseIterator = context.getKnowledgeBase().getClauseIterator(struct);
-                if (clauseIterator == null || !clauseIterator.hasNext()) {
+                this.clauseIterator = context.getKnowledgeBase().getClauseIterator(struct);
+                if (this.clauseIterator == null || !clauseIterator.hasNext()) {
                   loop = false;
                   noMoreVariants();
                   result = GOALRESULT_FAIL;
                 }
-              }
-              else {
+              } else {
                 // it is a processor
                 if (processor.isEvaluable() || processor.isDetermined()) {
                   noMoreVariants();
@@ -702,8 +685,7 @@ public class Goal {
 
                 if (processor.execute(this, struct)) {
                   result = GOALRESULT_SOLVED;
-                }
-                else {
+                } else {
                   result = GOALRESULT_FAIL;
                 }
 
