@@ -430,7 +430,6 @@ public class Goal {
     final boolean tracingOn = this.tracer != null;
 
     while (loop) {
-      // check that the context is halted and throw an execption if it is
       if (localcontext.isHalted()) {
         throw new ProlHaltExecutionException();
       }
@@ -546,7 +545,7 @@ public class Goal {
         // next clause
         if (this.clauseIterator.hasNext()) {
 
-          final TermStruct structFromBase = clauseIterator.next();
+          final TermStruct structFromBase = this.clauseIterator.next();
 
           final Term goalTermForEqu;
           if (((TermStruct) this.goalTerm).isFunctorLikeRuleDefinition()) {
@@ -562,7 +561,7 @@ public class Goal {
           if (structFromBase.isFunctorLikeRuleDefinition()) {
             this.thisConnector = goalTerm;
             this.subGoalConnector = structFromBase.getElement(0);
-            this.subGoal = new Goal(structFromBase.getElement(1), context, tracer);
+            this.subGoal = new Goal(structFromBase.getElement(1), this.context, this.tracer);
             continue;
           } else {
             if (!this.goalTerm.Equ(structFromBase)) {
