@@ -48,9 +48,9 @@ public class StrongTest extends TestCase {
 
     Goal goal = new Goal("M=[A,B,C,D,E,F,G],query3(A,B,C,D,E,F,G).", context);
 
-    for (int li = 0; li < test1etal.length; li++) {
+    for (final String c : test1etal) {
       assertNotNull(goal.solve());
-      assertEquals(goal.getVarAsText("M"), test1etal[li]);
+      assertEquals(goal.getVarAsText("M"), c);
     }
     assertNull(goal.solve());
 
@@ -118,9 +118,9 @@ public class StrongTest extends TestCase {
       "[[5,'yellow'],[4,'blue'],[3,'yellow'],[1,'green'],[2,'red']]"};
 
     final Goal goal = new Goal("color([[1,2],[1,3],[1,4],[1,5],[2,3],[2,4],[3,4],[4,5]],[red,green,blue,yellow],Coloring).", context);
-    for (int li = 0; li < etal.length; li++) {
+    for (final String e : etal) {
       assertNotNull(goal.solve());
-      assertEquals(goal.getVarAsText("Coloring"), etal[li]);
+      assertEquals(goal.getVarAsText("Coloring"), e);
     }
     assertNull(goal.solve());
 

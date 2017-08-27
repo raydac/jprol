@@ -1,7 +1,7 @@
 [![License Apache 2.0](https://img.shields.io/badge/license-Apache%20License%202.0-green.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Java 6.0+](https://img.shields.io/badge/java-6.0%2b-green.svg)](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 [![PayPal donation](https://img.shields.io/badge/donation-PayPal-red.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AHWJHJFBAWGL2)
-[![Yandex.Money donation](https://img.shields.io/badge/donation-Я.деньги-yellow.svg)](https://money.yandex.ru/embed/small.xml?account=41001158080699&quickpay=small&yamoney-payment-type=on&button-text=01&button-size=l&button-color=orange&targets=%D0%9F%D0%BE%D0%B6%D0%B5%D1%80%D1%82%D0%B2%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5+%D0%BD%D0%B0+%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D1%8B+%D1%81+%D0%BE%D1%82%D0%BA%D1%80%D1%8B%D1%82%D1%8B%D0%BC+%D0%B8%D1%81%D1%85%D0%BE%D0%B4%D0%BD%D1%8B%D0%BC+%D0%BA%D0%BE%D0%B4%D0%BE%D0%BC&default-sum=100&successURL=)
+[![Yandex.Money donation](https://img.shields.io/badge/donation-Я.деньги-yellow.svg)](http://yasobe.ru/na/iamoss)
 
 # Introduction
 I bought a book of Ivan Bratko titled as "Prolog Programming for Artificial Intelligence" in 1990 but didn't have enough time to read it so that the book was placed into a shelf and forgotten for years till 2009. In 2009 I had read the book and was so impressed by the power of computer language that to learn it better I developed small Java based Prolog engine and called it JProl.   
@@ -80,7 +80,7 @@ fractal(I,X,Y,L,A,XN,YN):- II is I-1, LL is L/3, A2 is A-1.0471975512, A3 is A+1
 ![KochSnowflake](https://github.com/raydac/jprol/blob/master/jprolgui.png)
 
 # Multi-threading
-It was interesting for me to implement and check support of multi-threading in the engine. The engine allows to use pair predicates to span new threads `fork/1` and `async/1`, also it has special predicate `waitasync/0` for synchronization you can wait the end of all executing spawned threads (by the main thread). `waitasync/0` predicate must be used only from the main thread (I mean the root goal). Also there are lockers which allow to create critical sections with `lock/1`, `unlock/1` and `trylock/1` predicates. Take a look at the example of their usage below, I have shown an application which draws 3000000 color dots on the graphic screen (provided by embedded GUI library), each thread paints its own color dots in its own thread. 
+It was interesting for me to implement and check support of multi-threading in the engine. The engine allows to use pair predicates to span new threads `fork/1` and `async/1`, also it has special predicate `waitasync/0` for synchronization you can wait the end of all executing spawned threads (by the main thread). `waitasync/0` predicate must be used only from the main thread (I mean the root goal). Also there are lockers which allow to create critical sections with `lock/1`, `unlock/1` and `trylock/1` predicates. Take a look at the example of their usage below, I have shown an application which draws 3000000 color dots on the graphic screen (provided by embedded GUI library), each thread paints its own color dots in its own thread.
 ```Prolog
 threadRed(P) :- for(_, 0, P), rnd(500, X), rnd(400, Y), lock(gfx), pencolor(red), dot(X, Y), unlock(gfx), fail.
     threadGreen(P) :- for(_, 0, P), rnd(500,X), rnd(400, Y), lock(gfx), pencolor(green), dot(X, Y), unlock(gfx), fail.

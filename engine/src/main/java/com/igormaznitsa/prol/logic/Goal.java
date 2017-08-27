@@ -647,7 +647,7 @@ public class Goal {
                       // or
                       if (getAuxObject() == null) {
                         // left subbranch
-                        final Goal leftSubbranch = new Goal(rootGoal, struct.getElement(0), context, tracer);
+                        final Goal leftSubbranch = new Goal(this.rootGoal, struct.getElement(0), this.context, this.tracer);
                         leftSubbranch.nextAndTerm = this.nextAndTerm;
                         setAuxObject(leftSubbranch);
                       } else {
@@ -670,8 +670,8 @@ public class Goal {
               if (processor == PredicateProcessor.NULL_PROCESSOR) {
                 // just a struct
                 // find it at knowledge base
-                this.clauseIterator = context.getKnowledgeBase().getClauseIterator(struct);
-                if (this.clauseIterator == null || !clauseIterator.hasNext()) {
+                this.clauseIterator = this.context.getKnowledgeBase().getClauseIterator(struct);
+                if (this.clauseIterator == null || !this.clauseIterator.hasNext()) {
                   loop = false;
                   noMoreVariants();
                   result = GOALRESULT_FAIL;

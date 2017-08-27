@@ -92,9 +92,9 @@ public class NonDeterministicAutomata extends TestCase {
 
     final Goal goal = new Goal("X=[_,_,_,_,_,_,_],accepts(s1,X).", context);
 
-    for (int li = 0; li < etal.length; li++) {
+    for (final String e : etal) {
       assertNotNull(goal.solve());
-      assertEquals(goal.getVarAsText("X"), etal[li]);
+      assertEquals(goal.getVarAsText("X"), e);
     }
     assertNull(goal.solve());
   }
