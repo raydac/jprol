@@ -25,53 +25,52 @@ import com.igormaznitsa.prol.data.TermStruct;
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public class ProlCustomErrorException extends ProlAbstractCatcheableException {
-  private static final long serialVersionUID = -4720280738591345468L;
-  
-  /**
-   * The variable contains the term describes the error situation
-   */
-  private final Term error;
+    private static final long serialVersionUID = -4720280738591345468L;
 
-  /**
-   * A constructor
-   *
-   * @param error the term describes the error situation, can be any type, must
-   * not be null
-   * @param culprit the culprit term
-   */
-  public ProlCustomErrorException(final Term error, final Term culprit) {
-    super(culprit);
-    if (error == null) {
-      throw new IllegalArgumentException("Error must not be null");
+    /**
+     * The variable contains the term describes the error situation
+     */
+    private final Term error;
+
+    /**
+     * A constructor
+     *
+     * @param error   the term describes the error situation, can be any type, must
+     *                not be null
+     * @param culprit the culprit term
+     */
+    public ProlCustomErrorException(final Term error, final Term culprit) {
+        super(culprit);
+        if (error == null) {
+            throw new IllegalArgumentException("Error must not be null");
+        }
+        this.error = error;
     }
-    this.error = error;
-  }
 
-  /**
-   * Get the term describes the error situation
-   *
-   * @return the term as a Term object, must not be null
-   */
-  public Term getError() {
-    return this.error;
-  }
-
-  @Override
-  public Term getFunctorForErrorStruct() {
-    return getAsStruct().getFunctor();
-  }
-
-  @Override
-  public TermStruct getAsStruct() {
-    final TermStruct result;
-    if (error.getTermType() == Term.TYPE_STRUCT) {
-      result = (TermStruct) error;
+    /**
+     * Get the term describes the error situation
+     *
+     * @return the term as a Term object, must not be null
+     */
+    public Term getError() {
+        return this.error;
     }
-    else {
-      result = new TermStruct(error);
+
+    @Override
+    public Term getFunctorForErrorStruct() {
+        return getAsStruct().getFunctor();
     }
-    result.setCarriedObject(this);
-    return result;
-  }
+
+    @Override
+    public TermStruct getAsStruct() {
+        final TermStruct result;
+        if (error.getTermType() == Term.TYPE_STRUCT) {
+            result = (TermStruct) error;
+        } else {
+            result = new TermStruct(error);
+        }
+        result.setCarriedObject(this);
+        return result;
+    }
 
 }

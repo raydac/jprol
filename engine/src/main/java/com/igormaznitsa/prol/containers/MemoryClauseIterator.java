@@ -16,6 +16,7 @@
 package com.igormaznitsa.prol.containers;
 
 import com.igormaznitsa.prol.data.TermStruct;
+
 import java.util.NoSuchElementException;
 
 /**
@@ -28,83 +29,83 @@ import java.util.NoSuchElementException;
  */
 class MemoryClauseIterator implements ClauseIterator {
 
-  /**
-   * The variable contains the knowledge base clause list which is being used by
-   * the iterator
-   */
-  protected final KnowledgeBaseInsideClauseList predicateList;
+    /**
+     * The variable contains the knowledge base clause list which is being used by
+     * the iterator
+     */
+    protected final KnowledgeBaseInsideClauseList predicateList;
 
-  /**
-   * The variable contains the template which is being used by the iterator to
-   * find the next value
-   */
-  protected final TermStruct template;
+    /**
+     * The variable contains the template which is being used by the iterator to
+     * find the next value
+     */
+    protected final TermStruct template;
 
-  /**
-   * The variable contains the last found value by the iterator
-   */
-  protected InsideClauseListItem lastFound;
+    /**
+     * The variable contains the last found value by the iterator
+     */
+    protected InsideClauseListItem lastFound;
 
-  /**
-   * The constructor
-   *
-   * @param list the knowledge base clause list for which we want to create the
-   * iterator, must not be null
-   * @param template the template to be used to find values in the clause list,
-   * must not be null
-   */
-  public MemoryClauseIterator(final KnowledgeBaseInsideClauseList list, final TermStruct template) {
-    predicateList = list;
-    this.template = (TermStruct) template.makeClone();
-    lastFound = findFirstElement();
-  }
-
-  @Override
-  public boolean hasNext() {
-    return lastFound != null;
-  }
-
-  public TermStruct getTemplate() {
-    return template;
-  }
-
-  /**
-   * Inside function to find the first element for the iterator, it is called
-   * from the constructor
-   *
-   * @return the first clause list item or null if it is not found
-   */
-  protected InsideClauseListItem findFirstElement() {
-    return predicateList.findDirect(template, null);
-  }
-
-  @Override
-  public TermStruct next() {
-    if (lastFound == null) {
-      throw new NoSuchElementException();
+    /**
+     * The constructor
+     *
+     * @param list     the knowledge base clause list for which we want to create the
+     *                 iterator, must not be null
+     * @param template the template to be used to find values in the clause list,
+     *                 must not be null
+     */
+    public MemoryClauseIterator(final KnowledgeBaseInsideClauseList list, final TermStruct template) {
+        predicateList = list;
+        this.template = (TermStruct) template.makeClone();
+        lastFound = findFirstElement();
     }
 
-    final TermStruct result = (TermStruct) lastFound.getClause().makeClone();
-    lastFound = predicateList.findDirect(template, lastFound);
+    @Override
+    public boolean hasNext() {
+        return lastFound != null;
+    }
 
-    return result;
-  }
+    public TermStruct getTemplate() {
+        return template;
+    }
 
-  @Override
-  public void remove() {
-    throw new UnsupportedOperationException("Not supported.");
-  }
+    /**
+     * Inside function to find the first element for the iterator, it is called
+     * from the constructor
+     *
+     * @return the first clause list item or null if it is not found
+     */
+    protected InsideClauseListItem findFirstElement() {
+        return predicateList.findDirect(template, null);
+    }
 
-  /**
-   * End the work of the iterator, null will be returned in next request
-   */
-  @Override
-  public void cut() {
-    lastFound = null;
-  }
+    @Override
+    public TermStruct next() {
+        if (lastFound == null) {
+            throw new NoSuchElementException();
+        }
 
-  @Override
-  public String toString() {
-    return "ClauseIterator{template=" + template + '}';
-  }
+        final TermStruct result = (TermStruct) lastFound.getClause().makeClone();
+        lastFound = predicateList.findDirect(template, lastFound);
+
+        return result;
+    }
+
+    @Override
+    public void remove() {
+        throw new UnsupportedOperationException("Not supported.");
+    }
+
+    /**
+     * End the work of the iterator, null will be returned in next request
+     */
+    @Override
+    public void cut() {
+        lastFound = null;
+    }
+
+    @Override
+    public String toString() {
+        return "ClauseIterator{template=" + template + '}';
+    }
 }

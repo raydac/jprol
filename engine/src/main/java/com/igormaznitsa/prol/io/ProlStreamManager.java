@@ -27,27 +27,27 @@ import java.io.Writer;
  */
 public interface ProlStreamManager {
 
-  /**
-   * Get the reader for a resource for it's name.
-   *
-   * @param resourceName the resource name of a saved object which should be
-   * opened for reading. Must not be null
-   * @return an opened text reader for the object, must not be null
-   * @throws IOException it will be thrown if it is impossible to open the
-   * resource successfully
-   */
-  public Reader getReaderForResource(final String resourceName) throws IOException;
+    /**
+     * Get the reader for a resource for it's name.
+     *
+     * @param resourceName the resource name of a saved object which should be
+     *                     opened for reading. Must not be null
+     * @return an opened text reader for the object, must not be null
+     * @throws IOException it will be thrown if it is impossible to open the
+     *                     resource successfully
+     */
+    Reader getReaderForResource(final String resourceName) throws IOException;
 
-  /**
-   * Get the writer for an resource for it's name (or to create new resource
-   * object)
-   *
-   * @param resourceName the name of the opening resource, must not be null
-   * @param append if the flag is true then the resource will be opened to add
-   * new records at the end of the file, else it will be rewriten
-   * @return an opened text writer, must not be null
-   * @throws IOException it will be thrown if it is impossible to open the
-   * resource successfuly
-   */
-  public Writer getWriterForResource(final String resourceName, final boolean append) throws IOException;
+    /**
+     * Get the writer for an resource for it's name (or to create new resource
+     * object)
+     *
+     * @param resourceName the name of the opening resource, must not be null
+     * @param append       if the flag is true then the resource will be opened to add
+     *                     new records at the end of the file, else it will be rewriten
+     * @return an opened text writer, must not be null
+     * @throws IOException it will be thrown if it is impossible to open the
+     *                     resource successfuly
+     */
+    Writer getWriterForResource(final String resourceName, final boolean append) throws IOException;
 }

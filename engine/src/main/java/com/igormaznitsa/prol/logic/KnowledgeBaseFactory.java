@@ -18,30 +18,29 @@ package com.igormaznitsa.prol.logic;
 import com.igormaznitsa.prol.containers.KnowledgeBase;
 
 /**
- *
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public interface KnowledgeBaseFactory {
 
-  /**
-   * Make default knowledge base
-   *
-   * @param context the context which will use the knowledge base, must not be
-   * null
-   * @param knowledgeBasId the knowledge base id , must not be null
-   * @return a knowledge base which is default for the factory
-   */
-  public KnowledgeBase makeDefaultKnowledgeBase(ProlContext context, String knowledgeBasId);
+    /**
+     * Make default knowledge base
+     *
+     * @param context        the context which will use the knowledge base, must not be
+     *                       null
+     * @param knowledgeBasId the knowledge base id , must not be null
+     * @return a knowledge base which is default for the factory
+     */
+    KnowledgeBase makeDefaultKnowledgeBase(ProlContext context, String knowledgeBasId);
 
-  /**
-   * Make knowledge base for a type
-   *
-   * @param context the context which will use the knowledge base, must not be
-   * null
-   * @param knowledgeBaseId the knowledge base id, must not be null
-   * @param type the type of the knowledge base, must not be null
-   * @return a knowledge base for the type or null if it is impossible to make a
-   * base
-   */
-  public KnowledgeBase makeKnowledgeBase(ProlContext context, String knowledgeBaseId, String type);
+    /**
+     * Make knowledge base for a type
+     *
+     * @param context         the context which will use the knowledge base, must not be
+     *                        null
+     * @param knowledgeBaseId the knowledge base id, must not be null
+     * @param type            the type of the knowledge base, must not be null
+     * @return a knowledge base for the type or null if it is impossible to make a
+     * base
+     */
+    KnowledgeBase makeKnowledgeBase(ProlContext context, String knowledgeBaseId, String type);
 }

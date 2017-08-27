@@ -26,83 +26,83 @@ import com.igormaznitsa.prol.data.TermStruct;
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public class ProlRepresentationErrorException extends ProlAbstractCatcheableException {
-  private static final long serialVersionUID = -4337637438675029939L;
+    private static final long serialVersionUID = -4337637438675029939L;
 
-  /**
-   * The constant has the common element for all instances of the exception
-   */
-  private static final Term TERM_ERROR = new Term("representation_error");
-  /**
-   * The variable contains the error flag
-   */
-  private final String flag;
+    /**
+     * The constant has the common element for all instances of the exception
+     */
+    private static final Term TERM_ERROR = new Term("representation_error");
+    /**
+     * The variable contains the error flag
+     */
+    private final String flag;
 
-  /**
-   * A constructor
-   *
-   * @param flag the error flag
-   * @param culprit the culprit term
-   * @param cause the java throwable exception which is the cause for the error
-   */
-  public ProlRepresentationErrorException(final String flag, final Term culprit, final Throwable cause) {
-    super(culprit, cause);
-    this.flag = flag;
-  }
+    /**
+     * A constructor
+     *
+     * @param flag    the error flag
+     * @param culprit the culprit term
+     * @param cause   the java throwable exception which is the cause for the error
+     */
+    public ProlRepresentationErrorException(final String flag, final Term culprit, final Throwable cause) {
+        super(culprit, cause);
+        this.flag = flag;
+    }
 
-  /**
-   * A constructor
-   *
-   * @param flag the error flag
-   * @param message a text message describing the situation
-   * @param culprit the culprit term
-   * @param cause the java throwable exception which is the cause for the error
-   */
-  public ProlRepresentationErrorException(final String flag, final String message, final Term culprit, final Throwable cause) {
-    super(message, culprit, cause);
-    this.flag = flag;
-  }
+    /**
+     * A constructor
+     *
+     * @param flag    the error flag
+     * @param message a text message describing the situation
+     * @param culprit the culprit term
+     * @param cause   the java throwable exception which is the cause for the error
+     */
+    public ProlRepresentationErrorException(final String flag, final String message, final Term culprit, final Throwable cause) {
+        super(message, culprit, cause);
+        this.flag = flag;
+    }
 
-  /**
-   * A constructor
-   *
-   * @param flag the error flag
-   * @param message a text message describing the situation
-   * @param culprit the culprit term
-   */
-  public ProlRepresentationErrorException(final String flag, final String message, final Term culprit) {
-    super(message, culprit);
-    this.flag = flag;
-  }
+    /**
+     * A constructor
+     *
+     * @param flag    the error flag
+     * @param message a text message describing the situation
+     * @param culprit the culprit term
+     */
+    public ProlRepresentationErrorException(final String flag, final String message, final Term culprit) {
+        super(message, culprit);
+        this.flag = flag;
+    }
 
-  /**
-   * A constructor
-   *
-   * @param flag the error flag
-   * @param culprit the culprit term
-   */
-  public ProlRepresentationErrorException(final String flag, final Term culprit) {
-    super(culprit);
-    this.flag = flag;
-  }
+    /**
+     * A constructor
+     *
+     * @param flag    the error flag
+     * @param culprit the culprit term
+     */
+    public ProlRepresentationErrorException(final String flag, final Term culprit) {
+        super(culprit);
+        this.flag = flag;
+    }
 
-  /**
-   * Get the error flag of the exception
-   *
-   * @return the error flag of the exception as a String object
-   */
-  public String getFlag() {
-    return flag;
-  }
+    /**
+     * Get the error flag of the exception
+     *
+     * @return the error flag of the exception as a String object
+     */
+    public String getFlag() {
+        return flag;
+    }
 
-  @Override
-  public Term getFunctorForErrorStruct() {
-    return TERM_ERROR;
-  }
+    @Override
+    public Term getFunctorForErrorStruct() {
+        return TERM_ERROR;
+    }
 
-  @Override
-  public TermStruct getAsStruct() {
-    final TermStruct result = new TermStruct(TERM_ERROR, new Term[]{this.flag == null ? UNDEFINED : new Term(this.flag)});
-    result.setCarriedObject(this);
-    return result;
-  }
+    @Override
+    public TermStruct getAsStruct() {
+        final TermStruct result = new TermStruct(TERM_ERROR, new Term[]{this.flag == null ? UNDEFINED : new Term(this.flag)});
+        result.setCarriedObject(this);
+        return result;
+    }
 }

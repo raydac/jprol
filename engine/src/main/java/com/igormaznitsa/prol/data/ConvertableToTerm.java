@@ -23,10 +23,10 @@ package com.igormaznitsa.prol.data;
  */
 public interface ConvertableToTerm {
 
-  /**
-   * The function must return the Term representation of the Java object
-   *
-   * @return a Term object, must not return null
-   */
-  Term asProlTerm();
+    /**
+     * The function must return the Term representation of the Java object
+     *
+     * @return a Term object, must not return null
+     */
+    Term asProlTerm();
 }

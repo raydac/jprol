@@ -15,10 +15,9 @@
  */
 package com.igormaznitsa.prol.easygui;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.FileNotFoundException;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 
 /**
  * The main class which starts the IDE
@@ -27,42 +26,40 @@ import javax.swing.SwingUtilities;
  */
 public class main {
 
-  /**
-   * The main method starts the IDE.
-   *
-   * @param args if the array contains as minimum singe element, the elements
-   * will be used as the file name to be loaded into the started IDE instance
-   */
-  public static final void main(String[] args) {
+    /**
+     * The main method starts the IDE.
+     *
+     * @param args if the array contains as minimum singe element, the elements
+     *             will be used as the file name to be loaded into the started IDE instance
+     */
+    public static final void main(String[] args) {
 
-    File fileToLoad = null;
-    if (args != null && args.length > 0) {
-      try {
-        fileToLoad = new File(args[0]);
-        if (!fileToLoad.exists() || fileToLoad.isDirectory()) {
-          throw new FileNotFoundException();
+        File fileToLoad = null;
+        if (args != null && args.length > 0) {
+            try {
+                fileToLoad = new File(args[0]);
+                if (!fileToLoad.exists() || fileToLoad.isDirectory()) {
+                    throw new FileNotFoundException();
+                }
+            } catch (Throwable thr) {
+                thr.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Can't find the file \'" + args[0] + "\' or it's a directory.", "Can't load file", JOptionPane.ERROR_MESSAGE);
+                fileToLoad = null;
+            }
         }
-      }
-      catch (Throwable thr) {
-        thr.printStackTrace();
-        JOptionPane.showMessageDialog(null, "Can't find the file \'" + args[0] + "\' or it's a directory.", "Can't load file", JOptionPane.ERROR_MESSAGE);
-        fileToLoad = null;
-      }
+
+        final File initFile = fileToLoad;
+
+        SwingUtilities.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                if (initFile != null) {
+                    new MainFrame(initFile).setVisible(true);
+                } else {
+                    new MainFrame().setVisible(true);
+                }
+            }
+        });
     }
-
-    final File initFile = fileToLoad;
-
-    SwingUtilities.invokeLater(new Runnable() {
-
-      @Override
-      public void run() {
-        if (initFile != null) {
-          new MainFrame(initFile).setVisible(true);
-        }
-        else {
-          new MainFrame().setVisible(true);
-        }
-      }
-    });
-  }
 }

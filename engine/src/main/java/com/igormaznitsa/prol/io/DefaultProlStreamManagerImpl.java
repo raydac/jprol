@@ -15,16 +15,7 @@
  */
 package com.igormaznitsa.prol.io;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.*;
 
 /**
  * The class implements the ProlStreamManager interface and can be used to
@@ -35,71 +26,68 @@ import java.io.Writer;
  */
 public class DefaultProlStreamManagerImpl implements ProlStreamManager {
 
-  /**
-   * The variable contains only instance to be used
-   */
-  private static DefaultProlStreamManagerImpl singltone;
+    /**
+     * The variable contains only instance to be used
+     */
+    private static DefaultProlStreamManagerImpl singltone;
 
-  private DefaultProlStreamManagerImpl() {
-  }
-
-  /**
-   * Get the instance of the manager
-   *
-   * @return the instance of the class
-   */
-  public synchronized static final DefaultProlStreamManagerImpl getInstance() {
-    if (singltone == null) {
-      singltone = new DefaultProlStreamManagerImpl();
-    }
-    return singltone;
-  }
-
-  /**
-   * Get the reader for a resource
-   *
-   * @param resourceName the resource name, must not be null. If the name starts
-   * with "@", then it will be used as the name inside JAR resource and will be
-   * opened with Class.getResourceAsStream(). The argument must not be null.
-   * @return the opened reader as a Reader object.
-   * @throws IOException it will be thrown if there will be any transport error.
-   */
-  @Override
-  public synchronized Reader getReaderForResource(final String resourceName) throws IOException {
-    if (resourceName == null) {
-      throw new IllegalArgumentException("The resource name must not be null");
+    private DefaultProlStreamManagerImpl() {
     }
 
-    if (resourceName.equals("user")) {
-      return new InputStreamReader(System.in);
-    }
-    else {
-      if (resourceName.startsWith("@")) {
-        String jarName = resourceName.substring(1);
-        final InputStream inSream = getClass().getResourceAsStream(jarName);
-        if (inSream == null) {
-          throw new FileNotFoundException(resourceName);
+    /**
+     * Get the instance of the manager
+     *
+     * @return the instance of the class
+     */
+    public synchronized static final DefaultProlStreamManagerImpl getInstance() {
+        if (singltone == null) {
+            singltone = new DefaultProlStreamManagerImpl();
         }
-        return new BufferedReader(new InputStreamReader(inSream));
-      }
-      else {
-        return new FileReader(resourceName);
-      }
-    }
-  }
-
-  @Override
-  public synchronized Writer getWriterForResource(final String resourceName, boolean append) throws IOException {
-    if (resourceName == null) {
-      throw new IllegalArgumentException("The resource name must not be null");
+        return singltone;
     }
 
-    if (resourceName.equals("user")) {
-      return new PrintWriter(System.out);
+    /**
+     * Get the reader for a resource
+     *
+     * @param resourceName the resource name, must not be null. If the name starts
+     *                     with "@", then it will be used as the name inside JAR resource and will be
+     *                     opened with Class.getResourceAsStream(). The argument must not be null.
+     * @return the opened reader as a Reader object.
+     * @throws IOException it will be thrown if there will be any transport error.
+     */
+    @Override
+    public synchronized Reader getReaderForResource(final String resourceName) throws IOException {
+        if (resourceName == null) {
+            throw new IllegalArgumentException("The resource name must not be null");
+        }
+
+        if (resourceName.equals("user")) {
+            return new InputStreamReader(System.in);
+        } else {
+            if (resourceName.startsWith("@")) {
+                String jarName = resourceName.substring(1);
+                final InputStream inSream = getClass().getResourceAsStream(jarName);
+                if (inSream == null) {
+                    throw new FileNotFoundException(resourceName);
+                }
+                return new BufferedReader(new InputStreamReader(inSream));
+            } else {
+                return new FileReader(resourceName);
+            }
+        }
     }
-    else {
-      return new FileWriter(resourceName, append);
+
+    @Override
+    public synchronized Writer getWriterForResource(final String resourceName, boolean append) throws IOException {
+        if (resourceName == null) {
+            throw new IllegalArgumentException("The resource name must not be null");
+        }
+
+        if (resourceName.equals("user")) {
+            return new PrintWriter(System.out);
+        } else {
+            return new FileWriter(resourceName, append);
+        }
     }
-  }
 
 }

@@ -30,11 +30,11 @@ import java.lang.annotation.Target;
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface PredicateSynonyms {
 
-  /**
-   * A String arry of predicate synonyms in the same style as the predicate
-   * signature
-   *
-   * @return the string array of synonim signatures
-   */
-  public String[] Signatures();
+    /**
+     * A String arry of predicate synonyms in the same style as the predicate
+     * signature
+     *
+     * @return the string array of synonim signatures
+     */
+    String[] Signatures();
 }

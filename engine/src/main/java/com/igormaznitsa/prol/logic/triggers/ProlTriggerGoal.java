@@ -20,6 +20,7 @@ import com.igormaznitsa.prol.logic.Goal;
 import com.igormaznitsa.prol.logic.PreparedGoal;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.trace.TraceListener;
+
 import java.io.IOException;
 
 /**
@@ -32,71 +33,71 @@ import java.io.IOException;
  */
 public class ProlTriggerGoal extends AbstractProlTrigger {
 
-  /**
-   * Inside prepared goal which will be called when a condition
-   */
-  protected final PreparedGoal triggerGoal;
-  /**
-   * Inside variable containing work context for the trigger
-   */
-  protected final ProlContext context;
+    /**
+     * Inside prepared goal which will be called when a condition
+     */
+    protected final PreparedGoal triggerGoal;
+    /**
+     * Inside variable containing work context for the trigger
+     */
+    protected final ProlContext context;
 
-  /**
-   * A constructor allows to make a goal from a string automatically
-   *
-   * @param triggerGoal the goal as String, it will be solved when there is the
-   * trigger event, can be null if it is undefined
-   * @param context the work context for the trigger, must not be null
-   * @param tracer the tracer to listen events of the trigger goal, it can be
-   * null
-   * @throws IOException it will be thrown if there is any IO exception during
-   * the constructor
-   * @throws InterruptedException it will be thrown if the operation will be
-   * interrupted
-   */
-  public ProlTriggerGoal(final String triggerGoal, final ProlContext context, final TraceListener tracer) throws IOException, InterruptedException {
-    super();
-    if (context == null) {
-      throw new NullPointerException("Context is null");
-    }
-    this.triggerGoal = triggerGoal == null ? null : new PreparedGoal(triggerGoal, context, tracer);
-    this.context = context;
-  }
-
-  /**
-   * A constructor allows to make prepared trigger for already parsed goal
-   *
-   * @param triggerGoal the parsed goal, can be null if undefined
-   * @param context the work context for the trigger, must not be null
-   * @param tracer the tracer to listen events of the trigger goal, it can be
-   * null
-   * @throws NullPointerException if the context is null
-   */
-  public ProlTriggerGoal(final Term triggerGoal, final ProlContext context, final TraceListener tracer) {
-    super();
-    if (context == null) {
-      throw new NullPointerException("Context is null");
-    }
-    this.triggerGoal = triggerGoal == null ? null : new PreparedGoal(triggerGoal, context, tracer);
-    this.context = context;
-  }
-
-  @Override
-  public void onTriggerEvent(final TriggerEvent event) throws InterruptedException {
-    if (triggerGoal != null) {
-      final Goal tobesolved = triggerGoal.getNonparametrizedGoalInstance();// we don't have parameters in the
-
-      while (true) {
-        final Term result = tobesolved.solve();
-        if (result == null) {
-          break;
+    /**
+     * A constructor allows to make a goal from a string automatically
+     *
+     * @param triggerGoal the goal as String, it will be solved when there is the
+     *                    trigger event, can be null if it is undefined
+     * @param context     the work context for the trigger, must not be null
+     * @param tracer      the tracer to listen events of the trigger goal, it can be
+     *                    null
+     * @throws IOException          it will be thrown if there is any IO exception during
+     *                              the constructor
+     * @throws InterruptedException it will be thrown if the operation will be
+     *                              interrupted
+     */
+    public ProlTriggerGoal(final String triggerGoal, final ProlContext context, final TraceListener tracer) throws IOException, InterruptedException {
+        super();
+        if (context == null) {
+            throw new NullPointerException("Context is null");
         }
-      }
+        this.triggerGoal = triggerGoal == null ? null : new PreparedGoal(triggerGoal, context, tracer);
+        this.context = context;
     }
-  }
 
-  @Override
-  public void onContextHalting(final ProlContext context) {
-    // we have to do nothing
-  }
+    /**
+     * A constructor allows to make prepared trigger for already parsed goal
+     *
+     * @param triggerGoal the parsed goal, can be null if undefined
+     * @param context     the work context for the trigger, must not be null
+     * @param tracer      the tracer to listen events of the trigger goal, it can be
+     *                    null
+     * @throws NullPointerException if the context is null
+     */
+    public ProlTriggerGoal(final Term triggerGoal, final ProlContext context, final TraceListener tracer) {
+        super();
+        if (context == null) {
+            throw new NullPointerException("Context is null");
+        }
+        this.triggerGoal = triggerGoal == null ? null : new PreparedGoal(triggerGoal, context, tracer);
+        this.context = context;
+    }
+
+    @Override
+    public void onTriggerEvent(final TriggerEvent event) throws InterruptedException {
+        if (triggerGoal != null) {
+            final Goal tobesolved = triggerGoal.getNonparametrizedGoalInstance();// we don't have parameters in the
+
+            while (true) {
+                final Term result = tobesolved.solve();
+                if (result == null) {
+                    break;
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onContextHalting(final ProlContext context) {
+        // we have to do nothing
+    }
 }

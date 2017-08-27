@@ -22,16 +22,16 @@ package com.igormaznitsa.prol.logic.triggers;
  */
 public enum ProlTriggerType {
 
-  /**
-   * Describes trigger activated by an assert
-   */
-  TRIGGER_ASSERT,
-  /**
-   * Describes trigger activated by a retract
-   */
-  TRIGGER_RETRACT,
-  /**
-   * Describes trigger activated both assert and retract
-   */
-  TRIGGER_ASSERT_RETRACT
+    /**
+     * Describes trigger activated by an assert
+     */
+    TRIGGER_ASSERT,
+    /**
+     * Describes trigger activated by a retract
+     */
+    TRIGGER_RETRACT,
+    /**
+     * Describes trigger activated both assert and retract
+     */
+    TRIGGER_ASSERT_RETRACT
 }

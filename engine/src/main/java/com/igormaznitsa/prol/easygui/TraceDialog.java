@@ -15,17 +15,13 @@
  */
 package com.igormaznitsa.prol.easygui;
 
-import java.awt.Color;
+import javax.swing.*;
+import javax.swing.event.HyperlinkListener;
+import javax.swing.text.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.prefs.Preferences;
-import javax.swing.SwingUtilities;
-import javax.swing.event.HyperlinkListener;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
 
 /**
  * The class implements the trace pane for the IDE because it is a very
@@ -34,189 +30,187 @@ import javax.swing.text.StyleConstants;
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public class TraceDialog extends AbstractProlEditor implements ActionListener {
-  private static final long serialVersionUID = -907317020170501786L;
+    private static final long serialVersionUID = -907317020170501786L;
 
-  private static final SimpleAttributeSet ATTRSET_OTHER = new SimpleAttributeSet();
-  private static final SimpleAttributeSet ATTRSET_CALL = new SimpleAttributeSet();
-  private static final SimpleAttributeSet ATTRSET_REDO = new SimpleAttributeSet();
-  private static final SimpleAttributeSet ATTRSET_FAIL = new SimpleAttributeSet();
-  private static final SimpleAttributeSet ATTRSET_EXIT = new SimpleAttributeSet();
+    private static final SimpleAttributeSet ATTRSET_OTHER = new SimpleAttributeSet();
+    private static final SimpleAttributeSet ATTRSET_CALL = new SimpleAttributeSet();
+    private static final SimpleAttributeSet ATTRSET_REDO = new SimpleAttributeSet();
+    private static final SimpleAttributeSet ATTRSET_FAIL = new SimpleAttributeSet();
+    private static final SimpleAttributeSet ATTRSET_EXIT = new SimpleAttributeSet();
 
-  public Color getEdOtherColor() {
-    return StyleConstants.getForeground(ATTRSET_OTHER);
-  }
+    public TraceDialog() {
+        super("Trace");
 
-  public void setEdOtherColor(final Color color) {
-    clearText();
-    StyleConstants.setForeground(ATTRSET_OTHER, color);
-  }
+        removePropertyFromList("EdForeground");
+        removePropertyFromList("EdCaretColor");
 
-  public Color getEdCallColor() {
-    return StyleConstants.getForeground(ATTRSET_CALL);
-  }
+        addPropertyToList(new PropertyLink(this, "Call color", "EdCallColor"));
+        addPropertyToList(new PropertyLink(this, "Redo color", "EdRedoColor"));
+        addPropertyToList(new PropertyLink(this, "Fail color", "EdFailColor"));
+        addPropertyToList(new PropertyLink(this, "Exit color", "EdExitColor"));
+        addPropertyToList(new PropertyLink(this, "Other color", "EdOtherColor"));
 
-  public void setEdCallColor(final Color color) {
-    clearText();
-    StyleConstants.setForeground(ATTRSET_CALL, color);
-  }
+        setEnabled(false);
+        editor.setContentType("text/rtf");
 
-  public Color getEdRedoColor() {
-    return StyleConstants.getForeground(ATTRSET_REDO);
-  }
+        editor.setBackground(Color.BLUE.darker().darker().darker().darker());
+        editor.setForeground(Color.WHITE);
 
-  public void setEdRedoColor(final Color color) {
-    clearText();
-    StyleConstants.setForeground(ATTRSET_REDO, color);
-  }
+    }
 
-  public Color getEdExitColor() {
-    return StyleConstants.getForeground(ATTRSET_EXIT);
-  }
+    public Color getEdOtherColor() {
+        return StyleConstants.getForeground(ATTRSET_OTHER);
+    }
 
-  public void setEdExitColor(final Color color) {
-    clearText();
-    StyleConstants.setForeground(ATTRSET_EXIT, color);
-  }
+    public void setEdOtherColor(final Color color) {
+        clearText();
+        StyleConstants.setForeground(ATTRSET_OTHER, color);
+    }
 
-  public Color getEdFailColor() {
-    return StyleConstants.getForeground(ATTRSET_FAIL);
-  }
+    public Color getEdCallColor() {
+        return StyleConstants.getForeground(ATTRSET_CALL);
+    }
 
-  public void setEdFailColor(final Color color) {
-    clearText();
-    StyleConstants.setForeground(ATTRSET_FAIL, color);
-  }
+    public void setEdCallColor(final Color color) {
+        clearText();
+        StyleConstants.setForeground(ATTRSET_CALL, color);
+    }
 
-  public TraceDialog() {
-    super("Trace");
+    public Color getEdRedoColor() {
+        return StyleConstants.getForeground(ATTRSET_REDO);
+    }
 
-    removePropertyFromList("EdForeground");
-    removePropertyFromList("EdCaretColor");
+    public void setEdRedoColor(final Color color) {
+        clearText();
+        StyleConstants.setForeground(ATTRSET_REDO, color);
+    }
 
-    addPropertyToList(new PropertyLink(this, "Call color", "EdCallColor"));
-    addPropertyToList(new PropertyLink(this, "Redo color", "EdRedoColor"));
-    addPropertyToList(new PropertyLink(this, "Fail color", "EdFailColor"));
-    addPropertyToList(new PropertyLink(this, "Exit color", "EdExitColor"));
-    addPropertyToList(new PropertyLink(this, "Other color", "EdOtherColor"));
+    public Color getEdExitColor() {
+        return StyleConstants.getForeground(ATTRSET_EXIT);
+    }
 
-    setEnabled(false);
-    editor.setContentType("text/rtf");
+    public void setEdExitColor(final Color color) {
+        clearText();
+        StyleConstants.setForeground(ATTRSET_EXIT, color);
+    }
 
-    editor.setBackground(Color.BLUE.darker().darker().darker().darker());
-    editor.setForeground(Color.WHITE);
+    public Color getEdFailColor() {
+        return StyleConstants.getForeground(ATTRSET_FAIL);
+    }
 
-  }
+    public void setEdFailColor(final Color color) {
+        clearText();
+        StyleConstants.setForeground(ATTRSET_FAIL, color);
+    }
 
-  public void removeHypelinkListener(HyperlinkListener listener) {
-    editor.removeHyperlinkListener(listener);
-  }
+    public void removeHypelinkListener(HyperlinkListener listener) {
+        editor.removeHyperlinkListener(listener);
+    }
 
-  public void addCallText(String text) {
-    addText("CALL: " + text, ATTRSET_CALL);
-  }
+    public void addCallText(String text) {
+        addText("CALL: " + text, ATTRSET_CALL);
+    }
 
-  public void addRedoText(String text) {
-    addText("REDO: " + text, ATTRSET_REDO);
-  }
+    public void addRedoText(String text) {
+        addText("REDO: " + text, ATTRSET_REDO);
+    }
 
-  public void addFailText(String text) {
-    addText("FAIL: " + text, ATTRSET_FAIL);
-  }
+    public void addFailText(String text) {
+        addText("FAIL: " + text, ATTRSET_FAIL);
+    }
 
-  public void addExitText(String text) {
-    addText("EXIT: " + text, ATTRSET_EXIT);
-  }
+    public void addExitText(String text) {
+        addText("EXIT: " + text, ATTRSET_EXIT);
+    }
 
-  public void addText(String text) {
-    addText(text, ATTRSET_OTHER);
-  }
+    public void addText(String text) {
+        addText(text, ATTRSET_OTHER);
+    }
 
-  @Override
-  public synchronized void clearText() {
-    super.clearText();
-  }
+    @Override
+    public synchronized void clearText() {
+        super.clearText();
+    }
 
-  public void addText(final String text, final AttributeSet type) {
-    final Thread thr = Thread.currentThread();
+    public void addText(final String text, final AttributeSet type) {
+        final Thread thr = Thread.currentThread();
 
-    try {
-      SwingUtilities.invokeAndWait(new Runnable() {
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
 
-        @Override
-        public void run() {
-          if (thr.isInterrupted()) {
-            return;
-          }
-          final Document doc = editor.getDocument();
-          if (doc != null) {
-            try {
-              doc.insertString(doc.getEndPosition().getOffset(), text + '\n', type);
-              editor.setCaretPosition(doc.getLength());
+                @Override
+                public void run() {
+                    if (thr.isInterrupted()) {
+                        return;
+                    }
+                    final Document doc = editor.getDocument();
+                    if (doc != null) {
+                        try {
+                            doc.insertString(doc.getEndPosition().getOffset(), text + '\n', type);
+                            editor.setCaretPosition(doc.getLength());
+                        } catch (BadLocationException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                }
+            });
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            if (ex instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
             }
-            catch (BadLocationException ex) {
-              ex.printStackTrace();
-            }
-          }
         }
-      });
-    }
-    catch (Exception ex) {
-      ex.printStackTrace();
-      if (ex instanceof InterruptedException) {
-        Thread.currentThread().interrupt();
-      }
-    }
-  }
-
-  @Override
-  public void actionPerformed(ActionEvent e) {
-    if (e.getActionCommand().equals("CLEAR")) {
-      clearText();
-    }
-  }
-
-  @Override
-  public void loadPreferences(Preferences prefs) {
-    final Color bgColor = extractColor(prefs, "tracebackcolor", Color.LIGHT_GRAY);
-    final Color callColor = extractColor(prefs, "tracecallcolor", Color.BLACK);
-    final Color redoColor = extractColor(prefs, "traceredocolor", Color.DARK_GRAY);
-    final Color exitColor = extractColor(prefs, "traceexitcolor", Color.BLUE);
-    final Color failColor = extractColor(prefs, "tracefailcolor", Color.RED);
-    final Color otherColor = extractColor(prefs, "traceothercolor", Color.YELLOW);
-
-    if (bgColor != null) {
-      setEdBackground(bgColor);
-    }
-    if (callColor != null) {
-      setEdCallColor(callColor);
-    }
-    if (redoColor != null) {
-      setEdRedoColor(redoColor);
-    }
-    if (exitColor != null) {
-      setEdExitColor(exitColor);
-    }
-    if (failColor != null) {
-      setEdFailColor(failColor);
-    }
-    if (otherColor != null) {
-      setEdOtherColor(otherColor);
     }
 
-    setEdWordWrap(prefs.getBoolean("tracewordwrap", false));
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getActionCommand().equals("CLEAR")) {
+            clearText();
+        }
+    }
 
-    setEdFont(loadFontFromPrefs(prefs, "tracefont"));
-  }
+    @Override
+    public void loadPreferences(Preferences prefs) {
+        final Color bgColor = extractColor(prefs, "tracebackcolor", Color.LIGHT_GRAY);
+        final Color callColor = extractColor(prefs, "tracecallcolor", Color.BLACK);
+        final Color redoColor = extractColor(prefs, "traceredocolor", Color.DARK_GRAY);
+        final Color exitColor = extractColor(prefs, "traceexitcolor", Color.BLUE);
+        final Color failColor = extractColor(prefs, "tracefailcolor", Color.RED);
+        final Color otherColor = extractColor(prefs, "traceothercolor", Color.YELLOW);
 
-  @Override
-  public void savePreferences(Preferences prefs) {
-    prefs.putInt("tracebackcolor", getEdBackground().getRGB());
-    prefs.putInt("tracecallcolor", getEdCallColor().getRGB());
-    prefs.putInt("traceredocolor", getEdRedoColor().getRGB());
-    prefs.putInt("traceexitcolor", getEdExitColor().getRGB());
-    prefs.putInt("tracefailcolor", getEdFailColor().getRGB());
-    prefs.putInt("traceothercolor", getEdOtherColor().getRGB());
-    prefs.putBoolean("tracewordwrap", getEdWordWrap());
-    saveFontToPrefs(prefs, "tracefont", editor.getFont());
-  }
+        if (bgColor != null) {
+            setEdBackground(bgColor);
+        }
+        if (callColor != null) {
+            setEdCallColor(callColor);
+        }
+        if (redoColor != null) {
+            setEdRedoColor(redoColor);
+        }
+        if (exitColor != null) {
+            setEdExitColor(exitColor);
+        }
+        if (failColor != null) {
+            setEdFailColor(failColor);
+        }
+        if (otherColor != null) {
+            setEdOtherColor(otherColor);
+        }
+
+        setEdWordWrap(prefs.getBoolean("tracewordwrap", false));
+
+        setEdFont(loadFontFromPrefs(prefs, "tracefont"));
+    }
+
+    @Override
+    public void savePreferences(Preferences prefs) {
+        prefs.putInt("tracebackcolor", getEdBackground().getRGB());
+        prefs.putInt("tracecallcolor", getEdCallColor().getRGB());
+        prefs.putInt("traceredocolor", getEdRedoColor().getRGB());
+        prefs.putInt("traceexitcolor", getEdExitColor().getRGB());
+        prefs.putInt("tracefailcolor", getEdFailColor().getRGB());
+        prefs.putInt("traceothercolor", getEdOtherColor().getRGB());
+        prefs.putBoolean("tracewordwrap", getEdWordWrap());
+        saveFontToPrefs(prefs, "tracefont", editor.getFont());
+    }
 }

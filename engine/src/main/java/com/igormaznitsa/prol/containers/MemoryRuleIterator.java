@@ -16,6 +16,7 @@
 package com.igormaznitsa.prol.containers;
 
 import com.igormaznitsa.prol.data.TermStruct;
+
 import java.util.NoSuchElementException;
 
 /**
@@ -26,46 +27,46 @@ import java.util.NoSuchElementException;
  */
 final class MemoryRuleIterator extends MemoryClauseIterator implements RuleIterator {
 
-  /**
-   * The constructor
-   *
-   * @param list an inside knowledge base list to be used by the iterator, must
-   * not be null
-   * @param template the template to be used for search, must not be null
-   */
-  public MemoryRuleIterator(final KnowledgeBaseInsideClauseList list, final TermStruct template) {
-    super(list, template);
-  }
-
-  @Override
-  protected InsideClauseListItem findFirstElement() {
-    InsideClauseListItem firstitem = null;
-
-    while (true) {
-      firstitem = predicateList.findDirect(template, firstitem);
-      if (firstitem == null || !firstitem.isFact()) {
-        break;
-      }
+    /**
+     * The constructor
+     *
+     * @param list     an inside knowledge base list to be used by the iterator, must
+     *                 not be null
+     * @param template the template to be used for search, must not be null
+     */
+    public MemoryRuleIterator(final KnowledgeBaseInsideClauseList list, final TermStruct template) {
+        super(list, template);
     }
 
-    return firstitem;
-  }
+    @Override
+    protected InsideClauseListItem findFirstElement() {
+        InsideClauseListItem firstitem = null;
 
-  @Override
-  public TermStruct next() {
-    if (lastFound == null) {
-      throw new NoSuchElementException();
+        while (true) {
+            firstitem = predicateList.findDirect(template, firstitem);
+            if (firstitem == null || !firstitem.isFact()) {
+                break;
+            }
+        }
+
+        return firstitem;
     }
 
-    final TermStruct result = (TermStruct) lastFound.getClause().makeClone();
+    @Override
+    public TermStruct next() {
+        if (lastFound == null) {
+            throw new NoSuchElementException();
+        }
 
-    while (true) {
-      lastFound = predicateList.findDirect(template, lastFound);
-      if (lastFound == null || !lastFound.isFact()) {
-        break;
-      }
+        final TermStruct result = (TermStruct) lastFound.getClause().makeClone();
+
+        while (true) {
+            lastFound = predicateList.findDirect(template, lastFound);
+            if (lastFound == null || !lastFound.isFact()) {
+                break;
+            }
+        }
+
+        return result;
     }
-
-    return result;
-  }
 }

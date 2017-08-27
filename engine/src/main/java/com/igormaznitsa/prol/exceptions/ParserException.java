@@ -22,92 +22,92 @@ package com.igormaznitsa.prol.exceptions;
  * @see com.igormaznitsa.prol.exceptions.ProlException
  */
 public class ParserException extends ProlException {
-  private static final long serialVersionUID = 6985224567025371152L;
+    private static final long serialVersionUID = 6985224567025371152L;
 
-  /**
-   * The line number where the exception has been thrown
-   */
-  private final int Line;
+    /**
+     * The line number where the exception has been thrown
+     */
+    private final int Line;
 
-  /**
-   * The position at the line where the exception has been thrown
-   */
-  private final int Pos;
+    /**
+     * The position at the line where the exception has been thrown
+     */
+    private final int Pos;
 
-  /**
-   * Get the line contains an error
-   *
-   * @return the line number where the exception has been thrown, 1 is the first
-   * line
-   */
-  public int getLine() {
-    return Line;
-  }
+    /**
+     * A constructor
+     *
+     * @param line the line number where the exception has been thrown
+     * @param pos  the string position where the exception has been thrown
+     */
+    public ParserException(final int line, final int pos) {
+        Line = line;
+        Pos = pos;
+    }
 
-  /**
-   * Get the line position contains an error
-   *
-   * @return the line position where the exception has been thrown, 1 is the
-   * first position.
-   */
-  public int getPos() {
-    return Pos;
-  }
+    /**
+     * A constructor
+     *
+     * @param message a text message describing the situation, can be null
+     * @param line    the line number where the exception has been thrown
+     * @param pos     the string position where the exception has been thrown
+     */
+    public ParserException(final String message, final int line, final int pos) {
+        super(message);
+        Line = line;
+        Pos = pos;
+    }
 
-  /**
-   * A constructor
-   *
-   * @param line the line number where the exception has been thrown
-   * @param pos the string position where the exception has been thrown
-   */
-  public ParserException(final int line, final int pos) {
-    Line = line;
-    Pos = pos;
-  }
+    /**
+     * A constructor
+     *
+     * @param message a text message describing the situation, can be null
+     * @param line    the line number where the exception has been thrown
+     * @param pos     the string position where the exception has been thrown
+     * @param cause   the java exception which was the cause for the prol exception
+     */
+    public ParserException(final String message, final int line, final int pos, final Throwable cause) {
+        super(message, cause);
+        Line = line;
+        Pos = pos;
+    }
 
-  /**
-   * A constructor
-   *
-   * @param message a text message describing the situation, can be null
-   * @param line the line number where the exception has been thrown
-   * @param pos the string position where the exception has been thrown
-   */
-  public ParserException(final String message, final int line, final int pos) {
-    super(message);
-    Line = line;
-    Pos = pos;
-  }
+    /**
+     * A constructor
+     *
+     * @param line  the line number where the exception has been thrown
+     * @param pos   the string position where the exception has been thrown
+     * @param cause the java exception which was the cause for the prol exception
+     */
+    public ParserException(final int line, final int pos, final Throwable cause) {
+        super(cause);
+        Line = line;
+        Pos = pos;
+    }
 
-  /**
-   * A constructor
-   *
-   * @param message a text message describing the situation, can be null
-   * @param line the line number where the exception has been thrown
-   * @param pos the string position where the exception has been thrown
-   * @param cause the java exception which was the cause for the prol exception
-   */
-  public ParserException(final String message, final int line, final int pos, final Throwable cause) {
-    super(message, cause);
-    Line = line;
-    Pos = pos;
-  }
+    /**
+     * Get the line contains an error
+     *
+     * @return the line number where the exception has been thrown, 1 is the first
+     * line
+     */
+    public int getLine() {
+        return Line;
+    }
 
-  /**
-   * A constructor
-   *
-   * @param line the line number where the exception has been thrown
-   * @param pos the string position where the exception has been thrown
-   * @param cause the java exception which was the cause for the prol exception
-   */
-  public ParserException(final int line, final int pos, final Throwable cause) {
-    super(cause);
-    Line = line;
-    Pos = pos;
-  }
+    /**
+     * Get the line position contains an error
+     *
+     * @return the line position where the exception has been thrown, 1 is the
+     * first position.
+     */
+    public int getPos() {
+        return Pos;
+    }
 
-  @Override
-  public String getMessage() {
-    return super.getMessage() + '[' + Line + ':' + Pos + ']';
-  }
+    @Override
+    public String getMessage() {
+        return super.getMessage() + '[' + Line + ':' + Pos + ']';
+    }
 
 }

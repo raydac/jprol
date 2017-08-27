@@ -15,11 +15,7 @@
  */
 package com.igormaznitsa.prol.easygui;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * An auxiliary class to make fixed length queue
@@ -28,52 +24,52 @@ import java.util.List;
  */
 public class RecentlyOpenedFileFixedList {
 
-  private final int maxLen;
-  private final List<String> paths = new ArrayList<String>();
+    private final int maxLen;
+    private final List<String> paths = new ArrayList<String>();
 
-  public RecentlyOpenedFileFixedList(final int maxlen) {
-    this.maxLen = maxlen;
-  }
-
-  public synchronized void clear() {
-    this.paths.clear();
-  }
-
-  public synchronized void put(final String path) {
-    if (this.paths.contains(path)) {
-      // remove it to make as the last one
-      this.paths.remove(path);
+    public RecentlyOpenedFileFixedList(final int maxlen) {
+        this.maxLen = maxlen;
     }
-    paths.add(0, path);
-    
-    while (this.paths.size() > maxLen) {
-      this.paths.remove(paths.size() - 1);
+
+    public synchronized void clear() {
+        this.paths.clear();
     }
-  }
 
-  public  synchronized void add(final String path){
-    if (this.paths.contains(path)) {
-      // remove it to make as the last one
-      this.paths.remove(path);
+    public synchronized void put(final String path) {
+        if (this.paths.contains(path)) {
+            // remove it to make as the last one
+            this.paths.remove(path);
+        }
+        paths.add(0, path);
+
+        while (this.paths.size() > maxLen) {
+            this.paths.remove(paths.size() - 1);
+        }
     }
-    if (this.paths.size() < maxLen) {
-      this.paths.add(path);
+
+    public synchronized void add(final String path) {
+        if (this.paths.contains(path)) {
+            // remove it to make as the last one
+            this.paths.remove(path);
+        }
+        if (this.paths.size() < maxLen) {
+            this.paths.add(path);
+        }
     }
-  }
-  
-  public synchronized boolean isEmpty() {
-    return this.paths.isEmpty();
-  }
 
-  public synchronized Iterator<String> getIterator() {
-    return new ArrayList<String>(this.paths).iterator();
-  }
+    public synchronized boolean isEmpty() {
+        return this.paths.isEmpty();
+    }
 
-  public synchronized Collection<String> getCollection() {
-    return Collections.unmodifiableCollection(new ArrayList<String>(this.paths));
-  }
+    public synchronized Iterator<String> getIterator() {
+        return new ArrayList<String>(this.paths).iterator();
+    }
 
-  public synchronized void remove(final String path) {
-    this.paths.remove(path);
-  }
+    public synchronized Collection<String> getCollection() {
+        return Collections.unmodifiableCollection(new ArrayList<String>(this.paths));
+    }
+
+    public synchronized void remove(final String path) {
+        this.paths.remove(path);
+    }
 }

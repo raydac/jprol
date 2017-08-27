@@ -15,71 +15,68 @@
  */
 package com.igormaznitsa.prol.easygui;
 
-import java.awt.Image;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.util.Locale;
 import java.util.regex.Pattern;
-import javax.imageio.ImageIO;
-import javax.swing.*;
 
 /**
  * Misc auxiliary methods for UI operations.
+ *
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public final class UIUtils {
-  private UIUtils(){
-    
-  }
-  
-  public static Pattern makePattern(final String str) {
-    if (str.isEmpty()) {
-      return null;
+    private UIUtils() {
+
     }
 
-    final StringBuilder buffer = new StringBuilder(str.length() << 1);
-
-    for (final char c : str.toCharArray()) {
-      if (Character.isLetter(c) || Character.isDigit(c)) {
-        buffer.append(c);
-      }
-      else {
-        if (Character.isWhitespace(c)) {
-          buffer.append("\\s");
+    public static Pattern makePattern(final String str) {
+        if (str.isEmpty()) {
+            return null;
         }
-        else {
-          switch (c) {
-            case '*':
-              buffer.append(".*");
-              break;
-            case '?':
-              buffer.append(".");
-              break;
-            default: {
-              final String ucode = Integer.toHexString(c).toUpperCase(Locale.ENGLISH);
-              buffer.append("\\u").append("0000".substring(4 - ucode.length())).append(ucode);
+
+        final StringBuilder buffer = new StringBuilder(str.length() << 1);
+
+        for (final char c : str.toCharArray()) {
+            if (Character.isLetter(c) || Character.isDigit(c)) {
+                buffer.append(c);
+            } else {
+                if (Character.isWhitespace(c)) {
+                    buffer.append("\\s");
+                } else {
+                    switch (c) {
+                        case '*':
+                            buffer.append(".*");
+                            break;
+                        case '?':
+                            buffer.append(".");
+                            break;
+                        default: {
+                            final String ucode = Integer.toHexString(c).toUpperCase(Locale.ENGLISH);
+                            buffer.append("\\u").append("0000".substring(4 - ucode.length())).append(ucode);
+                        }
+                        break;
+                    }
+                }
             }
-            break;
-          }
         }
-      }
+        return Pattern.compile(buffer.toString(), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
     }
-    return Pattern.compile(buffer.toString(), Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-  }
 
-  
-  
-  public static ImageIcon loadIcon(final String name) {
-    try {
-      final InputStream inStream = UIUtils.class.getClassLoader().getResourceAsStream("com/igormaznitsa/prol/easygui/icons/" + name + ".png");
-      final Image img = ImageIO.read(inStream);
-      inStream.close();
-      return new ImageIcon(img);
+
+    public static ImageIcon loadIcon(final String name) {
+        try {
+            final InputStream inStream = UIUtils.class.getClassLoader().getResourceAsStream("com/igormaznitsa/prol/easygui/icons/" + name + ".png");
+            final Image img = ImageIO.read(inStream);
+            inStream.close();
+            return new ImageIcon(img);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return new ImageIcon(new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB));
+        }
     }
-    catch (Exception ex) {
-      ex.printStackTrace();
-      return new ImageIcon(new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB));
-    }
-  }
 
 }

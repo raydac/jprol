@@ -16,6 +16,7 @@
 package com.igormaznitsa.prol.containers;
 
 import com.igormaznitsa.prol.data.TermStruct;
+
 import java.util.Iterator;
 
 /**
@@ -27,8 +28,8 @@ import java.util.Iterator;
  */
 public interface ClauseIterator extends Iterator<TermStruct> {
 
-  /**
-   * Cut all next variants in the iterator
-   */
-  public void cut();
+    /**
+     * Cut all next variants in the iterator
+     */
+    void cut();
 }

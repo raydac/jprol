@@ -16,6 +16,7 @@
 package com.igormaznitsa.prol.io;
 
 import com.igormaznitsa.prol.data.Term;
+
 import java.io.IOException;
 
 /**
@@ -25,38 +26,38 @@ import java.io.IOException;
  */
 public interface ProlTextWriter {
 
-  /**
-   * Write a term into the writer
-   *
-   * @param term the term to be written, must not be null
-   * @throws IOException it will be thrown if there is any transport error
-   * during the operation
-   */
-  public void writeTerm(final Term term) throws IOException;
+    /**
+     * Write a term into the writer
+     *
+     * @param term the term to be written, must not be null
+     * @throws IOException it will be thrown if there is any transport error
+     *                     during the operation
+     */
+    void writeTerm(final Term term) throws IOException;
 
-  /**
-   * Write a char into the writer, it can be Term (then we write the first
-   * symbol of the string representation or a Numeric term so we write the char
-   * code)
-   *
-   * @param term the term describes a char, a Term object or a Numeri term
-   * @throws IOException it will be thrown if there is any transport error
-   * during the operation
-   */
-  public void writeChar(final Term term) throws IOException;
+    /**
+     * Write a char into the writer, it can be Term (then we write the first
+     * symbol of the string representation or a Numeric term so we write the char
+     * code)
+     *
+     * @param term the term describes a char, a Term object or a Numeri term
+     * @throws IOException it will be thrown if there is any transport error
+     *                     during the operation
+     */
+    void writeChar(final Term term) throws IOException;
 
-  /**
-   * Get the writer resource id
-   *
-   * @return the writer resource id as a String object
-   */
-  public String getResourceId();
+    /**
+     * Get the writer resource id
+     *
+     * @return the writer resource id as a String object
+     */
+    String getResourceId();
 
-  /**
-   * Close the writer
-   *
-   * @throws IOException it will be thrown if there is any transport error
-   * during the operation
-   */
-  public void close() throws IOException;
+    /**
+     * Close the writer
+     *
+     * @throws IOException it will be thrown if there is any transport error
+     *                     during the operation
+     */
+    void close() throws IOException;
 }

@@ -49,29 +49,29 @@ import java.lang.annotation.Target;
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface Predicate {
 
-  /**
-   * The signature of the predicate (as examples "+/2","nl/0","=../3". It must
-   * be defined
-   *
-   * @return the signature as string
-   */
-  String Signature();
+    /**
+     * The signature of the predicate (as examples "+/2","nl/0","=../3". It must
+     * be defined
+     *
+     * @return the signature as string
+     */
+    String Signature();
 
-  /**
-   * The template of the predicate. It uses ISO definitions (+.?,@,-) and types
-   * from PredicateTemplate without TYPE_ prefix and in low case (atomic =
-   * TYPE_ATOMIC)
-   *
-   * @return string array of possible states, it can be empty (example
-   * "@evaluable,@evaluable", "-nonvar,+non_empty_list")
-   * @see com.igormaznitsa.prol.libraries.PredicateTemplate
-   */
-  String[] Template() default {};
+    /**
+     * The template of the predicate. It uses ISO definitions (+.?,@,-) and types
+     * from PredicateTemplate without TYPE_ prefix and in low case (atomic =
+     * TYPE_ATOMIC)
+     *
+     * @return string array of possible states, it can be empty (example
+     * "@evaluable,@evaluable", "-nonvar,+non_empty_list")
+     * @see com.igormaznitsa.prol.libraries.PredicateTemplate
+     */
+    String[] Template() default {};
 
-  /**
-   * The field can have reference of the predicate. Default it is empty.
-   *
-   * @return the reference of the predicate as String, default it is empty ("")
-   */
-  String Reference() default "";
+    /**
+     * The field can have reference of the predicate. Default it is empty.
+     *
+     * @return the reference of the predicate as String, default it is empty ("")
+     */
+    String Reference() default "";
 }

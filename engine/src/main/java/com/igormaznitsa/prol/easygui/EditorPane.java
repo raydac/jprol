@@ -15,8 +15,9 @@
  */
 package com.igormaznitsa.prol.easygui;
 
-import java.awt.event.*;
 import javax.swing.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 /**
  * The class implements the Editor pane for the IDE.
@@ -25,58 +26,55 @@ import javax.swing.*;
  */
 public class EditorPane extends JTextPane {
 
-  private static final long serialVersionUID = 2384993058573194751L;
+    private static final long serialVersionUID = 2384993058573194751L;
+    private volatile JPopupMenu popupMenu;
+    private volatile EventReplacer replacer;
+    public EditorPane() {
+        super();
 
-  public interface EventReplacer {
-    public void pasteEvent();
-  }
-  
-  private volatile JPopupMenu popupMenu;
-  private volatile EventReplacer replacer;
+        addMouseListener(new MouseAdapter() {
 
-  public void setEventReplacer(final EventReplacer replacer) {
-    this.replacer = replacer;
-  }
+            @Override
+            public void mousePressed(MouseEvent e) {
+                showMenuIfPopupTrigger(e);
+            }
 
-  public EditorPane() {
-    super();
-
-    addMouseListener(new MouseAdapter() {
-
-      @Override
-      public void mousePressed(MouseEvent e) {
-        showMenuIfPopupTrigger(e);
-      }
-
-      @Override
-      public void mouseReleased(MouseEvent e) {
-        showMenuIfPopupTrigger(e);
-      }
-    });
-  }
-
-  public void setPopupMenu(final JPopupMenu menu){
-    this.popupMenu = menu;
-  }
-  
-  private void showMenuIfPopupTrigger(final MouseEvent e) {
-    final JPopupMenu thePopup = this.popupMenu;
-    
-    if (thePopup == null) {
-      return;
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                showMenuIfPopupTrigger(e);
+            }
+        });
     }
-    if (e.isPopupTrigger()) {
-      thePopup.show(this, e.getX() + 3, e.getY() + 3);
-    }
-  }
 
-  @Override
-  public void paste() {
-    if (replacer == null) {
-      super.paste();
+    public void setEventReplacer(final EventReplacer replacer) {
+        this.replacer = replacer;
     }
-    else {
-      replacer.pasteEvent();
+
+    public void setPopupMenu(final JPopupMenu menu) {
+        this.popupMenu = menu;
     }
-  }
+
+    private void showMenuIfPopupTrigger(final MouseEvent e) {
+        final JPopupMenu thePopup = this.popupMenu;
+
+        if (thePopup == null) {
+            return;
+        }
+        if (e.isPopupTrigger()) {
+            thePopup.show(this, e.getX() + 3, e.getY() + 3);
+        }
+    }
+
+    @Override
+    public void paste() {
+        if (replacer == null) {
+            super.paste();
+        } else {
+            replacer.pasteEvent();
+        }
+    }
+
+    public interface EventReplacer {
+        void pasteEvent();
+    }
 }

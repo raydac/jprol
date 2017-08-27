@@ -29,26 +29,26 @@ import java.lang.annotation.Target;
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface ProlOperator {
 
-  /**
-   * The priority of the operator from 0 to 1200, remember 1200 priority is less
-   * than 1199
-   *
-   * @return the operator priority as integer value between 0 and 1200
-   */
-  int Priority();
+    /**
+     * The priority of the operator from 0 to 1200, remember 1200 priority is less
+     * than 1199
+     *
+     * @return the operator priority as integer value between 0 and 1200
+     */
+    int Priority();
 
-  /**
-   * The operator type [xfx,yfx,xfy,xf,yf,fx,fy]
-   *
-   * @return the operator type value
-   * @see com.igormaznitsa.prol.data.Operator
-   */
-  int Type();
+    /**
+     * The operator type [xfx,yfx,xfy,xf,yf,fx,fy]
+     *
+     * @return the operator type value
+     * @see com.igormaznitsa.prol.data.Operator
+     */
+    int Type();
 
-  /**
-   * The name of the operator
-   *
-   * @return the name of the operator as String must not be null and have spaces
-   */
-  String Name();
+    /**
+     * The name of the operator
+     *
+     * @return the name of the operator as String must not be null and have spaces
+     */
+    String Name();
 }

@@ -15,42 +15,41 @@ import org.junit.Test;
 @Ignore
 public class DeepStackTest extends TestCase {
 
-  private TermList makeList(final int depth) throws Exception {
-    final ProlContext context = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
-    final ProlConsult consult = new ProlConsult("depth(0,[]):-!.depth(X,R):-X1 is X-1, depth(X1,R2), R=[X|R2].", context);
-    consult.consult();
-    final String goalText = "depth(" + depth + ", R).";
-    final Goal goal = new Goal(goalText, context);
-    final Term resultterm = goal.solve();
-    assertNotNull(resultterm);
-    final TermList result = (TermList) goal.getVarForName("R").getValue();
-    return result;
-  }
+    private TermList makeList(final int depth) throws Exception {
+        final ProlContext context = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
+        final ProlConsult consult = new ProlConsult("depth(0,[]):-!.depth(X,R):-X1 is X-1, depth(X1,R2), R=[X|R2].", context);
+        consult.consult();
+        final String goalText = "depth(" + depth + ", R).";
+        final Goal goal = new Goal(goalText, context);
+        final Term resultterm = goal.solve();
+        assertNotNull(resultterm);
+        final TermList result = (TermList) goal.getVarForName("R").getValue();
+        return result;
+    }
 
-  private boolean checkList(int depth, TermList list) {
-    TermList cList = list;
-    while (!cList.isNullList()) {
-      final TermInteger intterm = (TermInteger) Utils.getTermFromElement(cList.getHead());
-      if (depth != intterm.getValue()) {
-        return false;
-      }
-      depth--;
-      cList = (TermList) Utils.getTermFromElement(cList.getTail());
+    private boolean checkList(int depth, TermList list) {
+        TermList cList = list;
+        while (!cList.isNullList()) {
+            final TermInteger intterm = (TermInteger) Utils.getTermFromElement(cList.getHead());
+            if (depth != intterm.getValue()) {
+                return false;
+            }
+            depth--;
+            cList = (TermList) Utils.getTermFromElement(cList.getTail());
+        }
+        return true;
     }
-    return true;
-  }
 
-  @Test
-  public void testDeepStack() {
-    try {
-      final int DEPTH = 100000;
-      final TermList result = makeList(DEPTH);
-      assertNotNull(result);
-      assertTrue(checkList(DEPTH, result));
+    @Test
+    public void testDeepStack() {
+        try {
+            final int DEPTH = 100000;
+            final TermList result = makeList(DEPTH);
+            assertNotNull(result);
+            assertTrue(checkList(DEPTH, result));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            fail();
+        }
     }
-    catch (Exception ex) {
-      ex.printStackTrace();
-      fail();
-    }
-  }
 }

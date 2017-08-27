@@ -27,82 +27,80 @@ import com.igormaznitsa.prol.data.TermStruct;
  * @see com.igormaznitsa.prol.exceptions.ProlException
  */
 public abstract class ProlAbstractCatcheableException extends ProlException {
-  private static final long serialVersionUID = 6911111912695145529L;
+    /**
+     * The term should be used for any undefined parameter of an exception
+     */
+    public static final Term UNDEFINED = new Term("<undefined>");
+    private static final long serialVersionUID = 6911111912695145529L;
+    /**
+     * The term which is the culprit for the exception
+     */
+    private final Term culprit;
 
-  /**
-   * The term should be used for any undefined parameter of an exception
-   */
-  public static final Term UNDEFINED = new Term("<undefined>");
+    /**
+     * A constructor
+     *
+     * @param culprit the term culprit for the exception
+     */
+    public ProlAbstractCatcheableException(final Term culprit) {
+        this.culprit = culprit;
+    }
 
-  /**
-   * The term which is the culprit for the exception
-   */
-  private final Term culprit;
+    /**
+     * A constructor
+     *
+     * @param message The message describes the cause of the exception
+     * @param culprit the term culprit for the exception
+     */
+    public ProlAbstractCatcheableException(final String message, final Term culprit) {
+        super(message);
+        this.culprit = culprit;
+    }
 
-  /**
-   * Get the term culprit of the exception
-   *
-   * @return the term is being the culprit for the exception, it can be null
-   */
-  public Term getCulprit() {
-    return culprit;
-  }
+    /**
+     * A constructor
+     *
+     * @param message The message describes the cause of the exception
+     * @param culprit the term culprit for the exception
+     * @param cause   the cause exception
+     */
+    public ProlAbstractCatcheableException(final String message, final Term culprit, final Throwable cause) {
+        super(message, cause);
+        this.culprit = culprit;
+    }
 
-  /**
-   * A constructor
-   *
-   * @param culprit the term culprit for the exception
-   */
-  public ProlAbstractCatcheableException(final Term culprit) {
-    this.culprit = culprit;
-  }
+    /**
+     * A constructor
+     *
+     * @param culprit the term culprit for the exception
+     * @param cause   the cause exception
+     */
+    public ProlAbstractCatcheableException(final Term culprit, final Throwable cause) {
+        super(cause);
+        this.culprit = culprit;
+    }
 
-  /**
-   * A constructor
-   *
-   * @param message The message describes the cause of the exception
-   * @param culprit the term culprit for the exception
-   */
-  public ProlAbstractCatcheableException(final String message, final Term culprit) {
-    super(message);
-    this.culprit = culprit;
-  }
+    /**
+     * Get the term culprit of the exception
+     *
+     * @return the term is being the culprit for the exception, it can be null
+     */
+    public Term getCulprit() {
+        return culprit;
+    }
 
-  /**
-   * A constructor
-   *
-   * @param message The message describes the cause of the exception
-   * @param culprit the term culprit for the exception
-   * @param cause the cause exception
-   */
-  public ProlAbstractCatcheableException(final String message, final Term culprit, final Throwable cause) {
-    super(message, cause);
-    this.culprit = culprit;
-  }
+    /**
+     * Get the functor of the error structure describes the exception in a prol
+     * engine
+     *
+     * @return the functor as a Term, must not be null
+     */
+    public abstract Term getFunctorForErrorStruct();
 
-  /**
-   * A constructor
-   *
-   * @param culprit the term culprit for the exception
-   * @param cause the cause exception
-   */
-  public ProlAbstractCatcheableException(final Term culprit, final Throwable cause) {
-    super(cause);
-    this.culprit = culprit;
-  }
-
-  /**
-   * Get the functor of the error structure describes the exception in a prol
-   * engine
-   *
-   * @return the functor as a Term, must not be null
-   */
-  public abstract Term getFunctorForErrorStruct();
-
-  /**
-   * Get the structure describes the exception in a prol engine
-   *
-   * @return the structure as a TermStruct object, must not be null
-   */
-  public abstract TermStruct getAsStruct();
+    /**
+     * Get the structure describes the exception in a prol engine
+     *
+     * @return the structure as a TermStruct object, must not be null
+     */
+    public abstract TermStruct getAsStruct();
 }

@@ -17,6 +17,7 @@ package com.igormaznitsa.prol.io;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermInteger;
+
 import java.io.IOException;
 
 /**
@@ -27,47 +28,47 @@ import java.io.IOException;
  */
 public interface ProlTextReader {
 
-  /**
-   * Read the next token
-   *
-   * @return the next token or the END_OF_FILE term if the stream end has been
-   * reached
-   * @throws IOException it will be thrown if there is any transport error
-   * during the operation
-   */
-  public Term readToken() throws IOException;
+    /**
+     * Read the next token
+     *
+     * @return the next token or the END_OF_FILE term if the stream end has been
+     * reached
+     * @throws IOException it will be thrown if there is any transport error
+     *                     during the operation
+     */
+    Term readToken() throws IOException;
 
-  /**
-   * Read the next term (dot ended)
-   *
-   * @return the next term or the END_OF_FILE term if the stream end has been
-   * reached
-   * @throws IOException it will be thrown if there is any transport or logical
-   * error during the operation
-   */
-  public Term readTerm() throws IOException;
+    /**
+     * Read the next term (dot ended)
+     *
+     * @return the next term or the END_OF_FILE term if the stream end has been
+     * reached
+     * @throws IOException it will be thrown if there is any transport or logical
+     *                     error during the operation
+     */
+    Term readTerm() throws IOException;
 
-  /**
-   * Read the next char code as a TermInteger
-   *
-   * @return the next char code or -1 if the stream end has been reached
-   * @throws IOException it will be thrown if there is any transport or logical
-   * error during the operation
-   */
-  public TermInteger readChar() throws IOException;
+    /**
+     * Read the next char code as a TermInteger
+     *
+     * @return the next char code or -1 if the stream end has been reached
+     * @throws IOException it will be thrown if there is any transport or logical
+     *                     error during the operation
+     */
+    TermInteger readChar() throws IOException;
 
-  /**
-   * Get the resource id for the reader
-   *
-   * @return the resource id as a String object
-   */
-  public String getResourceId();
+    /**
+     * Get the resource id for the reader
+     *
+     * @return the resource id as a String object
+     */
+    String getResourceId();
 
-  /**
-   * Close the reader
-   *
-   * @throws IOException it will be thrown if there is any error during the
-   * operation
-   */
-  public void close() throws IOException;
+    /**
+     * Close the reader
+     *
+     * @throws IOException it will be thrown if there is any error during the
+     *                     operation
+     */
+    void close() throws IOException;
 }

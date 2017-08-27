@@ -16,8 +16,8 @@
 package com.igormaznitsa.prol.parser;
 
 import com.igormaznitsa.prol.containers.KnowledgeBase;
-import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.Operator;
+import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.data.Var;
 import com.igormaznitsa.prol.exceptions.ParserException;
@@ -25,6 +25,7 @@ import com.igormaznitsa.prol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.prol.exceptions.ProlKnowledgeBaseException;
 import com.igormaznitsa.prol.logic.Goal;
 import com.igormaznitsa.prol.logic.ProlContext;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -46,324 +47,317 @@ import java.util.logging.Logger;
  */
 public class ProlConsult {
 
-  /**
-   * Inside logger for the library, as the logger name the canonical class name
-   * is used (ProlConsult.class.getCanonicalName())
-   */
-  private static final Logger LOG = Logger.getLogger(ProlConsult.class.getCanonicalName());
-  /**
-   * The variable contains reader to read data from a resource
-   */
-  private final ProlReader reader;
-  /**
-   * The context bounding the consult object
-   */
-  private final ProlContext context;
-  /**
-   * The knowledge base from the context will be saved here for speed
-   */
-  private final KnowledgeBase base;
+    /**
+     * Inside logger for the library, as the logger name the canonical class name
+     * is used (ProlConsult.class.getCanonicalName())
+     */
+    private static final Logger LOG = Logger.getLogger(ProlConsult.class.getCanonicalName());
+    /**
+     * The variable contains reader to read data from a resource
+     */
+    private final ProlReader reader;
+    /**
+     * The context bounding the consult object
+     */
+    private final ProlContext context;
+    /**
+     * The knowledge base from the context will be saved here for speed
+     */
+    private final KnowledgeBase base;
 
-  /**
-   * A constructor allows to create consult object without read operations
-   *
-   * @param context the context for the consult object, must not be null
-   */
-  public ProlConsult(final ProlContext context) {
-    this((ProlReader) null, context);
-  }
-
-  /**
-   * A constructor allows to make consulting from a String object
-   *
-   * @param string the string object to be consulted, must not be null
-   * @param context the context for the consult object, must not be null
-   */
-  public ProlConsult(final String string, final ProlContext context) {
-    this(new ProlReader(string), context);
-  }
-
-  /**
-   * A constructor allows to make consulting from an input stream
-   *
-   * @param in the input stream to be the source for the consulting, must not be
-   * null
-   * @param context the context for the consult object, must not be null
-   */
-  public ProlConsult(final InputStream in, final ProlContext context) {
-    this(new ProlReader(in), context);
-  }
-
-  /**
-   * A constructor allows to make consulting from a reader
-   *
-   * @param reader the reader to be the source for the consulting, must not be
-   * null
-   * @param context the context for the consult object, must not be null
-   */
-  public ProlConsult(final Reader reader, final ProlContext context) {
-    this(new ProlReader(reader), context);
-  }
-
-  /**
-   * A constructor allows to make consulting from a prol reader
-   *
-   * @param reader the prol reader to be the source for the consulting, must not
-   * be null
-   * @param context the context for the consult object, must not be null
-   */
-  public ProlConsult(final ProlReader reader, final ProlContext context) {
-    this.reader = reader;
-    this.context = context;
-    this.base = context.getKnowledgeBase();
-  }
-
-  /**
-   * To consult for defined input source (if it presented)
-   *
-   * @throws IOException will be thrown if there will be any erro during a
-   * transport operation
-   */
-  public void consult() throws IOException {
-    if (this.reader == null) {
-      return;
+    /**
+     * A constructor allows to create consult object without read operations
+     *
+     * @param context the context for the consult object, must not be null
+     */
+    public ProlConsult(final ProlContext context) {
+        this((ProlReader) null, context);
     }
 
-    final ProlTreeBuilder treeBuilder = new ProlTreeBuilder(context);
-    final ProlTokenizer tokenizer = new ProlTokenizer();
+    /**
+     * A constructor allows to make consulting from a String object
+     *
+     * @param string  the string object to be consulted, must not be null
+     * @param context the context for the consult object, must not be null
+     */
+    public ProlConsult(final String string, final ProlContext context) {
+        this(new ProlReader(string), context);
+    }
 
-    final Thread thisthread = Thread.currentThread();
+    /**
+     * A constructor allows to make consulting from an input stream
+     *
+     * @param in      the input stream to be the source for the consulting, must not be
+     *                null
+     * @param context the context for the consult object, must not be null
+     */
+    public ProlConsult(final InputStream in, final ProlContext context) {
+        this(new ProlReader(in), context);
+    }
 
-    while (!thisthread.isInterrupted()) {
+    /**
+     * A constructor allows to make consulting from a reader
+     *
+     * @param reader  the reader to be the source for the consulting, must not be
+     *                null
+     * @param context the context for the consult object, must not be null
+     */
+    public ProlConsult(final Reader reader, final ProlContext context) {
+        this(new ProlReader(reader), context);
+    }
 
-      final Term nextItem = treeBuilder.readPhraseAndMakeTree(tokenizer, reader);
-      if (nextItem == null) {
-        break;
-      }
+    /**
+     * A constructor allows to make consulting from a prol reader
+     *
+     * @param reader  the prol reader to be the source for the consulting, must not
+     *                be null
+     * @param context the context for the consult object, must not be null
+     */
+    public ProlConsult(final ProlReader reader, final ProlContext context) {
+        this.reader = reader;
+        this.context = context;
+        this.base = context.getKnowledgeBase();
+    }
 
-      final int line = tokenizer.getLastTokenLineNum();
-      final int strpos = tokenizer.getLastTokenStrPos();
+    /**
+     * To consult for defined input source (if it presented)
+     *
+     * @throws IOException will be thrown if there will be any erro during a
+     *                     transport operation
+     */
+    public void consult() throws IOException {
+        if (this.reader == null) {
+            return;
+        }
 
-      try {
-        switch (nextItem.getTermType()) {
-          case Term.TYPE_ATOM: {
-            base.assertZ(new TermStruct(nextItem));
-          }
-          break;
-          case Term.TYPE_STRUCT: {
-            final TermStruct struct = (TermStruct) nextItem;
-            final Term functor = struct.getFunctor();
+        final ProlTreeBuilder treeBuilder = new ProlTreeBuilder(context);
+        final ProlTokenizer tokenizer = new ProlTokenizer();
 
-            switch (functor.getTermType()) {
-              case Term.TYPE_OPERATOR: {
-                final Operator op = (Operator) functor;
-                final String text = op.getText();
-                final int type = op.getOperatorType();
+        final Thread thisthread = Thread.currentThread();
 
-                if (struct.isFunctorLikeRuleDefinition()) {
-                  switch (type) {
-                    case Operator.OPTYPE_XFX: {
-                      // new rule
-                      base.assertZ(struct);
-                    }
-                    break;
-                    case Operator.OPTYPE_FX: {
-                      // directive
-                      if (!processDirective(struct.getElement(0))) {
-                        throw new ProlHaltExecutionException(2);
-                      }
-                    }
-                    break;
-                  }
+        while (!thisthread.isInterrupted()) {
 
-                }
-                else if ("?-".equals(text)) {
-                  // goal
-                  final Reader userreader = context.getStreamManager().getReaderForResource("user");
-                  final Writer userwriter = context.getStreamManager().getWriterForResource("user", true);
-
-                  final Term termGoal = struct.getElement(0);
-
-                  if (userwriter != null) {
-                    userwriter.write("Goal: ");
-                    userwriter.write(termGoal.forWrite());
-                    userwriter.write("\r\n");
-                  }
-                  final Map<String, Var> varmap = new HashMap<String, Var>();
-                  int solutioncounter = 0;
-
-                  final Goal thisGoal = new Goal(termGoal, context, null);
-
-                  while (true) {
-                    varmap.clear();
-                    if (solveGoal(thisGoal, varmap)) {
-                      solutioncounter++;
-                      if (userwriter != null) {
-                        userwriter.write("\r\nYES\r\n");
-                        if (!varmap.isEmpty()) {
-                          for (Entry<String, Var> avar : varmap.entrySet()) {
-                            final String name = avar.getKey();
-                            final Var value = avar.getValue();
-                            userwriter.write(name);
-                            userwriter.write('=');
-                            if (value.isUndefined()) {
-                              userwriter.write("???\r\n");
-                            }
-                            else {
-                              userwriter.write(value.forWrite());
-                              userwriter.write("\r\n");
-                            }
-                            userwriter.flush();
-                          }
-                        }
-                      }
-                    }
-                    else {
-                      if (userwriter != null) {
-                        userwriter.write(solutioncounter + (solutioncounter > 1 ? " Solutions\r\n" : " Solution\r\n"));
-                        userwriter.write("\r\nNO\r\n");
-                      }
-                      break;
-                    }
-                    if (userwriter != null && userreader != null) {
-                      userwriter.append("Next solution? ");
-                      final int chr = userreader.read();
-                      if (chr < 0) {
-                        if (userwriter != null) {
-                          userwriter.append("    Can't get the key value, it is possible that execution was canceled.");
-                        }
-                        break;
-                      }
-                      else {
-                        if (chr == ';') {
-                          if (userwriter != null) {
-                            userwriter.append("\r\n");
-                          }
-                        }
-                        else {
-
-                          if (userwriter != null) {
-                            userwriter.write("\r\n" + solutioncounter + (solutioncounter > 1 ? " Solutions\r\n" : " Solution\r\n"));
-                            userwriter.append("Stopped by user");
-                          }
-                          break;
-                        }
-                      }
-                    }
-                  }
-                  if (userwriter != null) {
-                    userwriter.flush();
-                  }
-
-                  throw new ProlHaltExecutionException("Halted because goal failed.", 1);
-                }
-                else {
-                  base.assertZ(struct);
-                }
-              }
-              break;
-              default: {
-                base.assertZ(struct);
-              }
-              break;
+            final Term nextItem = treeBuilder.readPhraseAndMakeTree(tokenizer, reader);
+            if (nextItem == null) {
+                break;
             }
-          }
-          break;
-          default: {
-            throw new ProlKnowledgeBaseException("Such element can't be saved at knowledge base [" + nextItem + ']');
-          }
+
+            final int line = tokenizer.getLastTokenLineNum();
+            final int strpos = tokenizer.getLastTokenStrPos();
+
+            try {
+                switch (nextItem.getTermType()) {
+                    case Term.TYPE_ATOM: {
+                        base.assertZ(new TermStruct(nextItem));
+                    }
+                    break;
+                    case Term.TYPE_STRUCT: {
+                        final TermStruct struct = (TermStruct) nextItem;
+                        final Term functor = struct.getFunctor();
+
+                        switch (functor.getTermType()) {
+                            case Term.TYPE_OPERATOR: {
+                                final Operator op = (Operator) functor;
+                                final String text = op.getText();
+                                final int type = op.getOperatorType();
+
+                                if (struct.isFunctorLikeRuleDefinition()) {
+                                    switch (type) {
+                                        case Operator.OPTYPE_XFX: {
+                                            // new rule
+                                            base.assertZ(struct);
+                                        }
+                                        break;
+                                        case Operator.OPTYPE_FX: {
+                                            // directive
+                                            if (!processDirective(struct.getElement(0))) {
+                                                throw new ProlHaltExecutionException(2);
+                                            }
+                                        }
+                                        break;
+                                    }
+
+                                } else if ("?-".equals(text)) {
+                                    // goal
+                                    final Reader userreader = context.getStreamManager().getReaderForResource("user");
+                                    final Writer userwriter = context.getStreamManager().getWriterForResource("user", true);
+
+                                    final Term termGoal = struct.getElement(0);
+
+                                    if (userwriter != null) {
+                                        userwriter.write("Goal: ");
+                                        userwriter.write(termGoal.forWrite());
+                                        userwriter.write("\r\n");
+                                    }
+                                    final Map<String, Var> varmap = new HashMap<String, Var>();
+                                    int solutioncounter = 0;
+
+                                    final Goal thisGoal = new Goal(termGoal, context, null);
+
+                                    while (true) {
+                                        varmap.clear();
+                                        if (solveGoal(thisGoal, varmap)) {
+                                            solutioncounter++;
+                                            if (userwriter != null) {
+                                                userwriter.write("\r\nYES\r\n");
+                                                if (!varmap.isEmpty()) {
+                                                    for (Entry<String, Var> avar : varmap.entrySet()) {
+                                                        final String name = avar.getKey();
+                                                        final Var value = avar.getValue();
+                                                        userwriter.write(name);
+                                                        userwriter.write('=');
+                                                        if (value.isUndefined()) {
+                                                            userwriter.write("???\r\n");
+                                                        } else {
+                                                            userwriter.write(value.forWrite());
+                                                            userwriter.write("\r\n");
+                                                        }
+                                                        userwriter.flush();
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            if (userwriter != null) {
+                                                userwriter.write(solutioncounter + (solutioncounter > 1 ? " Solutions\r\n" : " Solution\r\n"));
+                                                userwriter.write("\r\nNO\r\n");
+                                            }
+                                            break;
+                                        }
+                                        if (userwriter != null && userreader != null) {
+                                            userwriter.append("Next solution? ");
+                                            final int chr = userreader.read();
+                                            if (chr < 0) {
+                                                if (userwriter != null) {
+                                                    userwriter.append("    Can't get the key value, it is possible that execution was canceled.");
+                                                }
+                                                break;
+                                            } else {
+                                                if (chr == ';') {
+                                                    if (userwriter != null) {
+                                                        userwriter.append("\r\n");
+                                                    }
+                                                } else {
+
+                                                    if (userwriter != null) {
+                                                        userwriter.write("\r\n" + solutioncounter + (solutioncounter > 1 ? " Solutions\r\n" : " Solution\r\n"));
+                                                        userwriter.append("Stopped by user");
+                                                    }
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (userwriter != null) {
+                                        userwriter.flush();
+                                    }
+
+                                    throw new ProlHaltExecutionException("Halted because goal failed.", 1);
+                                } else {
+                                    base.assertZ(struct);
+                                }
+                            }
+                            break;
+                            default: {
+                                base.assertZ(struct);
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                    default: {
+                        throw new ProlKnowledgeBaseException("Such element can't be saved at knowledge base [" + nextItem + ']');
+                    }
+                }
+            } catch (Throwable ex) {
+                LOG.log(Level.SEVERE, "consult()", ex);
+                if (ex instanceof ThreadDeath) {
+                    throw (ThreadDeath) ex;
+                }
+                //context.halt();
+
+                throw new ParserException(ex.getMessage(), line, strpos, ex);
+            }
         }
-      }
-      catch (Throwable ex) {
-        LOG.log(Level.SEVERE, "consult()", ex);
-        if (ex instanceof ThreadDeath) {
-          throw (ThreadDeath) ex;
+    }
+
+    /**
+     * Solve a goal for the context and fill the table by variables of the goal,
+     * it finds the first solution for the goal if the var table is null
+     *
+     * @param goal     the goal to be solved must not be null
+     * @param varTable the table to be filled by variables, can be null if you
+     *                 don't need it
+     * @return true if the goal was solved, else false because the goal was not
+     * solved
+     * @throws IOException          it will be thrown if there will be any problem to parse
+     *                              goal
+     * @throws InterruptedException it will be thrown if the thread has been
+     *                              interrupted
+     */
+    public boolean processGoal(final String goal, final Map<String, Var> varTable) throws IOException, InterruptedException {
+        final ProlTreeBuilder treebuilder = new ProlTreeBuilder(context);
+        final Term term = treebuilder.readPhraseAndMakeTree(goal);
+        return processGoal(term, varTable);
+    }
+
+    /**
+     * Solve a goal (presented as term) for the context and fill the table by
+     * variables of the goal, it finds the first solution for the goal if the var
+     * table is null
+     *
+     * @param goalterm the goal to be solved must not be null
+     * @param varTable the table to be filled by variables, can be null if you
+     *                 don't need it
+     * @return true if the goal was solved, else false because the goal was not
+     * solved
+     * @throws InterruptedException it will be thrown if the thread has been
+     *                              interrupted
+     */
+    public boolean processGoal(final Term goalterm, final Map<String, Var> varTable) throws InterruptedException {
+        final Goal goal = new Goal(goalterm, context, null);
+
+        Term result = goal.solve();
+
+        if (result != null && varTable != null) {
+            result.fillVarables(varTable);
         }
-        //context.halt();
 
-        throw new ParserException(ex.getMessage(), line, strpos, ex);
-      }
-    }
-  }
-
-  /**
-   * Solve a goal for the context and fill the table by variables of the goal,
-   * it finds the first solution for the goal if the var table is null
-   *
-   * @param goal the goal to be solved must not be null
-   * @param varTable the table to be filled by variables, can be null if you
-   * don't need it
-   * @return true if the goal was solved, else false because the goal was not
-   * solved
-   * @throws IOException it will be thrown if there will be any problem to parse
-   * goal
-   * @throws InterruptedException it will be thrown if the thread has been
-   * interrupted
-   */
-  public boolean processGoal(final String goal, final Map<String, Var> varTable) throws IOException, InterruptedException {
-    final ProlTreeBuilder treebuilder = new ProlTreeBuilder(context);
-    final Term term = treebuilder.readPhraseAndMakeTree(goal);
-    return processGoal(term, varTable);
-  }
-
-  /**
-   * Solve a goal (presented as term) for the context and fill the table by
-   * variables of the goal, it finds the first solution for the goal if the var
-   * table is null
-   *
-   * @param goalterm the goal to be solved must not be null
-   * @param varTable the table to be filled by variables, can be null if you
-   * don't need it
-   * @return true if the goal was solved, else false because the goal was not
-   * solved
-   * @throws InterruptedException it will be thrown if the thread has been
-   * interrupted
-   */
-  public boolean processGoal(final Term goalterm, final Map<String, Var> varTable) throws InterruptedException {
-    final Goal goal = new Goal(goalterm, context, null);
-
-    Term result = goal.solve();
-
-    if (result != null && varTable != null) {
-      result.fillVarables(varTable);
+        return result != null;
     }
 
-    return result != null;
-  }
+    /**
+     * Inside function to get next solution of a goal and fill a hash map by its
+     * variables
+     *
+     * @param goal     the goal to get next solution, must not be null
+     * @param varTable a hash map which should be filled by variables from the
+     *                 goal, can be null
+     * @return true if there is a solution, else false
+     * @throws InterruptedException it will be thrown if the thread has been
+     *                              interruped
+     */
+    private boolean solveGoal(final Goal goal, final Map<String, Var> varTable) throws InterruptedException {
+        final Term result = goal.solve();
 
-  /**
-   * Inside function to get next solution of a goal and fill a hash map by its
-   * variables
-   *
-   * @param goal the goal to get next solution, must not be null
-   * @param varTable a hash map which should be filled by variables from the
-   * goal, can be null
-   * @return true if there is a solution, else false
-   * @throws InterruptedException it will be thrown if the thread has been
-   * interruped
-   */
-  private boolean solveGoal(final Goal goal, final Map<String, Var> varTable) throws InterruptedException {
-    final Term result = goal.solve();
+        if (result != null && varTable != null) {
+            result.fillVarables(varTable);
+        }
 
-    if (result != null && varTable != null) {
-      result.fillVarables(varTable);
+        return result != null;
     }
 
-    return result != null;
-  }
-
-  /**
-   * process directive from consulted stream (started from ':-'), it will be
-   * solved single time.
-   *
-   * @param directive the directive term, must not be null
-   * @return true true if the goal solved successfully, false if the goal failed
-   * @throws IOException it will be thrown if there is any problem with IO
-   * operations
-   * @throws InterruptedException it will be thrown if the goal is interrupted
-   */
-  private boolean processDirective(final Term directive) throws IOException, InterruptedException {
-    final Goal goal = new Goal(directive, context, null);
-    return goal.solve() != null;
-  }
+    /**
+     * process directive from consulted stream (started from ':-'), it will be
+     * solved single time.
+     *
+     * @param directive the directive term, must not be null
+     * @return true true if the goal solved successfully, false if the goal failed
+     * @throws IOException          it will be thrown if there is any problem with IO
+     *                              operations
+     * @throws InterruptedException it will be thrown if the goal is interrupted
+     */
+    private boolean processDirective(final Term directive) throws IOException, InterruptedException {
+        final Goal goal = new Goal(directive, context, null);
+        return goal.solve() != null;
+    }
 }

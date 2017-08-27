@@ -29,85 +29,85 @@ import com.igormaznitsa.prol.data.TermStruct;
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public class ProlEvaluationErrorException extends ProlAbstractCatcheableException {
-  private static final long serialVersionUID = -8773616695972049425L;
+    private static final long serialVersionUID = -8773616695972049425L;
 
-  /**
-   * The constant contains the value shared between all instances of the
-   * exception
-   */
-  private static final Term TERM_ERROR = new Term("evaluation_error");
+    /**
+     * The constant contains the value shared between all instances of the
+     * exception
+     */
+    private static final Term TERM_ERROR = new Term("evaluation_error");
 
-  /**
-   * The variable contains the string describes the error situation
-   */
-  private final String error;
+    /**
+     * The variable contains the string describes the error situation
+     */
+    private final String error;
 
-  /**
-   * A constructor
-   *
-   * @param error the error situation describer
-   * @param culprit the culprit term
-   * @param cause the throwable cause of the exception
-   */
-  public ProlEvaluationErrorException(final String error, final Term culprit, final Throwable cause) {
-    super(culprit, cause);
-    this.error = error;
-  }
+    /**
+     * A constructor
+     *
+     * @param error   the error situation describer
+     * @param culprit the culprit term
+     * @param cause   the throwable cause of the exception
+     */
+    public ProlEvaluationErrorException(final String error, final Term culprit, final Throwable cause) {
+        super(culprit, cause);
+        this.error = error;
+    }
 
-  /**
-   * A constructor
-   *
-   * @param error the error situation describer
-   * @param message a human situation describer
-   * @param culprit the culprit term
-   * @param cause the throwable cause of the exception
-   */
-  public ProlEvaluationErrorException(final String error, final String message, final Term culprit, final Throwable cause) {
-    super(message, culprit, cause);
-    this.error = error;
-  }
+    /**
+     * A constructor
+     *
+     * @param error   the error situation describer
+     * @param message a human situation describer
+     * @param culprit the culprit term
+     * @param cause   the throwable cause of the exception
+     */
+    public ProlEvaluationErrorException(final String error, final String message, final Term culprit, final Throwable cause) {
+        super(message, culprit, cause);
+        this.error = error;
+    }
 
-  /**
-   * A constructor
-   *
-   * @param error the error situation describer
-   * @param message a human situation describer
-   * @param culprit the culprit term
-   */
-  public ProlEvaluationErrorException(final String error, final String message, final Term culprit) {
-    super(message, culprit);
-    this.error = error;
-  }
+    /**
+     * A constructor
+     *
+     * @param error   the error situation describer
+     * @param message a human situation describer
+     * @param culprit the culprit term
+     */
+    public ProlEvaluationErrorException(final String error, final String message, final Term culprit) {
+        super(message, culprit);
+        this.error = error;
+    }
 
-  /**
-   * A constructor
-   *
-   * @param error the error situation describer
-   * @param culprit the culprit term
-   */
-  public ProlEvaluationErrorException(final String error, final Term culprit) {
-    super(culprit);
-    this.error = error;
-  }
+    /**
+     * A constructor
+     *
+     * @param error   the error situation describer
+     * @param culprit the culprit term
+     */
+    public ProlEvaluationErrorException(final String error, final Term culprit) {
+        super(culprit);
+        this.error = error;
+    }
 
-  /**
-   * Get the situation describer
-   *
-   * @return the situation describer as a String
-   */
-  public String getError() {
-    return this.error;
-  }
+    /**
+     * Get the situation describer
+     *
+     * @return the situation describer as a String
+     */
+    public String getError() {
+        return this.error;
+    }
 
-  @Override
-  public Term getFunctorForErrorStruct() {
-    return TERM_ERROR;
-  }
+    @Override
+    public Term getFunctorForErrorStruct() {
+        return TERM_ERROR;
+    }
 
-  @Override
-  public TermStruct getAsStruct() {
-    final TermStruct result = new TermStruct(TERM_ERROR, new Term[]{this.error == null ? UNDEFINED : new Term(this.error)});
-    result.setCarriedObject(this);
-    return result;
-  }
+    @Override
+    public TermStruct getAsStruct() {
+        final TermStruct result = new TermStruct(TERM_ERROR, new Term[]{this.error == null ? UNDEFINED : new Term(this.error)});
+        result.setCarriedObject(this);
+        return result;
+    }
 }

@@ -22,41 +22,41 @@ package com.igormaznitsa.prol.exceptions;
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public class ProlWrongGoalException extends ProlException {
-  private static final long serialVersionUID = 9055754857879445135L;
+    private static final long serialVersionUID = 9055754857879445135L;
 
-  /**
-   * A constructor
-   */
-  public ProlWrongGoalException() {
-    super();
-  }
+    /**
+     * A constructor
+     */
+    public ProlWrongGoalException() {
+        super();
+    }
 
-  /**
-   * A constructor
-   *
-   * @param message the text message describing the exception
-   */
-  public ProlWrongGoalException(final String message) {
-    super(message);
-  }
+    /**
+     * A constructor
+     *
+     * @param message the text message describing the exception
+     */
+    public ProlWrongGoalException(final String message) {
+        super(message);
+    }
 
-  /**
-   * A constructor
-   *
-   * @param message the text message describing the exception
-   * @param cause a java throwable object which is the cause of the exception
-   */
-  public ProlWrongGoalException(final String message, final Throwable cause) {
-    super(message, cause);
-  }
+    /**
+     * A constructor
+     *
+     * @param message the text message describing the exception
+     * @param cause   a java throwable object which is the cause of the exception
+     */
+    public ProlWrongGoalException(final String message, final Throwable cause) {
+        super(message, cause);
+    }
 
-  /**
-   * A constructor
-   *
-   * @param cause a java throwable object which is the cause of the exception
-   */
-  public ProlWrongGoalException(final Throwable cause) {
-    super(cause);
-  }
+    /**
+     * A constructor
+     *
+     * @param cause a java throwable object which is the cause of the exception
+     */
+    public ProlWrongGoalException(final Throwable cause) {
+        super(cause);
+    }
 
 }
