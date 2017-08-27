@@ -175,6 +175,7 @@
   </profiles>
 
   <build>
+    <defaultGoal>clean install</defaultGoal>
     <finalName>${app.name}</finalName>
     <plugins>
       <plugin>
