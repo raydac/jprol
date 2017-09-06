@@ -63,6 +63,17 @@ public final class TPrologPredicateLibrary extends ProlAbstractLibrary {
     return file.delete();
   }
 
+  @Predicate(Signature = "existfile/1", Template = {"+term"}, Reference = "Ceck that a file exists")
+  @Determined
+  public static boolean predicateExistFile(final Goal goal, final TermStruct predicate) {
+    final Term arg = Utils.getTermFromElement(predicate.getElement(0));
+
+    final String filePath = arg.getText();
+    final File file = new File(path, filePath);
+
+    return file.exists();
+  }
+
   @Predicate(Signature = "renamefile/2", Template = {"+term,+term"}, Reference = "Rename file")
   @Determined
   public static boolean predicateRenameFile(final Goal goal, final TermStruct predicate) {
