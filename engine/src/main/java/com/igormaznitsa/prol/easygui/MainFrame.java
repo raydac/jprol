@@ -1669,4 +1669,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
             messageEditor.addInfoText(text);
         }
     }
+    
+    public MessageEditor getMessageEditor() {
+      return this.messageEditor;
+    }
 }

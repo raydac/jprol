@@ -19,6 +19,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.Closeable;
 import java.io.InputStream;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -33,6 +34,15 @@ public final class UIUtils {
 
     }
 
+    public static void closeQuetly(final Closeable closeable) {
+      if (closeable!=null) {
+        try{
+          closeable.close();
+        }catch(Exception ex){
+        }
+      }
+    }
+    
     public static Pattern makePattern(final String str) {
         if (str.isEmpty()) {
             return null;
