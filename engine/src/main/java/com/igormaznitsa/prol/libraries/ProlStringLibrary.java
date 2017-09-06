@@ -88,6 +88,23 @@ public class ProlStringLibrary extends ProlAbstractLibrary {
         return argRight.Equ(result);
     }
 
+    @Predicate(Signature = "frontstr/4", Template = {"+integer,+atom,?atom,?atom"}, Reference = "Extracts the first n characters from a string.")
+    @Determined
+    public static final boolean predicateFRONTSTR(final Goal goal, final TermStruct predicate) {
+        final int numberOfChars = Utils.getNumberFromElement(predicate.getElement(0)).intValue();
+        final String str1 = Utils.getStringFromElement(predicate.getElement(1));
+        
+        if (numberOfChars > str1.length()) return false;
+        
+        final String fstr = str1.substring(0,numberOfChars);
+        final String rstr = str1.substring(numberOfChars);
+        
+        final Term frontStr = Utils.getTermFromElement(predicate.getElement(2));
+        final Term restStr = Utils.getTermFromElement(predicate.getElement(3));
+      
+        return frontStr.Equ(new Term(fstr)) && restStr.Equ(new Term(rstr));
+    }
+
     @Predicate(Signature = "upper_lower/2", Template = {"+atom,?atom", "?atom,+atom"}, Reference = "Allows to make upper or lower case text version of an atom.")
     @Determined
     public static final boolean predicateUPPERLOWER(final Goal goal, final TermStruct predicate) {
