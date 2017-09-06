@@ -30,6 +30,8 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import com.igormaznitsa.prol.easygui.MainFrame;
+import com.igormaznitsa.prol.easygui.MessageEditor;
 
 /**
  * The core class describes a prolog library contains predicates and operators.
@@ -125,6 +127,27 @@ public abstract class ProlAbstractLibrary {
         }
     }
 
+    protected static void msgError(final String msg) {
+      final MainFrame frame = MainFrame.MAIN_FRAME_INSTANCE.get();
+      if (frame!=null) {
+        frame.getMessageEditor().addErrorText(msg);
+      }
+    }
+    
+    protected static void msgInfo(final String msg) {
+      final MainFrame frame = MainFrame.MAIN_FRAME_INSTANCE.get();
+      if (frame!=null) {
+        frame.getMessageEditor().addInfoText(msg);
+      }
+    }
+    
+    protected static void msgWarn(final String msg) {
+      final MainFrame frame = MainFrame.MAIN_FRAME_INSTANCE.get();
+      if (frame!=null) {
+        frame.getMessageEditor().addWarningText(msg);
+      }
+    }
+    
     @Override
     public int hashCode() {
         return this.libraryUID.hashCode();
