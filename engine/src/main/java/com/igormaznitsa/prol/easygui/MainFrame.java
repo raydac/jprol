@@ -62,7 +62,7 @@ import java.util.regex.Pattern;
 public final class MainFrame extends javax.swing.JFrame implements ProlStreamManager, Runnable, UndoableEditListener, WindowListener, DocumentListener, HyperlinkListener, TraceListener {
 
     protected static final String PROL_EXTENSION = ".prl";
-    static final String[] PROL_LIBRARIES = new String[]{"com.igormaznitsa.prol.libraries.ProlGraphicLibrary", "com.igormaznitsa.prol.libraries.ProlStringLibrary"};
+    static final String[] PROL_LIBRARIES = new String[]{"com.igormaznitsa.prol.libraries.ProlGraphicLibrary", "com.igormaznitsa.prol.libraries.ProlStringLibrary", "com.igormaznitsa.prol.libraries.TPrologPredicateLibrary"};
     private static final long serialVersionUID = -3816861562325125649L;
     /**
      * Inside logger
@@ -103,7 +103,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     protected File lastOpenedFile;
     protected boolean documentHasBeenChangedFlag;
     protected volatile ProlContext lastContext;
-    // Variables declaration - do not modify//GEN-BEGIN:variables
+    // Variables declaration - do not modify                     
     private javax.swing.JButton buttonCloseFind;
     private javax.swing.JButton buttonStopExecuting;
     private com.igormaznitsa.prol.easygui.DialogEditor dialogEditor;
@@ -1070,7 +1070,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         this.lastContext = context;
         this.menuViewKnowledgeBase.setEnabled(lastContext != null);
     }
-    // End of variables declaration//GEN-END:variables
+    // End of variables declaration                   
 
     @Override
     public Reader getReaderForResource(String resourceName) throws IOException {
