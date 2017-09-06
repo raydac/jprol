@@ -2391,6 +2391,19 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
         }
     }
 
+    private TermInteger readChar(final Goal goal, final TermStruct predicate) {
+        final ProlTextReader outStream = goal.getContext().getCurrentInputStream();
+        if (outStream == null) {
+            throw new ProlPermissionErrorException("read", "text_input", predicate);
+        }
+
+        try {
+          return outStream.readChar();
+        } catch (IOException ex) {
+            throw new ProlPermissionErrorException("read", "text_input", predicate, ex);
+        }
+    }
+    
     private String readFromCurrentInputStreamUntilNL(final Goal goal, final TermStruct predicate) {
         final ProlTextReader outStream = goal.getContext().getCurrentInputStream();
         if (outStream == null) {
@@ -2463,6 +2476,15 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
                 return false;
             }
         }
+        return arg.Equ(term);
+    }
+
+    @Predicate(Signature = "readchar/1", Reference = " Read  char from the current input stream as an integer atom or the end_of_file atom")
+    @Determined
+    public final boolean predicateReadChar(final Goal goal, final TermStruct predicate) {
+        final Term arg = Utils.getTermFromElement(predicate.getElement(0));
+        final TermInteger value = readChar(goal, predicate);
+        Term term = value.getValue()<0 ? ProlStream.END_OF_FILE : value;
         return arg.Equ(term);
     }
 
