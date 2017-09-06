@@ -63,7 +63,7 @@ public final class TPrologPredicateLibrary extends ProlAbstractLibrary {
     return file.delete();
   }
 
-  @Predicate(Signature = "existfile/1", Template = {"+term"}, Reference = "Ceck that a file exists")
+  @Predicate(Signature = "existfile/1", Template = {"+term"}, Reference = "Ceck that a file exists in current directory")
   @Determined
   public static boolean predicateExistFile(final Goal goal, final TermStruct predicate) {
     final Term arg = Utils.getTermFromElement(predicate.getElement(0));
@@ -160,7 +160,7 @@ public final class TPrologPredicateLibrary extends ProlAbstractLibrary {
     }
   }
 
-  @Predicate(Signature = "save/1", Template = {"+term"}, Reference = "Save current dynamic data base")
+  @Predicate(Signature = "save/1", Template = {"+term"}, Reference = "Save current data base")
   @Determined
   public static boolean predicateSave(final Goal goal, final TermStruct predicate) {
     final Term arg = Utils.getTermFromElement(predicate.getElement(0));
