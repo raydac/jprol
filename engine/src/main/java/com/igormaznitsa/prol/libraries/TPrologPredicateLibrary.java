@@ -51,6 +51,34 @@ public final class TPrologPredicateLibrary extends ProlAbstractLibrary {
    */
   protected static final Logger LOG = Logger.getLogger(TPrologPredicateLibrary.class.getCanonicalName());
 
+
+  @Predicate(Signature = "file_str/2", Template = {"+term,?term"}, Reference = "Reads string from a file and transfers it to a variable, or creates a file and writes the string into the file.")
+  @Determined
+  public static boolean predicateFileStr(final Goal goal, final TermStruct predicate) {
+    final File file = new File(path, Utils.getTermFromElement(predicate.getElement(0)).getText());
+    final Term str = Utils.getTermFromElement(predicate.getElement(1));
+    
+    boolean result = false;
+    
+    if (str.getTermType() == Term.TYPE_VAR) {
+      if (file.isFile()) {
+        try{
+          result = str.Equ(new Term(UIUtils.readFileAsUTF8Str(file)));
+        }catch(IOException ex){
+          msgError("Can't read file '"+file+"' : "+ex.getMessage());
+        }
+      }
+    } else {
+        try{
+          UIUtils.writeFileAsUTF8Str(file, str.getText());
+          result = true;
+        }catch(IOException ex){
+          msgError("Can't write file '"+file+"' : "+ex.getMessage());
+        }
+    }
+    
+    return result;
+  }
   
   @Predicate(Signature = "deletefile/1", Template = {"+term"}, Reference = "Delete file for name")
   @Determined
