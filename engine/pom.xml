@@ -61,7 +61,12 @@
     </developer>
   </developers>
 
-  <dependencies>
+  <dependencies>    
+    <dependency>
+      <groupId>com.fifesoft</groupId>
+      <artifactId>rsyntaxtextarea</artifactId>
+      <version>2.6.1</version>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -78,7 +83,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-assembly-plugin</artifactId>
-            <version>2.6</version>
+            <version>3.1.0</version>
             <executions>
               <execution>
                 <id>make-linux</id>
@@ -111,7 +116,9 @@
               <diskImageInternetEnable>true</diskImageInternetEnable>
               <jvmVersion>1.6+</jvmVersion>
               <jvmOptions>
-                <opt>-Dprol.stack.depth=512m</opt>
+                <option>-XX:+IgnoreUnrecognizedVMOptions</option>
+                <option>-XaddExports:java.desktop/com.apple.eawt=ALL-UNNAMED</option>
+                <option>-Dprol.stack.depth=512m</option>
               </jvmOptions>
             </configuration>
             <executions>
@@ -181,7 +188,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-site-plugin</artifactId>
-        <version>3.4</version>
+        <version>3.6</version>
         <configuration>
           <reportPlugins>
             <plugin>
@@ -196,7 +203,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.5.1</version>
+        <version>3.7.0</version>
         <configuration>
           <compilerArgument>-Xlint:all</compilerArgument>
           <verbose>false</verbose>
@@ -210,7 +217,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>2.4.3</version>
+        <version>3.1.0</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -240,7 +247,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>animal-sniffer-maven-plugin</artifactId>
-        <version>1.15</version>
+        <version>1.16</version>
         <executions>
           <execution>
             <id>ensure-java-1.6-class-library</id>

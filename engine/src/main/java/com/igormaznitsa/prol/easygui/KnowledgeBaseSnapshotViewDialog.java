@@ -32,7 +32,7 @@ public class KnowledgeBaseSnapshotViewDialog extends javax.swing.JDialog {
     private static final long serialVersionUID = -4927120918645871928L;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton ButtonClose;
-    private com.wordpress.tips4java.TextLineNumber SnapshotViewer;
+    private com.igormaznitsa.prol.easygui.PrologSourceEditor SnapshotViewer;
 
     /**
      * Creates new form KnowledgeBaseSnapshotViewDialog
@@ -65,7 +65,7 @@ public class KnowledgeBaseSnapshotViewDialog extends javax.swing.JDialog {
     private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
-        SnapshotViewer = new com.wordpress.tips4java.TextLineNumber();
+        SnapshotViewer = new com.igormaznitsa.prol.easygui.PrologSourceEditor();
         ButtonClose = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);

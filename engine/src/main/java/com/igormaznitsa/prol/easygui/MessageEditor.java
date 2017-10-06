@@ -15,7 +15,6 @@
  */
 package com.igormaznitsa.prol.easygui;
 
-import javax.swing.event.HyperlinkListener;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import java.awt.*;
@@ -49,7 +48,7 @@ public class MessageEditor extends AbstractProlEditor {
         addPropertyToList(new PropertyLink(this, "Error color", "EdErrorColor"));
 
         setEnabled(false);
-        editor.setContentType("text/html");
+        setContentType("text/html");
 
         insideBuffer = "";
 
@@ -92,14 +91,6 @@ public class MessageEditor extends AbstractProlEditor {
     public void setEdErrorColor(final Color color) {
         clearText();
         StyleConstants.setForeground(ATTRSET_ERROR, color);
-    }
-
-    public void addHyperlinkListener(HyperlinkListener listener) {
-        editor.addHyperlinkListener(listener);
-    }
-
-    public void removeHypelinkListener(HyperlinkListener listener) {
-        editor.removeHyperlinkListener(listener);
     }
 
     public void addInfoText(String text) {

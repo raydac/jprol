@@ -18,6 +18,9 @@ package com.igormaznitsa.prol.easygui;
 import javax.swing.*;
 import java.io.File;
 import java.io.FileNotFoundException;
+import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
+import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
+import com.igormaznitsa.prol.easygui.tokenizer.JProlTokenMaker;
 
 /**
  * The main class which starts the IDE
@@ -32,8 +35,10 @@ public class main {
      * @param args if the array contains as minimum singe element, the elements
      *             will be used as the file name to be loaded into the started IDE instance
      */
-    public static final void main(String[] args) {
+    public static final void main(final String ... args) {
 
+        ((AbstractTokenMakerFactory)TokenMakerFactory.getDefaultInstance()).putMapping("text/jprol", JProlTokenMaker.class.getName());
+      
         File fileToLoad = null;
         if (args != null && args.length > 0) {
             try {

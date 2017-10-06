@@ -16,7 +16,6 @@
 package com.igormaznitsa.prol.easygui;
 
 import javax.swing.*;
-import javax.swing.event.HyperlinkListener;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -51,7 +50,7 @@ public class TraceDialog extends AbstractProlEditor implements ActionListener {
         addPropertyToList(new PropertyLink(this, "Other color", "EdOtherColor"));
 
         setEnabled(false);
-        editor.setContentType("text/rtf");
+        setContentType("text/rtf");
 
         editor.setBackground(Color.BLUE.darker().darker().darker().darker());
         editor.setForeground(Color.WHITE);
@@ -101,10 +100,6 @@ public class TraceDialog extends AbstractProlEditor implements ActionListener {
     public void setEdFailColor(final Color color) {
         clearText();
         StyleConstants.setForeground(ATTRSET_FAIL, color);
-    }
-
-    public void removeHypelinkListener(HyperlinkListener listener) {
-        editor.removeHyperlinkListener(listener);
     }
 
     public void addCallText(String text) {
