@@ -100,6 +100,9 @@ public class JProlTokenMaker extends AbstractTokenMaker {
     tokenMap.put(":-", reservedWord);
     tokenMap.put("?-", reservedWord);
     tokenMap.put("fail", reservedWord);
+    tokenMap.put("repeat", reservedWord);
+    tokenMap.put("true", reservedWord);
+    tokenMap.put("false", reservedWord);
     tokenMap.put("::", reservedWord);
     tokenMap.put("div", reservedWord);
     tokenMap.put("mod", reservedWord);
