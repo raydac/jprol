@@ -139,7 +139,7 @@ public class PreparedGoal {
         setContext(workContext);
 
         // find ordered vars
-        final List<String> parametrizedNames = new ArrayList<String>();
+        final List<String> parametrizedNames = new ArrayList<>();
 
         final StringBuilder builder = new StringBuilder(goal);
 

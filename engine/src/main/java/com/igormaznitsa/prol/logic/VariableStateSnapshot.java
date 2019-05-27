@@ -50,7 +50,7 @@ final class VariableStateSnapshot {
      *                 must not be null
      */
     public VariableStateSnapshot(final VariableStateSnapshot snapshot) {
-        this.containers = new ArrayList<VariableContainer>();
+        this.containers = new ArrayList<>();
 
         final List<VariableContainer> thatContainers = snapshot.containers;
 
@@ -63,7 +63,7 @@ final class VariableStateSnapshot {
             final VariableContainer container = iterator.next();
             if (container.isChanged()) {
                 if (changed == null) {
-                    changed = new ArrayList<VariableContainer>(16);
+                    changed = new ArrayList<>();
                 }
                 changed.add(container);
             } else {
@@ -92,7 +92,7 @@ final class VariableStateSnapshot {
      *               not be null
      */
     public VariableStateSnapshot(final Term source) {
-        this.containers = new ArrayList<VariableContainer>();
+        this.containers = new ArrayList<>();
         extractAllVariables(source);
         this.processedVariables = null;
     }

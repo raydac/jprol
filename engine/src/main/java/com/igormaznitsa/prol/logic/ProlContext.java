@@ -120,7 +120,7 @@ public final class ProlContext {
      * The list contains searchers allow to find Java Object for Terms or String
      * names
      */
-    private final List<ProlMappedObjectSearcher> mappedObjectSearchers = new ArrayList<ProlMappedObjectSearcher>();
+    private final List<ProlMappedObjectSearcher> mappedObjectSearchers = new ArrayList<>();
     /**
      * Locker for work with mappedObjects
      */
@@ -259,14 +259,14 @@ public final class ProlContext {
 
         this.knowledgeBaseFactory = kbfactory;
 
-        this.libraries = new ArrayList<ProlAbstractLibrary>(16);
+        this.libraries = new ArrayList<>(16);
         this.streamManager = streamManager;
 
-        this.inputStreams = new HashMap<String, ProlTextInputStream>();
-        this.outputStreams = new HashMap<String, ProlTextOutputStream>();
-        this.pipes = new HashMap<String, ProlMemoryPipe>();
-        this.triggersOnAssert = new HashMap<String, List<ProlTrigger>>();
-        this.triggersOnRetract = new HashMap<String, List<ProlTrigger>>();
+        this.inputStreams = new HashMap<>();
+        this.outputStreams = new HashMap<>();
+        this.pipes = new HashMap<>();
+        this.triggersOnAssert = new HashMap<>();
+        this.triggersOnRetract = new HashMap<>();
 
         see(USER_STREAM);
         tell(USER_STREAM, true);
@@ -484,31 +484,26 @@ public final class ProlContext {
 
         final ProlContext thisContext = this;
 
-        return getContextExecutorService().submit(new Runnable() {
-
-            @Override
-            public void run() {
-                final Goal asyncGoal;
-                try {
-                    asyncGoal = new Goal(goal, thisContext, traceListener);
-                } catch (Exception ex) {
-                    LOG.log(Level.SEVERE, "Can't create a goal from the term \'" + goal.toString() + '\'', ex);
-                    return;
-                }
-
-                try {
-
-                    while (!Thread.currentThread().isInterrupted()) {
-                        final Term result = asyncGoal.solve();
-                        if (result == null) {
-                            break;
-                        }
-                    }
-                } catch (InterruptedException ex) {
-                    LOG.log(Level.INFO, "Asynchronous thread for \'" + goal.toString() + "\' has been interrupted", ex);
-                }
-
+        return getContextExecutorService().submit(() -> {
+          final Goal asyncGoal;
+          try {
+            asyncGoal = new Goal(goal, thisContext, traceListener);
+          } catch (Exception ex) {
+            LOG.log(Level.SEVERE, "Can't create a goal from the term \'" + goal.toString() + '\'', ex);
+            return;
+          }
+          
+          try {
+            
+            while (!Thread.currentThread().isInterrupted()) {
+              final Term result = asyncGoal.solve();
+              if (result == null) {
+                break;
+              }
             }
+          } catch (InterruptedException ex) {
+            LOG.log(Level.INFO, "Asynchronous thread for \'" + goal.toString() + "\' has been interrupted", ex);
+          }
         });
     }
 
@@ -552,7 +547,7 @@ public final class ProlContext {
             executorAndlockTableLocker.lock();
             try {
                 if (lockerTable == null) {
-                    lockerTable = new HashMap<String, ReentrantLock>();
+                    lockerTable = new HashMap<>();
                 }
             } finally {
                 executorAndlockTableLocker.unlock();
@@ -1174,33 +1169,33 @@ public final class ProlContext {
         // notify all triggers that the context is halting
         triggerLocker.lock();
         try {
-            final IdentityHashMap<ProlTrigger, Set<?>> notifiedTriggers = new IdentityHashMap<ProlTrigger, Set<?>>();// it is being used to save the set of already notified triggers, we should notify each object only one time
-            for (final Entry<String, List<ProlTrigger>> mapentry : triggersOnAssert.entrySet()) {
-                for (final ProlTrigger trigger : mapentry.getValue()) {
-                    try {
-                        if (!notifiedTriggers.containsKey(trigger)) {
-                            trigger.onContextHalting(this);
-                        }
-                    } catch (Throwable ex) {
-                        LOG.log(Level.SEVERE, "Exception during a context halting notification", ex);
-                    } finally {
-                        notifiedTriggers.put(trigger, Collections.emptySet());
-                    }
+            final IdentityHashMap<ProlTrigger, Set<?>> notifiedTriggers = new IdentityHashMap<>();// it is being used to save the set of already notified triggers, we should notify each object only one time
+            triggersOnAssert.entrySet().forEach((mapentry) -> {
+              mapentry.getValue().forEach((trigger) -> {
+                try {
+                  if (!notifiedTriggers.containsKey(trigger)) {
+                    trigger.onContextHalting(this);
+                  }
+                } catch (Throwable ex) {
+                  LOG.log(Level.SEVERE, "Exception during a context halting notification", ex);
+                } finally {
+                  notifiedTriggers.put(trigger, Collections.emptySet());
                 }
-            }
-            for (final Entry<String, List<ProlTrigger>> mapentry : triggersOnRetract.entrySet()) {
-                for (final ProlTrigger trigger : mapentry.getValue()) {
-                    try {
-                        if (!notifiedTriggers.containsKey(trigger)) {
-                            trigger.onContextHalting(this);
-                        }
-                    } catch (Throwable ex) {
-                        LOG.log(Level.SEVERE, "Exception during a context halting notification", ex);
-                    } finally {
-                        notifiedTriggers.put(trigger, Collections.emptySet());
-                    }
+              });
+          });
+            triggersOnRetract.entrySet().forEach((mapentry) -> {
+              mapentry.getValue().forEach((trigger) -> {
+                try {
+                  if (!notifiedTriggers.containsKey(trigger)) {
+                    trigger.onContextHalting(this);
+                  }
+                } catch (Throwable ex) {
+                  LOG.log(Level.SEVERE, "Exception during a context halting notification", ex);
+                } finally {
+                  notifiedTriggers.put(trigger, Collections.emptySet());
                 }
-            }
+              });
+          });
 
             notifiedTriggers.clear();
 
@@ -1304,9 +1299,9 @@ public final class ProlContext {
             result = new Term((String) object);
         } else if (object instanceof Number) {
             if (object instanceof Integer) {
-                result = new TermInteger(((Integer) object).intValue());
+                result = new TermInteger(((Integer) object));
             } else if (object instanceof Float) {
-                result = new TermFloat(((Float) object).floatValue());
+                result = new TermFloat(((Float) object));
             } else {
                 throw new IllegalArgumentException("Unsupported number format.");
             }
@@ -1387,7 +1382,7 @@ public final class ProlContext {
             break;
             case Term.TYPE_LIST: {
                 // make List<Object>
-                final List<Object> list = new ArrayList<Object>();
+                final List<Object> list = new ArrayList<>();
                 TermList tlist = (TermList) cterm;
                 while (tlist.isNullList()) {
                     list.add(termAsObject(tlist.getHead()));
@@ -1467,7 +1462,7 @@ public final class ProlContext {
                 if (triggerType == ProlTriggerType.TRIGGER_ASSERT || triggerType == ProlTriggerType.TRIGGER_ASSERT_RETRACT) {
                     triggerListAssert = triggersOnAssert.get(signature);
                     if (triggerListAssert == null) {
-                        triggerListAssert = new ArrayList<ProlTrigger>();
+                        triggerListAssert = new ArrayList<>();
                         triggersOnAssert.put(signature, triggerListAssert);
                     }
                 }
@@ -1475,7 +1470,7 @@ public final class ProlContext {
                 if (triggerType == ProlTriggerType.TRIGGER_RETRACT || triggerType == ProlTriggerType.TRIGGER_ASSERT_RETRACT) {
                     triggerListRetract = triggersOnRetract.get(signature);
                     if (triggerListRetract == null) {
-                        triggerListRetract = new ArrayList<ProlTrigger>();
+                        triggerListRetract = new ArrayList<>();
                         triggersOnRetract.put(signature, triggerListRetract);
                     }
                 }
@@ -1604,7 +1599,7 @@ public final class ProlContext {
                     } else if (trigAssert == null && trigRetract != null) {
                         listOfTriggers = trigRetract;
                     } else {
-                        listOfTriggers = new ArrayList<ProlTrigger>(trigAssert);
+                        listOfTriggers = new ArrayList<>(trigAssert);
                         listOfTriggers.addAll(trigRetract);
                     }
                 }

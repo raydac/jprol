@@ -86,7 +86,7 @@ public final class ProlTreeBuilder {
      * @param context the context owns the tree builder, must not be null
      */
     public ProlTreeBuilder(final ProlContext context) {
-        variableSet = new HashMap<String, Var>();
+        variableSet = new HashMap<>();
         this.context = context;
         knowledgeBase = context.getKnowledgeBase();
 
@@ -190,7 +190,7 @@ public final class ProlTreeBuilder {
      *                              interrupted
      */
     private TermStruct readStruct(final Term functor, final ProlReader reader) throws IOException {
-        final ArrayList<Term> listOfAtoms = new ArrayList<Term>();
+        final ArrayList<Term> listOfAtoms = new ArrayList<>();
 
         while (true) {
             final Term block = readBlock(reader, OPERATORS_INSIDE_STRUCT);
@@ -236,55 +236,57 @@ public final class ProlTreeBuilder {
 
         boolean doRead = true;
 
-        while (doRead) {
-            final Term block = readBlock(reader, OPERATORS_INSIDE_LIST);
-
-            ProlTokenizerResult nextAtom = tokenizer.nextToken(reader, knowledgeBase);
-
-            final String text = nextAtom.getText();
-            if ("]".equals(text)) {
-                // end
-                doRead = false;
-                if (block == null) {
-                    continue;
-                }
-            } else if ("|".equals(text)) {
-                // we have found the list tail, so we need read it as one block until the ']' atom
-                if (block == null) {
-                    throw new ParserException("There is not any list element", tokenizer.getLastTokenLineNum(), tokenizer.getLastTokenStrPos());
-                }
-                if (leftPartFirst.isNullList()) {
-                    leftPartFirst = TermList.appendItem(leftPart, block);
-                    leftPart = leftPartFirst;
-                } else {
-                    leftPart = TermList.appendItem(leftPart, block);
-                }
-
-                hasSeparator = true;
-
-                rightPart = readBlock(reader, OPERATORS_END_LIST);
-                nextAtom = tokenizer.nextToken(reader, knowledgeBase);
-                if (!nextAtom.getText().equals("]")) {
-                    throw new ParserException("Wrong end of the list tail", tokenizer.getLastTokenLineNum(), tokenizer.getLastTokenStrPos());
-                }
-
-                break;
-            } else if (",".equals(text)) {
-                // all good and we read next block
-                if (block == null) {
-                    throw new ParserException("List element not found", tokenizer.getLastTokenLineNum(), tokenizer.getLastTokenStrPos());
-                }
-            } else {
-                throw new ProlCriticalError("Nonprocessd state at list definition");
-            }
-
-            if (leftPartFirst.isNullList()) {
+      OUTER:
+      while (doRead) {
+        final Term block = readBlock(reader, OPERATORS_INSIDE_LIST);
+        ProlTokenizerResult nextAtom = tokenizer.nextToken(reader, knowledgeBase);
+        final String text = nextAtom.getText();
+        if (null == text) {
+          throw new ProlCriticalError("Nonprocessd state at list definition");
+        } else {
+          switch (text) {
+            case "]":
+              // end
+              doRead = false;
+              if (block == null) {
+                continue;
+              }
+              break;
+            case "|":
+              // we have found the list tail, so we need read it as one block until the ']' atom
+              if (block == null) {
+                throw new ParserException("There is not any list element", tokenizer.getLastTokenLineNum(), tokenizer.getLastTokenStrPos());
+              }
+              if (leftPartFirst.isNullList()) {
                 leftPartFirst = TermList.appendItem(leftPart, block);
                 leftPart = leftPartFirst;
-            } else {
+              } else {
                 leftPart = TermList.appendItem(leftPart, block);
-            }
+              }
+              hasSeparator = true;
+              rightPart = readBlock(reader, OPERATORS_END_LIST);
+              nextAtom = tokenizer.nextToken(reader, knowledgeBase);
+              if (!nextAtom.getText().equals("]")) {
+                throw new ParserException("Wrong end of the list tail", tokenizer.getLastTokenLineNum(), tokenizer.getLastTokenStrPos());
+              }
+              break OUTER;
+            case ",":
+              // all good and we read next block
+              if (block == null) {
+                throw new ParserException("List element not found", tokenizer.getLastTokenLineNum(), tokenizer.getLastTokenStrPos());
+              }
+              break;
+            default:
+              throw new ProlCriticalError("Nonprocessd state at list definition");
+          }
         }
+        if (leftPartFirst.isNullList()) {
+          leftPartFirst = TermList.appendItem(leftPart, block);
+          leftPart = leftPartFirst;
+        } else {
+          leftPart = TermList.appendItem(leftPart, block);
+        }
+      }
 
         if (hasSeparator) {
             // '|' separator was found at the list
@@ -376,22 +378,26 @@ public final class ProlTreeBuilder {
                     readAtom = readOperator;
                     final String operatorText = readOperator.getText();
                     if (operatorText.length() == 1) {
-                        if ("[".equals(operatorText)) {
-                            // it's a list
-                            readAtom = readList(reader);
-                            readAtomPriority = 0;
-                        } else if ("(".equals(operatorText)) {
-                            // read subblock
-                            atBrakes = true;
-                            readAtom = readBlock(reader, OPERATORS_SUBBLOCK);
-                            readAtomPriority = 0;
-                            final Term closingAtom = tokenizer.nextToken(reader, knowledgeBase).getTerm();
-                            if (closingAtom == null || !closingAtom.getText().equals(")")) {
-                                throw new ParserException("Non-closed brakes", reader.getLineNumber(), reader.getStrPos());
-                            }
-                        } else {
-                            readAtomPriority = readOperator.getPriority();
-                        }
+                      switch (operatorText) {
+                        case "[":
+                          // it's a list
+                          readAtom = readList(reader);
+                          readAtomPriority = 0;
+                          break;
+                        case "(":
+                          // read subblock
+                          atBrakes = true;
+                          readAtom = readBlock(reader, OPERATORS_SUBBLOCK);
+                          readAtomPriority = 0;
+                          final Term closingAtom = tokenizer.nextToken(reader, knowledgeBase).getTerm();
+                          if (closingAtom == null || !closingAtom.getText().equals(")")) {
+                            throw new ParserException("Non-closed brakes", reader.getLineNumber(), reader.getStrPos());
+                          }
+                          break;
+                        default:
+                          readAtomPriority = readOperator.getPriority();
+                          break;
+                      }
                     } else {
                         readAtomPriority = readOperator.getPriority();
                     }

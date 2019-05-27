@@ -38,7 +38,7 @@ public abstract class AbstractProlTrigger implements ProlTrigger {
      * The constructor
      */
     public AbstractProlTrigger() {
-        signatureMap = Collections.synchronizedMap(new HashMap<String, ProlTriggerType>());
+        signatureMap = Collections.synchronizedMap(new HashMap<>());
     }
 
     /**

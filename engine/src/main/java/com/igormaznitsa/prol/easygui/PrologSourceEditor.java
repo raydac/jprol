@@ -6,11 +6,8 @@ import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import javax.swing.InputMap;
 import javax.swing.KeyStroke;
-import org.fife.ui.rsyntaxtextarea.AbstractTokenMaker;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rtextarea.RUndoManager;
 

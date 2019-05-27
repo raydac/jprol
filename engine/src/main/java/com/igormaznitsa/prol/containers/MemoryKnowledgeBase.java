@@ -44,11 +44,11 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
     /**
      * The table contains defined operators
      */
-    private final Map<String, OperatorContainer> operatorTable = new HashMap<String, OperatorContainer>();
+    private final Map<String, OperatorContainer> operatorTable = new HashMap<>();
     /**
      * The table contains defined predicates
      */
-    private final Map<String, KnowledgeBaseInsideClauseList> predicateTable = new HashMap<String, KnowledgeBaseInsideClauseList>();
+    private final Map<String, KnowledgeBaseInsideClauseList> predicateTable = new HashMap<>();
     /**
      * The link to the context which is the owner of the knowledge base
      */

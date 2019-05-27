@@ -60,9 +60,9 @@ public class OptionsDialog extends javax.swing.JDialog implements TreeSelectionL
         super(parent, true);
         initComponents();
 
-        treeModelListeners = new ArrayList<TreeModelListener>();
+        treeModelListeners = new ArrayList<>();
 
-        this.items = new ArrayList<TreeModel>();
+        this.items = new ArrayList<>();
         for (final TreeModel model : items) {
             this.items.add(model);
         }
@@ -93,6 +93,7 @@ public class OptionsDialog extends javax.swing.JDialog implements TreeSelectionL
 
         optionsTree.setRootVisible(false);
         optionsTree.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 optionsTreeMouseClicked(evt);
             }
@@ -103,19 +104,15 @@ public class OptionsDialog extends javax.swing.JDialog implements TreeSelectionL
         buttonEditOption.setText("Edit");
         buttonEditOption.setToolTipText("Edit or change the selected option");
         buttonEditOption.setEnabled(false);
-        buttonEditOption.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonEditOptionActionPerformed(evt);
-            }
+        buttonEditOption.addActionListener((java.awt.event.ActionEvent evt) -> {
+          buttonEditOptionActionPerformed(evt);
         });
 
         buttonCloseDialog.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/cross.png"))); // NOI18N
         buttonCloseDialog.setText("Close");
         buttonCloseDialog.setToolTipText("Close the dialog");
-        buttonCloseDialog.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buttonCloseDialogActionPerformed(evt);
-            }
+        buttonCloseDialog.addActionListener((java.awt.event.ActionEvent evt) -> {
+          buttonCloseDialogActionPerformed(evt);
         });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -174,12 +171,8 @@ public class OptionsDialog extends javax.swing.JDialog implements TreeSelectionL
 
             final boolean[] array = new boolean[1];
 
-            ActionListener actionListenerOk = new ActionListener() {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    array[0] = true;
-                }
+            ActionListener actionListenerOk = (ActionEvent e) -> {
+              array[0] = true;
             };
 
             JDialog colorChooser = JColorChooser.createDialog(this, "Choose color for \'" + prop.toString() + "\'", true, chooser, actionListenerOk, null);

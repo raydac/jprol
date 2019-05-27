@@ -25,7 +25,7 @@ import java.util.*;
 public class RecentlyOpenedFileFixedList {
 
     private final int maxLen;
-    private final List<String> paths = new ArrayList<String>();
+    private final List<String> paths = new ArrayList<>();
 
     public RecentlyOpenedFileFixedList(final int maxlen) {
         this.maxLen = maxlen;
@@ -62,11 +62,11 @@ public class RecentlyOpenedFileFixedList {
     }
 
     public synchronized Iterator<String> getIterator() {
-        return new ArrayList<String>(this.paths).iterator();
+        return new ArrayList<>(this.paths).iterator();
     }
 
     public synchronized Collection<String> getCollection() {
-        return Collections.unmodifiableCollection(new ArrayList<String>(this.paths));
+        return Collections.unmodifiableCollection(new ArrayList<>(this.paths));
     }
 
     public synchronized void remove(final String path) {

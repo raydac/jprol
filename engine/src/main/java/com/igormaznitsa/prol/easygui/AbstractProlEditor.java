@@ -59,7 +59,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
 
   public AbstractProlEditor(final String title, final JTextComponent editor) {
     super();
-    this.editableProperties = new ArrayList<PropertyLink>();
+    this.editableProperties = new ArrayList<>();
     this.editor = editor;
 
     if (this.editor instanceof RSyntaxTextArea) {
@@ -84,36 +84,20 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     addPropertyToList(new PropertyLink(this, "Caret color", "EdCaretColor"));
     addPropertyToList(new PropertyLink(this, "Word wrap", "EdWordWrap"));
 
-    this.POPUP_CLEARTEXT.addActionListener(new ActionListener() {
-
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        clearText();
-      }
+    this.POPUP_CLEARTEXT.addActionListener((ActionEvent e) -> {
+      clearText();
     });
 
-    this.POPUP_COPY.addActionListener(new ActionListener() {
-
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        copyText();
-      }
+    this.POPUP_COPY.addActionListener((ActionEvent e) -> {
+      copyText();
     });
 
-    this.POPUP_PASTE.addActionListener(new ActionListener() {
-
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        pasteText();
-      }
+    this.POPUP_PASTE.addActionListener((ActionEvent e) -> {
+      pasteText();
     });
 
-    this.POPUP_CUT.addActionListener(new ActionListener() {
-
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        cutText();
-      }
+    this.POPUP_CUT.addActionListener((ActionEvent e) -> {
+      cutText();
     });
 
     // add popup

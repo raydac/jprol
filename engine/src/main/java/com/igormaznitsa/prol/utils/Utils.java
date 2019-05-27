@@ -45,13 +45,7 @@ public final class Utils {
     /**
      * The constant contains a comparator which can compare two terms.
      */
-    public static final Comparator<Term> TERM_COMPARATOR = new Comparator<Term>() {
-
-        @Override
-        public int compare(final Term term1, final Term term2) {
-            return term1.termComparsion(term2);
-        }
-    };
+    public static final Comparator<Term> TERM_COMPARATOR = (final Term term1, final Term term2) -> term1.termComparsion(term2);
     /**
      * Inside logger, the canonical class name is used as the logger identifier
      * (Utils.class.getCanonicalName())
@@ -75,7 +69,7 @@ public final class Utils {
      * @see #fillTableWithVarValues(com.igormaznitsa.prol.data.Term)
      */
     public static Map<String, Var> fillTableWithVars(final Term term) {
-        final Map<String, Var> vars = new HashMap<String, Var>();
+        final Map<String, Var> vars = new HashMap<>();
         term.fillVarables(vars);
         return vars;
     }
@@ -92,7 +86,7 @@ public final class Utils {
         final Map<String, Var> vars = fillTableWithVars(term);
         final Map<String, Term> result;
         if (map == null) {
-            result = new HashMap<String, Term>();
+            result = new HashMap<>();
         } else {
             map.clear();
             result = map;
@@ -281,9 +275,9 @@ public final class Utils {
             return new Term[0];
         }
 
-        final ArrayList<Term> arraylist = new ArrayList<Term>();
+        final ArrayList<Term> arraylist = new ArrayList<>();
         TermList curlist = list;
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             if (curlist.isNullList()) {
                 break;
             }
@@ -391,7 +385,7 @@ public final class Utils {
      * @param termTwo the second term, must not be null
      */
     public static void arrangeVariablesInsideTerms(final Term termOne, final Term termTwo) {
-        final Map<String, Var> varMap = new HashMap<String, Var>();
+        final Map<String, Var> varMap = new HashMap<>();
         processTermForArrangeVariables(termOne, varMap);
         processTermForArrangeVariables(termTwo, varMap);
     }

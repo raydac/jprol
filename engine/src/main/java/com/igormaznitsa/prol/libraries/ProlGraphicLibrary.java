@@ -68,7 +68,7 @@ public final class ProlGraphicLibrary extends ProlAbstractLibrary implements Win
     /**
      * The hash map contains registered actions
      */
-    private final WeakHashMap<JMenuItem, RegisteredAction> registeredActions = new WeakHashMap<JMenuItem, RegisteredAction>();
+    private final WeakHashMap<JMenuItem, RegisteredAction> registeredActions = new WeakHashMap<>();
     /**
      * The graphic frame which will be used to show current graphic buffer
      */
@@ -434,29 +434,25 @@ public final class ProlGraphicLibrary extends ProlAbstractLibrary implements Win
             }
 
             final JMenuItem newitem = new JMenuItem(menuItemName);
-            newitem.addActionListener(new ActionListener() {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    RegisteredAction registeredAction;
-                    synchronized (registeredActions) {
-                        registeredAction = registeredActions.get((JMenuItem) e.getSource());
-                    }
-                    if (registeredAction != null) {
-                        if (!registeredAction.execute()) {
-                            //remove registered menu item
-                            synchronized (bindedMenu) {
-                                bindedMenu.remove((JMenuItem) e.getSource());
-                                bindedMenu.revalidate();
-                            }
-                        }
-                    } else {
-                        synchronized (menuBar) {
-                            menuBar.remove((JMenuItem) e.getSource());
-                            menuBar.revalidate();
-                        }
-                    }
+            newitem.addActionListener((ActionEvent e) -> {
+              RegisteredAction registeredAction1;
+              synchronized (registeredActions) {
+                registeredAction1 = registeredActions.get((JMenuItem) e.getSource());
+              }
+              if (registeredAction1 != null) {
+                if (!registeredAction1.execute()) {
+                  //remove registered menu item
+                  synchronized (bindedMenu) {
+                    bindedMenu.remove((JMenuItem) e.getSource());
+                    bindedMenu.revalidate();
+                  }
                 }
+              } else {
+                synchronized (menuBar) {
+                  menuBar.remove((JMenuItem) e.getSource());
+                  menuBar.revalidate();
+                }
+              }
             });
 
             synchronized (registeredActions) {
@@ -674,11 +670,8 @@ public final class ProlGraphicLibrary extends ProlAbstractLibrary implements Win
     @Determined
     public void predicateSETTITLE(final Goal goal, final TermStruct predicate) {
         final String title = Utils.getTermFromElement(predicate.getElement(0)).getText();
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                graphicFrame.setTitle(title);
-            }
+        SwingUtilities.invokeLater(() -> {
+          graphicFrame.setTitle(title);
         });
     }
 
@@ -867,12 +860,8 @@ public final class ProlGraphicLibrary extends ProlAbstractLibrary implements Win
         insideLocker.lock();
         try {
             if (graphicFrame != null) {
-                SwingUtilities.invokeLater(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        graphicFrame.dispose();
-                    }
+                SwingUtilities.invokeLater(() -> {
+                  graphicFrame.dispose();
                 });
 
                 bufferedImage = null;

@@ -147,9 +147,10 @@ public final class UIUtils {
 
   public static ImageIcon loadIcon(final String name) {
     try {
-      final InputStream inStream = UIUtils.class.getClassLoader().getResourceAsStream("com/igormaznitsa/prol/easygui/icons/" + name + ".png");
-      final Image img = ImageIO.read(inStream);
-      inStream.close();
+      final Image img;
+      try (InputStream inStream = UIUtils.class.getClassLoader().getResourceAsStream("com/igormaznitsa/prol/easygui/icons/" + name + ".png")) {
+        img = ImageIO.read(inStream);
+      }
       return new ImageIcon(img);
     }
     catch (Exception ex) {

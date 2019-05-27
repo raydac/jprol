@@ -178,19 +178,15 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
 
   public synchronized void addText(final String text) {
     try {
-      SwingUtilities.invokeAndWait(new Runnable() {
-
-        @Override
-        public void run() {
-          try {
-            editor.getDocument().insertString(editor.getDocument().getLength(), text, consoleAttribute);
-            int textLength = editor.getDocument().getLength();
-            ((EditorPane) editor).setCharacterAttributes(userAttribute, false);
-            editor.setCaretPosition(textLength);
-          }
-          catch (BadLocationException ex) {
-            ex.printStackTrace();
-          }
+      SwingUtilities.invokeAndWait(() -> {
+        try {
+          editor.getDocument().insertString(editor.getDocument().getLength(), text, consoleAttribute);
+          int textLength = editor.getDocument().getLength();
+          ((EditorPane) editor).setCharacterAttributes(userAttribute, false);
+          editor.setCaretPosition(textLength);
+        }
+        catch (BadLocationException ex) {
+          ex.printStackTrace();
         }
       });
     }
@@ -314,7 +310,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
     protected final List<Character> buffer;
 
     public NonClossableWriter() {
-      buffer = new ArrayList<Character>();
+      buffer = new ArrayList<>();
     }
 
     @Override

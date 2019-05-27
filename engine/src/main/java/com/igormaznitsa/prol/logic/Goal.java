@@ -273,7 +273,7 @@ public class Goal {
      * @return a List object contains all goals at the goal chain of the root goal
      */
     public List<Goal> getChainAsList() {
-        final List<Goal> result = new ArrayList<Goal>();
+        final List<Goal> result = new ArrayList<>();
 
         Goal curgoal = rootGoal.rootLastGoalAtChain;
         while (curgoal != null) {

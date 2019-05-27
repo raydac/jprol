@@ -131,23 +131,19 @@ public class TraceDialog extends AbstractProlEditor implements ActionListener {
         final Thread thr = Thread.currentThread();
 
         try {
-            SwingUtilities.invokeAndWait(new Runnable() {
-
-                @Override
-                public void run() {
-                    if (thr.isInterrupted()) {
-                        return;
-                    }
-                    final Document doc = editor.getDocument();
-                    if (doc != null) {
-                        try {
-                            doc.insertString(doc.getEndPosition().getOffset(), text + '\n', type);
-                            editor.setCaretPosition(doc.getLength());
-                        } catch (BadLocationException ex) {
-                            ex.printStackTrace();
-                        }
-                    }
+            SwingUtilities.invokeAndWait(() -> {
+              if (thr.isInterrupted()) {
+                return;
+              }
+              final Document doc = editor.getDocument();
+              if (doc != null) {
+                try {
+                  doc.insertString(doc.getEndPosition().getOffset(), text + '\n', type);
+                  editor.setCaretPosition(doc.getLength());
+                } catch (BadLocationException ex) {
+                  ex.printStackTrace();
                 }
+              }
             });
         } catch (Exception ex) {
             ex.printStackTrace();

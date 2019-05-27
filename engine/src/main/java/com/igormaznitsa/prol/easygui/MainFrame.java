@@ -90,7 +90,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   private static final int MAX_RECENT_FILES = 10;
   public static volatile WeakReference<MainFrame> MAIN_FRAME_INSTANCE;
   protected final LogLibrary logLibrary;
-  protected final AtomicReference<Thread> currentExecutedScriptThread = new AtomicReference<Thread>();
+  protected final AtomicReference<Thread> currentExecutedScriptThread = new AtomicReference<>();
   protected final AtomicBoolean startedInTracing = new AtomicBoolean();
   /**
    * The version of the IDE
@@ -211,7 +211,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       this.panelFindText.setVisible(false);
     }
     finally {
-      MAIN_FRAME_INSTANCE = new WeakReference<MainFrame>(this);
+      MAIN_FRAME_INSTANCE = new WeakReference<>(this);
     }
   }
 
@@ -248,16 +248,12 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
   private void fillLAndFeelMenu() {
     final LookAndFeelInfo plaf[] = UIManager.getInstalledLookAndFeels();
-    this.lookAndFeelMap = new HashMap<String, LookAndFeelInfo>();
+    this.lookAndFeelMap = new HashMap<>();
     final ButtonGroup lfGroup = new ButtonGroup();
 
-    final ActionListener lfListener = new ActionListener() {
-
-      @Override
-      public void actionPerformed(final ActionEvent e) {
-        final JRadioButtonMenuItem item = (JRadioButtonMenuItem) e.getSource();
-        setSelectedLookAndFeel(item.getText());
-      }
+    final ActionListener lfListener = (final ActionEvent e) -> {
+      final JRadioButtonMenuItem item = (JRadioButtonMenuItem) e.getSource();
+      setSelectedLookAndFeel(item.getText());
     };
 
     for (LookAndFeelInfo aPlaf : plaf) {
@@ -409,6 +405,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     textFind.setToolTipText("Enter text for search (wildcard chars ? and * are supported)");
     textFind.addKeyListener(new java.awt.event.KeyAdapter() {
+      @Override
       public void keyReleased(java.awt.event.KeyEvent evt) {
         textFindKeyReleased(evt);
       }
@@ -471,11 +468,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     buttonStopExecuting.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
     buttonStopExecuting.setMaximumSize(new java.awt.Dimension(100, 23));
     buttonStopExecuting.setMinimumSize(new java.awt.Dimension(60, 23));
-    buttonStopExecuting.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        buttonStopExecutingActionPerformed(evt);
-      }
+    buttonStopExecuting.addActionListener((java.awt.event.ActionEvent evt) -> {
+      buttonStopExecutingActionPerformed(evt);
     });
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
@@ -488,11 +482,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     menuFileNew.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/page.png"))); // NOI18N
     menuFileNew.setText("New");
     menuFileNew.setToolTipText("Create new document");
-    menuFileNew.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        menuFileNewActionPerformed(evt);
-      }
+    menuFileNew.addActionListener((java.awt.event.ActionEvent evt) -> {
+      menuFileNewActionPerformed(evt);
     });
     menuFile.add(menuFileNew);
 
@@ -500,22 +491,16 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     menuFileOpen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/page_edit.png"))); // NOI18N
     menuFileOpen.setText("Open");
     menuFileOpen.setToolTipText("Open a saved document");
-    menuFileOpen.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        menuFileOpenActionPerformed(evt);
-      }
+    menuFileOpen.addActionListener((java.awt.event.ActionEvent evt) -> {
+      menuFileOpenActionPerformed(evt);
     });
     menuFile.add(menuFileOpen);
 
     menuFileSaveAs.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/page_save.png"))); // NOI18N
     menuFileSaveAs.setText("Save As..");
     menuFileSaveAs.setToolTipText("Save the current document as a file");
-    menuFileSaveAs.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        menuFileSaveAsActionPerformed(evt);
-      }
+    menuFileSaveAs.addActionListener((java.awt.event.ActionEvent evt) -> {
+      menuFileSaveAsActionPerformed(evt);
     });
     menuFile.add(menuFileSaveAs);
 
@@ -523,11 +508,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     menuFileSave.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/page_go.png"))); // NOI18N
     menuFileSave.setText("Save");
     menuFileSave.setToolTipText("Save the current document");
-    menuFileSave.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        menuFileSaveActionPerformed(evt);
-      }
+    menuFileSave.addActionListener((java.awt.event.ActionEvent evt) -> {
+      menuFileSaveActionPerformed(evt);
     });
     menuFile.add(menuFileSave);
     menuFile.add(jSeparator1);
@@ -556,11 +538,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     menuExit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/door_in.png"))); // NOI18N
     menuExit.setText("Exit");
     menuExit.setToolTipText("Close the editor");
-    menuExit.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        menuExitActionPerformed(evt);
-      }
+    menuExit.addActionListener((java.awt.event.ActionEvent evt) -> {
+      menuExitActionPerformed(evt);
     });
     menuFile.add(menuExit);
 
@@ -573,11 +552,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     menuUndo.setText("Undo");
     menuUndo.setToolTipText("Undo last changes in the document");
     menuUndo.setEnabled(false);
-    menuUndo.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        menuUndoActionPerformed(evt);
-      }
+    menuUndo.addActionListener((java.awt.event.ActionEvent evt) -> {
+      menuUndoActionPerformed(evt);
     });
     menuEdit.add(menuUndo);
 
@@ -586,11 +562,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     menuRedo.setText("Redo");
     menuRedo.setToolTipText("Redo canceled changes in the document");
     menuRedo.setEnabled(false);
-    menuRedo.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        menuRedoActionPerformed(evt);
-      }
+    menuRedo.addActionListener((java.awt.event.ActionEvent evt) -> {
+      menuRedoActionPerformed(evt);
     });
     menuEdit.add(menuRedo);
     menuEdit.add(jSeparator2);
@@ -599,11 +572,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     menuClearText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/page_white.png"))); // NOI18N
     menuClearText.setText("Clear");
     menuClearText.setToolTipText("Just clear text in the current document");
-    menuClearText.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        menuClearTextActionPerformed(evt);
-      }
+    menuClearText.addActionListener((java.awt.event.ActionEvent evt) -> {
+      menuClearTextActionPerformed(evt);
     });
     menuEdit.add(menuClearText);
 
@@ -611,11 +581,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     menuEditCommentSelected.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/comment_add.png"))); // NOI18N
     menuEditCommentSelected.setText("Comment selection");
     menuEditCommentSelected.setToolTipText("Place the commenting symbol as the first one into selected lines");
-    menuEditCommentSelected.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        menuEditCommentSelectedActionPerformed(evt);
-      }
+    menuEditCommentSelected.addActionListener((java.awt.event.ActionEvent evt) -> {
+      menuEditCommentSelectedActionPerformed(evt);
     });
     menuEdit.add(menuEditCommentSelected);
 
@@ -623,11 +590,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     menuEditUncommentSelected.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/comment_delete.png"))); // NOI18N
     menuEditUncommentSelected.setText("Uncomment selection");
     menuEditUncommentSelected.setToolTipText("Remove the first commenting symbol from selected lines");
-    menuEditUncommentSelected.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        menuEditUncommentSelectedActionPerformed(evt);
-      }
+    menuEditUncommentSelected.addActionListener((java.awt.event.ActionEvent evt) -> {
+      menuEditUncommentSelectedActionPerformed(evt);
     });
     menuEdit.add(menuEditUncommentSelected);
     menuEdit.add(jSeparator3);
@@ -635,11 +599,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     menuitemFindText.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, java.awt.event.InputEvent.CTRL_MASK));
     menuitemFindText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/zoom.png"))); // NOI18N
     menuitemFindText.setText("Find text");
-    menuitemFindText.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        menuitemFindTextActionPerformed(evt);
-      }
+    menuitemFindText.addActionListener((java.awt.event.ActionEvent evt) -> {
+      menuitemFindTextActionPerformed(evt);
     });
     menuEdit.add(menuitemFindText);
 
@@ -648,11 +609,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     menuItemWordWrapSources.setText("Word wrap (editor)");
     menuItemWordWrapSources.setToolTipText("Word-wrap mode for the document editor");
     menuItemWordWrapSources.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/text_align_justify.png"))); // NOI18N
-    menuItemWordWrapSources.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        menuItemWordWrapSourcesActionPerformed(evt);
-      }
+    menuItemWordWrapSources.addActionListener((java.awt.event.ActionEvent evt) -> {
+      menuItemWordWrapSourcesActionPerformed(evt);
     });
     menuEdit.add(menuItemWordWrapSources);
 
@@ -660,10 +618,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     menuItemFullScreen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/shape_move_forwards.png"))); // NOI18N
     menuItemFullScreen.setText("Full screen");
     menuItemFullScreen.setToolTipText("Turn on the full screen mode if it is supported by the device");
-    menuItemFullScreen.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        menuItemFullScreenActionPerformed(evt);
-      }
+    menuItemFullScreen.addActionListener((java.awt.event.ActionEvent evt) -> {
+      menuItemFullScreenActionPerformed(evt);
     });
     menuEdit.add(menuItemFullScreen);
     menuEdit.add(jSeparator5);
@@ -671,10 +627,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     menuEditOptions.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/cog.png"))); // NOI18N
     menuEditOptions.setText("Options");
     menuEditOptions.setToolTipText("Open editor options");
-    menuEditOptions.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        menuEditOptionsActionPerformed(evt);
-      }
+    menuEditOptions.addActionListener((java.awt.event.ActionEvent evt) -> {
+      menuEditOptionsActionPerformed(evt);
     });
     menuEdit.add(menuEditOptions);
 
@@ -686,20 +640,16 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     menuRunScript.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/flag_green.png"))); // NOI18N
     menuRunScript.setText("Start");
     menuRunScript.setToolTipText("Execute the current document");
-    menuRunScript.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        menuRunScriptActionPerformed(evt);
-      }
+    menuRunScript.addActionListener((java.awt.event.ActionEvent evt) -> {
+      menuRunScriptActionPerformed(evt);
     });
     menuRun.add(menuRunScript);
 
     menuTraceScript.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/flag_blue.png"))); // NOI18N
     menuTraceScript.setText("Trace");
     menuTraceScript.setToolTipText("Execute the current document with tracing");
-    menuTraceScript.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        menuTraceScriptActionPerformed(evt);
-      }
+    menuTraceScript.addActionListener((java.awt.event.ActionEvent evt) -> {
+      menuTraceScriptActionPerformed(evt);
     });
     menuRun.add(menuTraceScript);
 
@@ -707,10 +657,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     menuRunStop.setText("Stop");
     menuRunStop.setToolTipText("Stop the current execution");
     menuRunStop.setEnabled(false);
-    menuRunStop.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        menuRunStopActionPerformed(evt);
-      }
+    menuRunStop.addActionListener((java.awt.event.ActionEvent evt) -> {
+      menuRunStopActionPerformed(evt);
     });
     menuRun.add(menuRunStop);
 
@@ -723,10 +671,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     menuViewKnowledgeBase.setText("Show Knowledge base");
     menuViewKnowledgeBase.setToolTipText("Take and show the snapshot of the current knowledge base saved in the memory");
     menuViewKnowledgeBase.setEnabled(false);
-    menuViewKnowledgeBase.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        menuViewKnowledgeBaseActionPerformed(evt);
-      }
+    menuViewKnowledgeBase.addActionListener((java.awt.event.ActionEvent evt) -> {
+      menuViewKnowledgeBaseActionPerformed(evt);
     });
     menuView.add(menuViewKnowledgeBase);
 
@@ -734,10 +680,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     menuItemLibraryInfo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/table.png"))); // NOI18N
     menuItemLibraryInfo.setText("Library info");
     menuItemLibraryInfo.setToolTipText("Show all predicates found in embedded libraries");
-    menuItemLibraryInfo.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        menuItemLibraryInfoActionPerformed(evt);
-      }
+    menuItemLibraryInfo.addActionListener((java.awt.event.ActionEvent evt) -> {
+      menuItemLibraryInfoActionPerformed(evt);
     });
     menuView.add(menuItemLibraryInfo);
 
@@ -751,22 +695,16 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     menuHelpHelp.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/information.png"))); // NOI18N
     menuHelpHelp.setText("Help");
     menuHelpHelp.setToolTipText("Show information about usage of the utility");
-    menuHelpHelp.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        menuHelpHelpActionPerformed(evt);
-      }
+    menuHelpHelp.addActionListener((java.awt.event.ActionEvent evt) -> {
+      menuHelpHelpActionPerformed(evt);
     });
     menuHelp.add(menuHelpHelp);
 
     menuAbout.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/emoticon_smile.png"))); // NOI18N
     menuAbout.setText("About");
     menuAbout.setToolTipText("Show the information about the application and license");
-    menuAbout.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        menuAboutActionPerformed(evt);
-      }
+    menuAbout.addActionListener((java.awt.event.ActionEvent evt) -> {
+      menuAboutActionPerformed(evt);
     });
     menuHelp.add(menuAbout);
 
@@ -833,24 +771,20 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   private void buttonStopExecutingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonStopExecutingActionPerformed
     final Thread executingThread = this.currentExecutedScriptThread.get();
 
-    SwingUtilities.invokeLater(new Runnable() {
-
-      @Override
-      public void run() {
-        if (executingThread != null) {
-          try {
-            executingThread.interrupt();
-            dialogEditor.cancelRead();
-            executingThread.join();
-          }
-          catch (Throwable tr) {
-            tr.printStackTrace();
-          }
-          finally {
-            hideTaskControlPanel();
-          }
-          messageEditor.addWarningText("Execution is canceled.");
+    SwingUtilities.invokeLater(() -> {
+      if (executingThread != null) {
+        try {
+          executingThread.interrupt();
+          dialogEditor.cancelRead();
+          executingThread.join();
         }
+        catch (Throwable tr) {
+          tr.printStackTrace();
+        }
+        finally {
+          hideTaskControlPanel();
+        }
+        messageEditor.addWarningText("Execution is canceled.");
       }
     });
 
@@ -858,18 +792,15 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
   private void menuAboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuAboutActionPerformed
     final JHtmlLabel label = new JHtmlLabel("<html><body><h1>JProl Notepad</h1>Version: " + VERSION + "<br><b>Project page:</b> <a href=\"https://github.com/raydac/jprol\">https://github.com/raydac/jprol</a><br><b>Author:</b> Igor Maznitsa (<a href=\"http://www.igormaznitsa.com\">http://www.igormaznitsa.com</a>)<br><br>(C)2010-2017 Igor A. Maznitsa. <a href=\"https://www.apache.org/licenses/LICENSE-2.0\">Apache 2.0 License</a><br>Icons from the free icon set <a href=\"http://www.famfamfam.com/lab/icons/silk/\">http://www.famfamfam.com/lab/icons/silk/</a><br><br>If you like the application you could make some donation:<br><ul><li><a href=\"https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AHWJHJFBAWGL2\">PayPal</a></li><li><a href=\"http://yasobe.ru/na/iamoss\">Yandex.Money</a></li></ul><hr>The Application uses third part libraries:<ul><li><a href=\"https://github.com/bobbylight/RSyntaxTextArea\"><b>RSyntaxTextArea</b></a> <a href=\"https://raw.githubusercontent.com/bobbylight/RSyntaxTextArea/master/src/main/dist/RSyntaxTextArea.License.txt\">under modified BSD license</a></li></ul></body></html>");
-    label.addLinkListener(new JHtmlLabel.LinkListener() {
-      @Override
-      public void onLinkActivated(final JHtmlLabel source, final String link) {
-        try {
-          final Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
-          if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
-            desktop.browse(new URI(link));
-          }
+    label.addLinkListener((final JHtmlLabel source, final String link) -> {
+      try {
+        final Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+        if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+          desktop.browse(new URI(link));
         }
-        catch (Exception ex) {
-          LOG.log(Level.SEVERE, "Can't open URL : " + link, ex);
-        }
+      }
+      catch (Exception ex) {
+        LOG.log(Level.SEVERE, "Can't open URL : " + link, ex);
       }
     });
     JOptionPane.showMessageDialog(this, label, "About", JOptionPane.INFORMATION_MESSAGE, new ImageIcon(this.getIconImage()));
@@ -903,7 +834,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   }//GEN-LAST:event_menuEditOptionsActionPerformed
 
   private void menuItemLibraryInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItemLibraryInfoActionPerformed
-    final java.util.List<String> list = new ArrayList<String>(PROL_LIBRARIES.length + 2);
+    final java.util.List<String> list = new ArrayList<>(PROL_LIBRARIES.length + 2);
     list.add(ProlCoreLibrary.class.getCanonicalName());
     list.addAll(Arrays.asList(PROL_LIBRARIES));
     list.add(MainFrame.class.getCanonicalName() + "$LogLibrary");
@@ -993,15 +924,11 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
       if (this.currentExecutedScriptThread.compareAndSet(null, newThread)) {
         this.startedInTracing.set(tracing);
-        SwingUtilities.invokeLater(new Runnable() {
-
-          @Override
-          public void run() {
-            clearTextAtAllWindowsExcludeSource();
-            dialogEditor.initBeforeSession();
-            showTaskControlPanel();
-            newThread.start();
-          }
+        SwingUtilities.invokeLater(() -> {
+          clearTextAtAllWindowsExcludeSource();
+          dialogEditor.initBeforeSession();
+          showTaskControlPanel();
+          newThread.start();
         });
       }
     }
@@ -1535,14 +1462,10 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   }
 
   private void hideTaskControlPanel() {
-    SwingUtilities.invokeLater(new Runnable() {
-
-      @Override
-      public void run() {
-        panelProgress.setVisible(false);
-        progressBarTask.setIndeterminate(false);
-        menuRunStop.setEnabled(false);
-      }
+    SwingUtilities.invokeLater(() -> {
+      panelProgress.setVisible(false);
+      progressBarTask.setIndeterminate(false);
+      menuRunStop.setEnabled(false);
     });
   }
 

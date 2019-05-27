@@ -97,7 +97,7 @@ public final class ProlLibraryWrapper extends ProlAbstractLibrary {
      */
     private ProlLibraryWrapper(final String libId, final Object wrappedObj) {
         super(libId);
-        this.methodMap = new HashMap<String, Method>();
+        this.methodMap = new HashMap<>();
         this.wrappedObject = wrappedObj;
         fillPredicateTable();
     }
@@ -331,13 +331,13 @@ public final class ProlLibraryWrapper extends ProlAbstractLibrary {
                     }
                 } else if (argclass == double.class) {
                     if (term instanceof TermInteger) {
-                        result = Double.valueOf(((TermInteger) term).getNumericValue().doubleValue());
+                        result = ((TermInteger) term).getNumericValue().doubleValue();
                     } else if (term instanceof TermFloat) {
-                        result = Double.valueOf(((TermFloat) term).getNumericValue().doubleValue());
+                        result = ((TermFloat) term).getNumericValue().doubleValue();
                     }
                 } else if (argclass == float.class) {
                     if (term instanceof TermInteger) {
-                        result = Float.valueOf(((TermInteger) term).getNumericValue().floatValue());
+                        result = ((TermInteger) term).getNumericValue().floatValue();
                     } else if (term instanceof TermFloat) {
                         result = ((TermFloat) term).getNumericValue();
                     }
@@ -349,11 +349,11 @@ public final class ProlLibraryWrapper extends ProlAbstractLibrary {
                     }
                 } else if (argclass == byte.class) {
                     if (term instanceof NumericTerm) {
-                        result = Byte.valueOf(((NumericTerm) term).getNumericValue().byteValue());
+                        result = ((NumericTerm) term).getNumericValue().byteValue();
                     }
                 } else if (argclass == char.class) {
                     if (term instanceof NumericTerm) {
-                        result = Character.valueOf((char) ((NumericTerm) term).getNumericValue().shortValue());
+                        result = (char) ((NumericTerm) term).getNumericValue().shortValue();
                     } else if (term.getTermType() == Term.TYPE_ATOM) {
                         final String text = term.getText();
                         if (text.length() == 1) {
@@ -362,7 +362,7 @@ public final class ProlLibraryWrapper extends ProlAbstractLibrary {
                     }
                 } else if (argclass == short.class) {
                     if (term instanceof NumericTerm) {
-                        result = Short.valueOf(((NumericTerm) term).getNumericValue().shortValue());
+                        result = ((NumericTerm) term).getNumericValue().shortValue();
                     }
                 } else {
                     throw new ProlCriticalError("Unsupported primitive type [" + argclass.getCanonicalName() + ']');
@@ -376,7 +376,7 @@ public final class ProlLibraryWrapper extends ProlAbstractLibrary {
                     result = Arrays.asList((Object[]) term2obj(context, (new Object[0]).getClass(), term));
                 } else if (argclass == Set.class) {
                     final Object[] asarray = (Object[]) term2obj(context, (new Object[0]).getClass(), term);
-                    final Set<Object> resultset = new HashSet<Object>();
+                    final Set<Object> resultset = new HashSet<>();
                     resultset.addAll(Arrays.asList(asarray));
                     result = resultset;
 
@@ -555,7 +555,7 @@ public final class ProlLibraryWrapper extends ProlAbstractLibrary {
         boolean result = true;
 
         if (obj instanceof Boolean) {
-            result = ((Boolean) obj).booleanValue();
+            result = ((Boolean) obj);
         }
 
         return result;

@@ -55,16 +55,12 @@ public class main {
 
         final File initFile = fileToLoad;
 
-        SwingUtilities.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                if (initFile != null) {
-                    new MainFrame(initFile).setVisible(true);
-                } else {
-                    new MainFrame().setVisible(true);
-                }
-            }
+        SwingUtilities.invokeLater(() -> {
+          if (initFile != null) {
+            new MainFrame(initFile).setVisible(true);
+          } else {
+            new MainFrame().setVisible(true);
+          }
         });
     }
 }

@@ -41,7 +41,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class JHtmlLabel extends JLabel {
 
     private static final long serialVersionUID = -166975925687523220L;
-    private final List<LinkListener> linkListeners = new CopyOnWriteArrayList<LinkListener>();
+    private final List<LinkListener> linkListeners = new CopyOnWriteArrayList<>();
     /**
      * Inside cache of detected link elements.
      */
@@ -150,7 +150,7 @@ public class JHtmlLabel extends JLabel {
     }
 
     private void cacheLinkElements() {
-        this.linkCache = new ArrayList<HtmlLinkAddress>();
+        this.linkCache = new ArrayList<>();
         final View view = (View) this.getClientProperty("html");
         if (view != null) {
             final HTMLDocument doc = (HTMLDocument) view.getDocument();

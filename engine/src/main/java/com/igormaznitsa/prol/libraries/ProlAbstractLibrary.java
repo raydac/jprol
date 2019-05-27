@@ -22,16 +22,17 @@ import com.igormaznitsa.prol.annotations.ProlOperators;
 import com.igormaznitsa.prol.containers.OperatorContainer;
 import com.igormaznitsa.prol.data.Operator;
 import com.igormaznitsa.prol.data.TermStruct;
+import com.igormaznitsa.prol.easygui.MainFrame;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.utils.Utils;
-
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import com.igormaznitsa.prol.easygui.MainFrame;
-import com.igormaznitsa.prol.easygui.MessageEditor;
 
 /**
  * The core class describes a prolog library contains predicates and operators.
@@ -48,7 +49,7 @@ public abstract class ProlAbstractLibrary {
     /**
      * The table contains all operators which have been defined in the library
      */
-    protected final Map<String, OperatorContainer> libraryOperators = new HashMap<String, OperatorContainer>();
+    protected final Map<String, OperatorContainer> libraryOperators = new HashMap<>();
     /**
      * The variable contains the text representation of library UID
      */
@@ -56,12 +57,12 @@ public abstract class ProlAbstractLibrary {
     /**
      * the table contains all predicate which have been defined in the library
      */
-    protected final Map<String, PredicateProcessor> predicateMethodsMap = new HashMap<String, PredicateProcessor>();
+    protected final Map<String, PredicateProcessor> predicateMethodsMap = new HashMap<>();
 
     /**
      * Set for all zero arity predicate names
      */
-    protected final Set<String> zeroArityPredicateNames = new HashSet<String>();
+    protected final Set<String> zeroArityPredicateNames = new HashSet<>();
 
     /**
      * The constructor

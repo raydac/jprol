@@ -742,7 +742,7 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
             throw new ProlDomainErrorException("Wrong operator specifier", predicate);
         }
 
-        final ArrayList<String> names = new ArrayList<String>();
+        final ArrayList<String> names = new ArrayList<>();
         if (atomOrList.getTermType() == Term.TYPE_LIST) {
             TermList list = (TermList) atomOrList;
             while (!list.isNullList()) {
@@ -1973,7 +1973,7 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
             Set<Integer> varFlagTable = null; // the lazy initing map allows us to find out that there are non instantiated shared variables
 
             // the first call
-            goalList = new ArrayList<AuxForkTask>();
+            goalList = new ArrayList<>();
             TermList tlist = termlist;
             final ProlContext context = goal.getContext();
             while (!tlist.isNullList()) {
@@ -1985,7 +1985,7 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
                     final Map<String, Var> varTable = Utils.fillTableWithVars(term);
                     if (!varTable.isEmpty()) {
                         if (varFlagTable == null) {
-                            varFlagTable = new HashSet<Integer>();
+                            varFlagTable = new HashSet<>();
                         }
                         for (final Map.Entry<String, Var> pair : varTable.entrySet()) {
                             final Var variable = pair.getValue();
@@ -2016,7 +2016,7 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
             goal.setAuxObject(goalList);
         }
 
-        List<Future<Term>> resultList = new ArrayList<Future<Term>>();
+        List<Future<Term>> resultList = new ArrayList<>();
 
         final ExecutorService executor = goal.getContext().getContextExecutorService();
 
@@ -2060,7 +2060,7 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
                 LOG.log(Level.SEVERE, "predicateFORK()[" + predicate.toString() + "] task index=" + taskindex, ex.getCause() == null ? ex : ex.getCause());
 
                 if (forkExceptions == null) {
-                    forkExceptions = new ArrayList<Throwable>();
+                    forkExceptions = new ArrayList<>();
                 }
 
                 forkExceptions.add(ex);
@@ -2105,7 +2105,7 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
         // parse the list for terms
         final Term[] parsedgoal = Utils.listToArray(termlist);
 
-        final Map<Integer, Future<Term>> workingThreads = new HashMap<Integer, Future<Term>>();
+        final Map<Integer, Future<Term>> workingThreads = new HashMap<>();
         int index = 0;
         for (final Future<Term> task : taskList) {
             workingThreads.put(index++, task);
@@ -2197,15 +2197,21 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
 
         final ProlTriggerGoal triggergoal = new ProlTriggerGoal(callableTerm, context, goal.getTracer());
 
-        if ("onassert".equals(triggerevent)) {
-            triggergoal.addSignature(signature, ProlTriggerType.TRIGGER_ASSERT);
-        } else if ("onretract".equals(triggerevent)) {
-            triggergoal.addSignature(signature, ProlTriggerType.TRIGGER_RETRACT);
-        } else if ("onassertretract".equals(triggerevent)) {
-            triggergoal.addSignature(signature, ProlTriggerType.TRIGGER_ASSERT_RETRACT);
-        } else {
-            throw new ProlCriticalError("Unsupported trigger event detected [" + triggerevent + ']');
-        }
+        if (null == triggerevent) {
+          throw new ProlCriticalError("Unsupported trigger event detected [" + triggerevent + ']');
+        } else switch (triggerevent) {
+        case "onassert":
+          triggergoal.addSignature(signature, ProlTriggerType.TRIGGER_ASSERT);
+          break;
+        case "onretract":
+          triggergoal.addSignature(signature, ProlTriggerType.TRIGGER_RETRACT);
+          break;
+        case "onassertretract":
+          triggergoal.addSignature(signature, ProlTriggerType.TRIGGER_ASSERT_RETRACT);
+          break;
+        default:
+          throw new ProlCriticalError("Unsupported trigger event detected [" + triggerevent + ']');
+      }
 
         context.registerTrigger(triggergoal);
 

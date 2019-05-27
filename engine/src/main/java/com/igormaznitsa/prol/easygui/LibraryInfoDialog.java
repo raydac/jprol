@@ -126,17 +126,15 @@ public final class LibraryInfoDialog extends javax.swing.JDialog {
 
     public String fillTextInfoFromLibraries(final String[] libraries) throws Exception {
         final ByteArrayOutputStream baos = new ByteArrayOutputStream(16384);
-        final PrintStream out = new PrintStream(baos);
-
+      try (PrintStream out = new PrintStream(baos)) {
         for (int li = 0; li < libraries.length; li++) {
-            final Class<?> libraryClass = Class.forName(libraries[li]);
-            Utils.printPredicatesForLibrary(out, libraryClass);
-            if (li < libraries.length) {
-                out.println(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\r\n\r\n");
-            }
+          final Class<?> libraryClass = Class.forName(libraries[li]);
+          Utils.printPredicatesForLibrary(out, libraryClass);
+          if (li < libraries.length) {
+            out.println(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\r\n\r\n");
+          }
         }
-
-        out.close();
+      }
 
         return new String(baos.toByteArray(), "UTF-8");
     }
@@ -179,10 +177,8 @@ public final class LibraryInfoDialog extends javax.swing.JDialog {
         ButtonClose.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/cross.png"))); // NOI18N
         ButtonClose.setText("Close");
         ButtonClose.setToolTipText("Close the dialog");
-        ButtonClose.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                ButtonCloseActionPerformed(evt);
-            }
+        ButtonClose.addActionListener((java.awt.event.ActionEvent evt) -> {
+          ButtonCloseActionPerformed(evt);
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
@@ -195,6 +191,7 @@ public final class LibraryInfoDialog extends javax.swing.JDialog {
         textFieldTextToSearch.setFont(new java.awt.Font("Dialog", Font.BOLD, 12)); // NOI18N
         textFieldTextToSearch.setToolTipText("Enter word to find and press enter (? and * wildcard characters are supported)");
         textFieldTextToSearch.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
             public void keyReleased(java.awt.event.KeyEvent evt) {
                 textFieldTextToSearchKeyReleased(evt);
             }

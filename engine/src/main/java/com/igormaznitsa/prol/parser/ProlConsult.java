@@ -189,7 +189,7 @@ public class ProlConsult {
                                         userwriter.write(termGoal.forWrite());
                                         userwriter.write("\r\n");
                                     }
-                                    final Map<String, Var> varmap = new HashMap<String, Var>();
+                                    final Map<String, Var> varmap = new HashMap<>();
                                     int solutioncounter = 0;
 
                                     final Goal thisGoal = new Goal(termGoal, context, null);

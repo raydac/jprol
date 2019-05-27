@@ -26,10 +26,10 @@ import com.igormaznitsa.prol.containers.MemoryKnowledgeBase;
  */
 public final class DefaultKnowledgeBaseFactory implements KnowledgeBaseFactory {
 
-    private static DefaultKnowledgeBaseFactory instance = new DefaultKnowledgeBaseFactory();
+    private static final DefaultKnowledgeBaseFactory INSTANCE = new DefaultKnowledgeBaseFactory();
 
     public static DefaultKnowledgeBaseFactory getInstance() {
-        return instance;
+        return INSTANCE;
     }
 
     @Override

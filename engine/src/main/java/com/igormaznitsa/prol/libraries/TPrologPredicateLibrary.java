@@ -199,9 +199,9 @@ public final class TPrologPredicateLibrary extends ProlAbstractLibrary {
 
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
     final CharArrayWriter charArray = new CharArrayWriter(8096);
-    final PrintWriter writer = new PrintWriter(charArray, true);
-    base.write(writer);
-    writer.close();
+    try (PrintWriter writer = new PrintWriter(charArray, true)) {
+      base.write(writer);
+    }
     final String dbtext = charArray.toString();
 
     boolean result = false;
