@@ -55,7 +55,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
   private volatile boolean cancelCurrentRead;
 
   public DialogEditor() throws IOException {
-    super("Dialog");
+    super("Dialog", false);
 
     ((EditorPane) this.editor).setEventReplacer(this);
 

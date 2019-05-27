@@ -37,7 +37,7 @@ public class MessageEditor extends AbstractProlEditor {
     private String insideBuffer;
 
     public MessageEditor() {
-        super("Messages");
+        super("Messages",false);
 
         removePropertyFromList("EdForeground");
         removePropertyFromList("EdCaretColor");

@@ -24,7 +24,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
   protected RUndoManager undoManager;
 
   public PrologSourceEditor() {
-    super("Editor", new RSyntaxTextArea());
+    super("Editor", new ScalableRsyntaxTextArea(), true);
 
     final RSyntaxTextArea theEditor = (RSyntaxTextArea) this.editor;
     theEditor.setTabsEmulated(true);

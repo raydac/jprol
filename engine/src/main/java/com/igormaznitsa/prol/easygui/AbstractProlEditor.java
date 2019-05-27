@@ -53,17 +53,17 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
   private final String nameID;
   private boolean wordWrap;
 
-  public AbstractProlEditor(final String title) {
-    this(title, new EditorPane());
+  public AbstractProlEditor(final String title, final boolean lineNumeration) {
+    this(title, new EditorPane(), lineNumeration);
   }
 
-  public AbstractProlEditor(final String title, final JTextComponent editor) {
+  public AbstractProlEditor(final String title, final JTextComponent editor, final boolean lineNumeration) {
     super();
     this.editableProperties = new ArrayList<>();
     this.editor = editor;
 
     if (this.editor instanceof RSyntaxTextArea) {
-      this.scrollPane = new RTextScrollPane(this.editor, true);
+      this.scrollPane = new RTextScrollPane(this.editor, lineNumeration);
     } else {
       this.scrollPane = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     }
