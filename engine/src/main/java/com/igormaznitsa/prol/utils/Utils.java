@@ -156,7 +156,7 @@ public final class Utils {
      * exception or the same exception if there is not any cause
      */
     public static Throwable getRootThrowable(Throwable ex) {
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             if (ex.getCause() == null) {
                 break;
             }

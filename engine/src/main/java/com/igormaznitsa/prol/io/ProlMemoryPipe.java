@@ -203,7 +203,7 @@ public class ProlMemoryPipe implements ProlStream, ProlTextReader, ProlTextWrite
     public byte[] getAllDataAsByteArray() throws IOException {
         synchronized (reader) {
             final ByteArrayOutputStream buffer = new ByteArrayOutputStream(1024);
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
                 final int chr = reader.readChar().getNumericValue().intValue();
 
                 if (chr < 0) {

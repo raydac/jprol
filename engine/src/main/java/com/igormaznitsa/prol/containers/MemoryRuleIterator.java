@@ -42,7 +42,7 @@ final class MemoryRuleIterator extends MemoryClauseIterator implements RuleItera
     protected InsideClauseListItem findFirstElement() {
         InsideClauseListItem firstitem = null;
 
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             firstitem = predicateList.findDirect(template, firstitem);
             if (firstitem == null || !firstitem.isFact()) {
                 break;
@@ -60,7 +60,7 @@ final class MemoryRuleIterator extends MemoryClauseIterator implements RuleItera
 
         final TermStruct result = (TermStruct) lastFound.getClause().makeClone();
 
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             lastFound = predicateList.findDirect(template, lastFound);
             if (lastFound == null || !lastFound.isFact()) {
                 break;

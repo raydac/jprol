@@ -1500,7 +1500,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     int recentFileIndex = 1;
     this.recentFiles.clear();
-    while (true) {
+    while (!Thread.currentThread().isInterrupted()) {
       final String path = prefs.get("RecentFile" + recentFileIndex, null);
       if (path == null) {
         break;

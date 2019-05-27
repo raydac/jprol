@@ -156,7 +156,7 @@ public final class ProlLibraryWrapper extends ProlAbstractLibrary {
      */
     private static String generatePredicateNameFromMethodName(final Method method) {
         String name = method.getName().toLowerCase();
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             if (name.charAt(0) == '_') {
                 name = name.substring(1);
             } else {
@@ -276,7 +276,7 @@ public final class ProlLibraryWrapper extends ProlAbstractLibrary {
                         final Object resultarr = newArray(arrayclass, len);
                         TermList lst = list;
                         int index = 0;
-                        while (true) {
+                        while (!Thread.currentThread().isInterrupted()) {
                             final Term head = lst.getHead();
                             setObjectToArrayElement(resultarr, index, term2obj(context, arrayclass, head));
                             index++;

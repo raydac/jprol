@@ -192,7 +192,7 @@ public final class ProlTreeBuilder {
     private TermStruct readStruct(final Term functor, final ProlReader reader) throws IOException {
         final ArrayList<Term> listOfAtoms = new ArrayList<>();
 
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             final Term block = readBlock(reader, OPERATORS_INSIDE_STRUCT);
 
             final ProlTokenizerResult nextAtom = tokenizer.nextToken(reader, knowledgeBase);
@@ -312,7 +312,7 @@ public final class ProlTreeBuilder {
         // the variable will contain last processed tree item contains either atom or operator
         TreeItem currentTreeItem = null;
 
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             // read next atom from tokenizer
             ProlTokenizerResult readAtomContainer = tokenizer.nextToken(reader, knowledgeBase);
             boolean atBrakes = false;

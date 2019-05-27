@@ -63,7 +63,7 @@ public final class UIUtils {
     try {
       reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
       final StringBuilder buffer = new StringBuilder((int) file.length() < 0 ? 16384 : (int) file.length());
-      while (true) {
+      while (!Thread.currentThread().isInterrupted()) {
         final int chr = reader.read();
         if (chr < 0) {
           break;

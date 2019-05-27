@@ -657,7 +657,7 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
             }
         }
 
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             if (last_container == null) {
                 // find container
                 while (operator_iterator.hasNext()) {
@@ -725,6 +725,8 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
                 return true;
             }
         }
+        
+        return false;
     }
 
     @Predicate(Signature = "op/3", Template = "+integer,+operator_specifier,@atom_or_atom_list", Reference = "These predicates allow the operator table to be altered or inspected.\nop(Priority, Op_Specifier, Operator) is true, with the side effect that\n1. if Priority is 0 then Operator is removed from the operator table, else\n2. Operator is added to the Operator table, with priority (lower binds tighter) Priority and associativity determined by Op_Specifier")
@@ -1104,7 +1106,7 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
             case Term.TYPE_LIST: {
                 TermList list = (TermList) term;
 
-                while (true) {
+                while (!Thread.currentThread().isInterrupted()) {
                     if (list.isNullList()) {
                         return true;
                     }
@@ -1516,7 +1518,7 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
         TermList result = null;
         TermList currentList = null;
 
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             final Term nextTemplate = find_goal.solve();
 
             if (nextTemplate == null) {
@@ -1864,7 +1866,7 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
 
         boolean result = false;
 
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             final Goal currentGoal = ruleAuxObject.currentActiveGoal;
             if (currentGoal == null) {
                 final TermStruct nextRule = processIterator(goal, ruleAuxObject.iterator);
@@ -2365,7 +2367,7 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
             throw new ProlPermissionErrorException("read", "text_input", predicate);
         }
         try {
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
                 final TermInteger nextchar = inStream.readChar();
                 final int num = nextchar.getNumericValue().intValue();
                 if (num >= 0 && Character.isSpaceChar((char) num)) {
@@ -2376,6 +2378,8 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
         } catch (IOException ex) {
             throw new ProlPermissionErrorException("write", "text_output", predicate, ex);
         }
+        
+        return false;
     }
 
     @Predicate(Signature = "read/1", Reference = " Read  the next Prolog term from the current input stream.")

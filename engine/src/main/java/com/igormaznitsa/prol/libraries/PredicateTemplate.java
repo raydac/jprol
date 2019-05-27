@@ -351,7 +351,7 @@ public class PredicateTemplate {
                                 break;
                             }
 
-                            while (true) {
+                            while (!Thread.currentThread().isInterrupted()) {
                                 Term head = lst.getHead();
                                 if (head.getTermType() == Term.TYPE_VAR) {
                                     head = ((Var) head).getValue();
@@ -480,7 +480,7 @@ public class PredicateTemplate {
                             break;
                         }
 
-                        while (true) {
+                        while (!Thread.currentThread().isInterrupted()) {
                             Term head = lst.getHead();
                             if (head.getTermType() == Term.TYPE_VAR) {
                                 head = ((Var) head).getValue();
@@ -534,7 +534,7 @@ public class PredicateTemplate {
                             break;
                         }
 
-                        while (true) {
+                        while (!Thread.currentThread().isInterrupted()) {
                             Term head = lst.getHead();
                             if (head.getTermType() == Term.TYPE_VAR) {
                                 head = ((Var) head).getValue();

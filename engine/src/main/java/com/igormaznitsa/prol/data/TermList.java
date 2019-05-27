@@ -292,7 +292,7 @@ public final class TermList extends TermStruct {
             throw new ProlCriticalError("Attemption to change Null list");
         }
         TermList curList = this;
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             Term tail = curList.getTail();
             if (tail == NULLLIST || tail.getTermType() != TYPE_LIST) {
                 curList.setTail(newLastElement);

@@ -194,7 +194,7 @@ public class ProlConsult {
 
                                     final Goal thisGoal = new Goal(termGoal, context, null);
 
-                                    while (true) {
+                                    while (!Thread.currentThread().isInterrupted()) {
                                         varmap.clear();
                                         if (solveGoal(thisGoal, varmap)) {
                                             solutioncounter++;

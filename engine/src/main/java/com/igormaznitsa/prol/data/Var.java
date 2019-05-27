@@ -119,7 +119,7 @@ public final class Var extends Term {
             if (value.getTermType() == Term.TYPE_VAR) {
                 // check for loop
                 Var curVar = ((Var) value);
-                while (true) {
+                while (!Thread.currentThread().isInterrupted()) {
                     if (curVar == this) {
                         // loop detected, just return
                         return true;
@@ -226,14 +226,15 @@ public final class Var extends Term {
 
     public Var getDeepestVar() {
         Var curVar = this;
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             final Term term = curVar.getThisValue();
             if (term == null || term.getTermType() != Term.TYPE_VAR) {
-                return curVar;
+                break;
             } else {
                 curVar = (Var) term;
             }
         }
+        return curVar;
     }
 
     /**

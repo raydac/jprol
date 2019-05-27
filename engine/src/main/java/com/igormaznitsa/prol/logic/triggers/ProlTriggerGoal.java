@@ -87,7 +87,7 @@ public class ProlTriggerGoal extends AbstractProlTrigger {
         if (triggerGoal != null) {
             final Goal tobesolved = triggerGoal.getNonparametrizedGoalInstance();// we don't have parameters in the
 
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
                 final Term result = tobesolved.solve();
                 if (result == null) {
                     break;

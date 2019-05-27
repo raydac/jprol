@@ -156,7 +156,7 @@ public final class ProlTokenizer {
      * @throws IOException it will be thrown if there will be any transport problem during the operation
      */
     private void skipComments(final ProlReader reader) throws IOException {
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             final int readchar = reader.read();
             if (readchar < 0 || readchar == '\n') {
                 break;
@@ -191,7 +191,7 @@ public final class ProlTokenizer {
 
         boolean letterOrDigitOnly = false;
 
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             final int readchar = reader.read();
 
             if (readchar < 0) {
@@ -468,6 +468,7 @@ public final class ProlTokenizer {
                 break;
             }
         }
+        return null;
     }
 
     /**

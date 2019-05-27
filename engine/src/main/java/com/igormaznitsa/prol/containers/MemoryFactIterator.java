@@ -43,7 +43,7 @@ final class MemoryFactIterator extends MemoryClauseIterator implements FactItera
     protected InsideClauseListItem findFirstElement() {
         InsideClauseListItem firstitem = null;
 
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             firstitem = predicateList.findDirect(template, firstitem);
             if (firstitem == null || firstitem.isFact()) {
                 break;
@@ -61,7 +61,7 @@ final class MemoryFactIterator extends MemoryClauseIterator implements FactItera
 
         final TermStruct result = (TermStruct) lastFound.getClause().makeClone();
 
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             lastFound = predicateList.findDirect(template, lastFound);
             if (lastFound == null || lastFound.isFact()) {
                 break;

@@ -144,7 +144,7 @@ public class PreparedGoal {
         final StringBuilder builder = new StringBuilder(goal);
 
         int varIndex = 1000;
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             final int indexOfOrderedVar = builder.indexOf("{?}");
             if (indexOfOrderedVar < 0) {
                 break;

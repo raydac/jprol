@@ -86,7 +86,7 @@ final class KnowledgeBaseInsideClauseList {
     boolean retracta(final TermStruct template) {
         InsideClauseListItem container = null;
 
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             if (!((container = findDirect(template, container)) != null)) break;
             container.remove();
             if (first == container) {
@@ -107,7 +107,7 @@ final class KnowledgeBaseInsideClauseList {
     boolean retractz(final TermStruct template) {
         InsideClauseListItem container = null;
 
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             if (!((container = findBack(template, container)) != null)) break;
             container.remove();
             if (last == container) {
@@ -240,7 +240,7 @@ final class KnowledgeBaseInsideClauseList {
             throw new NullPointerException("Writer is null");
         }
         InsideClauseListItem item = first;
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             if (item == null) {
                 break;
             }
@@ -261,7 +261,7 @@ final class KnowledgeBaseInsideClauseList {
 
         InsideClauseListItem current = first;
 
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             if (current == null) {
                 break;
             } else {
