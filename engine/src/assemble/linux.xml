@@ -11,22 +11,22 @@
     </formats>
     <files>
         <file>
-            <source>${project.build.directory}/${app.name}.jar</source>
+            <source>${project.build.directory}${file.separator}${app.name}.jar</source>
             <destName>jprol.jar</destName>
-            <outputDirectory>/</outputDirectory>
+            <outputDirectory>${file.separator}</outputDirectory>
         </file>
     </files>
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}/src/assemble/linux</directory>
-            <outputDirectory>/</outputDirectory>
+            <directory>${project.basedir}${file.separator}src${file.separator}assemble${file.separator}linux</directory>
+            <outputDirectory>${file.separator}</outputDirectory>
             <includes>
                 <include>*/**</include>
             </includes>
         </fileSet>
         <fileSet>
             <directory>${project.build.directory}</directory>
-            <outputDirectory>/</outputDirectory>
+            <outputDirectory>${file.separator}</outputDirectory>
             <includes>
                 <include>${artifactId}-${version}.${packaging}</include>
             </includes>
