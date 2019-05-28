@@ -24,8 +24,6 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 public final class ScalableRsyntaxTextArea extends RSyntaxTextArea {
 
-  public static final Font DEFAULT_FONT = new Font(Font.MONOSPACED, Font.PLAIN, 14);
-
   private float fontScale = 1.0f;
   private float fontOriginalSize;
 

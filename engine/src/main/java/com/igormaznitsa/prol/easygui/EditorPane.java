@@ -15,9 +15,11 @@
  */
 package com.igormaznitsa.prol.easygui;
 
+import java.awt.Font;
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 
 /**
  * The class implements the Editor pane for the IDE.
@@ -26,55 +28,91 @@ import java.awt.event.MouseEvent;
  */
 public class EditorPane extends JTextPane {
 
-    private static final long serialVersionUID = 2384993058573194751L;
-    private volatile JPopupMenu popupMenu;
-    private volatile EventReplacer replacer;
-    public EditorPane() {
-        super();
+  private static final long serialVersionUID = 2384993058573194751L;
+  private volatile JPopupMenu popupMenu;
+  private volatile EventReplacer replacer;
 
-        addMouseListener(new MouseAdapter() {
+  private static final float SCALE_STEP = 0.5f;
+  private static final float SCALE_MIN = 0.03f;
+  private static final float SCALE_MAX = 10.0f;
+  
+  private float fontScale = 1.0f;
+  private float fontOriginalSize;
 
-            @Override
-            public void mousePressed(MouseEvent e) {
-                showMenuIfPopupTrigger(e);
-            }
+  public EditorPane() {
+    super();
 
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                showMenuIfPopupTrigger(e);
-            }
-        });
+    this.addMouseWheelListener((final MouseWheelEvent e) -> {
+      final int allModifiers = MouseWheelEvent.CTRL_DOWN_MASK | MouseWheelEvent.ALT_DOWN_MASK | MouseWheelEvent.META_DOWN_MASK | MouseWheelEvent.SHIFT_DOWN_MASK;
+      if (!e.isConsumed() && !e.isPopupTrigger() && (e.getModifiersEx() & allModifiers) == MouseWheelEvent.CTRL_DOWN_MASK) {
+        e.consume();
+        this.fontScale = Math.max(SCALE_MIN, Math.min(SCALE_MAX, this.fontScale + SCALE_STEP * -e.getWheelRotation()));
+        updateFontForScale();
+      } else {
+        this.getParent().dispatchEvent(e);
+      }
+    });
+
+    addMouseListener(new MouseAdapter() {
+
+      @Override
+      public void mousePressed(MouseEvent e) {
+        showMenuIfPopupTrigger(e);
+      }
+
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        showMenuIfPopupTrigger(e);
+      }
+    });
+  }
+
+  @Override
+  public void setFont(final Font font) {
+    super.setFont(font);
+    this.fontScale = 1.0f;
+    this.fontOriginalSize = font.getSize2D();
+  } 
+  
+  public void setEventReplacer(final EventReplacer replacer) {
+    this.replacer = replacer;
+  }
+
+  public void setPopupMenu(final JPopupMenu menu) {
+    this.popupMenu = menu;
+  }
+
+  private void showMenuIfPopupTrigger(final MouseEvent e) {
+    final JPopupMenu thePopup = this.popupMenu;
+
+    if (thePopup == null) {
+      return;
     }
-
-    public void setEventReplacer(final EventReplacer replacer) {
-        this.replacer = replacer;
+    if (e.isPopupTrigger()) {
+      thePopup.show(this, e.getX() + 3, e.getY() + 3);
     }
+  }
 
-    public void setPopupMenu(final JPopupMenu menu) {
-        this.popupMenu = menu;
+  private void updateFontForScale() {
+    final Font newFont = this.getFont().deriveFont(this.fontScale * this.fontOriginalSize);
+    if (newFont.getSize() > 0) {
+      super.setFont(newFont);
+    } else {
+      super.setFont(this.getFont().deriveFont(1.0f));
     }
+  }
 
-    private void showMenuIfPopupTrigger(final MouseEvent e) {
-        final JPopupMenu thePopup = this.popupMenu;
-
-        if (thePopup == null) {
-            return;
-        }
-        if (e.isPopupTrigger()) {
-            thePopup.show(this, e.getX() + 3, e.getY() + 3);
-        }
+  @Override
+  public void paste() {
+    if (replacer == null) {
+      super.paste();
+    } else {
+      replacer.pasteEvent();
     }
+  }
 
-    @Override
-    public void paste() {
-        if (replacer == null) {
-            super.paste();
-        } else {
-            replacer.pasteEvent();
-        }
-    }
+  public interface EventReplacer {
 
-    public interface EventReplacer {
-        void pasteEvent();
-    }
+    void pasteEvent();
+  }
 }
