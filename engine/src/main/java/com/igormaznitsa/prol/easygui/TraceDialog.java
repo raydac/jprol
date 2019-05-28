@@ -41,6 +41,8 @@ public class TraceDialog extends AbstractProlEditor implements ActionListener {
   public TraceDialog() {
     super("Trace", false, false);
 
+    this.editor.setEditable(false);
+    
     removePropertyFromList("EdForeground");
     removePropertyFromList("EdCaretColor");
 

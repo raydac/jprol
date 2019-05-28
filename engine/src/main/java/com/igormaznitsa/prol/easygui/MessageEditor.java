@@ -41,6 +41,7 @@ public class MessageEditor extends AbstractProlEditor {
 
   public MessageEditor() {
     super("Messages", false, false);
+    this.editor.setEditable(false);
     this.editor.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
 
     removePropertyFromList("EdForeground");
