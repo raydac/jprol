@@ -23,20 +23,20 @@ package com.igormaznitsa.prol.logic;
  */
 public interface ProlMappedObjectSearcher {
 
-    /**
-     * The function allows to find the mapped object
-     *
-     * @param termText the text which should be used as the key, must not be null
-     * @return Object if it has been found, else null
-     */
-    Object findProlMappedObject(String termText);
+  /**
+   * The function allows to find the mapped object
+   *
+   * @param termText the text which should be used as the key, must not be null
+   * @return Object if it has been found, else null
+   */
+  Object findProlMappedObject(String termText);
 
-    /**
-     * The function allows to find associated text string with a Java object
-     *
-     * @param obj the object we need the string for
-     * @return the string representation of the object, else null if it is not
-     * found
-     */
-    String findProlMappedTerm(Object obj);
+  /**
+   * The function allows to find associated text string with a Java object
+   *
+   * @param obj the object we need the string for
+   * @return the string representation of the object, else null if it is not
+   * found
+   */
+  String findProlMappedTerm(Object obj);
 }

@@ -27,32 +27,32 @@ import java.util.Map;
  */
 public interface ProlTrigger {
 
-    /**
-     * Get the map containing signatures and triggered events of target predicates
-     * for the trigger
-     *
-     * @return a map contains signatures and associated event types, must not be
-     * null
-     * @see ProlTriggerType
-     */
-    Map<String, ProlTriggerType> getSignatures();
+  /**
+   * Get the map containing signatures and triggered events of target predicates
+   * for the trigger
+   *
+   * @return a map contains signatures and associated event types, must not be
+   * null
+   * @see ProlTriggerType
+   */
+  Map<String, ProlTriggerType> getSignatures();
 
-    /**
-     * The funnction will be called when the context fidn out that there is inside
-     * assert or retract operation over a predicate mapped on the trigger
-     *
-     * @param event the event object describes the operation over the predicate,
-     *              must not be null
-     * @throws InterruptedException it will be thrown if handling is interrupted
-     */
-    void onTriggerEvent(TriggerEvent event) throws InterruptedException;
+  /**
+   * The funnction will be called when the context fidn out that there is inside
+   * assert or retract operation over a predicate mapped on the trigger
+   *
+   * @param event the event object describes the operation over the predicate,
+   * must not be null
+   * @throws InterruptedException it will be thrown if handling is interrupted
+   */
+  void onTriggerEvent(TriggerEvent event) throws InterruptedException;
 
-    /**
-     * The function will be called only once when a prol context (where the
-     * trigger has been registered one or more times), is halting (the halted
-     * state already set on the context so it is not possible to process goals)
-     *
-     * @param context the signaler , must not be null
-     */
-    void onContextHalting(ProlContext context);
+  /**
+   * The function will be called only once when a prol context (where the
+   * trigger has been registered one or more times), is halting (the halted
+   * state already set on the context so it is not possible to process goals)
+   *
+   * @param context the signaler , must not be null
+   */
+  void onContextHalting(ProlContext context);
 }

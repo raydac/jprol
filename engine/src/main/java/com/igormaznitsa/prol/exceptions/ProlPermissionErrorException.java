@@ -26,113 +26,114 @@ import com.igormaznitsa.prol.data.TermStruct;
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public class ProlPermissionErrorException extends ProlAbstractCatcheableException {
-    private static final long serialVersionUID = 7752699517532895102L;
 
-    /**
-     * The constant has the commont shareable part for all instances of the
-     * exception
-     */
-    private static final Term TERM_ERROR = new Term("permission_error");
-    /**
-     * The variable contains the string representation of the operation which has
-     * thrown the exception
-     */
-    private final String operation;
+  private static final long serialVersionUID = 7752699517532895102L;
 
-    /**
-     * The variable contains the string representation of the permission type
-     */
-    private final String permissionType;
+  /**
+   * The constant has the commont shareable part for all instances of the
+   * exception
+   */
+  private static final Term TERM_ERROR = new Term("permission_error");
+  /**
+   * The variable contains the string representation of the operation which has
+   * thrown the exception
+   */
+  private final String operation;
 
-    /**
-     * A constructor
-     *
-     * @param operation      the string representation of the operation which has
-     *                       thrown the exception
-     * @param permissionType the permission type
-     * @param culprit        the culprit term
-     * @param cause          the root java exception which was the cause for the error
-     */
-    public ProlPermissionErrorException(final String operation, final String permissionType, final Term culprit, final Throwable cause) {
-        super(culprit, cause);
-        this.operation = operation;
-        this.permissionType = permissionType;
-    }
+  /**
+   * The variable contains the string representation of the permission type
+   */
+  private final String permissionType;
 
-    /**
-     * A constructor
-     *
-     * @param operation      the string representation of the operation which has
-     *                       thrown the exception
-     * @param permissionType the permission type
-     * @param message        a string message describing the situation
-     * @param culprit        the culprit term
-     * @param cause          the root java exception which was the cause for the error
-     */
-    public ProlPermissionErrorException(final String operation, final String permissionType, final String message, final Term culprit, final Throwable cause) {
-        super(message, culprit, cause);
-        this.operation = operation;
-        this.permissionType = permissionType;
-    }
+  /**
+   * A constructor
+   *
+   * @param operation the string representation of the operation which has
+   * thrown the exception
+   * @param permissionType the permission type
+   * @param culprit the culprit term
+   * @param cause the root java exception which was the cause for the error
+   */
+  public ProlPermissionErrorException(final String operation, final String permissionType, final Term culprit, final Throwable cause) {
+    super(culprit, cause);
+    this.operation = operation;
+    this.permissionType = permissionType;
+  }
 
-    /**
-     * A constructor
-     *
-     * @param operation      the string representation of the operation which has
-     *                       thrown the exception
-     * @param permissionType the permission type
-     * @param message        a string message describing the situation
-     * @param culprit        the culprit term
-     */
-    public ProlPermissionErrorException(final String operation, final String permissionType, final String message, final Term culprit) {
-        super(message, culprit);
-        this.operation = operation;
-        this.permissionType = permissionType;
-    }
+  /**
+   * A constructor
+   *
+   * @param operation the string representation of the operation which has
+   * thrown the exception
+   * @param permissionType the permission type
+   * @param message a string message describing the situation
+   * @param culprit the culprit term
+   * @param cause the root java exception which was the cause for the error
+   */
+  public ProlPermissionErrorException(final String operation, final String permissionType, final String message, final Term culprit, final Throwable cause) {
+    super(message, culprit, cause);
+    this.operation = operation;
+    this.permissionType = permissionType;
+  }
 
-    /**
-     * A constructor
-     *
-     * @param operation      the string representation of the operation which has
-     *                       thrown the exception
-     * @param permissionType the permission type
-     * @param culprit        the culprit term
-     */
-    public ProlPermissionErrorException(final String operation, final String permissionType, final Term culprit) {
-        super(culprit);
-        this.operation = operation;
-        this.permissionType = permissionType;
-    }
+  /**
+   * A constructor
+   *
+   * @param operation the string representation of the operation which has
+   * thrown the exception
+   * @param permissionType the permission type
+   * @param message a string message describing the situation
+   * @param culprit the culprit term
+   */
+  public ProlPermissionErrorException(final String operation, final String permissionType, final String message, final Term culprit) {
+    super(message, culprit);
+    this.operation = operation;
+    this.permissionType = permissionType;
+  }
 
-    /**
-     * Get the string representation of the operation which has thrown the
-     * exception
-     *
-     * @return the operation as a String object
-     */
-    public String getOperation() {
-        return operation;
-    }
+  /**
+   * A constructor
+   *
+   * @param operation the string representation of the operation which has
+   * thrown the exception
+   * @param permissionType the permission type
+   * @param culprit the culprit term
+   */
+  public ProlPermissionErrorException(final String operation, final String permissionType, final Term culprit) {
+    super(culprit);
+    this.operation = operation;
+    this.permissionType = permissionType;
+  }
 
-    /**
-     * Gedt the permission type
-     *
-     * @return the permission type as a String object
-     */
-    public String getPermissionType() {
-        return permissionType;
-    }
+  /**
+   * Get the string representation of the operation which has thrown the
+   * exception
+   *
+   * @return the operation as a String object
+   */
+  public String getOperation() {
+    return operation;
+  }
 
-    @Override
-    public Term getFunctorForErrorStruct() {
-        return TERM_ERROR;
-    }
+  /**
+   * Gedt the permission type
+   *
+   * @return the permission type as a String object
+   */
+  public String getPermissionType() {
+    return permissionType;
+  }
 
-    @Override
-    public TermStruct getAsStruct() {
-        final TermStruct struct = new TermStruct(TERM_ERROR, new Term[]{(operation == null ? UNDEFINED : new Term(operation)), (permissionType == null ? UNDEFINED : new Term(permissionType)), getCulprit() == null ? UNDEFINED : getCulprit()});
-        struct.setCarriedObject(this);
-        return struct;
-    }
+  @Override
+  public Term getFunctorForErrorStruct() {
+    return TERM_ERROR;
+  }
+
+  @Override
+  public TermStruct getAsStruct() {
+    final TermStruct struct = new TermStruct(TERM_ERROR, new Term[]{(operation == null ? UNDEFINED : new Term(operation)), (permissionType == null ? UNDEFINED : new Term(permissionType)), getCulprit() == null ? UNDEFINED : getCulprit()});
+    struct.setCarriedObject(this);
+    return struct;
+  }
 
 }

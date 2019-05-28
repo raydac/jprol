@@ -21,17 +21,20 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * The Annotation signals that a method should be recognized as a prolog predicate.
+ * The Annotation signals that a method should be recognized as a prolog
+ * predicate.
  *
  * @author Igor Maznitsa (http://www.igormaznitsa.com)
  */
 @Target(value = ElementType.METHOD)
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface WrappedPredicate {
-    /**
-     * The Name of the predicate, by default it is empty string and the method name will be used.
-     *
-     * @return the predicated name as String
-     */
-    String Name() default "";
+
+  /**
+   * The Name of the predicate, by default it is empty string and the method
+   * name will be used.
+   *
+   * @return the predicated name as String
+   */
+  String Name() default "";
 }

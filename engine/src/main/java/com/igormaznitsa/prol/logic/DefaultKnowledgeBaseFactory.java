@@ -26,20 +26,20 @@ import com.igormaznitsa.prol.containers.MemoryKnowledgeBase;
  */
 public final class DefaultKnowledgeBaseFactory implements KnowledgeBaseFactory {
 
-    private static final DefaultKnowledgeBaseFactory INSTANCE = new DefaultKnowledgeBaseFactory();
+  private static final DefaultKnowledgeBaseFactory INSTANCE = new DefaultKnowledgeBaseFactory();
 
-    public static DefaultKnowledgeBaseFactory getInstance() {
-        return INSTANCE;
-    }
+  public static DefaultKnowledgeBaseFactory getInstance() {
+    return INSTANCE;
+  }
 
-    @Override
-    public KnowledgeBase makeDefaultKnowledgeBase(ProlContext context, String knowledgeBasId) {
-        return new MemoryKnowledgeBase(context, knowledgeBasId);
-    }
+  @Override
+  public KnowledgeBase makeDefaultKnowledgeBase(ProlContext context, String knowledgeBasId) {
+    return new MemoryKnowledgeBase(context, knowledgeBasId);
+  }
 
-    @Override
-    public KnowledgeBase makeKnowledgeBase(ProlContext context, String knowledgeBaseId, String type) {
-        throw new UnsupportedOperationException("DefaultKnowledgeBaseFactory doesn't support custom type bases");
-    }
+  @Override
+  public KnowledgeBase makeKnowledgeBase(ProlContext context, String knowledgeBaseId, String type) {
+    throw new UnsupportedOperationException("DefaultKnowledgeBaseFactory doesn't support custom type bases");
+  }
 
 }

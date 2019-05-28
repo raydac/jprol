@@ -22,92 +22,92 @@ package com.igormaznitsa.prol.data;
  */
 public interface NumericTerm {
 
-    /**
-     * The constant describes an Integer number
-     */
-    int NUMBER_INTEGER = 0;
+  /**
+   * The constant describes an Integer number
+   */
+  int NUMBER_INTEGER = 0;
 
-    /**
-     * The constant describes a Float number
-     */
-    int NUMBER_FLOAT = 1;
+  /**
+   * The constant describes a Float number
+   */
+  int NUMBER_FLOAT = 1;
 
-    /**
-     * Get the value as Number
-     *
-     * @return the value as a Number object
-     */
-    Number getNumericValue();
+  /**
+   * Get the value as Number
+   *
+   * @return the value as a Number object
+   */
+  Number getNumericValue();
 
-    /**
-     * Compare the number object with other number object
-     *
-     * @param term which value should be compared, must not be null
-     * @return 0 if the number equals, -1 if less and 1 if more
-     */
-    int compare(NumericTerm term);
+  /**
+   * Compare the number object with other number object
+   *
+   * @param term which value should be compared, must not be null
+   * @return 0 if the number equals, -1 if less and 1 if more
+   */
+  int compare(NumericTerm term);
 
-    /**
-     * To add a numeric term and return the result
-     *
-     * @param term a numeric term which value will be added
-     * @return the sum of two numeric terms as a NumericTerm, must not be null
-     */
-    NumericTerm add(NumericTerm term);
+  /**
+   * To add a numeric term and return the result
+   *
+   * @param term a numeric term which value will be added
+   * @return the sum of two numeric terms as a NumericTerm, must not be null
+   */
+  NumericTerm add(NumericTerm term);
 
-    /**
-     * To subtract a numeric term and return the result
-     *
-     * @param term a numeric term which value will be subtracted
-     * @return the difference of two numeric terms as a NumericTerm, must not be
-     * null
-     */
-    NumericTerm sub(NumericTerm term);
+  /**
+   * To subtract a numeric term and return the result
+   *
+   * @param term a numeric term which value will be subtracted
+   * @return the difference of two numeric terms as a NumericTerm, must not be
+   * null
+   */
+  NumericTerm sub(NumericTerm term);
 
-    /**
-     * To divide on a numeric term and return the result
-     *
-     * @param term a numeric term which value will be used for the operation
-     * @return the divided result of two numeric terms as a NumericTerm, must not
-     * be null
-     */
-    NumericTerm div(NumericTerm term);
+  /**
+   * To divide on a numeric term and return the result
+   *
+   * @param term a numeric term which value will be used for the operation
+   * @return the divided result of two numeric terms as a NumericTerm, must not
+   * be null
+   */
+  NumericTerm div(NumericTerm term);
 
-    /**
-     * To multiplicate on a numeric term and return the result
-     *
-     * @param term a numeric term which value will be used for the operation
-     * @return the result of multiplication of two numeric terms as a NumericTerm,
-     * must not be null
-     */
-    NumericTerm mul(NumericTerm term);
+  /**
+   * To multiplicate on a numeric term and return the result
+   *
+   * @param term a numeric term which value will be used for the operation
+   * @return the result of multiplication of two numeric terms as a NumericTerm,
+   * must not be null
+   */
+  NumericTerm mul(NumericTerm term);
 
-    /**
-     * To get the negative value of the numeric term
-     *
-     * @return the negative value as a numeric term, must not be null
-     */
-    NumericTerm neg();
+  /**
+   * To get the negative value of the numeric term
+   *
+   * @return the negative value as a numeric term, must not be null
+   */
+  NumericTerm neg();
 
-    /**
-     * To get the absolute value of the numeric term
-     *
-     * @return the absoolute value as a numeric term, must not be null
-     */
-    NumericTerm abs();
+  /**
+   * To get the absolute value of the numeric term
+   *
+   * @return the absoolute value as a numeric term, must not be null
+   */
+  NumericTerm abs();
 
-    /**
-     * To get the sign of the numeric term value
-     *
-     * @return a numeric term contains 0 if it is 0, -1 if it is less than 0, 1 if
-     * it is more than 0, must not be null
-     */
-    NumericTerm sign();
+  /**
+   * To get the sign of the numeric term value
+   *
+   * @return a numeric term contains 0 if it is 0, -1 if it is less than 0, 1 if
+   * it is more than 0, must not be null
+   */
+  NumericTerm sign();
 
-    /**
-     * To get the type of the numeric term
-     *
-     * @return the type of the numeric term as integer
-     */
-    int getNumberType();
+  /**
+   * To get the type of the numeric term
+   *
+   * @return the type of the numeric term as integer
+   */
+  int getNumberType();
 }

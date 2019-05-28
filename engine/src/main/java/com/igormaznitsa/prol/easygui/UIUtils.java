@@ -31,6 +31,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
@@ -49,11 +50,10 @@ public final class UIUtils {
     Writer writer = null;
 
     try {
-      writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false), "UTF-8"));
+      writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false), StandardCharsets.UTF_8));
       writer.write(seq.toString());
       writer.flush();
-    }
-    finally {
+    } finally {
       closeQuetly(writer);
     }
   }
@@ -61,7 +61,7 @@ public final class UIUtils {
   public static String readFileAsUTF8Str(final File file) throws IOException {
     BufferedReader reader = null;
     try {
-      reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
+      reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
       final StringBuilder buffer = new StringBuilder((int) file.length() < 0 ? 16384 : (int) file.length());
       while (!Thread.currentThread().isInterrupted()) {
         final int chr = reader.read();
@@ -71,8 +71,7 @@ public final class UIUtils {
         buffer.append((char) chr);
       }
       return buffer.toString();
-    }
-    finally {
+    } finally {
       closeQuetly(reader);
     }
   }
@@ -81,8 +80,7 @@ public final class UIUtils {
     if (closeable != null) {
       try {
         closeable.close();
-      }
-      catch (Exception ex) {
+      } catch (Exception ex) {
       }
     }
   }
@@ -128,16 +126,14 @@ public final class UIUtils {
         try {
           desktop.browse(url.toURI());
           result = true;
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
           ex.printStackTrace();
         }
       } else if (desktop.isSupported(Desktop.Action.OPEN)) {
         try {
           desktop.open(new File(url.toURI()));
           result = true;
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
           ex.printStackTrace();
         }
       }
@@ -152,8 +148,7 @@ public final class UIUtils {
         img = ImageIO.read(inStream);
       }
       return new ImageIcon(img);
-    }
-    catch (Exception ex) {
+    } catch (Exception ex) {
       ex.printStackTrace();
       return new ImageIcon(new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB));
     }

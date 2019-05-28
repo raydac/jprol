@@ -22,41 +22,42 @@ package com.igormaznitsa.prol.exceptions;
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public class ProlKnowledgeBaseException extends ProlException {
-    private static final long serialVersionUID = 7055306365499059734L;
 
-    /**
-     * A constructor
-     */
-    public ProlKnowledgeBaseException() {
-        super();
-    }
+  private static final long serialVersionUID = 7055306365499059734L;
 
-    /**
-     * A constructor
-     *
-     * @param message a string message describes the situation
-     */
-    public ProlKnowledgeBaseException(final String message) {
-        super(message);
-    }
+  /**
+   * A constructor
+   */
+  public ProlKnowledgeBaseException() {
+    super();
+  }
 
-    /**
-     * A constructor
-     *
-     * @param message a string message describes the situation
-     * @param cause   the root java exception which was the cause for the error
-     */
-    public ProlKnowledgeBaseException(final String message, final Throwable cause) {
-        super(message, cause);
-    }
+  /**
+   * A constructor
+   *
+   * @param message a string message describes the situation
+   */
+  public ProlKnowledgeBaseException(final String message) {
+    super(message);
+  }
 
-    /**
-     * A constructor
-     *
-     * @param cause the root java exception which was the cause for the error
-     */
-    public ProlKnowledgeBaseException(Throwable cause) {
-        super(cause);
-    }
+  /**
+   * A constructor
+   *
+   * @param message a string message describes the situation
+   * @param cause the root java exception which was the cause for the error
+   */
+  public ProlKnowledgeBaseException(final String message, final Throwable cause) {
+    super(message, cause);
+  }
+
+  /**
+   * A constructor
+   *
+   * @param cause the root java exception which was the cause for the error
+   */
+  public ProlKnowledgeBaseException(Throwable cause) {
+    super(cause);
+  }
 
 }

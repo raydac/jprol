@@ -28,133 +28,133 @@ import java.util.List;
  */
 public class IsolatedGoal extends Goal {
 
-    /**
-     * The variable contains the wraoped goal
-     */
-    private final Goal basegoal;
+  /**
+   * The variable contains the wraoped goal
+   */
+  private final Goal basegoal;
 
-    /**
-     * The constructor
-     *
-     * @param goal the goal to be wrapped
-     * @throws NullPointerException if the goal is null
-     */
-    public IsolatedGoal(final Goal goal) {
-        super();
-        if (goal == null) {
-            throw new NullPointerException("A Base goal must not be null");
-        }
-        basegoal = goal;
+  /**
+   * The constructor
+   *
+   * @param goal the goal to be wrapped
+   * @throws NullPointerException if the goal is null
+   */
+  public IsolatedGoal(final Goal goal) {
+    super();
+    if (goal == null) {
+      throw new NullPointerException("A Base goal must not be null");
     }
+    basegoal = goal;
+  }
 
-    @Override
-    public Object getAuxObject() {
-        return basegoal.getAuxObject();
-    }
+  @Override
+  public Object getAuxObject() {
+    return basegoal.getAuxObject();
+  }
 
-    /**
-     * Can't be called
-     *
-     * @throws UnsupportedOperationException
-     */
-    @Override
-    public void setAuxObject(final Object obj) {
-        throw new UnsupportedOperationException("Unsupported operation");
-    }
+  /**
+   * Can't be called
+   *
+   * @throws UnsupportedOperationException
+   */
+  @Override
+  public void setAuxObject(final Object obj) {
+    throw new UnsupportedOperationException("Unsupported operation");
+  }
 
-    /**
-     * Can't be called
-     *
-     * @throws UnsupportedOperationException
-     */
-    @Override
-    public void cut() {
-        throw new UnsupportedOperationException("Unsupported operation");
-    }
+  /**
+   * Can't be called
+   *
+   * @throws UnsupportedOperationException
+   */
+  @Override
+  public void cut() {
+    throw new UnsupportedOperationException("Unsupported operation");
+  }
 
-    /**
-     * Can't be called
-     *
-     * @throws UnsupportedOperationException
-     */
-    @Override
-    public void cutLocal() {
-        throw new UnsupportedOperationException("Unsupported operation");
-    }
+  /**
+   * Can't be called
+   *
+   * @throws UnsupportedOperationException
+   */
+  @Override
+  public void cutLocal() {
+    throw new UnsupportedOperationException("Unsupported operation");
+  }
 
-    @Override
-    public List<Goal> getChainAsList() {
-        return basegoal.getChainAsList();
-    }
+  @Override
+  public List<Goal> getChainAsList() {
+    return basegoal.getChainAsList();
+  }
 
-    @Override
-    public ProlContext getContext() {
-        return basegoal.getContext();
-    }
+  @Override
+  public ProlContext getContext() {
+    return basegoal.getContext();
+  }
 
-    @Override
-    public String getVarAsText(String varName) {
-        return basegoal.getVarAsText(varName);
-    }
+  @Override
+  public String getVarAsText(String varName) {
+    return basegoal.getVarAsText(varName);
+  }
 
-    @Override
-    public boolean isCompleted() {
-        return basegoal.isCompleted();
-    }
+  @Override
+  public boolean isCompleted() {
+    return basegoal.isCompleted();
+  }
 
-    /**
-     * Can't be called
-     *
-     * @throws UnsupportedOperationException
-     */
-    @Override
-    public void noMoreVariants() {
-        throw new UnsupportedOperationException("Unsupported operation");
-    }
+  /**
+   * Can't be called
+   *
+   * @throws UnsupportedOperationException
+   */
+  @Override
+  public void noMoreVariants() {
+    throw new UnsupportedOperationException("Unsupported operation");
+  }
 
-    /**
-     * Can't be called
-     *
-     * @throws UnsupportedOperationException
-     */
-    @Override
-    public Goal replaceLastGoalAtChain(Term goal) {
-        throw new UnsupportedOperationException("Unsupported operation");
-    }
+  /**
+   * Can't be called
+   *
+   * @throws UnsupportedOperationException
+   */
+  @Override
+  public Goal replaceLastGoalAtChain(Term goal) {
+    throw new UnsupportedOperationException("Unsupported operation");
+  }
 
-    @Override
-    public Term getGoalTerm() {
-        return basegoal.getGoalTerm().makeClone();
-    }
+  @Override
+  public Term getGoalTerm() {
+    return basegoal.getGoalTerm().makeClone();
+  }
 
-    @Override
-    public String toString() {
-        return "{isolated}" + super.toString();
-    }
+  @Override
+  public String toString() {
+    return "{isolated}" + super.toString();
+  }
 
-    /**
-     * The wrapped goal will be solved but the clone of the result will be
-     * returned
-     *
-     * @return the clone of the base goal result or null
-     * @throws InterruptedException it will be thrown if it is interrupted
-     */
-    @Override
-    public Term solve() throws InterruptedException {
-        final Term result = basegoal.solve();
-        return result == null ? null : result.makeClone();
-    }
+  /**
+   * The wrapped goal will be solved but the clone of the result will be
+   * returned
+   *
+   * @return the clone of the base goal result or null
+   * @throws InterruptedException it will be thrown if it is interrupted
+   */
+  @Override
+  public Term solve() throws InterruptedException {
+    final Term result = basegoal.solve();
+    return result == null ? null : result.makeClone();
+  }
 
-    /**
-     * To get the variable for its name from the wrapped goal. The clone of the
-     * variable will be returned.
-     *
-     * @param name the variable name, must not be null
-     * @return the variable or null if the variable is not found
-     */
-    @Override
-    public Var getVarForName(final String name) {
-        final Var var = basegoal.getVarForName(name);
-        return var == null ? null : (Var) var.makeClone();
-    }
+  /**
+   * To get the variable for its name from the wrapped goal. The clone of the
+   * variable will be returned.
+   *
+   * @param name the variable name, must not be null
+   * @return the variable or null if the variable is not found
+   */
+  @Override
+  public Var getVarForName(final String name) {
+    final Var var = basegoal.getVarForName(name);
+    return var == null ? null : (Var) var.makeClone();
+  }
 }

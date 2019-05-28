@@ -24,52 +24,52 @@ import java.util.*;
  */
 public class RecentlyOpenedFileFixedList {
 
-    private final int maxLen;
-    private final List<String> paths = new ArrayList<>();
+  private final int maxLen;
+  private final List<String> paths = new ArrayList<>();
 
-    public RecentlyOpenedFileFixedList(final int maxlen) {
-        this.maxLen = maxlen;
+  public RecentlyOpenedFileFixedList(final int maxlen) {
+    this.maxLen = maxlen;
+  }
+
+  public synchronized void clear() {
+    this.paths.clear();
+  }
+
+  public synchronized void put(final String path) {
+    if (this.paths.contains(path)) {
+      // remove it to make as the last one
+      this.paths.remove(path);
     }
+    paths.add(0, path);
 
-    public synchronized void clear() {
-        this.paths.clear();
+    while (this.paths.size() > maxLen) {
+      this.paths.remove(paths.size() - 1);
     }
+  }
 
-    public synchronized void put(final String path) {
-        if (this.paths.contains(path)) {
-            // remove it to make as the last one
-            this.paths.remove(path);
-        }
-        paths.add(0, path);
-
-        while (this.paths.size() > maxLen) {
-            this.paths.remove(paths.size() - 1);
-        }
+  public synchronized void add(final String path) {
+    if (this.paths.contains(path)) {
+      // remove it to make as the last one
+      this.paths.remove(path);
     }
-
-    public synchronized void add(final String path) {
-        if (this.paths.contains(path)) {
-            // remove it to make as the last one
-            this.paths.remove(path);
-        }
-        if (this.paths.size() < maxLen) {
-            this.paths.add(path);
-        }
+    if (this.paths.size() < maxLen) {
+      this.paths.add(path);
     }
+  }
 
-    public synchronized boolean isEmpty() {
-        return this.paths.isEmpty();
-    }
+  public synchronized boolean isEmpty() {
+    return this.paths.isEmpty();
+  }
 
-    public synchronized Iterator<String> getIterator() {
-        return new ArrayList<>(this.paths).iterator();
-    }
+  public synchronized Iterator<String> getIterator() {
+    return new ArrayList<>(this.paths).iterator();
+  }
 
-    public synchronized Collection<String> getCollection() {
-        return Collections.unmodifiableCollection(new ArrayList<>(this.paths));
-    }
+  public synchronized Collection<String> getCollection() {
+    return Collections.unmodifiableCollection(new ArrayList<>(this.paths));
+  }
 
-    public synchronized void remove(final String path) {
-        this.paths.remove(path);
-    }
+  public synchronized void remove(final String path) {
+    this.paths.remove(path);
+  }
 }

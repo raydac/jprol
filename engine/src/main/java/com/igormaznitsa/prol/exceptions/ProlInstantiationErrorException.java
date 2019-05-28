@@ -27,63 +27,64 @@ import com.igormaznitsa.prol.data.TermStruct;
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public class ProlInstantiationErrorException extends ProlAbstractCatcheableException {
-    private static final long serialVersionUID = -5157739502740121566L;
 
-    /**
-     * The constant is shared between instances of the class and contains the term
-     * with the string of the error
-     */
-    private static final Term TERM_ERROR = new Term("instantiation_error");
+  private static final long serialVersionUID = -5157739502740121566L;
 
-    /**
-     * A constructor
-     *
-     * @param culprit the culprit term
-     * @param cause   the java throwable object which was the cause of the error
-     */
-    public ProlInstantiationErrorException(final Term culprit, final Throwable cause) {
-        super(culprit, cause);
-    }
+  /**
+   * The constant is shared between instances of the class and contains the term
+   * with the string of the error
+   */
+  private static final Term TERM_ERROR = new Term("instantiation_error");
 
-    /**
-     * A constructor
-     *
-     * @param message a string message describes the situation
-     * @param culprit the culprit term
-     * @param cause   the java throwable object which was the cause of the error
-     */
-    public ProlInstantiationErrorException(final String message, final Term culprit, final Throwable cause) {
-        super(message, culprit, cause);
-    }
+  /**
+   * A constructor
+   *
+   * @param culprit the culprit term
+   * @param cause the java throwable object which was the cause of the error
+   */
+  public ProlInstantiationErrorException(final Term culprit, final Throwable cause) {
+    super(culprit, cause);
+  }
 
-    /**
-     * A constructor
-     *
-     * @param message a string message describes the situation
-     * @param culprit the culprit term
-     */
-    public ProlInstantiationErrorException(final String message, final Term culprit) {
-        super(message, culprit);
-    }
+  /**
+   * A constructor
+   *
+   * @param message a string message describes the situation
+   * @param culprit the culprit term
+   * @param cause the java throwable object which was the cause of the error
+   */
+  public ProlInstantiationErrorException(final String message, final Term culprit, final Throwable cause) {
+    super(message, culprit, cause);
+  }
 
-    /**
-     * A constructor
-     *
-     * @param culprit the culprit term
-     */
-    public ProlInstantiationErrorException(final Term culprit) {
-        super(culprit);
-    }
+  /**
+   * A constructor
+   *
+   * @param message a string message describes the situation
+   * @param culprit the culprit term
+   */
+  public ProlInstantiationErrorException(final String message, final Term culprit) {
+    super(message, culprit);
+  }
 
-    @Override
-    public Term getFunctorForErrorStruct() {
-        return TERM_ERROR;
-    }
+  /**
+   * A constructor
+   *
+   * @param culprit the culprit term
+   */
+  public ProlInstantiationErrorException(final Term culprit) {
+    super(culprit);
+  }
 
-    @Override
-    public TermStruct getAsStruct() {
-        final TermStruct result = new TermStruct(TERM_ERROR);
-        result.setCarriedObject(this);
-        return result;
-    }
+  @Override
+  public Term getFunctorForErrorStruct() {
+    return TERM_ERROR;
+  }
+
+  @Override
+  public TermStruct getAsStruct() {
+    final TermStruct result = new TermStruct(TERM_ERROR);
+    result.setCarriedObject(this);
+    return result;
+  }
 }

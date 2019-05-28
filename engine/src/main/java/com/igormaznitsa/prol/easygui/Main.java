@@ -27,7 +27,7 @@ import com.igormaznitsa.prol.easygui.tokenizer.JProlTokenMaker;
  *
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com
  */
-public class main {
+public class Main {
 
   /**
    * The main method starts the IDE.
@@ -35,7 +35,7 @@ public class main {
    * @param args if the array contains as minimum singe element, the elements
    * will be used as the file name to be loaded into the started IDE instance
    */
-  public static final void main(final String... args) {
+  public static void main(final String... args) {
 
     ((AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance()).putMapping("text/jprol", JProlTokenMaker.class.getName());
 

@@ -26,77 +26,78 @@ import com.igormaznitsa.prol.data.TermStruct;
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public class ProlExistenceErrorException extends ProlAbstractCatcheableException {
-    private static final long serialVersionUID = 8133227498750254779L;
 
-    /**
-     * The constant contains the shared term value between all instances of the
-     * class
-     */
-    private static final Term ERROR_TERM = new Term("existence_error");
+  private static final long serialVersionUID = 8133227498750254779L;
 
-    /**
-     * The variable contains the object type value
-     */
-    private final String objectType;
+  /**
+   * The constant contains the shared term value between all instances of the
+   * class
+   */
+  private static final Term ERROR_TERM = new Term("existence_error");
 
-    /**
-     * A constructor
-     *
-     * @param objectType the type of the object which can't be found
-     * @param culprit    the culprit term
-     * @param cause      the java throwable cause of the exception
-     */
-    public ProlExistenceErrorException(final String objectType, final Term culprit, final Throwable cause) {
-        super(culprit, cause);
-        this.objectType = objectType;
-    }
+  /**
+   * The variable contains the object type value
+   */
+  private final String objectType;
 
-    /**
-     * A constructor
-     *
-     * @param objectType the type of the object which can't be found
-     * @param message    a text message describes the situation
-     * @param culprit    the culprit term
-     * @param cause      the java throwable cause of the exception
-     */
-    public ProlExistenceErrorException(final String objectType, final String message, final Term culprit, final Throwable cause) {
-        super(message, culprit, cause);
-        this.objectType = objectType;
-    }
+  /**
+   * A constructor
+   *
+   * @param objectType the type of the object which can't be found
+   * @param culprit the culprit term
+   * @param cause the java throwable cause of the exception
+   */
+  public ProlExistenceErrorException(final String objectType, final Term culprit, final Throwable cause) {
+    super(culprit, cause);
+    this.objectType = objectType;
+  }
 
-    /**
-     * A constructor
-     *
-     * @param objectType the type of the object which can't be found
-     * @param message    a text message describes the situation
-     * @param culprit    the culprit term
-     */
-    public ProlExistenceErrorException(final String objectType, final String message, final Term culprit) {
-        super(message, culprit);
-        this.objectType = objectType;
-    }
+  /**
+   * A constructor
+   *
+   * @param objectType the type of the object which can't be found
+   * @param message a text message describes the situation
+   * @param culprit the culprit term
+   * @param cause the java throwable cause of the exception
+   */
+  public ProlExistenceErrorException(final String objectType, final String message, final Term culprit, final Throwable cause) {
+    super(message, culprit, cause);
+    this.objectType = objectType;
+  }
 
-    /**
-     * A constructor
-     *
-     * @param objectType the type of the object which can't be found
-     * @param culprit    the culprit term
-     */
-    public ProlExistenceErrorException(final String objectType, final Term culprit) {
-        super(culprit);
-        this.objectType = objectType;
-    }
+  /**
+   * A constructor
+   *
+   * @param objectType the type of the object which can't be found
+   * @param message a text message describes the situation
+   * @param culprit the culprit term
+   */
+  public ProlExistenceErrorException(final String objectType, final String message, final Term culprit) {
+    super(message, culprit);
+    this.objectType = objectType;
+  }
 
-    @Override
-    public Term getFunctorForErrorStruct() {
-        return ERROR_TERM;
-    }
+  /**
+   * A constructor
+   *
+   * @param objectType the type of the object which can't be found
+   * @param culprit the culprit term
+   */
+  public ProlExistenceErrorException(final String objectType, final Term culprit) {
+    super(culprit);
+    this.objectType = objectType;
+  }
 
-    @Override
-    public TermStruct getAsStruct() {
-        final TermStruct term = new TermStruct(objectType, new Term[]{objectType == null ? UNDEFINED : new Term(objectType), getCulprit() == null ? UNDEFINED : getCulprit()});
-        term.setCarriedObject(this);
-        return term;
-    }
+  @Override
+  public Term getFunctorForErrorStruct() {
+    return ERROR_TERM;
+  }
+
+  @Override
+  public TermStruct getAsStruct() {
+    final TermStruct term = new TermStruct(objectType, new Term[]{objectType == null ? UNDEFINED : new Term(objectType), getCulprit() == null ? UNDEFINED : getCulprit()});
+    term.setCarriedObject(this);
+    return term;
+  }
 
 }

@@ -53,8 +53,8 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
   private final String nameID;
   private boolean wordWrap;
 
-  public AbstractProlEditor(final String title, final boolean lineNumeration) {
-    this(title, new EditorPane(), lineNumeration);
+  public AbstractProlEditor(final String title, final boolean scalable, final boolean lineNumeration) {
+    this(title, new EditorPane(scalable), lineNumeration);
   }
 
   public AbstractProlEditor(final String title, final JTextComponent editor, final boolean lineNumeration) {
@@ -532,8 +532,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
       try {
         Method meth = ownerClass.getMethod("get" + property, (Class[]) null);
         return meth.invoke(ownerObject);
-      }
-      catch (Throwable thr) {
+      } catch (Throwable thr) {
         throw new RuntimeException("Can't read property", thr);
       }
     }
@@ -542,8 +541,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     public void setProperty(final Object obj) {
       try {
         ownerClass.getMethod("set" + property, new Class<?>[]{obj.getClass()}).invoke(ownerObject, obj);
-      }
-      catch (Throwable thr) {
+      } catch (Throwable thr) {
         throw new RuntimeException("Can't set property", thr);
       }
     }

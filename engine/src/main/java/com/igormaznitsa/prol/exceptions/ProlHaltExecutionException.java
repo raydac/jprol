@@ -23,48 +23,49 @@ package com.igormaznitsa.prol.exceptions;
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public class ProlHaltExecutionException extends ProlException {
-    private static final long serialVersionUID = -8265930292043474634L;
 
-    /**
-     * The variable contains the numeric status of the halt operation
-     */
-    private final int status;
+  private static final long serialVersionUID = -8265930292043474634L;
 
-    /**
-     * A constructor, the status will be set in 0.
-     */
-    public ProlHaltExecutionException() {
-        super("The program is halted.");
-        this.status = 0;
-    }
+  /**
+   * The variable contains the numeric status of the halt operation
+   */
+  private final int status;
 
-    /**
-     * A constructor
-     *
-     * @param status the numeric status of the halt operation
-     */
-    public ProlHaltExecutionException(final int status) {
-        super("The program is halted.");
-        this.status = status;
-    }
+  /**
+   * A constructor, the status will be set in 0.
+   */
+  public ProlHaltExecutionException() {
+    super("The program is halted.");
+    this.status = 0;
+  }
 
-    /**
-     * A constructor
-     *
-     * @param cause  a string describes the cause, can be null
-     * @param status the status code of the situation
-     */
-    public ProlHaltExecutionException(final String cause, final int status) {
-        super(cause);
-        this.status = status;
-    }
+  /**
+   * A constructor
+   *
+   * @param status the numeric status of the halt operation
+   */
+  public ProlHaltExecutionException(final int status) {
+    super("The program is halted.");
+    this.status = status;
+  }
 
-    /**
-     * Get the status of the halt operation
-     *
-     * @return the status of the halt operation as an integer
-     */
-    public int getStatus() {
-        return this.status;
-    }
+  /**
+   * A constructor
+   *
+   * @param cause a string describes the cause, can be null
+   * @param status the status code of the situation
+   */
+  public ProlHaltExecutionException(final String cause, final int status) {
+    super(cause);
+    this.status = status;
+  }
+
+  /**
+   * Get the status of the halt operation
+   *
+   * @return the status of the halt operation as an integer
+   */
+  public int getStatus() {
+    return this.status;
+  }
 }

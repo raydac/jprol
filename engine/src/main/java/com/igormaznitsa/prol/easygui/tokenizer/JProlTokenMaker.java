@@ -215,19 +215,19 @@ public class JProlTokenMaker extends AbstractTokenMaker {
                 currentTokenType = Token.IDENTIFIER;
                 break;
               }
-              int indexOf = operators.indexOf(c, 0);
+              int indexOf = operators.indexOf(c);
               if (indexOf > -1) {
                 addToken(text, currentTokenStart, i, Token.OPERATOR, newStartOffset + currentTokenStart);
                 currentTokenType = Token.NULL;
                 break;
               }
-              indexOf = separators.indexOf(c, 0);
+              indexOf = separators.indexOf(c);
               if (indexOf > -1) {
                 addToken(text, currentTokenStart, i, Token.SEPARATOR, newStartOffset + currentTokenStart);
                 currentTokenType = Token.NULL;
                 break;
               }
-              indexOf = separators2.indexOf(c, 0);
+              indexOf = separators2.indexOf(c);
               if (indexOf > -1) {
                 addToken(text, currentTokenStart, i, Token.IDENTIFIER, newStartOffset + currentTokenStart);
                 currentTokenType = Token.NULL;
@@ -293,19 +293,19 @@ public class JProlTokenMaker extends AbstractTokenMaker {
                 currentTokenType = Token.IDENTIFIER;
                 break;
               }
-              int indexOf = operators.indexOf(c, 0);
+              int indexOf = operators.indexOf(c);
               if (indexOf > -1) {
                 addToken(text, i, i, Token.OPERATOR, newStartOffset + i);
                 currentTokenType = Token.NULL;
                 break;
               }
-              indexOf = separators.indexOf(c, 0);
+              indexOf = separators.indexOf(c);
               if (indexOf > -1) {
                 addToken(text, i, i, Token.SEPARATOR, newStartOffset + i);
                 currentTokenType = Token.NULL;
                 break;
               }
-              indexOf = separators2.indexOf(c, 0);
+              indexOf = separators2.indexOf(c);
               if (indexOf > -1) {
                 addToken(text, i, i, Token.IDENTIFIER, newStartOffset + i);
                 currentTokenType = Token.NULL;
@@ -361,14 +361,14 @@ public class JProlTokenMaker extends AbstractTokenMaker {
                 currentTokenType = Token.NULL;
                 break;
               }
-              indexOf = separators.indexOf(c, 0);
+              indexOf = separators.indexOf(c);
               if (indexOf > -1) {
                 addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER, newStartOffset + currentTokenStart);
                 addToken(text, i, i, Token.SEPARATOR, newStartOffset + i);
                 currentTokenType = Token.NULL;
                 break;
               }
-              indexOf = separators2.indexOf(c, 0);
+              indexOf = separators2.indexOf(c);
               if (indexOf > -1) {
                 addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER, newStartOffset + currentTokenStart);
                 addToken(text, i, i, Token.IDENTIFIER, newStartOffset + i);

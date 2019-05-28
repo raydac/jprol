@@ -108,7 +108,7 @@
             <configuration>
               <bundleName>${app.name}</bundleName>
               <diskImageFile>${project.build.directory}/${project.build.finalName}_OSX.dmg</diskImageFile>
-              <mainClass>com.igormaznitsa.prol.easygui.main</mainClass>
+              <mainClass>com.igormaznitsa.prol.easygui.Main</mainClass>
               <iconFile>appico.icns</iconFile>
               <bundleName>JProl pad</bundleName>
               <generateDiskImageFile>true</generateDiskImageFile>
@@ -147,7 +147,7 @@
                   <outfile>${project.build.directory}/${app.name}.exe</outfile>
                   <downloadUrl>http://www.oracle.com/technetwork/java/javase/downloads</downloadUrl>
                   <classPath>
-                    <mainClass>com.igormaznitsa.prol.easygui.main</mainClass>
+                    <mainClass>com.igormaznitsa.prol.easygui.Main</mainClass>
                     <preCp>anything</preCp>
                   </classPath>
                   <icon>appico.ico</icon>
@@ -237,7 +237,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.igormaznitsa.prol.easygui.main</mainClass>
+              <mainClass>com.igormaznitsa.prol.easygui.Main</mainClass>
               <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
               <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
             </manifest>

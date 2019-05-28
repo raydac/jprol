@@ -27,47 +27,47 @@ import java.util.NoSuchElementException;
  */
 final class MemoryFactIterator extends MemoryClauseIterator implements FactIterator {
 
-    /**
-     * The constructor
-     *
-     * @param list     the inside knowledge base list to be used by the iterator, must
-     *                 not be null
-     * @param template the template which will be used to find facts, must not be
-     *                 null
-     */
-    public MemoryFactIterator(final KnowledgeBaseInsideClauseList list, final TermStruct template) {
-        super(list, template);
+  /**
+   * The constructor
+   *
+   * @param list the inside knowledge base list to be used by the iterator, must
+   * not be null
+   * @param template the template which will be used to find facts, must not be
+   * null
+   */
+  public MemoryFactIterator(final KnowledgeBaseInsideClauseList list, final TermStruct template) {
+    super(list, template);
+  }
+
+  @Override
+  protected InsideClauseListItem findFirstElement() {
+    InsideClauseListItem firstitem = null;
+
+    while (!Thread.currentThread().isInterrupted()) {
+      firstitem = predicateList.findDirect(template, firstitem);
+      if (firstitem == null || firstitem.isFact()) {
+        break;
+      }
     }
 
-    @Override
-    protected InsideClauseListItem findFirstElement() {
-        InsideClauseListItem firstitem = null;
+    return firstitem;
+  }
 
-        while (!Thread.currentThread().isInterrupted()) {
-            firstitem = predicateList.findDirect(template, firstitem);
-            if (firstitem == null || firstitem.isFact()) {
-                break;
-            }
-        }
-
-        return firstitem;
+  @Override
+  public TermStruct next() {
+    if (lastFound == null) {
+      throw new NoSuchElementException();
     }
 
-    @Override
-    public TermStruct next() {
-        if (lastFound == null) {
-            throw new NoSuchElementException();
-        }
+    final TermStruct result = (TermStruct) lastFound.getClause().makeClone();
 
-        final TermStruct result = (TermStruct) lastFound.getClause().makeClone();
-
-        while (!Thread.currentThread().isInterrupted()) {
-            lastFound = predicateList.findDirect(template, lastFound);
-            if (lastFound == null || lastFound.isFact()) {
-                break;
-            }
-        }
-
-        return result;
+    while (!Thread.currentThread().isInterrupted()) {
+      lastFound = predicateList.findDirect(template, lastFound);
+      if (lastFound == null || lastFound.isFact()) {
+        break;
+      }
     }
+
+    return result;
+  }
 }

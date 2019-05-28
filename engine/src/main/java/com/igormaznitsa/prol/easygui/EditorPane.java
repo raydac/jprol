@@ -35,24 +35,25 @@ public class EditorPane extends JTextPane {
   private static final float SCALE_STEP = 0.5f;
   private static final float SCALE_MIN = 0.03f;
   private static final float SCALE_MAX = 10.0f;
-  
+
   private float fontScale = 1.0f;
   private float fontOriginalSize;
 
-  public EditorPane() {
+  public EditorPane(final boolean scalable) {
     super();
 
-    this.addMouseWheelListener((final MouseWheelEvent e) -> {
-      final int allModifiers = MouseWheelEvent.CTRL_DOWN_MASK | MouseWheelEvent.ALT_DOWN_MASK | MouseWheelEvent.META_DOWN_MASK | MouseWheelEvent.SHIFT_DOWN_MASK;
-      if (!e.isConsumed() && !e.isPopupTrigger() && (e.getModifiersEx() & allModifiers) == MouseWheelEvent.CTRL_DOWN_MASK) {
-        e.consume();
-        this.fontScale = Math.max(SCALE_MIN, Math.min(SCALE_MAX, this.fontScale + SCALE_STEP * -e.getWheelRotation()));
-        updateFontForScale();
-      } else {
-        this.getParent().dispatchEvent(e);
-      }
-    });
-
+    if (scalable) {
+      this.addMouseWheelListener((final MouseWheelEvent e) -> {
+        final int allModifiers = MouseWheelEvent.CTRL_DOWN_MASK | MouseWheelEvent.ALT_DOWN_MASK | MouseWheelEvent.META_DOWN_MASK | MouseWheelEvent.SHIFT_DOWN_MASK;
+        if (!e.isConsumed() && !e.isPopupTrigger() && (e.getModifiersEx() & allModifiers) == MouseWheelEvent.CTRL_DOWN_MASK) {
+          e.consume();
+          this.fontScale = Math.max(SCALE_MIN, Math.min(SCALE_MAX, this.fontScale + SCALE_STEP * -e.getWheelRotation()));
+          updateFontForScale();
+        } else {
+          this.getParent().dispatchEvent(e);
+        }
+      });
+    }
     addMouseListener(new MouseAdapter() {
 
       @Override
@@ -72,8 +73,8 @@ public class EditorPane extends JTextPane {
     super.setFont(font);
     this.fontScale = 1.0f;
     this.fontOriginalSize = font.getSize2D();
-  } 
-  
+  }
+
   public void setEventReplacer(final EventReplacer replacer) {
     this.replacer = replacer;
   }

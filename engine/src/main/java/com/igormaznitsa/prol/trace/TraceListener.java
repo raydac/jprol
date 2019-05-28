@@ -25,35 +25,35 @@ import com.igormaznitsa.prol.logic.Goal;
  */
 public interface TraceListener {
 
-    /**
-     * It will be called when the goal is called the first time
-     *
-     * @param goal the goal to be called
-     * @return true if the goal can be processed, if it is false, the goal will
-     * not be processed and it will return fail
-     */
-    boolean onProlGoalCall(Goal goal);
+  /**
+   * It will be called when the goal is called the first time
+   *
+   * @param goal the goal to be called
+   * @return true if the goal can be processed, if it is false, the goal will
+   * not be processed and it will return fail
+   */
+  boolean onProlGoalCall(Goal goal);
 
-    /**
-     * It will be called when the goal is recalled
-     *
-     * @param goal the goal to be recalled
-     * @return true if the goal can be processed, if it is false, the goal will
-     * not be processed and it will return fail
-     */
-    boolean onProlGoalRedo(Goal goal);
+  /**
+   * It will be called when the goal is recalled
+   *
+   * @param goal the goal to be recalled
+   * @return true if the goal can be processed, if it is false, the goal will
+   * not be processed and it will return fail
+   */
+  boolean onProlGoalRedo(Goal goal);
 
-    /**
-     * It will be called when a goal is failed
-     *
-     * @param goal the goal which one is failed
-     */
-    void onProlGoalFail(Goal goal);
+  /**
+   * It will be called when a goal is failed
+   *
+   * @param goal the goal which one is failed
+   */
+  void onProlGoalFail(Goal goal);
 
-    /**
-     * It will be called when a goal is completed
-     *
-     * @param goal the source goal
-     */
-    void onProlGoalExit(Goal goal);
+  /**
+   * It will be called when a goal is completed
+   *
+   * @param goal the source goal
+   */
+  void onProlGoalExit(Goal goal);
 }

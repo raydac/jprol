@@ -26,132 +26,132 @@ import com.igormaznitsa.prol.data.TermStruct;
  */
 public final class InsideClauseListItem {
 
-    /**
-     * The clause which is saved by the element
-     */
-    private final TermStruct clause;
-    /**
-     * The key term for the saved clause
-     */
-    private final Term keyTerm;
-    /**
-     * This flag shows that clause is just a fact and doesn't have rule body
-     */
-    private final boolean fact;
-    /**
-     * The link to the previous element, can be null
-     */
-    private InsideClauseListItem previous;
-    /**
-     * The link to the next element, can be null
-     */
-    private InsideClauseListItem next;
+  /**
+   * The clause which is saved by the element
+   */
+  private final TermStruct clause;
+  /**
+   * The key term for the saved clause
+   */
+  private final Term keyTerm;
+  /**
+   * This flag shows that clause is just a fact and doesn't have rule body
+   */
+  private final boolean fact;
+  /**
+   * The link to the previous element, can be null
+   */
+  private InsideClauseListItem previous;
+  /**
+   * The link to the next element, can be null
+   */
+  private InsideClauseListItem next;
 
-    /**
-     * The constructor
-     *
-     * @param prev   the previous item in the list, can be null
-     * @param next   the next item in the list, can be null
-     * @param clause the clause which will be saved into the list item, must not
-     *               be null
-     */
-    protected InsideClauseListItem(final InsideClauseListItem prev, final InsideClauseListItem next, final TermStruct clause) {
-        super();
-        previous = prev;
-        if (prev != null) {
-            prev.setNext(this);
-        }
-        this.next = next;
-        if (next != null) {
-            next.setPrevious(this);
-        }
-        this.clause = clause;
-        if (clause.isFunctorLikeRuleDefinition()) {
-            fact = false;
-            keyTerm = clause.getElement(0);
-        } else {
-            fact = true;
-            keyTerm = clause;
-        }
+  /**
+   * The constructor
+   *
+   * @param prev the previous item in the list, can be null
+   * @param next the next item in the list, can be null
+   * @param clause the clause which will be saved into the list item, must not
+   * be null
+   */
+  protected InsideClauseListItem(final InsideClauseListItem prev, final InsideClauseListItem next, final TermStruct clause) {
+    super();
+    previous = prev;
+    if (prev != null) {
+      prev.setNext(this);
     }
+    this.next = next;
+    if (next != null) {
+      next.setPrevious(this);
+    }
+    this.clause = clause;
+    if (clause.isFunctorLikeRuleDefinition()) {
+      fact = false;
+      keyTerm = clause.getElement(0);
+    } else {
+      fact = true;
+      keyTerm = clause;
+    }
+  }
 
-    /**
-     * To get the key term for saved clause
-     *
-     * @return the key term for the saved clause
-     */
-    public final Term getKeyTerm() {
-        return keyTerm;
-    }
+  /**
+   * To get the key term for saved clause
+   *
+   * @return the key term for the saved clause
+   */
+  public final Term getKeyTerm() {
+    return keyTerm;
+  }
 
-    /**
-     * To get the saved clause
-     *
-     * @return the saved clause
-     */
-    public final TermStruct getClause() {
-        return clause;
-    }
+  /**
+   * To get the saved clause
+   *
+   * @return the saved clause
+   */
+  public final TermStruct getClause() {
+    return clause;
+  }
 
-    /**
-     * Returns the value shows that the list item contains a fact (not a rule)
-     *
-     * @return true if the list item contains a fact, else false
-     */
-    public final boolean isFact() {
-        return fact;
-    }
+  /**
+   * Returns the value shows that the list item contains a fact (not a rule)
+   *
+   * @return true if the list item contains a fact, else false
+   */
+  public final boolean isFact() {
+    return fact;
+  }
 
-    /**
-     * Get the previuys list item
-     *
-     * @return the previous list item if it exists else null
-     */
-    public final InsideClauseListItem getPrevious() {
-        return previous;
-    }
+  /**
+   * Get the previuys list item
+   *
+   * @return the previous list item if it exists else null
+   */
+  public final InsideClauseListItem getPrevious() {
+    return previous;
+  }
 
-    /**
-     * Set the previous list element
-     *
-     * @param value the previous list element, can be null
-     */
-    public final void setPrevious(final InsideClauseListItem value) {
-        previous = value;
-    }
+  /**
+   * Set the previous list element
+   *
+   * @param value the previous list element, can be null
+   */
+  public final void setPrevious(final InsideClauseListItem value) {
+    previous = value;
+  }
 
-    /**
-     * Get the next list item
-     *
-     * @return the next list item if it exists else null
-     */
-    public final InsideClauseListItem getNext() {
-        return next;
-    }
+  /**
+   * Get the next list item
+   *
+   * @return the next list item if it exists else null
+   */
+  public final InsideClauseListItem getNext() {
+    return next;
+  }
 
-    /**
-     * Set the next item
-     *
-     * @param value the new next value, can be null
-     */
-    public final void setNext(final InsideClauseListItem value) {
-        next = value;
-    }
+  /**
+   * Set the next item
+   *
+   * @param value the new next value, can be null
+   */
+  public final void setNext(final InsideClauseListItem value) {
+    next = value;
+  }
 
-    /**
-     * To remove the list element from the list
-     */
-    public final void remove() {
-        if (previous != null) {
-            previous.setNext(this.getNext());
-        }
-        if (next != null) {
-            next.setPrevious(this.getPrevious());
-        }
+  /**
+   * To remove the list element from the list
+   */
+  public final void remove() {
+    if (previous != null) {
+      previous.setNext(this.getNext());
     }
+    if (next != null) {
+      next.setPrevious(this.getPrevious());
+    }
+  }
 
-    @Override
-    public String toString() {
-        return keyTerm.toString();
-    }
+  @Override
+  public String toString() {
+    return keyTerm.toString();
+  }
 }

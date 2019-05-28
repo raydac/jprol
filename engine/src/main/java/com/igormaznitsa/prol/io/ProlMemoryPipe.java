@@ -43,176 +43,175 @@ import java.nio.charset.Charset;
  */
 public class ProlMemoryPipe implements ProlStream, ProlTextReader, ProlTextWriter {
 
-    /**
-     * The variable saves the resource ID
-     */
-    private final String resourceId;
-    /**
-     * The context is using the pipe
-     */
-    private final ProlContext context;
-    /**
-     * The reader used by the pipe to read from itself
-     */
-    private final ProlTextInputStream reader;
-    /**
-     * The witer used by the pipe to write into itself
-     */
-    private final ProlTextOutputStream writer;
+  /**
+   * The variable saves the resource ID
+   */
+  private final String resourceId;
+  /**
+   * The context is using the pipe
+   */
+  private final ProlContext context;
+  /**
+   * The reader used by the pipe to read from itself
+   */
+  private final ProlTextInputStream reader;
+  /**
+   * The witer used by the pipe to write into itself
+   */
+  private final ProlTextOutputStream writer;
 
-    /**
-     * The constructor
-     *
-     * @param resourceId the resource identifier, must not be null
-     * @param context    the owner context for the pipe, must not be null
-     * @throws IOException it will be thrown if there will be any transport errors
-     */
-    public ProlMemoryPipe(final String resourceId, final ProlContext context) throws IOException {
-        if (resourceId == null) {
-            throw new IllegalArgumentException("Resource identifier must not be null");
+  /**
+   * The constructor
+   *
+   * @param resourceId the resource identifier, must not be null
+   * @param context the owner context for the pipe, must not be null
+   * @throws IOException it will be thrown if there will be any transport errors
+   */
+  public ProlMemoryPipe(final String resourceId, final ProlContext context) throws IOException {
+    if (resourceId == null) {
+      throw new IllegalArgumentException("Resource identifier must not be null");
+    }
+    if (context == null) {
+      throw new IllegalArgumentException("Context must not be null");
+    }
+
+    this.resourceId = resourceId;
+    this.context = context;
+
+    final PipedWriter pipeWriter = new PipedWriter();
+    final PipedReader pipeReader = new PipedReader(pipeWriter);
+
+    reader = new ProlTextInputStream(pipeReader, context);
+    writer = new ProlTextOutputStream(pipeWriter, context, false);
+  }
+
+  /**
+   * Get the reader for the pipe
+   *
+   * @return the pipe reader
+   */
+  public ProlTextReader getReader() {
+    return reader;
+  }
+
+  /**
+   * Get the reader for the pipe
+   *
+   * @return the pipe reader
+   */
+  public ProlTextWriter getWriter() {
+    return writer;
+  }
+
+  @Override
+  public ProlContext getContext() {
+    return context;
+  }
+
+  @Override
+  public void close() throws IOException {
+    synchronized (writer) {
+      writer.close();
+    }
+
+    synchronized (reader) {
+      reader.close();
+    }
+  }
+
+  /**
+   * Close only for output data, it will not be possible to write data into the
+   * pipe after the operation. From prolog the method will be called when told/0
+   * is called for the pipe. If you want to manipulate with the content of the
+   * pipe, you have to call the method else your read operations can be blocked
+   * until incomming data.
+   *
+   * @throws IOException it will be thrown if there is any exception
+   */
+  public void closeForWriteOnly() throws IOException {
+    synchronized (writer) {
+      writer.close();
+    }
+  }
+
+  @Override
+  public String getResourceId() {
+    return resourceId;
+  }
+
+  @Override
+  public Term getAsTerm() {
+    return new Term(resourceId);
+  }
+
+  @Override
+  public Term readToken() throws IOException {
+    synchronized (reader) {
+      return reader.readToken();
+    }
+  }
+
+  @Override
+  public Term readTerm() throws IOException {
+    synchronized (reader) {
+      return reader.readTerm();
+    }
+  }
+
+  @Override
+  public TermInteger readChar() throws IOException {
+    synchronized (reader) {
+      return reader.readChar();
+    }
+  }
+
+  @Override
+  public void writeTerm(Term term) throws IOException {
+    synchronized (writer) {
+      writer.writeTerm(term);
+    }
+  }
+
+  @Override
+  public void writeChar(Term term) throws IOException {
+    synchronized (writer) {
+      writer.writeChar(term);
+    }
+  }
+
+  /**
+   * Get the content written into the pipe as a String object. Remember that the
+   * operation will clear the buffer.
+   *
+   * @param charset the charset which will be used to convert byte data from the
+   * pipe into the String
+   * @return the pipe data content as a String object
+   * @throws IOException it will be thrown if there is any IO error during the
+   * operation
+   */
+  public String getAllDataAsString(final Charset charset) throws IOException {
+    return new String(getAllDataAsByteArray(), charset);
+  }
+
+  /**
+   * Get the content written into the pipe as a byte array
+   *
+   * @return the data from the pipe as a byte array
+   * @throws IOException it will be thrown if there is any IO operation
+   */
+  public byte[] getAllDataAsByteArray() throws IOException {
+    synchronized (reader) {
+      final ByteArrayOutputStream buffer = new ByteArrayOutputStream(1024);
+      while (!Thread.currentThread().isInterrupted()) {
+        final int chr = reader.readChar().getNumericValue().intValue();
+
+        if (chr < 0) {
+          break;
         }
-        if (context == null) {
-            throw new IllegalArgumentException("Context must not be null");
-        }
 
-        this.resourceId = resourceId;
-        this.context = context;
-
-        final PipedWriter pipeWriter = new PipedWriter();
-        final PipedReader pipeReader = new PipedReader(pipeWriter);
-
-        reader = new ProlTextInputStream(pipeReader, context);
-        writer = new ProlTextOutputStream(pipeWriter, context, false);
+        buffer.write(chr);
+      }
+      return buffer.toByteArray();
     }
-
-    /**
-     * Get the reader for the pipe
-     *
-     * @return the pipe reader
-     */
-    public ProlTextReader getReader() {
-        return reader;
-    }
-
-    /**
-     * Get the reader for the pipe
-     *
-     * @return the pipe reader
-     */
-    public ProlTextWriter getWriter() {
-        return writer;
-    }
-
-    @Override
-    public ProlContext getContext() {
-        return context;
-    }
-
-    @Override
-    public void close() throws IOException {
-        synchronized (writer) {
-            writer.close();
-        }
-
-        synchronized (reader) {
-            reader.close();
-        }
-    }
-
-    /**
-     * Close only for output data, it will not be possible to write data into the
-     * pipe after the operation. From prolog the method will be called when told/0
-     * is called for the pipe. If you want to manipulate with the content of the
-     * pipe, you have to call the method else your read operations can be blocked
-     * until incomming data.
-     *
-     * @throws IOException it will be thrown if there is any exception
-     */
-    public void closeForWriteOnly() throws IOException {
-        synchronized (writer) {
-            writer.close();
-        }
-    }
-
-    @Override
-    public String getResourceId() {
-        return resourceId;
-    }
-
-    @Override
-    public Term getAsTerm() {
-        final Term result = new Term(resourceId);
-        return result;
-    }
-
-    @Override
-    public Term readToken() throws IOException {
-        synchronized (reader) {
-            return reader.readToken();
-        }
-    }
-
-    @Override
-    public Term readTerm() throws IOException {
-        synchronized (reader) {
-            return reader.readTerm();
-        }
-    }
-
-    @Override
-    public TermInteger readChar() throws IOException {
-        synchronized (reader) {
-            return reader.readChar();
-        }
-    }
-
-    @Override
-    public void writeTerm(Term term) throws IOException {
-        synchronized (writer) {
-            writer.writeTerm(term);
-        }
-    }
-
-    @Override
-    public void writeChar(Term term) throws IOException {
-        synchronized (writer) {
-            writer.writeChar(term);
-        }
-    }
-
-    /**
-     * Get the content written into the pipe as a String object. Remember that the
-     * operation will clear the buffer.
-     *
-     * @param charset the charset which will be used to convert byte data from the
-     *                pipe into the String
-     * @return the pipe data content as a String object
-     * @throws IOException it will be thrown if there is any IO error during the
-     *                     operation
-     */
-    public String getAllDataAsString(final Charset charset) throws IOException {
-        return new String(getAllDataAsByteArray(), charset);
-    }
-
-    /**
-     * Get the content written into the pipe as a byte array
-     *
-     * @return the data from the pipe as a byte array
-     * @throws IOException it will be thrown if there is any IO operation
-     */
-    public byte[] getAllDataAsByteArray() throws IOException {
-        synchronized (reader) {
-            final ByteArrayOutputStream buffer = new ByteArrayOutputStream(1024);
-            while (!Thread.currentThread().isInterrupted()) {
-                final int chr = reader.readChar().getNumericValue().intValue();
-
-                if (chr < 0) {
-                    break;
-                }
-
-                buffer.write(chr);
-            }
-            return buffer.toByteArray();
-        }
-    }
+  }
 }

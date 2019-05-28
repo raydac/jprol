@@ -37,7 +37,7 @@ public final class ScalableRsyntaxTextArea extends RSyntaxTextArea {
 
     this.addMouseWheelListener((final MouseWheelEvent e) -> {
       final int allModifiers = MouseWheelEvent.CTRL_DOWN_MASK | MouseWheelEvent.ALT_DOWN_MASK | MouseWheelEvent.META_DOWN_MASK | MouseWheelEvent.SHIFT_DOWN_MASK;
-      if (!e.isConsumed() && !e.isPopupTrigger() && (e.getModifiersEx()& allModifiers) == MouseWheelEvent.CTRL_DOWN_MASK) {
+      if (!e.isConsumed() && !e.isPopupTrigger() && (e.getModifiersEx() & allModifiers) == MouseWheelEvent.CTRL_DOWN_MASK) {
         e.consume();
         this.fontScale = Math.max(SCALE_MIN, Math.min(SCALE_MAX, this.fontScale + SCALE_STEP * -e.getWheelRotation()));
         updateFontForScale();

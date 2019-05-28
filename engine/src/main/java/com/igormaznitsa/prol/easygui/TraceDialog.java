@@ -39,7 +39,7 @@ public class TraceDialog extends AbstractProlEditor implements ActionListener {
   private static final SimpleAttributeSet ATTRSET_EXIT = new SimpleAttributeSet();
 
   public TraceDialog() {
-    super("Trace", false);
+    super("Trace", false, false);
 
     removePropertyFromList("EdForeground");
     removePropertyFromList("EdCaretColor");

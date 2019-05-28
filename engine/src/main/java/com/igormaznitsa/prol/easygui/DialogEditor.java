@@ -55,7 +55,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
   private volatile boolean cancelCurrentRead;
 
   public DialogEditor() throws IOException {
-    super("Dialog", false);
+    super("Dialog", true, false);
 
     ((EditorPane) this.editor).setEventReplacer(this);
 
@@ -184,13 +184,11 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
           int textLength = editor.getDocument().getLength();
           ((EditorPane) editor).setCharacterAttributes(userAttribute, false);
           editor.setCaretPosition(textLength);
-        }
-        catch (BadLocationException ex) {
+        } catch (BadLocationException ex) {
           ex.printStackTrace();
         }
       });
-    }
-    catch (Throwable thr) {
+    } catch (Throwable thr) {
       if (thr instanceof InterruptedException) {
         Thread.currentThread().interrupt();
       }
@@ -210,8 +208,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
 
       try {
         inputWriter.append(e.getKeyChar());
-      }
-      catch (Exception ex) {
+      } catch (Exception ex) {
       }
     }
   }
@@ -266,14 +263,12 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
         } else {
           try {
             Thread.sleep(200);
-          }
-          catch (InterruptedException ex) {
+          } catch (InterruptedException ex) {
 
           }
         }
       }
-    }
-    catch (Exception ex) {
+    } catch (Exception ex) {
       ex.printStackTrace();
     }
   }
@@ -294,8 +289,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
           inputWriter.write(str.toCharArray(), 0, str.length());
         }
       }
-    }
-    catch (Exception ex) {
+    } catch (Exception ex) {
       ex.printStackTrace();
     }
   }
@@ -405,8 +399,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
         } else {
           try {
             Thread.sleep(10);
-          }
-          catch (InterruptedException ex) {
+          } catch (InterruptedException ex) {
             return -1;
           }
         }
@@ -439,8 +432,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
           try {
             Thread.sleep(10);
             continue;
-          }
-          catch (InterruptedException ex) {
+          } catch (InterruptedException ex) {
             return -1;
           }
         }

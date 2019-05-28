@@ -28,43 +28,43 @@ import java.io.IOException;
  */
 public interface ProlStream {
 
-    /**
-     * The string constant which is used as the end stream flag
-     */
-    String END_OF_FILE_STR = "end_of_file";
+  /**
+   * The string constant which is used as the end stream flag
+   */
+  String END_OF_FILE_STR = "end_of_file";
 
-    /**
-     * The constant describes the term which is used as the flag of the end of a
-     * file
-     */
-    Term END_OF_FILE = new Term(END_OF_FILE_STR);
+  /**
+   * The constant describes the term which is used as the flag of the end of a
+   * file
+   */
+  Term END_OF_FILE = new Term(END_OF_FILE_STR);
 
-    /**
-     * Get the prol context for the stream
-     *
-     * @return the prol context for the stream, must not be null
-     */
-    ProlContext getContext();
+  /**
+   * Get the prol context for the stream
+   *
+   * @return the prol context for the stream, must not be null
+   */
+  ProlContext getContext();
 
-    /**
-     * Close the stream
-     *
-     * @throws IOException it will be thrown if the stream can't be closed
-     *                     successfully
-     */
-    void close() throws IOException;
+  /**
+   * Close the stream
+   *
+   * @throws IOException it will be thrown if the stream can't be closed
+   * successfully
+   */
+  void close() throws IOException;
 
-    /**
-     * The resource id for the stream
-     *
-     * @return the resource name for the stream, must not be null
-     */
-    String getResourceId();
+  /**
+   * The resource id for the stream
+   *
+   * @return the resource name for the stream, must not be null
+   */
+  String getResourceId();
 
-    /**
-     * Get the stream object as a Term
-     *
-     * @return the stream object as a Term, must not be null
-     */
-    Term getAsTerm();
+  /**
+   * Get the stream object as a Term
+   *
+   * @return the stream object as a Term, must not be null
+   */
+  Term getAsTerm();
 }

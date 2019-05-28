@@ -31,10 +31,10 @@ public class PrologSourceEditor extends AbstractProlEditor {
     theEditor.setSyntaxEditingStyle("text/jprol");
     theEditor.getSyntaxScheme().getStyle(Token.VARIABLE).foreground = Color.RED.darker();
     theEditor.getSyntaxScheme().getStyle(Token.VARIABLE).font = theEditor.getFont().deriveFont(Font.BOLD);
-    
+
     theEditor.getInputMap().put(KeyStroke.getKeyStroke("control Z"), "none");
     theEditor.getInputMap().put(KeyStroke.getKeyStroke("control Y"), "none");
-    
+
     theEditor.setAntiAliasingEnabled(true);
     theEditor.setBracketMatchingEnabled(true);
     theEditor.setCodeFoldingEnabled(true);
@@ -87,8 +87,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
 
       editor.setCaretPosition(offset);
       editor.requestFocus();
-    }
-    catch (Exception ex) {
+    } catch (Exception ex) {
       LOG.throwing(this.getClass().getCanonicalName(), "setCaretPosition()", ex);
     }
   }
@@ -151,8 +150,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
             result = true;
           }
         }
-      }
-      catch (BadLocationException ex) {
+      } catch (BadLocationException ex) {
         LOG.throwing(this.getClass().getCanonicalName(), "uncommentSelectedLines()", ex);
       }
     }
@@ -187,8 +185,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
           elem.getDocument().insertString(elem.getStartOffset(), "%", null);
           result = true;
         }
-      }
-      catch (BadLocationException ex) {
+      } catch (BadLocationException ex) {
         LOG.throwing(this.getClass().getCanonicalName(), "commentSelectedLines()", ex);
       }
     }

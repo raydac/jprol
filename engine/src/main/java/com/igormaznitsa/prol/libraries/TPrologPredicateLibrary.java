@@ -22,6 +22,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
@@ -51,35 +52,34 @@ public final class TPrologPredicateLibrary extends ProlAbstractLibrary {
    */
   protected static final Logger LOG = Logger.getLogger(TPrologPredicateLibrary.class.getCanonicalName());
 
-
   @Predicate(Signature = "file_str/2", Template = {"+term,?term"}, Reference = "Reads string from a file and transfers it to a variable, or creates a file and writes the string into the file.")
   @Determined
   public static boolean predicateFileStr(final Goal goal, final TermStruct predicate) {
     final File file = new File(path, Utils.getTermFromElement(predicate.getElement(0)).getText());
     final Term str = Utils.getTermFromElement(predicate.getElement(1));
-    
+
     boolean result = false;
-    
+
     if (str.getTermType() == Term.TYPE_VAR) {
       if (file.isFile()) {
-        try{
+        try {
           result = str.Equ(new Term(UIUtils.readFileAsUTF8Str(file)));
-        }catch(IOException ex){
-          msgError("Can't read file '"+file+"' : "+ex.getMessage());
+        } catch (IOException ex) {
+          msgError("Can't read file '" + file + "' : " + ex.getMessage());
         }
       }
     } else {
-        try{
-          UIUtils.writeFileAsUTF8Str(file, str.getText());
-          result = true;
-        }catch(IOException ex){
-          msgError("Can't write file '"+file+"' : "+ex.getMessage());
-        }
+      try {
+        UIUtils.writeFileAsUTF8Str(file, str.getText());
+        result = true;
+      } catch (IOException ex) {
+        msgError("Can't write file '" + file + "' : " + ex.getMessage());
+      }
     }
-    
+
     return result;
   }
-  
+
   @Predicate(Signature = "deletefile/1", Template = {"+term"}, Reference = "Delete file for name")
   @Determined
   public static boolean predicateDeleteFile(final Goal goal, final TermStruct predicate) {
@@ -176,14 +176,13 @@ public final class TPrologPredicateLibrary extends ProlAbstractLibrary {
           return true;
         } else {
           MainFrame mframe = MainFrame.MAIN_FRAME_INSTANCE.get();
-          if (mframe!=null){
-            mframe.getMessageEditor().addErrorText("Can't find directory '"+file.getAbsolutePath()+'\'');
+          if (mframe != null) {
+            mframe.getMessageEditor().addErrorText("Can't find directory '" + file.getAbsolutePath() + '\'');
           }
           return false;
         }
       }
-    }
-    catch (IOException ex) {
+    } catch (IOException ex) {
       throw new ProlCriticalError("Can't process disk/1", ex);
     }
   }
@@ -208,15 +207,13 @@ public final class TPrologPredicateLibrary extends ProlAbstractLibrary {
 
     BufferedWriter filewriter = null;
     try {
-      filewriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(path, filePath), false), "UTF-8"));
+      filewriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(path, filePath), false), StandardCharsets.UTF_8));
       filewriter.append(dbtext);
       filewriter.flush();
       result = true;
-    }
-    catch (IOException ex) {
+    } catch (IOException ex) {
       msgWarn("Can't save data base, error : " + ex.getMessage());
-    }
-    finally {
+    } finally {
       UIUtils.closeQuetly(filewriter);
     }
 

@@ -29,11 +29,11 @@ import java.lang.annotation.Target;
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface ProlOperators {
 
-    /**
-     * Array of ProlOperator annotations
-     *
-     * @return an array of ProlOperator annotations
-     * @see com.igormaznitsa.prol.annotations.ProlOperator
-     */
-    ProlOperator[] Operators();
+  /**
+   * Array of ProlOperator annotations
+   *
+   * @return an array of ProlOperator annotations
+   * @see com.igormaznitsa.prol.annotations.ProlOperator
+   */
+  ProlOperator[] Operators();
 }

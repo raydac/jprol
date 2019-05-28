@@ -147,7 +147,7 @@ public class TriggerTest extends TestCase {
 
     private static class insideTrigger extends AbstractProlTrigger {
 
-        private List<TriggerEvent> buffer = new ArrayList<TriggerEvent>();
+        private final List<TriggerEvent> buffer = new ArrayList<>();
         private volatile int haltCounter = 0;
 
         public insideTrigger() {

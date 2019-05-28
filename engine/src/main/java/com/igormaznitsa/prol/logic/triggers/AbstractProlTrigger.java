@@ -29,70 +29,70 @@ import java.util.Map;
  */
 public abstract class AbstractProlTrigger implements ProlTrigger {
 
-    /**
-     * The map contains the signature and the event type linked with the signature
-     */
-    protected final Map<String, ProlTriggerType> signatureMap;
+  /**
+   * The map contains the signature and the event type linked with the signature
+   */
+  protected final Map<String, ProlTriggerType> signatureMap;
 
-    /**
-     * The constructor
-     */
-    public AbstractProlTrigger() {
-        signatureMap = Collections.synchronizedMap(new HashMap<>());
+  /**
+   * The constructor
+   */
+  public AbstractProlTrigger() {
+    signatureMap = Collections.synchronizedMap(new HashMap<>());
+  }
+
+  /**
+   * Add new signature
+   *
+   * @param signature the signature as name/arity or 'name'/arity
+   * @param observedEvent the event type associated with the signature
+   * @return this
+   */
+  public AbstractProlTrigger addSignature(final String signature, final ProlTriggerType observedEvent) {
+    if (signature == null || observedEvent == null) {
+      throw new NullPointerException("Both arguments must not be null");
     }
 
-    /**
-     * Add new signature
-     *
-     * @param signature     the signature as name/arity or 'name'/arity
-     * @param observedEvent the event type associated with the signature
-     * @return this
-     */
-    public AbstractProlTrigger addSignature(final String signature, final ProlTriggerType observedEvent) {
-        if (signature == null || observedEvent == null) {
-            throw new NullPointerException("Both arguments must not be null");
-        }
+    String processedsignature = Utils.validateSignature(signature);
 
-        String processedsignature = Utils.validateSignature(signature);
-
-        if (processedsignature == null) {
-            throw new IllegalArgumentException("Wrong signature format [" + signature + ']');
-        } else {
-            processedsignature = Utils.normalizeSignature(processedsignature);
-        }
-
-        signatureMap.put(processedsignature, observedEvent);
-
-        return this;
+    if (processedsignature == null) {
+      throw new IllegalArgumentException("Wrong signature format [" + signature + ']');
+    } else {
+      processedsignature = Utils.normalizeSignature(processedsignature);
     }
 
-    /**
-     * Remove mapped trigger event for signature, signature as name/arity or
-     * 'name'/arity
-     *
-     * @param signature the signature, must not be null
-     * @return this
-     */
-    public AbstractProlTrigger removeSignature(final String signature) {
-        if (signature == null) {
-            throw new NullPointerException("Signature is null");
-        }
+    signatureMap.put(processedsignature, observedEvent);
 
-        String processedsignature = Utils.validateSignature(signature);
+    return this;
+  }
 
-        if (processedsignature == null) {
-            throw new IllegalArgumentException("Wrong signature format [" + signature + ']');
-        } else {
-            processedsignature = Utils.normalizeSignature(processedsignature);
-        }
-
-        signatureMap.remove(processedsignature);
-
-        return this;
+  /**
+   * Remove mapped trigger event for signature, signature as name/arity or
+   * 'name'/arity
+   *
+   * @param signature the signature, must not be null
+   * @return this
+   */
+  public AbstractProlTrigger removeSignature(final String signature) {
+    if (signature == null) {
+      throw new NullPointerException("Signature is null");
     }
 
-    @Override
-    public Map<String, ProlTriggerType> getSignatures() {
-        return signatureMap;
+    String processedsignature = Utils.validateSignature(signature);
+
+    if (processedsignature == null) {
+      throw new IllegalArgumentException("Wrong signature format [" + signature + ']');
+    } else {
+      processedsignature = Utils.normalizeSignature(processedsignature);
     }
+
+    signatureMap.remove(processedsignature);
+
+    return this;
+  }
+
+  @Override
+  public Map<String, ProlTriggerType> getSignatures() {
+    return signatureMap;
+  }
 }
