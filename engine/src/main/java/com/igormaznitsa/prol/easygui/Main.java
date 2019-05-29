@@ -46,9 +46,8 @@ public class Main {
         if (!fileToLoad.exists() || fileToLoad.isDirectory()) {
           throw new FileNotFoundException();
         }
-      } catch (Throwable thr) {
-        thr.printStackTrace();
-        JOptionPane.showMessageDialog(null, "Can't find the file \'" + args[0] + "\' or it's a directory.", "Can't load file", JOptionPane.ERROR_MESSAGE);
+      } catch (FileNotFoundException thr) {
+        JOptionPane.showMessageDialog(null, String.format("Can't find file \'%s\'", args[0]), "Can't load file", JOptionPane.ERROR_MESSAGE);
         fileToLoad = null;
       }
     }

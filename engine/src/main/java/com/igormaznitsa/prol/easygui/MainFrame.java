@@ -62,6 +62,20 @@ import java.util.regex.Pattern;
  */
 public final class MainFrame extends javax.swing.JFrame implements ProlStreamManager, Runnable, UndoableEditListener, WindowListener, DocumentListener, HyperlinkListener, TraceListener {
 
+  private static final class JLFRadioButtonItem extends JRadioButtonMenuItem {
+
+    private final String lfClassName;
+
+    public JLFRadioButtonItem(final String text, final String className) {
+      super(text);
+      this.lfClassName = className;
+    }
+
+    public String getLfClassName() {
+      return this.lfClassName;
+    }
+  }
+
   protected static final String PROL_EXTENSION = ".prl";
   static final String[] PROL_LIBRARIES = new String[]{"com.igormaznitsa.prol.libraries.ProlGraphicLibrary", "com.igormaznitsa.prol.libraries.ProlStringLibrary", "com.igormaznitsa.prol.libraries.TPrologPredicateLibrary"};
   private static final long serialVersionUID = -3816861562325125649L;
@@ -250,15 +264,13 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     final ButtonGroup lfGroup = new ButtonGroup();
 
     final ActionListener lfListener = (final ActionEvent e) -> {
-      final JRadioButtonMenuItem item = (JRadioButtonMenuItem) e.getSource();
-      setSelectedLookAndFeel(item.getText());
+      final JLFRadioButtonItem item = (JLFRadioButtonItem) e.getSource();
+      setSelectedLookAndFeel(item.getLfClassName());
     };
 
     for (LookAndFeelInfo aPlaf : plaf) {
-      final String lfName = aPlaf.getName();
-
-      lookAndFeelMap.put(lfName, aPlaf);
-      JRadioButtonMenuItem menuItem = new JRadioButtonMenuItem(lfName);
+      lookAndFeelMap.put(aPlaf.getClassName(), aPlaf);
+      JRadioButtonMenuItem menuItem = new JLFRadioButtonItem(aPlaf.getName(), aPlaf.getClassName());
 
       menuItem.addActionListener(lfListener);
 
@@ -267,38 +279,37 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }
   }
 
-  private void setSelectedLookAndFeel(String lookAndFeelName) {
+  private void setSelectedLookAndFeel(String lookAndFeelClassName) {
 
-    if (lookAndFeelName != null) {
-      if (!this.lookAndFeelMap.containsKey(lookAndFeelName)) {
-        lookAndFeelName = null;
+    if (lookAndFeelClassName != null) {
+      if (!this.lookAndFeelMap.containsKey(lookAndFeelClassName)) {
+        lookAndFeelClassName = null;
       }
     }
 
-    if (lookAndFeelName == null) {
-      // set the first
-      lookAndFeelName = this.menuLookAndFeel.getItem(0).getText();
+    if (lookAndFeelClassName == null) {
+      lookAndFeelClassName = UIManager.getSystemLookAndFeelClassName();
     }
 
-    final LookAndFeelInfo feelInfo = this.lookAndFeelMap.get(lookAndFeelName);
+    final LookAndFeelInfo feelInfo = this.lookAndFeelMap.get(lookAndFeelClassName);
     final JFrame thisFrame = this;
 
     for (int li = 0; li < this.menuLookAndFeel.getItemCount(); li++) {
-      final JRadioButtonMenuItem menuItem = (JRadioButtonMenuItem) this.menuLookAndFeel.getItem(li);
-      if (menuItem.getText().equals(lookAndFeelName)) {
-        if (!menuItem.isSelected()) {
-          menuItem.setSelected(true);
-        }
+      final JLFRadioButtonItem menuItem = (JLFRadioButtonItem) this.menuLookAndFeel.getItem(li);
+      if (menuItem.getLfClassName().equals(lookAndFeelClassName) && !menuItem.isSelected()) {
+        menuItem.setSelected(true);
         break;
       }
     }
     try {
       UIManager.setLookAndFeel(feelInfo.getClassName());
-    } catch (Exception ex) {
+    } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException ex) {
       LOG.throwing(thisFrame.getClass().getCanonicalName(), "L&F", ex);
     }
 
-    SwingUtilities.updateComponentTreeUI(thisFrame);
+    for (final Window window : JFrame.getWindows()) {
+      SwingUtilities.updateComponentTreeUI(window);
+    }
   }
 
   /**
@@ -1460,7 +1471,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   private void loadPreferences() {
     final Preferences prefs = Preferences.userNodeForPackage(this.getClass());
 
-    setSelectedLookAndFeel(prefs.get("lookandfeel", menuLookAndFeel.getItem(0).getText()));
+    setSelectedLookAndFeel(prefs.get("lookandfeel", null));
 
     int recentFileIndex = 1;
     this.recentFiles.clear();
@@ -1501,17 +1512,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   private void savePreferences() {
     final Preferences prefs = Preferences.userNodeForPackage(this.getClass());
 
-    LookAndFeelInfo currentInfo = null;
-    final String landfClass = UIManager.getLookAndFeel().getClass().getName();
-    for (final LookAndFeelInfo i : UIManager.getInstalledLookAndFeels()) {
-      if (i.getClassName().equals(landfClass)) {
-        currentInfo = i;
-        break;
-      }
-    }
-    if (currentInfo != null) {
-      prefs.put("lookandfeel", currentInfo.getName());
-    }
+    prefs.put("lookandfeel", UIManager.getLookAndFeel().getClass().getName());
 
     int recentFileIndex = 1;
     for (final String recentFile : this.recentFiles.getCollection()) {
