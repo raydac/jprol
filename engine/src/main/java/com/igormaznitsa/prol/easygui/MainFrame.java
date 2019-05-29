@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -118,7 +118,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   protected File lastOpenedFile;
   protected boolean documentHasBeenChangedFlag;
   protected volatile ProlContext lastContext;
-  // Variables declaration - do not modify                     
+  // Variables declaration - do not modify
   private javax.swing.JButton buttonCloseFind;
   private javax.swing.JButton buttonStopExecuting;
   private com.igormaznitsa.prol.easygui.DialogEditor dialogEditor;
@@ -786,7 +786,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
   }
 
-  private void menuAboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuAboutActionPerformed
+  private void menuAboutActionPerformed(java.awt.event.ActionEvent evt) {
     final JHtmlLabel label = new JHtmlLabel("<html><body><h1>JProl Notepad</h1>Version: " + VERSION + "<br><b>Project page:</b> <a href=\"https://github.com/raydac/jprol\">https://github.com/raydac/jprol</a><br><b>Author:</b> Igor Maznitsa (<a href=\"http://www.igormaznitsa.com\">http://www.igormaznitsa.com</a>)<br><br>(C)2010-2019 Igor A. Maznitsa. <a href=\"https://www.apache.org/licenses/LICENSE-2.0\">Apache 2.0 License</a><br>Icons from the free icon set <a href=\"http://www.famfamfam.com/lab/icons/silk/\">http://www.famfamfam.com/lab/icons/silk/</a><br><br>If you like the application you could make some donation:<br><ul><li><a href=\"https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AHWJHJFBAWGL2\">PayPal</a></li><li><a href=\"http://yasobe.ru/na/iamoss\">Yandex.Money</a></li></ul><hr>The Application uses third part libraries:<ul><li><a href=\"https://github.com/bobbylight/RSyntaxTextArea\"><b>RSyntaxTextArea</b></a> <a href=\"https://raw.githubusercontent.com/bobbylight/RSyntaxTextArea/master/src/main/dist/RSyntaxTextArea.License.txt\">under modified BSD license</a></li></ul></body></html>");
     label.addLinkListener((final JHtmlLabel source, final String link) -> {
       try {
@@ -813,20 +813,20 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     dialog.setLocationRelativeTo(this);
 
     dialog.setVisible(true);
-  }//GEN-LAST:event_menuViewKnowledgeBaseActionPerformed
+  }
 
   private void menuRunStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuRunStopActionPerformed
     buttonStopExecutingActionPerformed(evt);
-  }//GEN-LAST:event_menuRunStopActionPerformed
+  }
 
   private void menuHelpHelpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuHelpHelpActionPerformed
     new HelpDialog(this).setVisible(true);
-  }//GEN-LAST:event_menuHelpHelpActionPerformed
+  }
 
   private void menuEditOptionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuEditOptionsActionPerformed
     OptionsDialog dialog = new OptionsDialog(this, new TreeModel[]{sourceEditor, dialogEditor, messageEditor, traceEditor});
     dialog.setVisible(true);
-  }//GEN-LAST:event_menuEditOptionsActionPerformed
+  }
 
   private void menuItemLibraryInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItemLibraryInfoActionPerformed
     final java.util.List<String> list = new ArrayList<>(PROL_LIBRARIES.length + 2);
@@ -849,11 +849,11 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     infoDialog.setVisible(true);
     infoDialog.dispose();
-  }//GEN-LAST:event_menuItemLibraryInfoActionPerformed
+  }
 
   private void menuItemWordWrapSourcesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItemWordWrapSourcesActionPerformed
     this.sourceEditor.setEdWordWrap(this.menuItemWordWrapSources.isSelected());
-  }//GEN-LAST:event_menuItemWordWrapSourcesActionPerformed
+  }
 
   private void menuFileNewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuFileNewActionPerformed
     final Thread executingThread = this.currentExecutedScriptThread.get();
@@ -868,7 +868,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         newFile();
       }
     }
-  }//GEN-LAST:event_menuFileNewActionPerformed
+  }
 
   private long extractStackDepth() {
     final long MINIMAL_STACK = 5 * 1024 * 1024;
@@ -929,7 +929,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
   private void menuTraceScriptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuTraceScriptActionPerformed
     startExecution(true);
-  }//GEN-LAST:event_menuTraceScriptActionPerformed
+  }
 
   private void menuFileRecentFilesMenuSelected(javax.swing.event.MenuEvent evt) {//GEN-FIRST:event_menuFileRecentFilesMenuSelected
     JMenu menu = (JMenu) evt.getSource();
@@ -954,21 +954,21 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       });
       menu.add(newItem);
     }
-  }//GEN-LAST:event_menuFileRecentFilesMenuSelected
+  }
 
   private void menuEditCommentSelectedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuEditCommentSelectedActionPerformed
     // TODO add your handling code here:
     if (this.sourceEditor.commentSelectedLines()) {
       documentChanged();
     }
-  }//GEN-LAST:event_menuEditCommentSelectedActionPerformed
+  }
 
   private void menuEditUncommentSelectedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuEditUncommentSelectedActionPerformed
     // TODO add your handling code here:
     if (this.sourceEditor.uncommentSelectedLines()) {
       documentChanged();
     }
-  }//GEN-LAST:event_menuEditUncommentSelectedActionPerformed
+  }
 
   private void menuItemFullScreenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItemFullScreenActionPerformed
     final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
@@ -979,13 +979,13 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         gd.setFullScreenWindow(null);
       }
     }
-  }//GEN-LAST:event_menuItemFullScreenActionPerformed
+  }
 
   private void menuitemFindTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuitemFindTextActionPerformed
     this.panelFindText.setVisible(true);
     this.textFind.setText("");
     this.textFind.requestFocus();
-  }//GEN-LAST:event_menuitemFindTextActionPerformed
+  }
 
   private int searchText(final String text, final Pattern pattern, final int cursorPos) {
     if (cursorPos >= text.length()) {
@@ -1015,13 +1015,12 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         this.sourceEditor.setCaretPosition(cursorPos);
       }
     }
-  }//GEN-LAST:event_textFindKeyReleased
+  }
 
   private void setLastContext(ProlContext context) {
     this.lastContext = context;
     this.menuViewKnowledgeBase.setEnabled(lastContext != null);
   }
-  // End of variables declaration                   
 
   @Override
   public Reader getReaderForResource(String resourceName) throws IOException {
@@ -1041,9 +1040,9 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     } finally {
       if (!notTraceable) {
         if (successful) {
-          this.messageEditor.addInfoText("The reader for \'" + resourceName + "\' has been opened.");
+          this.messageEditor.addInfoText(String.format("Reader for \'%s\' has been opened.", resourceName));
         } else {
-          this.messageEditor.addWarningText("The reader for \'" + resourceName + "\' can't be opened.");
+          this.messageEditor.addWarningText(String.format("Reader for \'%s\' can't be opened.", resourceName));
         }
       }
     }
@@ -1069,9 +1068,9 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     } finally {
       if (!notTraceable) {
         if (successful) {
-          this.messageEditor.addInfoText("The writer for \'" + resourceName + "\' has been opened.");
+          this.messageEditor.addInfoText(String.format("Writer for \'%s\' has been opened.", resourceName));
         } else {
-          this.messageEditor.addWarningText("The writer for \'" + resourceName + "\' can't be opened.");
+          this.messageEditor.addWarningText(String.format("Writer for \'%s\' can't be opened.", resourceName));
         }
       }
     }
@@ -1105,11 +1104,11 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
           final ProlAbstractLibrary lib = (ProlAbstractLibrary) Class.forName(str).newInstance();
 
           context.addLibrary(lib);
-          this.messageEditor.addInfoText("Library \'" + lib.getLibraryUID() + "\' has been added...");
+          this.messageEditor.addInfoText(String.format("Library \'%s\' has been added...", lib.getLibraryUID()));
         }
 
         context.addLibrary(logLibrary);
-        this.messageEditor.addInfoText("Library \'" + logLibrary.getLibraryUID() + "\' has been added...");
+        this.messageEditor.addInfoText(String.format("Library \'%s\' has been added...", logLibrary.getLibraryUID()));
 
         setLastContext(context);
       } catch (Throwable ex) {
@@ -1231,7 +1230,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         try {
           executingThread.interrupt();
           executingThread.join();
-        } catch (Throwable thr) {
+        } catch (InterruptedException thr) {
+          Thread.currentThread().interrupt();
         }
       } else {
         return;
@@ -1341,7 +1341,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
         if (saveAs || !file.equals(this.currentOpenedFile)) {
           if (file.exists()) {
-            if (JOptionPane.showConfirmDialog(this, "File \'" + file.getAbsolutePath() + "\' exists, to overwrite it?", "File exists", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION) {
+            if (JOptionPane.showConfirmDialog(this, String.format("File \'%s\' exists, to overwrite it?", file.getAbsolutePath()), "File exists", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION) {
               return;
             }
           }
@@ -1360,7 +1360,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       this.recentFiles.put(file.getAbsolutePath());
     } catch (Throwable thr) {
       LOG.throwing(this.getClass().getCanonicalName(), "saveFile()", thr);
-      JOptionPane.showMessageDialog(this, "Can't save file for error \'" + (thr.getMessage() == null ? thr.getClass().getCanonicalName() : thr.getLocalizedMessage()), "Can't save file", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(this, String.format("Can't save file for error \'%s\'", (thr.getMessage() == null ? thr.getClass().getCanonicalName() : thr.getLocalizedMessage())), "Can't save file", JOptionPane.ERROR_MESSAGE);
       return;
     }
 
@@ -1425,7 +1425,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
       } catch (Throwable thr) {
         LOG.throwing(this.getClass().getCanonicalName(), "loadFile()", thr);
-        JOptionPane.showMessageDialog(this, "Can't load file " + fileToOpen.getAbsolutePath() + " [" + thr.getMessage() + "]");
+        JOptionPane.showMessageDialog(this, String.format("Can't load file %s ! [%s]", fileToOpen.getAbsolutePath(), thr.getMessage()));
         this.recentFiles.remove(fileToOpen.getAbsolutePath());
       }
     }

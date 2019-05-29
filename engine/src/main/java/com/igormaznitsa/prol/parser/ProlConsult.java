@@ -229,7 +229,7 @@ public class ProlConsult {
                         } else {
 
                           if (userwriter != null) {
-                            userwriter.write(String.format("%d %s%n", solutioncounter, (solutioncounter > 1 ? "solutions" : "solution")));
+                            userwriter.write(String.format("%n%d %s%n", solutioncounter, (solutioncounter > 1 ? "solutions" : "solution")));
                             userwriter.append("Stopped by user");
                           }
                           break;
