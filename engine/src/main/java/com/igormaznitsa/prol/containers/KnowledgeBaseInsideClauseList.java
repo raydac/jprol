@@ -251,8 +251,7 @@ final class KnowledgeBaseInsideClauseList {
       if (item == null) {
         break;
       }
-      writer.print(item.getClause().getSourceLikeRepresentation());
-      writer.println('.');
+      writer.write(String.format("%s.%n", item.getClause().getSourceLikeRepresentation()));
       item = item.getNext();
     }
     writer.println();

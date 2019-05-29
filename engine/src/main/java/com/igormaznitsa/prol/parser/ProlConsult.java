@@ -185,9 +185,7 @@ public class ProlConsult {
                   final Term termGoal = struct.getElement(0);
 
                   if (userwriter != null) {
-                    userwriter.write("Goal: ");
-                    userwriter.write(termGoal.forWrite());
-                    userwriter.write("\r\n");
+                    userwriter.write(String.format("Goal: %s%n",termGoal.forWrite()));
                   }
                   final Map<String, Var> varmap = new HashMap<>();
                   int solutioncounter = 0;
@@ -199,27 +197,19 @@ public class ProlConsult {
                     if (solveGoal(thisGoal, varmap)) {
                       solutioncounter++;
                       if (userwriter != null) {
-                        userwriter.write("\r\nYES\r\n");
+                        userwriter.write(String.format("%nYES%n"));
                         if (!varmap.isEmpty()) {
                           for (Entry<String, Var> avar : varmap.entrySet()) {
                             final String name = avar.getKey();
                             final Var value = avar.getValue();
-                            userwriter.write(name);
-                            userwriter.write('=');
-                            if (value.isUndefined()) {
-                              userwriter.write("???\r\n");
-                            } else {
-                              userwriter.write(value.forWrite());
-                              userwriter.write("\r\n");
-                            }
+                            userwriter.write(String.format("%s=%s%n",name,(value.isUndefined()?"???":value.forWrite())));
                             userwriter.flush();
                           }
                         }
                       }
                     } else {
                       if (userwriter != null) {
-                        userwriter.write(solutioncounter + (solutioncounter > 1 ? " Solutions\r\n" : " Solution\r\n"));
-                        userwriter.write("\r\nNO\r\n");
+                        userwriter.write(String.format("%d %s%n%nNO%n", solutioncounter, (solutioncounter>1 ? "solutions" : "solution")));
                       }
                       break;
                     }
@@ -239,7 +229,7 @@ public class ProlConsult {
                         } else {
 
                           if (userwriter != null) {
-                            userwriter.write("\r\n" + solutioncounter + (solutioncounter > 1 ? " Solutions\r\n" : " Solution\r\n"));
+                            userwriter.write(String.format("%d %s%n", solutioncounter, (solutioncounter > 1 ? "solutions" : "solution")));
                             userwriter.append("Stopped by user");
                           }
                           break;

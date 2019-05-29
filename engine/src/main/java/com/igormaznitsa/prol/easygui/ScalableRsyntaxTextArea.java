@@ -56,6 +56,8 @@ public final class ScalableRsyntaxTextArea extends RSyntaxTextArea {
     } else {
       this.setFont(this.getFont().deriveFont(1.0f));
     }
+    this.revalidate();
+    this.repaint();
   }
 
   public void updateConfig() {
