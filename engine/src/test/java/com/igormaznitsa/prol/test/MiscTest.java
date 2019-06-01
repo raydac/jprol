@@ -89,7 +89,7 @@ public class MiscTest {
 
         Var result = null;
 
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             final Term t = goal.solve();
             if (t == null) {
                 break;

@@ -90,7 +90,7 @@ public final class Var extends Term {
 
   /**
    * Get the value of the variable, if the variable has an other variable as its
-   * value, the function will find walue recursively
+   * value, the function will find value recursively
    *
    * @return the value of the variable if it is instantiated and null if it is
    * not instantiated
@@ -98,7 +98,11 @@ public final class Var extends Term {
   public final Term getValue() {
     Term result = value;
     if (result != null && result.getTermType() == TYPE_VAR) {
-      result = ((Var) result).getValue();
+      final Var nextVar = (Var)result;
+      result = nextVar.getValue();
+      if (result == null) {
+        result = nextVar;
+      }
     }
     return result;
   }

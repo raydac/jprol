@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * The Prol Core Library This class extends a prol abstract library and contain
@@ -1505,6 +1506,62 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
     return sorted.Equ(sortedList);
   }
 
+  @Predicate(Signature = "bagof/3", Template = {"?term,+callable_term,?list"}, Reference = "Unify Bag with the alternatives of Template. If Goal has free variables besides the one sharing with Template, bagof/3 will backtrack over the alternatives of these free variables, unifying Bag with the corresponding alternatives of Template. The construct +Var^Goal tells bagof/3 not to bind Var in Goal. bagof/3 fails if Goal has no solutions.")
+  public static boolean predicateBAGOF(final Goal goal, final TermStruct predicate) throws InterruptedException {
+
+    final Term template = Utils.getTermFromElement(predicate.getElement(0));
+    final Term pgoal = Utils.getTermFromElement(predicate.getElement(1));
+    final Term instances = Utils.getTermFromElement(predicate.getElement(2));
+  
+    List<TermList> preparedLists = (List<TermList>)goal.getAuxObject();
+
+    if (preparedLists == null) {
+      final Goal find_goal = new Goal(pgoal.makeClone(), goal.getContext(), goal.getTracer());
+
+      TermList result = null;
+
+      final List<Term> accumulator = new ArrayList<>();
+      
+      while (!Thread.currentThread().isInterrupted()) {
+        final Term nextTemplate = find_goal.solve();
+
+        if (nextTemplate == null) {
+          break;
+        }
+
+        final Term templateCopy = template.makeClone();
+        final Term pgoalCopy = pgoal.makeClone();
+        Utils.arrangeVariablesInsideTerms(templateCopy, pgoalCopy);
+
+        if (pgoalCopy.Equ(nextTemplate)) {
+          accumulator.add(Utils.getTermFromElement(templateCopy).makeClone());
+        } else {
+          throw new ProlCriticalError("Impossible situation at findall/3!");
+        }
+      }
+      
+      if (!accumulator.isEmpty()){
+        TermList currentList =  new TermList(accumulator.get(0));
+        final TermList theList = currentList;
+        for(int i=1; i<accumulator.size();i++){
+          currentList = TermList.appendItem(currentList, accumulator.get(i));
+        }
+        preparedLists = new ArrayList<>();
+        preparedLists.add(theList);
+      } else {
+        preparedLists = Collections.emptyList();
+      }
+      
+      goal.setAuxObject(preparedLists);
+    }
+    
+    if (preparedLists.isEmpty()) {
+      return false;
+    } else {
+      return instances.Equ(preparedLists.remove(0));
+    }
+  }
+  
   @Predicate(Signature = "findall/3", Template = {"?term,+callable_term,?list"}, Reference = "Creates  a list of the instantiations Template gets  successively on backtracking  over Goal and unifies the  result with Bag.")
   @Determined
   public static boolean predicateFINDALL(final Goal goal, final TermStruct predicate) throws InterruptedException {
@@ -1512,7 +1569,7 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
     final Term pgoal = Utils.getTermFromElement(predicate.getElement(1));
     final Term instances = Utils.getTermFromElement(predicate.getElement(2));
 
-    final Goal find_goal = new Goal(pgoal, goal.getContext(), goal.getTracer());
+    final Goal find_goal = new Goal(pgoal.makeClone(), goal.getContext(), goal.getTracer());
 
     TermList result = null;
     TermList currentList = null;
@@ -1532,11 +1589,11 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
         // good, add to the list
         if (result == null) {
           // first
-          result = new TermList(templateCopy);
+          result = new TermList(Utils.getTermFromElement(templateCopy).makeClone());
           currentList = result;
         } else {
           // not first
-          currentList = TermList.appendItem(currentList, templateCopy);
+          currentList = TermList.appendItem(currentList, Utils.getTermFromElement(templateCopy).makeClone());
         }
       } else {
         throw new ProlCriticalError("Impossible situation at findall/3!");

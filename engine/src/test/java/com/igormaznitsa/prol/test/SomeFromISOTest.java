@@ -46,12 +46,15 @@ public class SomeFromISOTest extends TestCase {
 //[findall(X,Goal,S),instantiation_error]. % Culprit Goal
 //[findall(X,4,S),type_error(callable, 4)].
 //[findall(X,call(1),S),type_error(callable, 1)].
+
+        checkOnceVar("findall(X,(X=1;X=2),X).", "X", "[1,2]");
         checkOnceVar("findall(X,(X=1;X=2),S).", "S", "[1,2]");
         checkOnceVar("findall(X+Y,(X=1),S).", "S", "[1 + Y]"); // changes
         checkOnceVar("findall(X,fail,L).", "L", "[]");
         checkOnceVar("findall(X,(X=1;X=1),S).", "S", "[1,1]");
+        checkOnceVar("findall(X,(X=Y;X=Z),L).", "L", "[Y,Z]");
         checkOnce("findall(X,(X=2;X=1),[1,2]).", false);
-
+        
         final Goal goal = proveGoal("findall(X,(X=1;X=2),[X1,Y1])."); // changed from original because at Prol all variables linked by their names inside a goal, so that it is not a bug, it is a feature
         assertEquals(goal.getVarAsText("X1"), "1");
         assertEquals(goal.getVarAsText("Y1"), "2");
@@ -62,6 +65,27 @@ public class SomeFromISOTest extends TestCase {
         checkException("findall(X,call(1),S).");
     }
 
+    @Test
+    public void testBagOf() throws Exception {
+//[bagof(X, (X = 1; X = 2),L), [[L<-- [1, 2]]]].
+//[bagof(X, (X = 1; X = 2),X), [[X<-- [1, 2]]]].
+//[bagof(X, (X = Y; X = Z),L), [[L<-- [Y, Z]]]].
+//[bagof(X, fail, L), failure].
+//[bagof(1, (Y = 1; Y = 2),L), [[L<-- [1], Y<-- 1], [L<-- [1], Y<-- 2]]].
+//[bagof(f(X, Y), (X = a; Y = b),L), [[L<-- [f(a, _), f(_, b)]]]].
+//[bagof(X, Y ^ ((X = 1, Y = 1);(X = 2,Y = 2)),S), [[S<-- [1, 2]]]].
+//[bagof(X, Y ^ ((X = 1; Y = 1);(X = 2,Y = 2)),S), [[S<-- [1, _, 2]]]].
+//[(set_prolog_flag(unknown, warning),bagof(X, (Y ^ (X = 1;Y = 1);X = 3),S)), [[S<-- [3]]]].
+//[bagof(X, (X = Y; X = Z; Y = 1),L), [[L<-- [Y, Z]], [L<-- [_], Y<-- 1]]].
+//[bagof(X, Y ^ Z, L), instantiation_error].
+//[bagof(X, 1, L), type_error(callable, 1)].
+
+//      checkOnceVar("bagof(X,(X=1;X=2),L).", "L", "[1,2]");
+//      checkOnceVar("bagof(X,(X=1;X=2),X).", "X", "[1,2]");
+      checkOnceVar("bagof(X,(X=Y;X=Z),L).", "L", "[Y,Z]");
+//      checkOnce("bagof(X, fail, L).", false);
+    }
+    
     @Test
     public void testAssertZ() throws Exception {
 //[assertz((foo(X) :- X -> call(X))), success].
@@ -788,7 +812,7 @@ public class SomeFromISOTest extends TestCase {
                 }
 
             } else {
-                assertEquals(thisGoal.getVarAsText(var), res.toString());
+                assertEquals(res.toString(), thisGoal.getVarAsText(var));
             }
         }
         assertNull(thisGoal.solve());
