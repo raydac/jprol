@@ -1509,18 +1509,60 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
   @Predicate(Signature = "bagof/3", Template = {"?term,+callable_term,?list"}, Reference = "Unify Bag with the alternatives of Template. If Goal has free variables besides the one sharing with Template, bagof/3 will backtrack over the alternatives of these free variables, unifying Bag with the corresponding alternatives of Template. The construct +Var^Goal tells bagof/3 not to bind Var in Goal. bagof/3 fails if Goal has no solutions.")
   public static boolean predicateBAGOF(final Goal goal, final TermStruct predicate) throws InterruptedException {
 
+    class BofKey {
+      private final Map<String,Term> vars;
+      private final int hash;
+      
+      BofKey(final Goal goal, final Set<String> excludedVariables) {
+        final Map<String,Term> varSnapshot = goal.findAllInstantiatedVars();
+        excludedVariables.forEach(s -> varSnapshot.remove(s));
+        final List<String> orderedNames = new ArrayList<>(varSnapshot.keySet());
+        Collections.sort(orderedNames);
+        this.hash = orderedNames.stream().map(n -> varSnapshot.get(n).getText()).collect(Collectors.joining(":")).hashCode();
+        this.vars = varSnapshot;
+      }
+      
+      public void restoreVarValues(final Goal goal) {
+        this.vars.keySet().forEach(name -> {
+          final Var thatvar = goal.getVarForName(name);
+          if (thatvar!=null) {
+            thatvar.Equ(this.vars.get(name));
+          }
+        });
+      }
+      
+      @Override
+      public int hashCode() {
+        return this.hash;
+      }
+      
+      @Override
+      public boolean equals(final Object that) {
+        if (that == this) return true;
+        boolean result = false;
+        
+        if (that instanceof BofKey && ((BofKey)that).vars.size() == this.vars.size()) {
+          final BofKey thatKey = (BofKey) that;
+          result = this.vars.entrySet().stream()
+                  .noneMatch(e -> !(thatKey.vars.containsKey(e.getKey()) && thatKey.vars.get(e.getKey()).equWithoutSet(e.getValue())));
+        }
+        return result;
+      }
+      
+    }
+    
     final Term template = Utils.getTermFromElement(predicate.getElement(0));
     final Term pgoal = Utils.getTermFromElement(predicate.getElement(1));
     final Term instances = Utils.getTermFromElement(predicate.getElement(2));
   
-    List<TermList> preparedLists = (List<TermList>)goal.getAuxObject();
+    Map<BofKey,TermList> preparedMap = (Map<BofKey, TermList>)goal.getAuxObject();
 
-    if (preparedLists == null) {
+    if (preparedMap == null) {
       final Goal find_goal = new Goal(pgoal.makeClone(), goal.getContext(), goal.getTracer());
 
       TermList result = null;
 
-      final List<Term> accumulator = new ArrayList<>();
+      preparedMap = new HashMap<>();
       
       while (!Thread.currentThread().isInterrupted()) {
         final Term nextTemplate = find_goal.solve();
@@ -1534,31 +1576,34 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
         Utils.arrangeVariablesInsideTerms(templateCopy, pgoalCopy);
 
         if (pgoalCopy.Equ(nextTemplate)) {
-          accumulator.add(Utils.getTermFromElement(templateCopy).makeClone());
+          final BofKey thekey = new BofKey(find_goal,Utils.fillTableWithVars(template).keySet());
+          final TermList resultList;
+          if (preparedMap.containsKey(thekey)) {
+            resultList = preparedMap.get(thekey);
+            TermList.appendItem(resultList, Utils.getTermFromElement(templateCopy).makeClone());
+          } else {
+            resultList = new TermList(Utils.getTermFromElement(templateCopy).makeClone());
+            preparedMap.put(thekey, resultList);
+          }
         } else {
           throw new ProlCriticalError("Impossible situation at findall/3!");
         }
       }
       
-      if (!accumulator.isEmpty()){
-        TermList currentList =  new TermList(accumulator.get(0));
-        final TermList theList = currentList;
-        for(int i=1; i<accumulator.size();i++){
-          currentList = TermList.appendItem(currentList, accumulator.get(i));
-        }
-        preparedLists = new ArrayList<>();
-        preparedLists.add(theList);
-      } else {
-        preparedLists = Collections.emptyList();
-      }
-      
-      goal.setAuxObject(preparedLists);
+      goal.setAuxObject(preparedMap);
     }
     
-    if (preparedLists.isEmpty()) {
+    if (preparedMap.isEmpty()) {
       return false;
     } else {
-      return instances.Equ(preparedLists.remove(0));
+      final BofKey firstKey = preparedMap.keySet().stream().findFirst().get();
+      final TermList list = preparedMap.remove(firstKey);
+      if (instances.Equ(list)){
+        firstKey.restoreVarValues(goal);
+        return true;
+      } else {
+        return false;
+      }
     }
   }
   

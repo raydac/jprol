@@ -31,6 +31,7 @@ import com.igormaznitsa.prol.utils.Utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -201,6 +202,18 @@ public class Goal {
     }
   }
 
+  /**
+   * Make map from values of all instantiated variables.
+   * @return instantiated values as map.
+   */
+  public Map<String, Term> findAllInstantiatedVars(){
+    final Map<String,Term> result = new HashMap<>();
+    this.variables.entrySet().stream().filter((v) -> (!v.getValue().isUndefined())).forEach((v) -> {
+      result.put(v.getKey(), v.getValue().getValue().makeClone());
+    });
+    return result;
+  }
+  
   /**
    * Inside special constructor for special functions
    */
