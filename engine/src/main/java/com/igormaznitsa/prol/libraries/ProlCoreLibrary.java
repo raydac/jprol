@@ -1510,60 +1510,82 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
   public static boolean predicateBAGOF(final Goal goal, final TermStruct predicate) throws InterruptedException {
 
     class BofKey {
-      private final Map<String,Term> vars;
+
+      private final Map<String, Term> vars;
       private final int hash;
-      
+
       BofKey(final Goal goal, final Set<String> excludedVariables) {
-        final Map<String,Term> varSnapshot = goal.findAllInstantiatedVars();
+        final Map<String, Term> varSnapshot = goal.findAllInstantiatedVars();
         excludedVariables.forEach(s -> varSnapshot.remove(s));
         final List<String> orderedNames = new ArrayList<>(varSnapshot.keySet());
         Collections.sort(orderedNames);
         this.hash = orderedNames.stream().map(n -> varSnapshot.get(n).getText()).collect(Collectors.joining(":")).hashCode();
         this.vars = varSnapshot;
       }
-      
+
       public void restoreVarValues(final Goal goal) {
         this.vars.keySet().forEach(name -> {
           final Var thatvar = goal.getVarForName(name);
-          if (thatvar!=null) {
+          if (thatvar != null) {
             thatvar.Equ(this.vars.get(name));
           }
         });
       }
-      
+
       @Override
       public int hashCode() {
         return this.hash;
       }
-      
+
       @Override
       public boolean equals(final Object that) {
-        if (that == this) return true;
+        if (that == this) {
+          return true;
+        }
         boolean result = false;
-        
-        if (that instanceof BofKey && ((BofKey)that).vars.size() == this.vars.size()) {
+
+        if (that instanceof BofKey && ((BofKey) that).vars.size() == this.vars.size()) {
           final BofKey thatKey = (BofKey) that;
           result = this.vars.entrySet().stream()
                   .noneMatch(e -> !(thatKey.vars.containsKey(e.getKey()) && thatKey.vars.get(e.getKey()).equWithoutSet(e.getValue())));
         }
         return result;
       }
-      
+
     }
-    
+
     final Term template = Utils.getTermFromElement(predicate.getElement(0));
     final Term pgoal = Utils.getTermFromElement(predicate.getElement(1));
     final Term instances = Utils.getTermFromElement(predicate.getElement(2));
-  
-    Map<BofKey,TermList> preparedMap = (Map<BofKey, TermList>)goal.getAuxObject();
+
+    Map<BofKey, TermList> preparedMap = (Map<BofKey, TermList>) goal.getAuxObject();
 
     if (preparedMap == null) {
-      final Goal find_goal = new Goal(pgoal.makeClone(), goal.getContext(), goal.getTracer());
-
       TermList result = null;
 
-      preparedMap = new HashMap<>();
-      
+      preparedMap = new LinkedHashMap<>();
+
+      final Set<String> excludedVars = new HashSet<>(Utils.fillTableWithVars(template).keySet());
+
+      Term processingGoal = pgoal;
+      while (processingGoal.getTermType() == Term.TYPE_STRUCT
+              && ((TermStruct) processingGoal).getArity() == 2
+              && "^".equals(((TermStruct) processingGoal).getFunctor().getText())) {
+
+        final TermStruct theStruct = (TermStruct)processingGoal;
+        final Term left = theStruct.getElement(0);
+        
+        if (left.getTermType() == Term.TYPE_VAR) {
+          excludedVars.add(left.getText());
+        } else {
+          throw new ProlTypeErrorException("var","Expected VAR as left side argument", left);
+        }
+        
+        processingGoal = theStruct.getElement(1);
+      }
+
+      final Goal find_goal = new Goal(processingGoal.makeClone(), goal.getContext(), goal.getTracer());
+
       while (!Thread.currentThread().isInterrupted()) {
         final Term nextTemplate = find_goal.solve();
 
@@ -1572,11 +1594,11 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
         }
 
         final Term templateCopy = template.makeClone();
-        final Term pgoalCopy = pgoal.makeClone();
+        final Term pgoalCopy = processingGoal.makeClone();
         Utils.arrangeVariablesInsideTerms(templateCopy, pgoalCopy);
 
         if (pgoalCopy.Equ(nextTemplate)) {
-          final BofKey thekey = new BofKey(find_goal,Utils.fillTableWithVars(template).keySet());
+          final BofKey thekey = new BofKey(find_goal, excludedVars);
           final TermList resultList;
           if (preparedMap.containsKey(thekey)) {
             resultList = preparedMap.get(thekey);
@@ -1589,16 +1611,16 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
           throw new ProlCriticalError("Impossible situation at findall/3!");
         }
       }
-      
+
       goal.setAuxObject(preparedMap);
     }
-    
+
     if (preparedMap.isEmpty()) {
       return false;
     } else {
       final BofKey firstKey = preparedMap.keySet().stream().findFirst().get();
       final TermList list = preparedMap.remove(firstKey);
-      if (instances.Equ(list)){
+      if (instances.Equ(list)) {
         firstKey.restoreVarValues(goal);
         return true;
       } else {
@@ -1606,7 +1628,7 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
       }
     }
   }
-  
+
   @Predicate(Signature = "findall/3", Template = {"?term,+callable_term,?list"}, Reference = "Creates  a list of the instantiations Template gets  successively on backtracking  over Goal and unifies the  result with Bag.")
   @Determined
   public static boolean predicateFINDALL(final Goal goal, final TermStruct predicate) throws InterruptedException {

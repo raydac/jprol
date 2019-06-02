@@ -96,6 +96,36 @@ public class SomeFromISOTest extends TestCase {
     
     checkOnce("bagof(X, fail, L).", false);
 
+    final Goal goal2 = prepareGoal("bagof(X, (X = Y; X = Z; Y = 1),L).");
+    assertNotNull(goal2.solve());
+    assertEquals("[Y,Z]",goal2.getVarAsText("L"));
+    assertNotNull(goal2.solve());
+    assertEquals("[X]",goal2.getVarAsText("L"));
+    assertEquals("1",goal2.getVarAsText("Y"));
+    assertNull(goal2.solve());
+
+    final Goal goal3 = prepareGoal("bagof(X, (Y ^ (X = 1;Y = 1);X = 3),S).");
+    assertNotNull(goal3.solve());
+    assertEquals("[3]", goal3.getVarAsText("S"));
+    assertNull(goal3.solve());
+    
+    final Goal goal4 = prepareGoal("bagof(X, Y ^ ((X = 1; Y = 1);(X = 2,Y = 2)),S).");
+    assertNotNull(goal4.solve());
+    assertEquals("[1,2,X]", goal4.getVarAsText("S"));
+    assertNull(goal4.solve());
+    
+    final Goal goal5 = prepareGoal("bagof(X, Y ^ ((X = 1, Y = 1);(X = 2,Y = 2)),S).");
+    assertNotNull(goal5.solve());
+    assertEquals("[1,2]", goal5.getVarAsText("S"));
+    assertNull(goal5.solve());
+    
+    final Goal goal6 = prepareGoal("bagof(f(X, Y), (X = a; Y = b),L).");
+    assertNotNull(goal6.solve());
+    assertEquals("[f('a',Y),f(X,'b')]", goal6.getVarAsText("L"));
+    assertNull(goal6.solve());
+    
+    checkException("bagof(X, Y ^ Z, L).");
+    checkException("bagof(X, 1, L).");
   }
 
   @Test
