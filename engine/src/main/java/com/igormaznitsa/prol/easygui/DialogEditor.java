@@ -16,13 +16,9 @@
 package com.igormaznitsa.prol.easygui;
 
 import com.igormaznitsa.prol.utils.Utils;
-
-import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleConstants.CharacterConstants;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -30,10 +26,20 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.*;
+import java.io.IOException;
+import java.io.PipedReader;
+import java.io.PipedWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.prefs.Preferences;
+import javax.swing.SwingUtilities;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleConstants.CharacterConstants;
 
 /**
  * The class implements the Dialog editor for the IDE because it is a very
@@ -176,18 +182,31 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
     return outsideWriter;
   }
 
-  public synchronized void addText(final String text) {
+  public void addText(final String text) {
     try {
-      SwingUtilities.invokeAndWait(() -> {
+      final Runnable code = () -> {
         try {
-          editor.getDocument().insertString(editor.getDocument().getLength(), text, consoleAttribute);
-          int textLength = editor.getDocument().getLength();
+          final Document document = editor.getDocument();
+          
+          final int extraLen = document.getLength() - 20000;
+          if (extraLen > 0) {
+            document.remove(0, extraLen);
+          }
+          
+          document.insertString(document.getLength(), text, consoleAttribute);
+          int textLength = document.getLength();
           ((EditorPane) editor).setCharacterAttributes(userAttribute, false);
           editor.setCaretPosition(textLength);
         } catch (BadLocationException ex) {
           ex.printStackTrace();
         }
-      });
+      };
+      
+      if (SwingUtilities.isEventDispatchThread()) {
+        code.run();
+      } else {
+        SwingUtilities.invokeLater(code);
+      }
     } catch (Throwable thr) {
       if (thr instanceof InterruptedException) {
         Thread.currentThread().interrupt();

@@ -124,7 +124,7 @@ public class FontChooserDialog extends javax.swing.JDialog implements ActionList
 
     this.getRootPane().setDefaultButton(this.buttonOk);
 
-    this.setSize(512, 400);
+    this.pack();
 
     this.setLocationRelativeTo(parent);
   }

@@ -16,10 +16,11 @@
 package com.igormaznitsa.prol.easygui;
 
 import java.awt.Font;
-import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import javax.swing.JPopupMenu;
+import javax.swing.JTextPane;
 
 /**
  * The class implements the Editor pane for the IDE.
@@ -54,6 +55,7 @@ public class EditorPane extends JTextPane {
         }
       });
     }
+
     addMouseListener(new MouseAdapter() {
 
       @Override
