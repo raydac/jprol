@@ -67,24 +67,37 @@ public class SomeFromISOTest extends TestCase {
   }
 
   @Test
+  public void testSetOf() throws Exception {
+/*
+    [setof(X,(X=1;X=2),L), [[L <-- [1, 2]]]].
+[setof(X,(X=1;X=2),X), [[X <-- [1, 2]]]].
+[setof(X,(X=2;X=1),L), [[L <-- [1, 2]]]].
+[setof(X,(X=2;X=2),L), [[L <-- [2]]]].
+[setof(X,fail,L), failure].
+[setof(1,(Y=2;Y=1),L), [[L <-- [1], Y <-- 1], [L <-- [1], Y <-- 2]]].
+[setof(f(X,Y),(X=a;Y=b),L), [[L <-- [f(_, b), f(a, _)]]]].
+[setof(X,Y^((X=1,Y=1);(X=2,Y=2)),S), [[S <-- [1, 2]]]].
+[setof(X,Y^((X=1;Y=1);(X=2,Y=2)),S), [[S <-- [_, 1, 2]]]].
+[(set_prolog_flag(unknown, warning), setof(X,(Y^(X=1;Y=1);X=3),S)), [[S <-- [3]]]].
+[(set_prolog_flag(unknown, warning), setof(X,Y^(X=1;Y=1;X=3),S)), [[S <-- [_, 1,3]]]].
+[setof(X,(X=Y;X=Z;Y=1),L), [[L <-- [Y, Z]], [L <-- [_], Y <-- 1]]].
+[setof(X, X^(true; 4),L), type_error(callable,(true;4))].
+[setof(X,1,L), type_error(callable,1)].
+    */    
+  }
+  
+  @Test
   public void testBagOf() throws Exception {
 //[bagof(X, (X = 1; X = 2),L), [[L<-- [1, 2]]]].
-//[bagof(X, (X = 1; X = 2),X), [[X<-- [1, 2]]]].
-//[bagof(X, (X = Y; X = Z),L), [[L<-- [Y, Z]]]].
-//[bagof(X, fail, L), failure].
-//[bagof(1, (Y = 1; Y = 2),L), [[L<-- [1], Y<-- 1], [L<-- [1], Y<-- 2]]].
-//[bagof(f(X, Y), (X = a; Y = b),L), [[L<-- [f(a, _), f(_, b)]]]].
-//[bagof(X, Y ^ ((X = 1, Y = 1);(X = 2,Y = 2)),S), [[S<-- [1, 2]]]].
-//[bagof(X, Y ^ ((X = 1; Y = 1);(X = 2,Y = 2)),S), [[S<-- [1, _, 2]]]].
-//[(set_prolog_flag(unknown, warning),bagof(X, (Y ^ (X = 1;Y = 1);X = 3),S)), [[S<-- [3]]]].
-//[bagof(X, (X = Y; X = Z; Y = 1),L), [[L<-- [Y, Z]], [L<-- [_], Y<-- 1]]].
-//[bagof(X, Y ^ Z, L), instantiation_error].
-//[bagof(X, 1, L), type_error(callable, 1)].
-
     checkOnceVar("bagof(X,(X=1;X=2),L).", "L", "[1,2]");
+
+//[bagof(X, (X = 1; X = 2),X), [[X<-- [1, 2]]]].
     checkOnceVar("bagof(X,(X=1;X=2),X).", "X", "[1,2]");
+
+//[bagof(X, (X = Y; X = Z),L), [[L<-- [Y, Z]]]].
     checkOnceVar("bagof(X,(X=Y;X=Z),L).", "L", "[Y,Z]");
 
+//[bagof(1, (Y = 1; Y = 2),L), [[L<-- [1], Y<-- 1], [L<-- [1], Y<-- 2]]].
     final Goal goal = prepareGoal("bagof(1,(Y = 1; Y = 2),L).");
     assertNotNull(goal.solve());
     assertEquals("[1]",goal.getVarAsText("L"));
@@ -94,8 +107,10 @@ public class SomeFromISOTest extends TestCase {
     assertEquals("2", goal.getVarAsText("Y"));
     assertNull(goal.solve());
     
+//[bagof(X, fail, L), failure].
     checkOnce("bagof(X, fail, L).", false);
 
+//[bagof(X, (X = Y; X = Z; Y = 1),L), [[L<-- [Y, Z]], [L<-- [_], Y<-- 1]]].
     final Goal goal2 = prepareGoal("bagof(X, (X = Y; X = Z; Y = 1),L).");
     assertNotNull(goal2.solve());
     assertEquals("[Y,Z]",goal2.getVarAsText("L"));
@@ -104,27 +119,34 @@ public class SomeFromISOTest extends TestCase {
     assertEquals("1",goal2.getVarAsText("Y"));
     assertNull(goal2.solve());
 
+//[(set_prolog_flag(unknown, warning),bagof(X, (Y ^ (X = 1;Y = 1);X = 3),S)), [[S<-- [3]]]].
     final Goal goal3 = prepareGoal("bagof(X, (Y ^ (X = 1;Y = 1);X = 3),S).");
     assertNotNull(goal3.solve());
     assertEquals("[3]", goal3.getVarAsText("S"));
     assertNull(goal3.solve());
     
+//[bagof(X, Y ^ ((X = 1; Y = 1);(X = 2,Y = 2)),S), [[S<-- [1, _, 2]]]].
     final Goal goal4 = prepareGoal("bagof(X, Y ^ ((X = 1; Y = 1);(X = 2,Y = 2)),S).");
     assertNotNull(goal4.solve());
     assertEquals("[1,2,X]", goal4.getVarAsText("S"));
     assertNull(goal4.solve());
     
+//[bagof(X, Y ^ ((X = 1, Y = 1);(X = 2,Y = 2)),S), [[S<-- [1, 2]]]].
     final Goal goal5 = prepareGoal("bagof(X, Y ^ ((X = 1, Y = 1);(X = 2,Y = 2)),S).");
     assertNotNull(goal5.solve());
     assertEquals("[1,2]", goal5.getVarAsText("S"));
     assertNull(goal5.solve());
     
+//[bagof(f(X, Y), (X = a; Y = b),L), [[L<-- [f(a, _), f(_, b)]]]].
     final Goal goal6 = prepareGoal("bagof(f(X, Y), (X = a; Y = b),L).");
     assertNotNull(goal6.solve());
     assertEquals("[f('a',Y),f(X,'b')]", goal6.getVarAsText("L"));
     assertNull(goal6.solve());
     
+//[bagof(X, Y ^ Z, L), instantiation_error].
     checkException("bagof(X, Y ^ Z, L).");
+
+//[bagof(X, 1, L), type_error(callable, 1)].
     checkException("bagof(X, 1, L).");
   }
 
