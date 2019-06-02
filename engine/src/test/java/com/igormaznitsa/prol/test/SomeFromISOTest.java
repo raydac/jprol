@@ -68,22 +68,50 @@ public class SomeFromISOTest extends TestCase {
 
   @Test
   public void testSetOf() throws Exception {
-/*
-    [setof(X,(X=1;X=2),L), [[L <-- [1, 2]]]].
-[setof(X,(X=1;X=2),X), [[X <-- [1, 2]]]].
-[setof(X,(X=2;X=1),L), [[L <-- [1, 2]]]].
-[setof(X,(X=2;X=2),L), [[L <-- [2]]]].
-[setof(X,fail,L), failure].
-[setof(1,(Y=2;Y=1),L), [[L <-- [1], Y <-- 1], [L <-- [1], Y <-- 2]]].
-[setof(f(X,Y),(X=a;Y=b),L), [[L <-- [f(_, b), f(a, _)]]]].
-[setof(X,Y^((X=1,Y=1);(X=2,Y=2)),S), [[S <-- [1, 2]]]].
-[setof(X,Y^((X=1;Y=1);(X=2,Y=2)),S), [[S <-- [_, 1, 2]]]].
-[(set_prolog_flag(unknown, warning), setof(X,(Y^(X=1;Y=1);X=3),S)), [[S <-- [3]]]].
-[(set_prolog_flag(unknown, warning), setof(X,Y^(X=1;Y=1;X=3),S)), [[S <-- [_, 1,3]]]].
-[setof(X,(X=Y;X=Z;Y=1),L), [[L <-- [Y, Z]], [L <-- [_], Y <-- 1]]].
-[setof(X, X^(true; 4),L), type_error(callable,(true;4))].
-[setof(X,1,L), type_error(callable,1)].
-    */    
+//[setof(X,(X=1;X=2),L), [[L <-- [1, 2]]]].
+    checkOnceVar("setof(X,(X=1;X=2),L).", "L", "[1,2]");
+//[setof(X,(X=1;X=2),X), [[X <-- [1, 2]]]].
+    checkOnceVar("setof(X,(X=1;X=2),X).", "X", "[1,2]");
+//[setof(X,(X=2;X=1),L), [[L <-- [1, 2]]]].
+    checkOnceVar("setof(X,(X=2;X=1),L).", "L", "[1,2]");
+//[setof(X,(X=2;X=2),L), [[L <-- [2]]]].
+    checkOnceVar("setof(X,(X=2;X=2),L).", "L", "[2]");
+//[setof(X,fail,L), failure].
+    checkOnce("setof(X,fail,L).",false);
+
+//[setof(1,(Y=2;Y=1),L), [[L <-- [1], Y <-- 1], [L <-- [1], Y <-- 2]]].
+    final Goal goal1 = prepareGoal("setof(1,(Y=2;Y=1),L).");
+    assertNotNull(goal1.solve());
+    assertEquals("[1]", goal1.getVarAsText("L"));
+    assertEquals("2", goal1.getVarAsText("Y"));
+    assertNotNull(goal1.solve());
+    assertEquals("[1]", goal1.getVarAsText("L"));
+    assertEquals("1", goal1.getVarAsText("Y"));
+    assertNull(goal1.solve());
+
+//[setof(f(X,Y),(X=a;Y=b),L), [[L <-- [f(_, b), f(a, _)]]]].
+    checkOnceVar("setof(f(X,Y),(X=a;Y=b),L).", "L", "[f(X,'b'),f('a',Y)]");
+//[setof(X,Y^((X=1,Y=1);(X=2,Y=2)),S), [[S <-- [1, 2]]]].
+    checkOnceVar("setof(X,Y^((X=1,Y=1);(X=2,Y=2)),S).", "S", "[1,2]");
+//[setof(X,Y^((X=1;Y=1);(X=2,Y=2)),S), [[S <-- [_, 1, 2]]]].
+    checkOnceVar("setof(X,Y^((X=1;Y=1);(X=2,Y=2)),S).", "S", "[X,1,2]");
+//[(set_prolog_flag(unknown, warning), setof(X,(Y^(X=1;Y=1);X=3),S)), [[S <-- [3]]]].
+    checkOnceVar("setof(X,(Y^(X=1;Y=1);X=3),S).", "S", "[3]");
+//[(set_prolog_flag(unknown, warning), setof(X,Y^(X=1;Y=1;X=3),S)), [[S <-- [_, 1,3]]]].
+    checkOnceVar("setof(X,Y^(X=1;Y=1;X=3),S).", "S", "[X,1,3]");
+//[setof(X,(X=Y;X=Z;Y=1),L), [[L <-- [Y, Z]], [L <-- [_], Y <-- 1]]].
+    final Goal goal2 = prepareGoal("setof(X,(X=Y;X=Z;Y=1),L).");
+    assertNotNull(goal2.solve());
+    assertEquals("[Y,Z]", goal2.getVarAsText("L"));
+    assertNull(goal2.getVarAsText("Y"));
+    assertNotNull(goal2.solve());
+    assertEquals("[X]", goal2.getVarAsText("L"));
+    assertEquals("1", goal2.getVarAsText("Y"));
+    assertNull(goal2.solve());
+//[setof(X, X^(true; 4),L), type_error(callable,(true;4))].
+    checkException("setof(X, X^(true; 4),L).");
+//[setof(X,1,L), type_error(callable,1)].
+    checkException("setof(X,1,L).");
   }
   
   @Test

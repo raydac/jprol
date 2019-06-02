@@ -1509,7 +1509,7 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
   @Predicate(Signature = "bagof/3", Template = {"?term,+callable_term,?list"}, Reference = "Unify Bag with the alternatives of Template. If Goal has free variables besides the one sharing with Template, bagof/3 will backtrack over the alternatives of these free variables, unifying Bag with the corresponding alternatives of Template. The construct +Var^Goal tells bagof/3 not to bind Var in Goal. bagof/3 fails if Goal has no solutions.")
   public static boolean predicateBAGOF(final Goal goal, final TermStruct predicate) throws InterruptedException {
 
-    class BofKey {
+    final class BofKey {
 
       private final Map<String, Term> vars;
       private final int hash;
@@ -1572,15 +1572,15 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
               && ((TermStruct) processingGoal).getArity() == 2
               && "^".equals(((TermStruct) processingGoal).getFunctor().getText())) {
 
-        final TermStruct theStruct = (TermStruct)processingGoal;
+        final TermStruct theStruct = (TermStruct) processingGoal;
         final Term left = theStruct.getElement(0);
-        
+
         if (left.getTermType() == Term.TYPE_VAR) {
           excludedVars.add(left.getText());
         } else {
-          throw new ProlTypeErrorException("var","Expected VAR as left side argument", left);
+          throw new ProlTypeErrorException("var", "Expected VAR as left side argument", left);
         }
-        
+
         processingGoal = theStruct.getElement(1);
       }
 
@@ -1619,6 +1619,145 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
       return false;
     } else {
       final BofKey firstKey = preparedMap.keySet().stream().findFirst().get();
+      final TermList list = preparedMap.remove(firstKey);
+      if (instances.Equ(list)) {
+        firstKey.restoreVarValues(goal);
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+
+  @Predicate(Signature = "setof/3", Template = {"?term,+callable_term,?list"}, Reference = "Equivalent to bagof/3, but sorts the result using sort/2 to get a sorted list of alternatives without duplicates.")
+  public static boolean predicateSETOF(final Goal goal, final TermStruct predicate) throws InterruptedException {
+
+    final class SofKey {
+
+      private final Map<String, Term> vars;
+      private final int hash;
+
+      SofKey(final Goal goal, final Set<String> excludedVariables) {
+        final Map<String, Term> varSnapshot = goal.findAllInstantiatedVars();
+        excludedVariables.forEach(s -> varSnapshot.remove(s));
+        final List<String> orderedNames = new ArrayList<>(varSnapshot.keySet());
+        Collections.sort(orderedNames);
+        this.hash = orderedNames.stream().map(n -> varSnapshot.get(n).getText()).collect(Collectors.joining(":")).hashCode();
+        this.vars = varSnapshot;
+      }
+
+      public void restoreVarValues(final Goal goal) {
+        this.vars.keySet().forEach(name -> {
+          final Var thatvar = goal.getVarForName(name);
+          if (thatvar != null) {
+            thatvar.Equ(this.vars.get(name));
+          }
+        });
+      }
+
+      @Override
+      public int hashCode() {
+        return this.hash;
+      }
+
+      @Override
+      public boolean equals(final Object that) {
+        if (that == this) {
+          return true;
+        }
+        boolean result = false;
+
+        if (that instanceof SofKey && ((SofKey) that).vars.size() == this.vars.size()) {
+          final SofKey thatKey = (SofKey) that;
+          result = this.vars.entrySet().stream()
+                  .noneMatch(e -> !(thatKey.vars.containsKey(e.getKey()) && thatKey.vars.get(e.getKey()).equWithoutSet(e.getValue())));
+        }
+        return result;
+      }
+
+    }
+
+    final Term template = Utils.getTermFromElement(predicate.getElement(0));
+    final Term pgoal = Utils.getTermFromElement(predicate.getElement(1));
+    final Term instances = Utils.getTermFromElement(predicate.getElement(2));
+
+    Map<SofKey, TermList> preparedMap = (Map<SofKey, TermList>) goal.getAuxObject();
+
+    if (preparedMap == null) {
+      TermList result = null;
+
+      preparedMap = new LinkedHashMap<>();
+
+      final Set<String> excludedVars = new HashSet<>(Utils.fillTableWithVars(template).keySet());
+
+      Term processingGoal = pgoal;
+      while (processingGoal.getTermType() == Term.TYPE_STRUCT
+              && ((TermStruct) processingGoal).getArity() == 2
+              && "^".equals(((TermStruct) processingGoal).getFunctor().getText())) {
+
+        final TermStruct theStruct = (TermStruct) processingGoal;
+        final Term left = theStruct.getElement(0);
+
+        if (left.getTermType() == Term.TYPE_VAR) {
+          excludedVars.add(left.getText());
+        } else {
+          throw new ProlTypeErrorException("var", "Expected VAR as left side argument", left);
+        }
+
+        processingGoal = theStruct.getElement(1);
+      }
+
+      final Goal find_goal = new Goal(processingGoal.makeClone(), goal.getContext(), goal.getTracer());
+
+      while (!Thread.currentThread().isInterrupted()) {
+        final Term nextTemplate = find_goal.solve();
+
+        if (nextTemplate == null) {
+          break;
+        }
+
+        final Term templateCopy = template.makeClone();
+        final Term pgoalCopy = processingGoal.makeClone();
+        Utils.arrangeVariablesInsideTerms(templateCopy, pgoalCopy);
+
+        if (pgoalCopy.Equ(nextTemplate)) {
+          final SofKey thekey = new SofKey(find_goal, excludedVars);
+          final TermList resultList;
+          if (preparedMap.containsKey(thekey)) {
+            resultList = preparedMap.get(thekey);
+            TermList.appendItem(resultList, Utils.getTermFromElement(templateCopy).makeClone());
+          } else {
+            resultList = new TermList(Utils.getTermFromElement(templateCopy).makeClone());
+            preparedMap.put(thekey, resultList);
+          }
+        } else {
+          throw new ProlCriticalError("Impossible situation at findall/3!");
+        }
+      }
+
+      final Map<SofKey, TermList> sortedMap = new LinkedHashMap<>();
+      preparedMap.entrySet().forEach(entry -> {
+        final Term[] tmpArray = Utils.listToArray(entry.getValue());
+        Arrays.sort(tmpArray, Utils.TERM_COMPARATOR);
+        final TermList sortedList = Utils.arrayToList(
+                Arrays.stream(tmpArray)
+                        .distinct()
+                        .collect(Collectors.toList())
+                        .toArray(new Term[0])
+        );
+
+        sortedMap.put(entry.getKey(), sortedList);
+      });
+
+      preparedMap = sortedMap;
+
+      goal.setAuxObject(preparedMap);
+    }
+
+    if (preparedMap.isEmpty()) {
+      return false;
+    } else {
+      final SofKey firstKey = preparedMap.keySet().stream().findFirst().get();
       final TermList list = preparedMap.remove(firstKey);
       if (instances.Equ(list)) {
         firstKey.restoreVarValues(goal);
