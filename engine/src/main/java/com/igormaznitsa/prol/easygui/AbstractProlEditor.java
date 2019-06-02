@@ -364,7 +364,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     editor.setCaretColor(val);
   }
 
-  protected synchronized void removePropertyFromList(final String propertyName) {
+  protected synchronized final void removePropertyFromList(final String propertyName) {
     for (int li = 0; li < editableProperties.size(); li++) {
       final PropertyLink link = editableProperties.get(li);
       if (link.property.equals(propertyName)) {
