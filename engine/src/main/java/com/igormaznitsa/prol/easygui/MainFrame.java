@@ -303,6 +303,10 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }
     try {
       UIManager.setLookAndFeel(feelInfo.getClassName());
+      UIManager.put("TextPane[Enabled].backgroundPainter", (Painter<JComponent>) (Graphics2D g, JComponent comp, int width1, int height1) -> {
+        g.setColor(comp.getBackground());
+        g.fillRect(0, 0, width1, height1);
+      });
     } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException ex) {
       LOG.throwing(thisFrame.getClass().getCanonicalName(), "L&F", ex);
     }

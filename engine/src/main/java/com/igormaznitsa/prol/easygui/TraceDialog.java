@@ -57,7 +57,6 @@ public class TraceDialog extends AbstractProlEditor implements ActionListener {
 
     editor.setBackground(Color.BLUE.darker().darker().darker().darker());
     editor.setForeground(Color.WHITE);
-
   }
 
   public Color getEdOtherColor() {

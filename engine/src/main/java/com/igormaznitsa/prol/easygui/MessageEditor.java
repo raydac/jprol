@@ -16,11 +16,11 @@
 package com.igormaznitsa.prol.easygui;
 
 import com.igormaznitsa.prol.utils.Utils;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import java.awt.*;
+import java.awt.Color;
 import java.util.prefs.Preferences;
 import javax.swing.JEditorPane;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 
 /**
  * The class implements the message pane for the IDE because it is a very
@@ -169,7 +169,7 @@ public class MessageEditor extends AbstractProlEditor {
     }
 
     insideBuffer += bldr.toString();
-    editor.setText("<html><body>" + insideBuffer + "</body><html>");
+    editor.setText("<html><body bgcolor=\"" + colorToHtml(editor.getBackground()) + "\">" + insideBuffer + "</body><html>");
   }
 
   @Override

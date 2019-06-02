@@ -34,6 +34,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.prefs.Preferences;
+import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
@@ -95,12 +96,26 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
     dialogThread.setDaemon(true);
     dialogThread.start();
 
-    editor.setBackground(Color.BLUE.darker().darker().darker().darker());
+    setEdBackground(Color.BLUE.darker().darker().darker().darker());
     editor.setForeground(Color.WHITE);
     editor.setCaretColor(Color.YELLOW);
     editor.setFont(new Font("Arial", Font.BOLD, 14));
 
     ((EditorPane) this.editor).setCharacterAttributes(userAttribute, false);
+  }
+
+  @Override
+  public void setEdBackground(Color val) {
+    final JTextPane textPane = (JTextPane)this.editor;
+    final SimpleAttributeSet background = new SimpleAttributeSet();
+    StyleConstants.setBackground(background, val);
+    textPane.getStyledDocument().setParagraphAttributes(0,
+            textPane.getDocument().getLength(), background, false);
+    consoleAttribute.addAttribute(CharacterConstants.Background, val);
+    userAttribute.addAttribute(CharacterConstants.Background, val);
+    super.setEdBackground(val);
+    editor.revalidate();
+    editor.repaint();
   }
 
   @Override

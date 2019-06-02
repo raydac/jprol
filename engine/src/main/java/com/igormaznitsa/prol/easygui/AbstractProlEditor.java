@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.prefs.Preferences;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.JTextComponent;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rtextarea.RTextScrollPane;
 

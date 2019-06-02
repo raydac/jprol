@@ -15,7 +15,11 @@
  */
 package com.igormaznitsa.prol.easygui;
 
+import java.awt.Color;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Shape;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -42,7 +46,9 @@ public class EditorPane extends JTextPane {
 
   public EditorPane(final boolean scalable) {
     super();
-
+    
+    this.setOpaque(true);
+    
     if (scalable) {
       this.addMouseWheelListener((final MouseWheelEvent e) -> {
         final int allModifiers = MouseWheelEvent.CTRL_DOWN_MASK | MouseWheelEvent.ALT_DOWN_MASK | MouseWheelEvent.META_DOWN_MASK | MouseWheelEvent.SHIFT_DOWN_MASK;
