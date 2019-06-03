@@ -44,7 +44,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
     editor.setForeground(Color.BLACK);
     editor.setBackground(Color.WHITE);
     editor.setCaretColor(Color.BLACK);
-    editor.setFont(new Font("Courier", Font.BOLD, 14));
+    editor.setFont(new Font("Courier", Font.BOLD, 18));
 
     editor.setVisible(true);
 
@@ -108,7 +108,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
       setEdForeground(fgColor);
     }
     setEdWordWrap(prefs.getBoolean("sourcewordwrap", true));
-    setEdFont(loadFontFromPrefs(prefs, "sourcefont"));
+    setEdFont(loadFontFromPrefs(prefs, "sourcefont", this.editor.getFont()));
   }
 
   @Override
@@ -117,7 +117,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
     prefs.putInt("sourcecaretcolor", getEdCaretColor().getRGB());
     prefs.putInt("sourceforegroundcolor", getEdForeground().getRGB());
     prefs.putBoolean("sourcewordwrap", getEdWordWrap());
-    saveFontToPrefs(prefs, "sourcefont", editor.getFont());
+    saveFontToPrefs(prefs, "sourcefont", ((ScalableRsyntaxTextArea)editor).getBaseFont());
   }
 
   public boolean uncommentSelectedLines() {

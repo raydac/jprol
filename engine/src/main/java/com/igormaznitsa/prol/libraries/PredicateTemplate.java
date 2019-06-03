@@ -266,6 +266,7 @@ public class PredicateTemplate {
    * @return true if the term must not be changed during processing and false if
    * it can be changed
    */
+  @SuppressWarnings("fallthrough")
   public final boolean check(final Term term) {
     final int type = term.getTermType();
     switch (Modifier) {

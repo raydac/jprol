@@ -191,7 +191,7 @@ public class MessageEditor extends AbstractProlEditor {
     if (wrnColor != null) {
       setEdWarningColor(wrnColor);
     }
-    setEdFont(loadFontFromPrefs(prefs, "messagesfont"));
+    setEdFont(loadFontFromPrefs(prefs, "messagesfont", this.editor.getFont()));
   }
 
   @Override

@@ -99,7 +99,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
     setEdBackground(Color.BLUE.darker().darker().darker().darker());
     editor.setForeground(Color.WHITE);
     editor.setCaretColor(Color.YELLOW);
-    editor.setFont(new Font("Arial", Font.BOLD, 14));
+    editor.setFont(new Font("Arial", Font.BOLD, 18));
 
     ((EditorPane) this.editor).setCharacterAttributes(userAttribute, false);
   }
@@ -138,7 +138,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
       setEdCaretColor(caretColor);
     }
     setEdWordWrap(prefs.getBoolean("dialogwordwrap", true));
-    setEdFont(loadFontFromPrefs(prefs, "dialogoutputfont"));
+    setEdFont(loadFontFromPrefs(prefs, "dialogoutputfont", this.editor.getFont()));
   }
 
   @Override
@@ -148,7 +148,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
     prefs.putInt("dialogoutputcolor", getEdOutputColor().getRGB());
     prefs.putInt("dialogcaretcolor", getEdCaretColor().getRGB());
     prefs.putBoolean("dialogwordwrap", getEdWordWrap());
-    saveFontToPrefs(prefs, "dialogoutputfont", editor.getFont());
+    saveFontToPrefs(prefs, "dialogoutputfont", ((EditorPane)editor).getBaseFont());
   }
 
   public synchronized void initBeforeSession() {

@@ -190,6 +190,7 @@ public final class ProlTokenizer {
    * @throws IOException it will be thrown if there is any transport error
    * during the operation
    */
+  @SuppressWarnings("fallthrough")
   public ProlTokenizerResult nextToken(final ProlReader reader, final KnowledgeBase voc) throws IOException {
 
     if (lastPushedTerm != null) {

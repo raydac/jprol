@@ -62,8 +62,12 @@ import java.util.regex.Pattern;
  */
 public final class MainFrame extends javax.swing.JFrame implements ProlStreamManager, Runnable, UndoableEditListener, WindowListener, DocumentListener, HyperlinkListener, TraceListener {
 
+  private static final long serialVersionUID = 72348723421332L;
+
   private static final class JLFRadioButtonItem extends JRadioButtonMenuItem {
 
+    private static final long serialVersionUID = 71348723421332L;
+    
     private final String lfClassName;
 
     public JLFRadioButtonItem(final String text, final String className) {
@@ -78,7 +82,6 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
   protected static final String PROL_EXTENSION = ".prl";
   static final String[] PROL_LIBRARIES = new String[]{"com.igormaznitsa.prol.libraries.ProlGraphicLibrary", "com.igormaznitsa.prol.libraries.ProlStringLibrary", "com.igormaznitsa.prol.libraries.TPrologPredicateLibrary"};
-  private static final long serialVersionUID = -3816861562325125649L;
   /**
    * Inside logger
    */
@@ -618,7 +621,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     });
     menuEdit.add(menuItemWordWrapSources);
 
-    menuItemFullScreen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, java.awt.event.InputEvent.SHIFT_MASK | java.awt.event.InputEvent.CTRL_MASK));
+    menuItemFullScreen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
     menuItemFullScreen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/shape_move_forwards.png"))); // NOI18N
     menuItemFullScreen.setText("Full screen");
     menuItemFullScreen.setToolTipText("Turn on the full screen mode if it is supported by the device");
@@ -1105,7 +1108,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         }
 
         for (final String str : PROL_LIBRARIES) {
-          final ProlAbstractLibrary lib = (ProlAbstractLibrary) Class.forName(str).newInstance();
+          final ProlAbstractLibrary lib = (ProlAbstractLibrary) Class.forName(str).getDeclaredConstructor().newInstance();
 
           context.addLibrary(lib);
           this.messageEditor.addInfoText(String.format("Library \'%s\' has been added...", lib.getLibraryUID()));

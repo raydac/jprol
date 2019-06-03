@@ -192,7 +192,7 @@ public class TraceDialog extends AbstractProlEditor implements ActionListener {
 
     setEdWordWrap(prefs.getBoolean("tracewordwrap", false));
 
-    setEdFont(loadFontFromPrefs(prefs, "tracefont"));
+    setEdFont(loadFontFromPrefs(prefs, "tracefont", this.editor.getFont()));
   }
 
   @Override

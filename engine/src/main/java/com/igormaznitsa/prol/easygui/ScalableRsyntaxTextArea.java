@@ -24,6 +24,8 @@ import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 public final class ScalableRsyntaxTextArea extends RSyntaxTextArea {
 
+  private static final long serialVersionUID = 72348723421L;
+
   private float fontScale = 1.0f;
   private float fontOriginalSize;
 
@@ -47,6 +49,10 @@ public final class ScalableRsyntaxTextArea extends RSyntaxTextArea {
     });
 
     updateFontForScale();
+  }
+
+  public Font getBaseFont() {
+    return this.getFont().deriveFont(this.fontOriginalSize);
   }
 
   private void updateFontForScale() {

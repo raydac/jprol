@@ -1093,6 +1093,7 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
 
   @Predicate(Signature = "consult/1", Template = {"+atom", "+list"}, Reference = "Take an atom as the file name of the resource to be used for consultation, or a list contains a resource name chain. The resource will be getted through the current ProlStreamManager.")
   @Determined
+  @SuppressWarnings("fallthrough")
   public static boolean predicateCONSULT(final Goal goal, final TermStruct predicate) {
     final Term term = Utils.getTermFromElement(predicate.getElement(0));
 
@@ -1507,6 +1508,7 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
   }
 
   @Predicate(Signature = "bagof/3", Template = {"?term,+callable_term,?list"}, Reference = "Unify Bag with the alternatives of Template. If Goal has free variables besides the one sharing with Template, bagof/3 will backtrack over the alternatives of these free variables, unifying Bag with the corresponding alternatives of Template. The construct +Var^Goal tells bagof/3 not to bind Var in Goal. bagof/3 fails if Goal has no solutions.")
+  @SuppressWarnings("unchecked")
   public static boolean predicateBAGOF(final Goal goal, final TermStruct predicate) throws InterruptedException {
 
     final class BofKey {
@@ -1630,6 +1632,7 @@ public final class ProlCoreLibrary extends ProlAbstractLibrary {
   }
 
   @Predicate(Signature = "setof/3", Template = {"?term,+callable_term,?list"}, Reference = "Equivalent to bagof/3, but sorts the result using sort/2 to get a sorted list of alternatives without duplicates.")
+  @SuppressWarnings("unchecked")
   public static boolean predicateSETOF(final Goal goal, final TermStruct predicate) throws InterruptedException {
 
     final class SofKey {

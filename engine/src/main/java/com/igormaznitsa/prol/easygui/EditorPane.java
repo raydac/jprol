@@ -76,6 +76,10 @@ public class EditorPane extends JTextPane {
     });
   }
 
+  public Font getBaseFont(){
+    return this.getFont().deriveFont(this.fontOriginalSize);
+  }
+  
   @Override
   public void setFont(final Font font) {
     super.setFont(font);

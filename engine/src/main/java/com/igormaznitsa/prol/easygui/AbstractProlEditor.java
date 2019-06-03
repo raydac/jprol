@@ -499,8 +499,8 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     prefs.put(key, font.getFamily() + " " + style + " " + font.getSize());
   }
 
-  public Font loadFontFromPrefs(Preferences prefs, String key) {
-    return Font.decode(prefs.get(key, null));
+  public Font loadFontFromPrefs(Preferences prefs, String key, final Font defaultFont) {
+    return prefs.get(key, null) == null ? defaultFont : Font.decode(prefs.get(key, null));
   }
 
   public boolean doesSupportTextPaste() {
