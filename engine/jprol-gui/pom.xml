@@ -11,6 +11,10 @@
     <artifactId>jprol-gui</artifactId>
     <packaging>jar</packaging>
 
+    <properties>
+      <app.name>${project.build.finalName}</app.name>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>

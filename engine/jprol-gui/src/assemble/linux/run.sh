@@ -27,7 +27,7 @@ fi
 
 echo \$JAVA_RUN=$JAVA_RUN &>>$LOG_FILE
 
-$JAVA_RUN $JAVA_FLAGS $JAVA_EXTRA_GFX_FLAGS -Dprol.stack.depth=512m -jar $JPROL_HOME/jprol.jar $@ &>> $JPROL_HOME/console.log&
+$JAVA_RUN $JAVA_FLAGS $JAVA_EXTRA_GFX_FLAGS -Dprol.stack.depth=512m -jar $JPROL_HOME/${app.name}.jar $@ &>> $JPROL_HOME/console.log&
 THE_PID=$!
 echo $THE_PID>$JPROL_HOME/.pid
 wait $THE_PID

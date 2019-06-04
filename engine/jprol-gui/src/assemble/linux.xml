@@ -12,7 +12,7 @@
     <files>
         <file>
             <source>${project.build.directory}${file.separator}${app.name}.jar</source>
-            <destName>jprol.jar</destName>
+            <destName>${app.name}.jar</destName>
             <outputDirectory>${file.separator}</outputDirectory>
         </file>
     </files>
@@ -20,6 +20,7 @@
         <fileSet>
             <directory>${project.basedir}${file.separator}src${file.separator}assemble${file.separator}linux</directory>
             <outputDirectory>${file.separator}</outputDirectory>
+            <filtered>true</filtered>
             <includes>
                 <include>*/**</include>
             </includes>
