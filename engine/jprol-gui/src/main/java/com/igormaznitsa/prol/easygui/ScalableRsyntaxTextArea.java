@@ -18,6 +18,7 @@
  */
 package com.igormaznitsa.prol.easygui;
 
+import java.awt.Container;
 import java.awt.Font;
 import java.awt.event.MouseWheelEvent;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
@@ -62,7 +63,14 @@ public final class ScalableRsyntaxTextArea extends RSyntaxTextArea {
     } else {
       this.setFont(this.getFont().deriveFont(1.0f));
     }
-    this.revalidate();
+    this.invalidate();
+    
+    final Container parent = this.getParent();
+    if (parent!=null) {
+      parent.invalidate();
+      parent.repaint();
+    }
+    
     this.repaint();
   }
 
