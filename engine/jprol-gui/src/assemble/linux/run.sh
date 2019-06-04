@@ -23,7 +23,7 @@ then
         echo Editor already started! if it is wrong, just delete the .pid file in the editor folder root!
 	exit 1
     fi
-fi    
+fi
 
 echo \$JAVA_RUN=$JAVA_RUN &>>$LOG_FILE
 
@@ -33,4 +33,3 @@ echo $THE_PID>$JPROL_HOME/.pid
 wait $THE_PID
 rm $JPROL_HOME/.pid
 exit 0
-
