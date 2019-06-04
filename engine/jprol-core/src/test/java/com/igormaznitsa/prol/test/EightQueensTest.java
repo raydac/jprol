@@ -11,7 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import static org.junit.Assert.*;
 
-public class EightQueens extends AbstractProlTest {
+public class EightQueensTest extends AbstractProlTest {
 
     @Test
     public void testEightQueens() throws Throwable {

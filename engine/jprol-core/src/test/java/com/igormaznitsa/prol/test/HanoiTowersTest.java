@@ -10,7 +10,7 @@ import org.junit.Test;
 
 import java.nio.charset.Charset;
 
-public class HanoiTowers extends AbstractProlTest {
+public class HanoiTowersTest extends AbstractProlTest {
 
     @Test
     public void testHanoiTowers() {
