@@ -1141,7 +1141,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
                 }
 
                 for (final String str : PROL_LIBRARIES) {
-                    final AbstractProlLibrary lib = (AbstractProlLibrary) Class.forName(str).getDeclaredConstructor().newInstance(this);
+                    final AbstractProlLibrary lib = (AbstractProlLibrary) Class.forName(str).getDeclaredConstructor().newInstance();
 
                     context.addLibrary(lib);
                     this.messageEditor.addInfoText(String.format("Library \'%s\' has been added...", lib.getLibraryUid()));
