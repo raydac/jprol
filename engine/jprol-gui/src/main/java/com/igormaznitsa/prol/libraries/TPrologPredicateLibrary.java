@@ -20,6 +20,7 @@ import com.igormaznitsa.prol.annotations.Predicate;
 import com.igormaznitsa.prol.containers.KnowledgeBase;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
+import com.igormaznitsa.prol.easygui.MainFrame;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 import com.igormaznitsa.prol.logic.Goal;
 import com.igormaznitsa.prol.utils.Utils;
@@ -58,7 +59,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
                 try {
                     result = str.Equ(new Term(Utils.readFileAsUTF8Str(file)));
                 } catch (IOException ex) {
-                    msgError("Can't read file '" + file + "' : " + ex.getMessage());
+                    MainFrame.MAIN_FRAME_INSTANCE.get().addErrorText("Can't read file '" + file + "' : " + ex.getMessage());
                 }
             }
         } else {
@@ -66,7 +67,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
                 Utils.writeFileAsUTF8Str(file, str.getText());
                 result = true;
             } catch (IOException ex) {
-                msgError("Can't write file '" + file + "' : " + ex.getMessage());
+                MainFrame.MAIN_FRAME_INSTANCE.get().addErrorText("Can't write file '" + file + "' : " + ex.getMessage());
             }
         }
 
@@ -114,7 +115,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
         final String extension = Utils.getTermFromElement(predicate.getElement(1)).getText();
         final Term selected = Utils.getTermFromElement(predicate.getElement(2));
 
-        final File choosenFile = this.getIoActionProvider().chooseFile(new File(thePath), new FileFilter() {
+        final File choosenFile = MainFrame.MAIN_FRAME_INSTANCE.get().chooseFile(new File(thePath), new FileFilter() {
             final String ext = '.' + extension;
 
             @Override
@@ -155,7 +156,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
                     path = file;
                     result = true;
                 } else {
-                    msgError("Can't find directory '" + file.getAbsolutePath() + '\'');
+                    MainFrame.MAIN_FRAME_INSTANCE.get().addErrorText("Can't find directory '" + file.getAbsolutePath() + '\'');
                 }
             }
         } catch (IOException ex) {
@@ -171,7 +172,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
 
         final String filePath = arg.getText();
 
-        msgInfo("Save data base as file '" + filePath + '\'');
+        MainFrame.MAIN_FRAME_INSTANCE.get().addInfoText("Save data base as file '" + filePath + '\'');
 
         final KnowledgeBase base = goal.getContext().getKnowledgeBase();
         final CharArrayWriter charArray = new CharArrayWriter(8096);
@@ -185,13 +186,13 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
             Utils.writeFileAsUTF8Str(path, dbtext);
             result = true;
         } catch (IOException ex) {
-            msgWarn("Can't save data base as file, error : " + ex.getMessage());
+            MainFrame.MAIN_FRAME_INSTANCE.get().addWarnText("Can't save data base as file, error : " + ex.getMessage());
         }
         return result;
     }
 
-    public TPrologPredicateLibrary(final IoActionProvider actionProvider) {
-        super("TPrologPredicateLib", actionProvider);
+    public TPrologPredicateLibrary() {
+        super("TPrologPredicateLib");
     }
 
 }

@@ -48,10 +48,10 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
   protected final JTextComponent editor;
   protected final JScrollPane scrollPane;
   protected final JPopupMenu POPUP_MENU = new JPopupMenu();
-  protected final JMenuItem POPUP_CLEARTEXT = new JMenuItem("Clear text", UIUtils.loadIcon("page_delete"));
-  protected final JMenuItem POPUP_COPY = new JMenuItem("Copy", UIUtils.loadIcon("page_copy"));
-  protected final JMenuItem POPUP_CUT = new JMenuItem("Cut", UIUtils.loadIcon("cut"));
-  protected final JMenuItem POPUP_PASTE = new JMenuItem("Paste", UIUtils.loadIcon("page_paste"));
+  protected final JMenuItem POPUP_CLEARTEXT = new JMenuItem("Clear text", UiUtils.loadIcon("page_delete"));
+  protected final JMenuItem POPUP_COPY = new JMenuItem("Copy", UiUtils.loadIcon("page_copy"));
+  protected final JMenuItem POPUP_CUT = new JMenuItem("Cut", UiUtils.loadIcon("cut"));
+  protected final JMenuItem POPUP_PASTE = new JMenuItem("Paste", UiUtils.loadIcon("page_paste"));
   private final String nameID;
   private boolean wordWrap;
 

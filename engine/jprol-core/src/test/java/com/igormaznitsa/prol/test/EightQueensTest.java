@@ -106,7 +106,7 @@ public class EightQueensTest extends AbstractProlTest {
 
         // check the knowledge base export data process
         //--
-        final ProlContext context0 = new ProlContext(this, "test", DefaultProlStreamManagerImpl.getInstance());
+        final ProlContext context0 = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
         final ProlConsult consult0 = new ProlConsult("solution([]). solution([X/Y|Others]):-solution(Others),member(Y,[1,2,3,4,5,6,7,8]),notattack(X/Y,Others). notattack(_,[]). notattack(X/Y,[X1/Y1 | Others]):- Y=\\=Y1, Y1-Y=\\=X1-X, Y1-Y=\\=X-X1, notattack(X/Y,Others). member(Item,[Item|Rest]). member(Item,[First|Rest]):-member(Item,Rest). template([1/Y1,2/Y2,3/Y3,4/Y4,5/Y5,6/Y6,7/Y7,8/Y8]).", context0);
         consult0.consult();
         ByteArrayOutputStream buffer = new ByteArrayOutputStream(1024);
@@ -116,7 +116,7 @@ public class EightQueensTest extends AbstractProlTest {
         src.close();
         //--
 
-        final ProlContext context = new ProlContext(this, "test", DefaultProlStreamManagerImpl.getInstance());
+        final ProlContext context = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
         final ProlConsult consult = new ProlConsult(new ByteArrayInputStream(buffer.toByteArray()), context);
 
         consult.consult();

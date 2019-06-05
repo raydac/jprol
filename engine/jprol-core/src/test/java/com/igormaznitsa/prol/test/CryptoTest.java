@@ -18,7 +18,7 @@ public class CryptoTest extends AbstractProlTest {
 
         // check the knowledge base export data process
         //--
-        final ProlContext context0 = new ProlContext(this, "test", DefaultProlStreamManagerImpl.getInstance());
+        final ProlContext context0 = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
         final ProlConsult consult0 = new ProlConsult("sum(N1,N2,N):-\n"
                 + "     sum1(N1,N2,N,\n"
                 + "     0,0,\n"
@@ -50,7 +50,7 @@ public class CryptoTest extends AbstractProlTest {
         src.close();
         //--
 
-        final ProlContext context = new ProlContext(this, "test", DefaultProlStreamManagerImpl.getInstance());
+        final ProlContext context = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
         final ProlConsult consult = new ProlConsult(new ByteArrayInputStream(buffer.toByteArray()), context);
 
         consult.consult();

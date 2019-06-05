@@ -27,8 +27,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-
-import javax.swing.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -75,14 +73,6 @@ public final class Utils {
         try {
             runnable.run();
         } catch (Throwable e) {
-        }
-    }
-
-    public static void doInSwingThread(final Runnable runnable) {
-        if (SwingUtilities.isEventDispatchThread()) {
-            runnable.run();
-        } else {
-            SwingUtilities.invokeLater(runnable);
         }
     }
 
@@ -148,13 +138,13 @@ public final class Utils {
             result = map;
         }
 
-        for (final Map.Entry<String, Var> e : vars.entrySet()) {
+        vars.entrySet().forEach((e) -> {
             final String name = e.getKey();
             final Var value = e.getValue();
             if (!(value.isAnonymous() || value.isUndefined())) {
                 result.put(name, value.getValue());
             }
-        }
+        });
         return result;
     }
 
@@ -878,12 +868,5 @@ public final class Utils {
             }
         }
         return null;
-    }
-
-    public static void assertSwingThread() {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            throw new Error("Must e called in Swing Dispatch Event Thread");
-
-        }
     }
 }

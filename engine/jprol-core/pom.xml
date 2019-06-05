@@ -12,9 +12,6 @@
     <packaging>jar</packaging>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
         <app.name>jprol_${project.version}</app.name>
     </properties>
 
@@ -25,5 +22,33 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
+    <build>
+        <plugins>
+        <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>animal-sniffer-maven-plugin</artifactId>
+            <executions>
+                <execution>
+                    <id>ensure-android-3.0_r2-class-library</id>
+                    <phase>test</phase>
+                    <goals>
+                        <goal>check</goal>
+                    </goals>
+                    <configuration>
+                        <signature>
+                            <groupId>net.sf.androidscents.signature</groupId>
+                            <artifactId>android-api-level-26</artifactId>
+                            <version>8.0.0_r2</version>
+                        </signature>
+                        <ignores>
+                            <ignore>java.lang.invoke.*</ignore>
+                        </ignores>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+        </plugins>
+    </build>
 
 </project>

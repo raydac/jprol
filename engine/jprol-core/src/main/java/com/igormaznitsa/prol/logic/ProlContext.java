@@ -35,7 +35,6 @@ import com.igormaznitsa.prol.io.ProlTextOutputStream;
 import com.igormaznitsa.prol.io.ProlTextReader;
 import com.igormaznitsa.prol.io.ProlTextWriter;
 import com.igormaznitsa.prol.libraries.AbstractProlLibrary;
-import com.igormaznitsa.prol.libraries.IoActionProvider;
 import com.igormaznitsa.prol.libraries.PredicateProcessor;
 import com.igormaznitsa.prol.libraries.ProlCoreLibrary;
 import com.igormaznitsa.prol.logic.triggers.ProlTrigger;
@@ -195,59 +194,16 @@ public final class ProlContext {
    */
   private TraceListener defaultTraceListener;
 
-  private final IoActionProvider controller;
-  /**
-   * A constructor allows to use automatically the default prol stream manager
-   *
-     * @param controller
-   * @param name the name for created context
-   * @throws IOException it will be thrown if there are problems to set default
-   * user input-output streams ('user')
-   * @throws InterruptedException it will be thrown if the thread has been
-   * interrupted
-   * @throws NullPointerException it will be thrown if a needed argument is null
-   * @see DefaultProlStreamManagerImpl
-   */
-  public ProlContext(final IoActionProvider controller, final String name) throws IOException, InterruptedException {
-    this(controller, name, DefaultProlStreamManagerImpl.getInstance(), null);
+  public ProlContext(final String name) {
+    this(name, DefaultProlStreamManagerImpl.getInstance(), null);
   }
 
-  /**
-   * A constructor allows to set the name and a stream manager
-   *
-     * @param controller
-   * @param name the name for created context
-   * @param streamManager the stream manager to be used bye the context, it can
-   * be null
-   * @throws IOException it will be thrown if there are problems to set default
-   * user input-output streams ('user')
-   * @throws InterruptedException it will be thrown if the thread has been
-   * interrupted
-   * @throws NullPointerException it will be thrown if a needed argument is null
-   * @see DefaultProlStreamManagerImpl
-   */
-  public ProlContext(final IoActionProvider controller, final String name, final ProlStreamManager streamManager) throws IOException, InterruptedException {
-    this(controller, name, streamManager, null);
+  public ProlContext(final String name, final ProlStreamManager streamManager) {
+    this(name, streamManager, null);
   }
 
-  /**
-   * A constructor
-   *
-     * @param controller
-   * @param name the name for created context
-   * @param streamManager the stream manager for created context, it can be null
-   * @param knowledgebase the knowledge base to be used for the context (the
-   * instance not copy will be used!), it can be null so a MemoryKnowledgeBase
-   * instance will be created and used
-   * @throws IOException it will be thrown if there are problems to set default
-   * user input-output streams ('user')
-   * @throws InterruptedException it will be thrown if the thread has been
-   * interrupted
-   * @throws NullPointerException it will be thrown if a needed argument is null
-   * @see DefaultProlStreamManagerImpl
-   */
-  public ProlContext(final IoActionProvider controller, final String name, final ProlStreamManager streamManager, final KnowledgeBase knowledgebase) throws IOException, InterruptedException {
-    this(controller, streamManager, name, DefaultKnowledgeBaseFactory.getInstance());
+  public ProlContext(final String name, final ProlStreamManager streamManager, final KnowledgeBase knowledgebase) {
+    this(streamManager, name, DefaultKnowledgeBaseFactory.getInstance());
     knowledgeBaseLocker.lock();
     try {
       if (knowledgebase == null) {
@@ -258,25 +214,14 @@ public final class ProlContext {
     } finally {
       knowledgeBaseLocker.unlock();
     }
-    addLibrary(coreLibraryInstance);
+    try {
+      addLibrary(coreLibraryInstance);
+    } catch (IOException | InterruptedException ex) {
+      throw new Error("Can't load core library", ex);
+    }
   }
 
-  /**
-   * Inside constructor for special purposes
-   *
-   * @param streamManager the stream manager to be used for stream manipulations
-   * of the context, it can be null
-   * @param name the name of the context instance
-   * @param kbfactory a knowledge base factory to be used by the context, must
-   * not be null
-   * @throws IOException it will be thrown if there is any exception during the
-   * stream initialization operations
-   * @see DefaultProlStreamManagerImpl
-   */
-  private ProlContext(final IoActionProvider controller, final ProlStreamManager streamManager, final String name, final KnowledgeBaseFactory kbfactory) throws IOException {
-    if (controller == null) {
-      throw new NullPointerException("Library controller must be provided");
-    }
+  private ProlContext(final ProlStreamManager streamManager, final String name, final KnowledgeBaseFactory kbfactory) {
     if (name == null) {
       throw new NullPointerException("The context name must not be null");
     }
@@ -286,9 +231,8 @@ public final class ProlContext {
     if (kbfactory == null) {
       throw new NullPointerException("The knowledge base factory is null");
     }
-    
-    this.controller = controller;
-    this.coreLibraryInstance = new ProlCoreLibrary(controller);
+
+    this.coreLibraryInstance = new ProlCoreLibrary();
     this.contextName = name;
 
     this.knowledgeBaseFactory = kbfactory;
@@ -302,8 +246,12 @@ public final class ProlContext {
     this.triggersOnAssert = new HashMap<>();
     this.triggersOnRetract = new HashMap<>();
 
-    see(USER_STREAM);
-    tell(USER_STREAM, true);
+    try {
+      see(USER_STREAM);
+      tell(USER_STREAM, true);
+    } catch (IOException ex) {
+      throw new Error("Can't init user streams", ex);
+    }
   }
 
   /**
@@ -1645,7 +1593,7 @@ public final class ProlContext {
    * initialization of IO streams
    */
   public ProlContext makeCopy() throws IOException {
-    final ProlContext newContext = new ProlContext(this.controller, this.streamManager, this.contextName + "_copy", this.knowledgeBaseFactory);
+    final ProlContext newContext = new ProlContext(this.streamManager, this.contextName + "_copy", this.knowledgeBaseFactory);
 
     newContext.libraries.addAll(libraries);
     knowledgeBaseLocker.lock();

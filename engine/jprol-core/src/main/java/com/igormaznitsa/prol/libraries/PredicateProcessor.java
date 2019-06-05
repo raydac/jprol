@@ -22,8 +22,10 @@ import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.exceptions.*;
 import com.igormaznitsa.prol.logic.Goal;
-import java.lang.reflect.InvocationTargetException;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 /**
  * The auxulary inside class describes a predicate processor. It means that the
@@ -36,6 +38,8 @@ import java.lang.reflect.Method;
  * @see com.igormaznitsa.prol.libraries.PredicateTemplate
  */
 public final class PredicateProcessor {
+
+    protected static final MethodHandles.Lookup METHOD_LOOKUP = MethodHandles.lookup();
 
     /**
      * The constant describes a NULL_PROCESSOR which does nothing
@@ -55,7 +59,7 @@ public final class PredicateProcessor {
      * The variable contains the method which will be called to process the
      * predicate
      */
-    private final Method method;
+    private final MethodHandle methodHandle;
     /**
      * The variable contains the owner library which contains the method linked
      * with this processor
@@ -104,24 +108,34 @@ public final class PredicateProcessor {
         super();
         this.predicateSignature = signature;
         this.ownerLibrary = owner;
-        this.method = method;
         this.templates = templates;
 
         if (method == null) {
-            voidResult = true;
-            determined = true;
-            evaluable = false;
-            changesGoalChain = false;
+            this.methodHandle = null;
+            this.voidResult = true;
+            this.determined = true;
+            this.evaluable = false;
+            this.changesGoalChain = false;
         } else {
-            voidResult = method.getReturnType() == CLASS_RESULT_VOID;
-            determined = method.isAnnotationPresent(CLASS_ANNOTATION_DETERMINED);
-            evaluable = method.isAnnotationPresent(CLASS_ANNOTATION_EVALUABLE);
-            changesGoalChain = method.isAnnotationPresent(CLASS_CHANGE_GOAL_CHAIN);
+            try {
+                MethodHandle mhandle = METHOD_LOOKUP.unreflect(method);
+                if (!Modifier.isStatic(method.getModifiers())) {
+                    mhandle = mhandle.bindTo(this.ownerLibrary);
+                }
+                this.methodHandle = mhandle;
+            } catch (IllegalAccessException ex) {
+                throw new Error(String.format("Can't process library '%s' method '%s'", owner.getLibraryUid(), method.getName()), ex);
+            }
+
+            this.voidResult = method.getReturnType() == CLASS_RESULT_VOID;
+            this.determined = method.isAnnotationPresent(CLASS_ANNOTATION_DETERMINED);
+            this.evaluable = method.isAnnotationPresent(CLASS_ANNOTATION_EVALUABLE);
+            this.changesGoalChain = method.isAnnotationPresent(CLASS_CHANGE_GOAL_CHAIN);
         }
     }
 
     public final boolean doesChangeGoalChain() {
-        return changesGoalChain;
+        return this.changesGoalChain;
     }
 
     /**
@@ -131,7 +145,7 @@ public final class PredicateProcessor {
      * make not any choice point
      */
     public final boolean isDetermined() {
-        return determined;
+        return this.determined;
     }
 
     /**
@@ -141,7 +155,7 @@ public final class PredicateProcessor {
      * predicate
      */
     public final boolean isEvaluable() {
-        return evaluable;
+        return this.evaluable;
     }
 
     /**
@@ -150,7 +164,7 @@ public final class PredicateProcessor {
      * @return the owner library for the processor
      */
     public final AbstractProlLibrary getLibrary() {
-        return ownerLibrary;
+        return this.ownerLibrary;
     }
 
     /**
@@ -159,7 +173,7 @@ public final class PredicateProcessor {
      * @return the signature of the linked predicate
      */
     public final String getSignature() {
-        return predicateSignature;
+        return this.predicateSignature;
     }
 
     /**
@@ -167,8 +181,8 @@ public final class PredicateProcessor {
      *
      * @return the method which implements needed functionality
      */
-    public final Method getMethod() {
-        return method;
+    public final MethodHandle getMethod() {
+        return this.methodHandle;
     }
 
     /**
@@ -179,7 +193,7 @@ public final class PredicateProcessor {
      * template
      */
     public PredicateTemplate[][] getTemplates() {
-        return templates;
+        return this.templates;
     }
 
     /**
@@ -250,7 +264,7 @@ public final class PredicateProcessor {
                 nonchangeable = checkTemplates(predicate);
             }
 
-            final Object result = method.invoke(ownerLibrary, goal, predicate);
+            final Object result = methodHandle.invoke(goal, predicate);
 
             if (nonchangeable != null) {
                 final Term[] elements = predicate.getElementsAsArray();
@@ -268,7 +282,7 @@ public final class PredicateProcessor {
             return (Term) result;
         } catch (IllegalAccessException ex) {
             throw new ProlCriticalError("Illegal access exception at " + predicate, ex);
-        } catch (InvocationTargetException thr) {
+        } catch (Throwable thr) {
             final Throwable cause = thr.getCause();
 
             if (cause instanceof ArithmeticException) {
@@ -281,7 +295,7 @@ public final class PredicateProcessor {
             if (cause instanceof ProlException) {
                 throw (ProlException) cause;
             }
-            throw new ProlCriticalError("Exception at [" + goal + ']', cause);
+            throw new ProlCriticalError("Exception at [" + goal + ']', cause == null ? thr : cause);
         }
     }
 
@@ -303,7 +317,8 @@ public final class PredicateProcessor {
                 nonchangeable = checkTemplates(predicate);
             }
 
-            final Object result = method.invoke(ownerLibrary, goal, predicate);
+            final Object result;
+            result = methodHandle.invoke(goal, predicate);
 
             if (nonchangeable != null) {
                 final Term[] elements = predicate.getElementsAsArray();
@@ -327,7 +342,7 @@ public final class PredicateProcessor {
             }
         } catch (IllegalAccessException ex) {
             throw new ProlException("Illegal access exception at " + predicate, ex);
-        } catch (Exception thr) {
+        } catch (Throwable thr) {
             if (thr instanceof ProlException) {
                 throw (ProlException) thr;
             }
@@ -349,12 +364,12 @@ public final class PredicateProcessor {
             if (cause instanceof ProlException) {
                 throw (ProlException) cause;
             }
-            throw new ProlCriticalError("Exception at [" + goal + ']', cause);
+            throw new ProlCriticalError("Exception at [" + goal + ']', cause == null ? thr : cause);
         }
     }
 
     @Override
     public String toString() {
-        return "Predicate processor " + predicateSignature + ' ' + method;
+        return "Predicate processor " + predicateSignature + ' ' + methodHandle;
     }
 }

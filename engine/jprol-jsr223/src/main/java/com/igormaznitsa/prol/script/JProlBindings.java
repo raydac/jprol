@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.igormaznitsa.prol.libraries;
+package com.igormaznitsa.prol.script;
 
-import java.io.File;
-import javax.swing.filechooser.FileFilter;
+import java.util.HashMap;
+import javax.script.Bindings;
 
-public interface IoActionProvider {
-
-    public void addErrorText(String msg);
-
-    public void addInfoText(String msg);
-
-    public void addWarnText(String msg);
-
-    public File chooseFile(File folder, FileFilter fileFilter, String dialogTitle, String approveButtonText);
-    
+class JProlBindings extends HashMap<String,Object> implements Bindings {
+    JProlBindings() {
+    }
 }

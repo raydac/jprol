@@ -24,14 +24,10 @@ import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.logic.Goal;
 import com.igormaznitsa.prol.utils.Utils;
 
-/**
- * The class implements the Prol String library allows to manipulate with
- * strings
- */
-public class ProlStringLibrary extends AbstractProlLibrary {
+public class ProlStrLibrary extends AbstractProlLibrary {
 
-  public ProlStringLibrary(final IoActionProvider actionProvider) {
-    super("ProlStringLib", actionProvider);
+  public ProlStrLibrary() {
+    super("ProlStrLib");
   }
 
   @Predicate(Signature = "concat/3", Template = {"+atom,+atom,?atom", "+atom,?atom,+atom", "?atom,+atom,+atom"}, Reference = "Concat two strings.")

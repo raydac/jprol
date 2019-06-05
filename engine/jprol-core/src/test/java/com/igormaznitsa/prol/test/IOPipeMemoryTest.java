@@ -14,7 +14,7 @@ public class IOPipeMemoryTest extends AbstractProlTest {
     @Test
     public void testIOMemory() {
         try {
-            final ProlContext context = new ProlContext(this, "IO Memory test", DefaultProlStreamManagerImpl.getInstance());
+            final ProlContext context = new ProlContext("IO Memory test", DefaultProlStreamManagerImpl.getInstance());
             final ProlConsult consult = new ProlConsult("save_to_memory([]):-!.save_to_memory([X|L]):-write(X),write(\'. \'),save_to_memory(L). all_from_memory :- next_from_memory(X),write(X),nl,(all_from_memory,!;true). next_from_memory(X):-read(X),X\\==end_of_file.", context);
             consult.consult();
 

@@ -15,7 +15,7 @@ public class PreparedGoalTest extends AbstractProlTest {
     @Test
     public void testPreparedGoal() {
         try {
-            final ProlContext context = new ProlContext(this, "PreparedGoal test", DefaultProlStreamManagerImpl.getInstance());
+            final ProlContext context = new ProlContext("PreparedGoal test", DefaultProlStreamManagerImpl.getInstance());
             final ProlConsult consult = new ProlConsult("test(A,B,C,D,E):-E is A+B/C*D. randomval(A):-rnd([1,2,3,4,5],A).", context);
             consult.consult();
 

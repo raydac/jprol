@@ -14,7 +14,7 @@ public class OperatorTest extends AbstractProlTest {
     @Test
     public void testOperatorDefs() {
         try {
-            final ProlContext context = new ProlContext(this,"Operator_test");
+            final ProlContext context = new ProlContext("Operator_test");
             final ProlConsult consult = new ProlConsult(":-op(800,xfx,'<===>'). :-op(700,xfy,'v'). :-op(600,xfy,'&'). :-op(500,fy,'~'). moon <===> earth.", context);
             consult.consult();
 

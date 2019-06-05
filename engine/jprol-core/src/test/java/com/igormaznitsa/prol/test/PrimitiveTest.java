@@ -385,7 +385,7 @@ public class PrimitiveTest extends AbstractProlTest {
     }
 
     private ProlContext makeContext(final String knowledgeBase) throws Exception {
-        final ProlContext context = new ProlContext(this, "PreparedGoal test", DefaultProlStreamManagerImpl.getInstance());
+        final ProlContext context = new ProlContext("PreparedGoal test", DefaultProlStreamManagerImpl.getInstance());
         final ProlConsult consult = new ProlConsult(knowledgeBase, context);
         consult.consult();
         return context;

@@ -52,7 +52,9 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import com.igormaznitsa.prol.libraries.IoActionProvider;
+import com.igormaznitsa.prol.libraries.ProlGfxLibrary;
+import com.igormaznitsa.prol.libraries.ProlStrLibrary;
+import com.igormaznitsa.prol.libraries.TPrologPredicateLibrary;
 
 /**
  * The class implements the main frame of the Prol Pad IDE (a small UI utility
@@ -61,7 +63,7 @@ import com.igormaznitsa.prol.libraries.IoActionProvider;
  *
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
-public final class MainFrame extends javax.swing.JFrame implements ProlStreamManager, Runnable, UndoableEditListener, WindowListener, DocumentListener, HyperlinkListener, TraceListener, IoActionProvider {
+public final class MainFrame extends javax.swing.JFrame implements ProlStreamManager, Runnable, UndoableEditListener, WindowListener, DocumentListener, HyperlinkListener, TraceListener {
 
     private static final long serialVersionUID = 72348723421332L;
 
@@ -82,7 +84,13 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }
 
     protected static final String PROL_EXTENSION = ".prl";
-    static final String[] PROL_LIBRARIES = new String[]{"com.igormaznitsa.prol.libraries.ProlGraphicLibrary", "com.igormaznitsa.prol.libraries.ProlStringLibrary", "com.igormaznitsa.prol.libraries.TPrologPredicateLibrary"};
+    
+    private static final String[] PROL_LIBRARIES = new String[]{
+        ProlGfxLibrary.class.getCanonicalName(),
+        ProlStrLibrary.class.getCanonicalName(),
+        TPrologPredicateLibrary.class.getCanonicalName()
+    };
+    
     /**
      * Inside logger
      */
@@ -191,7 +199,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
             addWindowListener(this);
             panelProgress.setVisible(false);
 
-            logLibrary = new LogLibrary(this);
+            logLibrary = new LogLibrary();
 
             try {
                 setIconImage(new ImageIcon(this.getClass().getResource("/com/igormaznitsa/prol/easygui/icons/appico.png")).getImage());
@@ -236,22 +244,18 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         loadFile(initFile, true);
     }
 
-    @Override
     public void addErrorText(final String msg) {
         this.messageEditor.addErrorText(msg);
     }
 
-    @Override
     public void addInfoText(final String msg) {
         this.messageEditor.addInfoText(msg);
     }
 
-    @Override
     public void addWarnText(final String msg) {
         this.messageEditor.addWarningText(msg);
     }
 
-    @Override
     public File chooseFile(final File folder, final FileFilter fileFilter, final String dialogTitle, final String approveButtonText) {
         final JFileChooser fileChooser = new JFileChooser(folder);
         fileChooser.setFileFilter(fileFilter);
@@ -1040,16 +1044,13 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     private void textFindKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_textFindKeyReleased
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
-            final Pattern patternToFind = UIUtils.makePattern(textFind.getText());
-
+            final Pattern patternToFind = UiUtils.makePattern(textFind.getText());
             final String text = this.sourceEditor.getText();
-
             int cursorPos = searchText(text, patternToFind, this.sourceEditor.getCaretPosition() + 1);
 
             if (cursorPos < 0) {
                 cursorPos = searchText(text, patternToFind, 0);
             }
-
             if (cursorPos >= 0) {
                 this.sourceEditor.setCaretPosition(cursorPos);
             }
@@ -1134,13 +1135,13 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
             this.messageEditor.addInfoText("Creating Context...");
 
             try {
-                context = new ProlContext(this, "ProlScript", this);
+                context = new ProlContext("ProlScript", this);
                 if (this.startedInTracing.get()) {
                     context.setDefaultTraceListener(this);
                 }
 
                 for (final String str : PROL_LIBRARIES) {
-                    final AbstractProlLibrary lib = (AbstractProlLibrary) Class.forName(str).getDeclaredConstructor(IoActionProvider.class).newInstance(this);
+                    final AbstractProlLibrary lib = (AbstractProlLibrary) Class.forName(str).getDeclaredConstructor().newInstance(this);
 
                     context.addLibrary(lib);
                     this.messageEditor.addInfoText(String.format("Library \'%s\' has been added...", lib.getLibraryUid()));
@@ -1582,8 +1583,8 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
      */
     protected final class LogLibrary extends AbstractProlLibrary {
 
-        public LogLibrary(final IoActionProvider controller) {
-            super("JProlNotepadLog", controller);
+        public LogLibrary() {
+            super("JProlGuiLogger");
         }
 
         @Predicate(Signature = "msgerror/1", Reference = "The predicate allows to output information marked as error at the message window.")

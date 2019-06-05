@@ -182,7 +182,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
   @Override
   @SuppressWarnings("empty-statement")
   public void clearText() {
-    Utils.assertSwingThread();
+    UiUtils.assertSwingThread();
     super.clearText();
     // clear input cache
     inputWriter.clearBuffer();

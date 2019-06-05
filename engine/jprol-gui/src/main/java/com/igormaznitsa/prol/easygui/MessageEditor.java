@@ -109,7 +109,7 @@ public class MessageEditor extends AbstractProlEditor {
 
   @Override
   public void clearText() {
-    Utils.doInSwingThread(() -> {
+    UiUtils.doInSwingThread(() -> {
       super.clearText();
       insideBuffer = "";
     });

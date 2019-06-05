@@ -17,7 +17,7 @@ import org.junit.Test;
 public class DeepStackTest extends AbstractProlTest {
 
     private TermList makeList(final int depth) throws Exception {
-        final ProlContext context = new ProlContext(this, "test", DefaultProlStreamManagerImpl.getInstance());
+        final ProlContext context = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
         final ProlConsult consult = new ProlConsult("depth(0,[]):-!.depth(X,R):-X1 is X-1, depth(X1,R2), R=[X|R2].", context);
         consult.consult();
         final String goalText = "depth(" + depth + ", R).";

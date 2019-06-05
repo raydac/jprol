@@ -15,30 +15,6 @@
  */
 package com.igormaznitsa.prol.test;
 
-import java.io.File;
-import javax.swing.filechooser.FileFilter;
-import com.igormaznitsa.prol.libraries.IoActionProvider;
+public abstract class AbstractProlTest {
 
-public abstract class AbstractProlTest implements IoActionProvider {
-
-    @Override
-    public void addErrorText(String msg) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void addInfoText(String msg) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void addWarnText(String msg) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public File chooseFile(File folder, FileFilter fileFilter, String dialogTitle, String approveButtonText) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
 }

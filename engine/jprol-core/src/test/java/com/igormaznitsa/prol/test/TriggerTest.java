@@ -27,7 +27,7 @@ public class TriggerTest extends AbstractProlTest {
             trigger.addSignature("testretract/1", ProlTriggerType.TRIGGER_RETRACT);
             trigger.addSignature("testboth/1", ProlTriggerType.TRIGGER_ASSERT_RETRACT);
 
-            ProlContext context = new ProlContext(this,"TestContext");
+            ProlContext context = new ProlContext("TestContext");
 
             context.registerTrigger(trigger);
 

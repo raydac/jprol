@@ -30,7 +30,6 @@ import com.igormaznitsa.prol.logic.triggers.ProlTriggerType;
 import com.igormaznitsa.prol.parser.ProlConsult;
 import com.igormaznitsa.prol.utils.Utils;
 
-import java.awt.*;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Reader;
@@ -123,8 +122,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
    */
   private static final Term TRUE = new Term("true");
 
-  public ProlCoreLibrary(final IoActionProvider actionProvider) {
-    super("ProlCoreLib", actionProvider);
+  public ProlCoreLibrary() {
+    super("ProlCoreLib");
   }
 
   @Predicate(Signature = "=:=/2", Template = {"@evaluable,@evaluable"}, Reference = "Arithmetic Equal")
@@ -769,13 +768,13 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     try {
       if (priority == 0) {
-          names.forEach((name) -> {
-              base.removeOperator(name, opType);
-          });
+        names.forEach((name) -> {
+          base.removeOperator(name, opType);
+        });
       } else {
-          names.forEach((name) -> {
-              base.addOperator(new Operator(priority, opType, name));
-          });
+        names.forEach((name) -> {
+          base.addOperator(new Operator(priority, opType, name));
+        });
       }
     } catch (SecurityException ex) {
       throw new ProlPermissionErrorException("create", "operator", "Attemption to override or remove a system operator", predicate);
@@ -825,14 +824,13 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = ";/2", Reference = "';'(Either, Or) is true if either Either or Or is true.")
   public static void predicateOR(final Goal goal, final TermStruct predicate) throws InterruptedException {
-      // stub, see Goal#resolve
+    // stub, see Goal#resolve
   }
 
   @Predicate(Signature = ",/2", Reference = "','(First, Second) is true if and only if First is true and Second is true.")
   public static void predicateAND(final Goal goal, final TermStruct predicate) throws InterruptedException {
-      // stub, see Goal#resolve
+    // stub, see Goal#resolve
   }
-
 
   @Predicate(Signature = "->/2", Reference = "'->'(If, Then) is true if and only if If is true and Then is true for the first solution of If")
   @ItChangesGoalChain
@@ -2027,12 +2025,6 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     throw new ProlCustomErrorException(arg, predicate);
   }
 
-  @Predicate(Signature = "beep/0", Reference = "Make a short sound. It depends on the OS.")
-  @Determined
-  public static void predicateBEEP(final Goal goal, final TermStruct predicate) {
-    Toolkit.getDefaultToolkit().beep();
-  }
-
   @Predicate(Signature = "pause/1", Template = {"+number"}, Reference = "Make a pause for defined millisecond number.")
   @Determined
   public static void predicatePAUSE(final Goal goal, final TermStruct predicate) throws InterruptedException {
@@ -2430,9 +2422,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       }
 
       if (stopAllWorkingThreads) {
-          workingThreads.values().forEach((task) -> {
-              task.cancel(true);
-          });
+        workingThreads.values().forEach((task) -> {
+          task.cancel(true);
+        });
       }
     }
 
@@ -2534,7 +2526,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     if (outStream != null) {
       try {
-        outStream.writeTerm(new Term(String.format("%% %d.%d ms",(time / 1000),(time % 1000))));
+        outStream.writeTerm(new Term(String.format("%% %d.%d ms", (time / 1000), (time % 1000))));
       } catch (IOException ex) {
         throw new ProlPermissionErrorException("write", "text_output", predicate);
       }

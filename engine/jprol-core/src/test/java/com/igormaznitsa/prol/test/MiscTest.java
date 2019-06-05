@@ -39,7 +39,7 @@ public class MiscTest extends AbstractProlTest {
 
     @Test
     public void testGetAllGoalsAndConvertThem() throws Exception {
-        final ProlContext context = new ProlContext(this, "test", DefaultProlStreamManagerImpl.getInstance());
+        final ProlContext context = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
         final ProlConsult consult = new ProlConsult("map(one,1,a). map(two,2,b). map(three,3,c).", context);
         consult.consult();
 
@@ -82,7 +82,7 @@ public class MiscTest extends AbstractProlTest {
     @Test
     public void findAllTest() throws Exception {
         ProlContext context;
-        context = new ProlContext(this, "test", DefaultProlStreamManagerImpl.getInstance());
+        context = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
         final ProlConsult consult = new ProlConsult("powerSet([],[]).powerSet([_|Xt],Y) :- powerSet(Xt,Y).powerSet([Xh|Xt],[Xh|Yt]) :- powerSet(Xt,Yt).", context);
         consult.consult();
         final Goal goal = new Goal("findall(X,powerSet([a,b],X),Y).", context);

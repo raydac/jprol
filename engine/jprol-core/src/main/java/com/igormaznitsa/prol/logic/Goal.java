@@ -25,11 +25,13 @@ import com.igormaznitsa.prol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.prol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.prol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.prol.libraries.PredicateProcessor;
+import com.igormaznitsa.prol.parser.ProlReader;
 import com.igormaznitsa.prol.parser.ProlTreeBuilder;
 import com.igormaznitsa.prol.trace.TraceListener;
 import com.igormaznitsa.prol.utils.Utils;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -139,16 +141,6 @@ public class Goal {
    */
   private boolean notFirstProve;
 
-  /**
-   * Special internal constructor
-   *
-   * @param rootGoal the root goal for the new goal, if it is null then the new
-   * goal will be the root goal for itself
-   * @param goal the term which will be goal for the new Goal, must not be null
-   * @param context the context for the new goal
-   * @param tracer the listener to listen events for the goal and its children
-   * (it will replace the default listener of the context if it is presented)
-   */
   private Goal(final Goal rootGoal, Term goal, final ProlContext context, final TraceListener tracer) {
     this.rootGoal = rootGoal == null ? this : rootGoal;
     this.goalTerm = goal.getTermType() == Term.TYPE_ATOM ? new TermStruct(goal) : goal;
@@ -225,52 +217,22 @@ public class Goal {
       this.tracer = null;
   }
 
-  /**
-   * A Constructor
-   *
-   * @param goal the goal as a String, must not be null
-   * @param context the context for the goal, must not be null
-   * @param tracer the tracer to listen goal events, can be null
-   * @throws IOException it will be thrown if the goal string can't be parsed
-   * well
-   * @throws InterruptedException it will be thrown if the process is
-   * interrupted
-   */
   public Goal(final String goal, final ProlContext context, final TraceListener tracer) throws IOException, InterruptedException {
     this(new ProlTreeBuilder(context).readPhraseAndMakeTree(goal), context, tracer);
   }
 
-  /**
-   * A Constructor
-   *
-   * @param goal the goal as a String, must not be null
-   * @param context the context for the goal, must not be null
-   * @throws IOException it will be thrown if the goal string can't be parsed
-   * well
-   * @throws InterruptedException it will be thrown if the process is
-   * interrupted
-   */
   public Goal(final String goal, final ProlContext context) throws IOException, InterruptedException {
     this(new ProlTreeBuilder(context).readPhraseAndMakeTree(goal), context, null);
   }
 
-  /**
-   * A Constructor
-   *
-   * @param goal the goal term, must not be null
-   * @param context the context for the goal, must not be null
-   * @param tracer the tracer to listen goal events, it can be null
-   */
+  public Goal(final ProlReader reader, final ProlContext context) throws IOException, InterruptedException {
+    this(new ProlTreeBuilder(context).readPhraseAndMakeTree(reader), context, null);
+  }
+
   public Goal(final Term goal, final ProlContext context, final TraceListener tracer) {
     this(null, goal, context, tracer);
   }
 
-  /**
-   * A Constructor
-   *
-   * @param goal the goal term, must not be null
-   * @param context the context for the goal, must not be null
-   */
   public Goal(final Term goal, final ProlContext context) {
     this(null, goal, context, null);
   }

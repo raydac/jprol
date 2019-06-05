@@ -13,6 +13,7 @@ import org.junit.Test;
 import java.util.List;
 import java.util.Set;
 
+
 public class LibraryWrapperTest extends AbstractProlTest {
 
   volatile boolean testemptycalled = false;
@@ -89,8 +90,8 @@ public class LibraryWrapperTest extends AbstractProlTest {
 
   @Test
   public void testLibraryWrapper() throws Exception {
-    final ProlContext context = new ProlContext(this, "test_context", DefaultProlStreamManagerImpl.getInstance());
-    context.addLibrary(ProlLibraryWrapper.makeWrapper(this, this));
+    final ProlContext context = new ProlContext("test_context", DefaultProlStreamManagerImpl.getInstance());
+    context.addLibrary(ProlLibraryWrapper.makeWrapper(this));
 
     final Goal goal = new Goal("testset([one,two,three,three,one,three,two,two]),testchar(['H',e,l,l,o]), testfunc(999,111.111,true), testlist([9,10,11,12,13]), testarray2([1,2,3,4,5]), testarray([one,two,three,four,five]), testempty,testevaluable('Hello world'), X is test222(32,16), X = 2.", context);
 
