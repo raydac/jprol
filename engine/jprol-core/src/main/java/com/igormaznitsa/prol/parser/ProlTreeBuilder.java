@@ -28,63 +28,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * The class implements the prol tree builder. It's very important class because
- * it allows to make term tree from read terms.
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- * @see com.igormaznitsa.prol.parser.ProlTokenizer
- */
 public final class ProlTreeBuilder {
 
-  /**
-   * Inside array of operators which will be used to read a prolog phrase
-   */
   private final OperatorContainer[] OPERATORS_PHRASE;
-
-  /**
-   * Inside array of operators which will be used to read an inside list
-   */
   private final OperatorContainer[] OPERATORS_INSIDE_LIST;
-
-  /**
-   * Inside array of operators which will be used to find the end of a list
-   */
   private final OperatorContainer[] OPERATORS_END_LIST;
-
-  /**
-   * Inside array of operators which will be used to read a structure
-   */
   private final OperatorContainer[] OPERATORS_INSIDE_STRUCT;
-
-  /**
-   * Inside array of operators which will be used to read a sub-block inside of
-   * a block
-   */
   private final OperatorContainer[] OPERATORS_SUBBLOCK;
-  /**
-   * The map contains variable map which is being used to map variables inside a
-   * tree
-   */
   private final Map<String, Var> variableSet;
-  /**
-   * The engine context which owns the tree builder
-   */
   private final ProlContext context;
-  /**
-   * The knowledge base of the context
-   */
   private final KnowledgeBase knowledgeBase;
-  /**
-   * The tokenizer which will be used to get tokens to build the tree
-   */
   private ProlTokenizer tokenizer;
 
-  /**
-   * The constructor
-   *
-   * @param context the context owns the tree builder, must not be null
-   */
   public ProlTreeBuilder(final ProlContext context) {
     variableSet = new HashMap<>();
     this.context = context;
@@ -97,15 +52,6 @@ public final class ProlTreeBuilder {
     OPERATORS_SUBBLOCK = new OperatorContainer[]{context.getSystemOperatorForName(")")};
   }
 
-  /**
-   * Check that an operator has been presented into an operator array
-   *
-   * @param operator the checked operator, it can be null so the result will be
-   * true
-   * @param endOperators the array to be checked that it contains such operator,
-   * it can be null so the result will be false
-   * @return true if the array contains the operator else false
-   */
   private static boolean isEndOperator(final Term operator, final OperatorContainer[] endOperators) {
     if (operator == null) {
       return true;
@@ -126,27 +72,10 @@ public final class ProlTreeBuilder {
     return false;
   }
 
-  /**
-   * Parse a string and make a term tree from it.
-   *
-   * @param str the string to be parsed, must not be null
-   * @return the term tree
-   * @throws IOException it will be thrown it there will be any transport error
-   * @throws InterruptedException it will be thrown if the thread has been
-   * interrupted
-   */
-  public synchronized final Term readPhraseAndMakeTree(final String str) throws IOException, InterruptedException {
+  public synchronized final Term readPhraseAndMakeTree(final String str) throws IOException {
     return this.readPhraseAndMakeTree(new ProlReader(str));
   }
 
-  /**
-   * Read and make tree with predefined both a prol reader and a prol tokenizer
-   *
-   * @param tokenizer the tokenizer to be used for parsing, must not be null
-   * @param reader the reader to be used for reading, must not be null
-   * @return the term tree or null if the stream end has been reached
-   * @throws IOException it will be thrown it there will be any transport error
-   */
   public synchronized final Term readPhraseAndMakeTree(final ProlTokenizer tokenizer, final ProlReader reader) throws IOException {
     variableSet.clear();
     try {
@@ -165,30 +94,10 @@ public final class ProlTreeBuilder {
     }
   }
 
-  /**
-   * Read and make tree with a predefined prol reader
-   *
-   * @param reader the prol reader which will be used to read next token, must
-   * not be null
-   * @return the term tree
-   * @throws IOException it will be thrown it there will be any transport error
-   * @throws InterruptedException it will be thrown if the thread has been
-   * interrupted
-   */
-  public synchronized final Term readPhraseAndMakeTree(final ProlReader reader) throws IOException, InterruptedException {
+  public synchronized final Term readPhraseAndMakeTree(final ProlReader reader) throws IOException {
     return this.readPhraseAndMakeTree(new ProlTokenizer(), reader);
   }
 
-  /**
-   * Read a struct with a predefined functor from a reader
-   *
-   * @param functor the functor for the read structure, must not be null
-   * @param reader the reader to read the structure, must not be null
-   * @return read structure or null if the stream end has been reached
-   * @throws IOException it will be thrown if there will be any transport error
-   * @throws InterruptedException it will be thrown if the thread has been
-   * interrupted
-   */
   private TermStruct readStruct(final Term functor, final ProlReader reader) throws IOException {
     final ArrayList<Term> listOfAtoms = new ArrayList<>();
 
@@ -219,14 +128,6 @@ public final class ProlTreeBuilder {
     return result;
   }
 
-  /**
-   * Read a list with a predefined reader
-   *
-   * @param reader the reader which will be used to read the input stream, must
-   * not be null
-   * @return the read list or null if the stream end reached
-   * @throws IOException it will be thrown if there is any transport error
-   */
   private Term readList(final ProlReader reader) throws IOException {
     TermList leftPart = TermList.NULLLIST;
     TermList leftPartFirst = leftPart;
@@ -298,16 +199,6 @@ public final class ProlTreeBuilder {
     return leftPartFirst;
   }
 
-  /**
-   * Read a block from a predefined reader
-   *
-   * @param reader the predefined reader, must not be null
-   * @param endOperators the array contains end operators which will be bounding
-   * the block, it can be null but it will be no good indeed
-   * @return a read block as Term or null if the end of the stream has been
-   * reached
-   * @throws IOException it will be thrown if there is any transport error
-   */
   private Term readBlock(final ProlReader reader, final OperatorContainer[] endOperators) throws IOException {
     // the variable will contain last processed tree item contains either atom or operator
     TreeItem currentTreeItem = null;
@@ -513,57 +404,16 @@ public final class ProlTreeBuilder {
     }
   }
 
-  /**
-   * Inside auxulary class represents a tree item
-   *
-   * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
-   */
   private static final class TreeItem {
-
-    /**
-     * The tree builder owner of the item
-     */
     private final ProlTreeBuilder builder;
-
-    /**
-     * The term saved by the item
-     */
     private final Term savedTerm;
-    /**
-     * The string position of the item at the read stream
-     */
     private final int strPos;
-    /**
-     * The line position of the item at the read stream
-     */
     private final int lineNum;
-    /**
-     * The term has been placed into brakes
-     */
     private final boolean atBrakes;
-    /**
-     * The left branch of the tree item
-     */
     private TreeItem leftBranch;
-    /**
-     * The right branch of the item
-     */
     private TreeItem rightBranch;
-    /**
-     * The link to the owner of the item
-     */
     private TreeItem owner;
 
-    /**
-     * The constructor
-     *
-     * @param builder the builder which has the item, must not be null
-     * @param term the term read from the input stream, must not be null
-     * @param atBrakes the flag shows that the term was in the brakes so it has
-     * the max priority
-     * @param lineNum the line number of the line where the term has been found
-     * @param strPos the string position of the read stream at the input stream
-     */
     private TreeItem(final ProlTreeBuilder builder, final Term term, final boolean atBrakes, final int lineNum, final int strPos) {
       savedTerm = term;
       this.builder = builder;
@@ -572,11 +422,6 @@ public final class ProlTreeBuilder {
       this.atBrakes = atBrakes;
     }
 
-    /**
-     * Get the priority oa the term.
-     *
-     * @return the priority of the term
-     */
     private int getPriority() {
       if (atBrakes) {
         return 0;
@@ -584,13 +429,6 @@ public final class ProlTreeBuilder {
       return savedTerm.getPriority();
     }
 
-    /**
-     * Make an other ietm as the right branch
-     *
-     * @param item the item which will be used as the right branch
-     * @return the item which will be used as the root, it can be this item or
-     * setted item (it depends on priorities)
-     */
     private TreeItem makeAsRightBranch(final TreeItem item) {
       TreeItem currentSubbranch = rightBranch;
       setRightBranch(item);
@@ -601,33 +439,16 @@ public final class ProlTreeBuilder {
       return this;
     }
 
-    /**
-     * Make an other ietm as the left branch
-     *
-     * @param item the item which will be used as the left branch
-     * @return the item which will be used as the root, it can be this item or
-     * setted item (it depends on priorities)
-     */
     private TreeItem makeAsOwnerWithLeftBranch(final TreeItem item) {
       this.replaceForOwner(item);
       item.setLeftBranch(this);
       return item;
     }
 
-    /**
-     * Get the right branch of the item, can be null
-     *
-     * @return the right branch or null
-     */
     private TreeItem getRightBranch() {
       return rightBranch;
     }
 
-    /**
-     * Set the right branch
-     *
-     * @param item the right branch for the term
-     */
     private void setRightBranch(final TreeItem item) {
       rightBranch = item;
       if (item != null) {
@@ -635,20 +456,10 @@ public final class ProlTreeBuilder {
       }
     }
 
-    /**
-     * Get the left branch of the item, can be null
-     *
-     * @return the left branch of the item or null
-     */
     private TreeItem getLeftBranch() {
       return leftBranch;
     }
 
-    /**
-     * Set the left branch of the item
-     *
-     * @param item the left branch for the item
-     */
     private void setLeftBranch(final TreeItem item) {
       leftBranch = item;
       if (item != null) {
@@ -656,20 +467,10 @@ public final class ProlTreeBuilder {
       }
     }
 
-    /**
-     * Get the type of the saved term by the item
-     *
-     * @return
-     */
     private int getItemType() {
       return savedTerm.getTermType();
     }
 
-    /**
-     * Find the root of the tree where the item has been placed
-     *
-     * @return the root item for the tree where the item has been placed
-     */
     private TreeItem findRoot() {
       if (owner == null) {
         return this;
@@ -677,14 +478,6 @@ public final class ProlTreeBuilder {
       return owner.findRoot();
     }
 
-    /**
-     * Find the first node from owners of the item which has the same or lower
-     * priority
-     *
-     * @param priority the priority to find an item
-     * @return found root itemn which has the equal or less priority than the
-     * value.
-     */
     private TreeItem findFirstNodeWithSuchOrLowerPriority(final int priority) {
       final TreeItem result;
       if (getPriority() >= priority || owner == null) {
@@ -695,11 +488,6 @@ public final class ProlTreeBuilder {
       return result;
     }
 
-    /**
-     * Replace the owner by other item
-     *
-     * @param newItem the item to replace current owner
-     */
     private void replaceForOwner(final TreeItem newItem) {
       if (owner == null) {
         newItem.owner = null;
@@ -713,20 +501,10 @@ public final class ProlTreeBuilder {
       }
     }
 
-    /**
-     * Get the operator type, the saved term must be an operator
-     *
-     * @return the operator type as integer
-     */
     private int getOperatorType() {
       return ((Operator) savedTerm).getOperatorType();
     }
 
-    /**
-     * Validate the tree item for its saved term
-     *
-     * @return true if the tree item is valid and false if it's not
-     */
     private boolean validate() {
       if (savedTerm.getTermType() == Term.TYPE_OPERATOR) {
         final int priority = getPriority();
@@ -766,11 +544,6 @@ public final class ProlTreeBuilder {
       return savedTerm.toString();
     }
 
-    /**
-     * Make the tree item into a term
-     *
-     * @return the tree item converted into a term
-     */
     private Term convertTreeItemIntoTerm() {
       Term result = null;
       switch (savedTerm.getTermType()) {

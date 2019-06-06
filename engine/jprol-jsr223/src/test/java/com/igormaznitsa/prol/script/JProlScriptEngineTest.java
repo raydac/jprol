@@ -15,7 +15,8 @@
  */
 package com.igormaznitsa.prol.script;
 
-import java.io.StringWriter;
+import javax.script.Compilable;
+import javax.script.CompiledScript;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import org.junit.Test;
@@ -24,14 +25,44 @@ import static org.junit.Assert.*;
 public class JProlScriptEngineTest {
 
     private static final ScriptEngineFactory JPROL_ENGINE_FACTORY = new JProlScriptEngineFactory();
-    
+
     @Test
-    public void testHelloWorld() throws Exception {
+    public void testEval() throws Exception {
         final ScriptEngine engine = JPROL_ENGINE_FACTORY.getScriptEngine();
-        final StringWriter writer = new StringWriter();
-        engine.getContext().setWriter(writer);
-        assertTrue((Boolean)engine.eval("write('hello engine'),nl."));
-        System.out.println("WROTE: "+writer.toString());
+        assertNull(engine.eval("X is 5 * 10, X = 10."));
+        assertNull(engine.eval("X is 5 * 10, X = 10."));
+        assertNotNull(engine.eval("X is 5 * 10, X = 50.", engine.getContext()));
+        assertNotNull(engine.eval("X is 5 * 10, X = 50.", engine.getContext()));
+    }
+
+    @Test
+    public void testCompiled() throws Exception {
+        final ScriptEngine engine = JPROL_ENGINE_FACTORY.getScriptEngine();
+
+        final CompiledScript success = ((Compilable) engine).compile("X is 5 * 10, X = 50.");
+        for (int i = 0; i < 10; i++) {
+            assertNotNull(success.eval());
+        }
+
+        final CompiledScript failed = ((Compilable) engine).compile("X is 5 * 10, X = 10.");
+        for (int i = 0; i < 10; i++) {
+            assertNull(failed.eval());
+        }
     }
     
+    @Test
+    public void testBindings() throws Exception {
+        final ScriptEngine engine = JPROL_ENGINE_FACTORY.getScriptEngine();
+        engine.put("X", "world");
+        assertNotNull(engine.eval("write(X)."));
+    }
+
+    @Test
+    public void testBindAndGet() throws Exception {
+        final ScriptEngine engine = JPROL_ENGINE_FACTORY.getScriptEngine();
+        engine.put("X", 5);
+        assertNotNull(engine.eval("Y is X + 10."));
+        assertEquals(15, engine.get("Y"));
+    }
+
 }

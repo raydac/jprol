@@ -18,31 +18,62 @@ package com.igormaznitsa.prol.script;
 import com.igormaznitsa.prol.logic.ProlContext;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.List;
 import javax.script.Bindings;
 import javax.script.ScriptContext;
 
-class JProlScriptContext implements ScriptContext {
-    
+public final class JProlScriptContext implements ScriptContext {
+
     private final ProlContext context;
-  
+    private static JProlBindings globalMap = null;
+    private JProlBindings engineMap = new JProlBindings(this);
+
+    private static final List<Integer> ALLOWED_SCOPES = Arrays.asList(ScriptContext.ENGINE_SCOPE, ScriptContext.GLOBAL_SCOPE);
+
     JProlScriptContext(final String name) {
         this.context = new ProlContext(name);
     }
-    
-    @Override
-    public void setBindings(Bindings bindings, int scope) {
-        
+
+    public ProlContext getProlContext() {
+        return this.context;
     }
 
     @Override
-    public Bindings getBindings(int scope) {
-        return null;
+    public void setBindings(final Bindings bindings, final int scope) {
+        if (bindings == null) {
+            throw new NullPointerException("null bindings in ENGINE scope");
+        }
+        switch (scope) {
+            case ScriptContext.ENGINE_SCOPE:
+                engineMap = (JProlBindings) bindings;
+                break;
+            case ScriptContext.GLOBAL_SCOPE:
+                globalMap = (JProlBindings) bindings;
+                break;
+            default:
+                throw new IllegalArgumentException("invalid scope");
+        }
+    }
+
+    public JProlBindings getJprolBindings(final int scope) {
+      switch (scope) {
+        case ScriptContext.ENGINE_SCOPE:
+          return engineMap;
+        case ScriptContext.GLOBAL_SCOPE:
+          return globalMap;
+        default:
+          throw new IllegalArgumentException("invalid scope");
+      }
+    }
+    
+    @Override
+    public Bindings getBindings(final int scope) {
+      return this.getJprolBindings(scope);
     }
 
     @Override
     public void setAttribute(String name, Object value, int scope) {
-        
     }
 
     @Override
@@ -62,7 +93,7 @@ class JProlScriptContext implements ScriptContext {
 
     @Override
     public int getAttributesScope(String name) {
-        return 0;
+        return -1;
     }
 
     @Override
@@ -77,12 +108,12 @@ class JProlScriptContext implements ScriptContext {
 
     @Override
     public void setWriter(Writer writer) {
-    
+
     }
 
     @Override
     public void setErrorWriter(Writer writer) {
-        
+
     }
 
     @Override
@@ -92,12 +123,12 @@ class JProlScriptContext implements ScriptContext {
 
     @Override
     public void setReader(Reader reader) {
-        
+
     }
 
     @Override
     public List<Integer> getScopes() {
-        return null;
+        return ALLOWED_SCOPES;
     }
-    
+
 }

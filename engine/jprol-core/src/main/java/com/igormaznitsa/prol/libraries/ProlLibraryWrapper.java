@@ -22,6 +22,7 @@ import com.igormaznitsa.prol.data.*;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 import com.igormaznitsa.prol.logic.Goal;
 import com.igormaznitsa.prol.logic.ProlContext;
+import com.igormaznitsa.prol.utils.Utils;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
@@ -280,7 +281,7 @@ public final class ProlLibraryWrapper extends AbstractProlLibrary {
         }
       } else {
         if (argclass == Object.class) {
-          result = context.termAsObject(term);
+          result = Utils.term2obj(context, term);
         } else if (argclass == String.class) {
           result = term.getText();
         } else if (argclass == List.class) {
@@ -422,7 +423,7 @@ public final class ProlLibraryWrapper extends AbstractProlLibrary {
       throw ex;
     }
 
-    return goal.getContext().objectAsTerm(returned);
+    return Utils.obj2term(returned);
   }
 
   @Determined

@@ -103,7 +103,7 @@ public class LibraryWrapperTest extends AbstractProlTest {
       if (result == null) {
         break;
       }
-      returned = (Integer) context.termAsObject(Utils.findVarInsideTerm(result, "X"));
+      returned = (Integer) Utils.term2obj(context, Utils.findVarInsideTerm(result, "X"));
       num++;
     }
 

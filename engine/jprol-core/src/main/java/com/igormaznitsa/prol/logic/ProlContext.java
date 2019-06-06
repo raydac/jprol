@@ -18,14 +18,8 @@ package com.igormaznitsa.prol.logic;
 import com.igormaznitsa.prol.annotations.Consult;
 import com.igormaznitsa.prol.containers.KnowledgeBase;
 import com.igormaznitsa.prol.containers.OperatorContainer;
-import com.igormaznitsa.prol.data.ConvertableToTerm;
-import com.igormaznitsa.prol.data.NumericTerm;
 import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.data.TermFloat;
-import com.igormaznitsa.prol.data.TermInteger;
-import com.igormaznitsa.prol.data.TermList;
 import com.igormaznitsa.prol.data.TermStruct;
-import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 import com.igormaznitsa.prol.exceptions.ProlException;
 import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
 import com.igormaznitsa.prol.io.ProlMemoryPipe;
@@ -47,7 +41,6 @@ import com.igormaznitsa.prol.utils.Utils;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -65,133 +58,36 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import static java.util.stream.Stream.concat;
 
-/**
- * The class describes the prol engine context
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 public final class ProlContext {
-
-  /**
-   * The constant has the string representation of the engine version
-   */
   public static final String ENGINE_VERSION = "1.1.5";
-  /**
-   * The constant has the string representation of the engine name
-   */
   public static final String ENGINE_NAME = "Prol";
-  /**
-   * Inside logger, the canonical class name is used as the logger identifier
-   * (ProlContext.class.getCanonicalName())
-   */
   protected static final Logger LOG = Logger.getLogger(ProlContext.class.getCanonicalName());
-  /**
-   * Message constant for the context halted situation
-   */
   private static final String CONTEXT_HALTED_MSG = "Context halted";
-  /**
-   * The constant has the string representation of the user stream resource
-   * identifier
-   */
   private static final String USER_STREAM = "user";
-  /**
-   * The constant has the prol core library instance
-   */
   private final ProlCoreLibrary coreLibraryInstance;
-  /**
-   * The variable contains the context name
-   */
   private final String contextName;
-  /**
-   * The locker is being used to make knowledge base operations thread safe
-   */
   private final ReentrantLock knowledgeBaseLocker = new ReentrantLock();
-  /**
-   * The variable contains the library list for the context
-   */
   private final List<AbstractProlLibrary> libraries;
-  /**
-   * The variable contains the stream manager for the context
-   */
   private final ProlStreamManager streamManager;
-  /**
-   * The table contains opened input streams
-   */
   private final Map<String, ProlTextInputStream> inputStreams;
-  /**
-   * The table contains opened output streams
-   */
   private final Map<String, ProlTextOutputStream> outputStreams;
-  /**
-   * The table contains opened memory pipes
-   */
   private final Map<String, ProlMemoryPipe> pipes;
-  /**
-   * The table has trigger lists for assert processing
-   */
   private final Map<String, List<ProlTrigger>> triggersOnAssert;
-  /**
-   * The table has trigger lists for retract processing
-   */
   private final Map<String, List<ProlTrigger>> triggersOnRetract;
-  /**
-   * This lock is being used to synchronize simultaneous work with the inside
-   * executor and the locker table
-   */
   private final ReentrantLock executorAndlockTableLocker = new ReentrantLock();
-  /**
-   * The list contains searchers allow to find Java Object for Terms or String
-   * names
-   */
   private final List<ProlMappedObjectSearcher> mappedObjectSearchers = new ArrayList<>();
-  /**
-   * Locker for work with mappedObjects
-   */
   private final ReentrantLock mappedObjectLocker = new ReentrantLock();
-  /**
-   * Locker for IO operations
-   */
   private final ReentrantLock ioLocker = new ReentrantLock();
-  /**
-   * Locker for library operations
-   */
   private final ReentrantLock libLocker = new ReentrantLock();
-  /**
-   * Locker for trigger operations
-   */
   private final ReentrantLock triggerLocker = new ReentrantLock();
-  /**
-   * The variable contains the knowledge base factory which will be used by the
-   * context
-   */
   private final KnowledgeBaseFactory knowledgeBaseFactory;
-  /**
-   * This variable contains the knowledge base object for the context
-   */
   private KnowledgeBase knowledgeBase;
-  /**
-   * The table contains current active input stream
-   */
   private ProlTextReader currentInputStream;
-  /**
-   * The table contains current active output stream
-   */
   private ProlTextWriter currentOutputStream;
-  /**
-   * The flag shows that the context was halted (if it is true)
-   */
+  private ProlTextWriter currentErrorStream;
   private volatile boolean halted;
-  /**
-   * Executor service for inside use, it will be lazy inited
-   */
   private ThreadPoolExecutor executorService;
-  /**
-   * Inside map of lockers
-   */
   private Map<String, ReentrantLock> lockerTable;
-  /**
-   * Inside variable contains the default trace listener for the context
-   */
   private TraceListener defaultTraceListener;
 
   public ProlContext(final String name) {
@@ -254,52 +150,22 @@ public final class ProlContext {
     }
   }
 
-  /**
-   * Get the default trace listener for the context
-   *
-   * @return the default trace listener, it can be null
-   */
   public TraceListener getDefaultTraceListener() {
-    return defaultTraceListener;
+    return this.defaultTraceListener;
   }
 
-  /**
-   * Set the default trace listener for the context
-   *
-   * @param traceListener the trace listener which one will be the default trace
-   * listener for the context, it can be null
-   */
   public void setDefaultTraceListener(final TraceListener traceListener) {
-    defaultTraceListener = traceListener;
+      this.defaultTraceListener = traceListener;
   }
 
-  /**
-   * Get the context name which was supplied when the instance was created
-   *
-   * @return the context name as String, must not be null
-   */
   public final String getName() {
-    return contextName;
+    return this.contextName;
   }
 
-  /**
-   * Get the knowledge base factory used by the context
-   *
-   * @return the knowledge base factory
-   */
   public KnowledgeBaseFactory getKnowledgeBaseFactory() {
-    return knowledgeBaseFactory;
+    return this.knowledgeBaseFactory;
   }
 
-  /**
-   * To change knowledge base for the context with the current knowledge base
-   * factory factory
-   *
-   * @param knowledge_base_id the id of new knowledge base, must not be null
-   * @param knowledge_base_type the knowledge base type, must not be null
-   * @throws IllegalArgumentException if it can't make a knowledge base for such
-   * parameters
-   */
   public void changeKnowledgeBase(final String knowledge_base_id, final String knowledge_base_type) {
     if (knowledge_base_id == null) {
       throw new NullPointerException("Knowledge base Id is null");
@@ -308,15 +174,15 @@ public final class ProlContext {
       throw new NullPointerException("Knowledge base type is null");
     }
 
-    KnowledgeBase kb = knowledgeBaseFactory.makeKnowledgeBase(this, knowledge_base_id, knowledge_base_type);
+    KnowledgeBase kb = this.knowledgeBaseFactory.makeKnowledgeBase(this, knowledge_base_id, knowledge_base_type);
     if (kb == null) {
       throw new IllegalArgumentException("Can't make knowledge base [" + knowledge_base_id + ',' + knowledge_base_type + ']');
     }
-    knowledgeBaseLocker.lock();
+      this.knowledgeBaseLocker.lock();
     try {
-      knowledgeBase = kb;
+        this.knowledgeBase = kb;
     } finally {
-      knowledgeBaseLocker.unlock();
+        this.knowledgeBaseLocker.unlock();
     }
   }
 
@@ -356,12 +222,6 @@ public final class ProlContext {
     }
   }
 
-  /**
-   * Find the mapped object through registered searchers.
-   *
-   * @param name the string name of searched object, must not be null
-   * @return found Object or null if it is not found
-   */
   public Object findMappedObjectForName(final String name) {
     Object result = null;
 
@@ -381,12 +241,6 @@ public final class ProlContext {
     return result;
   }
 
-  /**
-   * Find the key name for a mapped object
-   *
-   * @param mappedObject the object for which one we are looking for the name
-   * @return the name as a String or null if it is not found
-   */
   public String findNameForMappedObject(final Object mappedObject) {
     String result = null;
     final ReentrantLock locker = mappedObjectLocker;
@@ -405,13 +259,6 @@ public final class ProlContext {
     return result;
   }
 
-  /**
-   * Find the mapped object through registered searchers. Remember that only
-   * pure Term object can be used (not any its successor or TermNumber)
-   *
-   * @param term the term for which we should find the mapped object
-   * @return Object if it has been found, else null
-   */
   public Object findMappedObjectForTerm(final Term term) {
     Object result = null;
 
@@ -604,15 +451,6 @@ public final class ProlContext {
     return locker.tryLock();
   }
 
-  /**
-   * Unlock inside context locker for name
-   *
-   * @param name the locker name, must not be null
-   * @throws IllegalArgumentException it will be thrown if the locker name is
-   * unknown in the context
-   * @throws IllegalMonitorStateException it will be thrown if the locker is
-   * being keept by other thread
-   */
   public void unlockLockerForName(final String name) {
     final Map<String, ReentrantLock> lockMap = getLockerMap();
     ReentrantLock locker = null;
@@ -631,12 +469,6 @@ public final class ProlContext {
     locker.unlock();
   }
 
-  /**
-   * Get a memory pipe for its name (it starts from the '+' char)
-   *
-   * @param identifier the pipe name identifier, must not be null
-   * @return the memory pipe for the name or null if the pipe is not found
-   */
   public final ProlMemoryPipe getMemoryPipeForName(final String identifier) {
     ioLocker.lock();
     try {
@@ -646,11 +478,6 @@ public final class ProlContext {
     }
   }
 
-  /**
-   * Get the stream manager for the context
-   *
-   * @return the stream manager, must not be null
-   */
   public final ProlStreamManager getStreamManager() {
     if (halted) {
       throw new ProlException(CONTEXT_HALTED_MSG);
@@ -663,11 +490,6 @@ public final class ProlContext {
     }
   }
 
-  /**
-   * Get current active output stream
-   *
-   * @return current active output stream, must not be null
-   */
   public final ProlTextWriter getCurrentOutStream() {
     if (halted) {
       throw new ProlException(CONTEXT_HALTED_MSG);
@@ -680,11 +502,18 @@ public final class ProlContext {
     }
   }
 
-  /**
-   * Get current active input stream
-   *
-   * @return current active input stream, must not be null
-   */
+  public final ProlTextWriter getCurrentErrStream() {
+    if (halted) {
+      throw new ProlException(CONTEXT_HALTED_MSG);
+    }
+    ioLocker.lock();
+    try {
+      return currentErrorStream;
+    } finally {
+      ioLocker.unlock();
+    }
+  }
+
   public ProlTextReader getCurrentInputStream() {
     if (halted) {
       throw new ProlException(CONTEXT_HALTED_MSG);
@@ -697,16 +526,6 @@ public final class ProlContext {
     }
   }
 
-  /**
-   * Activate an output stream for its identifier if the identifier starts with
-   * '+' it will be opened as a memory pipe
-   *
-   * @param resourceId the identifier of the output stream, must not be null
-   * @param append if true, the output stream will be opened for append new
-   * information at this end
-   * @throws IOException it will be thrown if there will be any transport
-   * problem
-   */
   public void tell(final String resourceId, final boolean append) throws IOException {
     if (halted) {
       throw new IllegalStateException(CONTEXT_HALTED_MSG);
@@ -735,13 +554,6 @@ public final class ProlContext {
     }
   }
 
-  /**
-   * Activate an input stream for its identifier if the identifier starts with
-   * '+' it will be opened as a memory pipe
-   *
-   * @param resourceId the identifier of the input stream, must not be null
-   * @throws IOException it will be thrown if there will be any transport error
-   */
   public void see(final String resourceId) throws IOException {
     if (halted) {
       throw new IllegalStateException(CONTEXT_HALTED_MSG);
@@ -770,12 +582,6 @@ public final class ProlContext {
     }
   }
 
-  /**
-   * Deactivate and close current active input stream (if it is not 'user'
-   * stream)
-   *
-   * @throws IOException it will be thrown if there is any transport problem
-   */
   public void seen() throws IOException {
     if (halted) {
       throw new IllegalStateException(CONTEXT_HALTED_MSG);
@@ -805,12 +611,6 @@ public final class ProlContext {
     }
   }
 
-  /**
-   * Deactivate and close current active output stream (if it is not 'user'
-   * stream)
-   *
-   * @throws IOException it will be thrown if there is any transport problem
-   */
   public void told() throws IOException {
     if (halted) {
       throw new IllegalStateException(CONTEXT_HALTED_MSG);
@@ -839,19 +639,6 @@ public final class ProlContext {
     }
   }
 
-  /**
-   * Add a library into the context and process the consult annotations of the
-   * library.
-   *
-   * @param library the library to be added
-   * @return true if the library has been added successfully, else false (if the
-   * library alreade presented)
-   * @throws IOException it will be thrown if there are problems to read an
-   * outside data
-   * @throws InterruptedException it will be thrown if the thread has been
-   * interrupted
-   * @see com.igormaznitsa.prol.annotations.Consult
-   */
   public boolean addLibrary(final AbstractProlLibrary library) throws IOException, InterruptedException {
     if (halted) {
       throw new IllegalStateException(CONTEXT_HALTED_MSG);
@@ -910,11 +697,6 @@ public final class ProlContext {
     return true;
   }
 
-  /**
-   * Get the knowledge base for the context
-   *
-   * @return the knowledge base for the context, must not be null
-   */
   public KnowledgeBase getKnowledgeBase() {
     knowledgeBaseLocker.lock();
     try {
@@ -924,13 +706,6 @@ public final class ProlContext {
     }
   }
 
-  /**
-   * Remove a library from the context
-   *
-   * @param library the library to be removed from the library list of he
-   * context
-   * @return true if the library has been removed, else false
-   */
   public boolean removeLibrary(final AbstractProlLibrary library) {
     if (library == null) {
       throw new IllegalArgumentException("Library must not be null");
@@ -949,11 +724,6 @@ public final class ProlContext {
     }
   }
 
-  /**
-   * Write all dynamic content of the context knowledge base into stream
-   *
-   * @param writer a print writer to be used for output data, must not be null
-   */
   public void writeKnowledgeBase(final PrintWriter writer) {
     if (writer == null) {
       throw new IllegalArgumentException("Writer must not be null");
@@ -966,14 +736,6 @@ public final class ProlContext {
     }
   }
 
-  /**
-   * Find first predicate processor compatible with the predicate
-   *
-   * @param predicate the structure for which we will look for a processor, must
-   * not be null
-   * @return found processor object or NULL_PROCESSOR if has not found anything
-   * @see com.igormaznitsa.prol.libraries.PredicateProcessor
-   */
   public PredicateProcessor findProcessor(final TermStruct predicate) {
     final ReentrantLock locker = libLocker;
 
@@ -996,12 +758,6 @@ public final class ProlContext {
     }
   }
 
-  /**
-   * Check that in libraries presented zero-arity predicate.
-   *
-   * @param name name of predicate
-   * @return true if presented, false otherwise
-   */
   public boolean hasZeroArityPredicateForName(final String name) {
     final ReentrantLock locker = this.libLocker;
 
@@ -1023,13 +779,6 @@ public final class ProlContext {
     }
   }
 
-  /**
-   * Check that as minimum one from libraries in the context has a predicate has
-   * a signature
-   *
-   * @param signature the signature to be checked, must not be null
-   * @return true if a predicate has been found, else false
-   */
   public boolean hasPredicateAtLibraryForSignature(final String signature) {
     final ReentrantLock locker = this.libLocker;
 
@@ -1049,12 +798,6 @@ public final class ProlContext {
     }
   }
 
-  /**
-   * Check that there is a system operator for a name
-   *
-   * @param name the name to be checked, must not not null
-   * @return true if there is such a system operator else false
-   */
   public boolean isSystemOperator(final String name) {
     final ReentrantLock locker = this.libLocker;
 
@@ -1074,13 +817,6 @@ public final class ProlContext {
     }
   }
 
-  /**
-   * Find system operator for name in libraries
-   *
-   * @param name the name to be looked for
-   * @return found operator container for the name or null if there is not any
-   * with such name
-   */
   public OperatorContainer getSystemOperatorForName(final String name) {
     final ReentrantLock locker = libLocker;
 
@@ -1101,12 +837,6 @@ public final class ProlContext {
     }
   }
 
-  /**
-   * Check that a library has a system operator start with a substring
-   *
-   * @param str the substring to be checked, must not be null
-   * @return true if there is such operator, else false
-   */
   public boolean hasSystemOperatorStartsWith(final String str) {
     final ReentrantLock locker = libLocker;
 
@@ -1126,11 +856,6 @@ public final class ProlContext {
     }
   }
 
-  /**
-   * Halt the context and release its keeping resources
-   *
-   * @throws IllegalStateException if the context has been halted already
-   */
   public void halt() {
     if (halted) {
       throw new IllegalStateException("Context already halted");
@@ -1177,7 +902,8 @@ public final class ProlContext {
       try {
         currentInputStream = null;
         currentOutputStream = null;
-
+        currentErrorStream = null;
+        
         concat(pipes.values().stream(), concat(inputStreams.values().stream(), outputStreams.values().stream()))
                 .forEach(channel -> Utils.doSilently(() -> channel.close()));
 
@@ -1203,184 +929,8 @@ public final class ProlContext {
 
   }
 
-  /**
-   * Check that the context has been halted
-   *
-   * @return true if the context has been halted, else false
-   */
   public boolean isHalted() {
     return halted;
-  }
-
-  /**
-   * Allows to convert a java object into its Prol representation. null will be
-   * converted as TermList.NULLLIST Term will be just returned as th result
-   * ConvertableToTerm will be asked for Term and the term will be returned as
-   * the result String will be converted as Term Number (integer or float only)
-   * will be converted as NumericTerm Collection will be converted as TermList
-   * Object[] will be converted as TermStruct, the first element will be used as
-   * the functor (it's toString() value), empty array will be converted ass
-   * TermList.NULLLIST
-   *
-   * @param object the object to be converted into a Prol representation, can be
-   * null
-   * @return a Term object which is a Prol compatible representation of the Java
-   * object
-   * @throws IllegalArgumentException it will be thrown if the object has an
-   * unsupported type
-   * @throws NullPointerException it will be thrown if any successor of
-   * ConvertableToTerm will return null as result
-   */
-  public Term objectAsTerm(final Object object) {
-    Term result = null;
-
-    if (object == null) {
-      // return NULLLIST
-      result = TermList.NULLLIST;
-    } else if (object instanceof Term) {
-      result = (Term) object;
-    } else if (object instanceof ConvertableToTerm) {
-      final ConvertableToTerm cterm = (ConvertableToTerm) object;
-      result = cterm.asProlTerm();
-      if (result == null) {
-        throw new NullPointerException("asProlTerm() returned null [" + object.toString() + ']');
-      }
-    } else if (object instanceof String) {
-      // atom or mapped object
-      result = new Term((String) object);
-    } else if (object instanceof Number) {
-      if (object instanceof Integer) {
-        result = new TermInteger(((Integer) object));
-      } else if (object instanceof Float) {
-        result = new TermFloat(((Float) object));
-      } else {
-        throw new IllegalArgumentException("Unsupported number format.");
-      }
-    } else if (object instanceof Collection) {
-      // list
-      final Collection<?> lst = (Collection) object;
-
-      if (lst.isEmpty()) {
-        result = TermList.NULLLIST;
-      } else {
-        TermList accumulator = null;
-        // fill the list
-        for (Object item : lst) {
-          if (accumulator == null) {
-            accumulator = new TermList(objectAsTerm(item));
-            result = accumulator; // the first list
-          } else {
-            accumulator = TermList.appendItem(accumulator, objectAsTerm(item));
-          }
-        }
-      }
-    } else if (object instanceof Object[]) {
-      // struct
-      final Object[] array = (Object[]) object;
-      final int arrlen = array.length;
-      if (arrlen == 0) {
-        // as null list
-        result = TermList.NULLLIST;
-      } else {
-        final Term functor = new Term(array[0].toString());
-        if (arrlen == 1) {
-          result = new TermStruct(functor);
-        } else {
-          final Term[] terms = new Term[arrlen - 1];
-          for (int li = 1; li < arrlen; li++) {
-            terms[li - 1] = objectAsTerm(array[li]);
-          }
-          result = new TermStruct(functor, terms);
-        }
-      }
-    } else {
-      throw new IllegalArgumentException("Unsupported object to be represented as a Term");
-    }
-    return result;
-  }
-
-  /**
-   * Convert a Term into its Java representation Term will be converted as
-   * java.lang.String or as an mapped Java object if it is found in the context
-   * NumericTerm will be converted as java.lang.Number object TermList will be
-   * converted as List<Object>
-   * TermStruct will be converted as Object[] where the first element if the
-   * functor (it will be converted as other Term so you can use mapped objects)
-   *
-   * @param term the term to be converted, must not be null
-   * @return a Java object represents the Term
-   * @throws IllegalArgumentException it will be thrown if a non-instantiate
-   * variable has been detected
-   */
-  public Object termAsObject(final Term term) {
-    final Term cterm = Utils.getTermFromElement(term);
-    Object result = null;
-    switch (cterm.getTermType()) {
-      case Term.TYPE_ATOM: {
-        if (cterm instanceof NumericTerm) {
-          // as numeric value
-          result = ((TermInteger) cterm).getNumericValue();
-        } else {
-          // find mapped object
-          final String termtext = cterm.getText();
-          result = findMappedObjectForName(termtext);
-          if (result == null) {
-            // there is not any mapped object, so return the text
-            result = termtext;
-          }
-        }
-      }
-      break;
-      case Term.TYPE_LIST: {
-        // make List<Object>
-        final List<Object> list = new ArrayList<>();
-        TermList tlist = (TermList) cterm;
-        while (tlist.isNullList()) {
-          list.add(termAsObject(tlist.getHead()));
-          final Term tail = tlist.getTail();
-          if (tail.getTermType() == Term.TYPE_LIST) {
-            tlist = (TermList) tail;
-          } else {
-            list.add(termAsObject(tail));
-            break;
-          }
-        }
-        result = list;
-      }
-      break;
-      case Term.TYPE_OPERATORS:
-      case Term.TYPE_OPERATOR: {
-        // just as text
-        result = cterm.getText();
-      }
-      break;
-      case Term.TYPE_STRUCT: {
-        // struct
-        final TermStruct sterm = (TermStruct) cterm;
-        final int size = sterm.getArity() + 1;
-        final Object[] array = new Object[size];
-
-        // the first element is the term
-        array[0] = termAsObject(sterm.getFunctor());
-
-        // other elements
-        for (int li = 1; li < size; li++) {
-          array[li] = termAsObject(sterm.getElement(li - 1));
-        }
-
-        result = array;
-      }
-      break;
-      case Term.TYPE_VAR: {
-        // non instantiate variable
-        throw new IllegalArgumentException("It is non instantiate variable \'" + cterm.getText() + "\'");
-      }
-      default: {
-        // new type detected
-        throw new ProlCriticalError("Unsupported term type");
-      }
-    }
-    return result;
   }
 
   /**

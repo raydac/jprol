@@ -1,24 +1,136 @@
-/*
- * Copyright 2019 Igor Maznitsa.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.igormaznitsa.prol.script;
 
+import com.igormaznitsa.prol.data.Term;
+import com.igormaznitsa.prol.data.Var;
+import com.igormaznitsa.prol.utils.Utils;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.script.Bindings;
 
-class JProlBindings extends HashMap<String,Object> implements Bindings {
-    JProlBindings() {
+final class JProlBindings implements Bindings {
+
+  private final Map<String, Term> internalMap = new HashMap<>();
+  private final JProlScriptContext context;
+
+  private static final class ConvertedEntry implements Map.Entry<String, Object> {
+
+    private final String key;
+    private final Object value;
+
+    public ConvertedEntry(final String key, final Object value) {
+      this.key = key;
+      this.value = value;
     }
+
+    @Override
+    public String getKey() {
+      return this.key;
+    }
+
+    @Override
+    public Object getValue() {
+      return this.value;
+    }
+
+    @Override
+    public Object setValue(Object value) {
+      throw new UnsupportedOperationException("Unsupported operation");
+    }
+  }
+
+  Map<String, Term> getTermMap() {
+    return this.internalMap;
+  }
+
+  void fillByValues(final Map<String, Term> instantiatedVariables) {
+    instantiatedVariables.entrySet().forEach(e -> {
+      this.internalMap.putAll(instantiatedVariables);
+    });
+  }
+  
+  public JProlBindings(final JProlScriptContext context) {
+    this.context = context;
+  }
+
+  private void assertPrologName(final String name) {
+    if (!Utils.isPrologVariable(name) || name.equals("_")) {
+      throw new IllegalArgumentException("Must be valid prolog variable name: " + name);
+    }
+  }
+
+  @Override
+  public Object put(final String name, final Object value) {
+    assertPrologName(name);
+    final Term converted = value instanceof Term ? (Term) value : Utils.obj2term(value);
+    final Term prev = this.internalMap.put(name, converted);
+    return prev == null ? null : Utils.term2obj(this.context.getProlContext(), prev);
+  }
+
+  @Override
+  public void putAll(Map<? extends String, ? extends Object> toMerge) {
+    toMerge.entrySet().forEach(e -> {
+      this.put(e.getKey(), e.getValue());
+    });
+  }
+
+  @Override
+  public boolean containsKey(final Object key) {
+    return this.internalMap.containsKey(key);
+  }
+
+  @Override
+  public Object get(Object key) {
+    final Term theTerm = this.internalMap.get(key);
+    return theTerm == null ? null : Utils.term2obj(this.context.getProlContext(), theTerm);
+  }
+
+  @Override
+  public Object remove(final Object key) {
+    final Object result = this.get(key);
+    this.internalMap.remove(key);
+    return result;
+  }
+
+  @Override
+  public int size() {
+    return this.internalMap.size();
+  }
+
+  @Override
+  public boolean isEmpty() {
+    return this.internalMap.isEmpty();
+  }
+
+  @Override
+  public boolean containsValue(Object value) {
+    final Term theTerm = value instanceof Term ? (Term) value : Utils.obj2term(value);
+    return this.internalMap.containsValue(theTerm);
+  }
+
+  @Override
+  public void clear() {
+    this.internalMap.clear();
+  }
+
+  @Override
+  public Set<String> keySet() {
+    return this.internalMap.keySet();
+  }
+
+  @Override
+  public Collection<Object> values() {
+    return this.internalMap.values().stream().map(x -> Utils.term2obj(this.context.getProlContext(), x)).collect(Collectors.toList());
+  }
+
+  @Override
+  public Set<Entry<String, Object>> entrySet() {
+    return this.internalMap.entrySet()
+            .stream()
+            .map(x -> new ConvertedEntry(x.getKey(), Utils.term2obj(this.context.getProlContext(), x.getValue())))
+            .collect(Collectors.toSet());
+  }
+
 }

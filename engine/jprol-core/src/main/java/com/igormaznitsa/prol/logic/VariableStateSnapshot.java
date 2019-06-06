@@ -24,31 +24,13 @@ import com.igormaznitsa.prol.utils.IntegerHashSet;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
-/**
- * This class describes a variable state container for a goal. It allows to save
- * and restore variable values
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 final class VariableStateSnapshot {
 
-  /**
-   * The list of containers for variables
-   */
   private final List<VariableContainer> containers;
-  /**
-   * Inside temporary hashset to save uids of processed variables, it is being
-   * used only at the constructor
-   */
   private IntegerHashSet processedVariables;
 
-  /**
-   * A Constructor, to make new object based on values from other shapshot
-   *
-   * @param snapshot the snapshot whose variables will be used in the new one,
-   * must not be null
-   */
   public VariableStateSnapshot(final VariableStateSnapshot snapshot) {
     this.containers = new ArrayList<>();
 
@@ -75,32 +57,21 @@ final class VariableStateSnapshot {
         final int uid = container.variable.getVarUID();
         if (!this.processedVariables.contains(uid)) {
           this.processedVariables.add(uid);
-          this.containers.add(new VariableContainer(container.variable));
-          extractAllVariables(container.variable.getThisValue());
+          this.containers.add(new VariableContainer(container.variable, null));
+          extractAllVariables(container.variable.getThisValue(), null);
         }
       }
     }
     this.processedVariables = null;
   }
 
-  /**
-   * A constructor allows to make snapshot based on the term
-   *
-   * @param source the term whose variables will be saved at the snapshot, must
-   * not be null
-   */
-  public VariableStateSnapshot(final Term source) {
+  public VariableStateSnapshot(final Term source, Map<String, Term> predefValues) {
     this.containers = new ArrayList<>();
-    extractAllVariables(source);
+    extractAllVariables(source, predefValues);
     this.processedVariables = null;
   }
 
-  /**
-   * Function extracts all found variables from the term into inside storage
-   *
-   * @param src the source term to be processed
-   */
-  private void extractAllVariables(final Term src) {
+  private void extractAllVariables(final Term src, final Map<String, Term> predefValues) {
     if (src == null) {
       return;
     }
@@ -108,8 +79,8 @@ final class VariableStateSnapshot {
       case Term.TYPE_LIST: {
         final TermList list = (TermList) src;
         if (!list.isNullList()) {
-          extractAllVariables(list.getHead());
-          extractAllVariables(list.getTail());
+          extractAllVariables(list.getHead(),predefValues);
+          extractAllVariables(list.getTail(),predefValues);
         }
       }
       break;
@@ -117,7 +88,7 @@ final class VariableStateSnapshot {
         final TermStruct struct = (TermStruct) src;
         final Term[] elements = struct.getElementsAsArray();
         for (Term element : elements) {
-          extractAllVariables(element);
+          extractAllVariables(element, predefValues);
         }
       }
       break;
@@ -129,10 +100,10 @@ final class VariableStateSnapshot {
         final Integer uid = var.getVarUID();
         if (!this.processedVariables.contains(uid)) {
           this.processedVariables.add(uid);
-          this.containers.add(new VariableContainer(var));
+          this.containers.add(new VariableContainer(var, predefValues));
           final Term value = var.getThisValue();
           if (value != null) {
-            extractAllVariables(value);
+            extractAllVariables(value, predefValues);
           }
         }
       }
@@ -140,20 +111,12 @@ final class VariableStateSnapshot {
     }
   }
 
-  /**
-   * Reset all saved variables to their saved original states
-   */
   public void resetToState() {
-    for (VariableContainer container : this.containers) {
-      container.resetToEtalon();
-    }
+      this.containers.forEach((container) -> {
+          container.resetToEtalon();
+      });
   }
 
-  /**
-   * Get the inside variable storage size
-   *
-   * @return the number of variables saved in the snapshot
-   */
   public int getSize() {
     return this.containers.size();
   }
@@ -196,45 +159,25 @@ final class VariableStateSnapshot {
     return buffer.toString();
   }
 
-  /**
-   * Inside class to save a variable-value pair
-   *
-   * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
-   */
   private final static class VariableContainer {
-
-    /**
-     * The variable contains the value
-     */
     final Var variable;
-
-    /**
-     * The variable contains the etalon value for the variable
-     */
     final Term etalonValue;
 
-    /**
-     * The constructor
-     *
-     * @param var the source var which one will be saved into the container
-     */
-    public VariableContainer(final Var var) {
+    public VariableContainer(final Var var, final Map<String, Term> predefinedValues) {
       this.variable = var;
-      this.etalonValue = var.getThisValue();
+      
+      if (predefinedValues == null) {
+        this.etalonValue = var.getThisValue();
+      } else {
+          final Term predef = predefinedValues.get(var.getText());
+          this.etalonValue = predef == null ? var.getThisValue() : predef;
+      }
     }
 
-    /**
-     * Reset the variable's value to the etalon value
-     */
     public void resetToEtalon() {
       this.variable.setThisValue(this.etalonValue);
     }
 
-    /**
-     * Check that the variable's value is not equals to the etalon value
-     *
-     * @return true if the variable was changed, else false
-     */
     public boolean isChanged() {
       return this.variable.getThisValue() != this.etalonValue;
     }

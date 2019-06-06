@@ -31,117 +31,37 @@ import com.igormaznitsa.prol.trace.TraceListener;
 import com.igormaznitsa.prol.utils.Utils;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * The class implements the main prolog logic mechanism to solve goals. You must
- * remember that the goal works and return direct values of terms (for speed) so
- * you have to be accurate in work with the values. To avoid risks you can use a
- * IsolatedGoal wrapper.
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- * @see IsolatedGoal
- * @see PreparedGoal
- */
 public class Goal {
 
-  /**
-   * The inside constant shows that a goal is solved
-   */
   private static final int GOALRESULT_SOLVED = 0;
-  /**
-   * The inside constant shows that a goal is failed
-   */
   private static final int GOALRESULT_FAIL = 1;
-  /**
-   * The inside constant shows that the goal chain was changed
-   */
   private static final int GOALRESULT_STACK_CHANGED = 2;
-  /**
-   * The variable contains the link to the root goal for the goal
-   */
+  
   private final Goal rootGoal;
-  /**
-   * The variable contains a map to get access to goal variables, the variable
-   * has a value only for the root goal, for others it has null
-   */
   private final Map<String, Var> variables;
-  /**
-   * The variable contains the variable state snapshot for the goal, it can be
-   * null if the goal doesn't change variables
-   */
   private final VariableStateSnapshot varSnapshot;
-  /**
-   * The variable contains the prol context for the goal
-   */
   private final ProlContext context;
-  /**
-   * This variable contains a listener for goal events, it can be null
-   */
   private final TraceListener tracer;
-  /**
-   * The variable saves an auxiliary object for the goal
-   */
   private Object auxObject;
-  /**
-   * The flag shows that there ary not variants for the goal anymore
-   */
   private boolean noMoreVariantsFlag;
-  /**
-   * The variable contains the goal term of the goal
-   */
   private Term goalTerm;
-  /**
-   * The link field has the previous goal at the goal chain
-   */
   private Goal prevGoalAtChain;
-  /**
-   * The variable is used only by a root goal. It has the last goal at the goal
-   * chain
-   */
   private Goal rootLastGoalAtChain;
-  /**
-   * The variable contains current subgoal of the goal
-   */
   private Goal subGoal;
-  /**
-   * The variable contains the connector term which will be used to send the
-   * data from a subgoal to the goal
-   */
   private Term subGoalConnector;
-  /**
-   * The variable contains the connector term of the goal to get data from the
-   * subgoal
-   */
   private Term thisConnector;
-  /**
-   * The variable has the next term which should be added to the chain
-   */
   private Term nextAndTerm;
-  /**
-   * The variable has the nextAndTerm field value for added goal
-   */
   private Term nextAndTermForNextGoal;
-  /**
-   * The variable contains current clause iterator for the goal
-   */
   private ClauseIterator clauseIterator;
-  /**
-   * This flag allows to cancel a clause iterator of the root goal from a child
-   * goal
-   */
   private boolean cutMeet;
-  /**
-   * The flag is used by tracer mechanism to see when the solve is being called
-   * the first time
-   */
   private boolean notFirstProve;
 
-  private Goal(final Goal rootGoal, Term goal, final ProlContext context, final TraceListener tracer) {
+  private Goal(final Goal rootGoal, Term goal, final ProlContext context, final Map<String,Term> predefinedVarValues, final TraceListener tracer) {
     this.rootGoal = rootGoal == null ? this : rootGoal;
     this.goalTerm = goal.getTermType() == Term.TYPE_ATOM ? new TermStruct(goal) : goal;
     this.context = context;
@@ -178,7 +98,7 @@ public class Goal {
         variables = null;
       } else {
         variables = Utils.fillTableWithVars(goal);
-        varSnapshot = new VariableStateSnapshot(goal);
+        varSnapshot = new VariableStateSnapshot(goal, predefinedVarValues);
       }
       rootLastGoalAtChain = this;
       prevGoalAtChain = null;
@@ -187,17 +107,13 @@ public class Goal {
       if (goal.getTermType() == Term.TYPE_ATOM) {
         varSnapshot = null;
       } else {
-        varSnapshot = new VariableStateSnapshot(rootGoal.varSnapshot);// new VariableStateSnapshot(rootGoal.goalTerm);
+          varSnapshot = new VariableStateSnapshot(rootGoal.varSnapshot);
       }
       this.prevGoalAtChain = rootGoal.rootLastGoalAtChain;
       rootGoal.rootLastGoalAtChain = this;
     }
   }
 
-  /**
-   * Make map from values of all instantiated variables.
-   * @return instantiated values as map.
-   */
   public Map<String, Term> findAllInstantiatedVars(){
     final Map<String,Term> result = new HashMap<>();
     this.variables.entrySet().stream().filter((v) -> (!v.getValue().isUndefined())).forEach((v) -> {
@@ -206,9 +122,6 @@ public class Goal {
     return result;
   }
   
-  /**
-   * Inside special constructor for special functions
-   */
   protected Goal() {
       this.rootGoal = null;
       this.variables = null;
@@ -217,7 +130,7 @@ public class Goal {
       this.tracer = null;
   }
 
-  public Goal(final String goal, final ProlContext context, final TraceListener tracer) throws IOException, InterruptedException {
+  public Goal(final String goal, final ProlContext context, final TraceListener tracer) throws IOException {
     this(new ProlTreeBuilder(context).readPhraseAndMakeTree(goal), context, tracer);
   }
 
@@ -229,12 +142,20 @@ public class Goal {
     this(new ProlTreeBuilder(context).readPhraseAndMakeTree(reader), context, null);
   }
 
+  public Goal(final ProlReader reader, final ProlContext context, final Map<String, Term> predefVarValues) throws IOException {
+    this(new ProlTreeBuilder(context).readPhraseAndMakeTree(reader), context, predefVarValues, null);
+  }
+
   public Goal(final Term goal, final ProlContext context, final TraceListener tracer) {
-    this(null, goal, context, tracer);
+    this(null, goal, context, null, tracer);
+  }
+
+  public Goal(final Term goal, final ProlContext context, final Map<String, Term> predefinedVarValues, final TraceListener tracer) {
+    this(null, goal, context, predefinedVarValues, tracer);
   }
 
   public Goal(final Term goal, final ProlContext context) {
-    this(null, goal, context, null);
+    this(null, goal, context, null, null);
   }
 
   @Override
@@ -332,7 +253,7 @@ public class Goal {
       this.tracer.onProlGoalExit(this.rootGoal.rootLastGoalAtChain);
     }
 
-    final Goal newGoal = new Goal(this.rootGoal, goal, this.context, this.rootGoal.tracer);
+    final Goal newGoal = new Goal(this.rootGoal, goal, this.context, null, this.rootGoal.tracer);
     final Goal prevGoal = newGoal.prevGoalAtChain;
     if (prevGoal != null) {
       newGoal.prevGoalAtChain = prevGoal.prevGoalAtChain;
@@ -429,7 +350,7 @@ public class Goal {
               goalToProcess = this.rootGoal.rootLastGoalAtChain;
 
               if (goalToProcess.nextAndTerm != null) {
-                final Goal nextGoal = new Goal(this.rootGoal, goalToProcess.nextAndTerm, localcontext, this.rootGoal.tracer);
+                final Goal nextGoal = new Goal(this.rootGoal, goalToProcess.nextAndTerm, localcontext, null, this.rootGoal.tracer);
                 nextGoal.nextAndTerm = goalToProcess.nextAndTermForNextGoal;
               } else {
                 result = this.rootGoal.goalTerm;
@@ -455,15 +376,6 @@ public class Goal {
     return result;
   }
 
-  /**
-   * Internal resolving function allows to work with the goal chain
-   *
-   * @return GOALRESULT_FAIL if the goal failed, GOALRESULT_SOLVED if the goal
-   * solved and GOALRESULT_STACK_CHANGED if the goal stack is changed and need
-   * to be resolved
-   * @throws InterruptedException it will be thrown if the process is
-   * interrupted
-   */
   private int resolve() throws InterruptedException {
     if (Thread.currentThread().isInterrupted()) {
       throw new InterruptedException();
@@ -620,7 +532,7 @@ public class Goal {
                       // or
                       if (getAuxObject() == null) {
                         // left subbranch
-                        final Goal leftSubbranch = new Goal(this.rootGoal, struct.getElement(0), this.context, this.tracer);
+                        final Goal leftSubbranch = new Goal(this.rootGoal, struct.getElement(0), this.context, null, this.tracer);
                         leftSubbranch.nextAndTerm = this.nextAndTerm;
                         setAuxObject(leftSubbranch);
                       } else {

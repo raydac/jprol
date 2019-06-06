@@ -17,6 +17,7 @@ package com.igormaznitsa.prol.utils;
 
 import com.igormaznitsa.prol.annotations.*;
 import com.igormaznitsa.prol.data.*;
+import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 import com.igormaznitsa.prol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.prol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.prol.libraries.AbstractProlLibrary;
@@ -41,12 +42,6 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * It is an auxulary class which contains different useful functions for work
- * with the Prol engine
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 public final class Utils {
 
     @FunctionalInterface
@@ -76,6 +71,15 @@ public final class Utils {
         }
     }
 
+    public static boolean isPrologVariable(final String name) {
+        boolean result = false;
+        if (name.length()>0) {
+            final char firstChar = name.charAt(0);
+            result = firstChar == '_' || (Character.isAlphabetic(firstChar) && Character.isUpperCase(firstChar));
+        }
+        return result;
+    }
+    
     public static void writeFileAsUTF8Str(final File file, final CharSequence seq) throws IOException {
         try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false), StandardCharsets.UTF_8))) {
             writer.write(seq.toString());
@@ -231,19 +235,6 @@ public final class Utils {
         }
     }
 
-    /**
-     * Encode a prolog list into a prolog structure where all elements of the
-     * list will be the elements of the structure. The first element of the list
-     * will be the functor.
-     *
-     * @param context a prol context which will be used during the operation to
-     * find predicate processors, must not be null.
-     * @param list the list to be converted into a prolog structure, must not be
-     * null
-     * @return if the list is the null list, the <empty> term will be returned,
-     * else a prolog structure contains the first list element as the functor
-     * and other list elements as elements of the structure.
-     */
     public static Term getListAsAtom(final ProlContext context, final TermList list) {
         if (list == TermList.NULLLIST) {
             return new Term("<empty>");
@@ -285,13 +276,6 @@ public final class Utils {
         }
     }
 
-    /**
-     * Convert a term array into a term list
-     *
-     * @param array an array to be converted
-     * @return if an array is null or has zero length then NULLLIST will be
-     * returned else a TermList contains all elements of the array
-     */
     public static TermList arrayToList(final Term[] array) {
         if (array == null || array.length == 0) {
             return TermList.NULLLIST;
@@ -338,12 +322,6 @@ public final class Utils {
         return arraylist.toArray(new Term[0]);
     }
 
-    /**
-     * Unroll a term into a term list.
-     *
-     * @param element a term to be unrolled into a term list, must not be null
-     * @return a term list contains elements form the source term
-     */
     public static TermList unrollTermIntoList(final Term element) {
         switch (element.getTermType()) {
             case Term.TYPE_LIST:
@@ -363,14 +341,6 @@ public final class Utils {
         }
     }
 
-    /**
-     * Arrange variables (replace a variable for a name by the such named value
-     * from the mapping table) in two terms
-     *
-     * @param struct the term to be processed, must not be null
-     * @param variables the table used to save mapped variables, must not be
-     * null
-     */
     private static void processTermForArrangeVariables(final Term term, final Map<String, Var> variables) {
         switch (term.getTermType()) {
             case Term.TYPE_LIST: {
@@ -422,28 +392,12 @@ public final class Utils {
         }
     }
 
-    /**
-     * Arrange variables between two terms (to make named variable links to the
-     * same objects in both terms)
-     *
-     * @param termOne the first term, must not be null
-     * @param termTwo the second term, must not be null
-     */
     public static void arrangeVariablesInsideTerms(final Term termOne, final Term termTwo) {
         final Map<String, Var> varMap = new HashMap<>();
         processTermForArrangeVariables(termOne, varMap);
         processTermForArrangeVariables(termTwo, varMap);
     }
 
-    /**
-     * Out all information about found predicates in a prol library into a
-     * PrintOut
-     *
-     * @param out a PrintStream to output the text information, must not be null
-     * @param libraryClass a library class which will be processed to find all
-     * predicate definitions inside, must not be null
-     * @see com.igormaznitsa.prol.libraries.AbstractProlLibrary
-     */
     public static void printPredicatesForLibrary(final PrintStream out, final Class<?> libraryClass) {
         if (!AbstractProlLibrary.class.isAssignableFrom(libraryClass)) {
             out.println(libraryClass.getCanonicalName() + " is not an AbstractLibrary class");
@@ -507,35 +461,12 @@ public final class Utils {
         }
     }
 
-    /**
-     * Out a number spaces into a print stream
-     *
-     * @param out the print stream for the output, must not be null
-     * @param number the number of space chars to be out into the stream
-     */
     public static void spaces(final PrintStream out, final int number) {
         for (int li = 0; li < number; li++) {
             out.print(' ');
         }
     }
 
-    /**
-     * Out a term as a tree into the System.out
-     *
-     * @param term the term to be shown as a tree, must not be null
-     */
-    public static void printTree(final Term term) {
-        printTree(System.out, 0, term);
-    }
-
-    /**
-     * Out a term as a tree into a PrintStream
-     *
-     * @param out the output stream which will be used for the output, must not
-     * be null
-     * @param spaces the output position offset from the left side
-     * @param term the term to be out, must not be null
-     */
     public static void printTree(final PrintStream out, final int spaces, final Term term) {
         switch (term.getTermType()) {
             case Term.TYPE_STRUCT: {
@@ -561,21 +492,6 @@ public final class Utils {
         }
     }
 
-    /**
-     * Out a term state into the System.out
-     *
-     * @param term the term which state will be out, must not be null
-     */
-    public static void printTermState(final Term term) {
-        printTermState(System.out, term);
-    }
-
-    /**
-     * Out a term state into a PrintStream
-     *
-     * @param out a PrintStream to be used for output, must not be null
-     * @param term a term to be out into the stream
-     */
     public static void printTermState(final PrintStream out, final Term term) {
         out.println(term.getSourceLikeRepresentation());
 
@@ -596,12 +512,6 @@ public final class Utils {
         }
     }
 
-    /**
-     * Encode text string to be possible use it in a prolog source file
-     *
-     * @param string a string to be processed, must not be null
-     * @return the result of the processing as a String
-     */
     public static String encodeTextSourceLike(final String string) {
 
         if (string.length() == 0) {
@@ -650,20 +560,6 @@ public final class Utils {
         return builder.toString();
     }
 
-    /**
-     * The function allows to make a consultation from a resource addresed by
-     * its URL. You can use "this://[resource_path]" to get access to the
-     * resource through ContextClassLoader.getResourceAsStrean()
-     *
-     * @param url the url of a resource which will be used for the consultation,
-     * must not be null
-     * @param context the context which will be as the owner for the
-     * information, must not be null
-     * @throws IOException it will be thrown if the information can't be read
-     * from the source
-     * @throws InterruptedException it will be thrown if the thread has been
-     * interrupted
-     */
     public static void consultFromURLConnection(final String url, final ProlContext context) throws IOException, InterruptedException {
         if (url == null || context == null) {
             throw new IllegalArgumentException("There is a null as an argument");
@@ -699,15 +595,6 @@ public final class Utils {
         }
     }
 
-    /**
-     * Allows to decode a structure contains a term signature and usually
-     * represented as predicate_name/arity (as an example test/2)
-     *
-     * @param term a predicate which is either a structure or a variable
-     * instantiated by a structure, must not be null
-     * @return decoded predicate signature as a String or null if it is
-     * impossible to extract a signature from the structure
-     */
     public static String extractPredicateSignatureFromStructure(final Term term) {
         final TermStruct struct = (TermStruct) Utils.getTermFromElement(term);
 
@@ -723,15 +610,6 @@ public final class Utils {
         return null;
     }
 
-    /**
-     * Check that the signature has normal view (name/arity) and if not
-     * ('name'/arity), then correct it
-     *
-     * @param signature a signature to be checked and corrected, must not be
-     * null
-     * @return corrected signature as a String or null if the argument is not a
-     * signature
-     */
     public static String normalizeSignature(final String signature) {
         if (signature == null) {
             return null;
@@ -757,13 +635,6 @@ public final class Utils {
         return sig;
     }
 
-    /**
-     * Allows to get a Var contained inside a Term
-     *
-     * @param term the term which will be used for search, must not be null
-     * @param name the variable name, must not be null
-     * @return a Var object for the name or null if it is not found
-     */
     public static Var findVarInsideTerm(final Term term, final String name) {
         if (term == null || name == null) {
             throw new NullPointerException();
@@ -868,5 +739,142 @@ public final class Utils {
             }
         }
         return null;
+    }
+    
+    public static Object term2obj(final ProlContext context, final Term term) {
+        final Term cterm = Utils.getTermFromElement(term);
+        Object result = null;
+        switch (cterm.getTermType()) {
+            case Term.TYPE_ATOM: {
+                if (cterm instanceof NumericTerm) {
+                    // as numeric value
+                    result = ((TermInteger) cterm).getNumericValue();
+                } else {
+                    // find mapped object
+                    final String termtext = cterm.getText();
+                    result = context.findMappedObjectForName(termtext);
+                    if (result == null) {
+                        // there is not any mapped object, so return the text
+                        result = termtext;
+                    }
+                }
+            }
+            break;
+            case Term.TYPE_LIST: {
+                // make List<Object>
+                final List<Object> list = new ArrayList<>();
+                TermList tlist = (TermList) cterm;
+                while (tlist.isNullList()) {
+                    list.add(term2obj(context, tlist.getHead()));
+                    final Term tail = tlist.getTail();
+                    if (tail.getTermType() == Term.TYPE_LIST) {
+                        tlist = (TermList) tail;
+                    } else {
+                        list.add(term2obj(context, tail));
+                        break;
+                    }
+                }
+                result = list;
+            }
+            break;
+            case Term.TYPE_OPERATORS:
+            case Term.TYPE_OPERATOR: {
+                // just as text
+                result = cterm.getText();
+            }
+            break;
+            case Term.TYPE_STRUCT: {
+                // struct
+                final TermStruct sterm = (TermStruct) cterm;
+                final int size = sterm.getArity() + 1;
+                final Object[] array = new Object[size];
+
+                // the first element is the term
+                array[0] = term2obj(context, sterm.getFunctor());
+
+                // other elements
+                for (int li = 1; li < size; li++) {
+                    array[li] = term2obj(context, sterm.getElement(li - 1));
+                }
+
+                result = array;
+            }
+            break;
+            case Term.TYPE_VAR: {
+                throw new IllegalArgumentException("It is non instantiate variable \'" + cterm.getText() + "\'");
+            }
+            default: {
+                throw new ProlCriticalError("Unsupported term type");
+            }
+        }
+        return result;
+    }
+
+    public static Term obj2term(final Object object) {
+        Term result = null;
+
+        if (object == null) {
+            // return NULLLIST
+            result = TermList.NULLLIST;
+        } else if (object instanceof Term) {
+            result = (Term) object;
+        } else if (object instanceof ConvertableToTerm) {
+            final ConvertableToTerm cterm = (ConvertableToTerm) object;
+            result = cterm.asProlTerm();
+            if (result == null) {
+                throw new NullPointerException("asProlTerm() returned null [" + object.toString() + ']');
+            }
+        } else if (object instanceof String) {
+            // atom or mapped object
+            result = new Term((String) object);
+        } else if (object instanceof Number) {
+            if (object instanceof Integer) {
+                result = new TermInteger(((Integer) object));
+            } else if (object instanceof Float) {
+                result = new TermFloat(((Float) object));
+            } else {
+                throw new IllegalArgumentException("Unsupported number format.");
+            }
+        } else if (object instanceof Collection) {
+            // list
+            final Collection<?> lst = (Collection) object;
+
+            if (lst.isEmpty()) {
+                result = TermList.NULLLIST;
+            } else {
+                TermList accumulator = null;
+                // fill the list
+                for (Object item : lst) {
+                    if (accumulator == null) {
+                        accumulator = new TermList(obj2term(item));
+                        result = accumulator; // the first list
+                    } else {
+                        accumulator = TermList.appendItem(accumulator, obj2term(item));
+                    }
+                }
+            }
+        } else if (object instanceof Object[]) {
+            // struct
+            final Object[] array = (Object[]) object;
+            final int arrlen = array.length;
+            if (arrlen == 0) {
+                // as null list
+                result = TermList.NULLLIST;
+            } else {
+                final Term functor = new Term(array[0].toString());
+                if (arrlen == 1) {
+                    result = new TermStruct(functor);
+                } else {
+                    final Term[] terms = new Term[arrlen - 1];
+                    for (int li = 1; li < arrlen; li++) {
+                        terms[li - 1] = obj2term(array[li]);
+                    }
+                    result = new TermStruct(functor, terms);
+                }
+            }
+        } else {
+            throw new IllegalArgumentException("Unsupported object to be represented as a Term");
+        }
+        return result;
     }
 }
