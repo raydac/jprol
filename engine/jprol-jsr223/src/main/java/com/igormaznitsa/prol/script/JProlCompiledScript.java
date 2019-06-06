@@ -1,6 +1,7 @@
 package com.igormaznitsa.prol.script;
 
 import com.igormaznitsa.prol.data.Term;
+import com.igormaznitsa.prol.exceptions.ParserException;
 import com.igormaznitsa.prol.logic.Goal;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlReader;
@@ -34,6 +35,8 @@ final class JProlCompiledScript extends CompiledScript {
   private static Term parseScript(final ProlReader reader, final ProlContext context) throws ScriptException {
     try {
       return new ProlTreeBuilder(context).readPhraseAndMakeTree(reader);
+    } catch (ParserException ex) {
+      throw new ScriptException(ex.getMessage(), "script", ex.getLine(), ex.getPos());
     } catch (IOException ex) {
       throw new ScriptException(ex);
     }
