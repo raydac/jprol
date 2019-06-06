@@ -24,7 +24,7 @@ import java.util.NoSuchElementException;
  * a knowledge base clause list and compare them with the template
  *
  * @author Igor Maznitsa (igor.maznitsa@igormaznitrsa.com)
- * @see com.igormaznitsa.prol.containers.KnowledgeBaseInsideClauseList
+ * @see com.igormaznitsa.prol.containers.InternalKnowledgeBaseClauseList
  * @see com.igormaznitsa.prol.data.TermStruct
  */
 class MemoryClauseIterator implements ClauseIterator {
@@ -33,7 +33,7 @@ class MemoryClauseIterator implements ClauseIterator {
    * The variable contains the knowledge base clause list which is being used by
    * the iterator
    */
-  protected final KnowledgeBaseInsideClauseList predicateList;
+  protected final InternalKnowledgeBaseClauseList predicateList;
 
   /**
    * The variable contains the template which is being used by the iterator to
@@ -44,7 +44,7 @@ class MemoryClauseIterator implements ClauseIterator {
   /**
    * The variable contains the last found value by the iterator
    */
-  protected InsideClauseListItem lastFound;
+  protected InternalClauseListItem lastFound;
 
   /**
    * The constructor
@@ -54,7 +54,7 @@ class MemoryClauseIterator implements ClauseIterator {
    * @param template the template to be used to find values in the clause list,
    * must not be null
    */
-  public MemoryClauseIterator(final KnowledgeBaseInsideClauseList list, final TermStruct template) {
+  public MemoryClauseIterator(final InternalKnowledgeBaseClauseList list, final TermStruct template) {
     predicateList = list;
     this.template = (TermStruct) template.makeClone();
     lastFound = findFirstElement();
@@ -75,7 +75,7 @@ class MemoryClauseIterator implements ClauseIterator {
    *
    * @return the first clause list item or null if it is not found
    */
-  protected InsideClauseListItem findFirstElement() {
+  protected InternalClauseListItem findFirstElement() {
     return predicateList.findDirect(template, null);
   }
 

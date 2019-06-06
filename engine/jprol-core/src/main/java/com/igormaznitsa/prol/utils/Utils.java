@@ -560,7 +560,7 @@ public final class Utils {
         return builder.toString();
     }
 
-    public static void consultFromURLConnection(final String url, final ProlContext context) throws IOException, InterruptedException {
+    public static void consultFromURLConnection(final String url, final ProlContext context) throws IOException {
         if (url == null || context == null) {
             throw new IllegalArgumentException("There is a null as an argument");
         }

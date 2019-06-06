@@ -14,7 +14,7 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
-public final class JProlCompiledScript extends CompiledScript {
+final class JProlCompiledScript extends CompiledScript {
 
   private final JProlScriptEngine engine;
   private final Term compiled;
@@ -44,14 +44,14 @@ public final class JProlCompiledScript extends CompiledScript {
     final JProlScriptContext jprolContext = (JProlScriptContext) context;
     try {
       final Map<String, Term> predefinedValues = new HashMap<>();
-      JProlScriptEngine.fillGoalByBindings(jprolContext.getJprolBindings(ScriptContext.GLOBAL_SCOPE), predefinedValues);
-      JProlScriptEngine.fillGoalByBindings(jprolContext.getJprolBindings(ScriptContext.ENGINE_SCOPE), predefinedValues);
+      JProlScriptEngine.fillGoalByBindings(jprolContext.getJProlBindings(ScriptContext.GLOBAL_SCOPE), predefinedValues);
+      JProlScriptEngine.fillGoalByBindings(jprolContext.getJProlBindings(ScriptContext.ENGINE_SCOPE), predefinedValues);
       final Goal preparedGoal = new Goal(this.compiled.makeClone(), jprolContext.getProlContext(), predefinedValues, null);
       
       final Object result = preparedGoal.solve();
       
       if (result != null) {
-        jprolContext.getJprolBindings(ScriptContext.ENGINE_SCOPE).fillByValues(preparedGoal.findAllInstantiatedVars());
+        jprolContext.getJProlBindings(ScriptContext.ENGINE_SCOPE).fillByValues(preparedGoal.findAllInstantiatedVars());
       }
       
       return result;

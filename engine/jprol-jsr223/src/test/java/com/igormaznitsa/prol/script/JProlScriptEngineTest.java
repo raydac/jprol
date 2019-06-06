@@ -24,45 +24,56 @@ import static org.junit.Assert.*;
 
 public class JProlScriptEngineTest {
 
-    private static final ScriptEngineFactory JPROL_ENGINE_FACTORY = new JProlScriptEngineFactory();
+  private static final ScriptEngineFactory JPROL_ENGINE_FACTORY = new JProlScriptEngineFactory();
 
-    @Test
-    public void testEval() throws Exception {
-        final ScriptEngine engine = JPROL_ENGINE_FACTORY.getScriptEngine();
-        assertNull(engine.eval("X is 5 * 10, X = 10."));
-        assertNull(engine.eval("X is 5 * 10, X = 10."));
-        assertNotNull(engine.eval("X is 5 * 10, X = 50.", engine.getContext()));
-        assertNotNull(engine.eval("X is 5 * 10, X = 50.", engine.getContext()));
+  @Test
+  public void testEval() throws Exception {
+    final ScriptEngine engine = JPROL_ENGINE_FACTORY.getScriptEngine();
+    assertNull(engine.eval("X is 5 * 10, X = 10."));
+    assertNull(engine.eval("X is 5 * 10, X = 10."));
+    assertNotNull(engine.eval("X is 5 * 10, X = 50.", engine.getContext()));
+    assertNotNull(engine.eval("X is 5 * 10, X = 50.", engine.getContext()));
+  }
+
+  @Test
+  public void testCompiled() throws Exception {
+    final ScriptEngine engine = JPROL_ENGINE_FACTORY.getScriptEngine();
+
+    final CompiledScript success = ((Compilable) engine).compile("X is 5 * 10, X = 50.");
+    for (int i = 0; i < 10; i++) {
+      assertNotNull(success.eval());
     }
 
-    @Test
-    public void testCompiled() throws Exception {
-        final ScriptEngine engine = JPROL_ENGINE_FACTORY.getScriptEngine();
-
-        final CompiledScript success = ((Compilable) engine).compile("X is 5 * 10, X = 50.");
-        for (int i = 0; i < 10; i++) {
-            assertNotNull(success.eval());
-        }
-
-        final CompiledScript failed = ((Compilable) engine).compile("X is 5 * 10, X = 10.");
-        for (int i = 0; i < 10; i++) {
-            assertNull(failed.eval());
-        }
+    final CompiledScript failed = ((Compilable) engine).compile("X is 5 * 10, X = 10.");
+    for (int i = 0; i < 10; i++) {
+      assertNull(failed.eval());
     }
-    
-    @Test
-    public void testBindings() throws Exception {
-        final ScriptEngine engine = JPROL_ENGINE_FACTORY.getScriptEngine();
-        engine.put("X", "world");
-        assertNotNull(engine.eval("write(X)."));
-    }
+  }
 
-    @Test
-    public void testBindAndGet() throws Exception {
-        final ScriptEngine engine = JPROL_ENGINE_FACTORY.getScriptEngine();
-        engine.put("X", 5);
-        assertNotNull(engine.eval("Y is X + 10."));
-        assertEquals(15, engine.get("Y"));
-    }
+  @Test
+  public void testBindings() throws Exception {
+    final ScriptEngine engine = JPROL_ENGINE_FACTORY.getScriptEngine();
+    engine.put("X", "world");
+    assertNotNull(engine.eval("write(X)."));
+  }
+
+  @Test
+  public void testBindAndGet() throws Exception {
+    final ScriptEngine engine = JPROL_ENGINE_FACTORY.getScriptEngine();
+    engine.put("X", 5);
+    assertNotNull(engine.eval("Y is X + 10."));
+    assertEquals(15, engine.get("Y"));
+  }
+
+  @Test
+  public void testAssert() throws Exception {
+    final ScriptEngine engine = JPROL_ENGINE_FACTORY.getScriptEngine();
+    final JProlScriptContext context = (JProlScriptContext)engine.getContext();
+    assertTrue(context.findClauses("some/1").isEmpty());
+    assertNull(engine.eval("(Y=1;Y=2;Y=3),assertz(some(Y)),fail."));
+    assertEquals(3,context.findClauses("some/1").size());
+    context.abolish("some/1");
+    assertTrue(context.findClauses("some/1").isEmpty());
+  }
 
 }

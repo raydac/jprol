@@ -24,7 +24,7 @@ import com.igormaznitsa.prol.data.TermStruct;
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  * @see com.igormaznitsa.prol.containers.KnowledgeBaseInsideClauseList
  */
-public final class InsideClauseListItem {
+public final class InternalClauseListItem {
 
   /**
    * The clause which is saved by the element
@@ -41,11 +41,11 @@ public final class InsideClauseListItem {
   /**
    * The link to the previous element, can be null
    */
-  private InsideClauseListItem previous;
+  private InternalClauseListItem previous;
   /**
    * The link to the next element, can be null
    */
-  private InsideClauseListItem next;
+  private InternalClauseListItem next;
 
   /**
    * The constructor
@@ -55,7 +55,7 @@ public final class InsideClauseListItem {
    * @param clause the clause which will be saved into the list item, must not
    * be null
    */
-  protected InsideClauseListItem(final InsideClauseListItem prev, final InsideClauseListItem next, final TermStruct clause) {
+  protected InternalClauseListItem(final InternalClauseListItem prev, final InternalClauseListItem next, final TermStruct clause) {
     super();
     previous = prev;
     if (prev != null) {
@@ -107,7 +107,7 @@ public final class InsideClauseListItem {
    *
    * @return the previous list item if it exists else null
    */
-  public final InsideClauseListItem getPrevious() {
+  public final InternalClauseListItem getPrevious() {
     return previous;
   }
 
@@ -116,7 +116,7 @@ public final class InsideClauseListItem {
    *
    * @param value the previous list element, can be null
    */
-  public final void setPrevious(final InsideClauseListItem value) {
+  public final void setPrevious(final InternalClauseListItem value) {
     previous = value;
   }
 
@@ -125,7 +125,7 @@ public final class InsideClauseListItem {
    *
    * @return the next list item if it exists else null
    */
-  public final InsideClauseListItem getNext() {
+  public final InternalClauseListItem getNext() {
     return next;
   }
 
@@ -134,7 +134,7 @@ public final class InsideClauseListItem {
    *
    * @param value the new next value, can be null
    */
-  public final void setNext(final InsideClauseListItem value) {
+  public final void setNext(final InternalClauseListItem value) {
     next = value;
   }
 

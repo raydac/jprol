@@ -34,13 +34,13 @@ final class MemoryRuleIterator extends MemoryClauseIterator implements RuleItera
    * not be null
    * @param template the template to be used for search, must not be null
    */
-  public MemoryRuleIterator(final KnowledgeBaseInsideClauseList list, final TermStruct template) {
+  public MemoryRuleIterator(final InternalKnowledgeBaseClauseList list, final TermStruct template) {
     super(list, template);
   }
 
   @Override
-  protected InsideClauseListItem findFirstElement() {
-    InsideClauseListItem firstitem = null;
+  protected InternalClauseListItem findFirstElement() {
+    InternalClauseListItem firstitem = null;
 
     while (!Thread.currentThread().isInterrupted()) {
       firstitem = predicateList.findDirect(template, firstitem);

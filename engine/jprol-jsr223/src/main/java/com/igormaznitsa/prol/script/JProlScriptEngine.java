@@ -46,14 +46,14 @@ final class JProlScriptEngine extends AbstractScriptEngine implements Compilable
     try {
       final Map<String, Term> varValues = new HashMap<>();
 
-      fillGoalByBindings(context.getJprolBindings(ScriptContext.GLOBAL_SCOPE), varValues);
-      fillGoalByBindings(context.getJprolBindings(ScriptContext.ENGINE_SCOPE), varValues);
+      fillGoalByBindings(context.getJProlBindings(ScriptContext.GLOBAL_SCOPE), varValues);
+      fillGoalByBindings(context.getJProlBindings(ScriptContext.ENGINE_SCOPE), varValues);
 
       final Goal goal = new Goal(reader, context.getProlContext(), varValues.isEmpty() ? null : varValues);
       final Object result = goal.solve();
 
       if (result!=null){
-        context.getJprolBindings(ScriptContext.ENGINE_SCOPE).fillByValues(goal.findAllInstantiatedVars());
+        context.getJProlBindings(ScriptContext.ENGINE_SCOPE).fillByValues(goal.findAllInstantiatedVars());
       }
 
       return result;

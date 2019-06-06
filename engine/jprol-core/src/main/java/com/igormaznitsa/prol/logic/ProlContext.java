@@ -59,7 +59,7 @@ import java.util.logging.Logger;
 import static java.util.stream.Stream.concat;
 
 public final class ProlContext {
-  public static final String ENGINE_VERSION = "1.1.5";
+  public static final String ENGINE_VERSION = "2.0.0";
   public static final String ENGINE_NAME = "Prol";
   protected static final Logger LOG = Logger.getLogger(ProlContext.class.getCanonicalName());
   private static final String CONTEXT_HALTED_MSG = "Context halted";
@@ -112,7 +112,7 @@ public final class ProlContext {
     }
     try {
       addLibrary(coreLibraryInstance);
-    } catch (IOException | InterruptedException ex) {
+    } catch (IOException ex) {
       throw new Error("Can't load core library", ex);
     }
   }
@@ -639,7 +639,7 @@ public final class ProlContext {
     }
   }
 
-  public boolean addLibrary(final AbstractProlLibrary library) throws IOException, InterruptedException {
+  public boolean addLibrary(final AbstractProlLibrary library) throws IOException {
     if (halted) {
       throw new IllegalStateException(CONTEXT_HALTED_MSG);
     }
@@ -698,11 +698,11 @@ public final class ProlContext {
   }
 
   public KnowledgeBase getKnowledgeBase() {
-    knowledgeBaseLocker.lock();
+    this.knowledgeBaseLocker.lock();
     try {
-      return knowledgeBase;
+      return this.knowledgeBase;
     } finally {
-      knowledgeBaseLocker.unlock();
+      this.knowledgeBaseLocker.unlock();
     }
   }
 
@@ -728,11 +728,11 @@ public final class ProlContext {
     if (writer == null) {
       throw new IllegalArgumentException("Writer must not be null");
     }
-    knowledgeBaseLocker.lock();
+    this.knowledgeBaseLocker.lock();
     try {
-      knowledgeBase.write(writer);
+      this.knowledgeBase.write(writer);
     } finally {
-      knowledgeBaseLocker.unlock();
+      this.knowledgeBaseLocker.unlock();
     }
   }
 

@@ -1,7 +1,6 @@
 package com.igormaznitsa.prol.script;
 
 import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.data.Var;
 import com.igormaznitsa.prol.utils.Utils;
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,7 +19,7 @@ final class JProlBindings implements Bindings {
     private final String key;
     private final Object value;
 
-    public ConvertedEntry(final String key, final Object value) {
+    ConvertedEntry(final String key, final Object value) {
       this.key = key;
       this.value = value;
     }
@@ -36,7 +35,7 @@ final class JProlBindings implements Bindings {
     }
 
     @Override
-    public Object setValue(Object value) {
+    public Object setValue(final Object value) {
       throw new UnsupportedOperationException("Unsupported operation");
     }
   }
@@ -50,14 +49,14 @@ final class JProlBindings implements Bindings {
       this.internalMap.putAll(instantiatedVariables);
     });
   }
-  
+
   public JProlBindings(final JProlScriptContext context) {
     this.context = context;
   }
 
   private void assertPrologName(final String name) {
-    if (!Utils.isPrologVariable(name) || name.equals("_")) {
-      throw new IllegalArgumentException("Must be valid prolog variable name: " + name);
+    if (!JProlScriptUtils.isValidVarName(name)) {
+      throw new IllegalArgumentException("Must be valid Prolog non-anonymous variable name: " + name);
     }
   }
 
@@ -78,11 +77,13 @@ final class JProlBindings implements Bindings {
 
   @Override
   public boolean containsKey(final Object key) {
+    assertPrologName(String.valueOf(key));
     return this.internalMap.containsKey(key);
   }
 
   @Override
-  public Object get(Object key) {
+  public Object get(final Object key) {
+    assertPrologName(String.valueOf(key));
     final Term theTerm = this.internalMap.get(key);
     return theTerm == null ? null : Utils.term2obj(this.context.getProlContext(), theTerm);
   }
@@ -105,7 +106,10 @@ final class JProlBindings implements Bindings {
   }
 
   @Override
-  public boolean containsValue(Object value) {
+  public boolean containsValue(final Object value) {
+    if (value == null) {
+      throw new NullPointerException("Value is null");
+    }
     final Term theTerm = value instanceof Term ? (Term) value : Utils.obj2term(value);
     return this.internalMap.containsValue(theTerm);
   }

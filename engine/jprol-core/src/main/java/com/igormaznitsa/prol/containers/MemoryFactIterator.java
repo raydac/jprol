@@ -35,13 +35,13 @@ final class MemoryFactIterator extends MemoryClauseIterator implements FactItera
    * @param template the template which will be used to find facts, must not be
    * null
    */
-  public MemoryFactIterator(final KnowledgeBaseInsideClauseList list, final TermStruct template) {
+  public MemoryFactIterator(final InternalKnowledgeBaseClauseList list, final TermStruct template) {
     super(list, template);
   }
 
   @Override
-  protected InsideClauseListItem findFirstElement() {
-    InsideClauseListItem firstitem = null;
+  protected InternalClauseListItem findFirstElement() {
+    InternalClauseListItem firstitem = null;
 
     while (!Thread.currentThread().isInterrupted()) {
       firstitem = predicateList.findDirect(template, firstitem);

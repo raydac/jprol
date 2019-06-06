@@ -21,6 +21,7 @@ import com.igormaznitsa.prol.logic.ProlContext;
 
 import java.io.PrintWriter;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * The interface describes a prol knowledge base which can be used by a
@@ -136,6 +137,8 @@ public interface KnowledgeBase {
    */
   ClauseIterator getClauseIterator(TermStruct template);
 
+  List<TermStruct> findAllForSignature(final String signature);
+  
   /**
    * Add a clause as Z-clause into the knowledge base
    *

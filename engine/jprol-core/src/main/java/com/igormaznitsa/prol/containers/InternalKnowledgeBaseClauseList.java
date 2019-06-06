@@ -19,72 +19,38 @@ import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * A special system class which allows to save clauses as a list
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
-final class KnowledgeBaseInsideClauseList {
+final class InternalKnowledgeBaseClauseList {
 
-  /**
-   * The link to the first list element, can be null (only if the last is null
-   * too)
-   */
-  private InsideClauseListItem first;
-  /**
-   * The link to the last list element, can be null (only if the first is null
-   * too)
-   */
-  private InsideClauseListItem last;
+  private InternalClauseListItem first;
+  private InternalClauseListItem last;
 
-  /**
-   * The constructor
-   */
-  KnowledgeBaseInsideClauseList() {
+  InternalKnowledgeBaseClauseList() {
     super();
     first = null;
     last = null;
   }
 
-  /**
-   * To assert a clause as the A-Clause into the list
-   *
-   * @param struct the clause to be inserted into the list as the first element
-   * (must not be null)
-   * @return true if the operation is successfull else false
-   */
   boolean asserta(final TermStruct struct) {
-    first = new InsideClauseListItem(null, first, struct);
+    first = new InternalClauseListItem(null, first, struct);
     if (last == null) {
       last = first;
     }
     return true;
   }
 
-  /**
-   * To assert a clause as the Z-Clause into the list
-   *
-   * @param struct the struct to be inserted into the list as the last element
-   * (must not be null)
-   * @return true if the operation is successfull else false
-   */
   boolean assertz(final TermStruct struct) {
-    last = new InsideClauseListItem(last, null, struct);
+    last = new InternalClauseListItem(last, null, struct);
     if (first == null) {
       first = last;
     }
     return true;
   }
 
-  /**
-   * To retract the first found clause which compatible with a template
-   *
-   * @param template the template to find a clause, must not be null
-   * @return true if the operation is successfull else false
-   */
   boolean retracta(final TermStruct template) {
-    InsideClauseListItem container = null;
+    InternalClauseListItem container = null;
 
     boolean result = false;
 
@@ -103,14 +69,8 @@ final class KnowledgeBaseInsideClauseList {
     return result;
   }
 
-  /**
-   * To retract the last found clause which compatible with a template
-   *
-   * @param template the template to find a clause, must not be null
-   * @return true if the operation is successfull else false
-   */
   boolean retractz(final TermStruct template) {
-    InsideClauseListItem container = null;
+    InternalClauseListItem container = null;
 
     while (!Thread.currentThread().isInterrupted()) {
       if ((container = findBack(template, container)) == null) {
@@ -126,14 +86,8 @@ final class KnowledgeBaseInsideClauseList {
     return false;
   }
 
-  /**
-   * To retract all found clauses which compatible with a template
-   *
-   * @param template the template to find clauses, must not be null
-   * @return true if the operation is successfull else false
-   */
   int retractall(final TermStruct template) {
-    InsideClauseListItem container = null;
+    InternalClauseListItem container = null;
     int result = 0;
 
     while ((container = findDirect(template, container)) != null) {
@@ -149,11 +103,6 @@ final class KnowledgeBaseInsideClauseList {
     return result;
   }
 
-  /**
-   * Calculate the size of the list
-   *
-   * @return the list size as integer
-   */
   int size() {
     int size = 0;
 
@@ -161,7 +110,7 @@ final class KnowledgeBaseInsideClauseList {
       return 0;
     }
 
-    InsideClauseListItem curContainer = first;
+    InternalClauseListItem curContainer = first;
     while (curContainer != null) {
       curContainer = curContainer.getNext();
       size++;
@@ -169,16 +118,19 @@ final class KnowledgeBaseInsideClauseList {
     return size;
   }
 
-  /**
-   * Find next compatible clause with a template
-   *
-   * @param template the template to find a compatible clause
-   * @param sinceContainer the item container which will be used as the first
-   * for the search
-   * @return the first found container contains a potentially compatible clause
-   * or null if it has not been found
-   */
-  InsideClauseListItem findDirect(final TermStruct template, InsideClauseListItem sinceContainer) {
+  public List<TermStruct> asList() {
+    final List<TermStruct> result = new ArrayList<>();
+  
+    InternalClauseListItem current = this.first;
+    while(current!=null){
+      result.add(current.getClause());
+      current = current.getNext();
+    }
+    
+    return result;
+  }
+  
+  InternalClauseListItem findDirect(final TermStruct template, InternalClauseListItem sinceContainer) {
 
     if (sinceContainer == null) {
       sinceContainer = first;
@@ -186,7 +138,7 @@ final class KnowledgeBaseInsideClauseList {
       sinceContainer = sinceContainer.getNext();
     }
 
-    InsideClauseListItem result = null;
+    InternalClauseListItem result = null;
 
     while (sinceContainer != null) {
 
@@ -205,23 +157,14 @@ final class KnowledgeBaseInsideClauseList {
     return result;
   }
 
-  /**
-   * Find next compatible clause with a template
-   *
-   * @param template the template to find a compatible clause
-   * @param sinceContainer the item container which will be used as the first
-   * for the search
-   * @return the first found container contains a compatible clause or null if
-   * it has not been found
-   */
-  InsideClauseListItem findBack(final TermStruct template, InsideClauseListItem sinceContainer) {
+  InternalClauseListItem findBack(final TermStruct template, InternalClauseListItem sinceContainer) {
     if (sinceContainer == null) {
       sinceContainer = last;
     } else {
       sinceContainer = sinceContainer.getPrevious();
     }
 
-    InsideClauseListItem result = null;
+    InternalClauseListItem result = null;
 
     while (sinceContainer != null) {
       final Term keyterm = sinceContainer.getKeyTerm();
@@ -237,16 +180,11 @@ final class KnowledgeBaseInsideClauseList {
     return result;
   }
 
-  /**
-   * Write current saved clauses as a prolog source into the writer
-   *
-   * @param writer the write which will be used to out clauses, must not be null
-   */
   void write(final PrintWriter writer) {
     if (writer == null) {
       throw new NullPointerException("Writer is null");
     }
-    InsideClauseListItem item = first;
+    InternalClauseListItem item = first;
     while (!Thread.currentThread().isInterrupted()) {
       if (item == null) {
         break;
@@ -257,15 +195,10 @@ final class KnowledgeBaseInsideClauseList {
     writer.println();
   }
 
-  /**
-   * Make a copy of the list, it copies only structure.
-   *
-   * @return the copy of the clause list
-   */
-  public KnowledgeBaseInsideClauseList makeCopy() {
-    final KnowledgeBaseInsideClauseList copy = new KnowledgeBaseInsideClauseList();
+  public InternalKnowledgeBaseClauseList makeCopy() {
+    final InternalKnowledgeBaseClauseList copy = new InternalKnowledgeBaseClauseList();
 
-    InsideClauseListItem current = first;
+    InternalClauseListItem current = first;
 
     while (!Thread.currentThread().isInterrupted()) {
       if (current == null) {

@@ -80,9 +80,9 @@ public final class JProlScriptEngineFactory implements ScriptEngineFactory {
   }
 
   @Override
-  public String getMethodCallSyntax(String obj, String m, String... args) {
+  public String getMethodCallSyntax(final String obj, final String method, final String... args) {
     final StringBuilder result = new StringBuilder(obj);
-    result.append(":").append(m).append('(');
+    result.append(":").append(method).append('(');
     String delimiter = "";
     for (final String a : args) {
       result.append(delimiter).append(a);
@@ -94,12 +94,12 @@ public final class JProlScriptEngineFactory implements ScriptEngineFactory {
 
   @Override
   public String getOutputStatement(final String toDisplay) {
-    return "?- write(" + new Term(toDisplay).getSourceLikeRepresentation() + ") .";
+    return String.format("write(%s)", new Term(toDisplay).getSourceLikeRepresentation());
   }
 
   @Override
   public String getProgram(final String... statements) {
-    return Arrays.stream(statements).collect(Collectors.joining(" , ", "?- ", " ."));
+    return Arrays.stream(statements).collect(Collectors.joining(" , ", "", " ."));
   }
 
   @Override
