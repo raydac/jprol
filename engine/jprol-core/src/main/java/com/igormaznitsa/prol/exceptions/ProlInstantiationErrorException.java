@@ -84,7 +84,6 @@ public class ProlInstantiationErrorException extends ProlAbstractCatcheableExcep
   @Override
   public TermStruct getAsStruct() {
     final TermStruct result = new TermStruct(TERM_ERROR);
-    result.setCarriedObject(this);
     return result;
   }
 }

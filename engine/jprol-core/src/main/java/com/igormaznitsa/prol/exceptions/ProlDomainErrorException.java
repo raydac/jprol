@@ -105,7 +105,6 @@ public class ProlDomainErrorException extends ProlAbstractCatcheableException {
   @Override
   public TermStruct getAsStruct() {
     final TermStruct result = new TermStruct(ERROR_TERM, new Term[]{validDomain == null ? UNDEFINED : new Term(validDomain), getCulprit() == null ? UNDEFINED : getCulprit()});
-    result.setCarriedObject(this);
     return result;
   }
 }

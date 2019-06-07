@@ -103,7 +103,6 @@ public class ProlRepresentationErrorException extends ProlAbstractCatcheableExce
   @Override
   public TermStruct getAsStruct() {
     final TermStruct result = new TermStruct(TERM_ERROR, new Term[]{this.flag == null ? UNDEFINED : new Term(this.flag)});
-    result.setCarriedObject(this);
     return result;
   }
 }

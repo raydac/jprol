@@ -108,7 +108,6 @@ public class ProlEvaluationErrorException extends ProlAbstractCatcheableExceptio
   @Override
   public TermStruct getAsStruct() {
     final TermStruct result = new TermStruct(TERM_ERROR, new Term[]{this.error == null ? UNDEFINED : new Term(this.error)});
-    result.setCarriedObject(this);
     return result;
   }
 }

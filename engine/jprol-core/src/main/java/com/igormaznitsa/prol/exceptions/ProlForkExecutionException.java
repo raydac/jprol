@@ -81,7 +81,6 @@ public class ProlForkExecutionException extends ProlAbstractCatcheableException 
   @Override
   public TermStruct getAsStruct() {
     final TermStruct result = new TermStruct(ERROR_TERM, new Term[]{new TermInteger(throwables.length)});
-    result.setCarriedObject(this);
     return result;
   }
 

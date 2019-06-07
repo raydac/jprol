@@ -132,7 +132,6 @@ public class ProlPermissionErrorException extends ProlAbstractCatcheableExceptio
   @Override
   public TermStruct getAsStruct() {
     final TermStruct struct = new TermStruct(TERM_ERROR, new Term[]{(operation == null ? UNDEFINED : new Term(operation)), (permissionType == null ? UNDEFINED : new Term(permissionType)), getCulprit() == null ? UNDEFINED : getCulprit()});
-    struct.setCarriedObject(this);
     return struct;
   }
 

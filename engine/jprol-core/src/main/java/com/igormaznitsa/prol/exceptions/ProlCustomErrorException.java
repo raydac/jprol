@@ -70,7 +70,6 @@ public class ProlCustomErrorException extends ProlAbstractCatcheableException {
     } else {
       result = new TermStruct(error);
     }
-    result.setCarriedObject(this);
     return result;
   }
 

@@ -104,7 +104,6 @@ public class ProlTypeErrorException extends ProlAbstractCatcheableException {
   @Override
   public TermStruct getAsStruct() {
     final TermStruct result = new TermStruct(TERM_ERROR, new Term[]{validType == null ? UNDEFINED : new Term(validType), getCulprit() == null ? UNDEFINED : getCulprit()});
-    result.setCarriedObject(this);
     return result;
   }
 

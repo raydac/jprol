@@ -96,7 +96,6 @@ public class ProlExistenceErrorException extends ProlAbstractCatcheableException
   @Override
   public TermStruct getAsStruct() {
     final TermStruct term = new TermStruct(objectType, new Term[]{objectType == null ? UNDEFINED : new Term(objectType), getCulprit() == null ? UNDEFINED : getCulprit()});
-    term.setCarriedObject(this);
     return term;
   }
 
