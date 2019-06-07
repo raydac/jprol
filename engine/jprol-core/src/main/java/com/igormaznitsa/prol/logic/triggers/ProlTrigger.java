@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.logic.triggers;
 
 import com.igormaznitsa.prol.logic.ProlContext;
@@ -35,22 +36,7 @@ public interface ProlTrigger {
    */
   Map<String, ProlTriggerType> getSignatures();
 
-  /**
-   * The function will be called when the context fidn out that there is inside
-   * assert or retract operation over a predicate mapped on the trigger
-   *
-   * @param event the event object describes the operation over the predicate,
-   * must not be null
-   * @throws InterruptedException it will be thrown if handling is interrupted
-   */
   void onTriggerEvent(TriggerEvent event) throws InterruptedException;
 
-  /**
-   * The function will be called only once when a prol context (where the
-   * trigger has been registered one or more times), is halting (the halted
-   * state already set on the context so it is not possible to process goals)
-   *
-   * @param context the signaler , must not be null
-   */
   void onContextHalting(ProlContext context);
 }

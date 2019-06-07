@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,26 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.easygui;
+
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rtextarea.RTextScrollPane;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.event.TreeModelListener;
+import javax.swing.text.JTextComponent;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.prefs.Preferences;
-import javax.swing.event.HyperlinkListener;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rtextarea.RTextScrollPane;
 
 /**
  * The class extends a Scroll pane and is used as the ancestor for all text
@@ -113,26 +112,6 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     this.POPUP_MENU.add(this.POPUP_CLEARTEXT);
 
     this.editor.setComponentPopupMenu(this.POPUP_MENU);
-  }
-
-  public void addHyperlinkListener(final HyperlinkListener listener) {
-    if (this.editor instanceof JEditorPane) {
-      ((JEditorPane) this.editor).addHyperlinkListener(listener);
-    }
-  }
-
-  public void removeHypelinkListener(final HyperlinkListener listener) {
-    if (this.editor instanceof JEditorPane) {
-      ((JEditorPane) this.editor).removeHyperlinkListener(listener);
-    }
-  }
-
-  public void setContentType(final String mime) {
-    if (this.editor instanceof JEditorPane) {
-      ((JEditorPane) this.editor).setContentType(mime);
-    } else if (this.editor instanceof RSyntaxTextArea) {
-      ((RSyntaxTextArea) this.editor).setSyntaxEditingStyle(mime);
-    }
   }
 
   protected static Color extractColor(final Preferences prefs, final String name) {
@@ -288,6 +267,26 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
       }
     }
     return sb.toString();
+  }
+
+  public void addHyperlinkListener(final HyperlinkListener listener) {
+    if (this.editor instanceof JEditorPane) {
+      ((JEditorPane) this.editor).addHyperlinkListener(listener);
+    }
+  }
+
+  public void removeHypelinkListener(final HyperlinkListener listener) {
+    if (this.editor instanceof JEditorPane) {
+      ((JEditorPane) this.editor).removeHyperlinkListener(listener);
+    }
+  }
+
+  public void setContentType(final String mime) {
+    if (this.editor instanceof JEditorPane) {
+      ((JEditorPane) this.editor).setContentType(mime);
+    } else if (this.editor instanceof RSyntaxTextArea) {
+      ((RSyntaxTextArea) this.editor).setSyntaxEditingStyle(mime);
+    }
   }
 
   public String getNameID() {
@@ -542,7 +541,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     @SuppressWarnings("unchecked")
     public void setProperty(final Object obj) {
       try {
-        ownerClass.getMethod("set" + property, new Class<?>[]{obj.getClass()}).invoke(ownerObject, obj);
+        ownerClass.getMethod("set" + property, new Class<?>[] {obj.getClass()}).invoke(ownerObject, obj);
       } catch (Throwable thr) {
         throw new RuntimeException("Can't set property", thr);
       }

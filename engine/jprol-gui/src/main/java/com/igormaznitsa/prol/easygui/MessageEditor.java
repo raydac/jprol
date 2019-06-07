@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.easygui;
 
-import com.igormaznitsa.prol.utils.Utils;
-import java.awt.Color;
-import java.util.prefs.Preferences;
-import javax.swing.JEditorPane;
+import javax.swing.*;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
+import java.awt.*;
+import java.util.prefs.Preferences;
 
 /**
  * The class implements the message pane for the IDE because it is a very

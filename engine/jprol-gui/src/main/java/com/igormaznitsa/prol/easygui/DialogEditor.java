@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.easygui;
 
-import com.igormaznitsa.prol.utils.Utils;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Toolkit;
+import javax.swing.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleConstants.CharacterConstants;
+import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -26,21 +30,10 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.IOException;
-import java.io.PipedReader;
-import java.io.PipedWriter;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.prefs.Preferences;
-import javax.swing.JTextPane;
-import javax.swing.SwingUtilities;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleConstants.CharacterConstants;
 
 /**
  * The class implements the Dialog editor for the IDE because it is a very
@@ -106,11 +99,11 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
 
   @Override
   public void setEdBackground(Color val) {
-    final JTextPane textPane = (JTextPane)this.editor;
+    final JTextPane textPane = (JTextPane) this.editor;
     final SimpleAttributeSet background = new SimpleAttributeSet();
     StyleConstants.setBackground(background, val);
     textPane.getStyledDocument().setParagraphAttributes(0,
-            textPane.getDocument().getLength(), background, false);
+        textPane.getDocument().getLength(), background, false);
     consoleAttribute.addAttribute(CharacterConstants.Background, val);
     userAttribute.addAttribute(CharacterConstants.Background, val);
     super.setEdBackground(val);
@@ -148,7 +141,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
     prefs.putInt("dialogoutputcolor", getEdOutputColor().getRGB());
     prefs.putInt("dialogcaretcolor", getEdCaretColor().getRGB());
     prefs.putBoolean("dialogwordwrap", getEdWordWrap());
-    saveFontToPrefs(prefs, "dialogoutputfont", ((EditorPane)editor).getBaseFont());
+    saveFontToPrefs(prefs, "dialogoutputfont", ((EditorPane) editor).getBaseFont());
   }
 
   public synchronized void initBeforeSession() {
@@ -202,12 +195,12 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
       final Runnable code = () -> {
         try {
           final Document document = editor.getDocument();
-          
+
           final int extraLen = document.getLength() - 20000;
           if (extraLen > 0) {
             document.remove(0, extraLen);
           }
-          
+
           document.insertString(document.getLength(), text, consoleAttribute);
           int textLength = document.getLength();
           ((EditorPane) editor).setCharacterAttributes(userAttribute, false);
@@ -216,7 +209,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
           ex.printStackTrace();
         }
       };
-      
+
       if (SwingUtilities.isEventDispatchThread()) {
         code.run();
       } else {

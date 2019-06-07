@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.parser;
 
 import java.io.*;
@@ -213,7 +214,7 @@ public class ProlReader {
    * Close current reader
    *
    * @throws IOException it will be thrown if there is any error during the
-   * operation
+   *                     operation
    */
   public synchronized void close() throws IOException {
     inReader.close();

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.exceptions;
 
 import com.igormaznitsa.prol.data.Term;
@@ -83,7 +84,6 @@ public class ProlInstantiationErrorException extends ProlAbstractCatcheableExcep
 
   @Override
   public TermStruct getAsStruct() {
-    final TermStruct result = new TermStruct(TERM_ERROR);
-    return result;
+    return new TermStruct(TERM_ERROR);
   }
 }

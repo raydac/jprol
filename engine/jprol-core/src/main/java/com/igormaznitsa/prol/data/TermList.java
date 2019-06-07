@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.data;
 
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
@@ -33,11 +34,11 @@ public final class TermList extends TermStruct {
   }
 
   public TermList(final Term term) {
-    super(LIST_FUNCTOR, new Term[]{term, NULLLIST});
+    super(LIST_FUNCTOR, new Term[] {term, NULLLIST});
   }
 
   public TermList(final Term head, final Term tail) {
-    super(LIST_FUNCTOR, new Term[]{head, tail});
+    super(LIST_FUNCTOR, new Term[] {head, tail});
   }
 
   public static TermList appendItem(final TermList list, final Term term) {

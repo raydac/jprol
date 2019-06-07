@@ -39,337 +39,227 @@ import java.lang.reflect.Modifier;
  */
 public final class PredicateProcessor {
 
-    protected static final MethodHandles.Lookup METHOD_LOOKUP = MethodHandles.lookup();
+  public static final PredicateProcessor NULL_PROCESSOR = new PredicateProcessor(null, null, null, null);
+  protected static final MethodHandles.Lookup METHOD_LOOKUP = MethodHandles.lookup();
+  private static final Class<?> CLASS_RESULT_VOID = void.class;
+  private static final Class<Determined> CLASS_ANNOTATION_DETERMINED = Determined.class;
+  private static final Class<Evaluable> CLASS_ANNOTATION_EVALUABLE = Evaluable.class;
+  private static final Class<ItChangesGoalChain> CLASS_CHANGE_GOAL_CHAIN = ItChangesGoalChain.class;
+  private final String predicateSignature;
+  private final MethodHandle methodHandle;
+  private final AbstractProlLibrary ownerLibrary;
+  private final boolean voidResult;
+  private final boolean determined;
+  private final boolean evaluable;
+  private final boolean changesGoalChain;
+  private final PredicateTemplate[][] templates;
 
-    /**
-     * The constant describes a NULL_PROCESSOR which does nothing
-     */
-    public static final PredicateProcessor NULL_PROCESSOR = new PredicateProcessor(null, null, null, null);
-    //---inside constants for classes -------
-    private static final Class<?> CLASS_RESULT_VOID = void.class;
-    private static final Class<Determined> CLASS_ANNOTATION_DETERMINED = Determined.class;
-    private static final Class<Evaluable> CLASS_ANNOTATION_EVALUABLE = Evaluable.class;
-    private static final Class<ItChangesGoalChain> CLASS_CHANGE_GOAL_CHAIN = ItChangesGoalChain.class;
-    /**
-     * The variable contains the predicate signature for the predicate which is
-     * being lnked with the processor
-     */
-    private final String predicateSignature;
-    /**
-     * The variable contains the method which will be called to process the
-     * predicate
-     */
-    private final MethodHandle methodHandle;
-    /**
-     * The variable contains the owner library which contains the method linked
-     * with this processor
-     */
-    private final AbstractProlLibrary ownerLibrary;
-    /**
-     * If the flag is false, then the method linked with the processor will not
-     * return any result
-     */
-    private final boolean voidResult;
-    /**
-     * if the flag is true then the linked predicate is a determined one and it
-     * will not place cjhoice points
-     */
-    private final boolean determined;
-    /**
-     * if the flag is true then the linked predicate is an evaluable arithmetic
-     * predcicate
-     */
-    private final boolean evaluable;
-    /**
-     * if the flag is true then the linked predicate changes goal chain if it's
-     * true
-     */
-    private final boolean changesGoalChain;
-    //---------------------------------------
-    /**
-     * The array contains templates which should be checked (if they are
-     * presented) before processor executing to check its arguments
-     */
-    private final PredicateTemplate[][] templates;
+  protected PredicateProcessor(final AbstractProlLibrary owner, final String signature, final Method method, final PredicateTemplate[][] templates) {
+    super();
+    this.predicateSignature = signature;
+    this.ownerLibrary = owner;
+    this.templates = templates;
 
-    /**
-     * The constructor
-     *
-     * @param owner the owner library instance for the processor, must not be
-     * null
-     * @param signature the signature of the predicate which is linked with the
-     * processor
-     * @param method the method which will be called when the processor is
-     * executed
-     * @param templates the templates which should be checked with a predicate
-     * arguments before the processor execution, can be null
-     */
-    protected PredicateProcessor(final AbstractProlLibrary owner, final String signature, final Method method, final PredicateTemplate[][] templates) {
-        super();
-        this.predicateSignature = signature;
-        this.ownerLibrary = owner;
-        this.templates = templates;
-
-        if (method == null) {
-            this.methodHandle = null;
-            this.voidResult = true;
-            this.determined = true;
-            this.evaluable = false;
-            this.changesGoalChain = false;
-        } else {
-            try {
-                MethodHandle mhandle = METHOD_LOOKUP.unreflect(method);
-                if (!Modifier.isStatic(method.getModifiers())) {
-                    mhandle = mhandle.bindTo(this.ownerLibrary);
-                }
-                this.methodHandle = mhandle;
-            } catch (IllegalAccessException ex) {
-                throw new Error(String.format("Can't process library '%s' method '%s'", owner.getLibraryUid(), method.getName()), ex);
-            }
-
-            this.voidResult = method.getReturnType() == CLASS_RESULT_VOID;
-            this.determined = method.isAnnotationPresent(CLASS_ANNOTATION_DETERMINED);
-            this.evaluable = method.isAnnotationPresent(CLASS_ANNOTATION_EVALUABLE);
-            this.changesGoalChain = method.isAnnotationPresent(CLASS_CHANGE_GOAL_CHAIN);
+    if (method == null) {
+      this.methodHandle = null;
+      this.voidResult = true;
+      this.determined = true;
+      this.evaluable = false;
+      this.changesGoalChain = false;
+    } else {
+      try {
+        MethodHandle mhandle = METHOD_LOOKUP.unreflect(method);
+        if (!Modifier.isStatic(method.getModifiers())) {
+          mhandle = mhandle.bindTo(this.ownerLibrary);
         }
+        this.methodHandle = mhandle;
+      } catch (IllegalAccessException ex) {
+        throw new Error(String.format("Can't process library '%s' method '%s'", owner.getLibraryUid(), method.getName()), ex);
+      }
+
+      this.voidResult = method.getReturnType() == CLASS_RESULT_VOID;
+      this.determined = method.isAnnotationPresent(CLASS_ANNOTATION_DETERMINED);
+      this.evaluable = method.isAnnotationPresent(CLASS_ANNOTATION_EVALUABLE);
+      this.changesGoalChain = method.isAnnotationPresent(CLASS_CHANGE_GOAL_CHAIN);
     }
+  }
 
-    public final boolean doesChangeGoalChain() {
-        return this.changesGoalChain;
-    }
+  public final boolean doesChangeGoalChain() {
+    return this.changesGoalChain;
+  }
 
-    /**
-     * Get the determined flag
-     *
-     * @return true if the predicate has been marked as a determined one and it
-     * make not any choice point
-     */
-    public final boolean isDetermined() {
-        return this.determined;
-    }
+  public final boolean isDetermined() {
+    return this.determined;
+  }
 
-    /**
-     * Get the evaluable flag
-     *
-     * @return true if the predicate can be calculated as an arithmetic
-     * predicate
-     */
-    public final boolean isEvaluable() {
-        return this.evaluable;
-    }
+  public final boolean isEvaluable() {
+    return this.evaluable;
+  }
 
-    /**
-     * Get the owner library for the processor
-     *
-     * @return the owner library for the processor
-     */
-    public final AbstractProlLibrary getLibrary() {
-        return this.ownerLibrary;
-    }
+  public final AbstractProlLibrary getLibrary() {
+    return this.ownerLibrary;
+  }
 
-    /**
-     * Get the signature of the linked predicate
-     *
-     * @return the signature of the linked predicate
-     */
-    public final String getSignature() {
-        return this.predicateSignature;
-    }
+  public final String getSignature() {
+    return this.predicateSignature;
+  }
 
-    /**
-     * Get the method which will be called during the processor execution
-     *
-     * @return the method which implements needed functionality
-     */
-    public final MethodHandle getMethod() {
-        return this.methodHandle;
-    }
+  public final MethodHandle getMethod() {
+    return this.methodHandle;
+  }
 
-    /**
-     * Get the templates which should be checked with predicate argument before
-     * execution of the processor
-     *
-     * @return the templates as an array but it can be null if we don't have any
-     * template
-     */
-    public PredicateTemplate[][] getTemplates() {
-        return this.templates;
-    }
+  public PredicateTemplate[][] getTemplates() {
+    return this.templates;
+  }
 
-    /**
-     * Check a structure for compatibility with a template of the processor
-     *
-     * @param predicate the predicate to be checked, must not be null
-     * @return mainly null, but if there is elements of a template which should
-     * not be changed during processing, they will be returned as the array
-     */
-    private Term[] checkTemplates(final TermStruct predicate) {
-        final PredicateTemplate[][] templatesarray = this.templates;
+  private Term[] checkTemplates(final TermStruct predicate) {
+    final PredicateTemplate[][] templatesarray = this.templates;
 
-        final int len = templatesarray.length;
-        final Term[] structelements = predicate.getElementsAsArray();
-        final int structElementsNumber = predicate.getArity();
+    final int len = templatesarray.length;
+    final Term[] structelements = predicate.getElementsAsArray();
+    final int structElementsNumber = predicate.getArity();
 
-        ProlInstantiationErrorException lastException = null;
+    ProlInstantiationErrorException lastException = null;
 
-        Term[] result = null;
+    Term[] result = null;
 
-        for (final PredicateTemplate[] curtemplate : templatesarray) {
-            final int lencur = curtemplate.length;
+    for (final PredicateTemplate[] curtemplate : templatesarray) {
+      final int lencur = curtemplate.length;
 
-            lastException = null;
-            Term[] currentResult = null;
+      lastException = null;
+      Term[] currentResult = null;
 
-            try {
-                if (lencur == structElementsNumber) {
-                    for (int ld = 0; ld < lencur; ld++) {
-                        final PredicateTemplate curTemplate = curtemplate[ld];
-                        final Term element = structelements[ld];
-                        if (curTemplate.check(element)) {
-                            if (currentResult == null) {
-                                currentResult = new Term[lencur];
-                            }
-                            currentResult[ld] = element;
-                        }
-                    }
-                }
-            } catch (ProlInstantiationErrorException ex) {
-                lastException = ex;
+      try {
+        if (lencur == structElementsNumber) {
+          for (int ld = 0; ld < lencur; ld++) {
+            final PredicateTemplate curTemplate = curtemplate[ld];
+            final Term element = structelements[ld];
+            if (curTemplate.shouldNotBeAltered(element)) {
+              if (currentResult == null) {
+                currentResult = new Term[lencur];
+              }
+              currentResult[ld] = element;
             }
-
-            if (lastException == null) {
-                result = currentResult;
-                break;
-            }
+          }
         }
-        if (lastException != null) {
-            throw lastException;
+      } catch (ProlInstantiationErrorException ex) {
+        lastException = ex;
+      }
+
+      if (lastException == null) {
+        result = currentResult;
+        break;
+      }
+    }
+    if (lastException != null) {
+      throw lastException;
+    }
+
+    return result;
+  }
+
+  public final Term executeEvaluable(final Goal goal, final TermStruct predicate) {
+    try {
+      Term[] nonchangeable = null;
+      if (templates != null) {
+        nonchangeable = checkTemplates(predicate);
+      }
+
+      final Object result = methodHandle.invoke(goal, predicate);
+
+      if (nonchangeable != null) {
+        final Term[] elements = predicate.getElementsAsArray();
+        final int len = elements.length;
+        for (int li = 0; li < len; li++) {
+          if (nonchangeable[li] == null) {
+            continue;
+          }
+          if (nonchangeable[li].hasAnyDifference(elements[li])) {
+            throw new ProlInstantiationErrorException("Nonchangeable element was changed [" + nonchangeable[li] + "<>" + elements[li] + "]", predicate);
+          }
         }
+      }
 
-        return result;
+      return (Term) result;
+    } catch (IllegalAccessException ex) {
+      throw new ProlCriticalError("Illegal access exception at " + predicate, ex);
+    } catch (Throwable thr) {
+      final Throwable cause = thr.getCause();
+
+      if (cause instanceof ArithmeticException) {
+        throw new ProlEvaluationErrorException(cause.getMessage(), predicate);
+      }
+
+      if (cause instanceof ProlAbstractCatcheableException) {
+        throw (ProlAbstractCatcheableException) cause;
+      }
+      if (cause instanceof ProlException) {
+        throw (ProlException) cause;
+      }
+      throw new ProlCriticalError("Exception at [" + goal + ']', cause == null ? thr : cause);
     }
+  }
 
-    /**
-     * Execute an evaluable predicate linked with the processor
-     *
-     * @param goal the goal which contain the predicate, must not be null
-     * @param predicate the predicate which linked with the processor, must not
-     * be null
-     * @return the term as the result of the processing
-     */
-    public final Term executeEvaluable(final Goal goal, final TermStruct predicate) {
-        try {
-            Term[] nonchangeable = null;
-            if (templates != null) {
-                nonchangeable = checkTemplates(predicate);
-            }
+  public final boolean execute(final Goal goal, final TermStruct predicate) throws InterruptedException {
+    try {
+      Term[] nonchangeable = null;
+      if (templates != null) {
+        nonchangeable = checkTemplates(predicate);
+      }
 
-            final Object result = methodHandle.invoke(goal, predicate);
+      final Object result;
+      result = methodHandle.invoke(goal, predicate);
 
-            if (nonchangeable != null) {
-                final Term[] elements = predicate.getElementsAsArray();
-                final int len = elements.length;
-                for (int li = 0; li < len; li++) {
-                    if (nonchangeable[li] == null) {
-                        continue;
-                    }
-                    if (nonchangeable[li].hasAnyDifference(elements[li])) {
-                        throw new ProlInstantiationErrorException("Nonchangeable element was changed [" + nonchangeable[li] + "<>" + elements[li] + "]", predicate);
-                    }
-                }
-            }
-
-            return (Term) result;
-        } catch (IllegalAccessException ex) {
-            throw new ProlCriticalError("Illegal access exception at " + predicate, ex);
-        } catch (Throwable thr) {
-            final Throwable cause = thr.getCause();
-
-            if (cause instanceof ArithmeticException) {
-                throw new ProlEvaluationErrorException(cause.getMessage(), predicate);
-            }
-
-            if (cause instanceof ProlAbstractCatcheableException) {
-                throw (ProlAbstractCatcheableException) cause;
-            }
-            if (cause instanceof ProlException) {
-                throw (ProlException) cause;
-            }
-            throw new ProlCriticalError("Exception at [" + goal + ']', cause == null ? thr : cause);
+      if (nonchangeable != null) {
+        final Term[] elements = predicate.getElementsAsArray();
+        final int len = elements.length;
+        for (int li = 0; li < len; li++) {
+          if (nonchangeable[li] == null) {
+            continue;
+          }
+          if (nonchangeable[li].hasAnyDifference(elements[li])) {
+            throw new ProlInstantiationErrorException("Nonchangeable element was changed [" + nonchangeable[li] + "<>" + elements[li] + "]", predicate);
+          }
         }
+      }
+
+      if (voidResult) {
+        return true;
+      } else if (result instanceof Boolean) {
+        return (Boolean) result;
+      } else {
+        return result != null;
+      }
+    } catch (IllegalAccessException ex) {
+      throw new ProlException("Illegal access exception at " + predicate, ex);
+    } catch (Throwable thr) {
+      if (thr instanceof ProlException) {
+        throw (ProlException) thr;
+      }
+
+      final Throwable cause = thr.getCause();
+
+      if (cause instanceof ThreadDeath) {
+        throw (ThreadDeath) cause;
+      }
+
+      if (cause instanceof InterruptedException) {
+        throw (InterruptedException) cause;
+      }
+
+      if (cause instanceof ProlAbstractCatcheableException) {
+        throw (ProlAbstractCatcheableException) cause;
+      }
+
+      if (cause instanceof ProlException) {
+        throw (ProlException) cause;
+      }
+      throw new ProlCriticalError("Exception at [" + goal + ']', cause == null ? thr : cause);
     }
+  }
 
-    /**
-     * Execute a predicate linked with the processor
-     *
-     * @param goal the goal which contain the predicate, must not be null
-     * @param predicate the predicate which linked with the processor, must not
-     * be null
-     * @return the result of the predicate processing, true if all ok and false
-     * if fail
-     * @throws InterruptedException it will be thrown if the thread has been
-     * interrupted
-     */
-    public final boolean execute(final Goal goal, final TermStruct predicate) throws InterruptedException {
-        try {
-            Term[] nonchangeable = null;
-            if (templates != null) {
-                nonchangeable = checkTemplates(predicate);
-            }
-
-            final Object result;
-            result = methodHandle.invoke(goal, predicate);
-
-            if (nonchangeable != null) {
-                final Term[] elements = predicate.getElementsAsArray();
-                final int len = elements.length;
-                for (int li = 0; li < len; li++) {
-                    if (nonchangeable[li] == null) {
-                        continue;
-                    }
-                    if (nonchangeable[li].hasAnyDifference(elements[li])) {
-                        throw new ProlInstantiationErrorException("Nonchangeable element was changed [" + nonchangeable[li] + "<>" + elements[li] + "]", predicate);
-                    }
-                }
-            }
-
-            if (voidResult) {
-                return true;
-            } else if (result instanceof Boolean) {
-                return (Boolean) result;
-            } else {
-                return result != null;
-            }
-        } catch (IllegalAccessException ex) {
-            throw new ProlException("Illegal access exception at " + predicate, ex);
-        } catch (Throwable thr) {
-            if (thr instanceof ProlException) {
-                throw (ProlException) thr;
-            }
-
-            final Throwable cause = thr.getCause();
-
-            if (cause instanceof ThreadDeath) {
-                throw (ThreadDeath) cause;
-            }
-
-            if (cause instanceof InterruptedException) {
-                throw (InterruptedException) cause;
-            }
-
-            if (cause instanceof ProlAbstractCatcheableException) {
-                throw (ProlAbstractCatcheableException) cause;
-            }
-
-            if (cause instanceof ProlException) {
-                throw (ProlException) cause;
-            }
-            throw new ProlCriticalError("Exception at [" + goal + ']', cause == null ? thr : cause);
-        }
-    }
-
-    @Override
-    public String toString() {
-        return "Predicate processor " + predicateSignature + ' ' + methodHandle;
-    }
+  @Override
+  public String toString() {
+    return "Predicate processor " + predicateSignature + ' ' + methodHandle;
+  }
 }

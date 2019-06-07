@@ -13,24 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.script;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.exceptions.ParserException;
 import com.igormaznitsa.prol.logic.Goal;
 import com.igormaznitsa.prol.parser.ProlReader;
+
+import javax.script.*;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
-import javax.script.AbstractScriptEngine;
-import javax.script.Bindings;
-import javax.script.Compilable;
-import javax.script.CompiledScript;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngineFactory;
-import javax.script.ScriptException;
-import javax.script.SimpleBindings;
 
 final class JProlScriptEngine extends AbstractScriptEngine implements Compilable {
 
@@ -40,6 +35,12 @@ final class JProlScriptEngine extends AbstractScriptEngine implements Compilable
     super();
     this.factory = factory;
     this.context = new JProlScriptContext("prol-script-context");
+  }
+
+  static void fillGoalByBindings(final JProlBindings bindings, final Map<String, Term> map) {
+    if (bindings != null) {
+      map.putAll(bindings.getTermMap());
+    }
   }
 
   private Object solveGoal(final ProlReader reader, final JProlScriptContext context) throws ScriptException {
@@ -52,7 +53,7 @@ final class JProlScriptEngine extends AbstractScriptEngine implements Compilable
       final Goal goal = new Goal(reader, context.getProlContext(), varValues.isEmpty() ? null : varValues);
       final Object result = goal.solve();
 
-      if (result!=null){
+      if (result != null) {
         context.getJProlBindings(ScriptContext.ENGINE_SCOPE).fillByValues(goal.findAllInstantiatedVars());
       }
 
@@ -64,13 +65,6 @@ final class JProlScriptEngine extends AbstractScriptEngine implements Compilable
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
       return null;
-    }
-  }
-
-  
-  static void fillGoalByBindings(final JProlBindings bindings, final Map<String, Term> map) {
-    if (bindings != null) {
-      map.putAll(bindings.getTermMap());
     }
   }
 

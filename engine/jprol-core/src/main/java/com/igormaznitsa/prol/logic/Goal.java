@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.logic;
 
 import com.igormaznitsa.prol.containers.ClauseIterator;
@@ -41,7 +42,7 @@ public class Goal {
   private static final int GOALRESULT_SOLVED = 0;
   private static final int GOALRESULT_FAIL = 1;
   private static final int GOALRESULT_STACK_CHANGED = 2;
-  
+
   private final Goal rootGoal;
   private final Map<String, Var> variables;
   private final VariableStateSnapshot varSnapshot;
@@ -61,7 +62,7 @@ public class Goal {
   private boolean cutMeet;
   private boolean notFirstProve;
 
-  private Goal(final Goal rootGoal, Term goal, final ProlContext context, final Map<String,Term> predefinedVarValues, final TraceListener tracer) {
+  private Goal(final Goal rootGoal, Term goal, final ProlContext context, final Map<String, Term> predefinedVarValues, final TraceListener tracer) {
     this.rootGoal = rootGoal == null ? this : rootGoal;
     this.goalTerm = goal.getTermType() == Term.TYPE_ATOM ? new TermStruct(goal) : goal;
     this.context = context;
@@ -107,27 +108,19 @@ public class Goal {
       if (goal.getTermType() == Term.TYPE_ATOM) {
         varSnapshot = null;
       } else {
-          varSnapshot = new VariableStateSnapshot(rootGoal.varSnapshot);
+        varSnapshot = new VariableStateSnapshot(rootGoal.varSnapshot);
       }
       this.prevGoalAtChain = rootGoal.rootLastGoalAtChain;
       rootGoal.rootLastGoalAtChain = this;
     }
   }
 
-  public Map<String, Term> findAllInstantiatedVars(){
-    final Map<String,Term> result = new HashMap<>();
-    this.variables.entrySet().stream().filter((v) -> (!v.getValue().isUndefined())).forEach((v) -> {
-      result.put(v.getKey(), v.getValue().getValue().makeClone());
-    });
-    return result;
-  }
-  
   protected Goal() {
-      this.rootGoal = null;
-      this.variables = null;
-      this.varSnapshot = null;
-      this.context = null;
-      this.tracer = null;
+    this.rootGoal = null;
+    this.variables = null;
+    this.varSnapshot = null;
+    this.context = null;
+    this.tracer = null;
   }
 
   public Goal(final String goal, final ProlContext context, final TraceListener tracer) throws IOException {
@@ -156,6 +149,12 @@ public class Goal {
 
   public Goal(final Term goal, final ProlContext context) {
     this(null, goal, context, null, null);
+  }
+
+  public Map<String, Term> findAllInstantiatedVars() {
+    final Map<String, Term> result = new HashMap<>();
+    this.variables.entrySet().stream().filter((v) -> (!v.getValue().isUndefined())).forEach((v) -> result.put(v.getKey(), v.getValue().getValue().makeClone()));
+    return result;
   }
 
   @Override
@@ -187,7 +186,7 @@ public class Goal {
    * @return null if the variable is not-instantiated one or its value as a
    * Number object
    * @throws IllegalArgumentException if the variable name is wrong
-   * @throws NumberFormatException if the value is not-numeric one
+   * @throws NumberFormatException    if the value is not-numeric one
    */
   public Number getVarAsNumber(final String varName) {
     final Var var = getVarForName(varName);
@@ -250,7 +249,7 @@ public class Goal {
    */
   public Goal replaceLastGoalAtChain(final Term goal) {
     if (this.tracer != null) {
-      this.tracer.onProlGoalExit(this.rootGoal.rootLastGoalAtChain);
+      this.tracer.onTraceEvet(EXIT, this.rootGoal.rootLastGoalAtChain);
     }
 
     final Goal newGoal = new Goal(this.rootGoal, goal, this.context, null, this.rootGoal.tracer);
@@ -279,7 +278,7 @@ public class Goal {
    * @param obj the object to be saved as an auxiliary one or null
    */
   public void setAuxObject(final Object obj) {
-      this.auxObject = obj;
+    this.auxObject = obj;
   }
 
   /**
@@ -339,8 +338,8 @@ public class Goal {
           switch (goalToProcess.resolve()) {
             case GOALRESULT_FAIL: {
               if (tracingOn) {
-                this.tracer.onProlGoalFail(goalToProcess);
-                this.tracer.onProlGoalExit(goalToProcess);
+                this.tracer.onTraceEvet(TraceEvent.FAIL, goalToProcess);
+                this.tracer.onTraceEvet(EXIT, goalToProcess);
               }
               this.rootGoal.rootLastGoalAtChain = goalToProcess.prevGoalAtChain;
             }
@@ -366,7 +365,7 @@ public class Goal {
           }
         } else {
           if (tracingOn) {
-            this.tracer.onProlGoalExit(goalToProcess);
+            this.tracer.onTraceEvet(EXIT, goalToProcess);
           }
           this.rootGoal.rootLastGoalAtChain = goalToProcess.prevGoalAtChain;
         }
@@ -606,16 +605,16 @@ public class Goal {
    * Cut the goal chain with reaction of the root goal
    */
   public void cut() {
-      this.rootGoal.cutMeet = true;
-      this.rootGoal.clauseIterator = null;
-      this.prevGoalAtChain = null;
+    this.rootGoal.cutMeet = true;
+    this.rootGoal.clauseIterator = null;
+    this.prevGoalAtChain = null;
   }
 
   /**
    * Cut the goal chain without reaction of the root chain
    */
   public void cutLocal() {
-      this.prevGoalAtChain = null;
+    this.prevGoalAtChain = null;
   }
 
   private PredicateProcessor ensureStructProcessor(final TermStruct structure) {

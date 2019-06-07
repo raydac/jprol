@@ -6,14 +6,15 @@ import com.igormaznitsa.prol.logic.Goal;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlReader;
 import com.igormaznitsa.prol.parser.ProlTreeBuilder;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.HashMap;
-import java.util.Map;
+
 import javax.script.CompiledScript;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.HashMap;
+import java.util.Map;
 
 final class JProlCompiledScript extends CompiledScript {
 
@@ -50,13 +51,13 @@ final class JProlCompiledScript extends CompiledScript {
       JProlScriptEngine.fillGoalByBindings(jprolContext.getJProlBindings(ScriptContext.GLOBAL_SCOPE), predefinedValues);
       JProlScriptEngine.fillGoalByBindings(jprolContext.getJProlBindings(ScriptContext.ENGINE_SCOPE), predefinedValues);
       final Goal preparedGoal = new Goal(this.compiled.makeClone(), jprolContext.getProlContext(), predefinedValues, null);
-      
+
       final Object result = preparedGoal.solve();
-      
+
       if (result != null) {
         jprolContext.getJProlBindings(ScriptContext.ENGINE_SCOPE).fillByValues(preparedGoal.findAllInstantiatedVars());
       }
-      
+
       return result;
     } catch (InterruptedException ex) {
       return null;

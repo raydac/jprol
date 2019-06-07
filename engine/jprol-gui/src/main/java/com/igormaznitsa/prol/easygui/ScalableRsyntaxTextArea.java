@@ -16,23 +16,22 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
+
 package com.igormaznitsa.prol.easygui;
 
-import java.awt.Container;
-import java.awt.Font;
-import java.awt.event.MouseWheelEvent;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+
+import java.awt.*;
+import java.awt.event.MouseWheelEvent;
 
 public final class ScalableRsyntaxTextArea extends RSyntaxTextArea {
 
   private static final long serialVersionUID = 72348723421L;
-
-  private float fontScale = 1.0f;
-  private float fontOriginalSize;
-
   private static final float SCALE_STEP = 0.5f;
   private static final float SCALE_MIN = 1.0f;
   private static final float SCALE_MAX = 10.0f;
+  private float fontScale = 1.0f;
+  private float fontOriginalSize;
 
   public ScalableRsyntaxTextArea() {
     super();
@@ -64,13 +63,13 @@ public final class ScalableRsyntaxTextArea extends RSyntaxTextArea {
       this.setFont(this.getFont().deriveFont(1.0f));
     }
     this.invalidate();
-    
+
     final Container parent = this.getParent();
-    if (parent!=null) {
+    if (parent != null) {
       parent.invalidate();
       parent.repaint();
     }
-    
+
     this.repaint();
   }
 

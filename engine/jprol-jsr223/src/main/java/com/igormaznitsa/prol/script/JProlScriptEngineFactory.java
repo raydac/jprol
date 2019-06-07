@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.script;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.logic.ProlContext;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineFactory;
 
 public final class JProlScriptEngineFactory implements ScriptEngineFactory {
 

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.containers;
 
 import com.igormaznitsa.prol.data.Operator;
@@ -260,12 +261,12 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
   /**
    * Assert new clause ino the knowledge base
    *
-   * @param clause the clause to be added
+   * @param clause  the clause to be added
    * @param asFirst if true then the clause will be made as the first in the
-   * list of similar clauses, else as the last
+   *                list of similar clauses, else as the last
    * @return true if the clause has been added successfully, else false
    * @throws com.igormaznitsa.prol.exceptions.ProlKnowledgeBaseException if such
-   * clause is incompatible with the knowledge base
+   *                                                                     clause is incompatible with the knowledge base
    */
   private boolean assertClause(final TermStruct clause, final boolean asFirst) {
     try {
@@ -355,7 +356,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
   @Override
   public ClauseIterator getClauseIterator(final TermStruct template) {
     final String uid = template.getSignature();
-    
+
     final ReentrantLock lockerPred = this.predicateLocker;
 
     lockerPred.lock();
@@ -391,8 +392,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
     }
   }
 
-  
-  
+
   @Override
   public boolean assertZ(final TermStruct clause) {
     return assertClause(clause, false);

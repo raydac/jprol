@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.io;
 
 import com.igormaznitsa.prol.data.Term;
@@ -35,15 +36,6 @@ public interface ProlTextWriter {
    */
   void writeTerm(final Term term) throws IOException;
 
-  /**
-   * Write a char into the writer, it can be Term (then we write the first
-   * symbol of the string representation or a Numeric term so we write the char
-   * code)
-   *
-   * @param term the term describes a char, a Term object or a Numeri term
-   * @throws IOException it will be thrown if there is any transport error
-   * during the operation
-   */
   void writeChar(final Term term) throws IOException;
 
   /**

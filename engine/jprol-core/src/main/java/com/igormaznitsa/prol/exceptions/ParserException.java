@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.exceptions;
 
 /**
@@ -35,12 +36,6 @@ public class ParserException extends ProlException {
    */
   private final int Pos;
 
-  /**
-   * A constructor
-   *
-   * @param line the line number where the exception has been thrown
-   * @param pos the string position where the exception has been thrown
-   */
   public ParserException(final int line, final int pos) {
     Line = line;
     Pos = pos;

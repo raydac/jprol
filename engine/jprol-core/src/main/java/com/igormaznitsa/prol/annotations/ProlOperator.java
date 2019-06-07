@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.annotations;
 
 import java.lang.annotation.ElementType;
@@ -37,18 +38,7 @@ public @interface ProlOperator {
    */
   int Priority();
 
-  /**
-   * The operator type [xfx,yfx,xfy,xf,yf,fx,fy]
-   *
-   * @return the operator type value
-   * @see com.igormaznitsa.prol.data.Operator
-   */
   int Type();
 
-  /**
-   * The name of the operator
-   *
-   * @return the name of the operator as String must not be null and have spaces
-   */
   String Name();
 }

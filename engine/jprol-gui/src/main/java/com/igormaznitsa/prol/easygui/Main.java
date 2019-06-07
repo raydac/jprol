@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.easygui;
+
+import com.igormaznitsa.prol.easygui.tokenizer.JProlTokenMaker;
+import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
+import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
 
 import javax.swing.*;
 import java.io.File;
 import java.io.FileNotFoundException;
-import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
-import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
-import com.igormaznitsa.prol.easygui.tokenizer.JProlTokenMaker;
 
 /**
  * The main class which starts the IDE
@@ -33,7 +35,7 @@ public class Main {
    * The main method starts the IDE.
    *
    * @param args if the array contains as minimum singe element, the elements
-   * will be used as the file name to be loaded into the started IDE instance
+   *             will be used as the file name to be loaded into the started IDE instance
    */
   public static void main(final String... args) {
 

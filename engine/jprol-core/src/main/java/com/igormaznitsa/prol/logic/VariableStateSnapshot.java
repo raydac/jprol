@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.logic;
 
 import com.igormaznitsa.prol.data.Term;
@@ -79,8 +80,8 @@ final class VariableStateSnapshot {
       case Term.TYPE_LIST: {
         final TermList list = (TermList) src;
         if (!list.isNullList()) {
-          extractAllVariables(list.getHead(),predefValues);
-          extractAllVariables(list.getTail(),predefValues);
+          extractAllVariables(list.getHead(), predefValues);
+          extractAllVariables(list.getTail(), predefValues);
         }
       }
       break;
@@ -112,9 +113,7 @@ final class VariableStateSnapshot {
   }
 
   public void resetToState() {
-      this.containers.forEach((container) -> {
-          container.resetToEtalon();
-      });
+    this.containers.forEach(VariableContainer::resetToEtalon);
   }
 
   public int getSize() {
@@ -165,12 +164,12 @@ final class VariableStateSnapshot {
 
     public VariableContainer(final Var var, final Map<String, Term> predefinedValues) {
       this.variable = var;
-      
+
       if (predefinedValues == null) {
         this.etalonValue = var.getThisValue();
       } else {
-          final Term predef = predefinedValues.get(var.getText());
-          this.etalonValue = predef == null ? var.getThisValue() : predef;
+        final Term predef = predefinedValues.get(var.getText());
+        this.etalonValue = predef == null ? var.getThisValue() : predef;
       }
     }
 

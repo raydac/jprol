@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.easygui;
 
 import javax.swing.*;
@@ -192,7 +193,7 @@ public class JHtmlLabel extends JLabel {
      * Called if detected activation of a link placed on the label.
      *
      * @param source the label, must not be null
-     * @param link the link to be processed, must not be null
+     * @param link   the link to be processed, must not be null
      */
     void onLinkActivated(JHtmlLabel source, String link);
   }

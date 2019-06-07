@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.easygui;
 
-import java.awt.Font;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import javax.swing.JPopupMenu;
-import javax.swing.JTextPane;
 
 /**
  * The class implements the Editor pane for the IDE.
@@ -28,21 +28,19 @@ import javax.swing.JTextPane;
 public class EditorPane extends JTextPane {
 
   private static final long serialVersionUID = 2384993058573194751L;
-  private volatile JPopupMenu popupMenu;
-  private volatile EventReplacer replacer;
-
   private static final float SCALE_STEP = 0.5f;
   private static final float SCALE_MIN = 1.0f;
   private static final float SCALE_MAX = 10.0f;
-
+  private volatile JPopupMenu popupMenu;
+  private volatile EventReplacer replacer;
   private float fontScale = 1.0f;
   private float fontOriginalSize;
 
   public EditorPane(final boolean scalable) {
     super();
-    
+
     this.setOpaque(true);
-    
+
     if (scalable) {
       this.addMouseWheelListener((final MouseWheelEvent e) -> {
         final int allModifiers = MouseWheelEvent.CTRL_DOWN_MASK | MouseWheelEvent.ALT_DOWN_MASK | MouseWheelEvent.META_DOWN_MASK | MouseWheelEvent.SHIFT_DOWN_MASK;
@@ -70,10 +68,10 @@ public class EditorPane extends JTextPane {
     });
   }
 
-  public Font getBaseFont(){
+  public Font getBaseFont() {
     return this.getFont().deriveFont(this.fontOriginalSize);
   }
-  
+
   @Override
   public void setFont(final Font font) {
     super.setFont(font);

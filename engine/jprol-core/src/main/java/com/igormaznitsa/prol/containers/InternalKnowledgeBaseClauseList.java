@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.containers;
 
 import com.igormaznitsa.prol.data.Term;
@@ -120,16 +121,16 @@ final class InternalKnowledgeBaseClauseList {
 
   public List<TermStruct> asList() {
     final List<TermStruct> result = new ArrayList<>();
-  
+
     InternalClauseListItem current = this.first;
-    while(current!=null){
+    while (current != null) {
       result.add(current.getClause());
       current = current.getNext();
     }
-    
+
     return result;
   }
-  
+
   InternalClauseListItem findDirect(final TermStruct template, InternalClauseListItem sinceContainer) {
 
     if (sinceContainer == null) {

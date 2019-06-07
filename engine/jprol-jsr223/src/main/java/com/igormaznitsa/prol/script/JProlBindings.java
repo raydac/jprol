@@ -2,42 +2,21 @@ package com.igormaznitsa.prol.script;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.utils.Utils;
+
+import javax.script.Bindings;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.script.Bindings;
 
 final class JProlBindings implements Bindings {
 
   private final Map<String, Term> internalMap = new HashMap<>();
   private final JProlScriptContext context;
 
-  private static final class ConvertedEntry implements Map.Entry<String, Object> {
-
-    private final String key;
-    private final Object value;
-
-    ConvertedEntry(final String key, final Object value) {
-      this.key = key;
-      this.value = value;
-    }
-
-    @Override
-    public String getKey() {
-      return this.key;
-    }
-
-    @Override
-    public Object getValue() {
-      return this.value;
-    }
-
-    @Override
-    public Object setValue(final Object value) {
-      throw new UnsupportedOperationException("Unsupported operation");
-    }
+  public JProlBindings(final JProlScriptContext context) {
+    this.context = context;
   }
 
   Map<String, Term> getTermMap() {
@@ -48,10 +27,6 @@ final class JProlBindings implements Bindings {
     instantiatedVariables.entrySet().forEach(e -> {
       this.internalMap.putAll(instantiatedVariables);
     });
-  }
-
-  public JProlBindings(final JProlScriptContext context) {
-    this.context = context;
   }
 
   private void assertPrologName(final String name) {
@@ -132,9 +107,35 @@ final class JProlBindings implements Bindings {
   @Override
   public Set<Entry<String, Object>> entrySet() {
     return this.internalMap.entrySet()
-            .stream()
-            .map(x -> new ConvertedEntry(x.getKey(), Utils.term2obj(this.context.getProlContext(), x.getValue())))
-            .collect(Collectors.toSet());
+        .stream()
+        .map(x -> new ConvertedEntry(x.getKey(), Utils.term2obj(this.context.getProlContext(), x.getValue())))
+        .collect(Collectors.toSet());
+  }
+
+  private static final class ConvertedEntry implements Map.Entry<String, Object> {
+
+    private final String key;
+    private final Object value;
+
+    ConvertedEntry(final String key, final Object value) {
+      this.key = key;
+      this.value = value;
+    }
+
+    @Override
+    public String getKey() {
+      return this.key;
+    }
+
+    @Override
+    public Object getValue() {
+      return this.value;
+    }
+
+    @Override
+    public Object setValue(final Object value) {
+      throw new UnsupportedOperationException("Unsupported operation");
+    }
   }
 
 }

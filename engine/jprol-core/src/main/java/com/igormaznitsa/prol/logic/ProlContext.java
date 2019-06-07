@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.logic;
 
 import com.igormaznitsa.prol.annotations.Consult;
@@ -21,13 +22,7 @@ import com.igormaznitsa.prol.containers.OperatorContainer;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.exceptions.ProlException;
-import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
-import com.igormaznitsa.prol.io.ProlMemoryPipe;
-import com.igormaznitsa.prol.io.ProlStreamManager;
-import com.igormaznitsa.prol.io.ProlTextInputStream;
-import com.igormaznitsa.prol.io.ProlTextOutputStream;
-import com.igormaznitsa.prol.io.ProlTextReader;
-import com.igormaznitsa.prol.io.ProlTextWriter;
+import com.igormaznitsa.prol.io.*;
 import com.igormaznitsa.prol.libraries.AbstractProlLibrary;
 import com.igormaznitsa.prol.libraries.PredicateProcessor;
 import com.igormaznitsa.prol.libraries.ProlCoreLibrary;
@@ -38,24 +33,16 @@ import com.igormaznitsa.prol.parser.ProlConsult;
 import com.igormaznitsa.prol.parser.ProlTreeBuilder;
 import com.igormaznitsa.prol.trace.TraceListener;
 import com.igormaznitsa.prol.utils.Utils;
+
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import static java.util.stream.Stream.concat;
 
 public final class ProlContext {
@@ -154,7 +141,7 @@ public final class ProlContext {
   }
 
   public void setDefaultTraceListener(final TraceListener traceListener) {
-      this.defaultTraceListener = traceListener;
+    this.defaultTraceListener = traceListener;
   }
 
   public final String getName() {
@@ -177,11 +164,11 @@ public final class ProlContext {
     if (kb == null) {
       throw new IllegalArgumentException("Can't make knowledge base [" + knowledge_base_id + ',' + knowledge_base_type + ']');
     }
-      this.knowledgeBaseLocker.lock();
+    this.knowledgeBaseLocker.lock();
     try {
-        this.knowledgeBase = kb;
+      this.knowledgeBase = kb;
     } finally {
-        this.knowledgeBaseLocker.unlock();
+      this.knowledgeBaseLocker.unlock();
     }
   }
 
@@ -739,17 +726,17 @@ public final class ProlContext {
     try {
       final Set<ProlTrigger> notifiedTriggers = new HashSet<>();
       concat(triggersOnAssert.entrySet().stream(), triggersOnRetract.entrySet().stream())
-              .forEachOrdered(mapentry -> mapentry.getValue().forEach((trigger) -> {
-        try {
-          if (!notifiedTriggers.contains(trigger)) {
-            trigger.onContextHalting(this);
-          }
-        } catch (Throwable ex) {
-          LOG.log(Level.SEVERE, "Exception during a context halting notification", ex);
-        } finally {
-          notifiedTriggers.add(trigger);
-        }
-      }));
+          .forEachOrdered(mapentry -> mapentry.getValue().forEach((trigger) -> {
+            try {
+              if (!notifiedTriggers.contains(trigger)) {
+                trigger.onContextHalting(this);
+              }
+            } catch (Throwable ex) {
+              LOG.log(Level.SEVERE, "Exception during a context halting notification", ex);
+            } finally {
+              notifiedTriggers.add(trigger);
+            }
+          }));
 
       triggersOnAssert.clear();
       triggersOnRetract.clear();
@@ -764,9 +751,9 @@ public final class ProlContext {
         currentInputStream = null;
         currentOutputStream = null;
         currentErrorStream = null;
-        
+
         concat(pipes.values().stream(), concat(inputStreams.values().stream(), outputStreams.values().stream()))
-                .forEach(channel -> Utils.doSilently(() -> channel.close()));
+            .forEach(channel -> Utils.doSilently(channel::close));
 
         this.pipes.clear();
         this.inputStreams.clear();
@@ -856,7 +843,7 @@ public final class ProlContext {
    * Unregister a notification trigger
    *
    * @param trigger the trigger to be removed from the inside trigger list, must
-   * not be null
+   *                not be null
    */
   public void unregisterTrigger(final ProlTrigger trigger) {
     triggerLocker.lock();
@@ -895,8 +882,8 @@ public final class ProlContext {
    * pair
    *
    * @param normalizedSignature the normalized signature to be checked, must not
-   * be null
-   * @param observedEvent the event type to be checked, must not be null
+   *                            be null
+   * @param observedEvent       the event type to be checked, must not be null
    * @return true if there is any registered trigger for the pair, else false
    */
   public boolean hasRegisteredTriggersForSignature(final String normalizedSignature, final ProlTriggerType observedEvent) {
@@ -935,7 +922,7 @@ public final class ProlContext {
    * type pair
    *
    * @param normalizedSignature the normalized signature, must not be null
-   * @param observedEvent the detected trigger type, must not be null
+   * @param observedEvent       the detected trigger type, must not be null
    */
   public void notifyTriggersForSignature(final String normalizedSignature, final ProlTriggerType observedEvent) {
     ProlTrigger[] triggersToProcess = null;
@@ -1044,7 +1031,7 @@ public final class ProlContext {
 
     @Override
     public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-      LOG.log(Level.SEVERE, "Rejected execution!  {0}''{1}''", new Object[]{r.toString(), ownercontextName});
+      LOG.log(Level.SEVERE, "Rejected execution!  {0}''{1}''", new Object[] {r.toString(), ownercontextName});
       throw new InternalError("A Prol thread was rejected. [" + ownercontextName + ']');
     }
   }

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.libraries;
 
 import com.igormaznitsa.prol.annotations.Predicate;
@@ -25,12 +26,9 @@ import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.utils.Utils;
+
 import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public abstract class AbstractProlLibrary {
 
@@ -50,6 +48,34 @@ public abstract class AbstractProlLibrary {
     final Set<String> zeroArityPredicates = new HashSet<>();
     this.predicateMethodsMap = Collections.unmodifiableMap(extractAnnotatedMethodsAsPredicates(libraryUid, zeroArityPredicates));
     this.zeroArityPredicateNames = Collections.unmodifiableSet(zeroArityPredicates);
+  }
+
+  private static void registerStaticOperator(final Map<String, OperatorContainer> operatorMap, final ProlOperator operator) {
+    Operator newOperator = new Operator(operator.Priority(), operator.Type(), operator.Name());
+    OperatorContainer container = operatorMap.get(operator.Name());
+    if (container == null) {
+      container = new OperatorContainer(newOperator, true);
+      operatorMap.put(operator.Name(), container);
+    } else {
+      container.setOperator(newOperator);
+    }
+  }
+
+  private static Map<String, OperatorContainer> loadStaticOperators(final Class<?> klazz) {
+    final Map<String, OperatorContainer> result = new HashMap<>();
+    final ProlOperators operators = klazz.getAnnotation(ProlOperators.class);
+    if (operators != null) {
+      ProlOperator[] operatorList = operators.Operators();
+      for (final ProlOperator lst : operatorList) {
+        registerStaticOperator(result, lst);
+      }
+    }
+
+    final ProlOperator operator = klazz.getAnnotation(ProlOperator.class);
+    if (operator != null) {
+      registerStaticOperator(result, operator);
+    }
+    return result;
   }
 
   public boolean hasPredicateForSignature(final String signature) {
@@ -147,34 +173,6 @@ public abstract class AbstractProlLibrary {
       }
     }
 
-    return result;
-  }
-
-  private static void registerStaticOperator(final Map<String, OperatorContainer> operatorMap, final ProlOperator operator) {
-    Operator newOperator = new Operator(operator.Priority(), operator.Type(), operator.Name());
-    OperatorContainer container = operatorMap.get(operator.Name());
-    if (container == null) {
-      container = new OperatorContainer(newOperator, true);
-      operatorMap.put(operator.Name(), container);
-    } else {
-      container.setOperator(newOperator);
-    }
-  }
-
-  private static Map<String, OperatorContainer> loadStaticOperators(final Class<?> klazz) {
-    final Map<String, OperatorContainer> result = new HashMap<>();
-    final ProlOperators operators = klazz.getAnnotation(ProlOperators.class);
-    if (operators != null) {
-      ProlOperator[] operatorList = operators.Operators();
-      for (final ProlOperator lst : operatorList) {
-        registerStaticOperator(result, lst);
-      }
-    }
-
-    final ProlOperator operator = klazz.getAnnotation(ProlOperator.class);
-    if (operator != null) {
-      registerStaticOperator(result, operator);
-    }
     return result;
   }
 

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.logic.triggers;
 
 import com.igormaznitsa.prol.data.Term;
@@ -42,19 +43,6 @@ public class ProlTriggerGoal extends AbstractProlTrigger {
    */
   protected final ProlContext context;
 
-  /**
-   * A constructor allows to make a goal from a string automatically
-   *
-   * @param triggerGoal the goal as String, it will be solved when there is the
-   * trigger event, can be null if it is undefined
-   * @param context the work context for the trigger, must not be null
-   * @param tracer the tracer to listen events of the trigger goal, it can be
-   * null
-   * @throws IOException it will be thrown if there is any IO exception during
-   * the constructor
-   * @throws InterruptedException it will be thrown if the operation will be
-   * interrupted
-   */
   public ProlTriggerGoal(final String triggerGoal, final ProlContext context, final TraceListener tracer) throws IOException, InterruptedException {
     super();
     if (context == null) {
@@ -98,6 +86,6 @@ public class ProlTriggerGoal extends AbstractProlTrigger {
 
   @Override
   public void onContextHalting(final ProlContext context) {
-    // we have to do nothing
+
   }
 }

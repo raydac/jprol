@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.libraries;
 
 import com.igormaznitsa.prol.annotations.*;
@@ -47,54 +48,54 @@ import java.util.stream.Collectors;
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 @ProlOperators(Operators = {
-  //------------------------
-  @ProlOperator(Priority = 0, Type = Operator.OPTYPE_XFX, Name = "("),
-  @ProlOperator(Priority = 0, Type = Operator.OPTYPE_XFX, Name = ")"),
-  @ProlOperator(Priority = 0, Type = Operator.OPTYPE_XFX, Name = "["),
-  @ProlOperator(Priority = 0, Type = Operator.OPTYPE_XFX, Name = "]"),
-  @ProlOperator(Priority = 1200, Type = Operator.OPTYPE_XF, Name = "."),
-  @ProlOperator(Priority = 1200, Type = Operator.OPTYPE_XFX, Name = "|"),
-  //------------------------
-  @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "is"),
-  @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "="),
-  @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "\\="),
-  @ProlOperator(Priority = 1000, Type = Operator.OPTYPE_XFY, Name = ","),
-  @ProlOperator(Priority = 1050, Type = Operator.OPTYPE_XFY, Name = "->"),
-  @ProlOperator(Priority = 1100, Type = Operator.OPTYPE_XFY, Name = ";"),
-  @ProlOperator(Priority = 1200, Type = Operator.OPTYPE_FX, Name = "?-"),
-  @ProlOperator(Priority = 1200, Type = Operator.OPTYPE_FX, Name = ":-"),
-  @ProlOperator(Priority = 1200, Type = Operator.OPTYPE_XFX, Name = ":-"),
-  @ProlOperator(Priority = 900, Type = Operator.OPTYPE_FY, Name = "\\+"),
-  @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = ">"),
-  @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "<"),
-  @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "=<"),
-  @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = ">="),
-  @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "=="),
-  @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "=\\="),
-  @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "\\=="),
-  @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "@<"),
-  @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "@>"),
-  @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "@=<"),
-  @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "@>="),
-  @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "=:="),
-  @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "=.."),
-  @ProlOperator(Priority = 500, Type = Operator.OPTYPE_YFX, Name = "/\\"),
-  @ProlOperator(Priority = 500, Type = Operator.OPTYPE_YFX, Name = "\\/"),
-  @ProlOperator(Priority = 500, Type = Operator.OPTYPE_YFX, Name = "+"),
-  @ProlOperator(Priority = 500, Type = Operator.OPTYPE_YFX, Name = "-"),
-  @ProlOperator(Priority = 500, Type = Operator.OPTYPE_FX, Name = "not"),
-  @ProlOperator(Priority = 500, Type = Operator.OPTYPE_FX, Name = "+"),
-  @ProlOperator(Priority = 500, Type = Operator.OPTYPE_FX, Name = "-"),
-  @ProlOperator(Priority = 400, Type = Operator.OPTYPE_YFX, Name = "*"),
-  @ProlOperator(Priority = 400, Type = Operator.OPTYPE_YFX, Name = "/"),
-  @ProlOperator(Priority = 400, Type = Operator.OPTYPE_YFX, Name = "//"),
-  @ProlOperator(Priority = 400, Type = Operator.OPTYPE_YFX, Name = "rem"),
-  @ProlOperator(Priority = 400, Type = Operator.OPTYPE_YFX, Name = "<<"),
-  @ProlOperator(Priority = 400, Type = Operator.OPTYPE_YFX, Name = ">>"),
-  @ProlOperator(Priority = 300, Type = Operator.OPTYPE_XFX, Name = "mod"),
-  @ProlOperator(Priority = 200, Type = Operator.OPTYPE_FY, Name = "\\"),
-  @ProlOperator(Priority = 200, Type = Operator.OPTYPE_XFX, Name = "**"),
-  @ProlOperator(Priority = 200, Type = Operator.OPTYPE_XFY, Name = "^")
+    //------------------------
+    @ProlOperator(Priority = 0, Type = Operator.OPTYPE_XFX, Name = "("),
+    @ProlOperator(Priority = 0, Type = Operator.OPTYPE_XFX, Name = ")"),
+    @ProlOperator(Priority = 0, Type = Operator.OPTYPE_XFX, Name = "["),
+    @ProlOperator(Priority = 0, Type = Operator.OPTYPE_XFX, Name = "]"),
+    @ProlOperator(Priority = 1200, Type = Operator.OPTYPE_XF, Name = "."),
+    @ProlOperator(Priority = 1200, Type = Operator.OPTYPE_XFX, Name = "|"),
+    //------------------------
+    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "is"),
+    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "="),
+    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "\\="),
+    @ProlOperator(Priority = 1000, Type = Operator.OPTYPE_XFY, Name = ","),
+    @ProlOperator(Priority = 1050, Type = Operator.OPTYPE_XFY, Name = "->"),
+    @ProlOperator(Priority = 1100, Type = Operator.OPTYPE_XFY, Name = ";"),
+    @ProlOperator(Priority = 1200, Type = Operator.OPTYPE_FX, Name = "?-"),
+    @ProlOperator(Priority = 1200, Type = Operator.OPTYPE_FX, Name = ":-"),
+    @ProlOperator(Priority = 1200, Type = Operator.OPTYPE_XFX, Name = ":-"),
+    @ProlOperator(Priority = 900, Type = Operator.OPTYPE_FY, Name = "\\+"),
+    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = ">"),
+    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "<"),
+    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "=<"),
+    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = ">="),
+    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "=="),
+    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "=\\="),
+    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "\\=="),
+    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "@<"),
+    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "@>"),
+    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "@=<"),
+    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "@>="),
+    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "=:="),
+    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "=.."),
+    @ProlOperator(Priority = 500, Type = Operator.OPTYPE_YFX, Name = "/\\"),
+    @ProlOperator(Priority = 500, Type = Operator.OPTYPE_YFX, Name = "\\/"),
+    @ProlOperator(Priority = 500, Type = Operator.OPTYPE_YFX, Name = "+"),
+    @ProlOperator(Priority = 500, Type = Operator.OPTYPE_YFX, Name = "-"),
+    @ProlOperator(Priority = 500, Type = Operator.OPTYPE_FX, Name = "not"),
+    @ProlOperator(Priority = 500, Type = Operator.OPTYPE_FX, Name = "+"),
+    @ProlOperator(Priority = 500, Type = Operator.OPTYPE_FX, Name = "-"),
+    @ProlOperator(Priority = 400, Type = Operator.OPTYPE_YFX, Name = "*"),
+    @ProlOperator(Priority = 400, Type = Operator.OPTYPE_YFX, Name = "/"),
+    @ProlOperator(Priority = 400, Type = Operator.OPTYPE_YFX, Name = "//"),
+    @ProlOperator(Priority = 400, Type = Operator.OPTYPE_YFX, Name = "rem"),
+    @ProlOperator(Priority = 400, Type = Operator.OPTYPE_YFX, Name = "<<"),
+    @ProlOperator(Priority = 400, Type = Operator.OPTYPE_YFX, Name = ">>"),
+    @ProlOperator(Priority = 300, Type = Operator.OPTYPE_XFX, Name = "mod"),
+    @ProlOperator(Priority = 200, Type = Operator.OPTYPE_FY, Name = "\\"),
+    @ProlOperator(Priority = 200, Type = Operator.OPTYPE_XFX, Name = "**"),
+    @ProlOperator(Priority = 200, Type = Operator.OPTYPE_XFY, Name = "^")
 })
 public final class ProlCoreLibrary extends AbstractProlLibrary {
 
@@ -639,7 +640,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     if (auxObject == null) {
       // the first call
       final Iterator<OperatorContainer> operator_iterator = goal.getContext().getKnowledgeBase().getOperatorIterator();
-      auxObject = new Object[]{operator_iterator, null, null};
+      auxObject = new Object[] {operator_iterator, null, null};
       goal.setAuxObject(auxObject);
     }
 
@@ -1324,7 +1325,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         try {
           number = new TermFloat(numberValue);
         } catch (NumberFormatException exx) {
-          throw new ProlCustomErrorException(new TermStruct(new Term("syntax_error"), new Term[]{new Term(numberValue)}), predicate);
+          throw new ProlCustomErrorException(new TermStruct(new Term("syntax_error"), new Term[] {new Term(numberValue)}), predicate);
         }
       }
 
@@ -1437,7 +1438,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       return left.Equ(right);
     }
 
-    if (right.getTermType() == Term.TYPE_LIST) {
+    if (right.getTermType() == LIST) {
       final StringBuilder builder = new StringBuilder();
 
       TermList list = (TermList) right;
@@ -1548,7 +1549,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         if (that instanceof BofKey && ((BofKey) that).vars.size() == this.vars.size()) {
           final BofKey thatKey = (BofKey) that;
           result = this.vars.entrySet().stream()
-                  .noneMatch(e -> !(thatKey.vars.containsKey(e.getKey()) && thatKey.vars.get(e.getKey()).equWithoutSet(e.getValue())));
+              .allMatch(e -> thatKey.vars.containsKey(e.getKey()) && thatKey.vars.get(e.getKey()).equWithoutSet(e.getValue()));
         }
         return result;
       }
@@ -1569,9 +1570,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       final Set<String> excludedVars = new HashSet<>(Utils.fillTableWithVars(template).keySet());
 
       Term processingGoal = pgoal;
-      while (processingGoal.getTermType() == Term.TYPE_STRUCT
-              && ((TermStruct) processingGoal).getArity() == 2
-              && "^".equals(((TermStruct) processingGoal).getFunctor().getText())) {
+      while (processingGoal.getTermType() == STRUCT
+          && ((TermStruct) processingGoal).getArity() == 2
+          && "^".equals(((TermStruct) processingGoal).getFunctor().getText())) {
 
         final TermStruct theStruct = (TermStruct) processingGoal;
         final Term left = theStruct.getElement(0);
@@ -1672,7 +1673,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         if (that instanceof SofKey && ((SofKey) that).vars.size() == this.vars.size()) {
           final SofKey thatKey = (SofKey) that;
           result = this.vars.entrySet().stream()
-                  .noneMatch(e -> !(thatKey.vars.containsKey(e.getKey()) && thatKey.vars.get(e.getKey()).equWithoutSet(e.getValue())));
+              .allMatch(e -> thatKey.vars.containsKey(e.getKey()) && thatKey.vars.get(e.getKey()).equWithoutSet(e.getValue()));
         }
         return result;
       }
@@ -1693,9 +1694,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       final Set<String> excludedVars = new HashSet<>(Utils.fillTableWithVars(template).keySet());
 
       Term processingGoal = pgoal;
-      while (processingGoal.getTermType() == Term.TYPE_STRUCT
-              && ((TermStruct) processingGoal).getArity() == 2
-              && "^".equals(((TermStruct) processingGoal).getFunctor().getText())) {
+      while (processingGoal.getTermType() == STRUCT
+          && ((TermStruct) processingGoal).getArity() == 2
+          && "^".equals(((TermStruct) processingGoal).getFunctor().getText())) {
 
         final TermStruct theStruct = (TermStruct) processingGoal;
         final Term left = theStruct.getElement(0);
@@ -1742,10 +1743,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         final Term[] tmpArray = Utils.listToArray(entry.getValue());
         Arrays.sort(tmpArray, Utils.TERM_COMPARATOR);
         final TermList sortedList = Utils.arrayToList(
-                Arrays.stream(tmpArray)
-                        .distinct()
-                        .collect(Collectors.toList())
-                        .toArray(new Term[0])
+            Arrays.stream(tmpArray)
+                .distinct().toArray(Term[]::new)
         );
 
         sortedMap.put(entry.getKey(), sortedList);
@@ -2430,7 +2429,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     if (forkException != null) {
 
-      final ProlForkExecutionException ex = new ProlForkExecutionException(termThrowsException, new Throwable[]{forkException});
+      final ProlForkExecutionException ex = new ProlForkExecutionException(termThrowsException, new Throwable[] {forkException});
       LOG.throwing(ProlCoreLibrary.class.getCanonicalName(), "ifork/1", ex);
       throw ex;
     }

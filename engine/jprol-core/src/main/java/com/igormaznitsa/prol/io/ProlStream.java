@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.io;
 
 import com.igormaznitsa.prol.data.Term;
@@ -39,19 +40,8 @@ public interface ProlStream {
    */
   Term END_OF_FILE = new Term(END_OF_FILE_STR);
 
-  /**
-   * Get the prol context for the stream
-   *
-   * @return the prol context for the stream, must not be null
-   */
   ProlContext getContext();
 
-  /**
-   * Close the stream
-   *
-   * @throws IOException it will be thrown if the stream can't be closed
-   * successfully
-   */
   void close() throws IOException;
 
   /**

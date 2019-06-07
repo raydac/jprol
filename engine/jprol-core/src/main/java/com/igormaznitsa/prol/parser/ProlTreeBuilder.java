@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.parser;
 
 import com.igormaznitsa.prol.containers.KnowledgeBase;
@@ -45,11 +46,11 @@ public final class ProlTreeBuilder {
     this.context = context;
     knowledgeBase = context.getKnowledgeBase();
 
-    OPERATORS_PHRASE = new OperatorContainer[]{context.getSystemOperatorForName(".")};
-    OPERATORS_INSIDE_LIST = new OperatorContainer[]{context.getSystemOperatorForName(","), context.getSystemOperatorForName("]"), context.getSystemOperatorForName("|")};
-    OPERATORS_END_LIST = new OperatorContainer[]{context.getSystemOperatorForName("]")};
-    OPERATORS_INSIDE_STRUCT = new OperatorContainer[]{context.getSystemOperatorForName(","), context.getSystemOperatorForName(")")};
-    OPERATORS_SUBBLOCK = new OperatorContainer[]{context.getSystemOperatorForName(")")};
+    OPERATORS_PHRASE = new OperatorContainer[] {context.getSystemOperatorForName(".")};
+    OPERATORS_INSIDE_LIST = new OperatorContainer[] {context.getSystemOperatorForName(","), context.getSystemOperatorForName("]"), context.getSystemOperatorForName("|")};
+    OPERATORS_END_LIST = new OperatorContainer[] {context.getSystemOperatorForName("]")};
+    OPERATORS_INSIDE_STRUCT = new OperatorContainer[] {context.getSystemOperatorForName(","), context.getSystemOperatorForName(")")};
+    OPERATORS_SUBBLOCK = new OperatorContainer[] {context.getSystemOperatorForName(")")};
   }
 
   private static boolean isEndOperator(final Term operator, final OperatorContainer[] endOperators) {
@@ -569,12 +570,12 @@ public final class ProlTreeBuilder {
 
           if (left != null) {
             if (right == null) {
-              operatorStruct = new TermStruct(savedTerm, new Term[]{left});
+              operatorStruct = new TermStruct(savedTerm, new Term[] {left});
             } else {
-              operatorStruct = new TermStruct(savedTerm, new Term[]{left, right});
+              operatorStruct = new TermStruct(savedTerm, new Term[] {left, right});
             }
           } else {
-            operatorStruct = new TermStruct(savedTerm, new Term[]{right});
+            operatorStruct = new TermStruct(savedTerm, new Term[] {right});
           }
 
           operatorStruct.setPredicateProcessor(builder.context.findProcessor(operatorStruct));

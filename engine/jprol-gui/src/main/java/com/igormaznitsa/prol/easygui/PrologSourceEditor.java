@@ -1,15 +1,18 @@
 package com.igormaznitsa.prol.easygui;
 
-import javax.swing.event.*;
-import javax.swing.text.*;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.Token;
+import org.fife.ui.rtextarea.RUndoManager;
+
+import javax.swing.*;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.UndoableEditListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Element;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-import javax.swing.KeyStroke;
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rsyntaxtextarea.Token;
-import org.fife.ui.rtextarea.RUndoManager;
 
 /**
  * The class implements the source editor pane of the IDE.
@@ -117,7 +120,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
     prefs.putInt("sourcecaretcolor", getEdCaretColor().getRGB());
     prefs.putInt("sourceforegroundcolor", getEdForeground().getRGB());
     prefs.putBoolean("sourcewordwrap", getEdWordWrap());
-    saveFontToPrefs(prefs, "sourcefont", ((ScalableRsyntaxTextArea)editor).getBaseFont());
+    saveFontToPrefs(prefs, "sourcefont", ((ScalableRsyntaxTextArea) editor).getBaseFont());
   }
 
   public boolean uncommentSelectedLines() {

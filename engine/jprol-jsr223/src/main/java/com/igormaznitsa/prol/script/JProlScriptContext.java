@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.script;
 
 import com.igormaznitsa.prol.containers.KnowledgeBase;
@@ -22,21 +23,21 @@ import com.igormaznitsa.prol.libraries.AbstractProlLibrary;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlConsult;
 import com.igormaznitsa.prol.parser.ProlReader;
+
+import javax.script.Bindings;
+import javax.script.ScriptContext;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.Arrays;
 import java.util.List;
-import javax.script.Bindings;
-import javax.script.ScriptContext;
 
 public final class JProlScriptContext implements ScriptContext {
 
-  private final ProlContext context;
-  private static JProlBindings globalMap = null;
-  private JProlBindings engineMap = new JProlBindings(this);
-
   private static final List<Integer> ALLOWED_SCOPES = Arrays.asList(ScriptContext.ENGINE_SCOPE, ScriptContext.GLOBAL_SCOPE);
+  private static JProlBindings globalMap = null;
+  private final ProlContext context;
+  private JProlBindings engineMap = new JProlBindings(this);
 
   JProlScriptContext(final String name) {
     this.context = new ProlContext(name);
@@ -50,39 +51,42 @@ public final class JProlScriptContext implements ScriptContext {
     new ProlConsult(reader, this.context).consult();
   }
 
-  public void addOperators(final Operator ... operators) {
-    for(final Operator op : operators) this.context.getKnowledgeBase().addOperator(op);
+  public void addOperators(final Operator... operators) {
+    for (final Operator op : operators) {
+      this.context.getKnowledgeBase().addOperator(op);
+    }
   }
 
   public void abolish(final String signature) {
     this.context.getKnowledgeBase().abolish(signature);
   }
-  
+
   public List<TermStruct> findClauses(final String signature) {
     return this.context.getKnowledgeBase().findAllForSignature(signature);
   }
-  
-  public void addLibraries(final AbstractProlLibrary ... libraries) throws IOException {
-    for(final AbstractProlLibrary lib : libraries)
-    this.context.addLibrary(lib);
+
+  public void addLibraries(final AbstractProlLibrary... libraries) throws IOException {
+    for (final AbstractProlLibrary lib : libraries) {
+      this.context.addLibrary(lib);
+    }
   }
-  
+
   public KnowledgeBase getKnowledgeBase() {
     return this.context.getKnowledgeBase();
   }
-  
+
   public void consult(final String text) {
-    try{
+    try {
       this.consult(new ProlReader(text));
-    }catch(IOException ex){
-      throw new RuntimeException("Unexpected IO error",ex);
+    } catch (IOException ex) {
+      throw new RuntimeException("Unexpected IO error", ex);
     }
   }
-  
+
   public void consult(final Reader reader) throws IOException {
-      this.consult(new ProlReader(reader));
+    this.consult(new ProlReader(reader));
   }
-  
+
   @Override
   public void setBindings(final Bindings bindings, final int scope) {
     if (bindings == null) {
@@ -147,13 +151,13 @@ public final class JProlScriptContext implements ScriptContext {
   }
 
   @Override
-  public Writer getErrorWriter() {
-    return null;
+  public void setWriter(Writer writer) {
+
   }
 
   @Override
-  public void setWriter(Writer writer) {
-
+  public Writer getErrorWriter() {
+    return null;
   }
 
   @Override

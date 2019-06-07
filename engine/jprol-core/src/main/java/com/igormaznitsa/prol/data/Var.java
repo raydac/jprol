@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.data;
 
 import java.util.Map;
@@ -48,8 +49,8 @@ public final class Var extends Term {
 
   public final Term getValue() {
     Term result = value;
-    if (result != null && result.getTermType() == TYPE_VAR) {
-      final Var nextVar = (Var)result;
+    if (result != null && result.getTermType() == VAR) {
+      final Var nextVar = (Var) result;
       result = nextVar.getValue();
       if (result == null) {
         result = nextVar;

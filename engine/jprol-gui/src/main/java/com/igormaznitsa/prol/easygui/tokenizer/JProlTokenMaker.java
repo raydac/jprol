@@ -1,10 +1,11 @@
 package com.igormaznitsa.prol.easygui.tokenizer;
 
-import javax.swing.text.Segment;
 import org.fife.ui.rsyntaxtextarea.AbstractTokenMaker;
 import org.fife.ui.rsyntaxtextarea.RSyntaxUtilities;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenMap;
+
+import javax.swing.text.Segment;
 
 public class JProlTokenMaker extends AbstractTokenMaker {
 
@@ -23,10 +24,10 @@ public class JProlTokenMaker extends AbstractTokenMaker {
    * Checks the token to give it the exact ID it deserves before being passed up
    * to the super method.
    *
-   * @param segment <code>Segment</code> to get text from.
-   * @param start Start offset in <code>segment</code> of token.
-   * @param end End offset in <code>segment</code> of token.
-   * @param tokenType The token's type.
+   * @param segment     <code>Segment</code> to get text from.
+   * @param start       Start offset in <code>segment</code> of token.
+   * @param end         End offset in <code>segment</code> of token.
+   * @param tokenType   The token's type.
    * @param startOffset The offset in the document at which the token occurs.
    */
   @Override
@@ -67,7 +68,7 @@ public class JProlTokenMaker extends AbstractTokenMaker {
    */
   @Override
   public String[] getLineCommentStartAndEnd(int languageIndex) {
-    return new String[]{"%", null};
+    return new String[] {"%", null};
   }
 
   /**
@@ -131,9 +132,9 @@ public class JProlTokenMaker extends AbstractTokenMaker {
   /**
    * Returns a list of tokens representing the given text.
    *
-   * @param text The text to break into tokens.
+   * @param text           The text to break into tokens.
    * @param startTokenType The token with which to start tokenizing.
-   * @param startOffset The offset at which the line of tokens begins.
+   * @param startOffset    The offset at which the line of tokens begins.
    * @return A linked list of tokens representing <code>text</code>.
    */
   @Override
@@ -165,7 +166,7 @@ public class JProlTokenMaker extends AbstractTokenMaker {
 
         case Token.NULL:
 
-          currentTokenStart = i;	// Starting a new token here.
+          currentTokenStart = i;    // Starting a new token here.
 
           switch (c) {
 
@@ -247,7 +248,7 @@ public class JProlTokenMaker extends AbstractTokenMaker {
 
             case ' ':
             case '\t':
-              break;	// Still whitespace.
+              break;    // Still whitespace.
 
             case '\\':
               addToken(text, currentTokenStart, i - 1, Token.WHITESPACE, newStartOffset + currentTokenStart);
@@ -276,7 +277,7 @@ public class JProlTokenMaker extends AbstractTokenMaker {
               currentTokenType = Token.COMMENT_EOL;
               break;
 
-            default:	// Add the whitespace token and start anew.
+            default:    // Add the whitespace token and start anew.
 
               addToken(text, currentTokenStart, i - 1, Token.WHITESPACE, newStartOffset + currentTokenStart);
               currentTokenStart = i;
@@ -352,7 +353,7 @@ public class JProlTokenMaker extends AbstractTokenMaker {
 
             default:
               if (RSyntaxUtilities.isLetterOrDigit(c) || c == '/' || c == '_') {
-                break;	// Still an identifier of some type.
+                break;    // Still an identifier of some type.
               }
               int indexOf = operators.indexOf(c);
               if (indexOf > -1) {
@@ -375,7 +376,7 @@ public class JProlTokenMaker extends AbstractTokenMaker {
                 currentTokenType = Token.NULL;
                 break;
               }
-            // Otherwise, we're still an identifier (?).
+              // Otherwise, we're still an identifier (?).
 
           } // End of switch (c).
 
@@ -416,7 +417,7 @@ public class JProlTokenMaker extends AbstractTokenMaker {
             default:
 
               if (RSyntaxUtilities.isDigit(c)) {
-                break;	// Still a literal number.
+                break;    // Still a literal number.
               }
               int indexOf = operators.indexOf(c);
               if (indexOf > -1) {
@@ -453,7 +454,7 @@ public class JProlTokenMaker extends AbstractTokenMaker {
 
           // If we didn't find the '{' character, find the end of the variable...
           while (i < end) {
-            c = array[i];	// Not needed the first iteration, but can't think of a better way to do it...
+            c = array[i];    // Not needed the first iteration, but can't think of a better way to do it...
             if (!RSyntaxUtilities.isLetterOrDigit(c) && c != '_') {
               addToken(text, currentTokenStart, i - 1, Token.VARIABLE, newStartOffset + currentTokenStart);
               i--;

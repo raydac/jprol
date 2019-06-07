@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.parser;
 
 import com.igormaznitsa.prol.containers.KnowledgeBase;
@@ -101,7 +102,7 @@ public final class ProlTokenizer {
    * Push a read object back into buffer to read it lately
    *
    * @param object the object to be pushed back into buffer, null will clear the
-   * buffer
+   *               buffer
    */
   public void pushTermBack(final ProlTokenizerResult object) {
     if (lastPushedTerm != null) {
@@ -115,8 +116,8 @@ public final class ProlTokenizer {
    * available but it will not be removed from the incomming stream.
    *
    * @param reader the reader to get the incomming token, must not be null
-   * @param voc the knowledge base which will be used for the operation, must
-   * not be null
+   * @param voc    the knowledge base which will be used for the operation, must
+   *               not be null
    * @return a read token as a ProlTokenizerResult, or null if there is not any
    * token in the stream
    * @throws IOException it will be throws if there is any transport problem
@@ -154,7 +155,7 @@ public final class ProlTokenizer {
    * Inside function to fix current read position of string and line numbers
    *
    * @param reader the reader which position shoul be fixed in the inside
-   * variables, must not be null
+   *               variables, must not be null
    */
   private void fixPosition(final ProlReader reader) {
     prevReadTokenLineNum = lastReadTokenLineNum;
@@ -168,7 +169,7 @@ public final class ProlTokenizer {
    *
    * @param reader the reader whose comments should be skipped, must nit be null
    * @throws IOException it will be thrown if there will be any transport
-   * problem during the operation
+   *                     problem during the operation
    */
   private void skipComments(final ProlReader reader) throws IOException {
     while (!Thread.currentThread().isInterrupted()) {
@@ -183,12 +184,12 @@ public final class ProlTokenizer {
    * Read next token from a reader
    *
    * @param reader the reader which will be used to read next token, must not be
-   * null
-   * @param voc the knowledge base which will be used for the operation, must
-   * not be null
+   *               null
+   * @param voc    the knowledge base which will be used for the operation, must
+   *               not be null
    * @return next token as a ProlTokenizerResult object
    * @throws IOException it will be thrown if there is any transport error
-   * during the operation
+   *                     during the operation
    */
   @SuppressWarnings("fallthrough")
   public ProlTokenizerResult nextToken(final ProlReader reader, final KnowledgeBase voc) throws IOException {
@@ -494,8 +495,8 @@ public final class ProlTokenizer {
    * Inside auxulary function to make a term from a String
    *
    * @param string the source string object, must not be null
-   * @param state the state of inside state machine which was used to read the
-   * term
+   * @param state  the state of inside state machine which was used to read the
+   *               term
    * @return a Term object as the result, must not be null
    */
   private Term makeTermFromString(final String string, final int state) {
@@ -568,7 +569,7 @@ public final class ProlTokenizer {
     /**
      * The constructor
      *
-     * @param term the read term, must not be null
+     * @param term  the read term, must not be null
      * @param state the state of the state machine
      */
     public ProlTokenizerResult(final Term term, final int state) {

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.annotations;
 
 import java.lang.annotation.ElementType;
@@ -57,21 +58,7 @@ public @interface Predicate {
    */
   String Signature();
 
-  /**
-   * The template of the predicate. It uses ISO definitions (+.?,@,-) and types
-   * from PredicateTemplate without TYPE_ prefix and in low case (atomic =
-   * TYPE_ATOMIC)
-   *
-   * @return string array of possible states, it can be empty (example
-   * "@evaluable,@evaluable", "-nonvar,+non_empty_list")
-   * @see com.igormaznitsa.prol.libraries.PredicateTemplate
-   */
   String[] Template() default {};
 
-  /**
-   * The field can have reference of the predicate. Default it is empty.
-   *
-   * @return the reference of the predicate as String, default it is empty ("")
-   */
   String Reference() default "";
 }

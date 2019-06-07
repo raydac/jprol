@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.libraries;
 
 import com.igormaznitsa.prol.data.*;
@@ -259,41 +260,33 @@ public class PredicateTemplate {
     }
   }
 
-  /**
-   * Check an argument for the template
-   *
-   * @param term the term to be checked
-   * @return true if the term must not be changed during processing and false if
-   * it can be changed
-   */
-  @SuppressWarnings("fallthrough")
-  public final boolean check(final Term term) {
-    final int type = term.getTermType();
+  public final boolean shouldNotBeAltered(final Term term) {
+    final TermType type = term.getTermType();
     switch (Modifier) {
-      case MODIFIER_SHALL_REMAIN_UNALTERED: {
-        if (type == Term.TYPE_LIST || type == Term.TYPE_STRUCT) {
+      case SHALL_REMAIN_UNALTERED: {
+        if (type == LIST || type == STRUCT) {
           checkTermForTemplate(term);
           return false;
         }
       }
-      case MODIFIER_SHALL_BE_INSTANTIATED: {
-        if (type == Term.TYPE_VAR && ((Var) term).isUndefined()) {
+      case SHALL_BE_INSTANTIATED: {
+        if (type == VAR && ((Var) term).isUndefined()) {
           throw new ProlInstantiationErrorException("Should be instantiated \'" + term.getSourceLikeRepresentation() + '\'', term);
         }
         checkTermForTemplate(term);
       }
       break;
-      case MODIFIER_SHALL_BE_INSTANTIATED_OR_VARIABLE: {
+      case SHALL_BE_INSTANTIATED_OR_VARIABLE: {
         // any
-        if (type == Term.TYPE_VAR && ((Var) term).isUndefined()) {
+        if (type == VAR && ((Var) term).isUndefined()) {
           return false;
         }
 
         checkTermForTemplate(term);
       }
       break;
-      case MODIFIER_SHALL_BE_VARIABLE: {
-        if (type == Term.TYPE_VAR) {
+      case SHALL_BE_VARIABLE: {
+        if (type == VAR) {
           if (!((Var) term).isUndefined()) {
             throw new ProlInstantiationErrorException("Should not be instantiated \'" + term.getSourceLikeRepresentation() + '\'', term);
           }
