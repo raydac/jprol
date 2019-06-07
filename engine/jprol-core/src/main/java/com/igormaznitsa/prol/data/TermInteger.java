@@ -15,35 +15,15 @@
  */
 package com.igormaznitsa.prol.data;
 
-/**
- * The class describes a ground term which can save an integer value
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- * @see com.igormaznitsa.prol.data.NumericTerm
- */
 public final class TermInteger extends Term implements NumericTerm {
 
-  /**
-   * The variable contains the integer value associated with the numeric term
-   */
   private final int intValue;
 
-  /**
-   * A constructor, it allows to make the float number term from a string
-   *
-   * @param name the string represents a float number, mut ot be null
-   */
   public TermInteger(final String name) {
     super(name);
     intValue = Integer.parseInt(name);
   }
 
-  /**
-   * A constructor allows to make an integer term from an integer numeric value
-   *
-   * @param value the integer numeric value which will be associated with the
-   * term
-   */
   public TermInteger(final int value) {
     super("");
     intValue = value;

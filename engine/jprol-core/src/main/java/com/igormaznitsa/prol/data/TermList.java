@@ -19,69 +19,27 @@ import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 
 import java.util.Map;
 
-/**
- * The term represents a prolog list
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- * @see com.igormaznitsa.prol.data.TermStruct
- */
 public final class TermList extends TermStruct {
 
-  /**
-   * The text which is used for the list functor
-   */
   public static final String LIST_FUNCTOR = ".";
-  /**
-   * The term which is used as the functor for a list
-   */
   public static final Term LIST_FUNCTOR_AS_TERM = new Term(LIST_FUNCTOR);
-  /**
-   * The term which is used as the NULL LIST
-   */
   public static final TermList NULLLIST = new TermList();
-  /**
-   * The index of the list head in the element array
-   */
+
   private static final int INDEX_HEAD = 0;
-  /**
-   * The index of the list tail in the element array
-   */
   private static final int INDEX_TAIL = 1;
 
-  /**
-   * a constructor to make NULL_LIST
-   */
   private TermList() {
     super(LIST_FUNCTOR, null);
   }
 
-  /**
-   * A constructor allows to make a list with a term as its head
-   *
-   * @param term the term which will be used as the head of the created list,
-   * must not be null
-   */
   public TermList(final Term term) {
     super(LIST_FUNCTOR, new Term[]{term, NULLLIST});
   }
 
-  /**
-   * A constructor which allows to make a list contains the head and the tail
-   *
-   * @param head the head of the created list, must not be null
-   * @param tail the tail of the created list, must not be null
-   */
   public TermList(final Term head, final Term tail) {
     super(LIST_FUNCTOR, new Term[]{head, tail});
   }
 
-  /**
-   * Append a term to the end of a list
-   *
-   * @param list the destination list, must not be null
-   * @param term the term to be added, must not be null
-   * @return new generated list for the added term as a TermList object
-   */
   public static TermList appendItem(final TermList list, final Term term) {
     final TermList newList = new TermList(term);
     if (!list.isNullList()) {
@@ -91,13 +49,6 @@ public final class TermList extends TermStruct {
     return newList;
   }
 
-  /**
-   * Inside auxulary function to convert a term into ints source representation
-   *
-   * @param term term to be converted into its source repesentation, must not be
-   * null
-   * @return the source like representation of the term
-   */
   private static String elementToSourceString(final Term term) {
     switch (term.getTermType()) {
       case Term.TYPE_ATOM: {
@@ -108,22 +59,10 @@ public final class TermList extends TermStruct {
     }
   }
 
-  /**
-   * Get the head of the list
-   *
-   * @return the head of the list as a term, must not be null (if it is not the
-   * NULL LIST)
-   */
   public Term getHead() {
     return terms[INDEX_HEAD];
   }
 
-  /**
-   * Get the tail of the list
-   *
-   * @return the tail of the list as term because it can be as list as not list
-   * (for '|' case), must not be null (if it is not the NULL LIST)
-   */
   public Term getTail() {
     final Term tail = this.terms[INDEX_TAIL];
     switch (tail.getTermType()) {
@@ -139,11 +78,6 @@ public final class TermList extends TermStruct {
     }
   }
 
-  /**
-   * Set the tail for the list
-   *
-   * @param newTail the new tail value, must not be null
-   */
   public void setTail(final Term newTail) {
     if (newTail == null) {
       throw new NullPointerException("NULL as Tail in list");
@@ -151,11 +85,6 @@ public final class TermList extends TermStruct {
     this.terms[INDEX_TAIL] = newTail;
   }
 
-  /**
-   * Calculate the depth of the list
-   *
-   * @return the depth of the list, 0 if the list is the NULL_LIST
-   */
   public int calculateLength() {
     if (this == NULLLIST) {
       return 0;
@@ -179,11 +108,6 @@ public final class TermList extends TermStruct {
     terms[INDEX_TAIL].fillVarables(table);
   }
 
-  /**
-   * Check the list to be the NULL LIST
-   *
-   * @return true if it is the NULL LIST else false
-   */
   public boolean isNullList() {
     return this == NULLLIST;
   }
@@ -282,11 +206,6 @@ public final class TermList extends TermStruct {
     return builder.toString();
   }
 
-  /**
-   * Replace the last element of the list
-   *
-   * @param newLastElement new the last element of the list, must not be null
-   */
   public final void replaceLastElement(final Term newLastElement) {
     if (isNullList()) {
       throw new ProlCriticalError("Attemption to change Null list");

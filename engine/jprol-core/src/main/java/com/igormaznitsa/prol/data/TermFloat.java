@@ -15,24 +15,10 @@
  */
 package com.igormaznitsa.prol.data;
 
-/**
- * The class describes a ground term which can save a float value
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- * @see com.igormaznitsa.prol.data.NumericTerm
- */
 public final class TermFloat extends Term implements NumericTerm {
 
-  /**
-   * The variable contains the term value
-   */
   private final float floatValue;
 
-  /**
-   * A constructor, it allows to make the float number term from a string
-   *
-   * @param name the string represents a float number, mut ot be null
-   */
   public TermFloat(final String name) {
     super(name);
 
@@ -46,11 +32,6 @@ public final class TermFloat extends Term implements NumericTerm {
     floatValue = Float.parseFloat(name);
   }
 
-  /**
-   * A constructor, it allows to make the float number term from a float value
-   *
-   * @param value the float value which will be used by the term
-   */
   public TermFloat(final float value) {
     super("");
     floatValue = value;
@@ -128,11 +109,6 @@ public final class TermFloat extends Term implements NumericTerm {
     return false;
   }
 
-  /**
-   * Get current value represented by the term
-   *
-   * @return the float value of the term
-   */
   public float getValue() {
     return floatValue;
   }

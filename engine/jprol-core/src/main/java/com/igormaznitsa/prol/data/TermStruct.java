@@ -21,63 +21,20 @@ import com.igormaznitsa.prol.utils.Utils;
 
 import java.util.Map;
 
-/**
- * The class describing the prolog structure
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 public class TermStruct extends Term {
 
-  /**
-   * It will be used to init zero-arity structures
-   */
   private static final Term[] EMPTY_ARRAY = new Term[0];
-  /**
-   * The array contains all items of the structure, can't be null, if it has
-   * zero arity then empty array will be saved into the variable
-   */
   protected final Term[] terms;
-  /**
-   * The variable contains the functor of the structure, must not be null
-   */
   protected final Term functor;
-  /**
-   * The variable contains the link to the processor which can be used to
-   * process data of the structure, can be null
-   */
   protected PredicateProcessor predicateProcessor;
-  /**
-   * The variable contains the signature of the structure in the format
-   * <functor>/<arity>
-   */
   private String structureSignature;
-  /**
-   * This flag shows that the rule definition functor is presented as the struct
-   * functor
-   */
   private boolean rulefunctor;
-  /**
-   * The flag shows that the rulefunctor flag has been inited, for lazy initing
-   */
   private boolean rulefunctorset;
 
-  /**
-   * A constructor allows to make structure with zero arity
-   *
-   * @param functor the functor for the structure, must not be null
-   */
   public TermStruct(final Term functor) {
     this(functor, EMPTY_ARRAY);
   }
 
-  /**
-   * A constructor allows to create structure with a functor and predeficned
-   * elements
-   *
-   * @param functor the string describes the functor, must not be null
-   * @param elements the array which contains elements of the structure, it can
-   * be null and in the case the structure will have zero arity
-   */
   public TermStruct(final String functor, final Term[] elements) {
     this(new Term(functor), elements);
     if (functor.length() != 2) {
@@ -86,14 +43,6 @@ public class TermStruct extends Term {
     }
   }
 
-  /**
-   * A constructor allows to create structure with a functor and predeficned
-   * elements
-   *
-   * @param functor the functor for the dreated structure, must not be null
-   * @param elements the array which contains elements of the structure, it can
-   * be null and in the case the structure will have zero arity
-   */
   public TermStruct(final Term functor, final Term[] elements) {
     super(functor.getText());
     final String functorText = functor.getText();
@@ -106,27 +55,11 @@ public class TermStruct extends Term {
     this.terms = elements == null ? EMPTY_ARRAY : elements;
   }
 
-  /**
-   * A constructor allows to create structure with a functor and predeficned
-   * elements and set the predicate processor
-   *
-   * @param functor the functor for the dreated structure, must not be null
-   * @param elements the array which contains elements of the structure, it can
-   * be null and in the case the structure will have zero arity
-   * @param processor the predicate processor which will be used to process
-   * elements of the structure, can be null
-   */
   public TermStruct(final Term functor, final Term[] elements, final PredicateProcessor processor) {
     this(functor, elements);
     predicateProcessor = processor;
   }
 
-  /**
-   * Check that the functor is the term represended by ':-' text p,s. the
-   * function makes a lazy initing of inside flag
-   *
-   * @return true if the runle functor, else false
-   */
   public final boolean isFunctorLikeRuleDefinition() {
     if (!rulefunctorset) {
       rulefunctor = ":-".equals(functor.getText());
@@ -135,31 +68,14 @@ public class TermStruct extends Term {
     return rulefunctor;
   }
 
-  /**
-   * Get the functor of the structure
-   *
-   * @return the functor as a Term object
-   */
   public final Term getFunctor() {
     return functor;
   }
 
-  /**
-   * Get the structure elements as a Term array
-   *
-   * @return the Term array contains structure elements, it is empty array if
-   * the structure has zero arity
-   */
   public final Term[] getElementsAsArray() {
     return terms;
   }
 
-  /**
-   * Set the structure element for its index (the first element index is zero)
-   *
-   * @param index the index of an element (the first element index is zero)
-   * @param element the element which will be placed in the position
-   */
   public final void setElement(final int index, final Term element) {
     terms[index] = element;
   }
@@ -175,11 +91,6 @@ public class TermStruct extends Term {
     }
   }
 
-  /**
-   * Check that the structure doesn't have null as one from its elements
-   *
-   * @return true if there is not any null element, else false
-   */
   public final boolean hasNullElement() {
     final Term[] arr = terms;
 
@@ -193,21 +104,10 @@ public class TermStruct extends Term {
     return true;
   }
 
-  /**
-   * Get the element for its index (the first element has the zero index)
-   *
-   * @param index the element index (the first element has the zero index)
-   * @return the element has been found at the position
-   */
   public final Term getElement(final int index) {
     return terms[index];
   }
 
-  /**
-   * Get the arity of the structure
-   *
-   * @return the arity of the structure as integer
-   */
   public final int getArity() {
     return terms.length;
   }
@@ -231,15 +131,6 @@ public class TermStruct extends Term {
     return getStringRepresentation(true);
   }
 
-  /**
-   * Inside auxulary function to make source like representation of the
-   * structure
-   *
-   * @param sourceLike if true then the result will be optimized for output as
-   * prolog sources else for write
-   * @return the representation of the structure as String object, must not be
-   * null
-   */
   private String getStringRepresentation(final boolean sourceLike) {
     if (functor.getTermType() != Term.TYPE_OPERATOR) {
       // just struct
@@ -448,23 +339,10 @@ public class TermStruct extends Term {
     }
   }
 
-  /**
-   * Get the predicate processor for the structure
-   *
-   * @return the predicate processor for the structure or null if it is not
-   * defined
-   */
   public final PredicateProcessor getPredicateProcessor() {
     return predicateProcessor;
   }
 
-  /**
-   * Set the predicate processor for the structure
-   *
-   * @param processor the processor which will be called if we need to process
-   * the structure data (as an example it the functor is an Operator), it can be
-   * null
-   */
   public void setPredicateProcessor(final PredicateProcessor processor) {
     predicateProcessor = processor;
   }

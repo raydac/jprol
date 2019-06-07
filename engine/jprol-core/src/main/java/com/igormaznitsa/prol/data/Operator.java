@@ -19,75 +19,24 @@ import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 
 import java.io.PrintWriter;
 
-/**
- * This class represents a prolog operator
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 public final class Operator extends Term {
 
-  /**
-   * The max operator priority constant
-   */
   public static final int PRIORITY_MAX = 0;
-  /**
-   * The min operator priority constant
-   */
   public static final int PRIORITY_MIN = 1200;
-  /**
-   * The constant represents the 'xf' type
-   */
+
   public static final int OPTYPE_XF = 0;
-  /**
-   * The constant represents the 'yf' type
-   */
   public static final int OPTYPE_YF = 1;
-  /**
-   * The constant represents the 'fx' type
-   */
   public static final int OPTYPE_FX = 2;
-  /**
-   * The constant represents the 'fy' type
-   */
   public static final int OPTYPE_FY = 3;
-  /**
-   * The constant represents the 'xfx' type
-   */
   public static final int OPTYPE_XFX = 4;
-  /**
-   * The constant represents the 'xfy' type
-   */
   public static final int OPTYPE_XFY = 5;
-  /**
-   * The constant represents the 'yfx' type
-   */
   public static final int OPTYPE_YFX = 6;
-  /**
-   * The variable contains the operator type value
-   */
+
   private final int opType;
-  /**
-   * The variable contains the operator priority value
-   */
   private final int opPriority;
-  /**
-   * The variable contains the precalculated hash code for the operator
-   */
   private final int precalculatedHashCode;
-  /**
-   * The variable contains the operator signature
-   */
   private final String signature;
 
-  /**
-   * The constructor
-   *
-   * @param priority the operator priority
-   * @param type the operator type
-   * @param name the operator name, must not be null
-   * @throws java.lang.IllegalArgumentException will be thrown if there is some
-   * incompatible value at arguments
-   */
   public Operator(final int priority, final int type, final String name) {
     super(name);
 
@@ -122,17 +71,6 @@ public final class Operator extends Term {
     precalculatedHashCode = hash;
   }
 
-  /**
-   * This auxulary function allows to generate a lot of similar operators from a
-   * string array
-   *
-   * @param priority the priority of all created operators
-   * @param type the type of all created operators
-   * @param names a string array contains names of created operators, must not
-   * be null
-   * @return an array of Operator objects which were generated from the
-   * arguments
-   */
   public static Operator[] makeOperators(final int priority, final int type, final String[] names) {
     final Operator[] result = new Operator[names.length];
     for (int li = 0; li < names.length; li++) {
@@ -141,12 +79,6 @@ public final class Operator extends Term {
     return result;
   }
 
-  /**
-   * Decode a type index into its string representation
-   *
-   * @param index the index to be decoded
-   * @return the string representation of the index
-   */
   public static String getTypeFromIndex(final int index) {
     switch (index) {
       case OPTYPE_FX:
@@ -168,13 +100,6 @@ public final class Operator extends Term {
     }
   }
 
-  /**
-   * Decode the string operator type representation into its numeric analogue
-   *
-   * @param op_type the string operator type representation
-   * @return numeric value equals the string value or -1 if it's not an operator
-   * type
-   */
   public static int getTypeFromString(final String op_type) {
     switch (op_type.length()) {
       case 2: {
@@ -214,11 +139,6 @@ public final class Operator extends Term {
     return TYPE_OPERATOR;
   }
 
-  /**
-   * Get the type of the operator
-   *
-   * @return the operator type as integer
-   */
   public int getOperatorType() {
     return opType;
   }
@@ -228,12 +148,6 @@ public final class Operator extends Term {
     return opPriority;
   }
 
-  /**
-   * Check that the operator can be functor for the structure
-   *
-   * @param struct the checked structure, must not be null
-   * @return true if the operator is compatible with the structure else false
-   */
   public boolean validateStructureForOperator(final TermStruct struct) {
     boolean result = false;
     if (struct != null) {
@@ -383,21 +297,10 @@ public final class Operator extends Term {
     return getText();
   }
 
-  /**
-   * Decode the operator type to the string representation
-   *
-   * @return the operator type as String
-   */
   public String getTypeAsString() {
     return Operator.getTypeFromIndex(opType);
   }
 
-  /**
-   * Write the operator into a writter like prolog source format
-   *
-   * @param writer the writer, must not be null
-   * @throws NullPointerException if the writter is null
-   */
   public void write(final PrintWriter writer) {
     if (writer == null) {
       throw new NullPointerException("Writer is null");

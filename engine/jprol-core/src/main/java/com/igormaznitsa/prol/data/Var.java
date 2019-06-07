@@ -18,67 +18,25 @@ package com.igormaznitsa.prol.data;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * The class contains the prolog var implementation, very important class for
- * engine work. A variable can contain another variable as a value and in the
- * case we will have a variable chain. There is a protection mechanism to avoid
- * the link to itself but a user can to set values directly and in the case it
- * should be careful.
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- * @see com.igormaznitsa.prol.data.Term
- */
 public final class Var extends Term {
 
-  /**
-   * The counter is used to get unique id for new created variable, it is very
-   * important
-   */
   private static final AtomicInteger VAR_COUNTER_ANONYM = new AtomicInteger(0);
-  /**
-   * The counter is used to generate UID for every new generated Variable
-   */
   private static final AtomicInteger VAR_COUNTER_UID = new AtomicInteger(0);
-  /**
-   * The variable contains generated UIDof the variable in the creation time,
-   * there must not be any other variable with such UID
-   */
   private final int variableUID;
-  /**
-   * The value of the variable, if the variable is not instantiated, it contains
-   * null or other variable
-   */
+
   private Term value;
-  /**
-   * The flag shows that the variable is an anonymous variable and its name has
-   * been automatic generated
-   */
   private boolean anonymous;
 
-  /**
-   * A constructor allows to create a variable with predefined name, it will be
-   * not an anonymous variable
-   *
-   * @param name the name of the created variable, must not be null
-   */
   public Var(final String name) {
     super(name);
     variableUID = VAR_COUNTER_UID.incrementAndGet();
   }
 
-  /**
-   * A constructor to create an anonymous variable
-   */
   public Var() {
     this("_$" + Long.toHexString(VAR_COUNTER_ANONYM.incrementAndGet()));
     anonymous = true;
   }
 
-  /**
-   * Get the variable UID
-   *
-   * @return the variable UID as integer
-   */
   public final int getVarUID() {
     return variableUID;
   }
@@ -88,13 +46,6 @@ public final class Var extends Term {
     return TYPE_VAR;
   }
 
-  /**
-   * Get the value of the variable, if the variable has an other variable as its
-   * value, the function will find value recursively
-   *
-   * @return the value of the variable if it is instantiated and null if it is
-   * not instantiated
-   */
   public final Term getValue() {
     Term result = value;
     if (result != null && result.getTermType() == TYPE_VAR) {
@@ -107,14 +58,6 @@ public final class Var extends Term {
     return result;
   }
 
-  /**
-   * Set the value for the variable, if the value is a variable then the term
-   * will be tried to be set to the child variable.
-   *
-   * @param value the value for the variable as a Term object
-   * @return true if the variable can be instantiated by the value or false if
-   * it can't
-   */
   public final boolean setValue(final Term value) {
     boolean result = true;
 
@@ -170,11 +113,6 @@ public final class Var extends Term {
     return result;
   }
 
-  /**
-   * Check that the variable is instantiated
-   *
-   * @return true if the variable instantiated else false
-   */
   public final boolean isUndefined() {
     boolean result = false;
     if (value == null) {
@@ -207,23 +145,10 @@ public final class Var extends Term {
     return builder.toString();
   }
 
-  /**
-   * Get the value of the variable without any recursion into child variables if
-   * they are presented.
-   *
-   * @return the term which is the direct value of the variable, without any
-   * inside recursion.
-   */
   public Term getThisValue() {
     return value;
   }
 
-  /**
-   * Set the value of the variable without any inside recursion, just directly.
-   *
-   * @param value it is new direct value of the variable, it will be set to the
-   * variable even it has another variable as a value already
-   */
   public void setThisValue(final Term value) {
     this.value = value;
   }
@@ -241,13 +166,6 @@ public final class Var extends Term {
     return curVar;
   }
 
-  /**
-   * To change current value for the variable or the variable chain if it is
-   * presented
-   *
-   * @param value the new value for the variable or the variable chain, can be
-   * null (then the variable will be not instantiated)
-   */
   public void changeValue(final Term value) {
     Var deepestVar = getDeepestVar();
     deepestVar.setThisValue(value);
