@@ -19,28 +19,14 @@ package com.igormaznitsa.prol.exceptions;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
 
-/**
- * The exception is a catcheable exception and it is mainly used to describe a
- * non standard exceptions
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
+import static com.igormaznitsa.prol.data.TermType.STRUCT;
+
 public class ProlCustomErrorException extends ProlAbstractCatcheableException {
 
   private static final long serialVersionUID = -4720280738591345468L;
 
-  /**
-   * The variable contains the term describes the error situation
-   */
   private final Term error;
 
-  /**
-   * A constructor
-   *
-   * @param error the term describes the error situation, can be any type, must
-   * not be null
-   * @param culprit the culprit term
-   */
   public ProlCustomErrorException(final Term error, final Term culprit) {
     super(culprit);
     if (error == null) {
@@ -49,11 +35,6 @@ public class ProlCustomErrorException extends ProlAbstractCatcheableException {
     this.error = error;
   }
 
-  /**
-   * Get the term describes the error situation
-   *
-   * @return the term as a Term object, must not be null
-   */
   public Term getError() {
     return this.error;
   }
@@ -66,7 +47,7 @@ public class ProlCustomErrorException extends ProlAbstractCatcheableException {
   @Override
   public TermStruct getAsStruct() {
     final TermStruct result;
-    if (error.getTermType() == Term.TYPE_STRUCT) {
+    if (error.getTermType() == STRUCT) {
       result = (TermStruct) error;
     } else {
       result = new TermStruct(error);

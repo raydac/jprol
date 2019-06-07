@@ -22,33 +22,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * The class is an abstract prol trigger which implements functionality to
- * register and unregister signatures
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 public abstract class AbstractProlTrigger implements ProlTrigger {
 
-  /**
-   * The map contains the signature and the event type linked with the signature
-   */
   protected final Map<String, ProlTriggerType> signatureMap;
 
-  /**
-   * The constructor
-   */
   public AbstractProlTrigger() {
     signatureMap = Collections.synchronizedMap(new HashMap<>());
   }
 
-  /**
-   * Add new signature
-   *
-   * @param signature the signature as name/arity or 'name'/arity
-   * @param observedEvent the event type associated with the signature
-   * @return this
-   */
   public AbstractProlTrigger addSignature(final String signature, final ProlTriggerType observedEvent) {
     if (signature == null || observedEvent == null) {
       throw new NullPointerException("Both arguments must not be null");
@@ -67,13 +48,6 @@ public abstract class AbstractProlTrigger implements ProlTrigger {
     return this;
   }
 
-  /**
-   * Remove mapped trigger event for signature, signature as name/arity or
-   * 'name'/arity
-   *
-   * @param signature the signature, must not be null
-   * @return this
-   */
   public AbstractProlTrigger removeSignature(final String signature) {
     if (signature == null) {
       throw new NullPointerException("Signature is null");

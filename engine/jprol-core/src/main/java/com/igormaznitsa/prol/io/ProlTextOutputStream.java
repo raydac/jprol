@@ -23,66 +23,19 @@ import com.igormaznitsa.prol.logic.ProlContext;
 import java.io.IOException;
 import java.io.Writer;
 
-/**
- * The class describes a text input stream which is used by a prol engine to
- * write texts and chars into an input stream.
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- * @see com.igormaznitsa.prol.io.ProlStream
- * @see com.igormaznitsa.prol.io.ProlTextWriter
- */
 public class ProlTextOutputStream implements ProlStream, ProlTextWriter {
 
-  /**
-   * The variable contains the text identifier of the string
-   */
   private final String resourceId;
-
-  /**
-   * The variable contains the writer which is being used to write in
-   */
   private final Writer writer;
-
-  /**
-   * The variable contains the owner context for the stream
-   */
   private final ProlContext context;
 
-  /**
-   * The variable contains the representation of the stream object to be used in
-   * a prol engine
-   */
-  private final Term thisTerm;
-
-  /**
-   * A constructor (it is used by memory pipes so it is protected one)
-   *
-   * @param writer a writer to be used to write chars into, must not be null
-   * @param context the owner context for the stream, must not be null
-   * @param forAppend usually the flag shows that we need to append data to
-   * current context but in the case the flag mainly doesn't play any role
-   * @throws IOException it will be thrown if there is any IO error during the
-   * operation
-   */
   protected ProlTextOutputStream(final Writer writer, final ProlContext context, final boolean forAppend) throws IOException {
     super();
     this.resourceId = ".local";
     this.context = context;
     this.writer = writer;
-    thisTerm = new Term(resourceId);
   }
 
-  /**
-   * A constructor
-   *
-   * @param resourceId the resource id describes the resource used by the
-   * stream, must not be null
-   * @param context the owner context for the stream, must not be null
-   * @param forAppend if the flag is true then new data will be append to the
-   * current content of the resource, else the resource will be rewritten
-   * @throws IOException it will be thrown if there is any transport error
-   * during the operation
-   */
   public ProlTextOutputStream(final String resourceId, final ProlContext context, final boolean forAppend) throws IOException {
     super();
     if (resourceId == null) {
@@ -96,8 +49,6 @@ public class ProlTextOutputStream implements ProlStream, ProlTextWriter {
     if (writer == null) {
       throw new IOException("Can't open resource \'" + resourceId + "\' for writting");
     }
-
-    thisTerm = new Term(resourceId);
   }
 
   @Override
@@ -133,11 +84,6 @@ public class ProlTextOutputStream implements ProlStream, ProlTextWriter {
     }
     writer.write(charToWrite);
     writer.flush();
-  }
-
-  @Override
-  public Term getAsTerm() {
-    return thisTerm;
   }
 
   @Override

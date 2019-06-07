@@ -16,48 +16,22 @@
 
 package com.igormaznitsa.prol.exceptions;
 
-/**
- * The class describes the root exception for all exceptions which can be thrown
- * by a Prol engne in diffirent situations. It extends the RuntimeException so
- * it doesn't need try..catch in any cause but only if you want to catch it.
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 public class ProlException extends RuntimeException {
 
   private static final long serialVersionUID = -6503064090950753871L;
 
-  /**
-   * A constructor
-   *
-   * @param cause the root cause to throw the exception
-   */
   public ProlException(final Throwable cause) {
     super(cause);
   }
 
-  /**
-   * A constructor allows to set a String message
-   *
-   * @param message the message which describes the situation
-   * @param cause the root cause to throw the exception
-   */
   public ProlException(final String message, final Throwable cause) {
     super(message, cause);
   }
 
-  /**
-   * A constructor
-   *
-   * @param message the message which describes the situation
-   */
   public ProlException(final String message) {
     super(message);
   }
 
-  /**
-   * A constructor
-   */
   public ProlException() {
     super();
   }

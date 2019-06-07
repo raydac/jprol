@@ -21,20 +21,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * The annotation allows to define a few operators
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 @Target(value = ElementType.TYPE)
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface ProlOperators {
-
-  /**
-   * Array of ProlOperator annotations
-   *
-   * @return an array of ProlOperator annotations
-   * @see com.igormaznitsa.prol.annotations.ProlOperator
-   */
   ProlOperator[] Operators();
 }

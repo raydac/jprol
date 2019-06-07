@@ -18,75 +18,25 @@ package com.igormaznitsa.prol.parser;
 
 import java.io.*;
 
-/**
- * The class describes a Prol reader which allows to read text data from an
- * input stream and buffer it. As well it supports pushback operation.
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 public class ProlReader {
 
-  /**
-   * The constant shows the inside buffer size which is being used for backpush
-   * operations
-   */
   private static final int INSIDE_CHAR_BUFFER_SIZE = 64;
-  /**
-   * The text reader which is being used by the prol reader to read incomming
-   * text data
-   */
   private final Reader inReader;
-  /**
-   * Inside char buffer to temporary save text data
-   */
   private final char[] insideCharBuffer = new char[INSIDE_CHAR_BUFFER_SIZE];
-  /**
-   * The variable contains the inside char buffer pointer to show the current
-   * free position in the buffer
-   */
   private int insideCharBufferPointer = 0;
-  /**
-   * The variable contains the previous value of the string position indicator
-   */
   private int strPosPrev;
-  /**
-   * The variable contains the previous position of the line number indicator
-   */
   private int lineNumPrev;
-  /**
-   * The variable contains current value of the string position indicator
-   */
   private int strPos;
-  /**
-   * The variable contains current value of the line number indicator
-   */
   private int lineNum;
 
-  /**
-   * A constructor. To make a reader based on a String object.
-   *
-   * @param string A string object which will be used as the source for the
-   * reader, must not be null
-   */
   public ProlReader(final String string) {
     this(new StringReader(string));
   }
 
-  /**
-   * A constructor. To make a reader based on an input stream.
-   *
-   * @param inStream an input stream object which will be used as the source for
-   * the reader, must not be null
-   */
   public ProlReader(final InputStream inStream) {
     this(new InputStreamReader(inStream));
   }
 
-  /**
-   * A constructor. To make a reader based on a java reader object.
-   *
-   * @param reader a java reader object, must not be null
-   */
   public ProlReader(final Reader reader) {
     inReader = reader;
     strPos = 0;
@@ -95,13 +45,6 @@ public class ProlReader {
     lineNumPrev = lineNum;
   }
 
-  /**
-   * Read next char code from the reader
-   *
-   * @return the next char code or -1 if the stream end has been reached
-   * @throws IOException it will be thrown if there is any transport error
-   * during the operation
-   */
   public synchronized int read() throws IOException {
     int ch;
     if (insideCharBufferPointer > 0) {
@@ -123,13 +66,6 @@ public class ProlReader {
     return ch;
   }
 
-  /**
-   * Push back the difference between an etalon string and a string buffer
-   * content.
-   *
-   * @param etalon an etalon string must not be null
-   * @param buffer a string buffer object, must not be null
-   */
   public synchronized void pushBufferDifference(final String etalon, final StringBuilder buffer) {
     int chars = buffer.length() - etalon.length();
     int pos = buffer.length() - 1;

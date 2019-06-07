@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.prol.libraries;
 
 import com.igormaznitsa.prol.annotations.Determined;
@@ -22,21 +23,12 @@ import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.exceptions.*;
 import com.igormaznitsa.prol.logic.Goal;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-/**
- * The auxulary inside class describes a predicate processor. It means that the
- * processor contains all links to method and the object instance of a library
- * which should execute the predicate.
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- * @see java.lang.reflect.Method
- * @see com.igormaznitsa.prol.libraries.AbstractProlLibrary
- * @see com.igormaznitsa.prol.libraries.PredicateTemplate
- */
 public final class PredicateProcessor {
 
   public static final PredicateProcessor NULL_PROCESSOR = new PredicateProcessor(null, null, null, null);

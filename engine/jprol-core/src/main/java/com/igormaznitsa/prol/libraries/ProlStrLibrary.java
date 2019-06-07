@@ -25,6 +25,8 @@ import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.logic.Goal;
 import com.igormaznitsa.prol.utils.Utils;
 
+import static com.igormaznitsa.prol.data.TermType.ATOM;
+
 public class ProlStrLibrary extends AbstractProlLibrary {
 
   public ProlStrLibrary() {
@@ -38,8 +40,8 @@ public class ProlStrLibrary extends AbstractProlLibrary {
     final Term argSECOND = Utils.getTermFromElement(predicate.getElement(1));
     final Term argTHIRD = Utils.getTermFromElement(predicate.getElement(2));
 
-    if (argFIRST.getTermType() == Term.TYPE_ATOM) {
-      if (argSECOND.getTermType() == Term.TYPE_ATOM) {
+    if (argFIRST.getTermType() == ATOM) {
+      if (argSECOND.getTermType() == ATOM) {
         // the first case
         Term term = new Term(argFIRST.getText() + argSECOND.getText());
         return argTHIRD.Equ(term);
@@ -103,7 +105,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
     final Term argLeft = Utils.getTermFromElement(predicate.getElement(0));
     final Term argRight = Utils.getTermFromElement(predicate.getElement(1));
 
-    if (argLeft.getTermType() == Term.TYPE_ATOM) {
+    if (argLeft.getTermType() == ATOM) {
       // the first case
       Term term = new Term(argLeft.getText().toLowerCase());
       return argRight.Equ(term);
@@ -131,7 +133,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
     final Term argLeft = Utils.getTermFromElement(predicate.getElement(0));
     final Term argRight = Utils.getTermFromElement(predicate.getElement(1));
 
-    if (argLeft.getTermType() == Term.TYPE_ATOM) {
+    if (argLeft.getTermType() == ATOM) {
       // the first case
       final TermInteger result;
       try {
@@ -153,7 +155,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
     final Term argLeft = Utils.getTermFromElement(predicate.getElement(0));
     final Term argRight = Utils.getTermFromElement(predicate.getElement(1));
 
-    if (argLeft.getTermType() == Term.TYPE_ATOM) {
+    if (argLeft.getTermType() == ATOM) {
       // the first case
       final TermFloat result;
       try {

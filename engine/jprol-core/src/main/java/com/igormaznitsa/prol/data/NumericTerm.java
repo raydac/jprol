@@ -16,21 +16,9 @@
 
 package com.igormaznitsa.prol.data;
 
-/**
- * The interface describes a numeric term and its possible operations
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 public interface NumericTerm {
 
-  /**
-   * The constant describes an Integer number
-   */
   int NUMBER_INTEGER = 0;
-
-  /**
-   * The constant describes a Float number
-   */
   int NUMBER_FLOAT = 1;
 
   Number getNumericValue();

@@ -52,13 +52,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * The class implements the Prol Graphic library and it can be used to show to
- * draw simple graphic primitives and save images. It uses the JDK graphic
- * possibilities at its work.
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
+import static com.igormaznitsa.prol.data.TermType.VAR;
+
 public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowListener, ActionListener {
 
   protected static final Logger LOG = Logger.getLogger(ProlGfxLibrary.class.getCanonicalName());

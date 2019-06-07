@@ -16,9 +16,9 @@
 
 package com.igormaznitsa.prol.data;
 
-import com.igormaznitsa.prol.exceptions.ProlCriticalError;
-
 import java.io.PrintWriter;
+
+import static com.igormaznitsa.prol.data.TermType.OPERATOR;
 
 public final class Operator extends Term {
 
@@ -136,8 +136,8 @@ public final class Operator extends Term {
   }
 
   @Override
-  public int getTermType() {
-    return TYPE_OPERATOR;
+  public TermType getTermType() {
+    return OPERATOR;
   }
 
   public int getOperatorType() {
@@ -147,114 +147,6 @@ public final class Operator extends Term {
   @Override
   public int getPriority() {
     return opPriority;
-  }
-
-  public boolean validateStructureForOperator(final TermStruct struct) {
-    boolean result = false;
-    if (struct != null) {
-
-      switch (struct.getArity()) {
-        case 1: {
-          switch (opType) {
-            case OPTYPE_XFY:
-            case OPTYPE_XFX:
-            case OPTYPE_YFX: {
-              result = false;
-            }
-            break;
-
-            case OPTYPE_XF:
-            case OPTYPE_FX: {
-              final Term atom = struct.getElement(0);
-              if (atom == null) {
-                result = false;
-              } else {
-                result = atom.getPriority() < getPriority();
-              }
-            }
-            break;
-            case OPTYPE_YF:
-            case OPTYPE_FY: {
-              final Term atom = struct.getElement(0);
-              if (atom == null) {
-                result = false;
-              } else {
-                result = atom.getPriority() <= getPriority();
-              }
-            }
-            break;
-            default:
-              throw new ProlCriticalError("Unknown type");
-          }
-        }
-        break;
-
-        case 2: {
-          switch (opType) {
-            case OPTYPE_XFY:
-            case OPTYPE_XFX:
-            case OPTYPE_YFX: {
-              final Term elementLeft = struct.getElement(0);
-              final Term elementRight = struct.getElement(1);
-
-              if (elementLeft == null || elementRight == null) {
-                result = false;
-              } else {
-
-                switch (opType) {
-                  case OPTYPE_XFX: {
-                    result = elementLeft.getPriority() < getPriority() && elementRight.getPriority() < getPriority();
-                  }
-                  break;
-                  case OPTYPE_YFX: {
-                    result = elementLeft.getPriority() <= getPriority() && elementRight.getPriority() < getPriority();
-                  }
-                  break;
-                  case OPTYPE_XFY: {
-                    result = elementLeft.getPriority() < getPriority() && elementRight.getPriority() <= getPriority();
-                  }
-                  break;
-                  default: {
-                    result = false;
-                  }
-                  break;
-                }
-              }
-            }
-            break;
-
-            case OPTYPE_XF:
-            case OPTYPE_FX: {
-              final Term atom = struct.getElement(opType == OPTYPE_XF ? 0 : 1);
-              if (atom == null) {
-                result = false;
-              } else {
-                result = atom.getPriority() < getPriority();
-              }
-            }
-            break;
-            case OPTYPE_YF:
-            case OPTYPE_FY: {
-              final Term atom = struct.getElement(opType == OPTYPE_YF ? 0 : 1);
-              if (atom == null) {
-                result = false;
-              } else {
-                result = atom.getPriority() <= getPriority();
-              }
-            }
-            break;
-            default: {
-              throw new ProlCriticalError("Unknown type");
-            }
-          }
-        }
-        break;
-        default: {
-          result = false;
-        }
-      }
-    }
-    return result;
   }
 
   @Override
@@ -332,13 +224,13 @@ public final class Operator extends Term {
     }
 
     switch (atom.getTermType()) {
-      case Term.TYPE_ATOM: {
+      case ATOM: {
         return getText().equals(atom.getText());
       }
-      case Term.TYPE_OPERATOR: {
+      case OPERATOR: {
         return this == atom;
       }
-      case Term.TYPE_VAR: {
+      case VAR: {
         final Var var = (Var) atom;
         final Term value = var.getValue();
         if (value == null) {

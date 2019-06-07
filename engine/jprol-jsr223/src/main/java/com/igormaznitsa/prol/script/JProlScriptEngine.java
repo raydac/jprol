@@ -27,7 +27,7 @@ import java.io.Reader;
 import java.util.HashMap;
 import java.util.Map;
 
-final class JProlScriptEngine extends AbstractScriptEngine implements Compilable {
+final class JProlScriptEngine extends AbstractScriptEngine implements Compilable, Invocable {
 
   private final JProlScriptEngineFactory factory;
 
@@ -98,4 +98,23 @@ final class JProlScriptEngine extends AbstractScriptEngine implements Compilable
     return new JProlCompiledScript(script, this);
   }
 
+  @Override
+  public Object invokeMethod(Object thiz, String name, Object... args) throws ScriptException, NoSuchMethodException {
+    return null;
+  }
+
+  @Override
+  public Object invokeFunction(String name, Object... args) throws ScriptException, NoSuchMethodException {
+    return null;
+  }
+
+  @Override
+  public <T> T getInterface(Class<T> clasz) {
+    return null;
+  }
+
+  @Override
+  public <T> T getInterface(Object thiz, Class<T> clasz) {
+    return null;
+  }
 }

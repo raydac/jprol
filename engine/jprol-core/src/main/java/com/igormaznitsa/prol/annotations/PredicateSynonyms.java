@@ -21,21 +21,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * The annotation allows to add synonims for a function describing a predicate
- * and you can use the same function to process different predicates if you need
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 @Target(value = ElementType.METHOD)
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface PredicateSynonyms {
-
-  /**
-   * A String arry of predicate synonyms in the same style as the predicate
-   * signature
-   *
-   * @return the string array of synonim signatures
-   */
   String[] Signatures();
 }

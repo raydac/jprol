@@ -28,6 +28,7 @@ import com.igormaznitsa.prol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.prol.libraries.PredicateProcessor;
 import com.igormaznitsa.prol.parser.ProlReader;
 import com.igormaznitsa.prol.parser.ProlTreeBuilder;
+import com.igormaznitsa.prol.trace.TraceEvent;
 import com.igormaznitsa.prol.trace.TraceListener;
 import com.igormaznitsa.prol.utils.Utils;
 
@@ -36,6 +37,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.igormaznitsa.prol.data.TermType.ATOM;
+import static com.igormaznitsa.prol.data.TermType.VAR;
+import static com.igormaznitsa.prol.trace.TraceEvent.EXIT;
 
 public class Goal {
 
@@ -64,37 +69,37 @@ public class Goal {
 
   private Goal(final Goal rootGoal, Term goal, final ProlContext context, final Map<String, Term> predefinedVarValues, final TraceListener tracer) {
     this.rootGoal = rootGoal == null ? this : rootGoal;
-    this.goalTerm = goal.getTermType() == Term.TYPE_ATOM ? new TermStruct(goal) : goal;
+    this.goalTerm = goal.getTermType() == ATOM ? new TermStruct(goal) : goal;
     this.context = context;
     this.tracer = tracer == null ? context.getDefaultTraceListener() : tracer;
 
-    if (goal.getTermType() == Term.TYPE_VAR) {
+    if (goal.getTermType() == VAR) {
       goal = Utils.getTermFromElement(goal);
-      if (goal.getTermType() == Term.TYPE_VAR) {
+      if (goal.getTermType() == VAR) {
         throw new ProlInstantiationErrorException("callable", goal);
       }
     }
 
     switch (goal.getTermType()) {
-      case Term.TYPE_ATOM: {
+      case ATOM: {
         if (goal instanceof NumericTerm) {
           throw new ProlTypeErrorException("callable", goal);
         }
       }
       break;
-      case Term.TYPE_VAR: {
+      case VAR: {
         if (((Var) goal).isUndefined()) {
           throw new ProlInstantiationErrorException(goal);
         }
       }
       break;
-      case Term.TYPE_LIST: {
+      case LIST: {
         throw new ProlTypeErrorException("callable", goal);
       }
     }
 
     if (rootGoal == null) {
-      if (goal.getTermType() == Term.TYPE_ATOM) {
+      if (goal.getTermType() == ATOM) {
         varSnapshot = null;
         variables = null;
       } else {
@@ -105,7 +110,7 @@ public class Goal {
       prevGoalAtChain = null;
     } else {
       variables = null;
-      if (goal.getTermType() == Term.TYPE_ATOM) {
+      if (goal.getTermType() == ATOM) {
         varSnapshot = null;
       } else {
         varSnapshot = new VariableStateSnapshot(rootGoal.varSnapshot);
@@ -226,13 +231,6 @@ public class Goal {
     }
   }
 
-  /**
-   * Get a variable goal object for its name
-   *
-   * @param name the name of the needed variable, must not be null;
-   * @return the found variable as a Var object or null if the variable is not
-   * found
-   */
   public Var getVarForName(final String name) {
     if (name == null) {
       throw new NullPointerException("Variable name is null");
@@ -240,13 +238,6 @@ public class Goal {
     return this.variables == null ? null : this.variables.get(name);
   }
 
-  /**
-   * To replace the last chain goal by the new goal for the term
-   *
-   * @param goal the new goal term which will be processed by the new last chain
-   * goal
-   * @return the generated goal object
-   */
   public Goal replaceLastGoalAtChain(final Term goal) {
     if (this.tracer != null) {
       this.tracer.onTraceEvet(EXIT, this.rootGoal.rootLastGoalAtChain);
@@ -262,61 +253,26 @@ public class Goal {
     return newGoal;
   }
 
-  /**
-   * Get the saved auxiliary object. It can be any successor of Object or null
-   *
-   * @return the saved auxiliary object or null
-   */
   public Object getAuxObject() {
     return this.auxObject;
   }
 
-  /**
-   * Save an auxiliary object for the goal. It can be any successor of Object or
-   * null
-   *
-   * @param obj the object to be saved as an auxiliary one or null
-   */
   public void setAuxObject(final Object obj) {
     this.auxObject = obj;
   }
 
-  /**
-   * To get the tracer for the goal
-   *
-   * @return the tracer for the goal or null if the tracer is undefined
-   */
   public TraceListener getTracer() {
     return tracer;
   }
 
-  /**
-   * Get the goal term
-   *
-   * @return the goal term
-   */
   public Term getGoalTerm() {
     return this.goalTerm;
   }
 
-  /**
-   * Get the context for the goal
-   *
-   * @return the prol context for the goal
-   */
   public ProlContext getContext() {
     return this.context;
   }
 
-  /**
-   * Get next solution of the goal
-   *
-   * @return the solution as a term or null if there is not a solution anymore
-   * @throws InterruptedException it will be thrown if the process is
-   * interrupted
-   * @throws ProlHaltExecutionException it will be thrown if the context is
-   * halted
-   */
   public Term solve() throws InterruptedException {
     Term result = null;
 
@@ -382,14 +338,10 @@ public class Goal {
 
     if (this.tracer != null) {
       if (this.notFirstProve) {
-        if (!this.tracer.onProlGoalRedo(this)) {
-          return GOALRESULT_FAIL;
-        }
+        this.tracer.onTraceEvet(TraceEvent.REDO, this);
       } else {
         this.notFirstProve = true;
-        if (!this.tracer.onProlGoalCall(this)) {
-          return GOALRESULT_FAIL;
-        }
+        this.tracer.onTraceEvet(TraceEvent.CALL, this);
       }
     }
 
@@ -462,14 +414,14 @@ public class Goal {
       }
 
       switch (this.goalTerm.getTermType()) {
-        case Term.TYPE_ATOM: {
+        case ATOM: {
           final String text = this.goalTerm.getText();
           result = this.context.hasZeroArityPredicateForName(text) ? GOALRESULT_SOLVED : GOALRESULT_FAIL;
           noMoreVariants();
           doLoop = false;
         }
         break;
-        case Term.TYPE_STRUCT: {
+        case STRUCT: {
           final TermStruct struct = (TermStruct) goalTerm;
           final int arity = struct.getArity();
 
@@ -594,25 +546,16 @@ public class Goal {
     return result;
   }
 
-  /**
-   * Set the flag of the goal shows that the goal hasn't more variants
-   */
   public void noMoreVariants() {
     this.noMoreVariantsFlag = true;
   }
 
-  /**
-   * Cut the goal chain with reaction of the root goal
-   */
   public void cut() {
     this.rootGoal.cutMeet = true;
     this.rootGoal.clauseIterator = null;
     this.prevGoalAtChain = null;
   }
 
-  /**
-   * Cut the goal chain without reaction of the root chain
-   */
   public void cutLocal() {
     this.prevGoalAtChain = null;
   }
@@ -626,11 +569,6 @@ public class Goal {
     return processor;
   }
 
-  /**
-   * Check that the goal is completed and doesn't have anymore variants
-   *
-   * @return true if the goal is completed else false
-   */
   public boolean isCompleted() {
     return this.rootGoal.rootLastGoalAtChain == null || noMoreVariantsFlag;
   }

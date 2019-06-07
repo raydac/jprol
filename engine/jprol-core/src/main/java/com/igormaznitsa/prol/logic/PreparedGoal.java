@@ -184,14 +184,13 @@ public class PreparedGoal {
 
     final Term goalClone = getParsedGoal().makeClone();
 
-    vars.entrySet().forEach((entry) -> {
-        final Term value = entry.getValue();
-        final Var foundVar = Utils.findVarInsideTerm(goalClone, entry.getKey());
-        if (foundVar == null) {
-            throw new IllegalArgumentException("Can't find variable for \'" + entry.getKey() + "\' name");
-        }
-        foundVar.setValue(value);
-      });
+    vars.forEach((key, value) -> {
+      final Var foundVar = Utils.findVarInsideTerm(goalClone, key);
+      if (foundVar == null) {
+        throw new IllegalArgumentException("Can't find variable for \'" + key + "\' name");
+      }
+      foundVar.setValue(value);
+    });
 
     return new Goal(goalClone, getContext(), tracer);
   }

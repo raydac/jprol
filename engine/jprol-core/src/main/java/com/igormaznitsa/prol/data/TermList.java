@@ -20,6 +20,9 @@ import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 
 import java.util.Map;
 
+import static com.igormaznitsa.prol.data.TermType.LIST;
+import static com.igormaznitsa.prol.data.TermType.VAR;
+
 public final class TermList extends TermStruct {
 
   public static final String LIST_FUNCTOR = ".";
@@ -52,7 +55,7 @@ public final class TermList extends TermStruct {
 
   private static String elementToSourceString(final Term term) {
     switch (term.getTermType()) {
-      case Term.TYPE_ATOM: {
+      case ATOM: {
         return term.getSourceLikeRepresentation();
       }
       default:
@@ -67,13 +70,12 @@ public final class TermList extends TermStruct {
   public Term getTail() {
     final Term tail = this.terms[INDEX_TAIL];
     switch (tail.getTermType()) {
-      case TYPE_LIST:
-        return tail;
-      case TYPE_VAR: {
+      case VAR: {
         final Var var = (Var) tail;
         final Term val = var.getValue();
         return val == null ? var : val;
       }
+      case LIST:
       default:
         return tail;
     }
@@ -92,7 +94,7 @@ public final class TermList extends TermStruct {
     }
     final Term tail = this.terms[INDEX_TAIL];
     switch (tail.getTermType()) {
-      case TYPE_LIST: {
+      case LIST: {
         return ((TermList) tail).calculateLength() + 1;
       }
       default:
@@ -122,7 +124,7 @@ public final class TermList extends TermStruct {
     Term lst = this;
 
     while (lst != NULLLIST) {
-      if (lst.getTermType() == TYPE_LIST) {
+      if (lst.getTermType() == LIST) {
         final TermList tList = (TermList) lst;
         if (!tList.getHead().checkVariables()) {
           return false;
@@ -139,8 +141,8 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public int getTermType() {
-    return TYPE_LIST;
+  public TermType getTermType() {
+    return TermType.LIST;
   }
 
   @Override
@@ -154,7 +156,7 @@ public final class TermList extends TermStruct {
     Term list = this;
 
     while (list != NULLLIST) {
-      if (list.getTermType() == Term.TYPE_LIST) {
+      if (list.getTermType() == LIST) {
         if (notfirst) {
           builder.append(',');
         }
@@ -186,7 +188,7 @@ public final class TermList extends TermStruct {
     Term list = this;
 
     while (list != NULLLIST) {
-      if (list.getTermType() == Term.TYPE_LIST) {
+      if (list.getTermType() == LIST) {
         if (notfirst) {
           builder.append(',');
         }
@@ -214,7 +216,7 @@ public final class TermList extends TermStruct {
     TermList curList = this;
     while (!Thread.currentThread().isInterrupted()) {
       Term tail = curList.getTail();
-      if (tail == NULLLIST || tail.getTermType() != TYPE_LIST) {
+      if (tail == NULLLIST || tail.getTermType() != LIST) {
         curList.setTail(newLastElement);
         break;
       }
@@ -238,7 +240,7 @@ public final class TermList extends TermStruct {
     Term list = this;
 
     while (list != NULLLIST) {
-      if (list.getTermType() == Term.TYPE_LIST) {
+      if (list.getTermType() == LIST) {
         if (notfirst) {
           builder.append(',');
         }
@@ -266,7 +268,7 @@ public final class TermList extends TermStruct {
     }
 
     switch (atom.getTermType()) {
-      case Term.TYPE_LIST: {
+      case LIST: {
         TermList thatList = (TermList) atom;
         if (this.isNullList()) {
           return thatList.isNullList();
@@ -276,7 +278,7 @@ public final class TermList extends TermStruct {
 
         return this.getHead().Equ(thatList.getHead()) && this.getTail().Equ(thatList.getTail());
       }
-      case Term.TYPE_VAR: {
+      case VAR: {
         final Var var = (Var) atom;
         final Term value = var.getValue();
         if (value == null) {
@@ -295,7 +297,7 @@ public final class TermList extends TermStruct {
       return true;
     }
 
-    if (atom.getTermType() == TYPE_VAR) {
+    if (atom.getTermType() == VAR) {
       atom = ((Var) atom).getValue();
     }
 
@@ -303,7 +305,7 @@ public final class TermList extends TermStruct {
       return true;
     }
 
-    if (atom.getTermType() == Term.TYPE_LIST) {
+    if (atom.getTermType() == LIST) {
       if (this == atom) {
         return true;
       }
@@ -329,12 +331,12 @@ public final class TermList extends TermStruct {
       return 0;
     }
 
-    if (atom.getTermType() == Term.TYPE_VAR && !((Var) atom).isUndefined()) {
+    if (atom.getTermType() == VAR && !((Var) atom).isUndefined()) {
       atom = ((Var) atom).getValue();
     }
 
     switch (atom.getTermType()) {
-      case Term.TYPE_LIST: {
+      case LIST: {
         final TermList thatList = (TermList) atom;
         if (isNullList() && thatList.isNullList()) {
           return 0;
@@ -366,7 +368,7 @@ public final class TermList extends TermStruct {
 
   @Override
   public boolean hasAnyDifference(final Term atom) {
-    if (atom.getTermType() != Term.TYPE_LIST) {
+    if (atom.getTermType() != LIST) {
       return true;
     }
 

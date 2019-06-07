@@ -27,52 +27,15 @@ import com.igormaznitsa.prol.parser.ProlTreeBuilder;
 import java.io.IOException;
 import java.io.Reader;
 
-/**
- * The class implements a text input stream which is used by a prol engine to
- * read from an input stream.
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- * @see com.igormaznitsa.prol.io.ProlStream
- * @see com.igormaznitsa.prol.io.ProlTextReader
- */
 public class ProlTextInputStream implements ProlStream, ProlTextReader {
 
-  /**
-   * The variable contains a prol tokenizer which is used to read tokens from an
-   * input stream
-   */
   private final ProlTokenizer tokenizer;
-
-  /**
-   * The variable contains a prol reader to read chars from an input stream
-   */
   private final ProlReader reader;
-  /**
-   * The variable contains the context which is the owner for the stream
-   */
   private final ProlContext context;
-  /**
-   * The variable contains the identifier of the stream as a String
-   */
   private final String resourceId;
-  /**
-   * The term describes the stream to be used in a prolog engine
-   */
-  private final Term thisTerm;
-  /**
-   * The variable contains a prol tree builder to make tree from read terms
-   */
   private ProlTreeBuilder treeBuilder;
 
-  /**
-   * A constructor (it is used by memory pipes so it is protected)
-   *
-   * @param reader a reader which will be used to read chars, must not be null
-   * @param context the owner context for the reader, must not be null
-   * @throws IOException it will be thrown if there is any IO error during the
-   * operation
-   */
-  protected ProlTextInputStream(final Reader reader, final ProlContext context) throws IOException {
+  protected ProlTextInputStream(final Reader reader, final ProlContext context) {
     super();
 
     this.resourceId = ".local";
@@ -80,18 +43,8 @@ public class ProlTextInputStream implements ProlStream, ProlTextReader {
 
     this.reader = new ProlReader(reader);
     this.tokenizer = new ProlTokenizer();
-
-    thisTerm = new Term(resourceId);
   }
 
-  /**
-   * A constructor
-   *
-   * @param resourceId the resource identifier of the stream, must not be null
-   * @param context the owner context for the reader, must not be null
-   * @throws IOException it will be thrown if there is any IO error during the
-   * operation
-   */
   public ProlTextInputStream(final String resourceId, final ProlContext context) throws IOException {
     super();
 
@@ -109,8 +62,6 @@ public class ProlTextInputStream implements ProlStream, ProlTextReader {
 
     this.reader = new ProlReader(inReader);
     this.tokenizer = new ProlTokenizer();
-
-    thisTerm = new Term(resourceId);
   }
 
   @Override
@@ -154,10 +105,5 @@ public class ProlTextInputStream implements ProlStream, ProlTextReader {
   public synchronized TermInteger readChar() throws IOException {
     int chr = reader.read();
     return new TermInteger(chr);
-  }
-
-  @Override
-  public Term getAsTerm() {
-    return thisTerm;
   }
 }

@@ -26,37 +26,18 @@ public class ProlCriticalError extends Error {
 
   private static final long serialVersionUID = 1340153646373377400L;
 
-  /**
-   * A constructor
-   *
-   * @param cause the cause of the exception
-   */
   public ProlCriticalError(final Throwable cause) {
     super(cause);
   }
 
-  /**
-   * A constructor
-   *
-   * @param message a text describes the exception
-   * @param cause the cause of the exception
-   */
   public ProlCriticalError(final String message, final Throwable cause) {
     super(message, cause);
   }
 
-  /**
-   * A constructor
-   *
-   * @param message a text describes the exception
-   */
   public ProlCriticalError(final String message) {
     super(message);
   }
 
-  /**
-   * A consctructor
-   */
   public ProlCriticalError() {
     super();
   }

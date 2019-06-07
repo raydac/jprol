@@ -54,13 +54,6 @@ import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * The class implements the main frame of the Prol Pad IDE (a small UI utility
- * to edit and run prol scripts) because it is a very specialized auxiliary
- * class, it is not described very precisely
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 public final class MainFrame extends javax.swing.JFrame implements ProlStreamManager, Runnable, UndoableEditListener, WindowListener, DocumentListener, HyperlinkListener, TraceListener {
 
   protected static final String PROL_EXTENSION = ".prl";

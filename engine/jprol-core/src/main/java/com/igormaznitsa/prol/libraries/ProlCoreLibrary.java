@@ -35,18 +35,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.*;
-import java.util.List;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-/**
- * The Prol Core Library This class extends a prol abstract library and contain
- * a lot of useful definitions
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
+import static com.igormaznitsa.prol.data.TermType.*;
+
 @ProlOperators(Operators = {
     //------------------------
     @ProlOperator(Priority = 0, Type = Operator.OPTYPE_XFX, Name = "("),
@@ -99,28 +94,10 @@ import java.util.stream.Collectors;
 })
 public final class ProlCoreLibrary extends AbstractProlLibrary {
 
-  /**
-   * The constant contains the NEXT_LINE atom to avoid recreation of such atom
-   * and use the only instance
-   */
   public final static Term NEXT_LINE = new Term("\n");
-  /**
-   * The constant contains the SPACE atom to avoid recreation of such atom and
-   * use the only instance
-   */
   public final static Term SPACE = new Term(" ");
-  /**
-   * The Inside logger, the canonical class name is used as the logger
-   * identifier (ProlCoreLibrary.class.getCanonicalName())
-   */
   protected static final Logger LOG = Logger.getLogger(ProlCoreLibrary.class.getCanonicalName());
-  /**
-   * The randomize generator to make random numbers
-   */
   private static final Random RANDOMIZEGEN = new Random(System.nanoTime());
-  /**
-   * An Inside constant for use at some predicates
-   */
   private static final Term TRUE = new Term("true");
 
   public ProlCoreLibrary() {
@@ -583,7 +560,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final Term head = Utils.getTermFromElement(predicate.getElement(0));
     final Term body = Utils.getTermFromElement(predicate.getElement(1));
 
-    final TermStruct struct = head.getTermType() == Term.TYPE_STRUCT ? (TermStruct) head : new TermStruct(head);
+    final TermStruct struct = head.getTermType() == STRUCT ? (TermStruct) head : new TermStruct(head);
     if (goal.getContext().findProcessor(struct) != PredicateProcessor.NULL_PROCESSOR) {
       throw new ProlPermissionErrorException("access", "private_procedure", predicate);
     }
@@ -591,7 +568,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     ClauseIterator clIterator = (ClauseIterator) goal.getAuxObject();
 
     if (clIterator == null) {
-      clIterator = goal.getContext().getKnowledgeBase().getClauseIterator(head.getTermType() == Term.TYPE_STRUCT ? (TermStruct) head : new TermStruct(head));
+      clIterator = goal.getContext().getKnowledgeBase().getClauseIterator(head.getTermType() == STRUCT ? (TermStruct) head : new TermStruct(head));
       if (clIterator == null || !clIterator.hasNext()) {
         goal.noMoreVariants();
         return false;
@@ -648,10 +625,10 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     OperatorContainer last_container = (OperatorContainer) auxObject[1];
     Operator last_operator = (Operator) auxObject[2];
 
-    final String opNameVal = name.getTermType() == Term.TYPE_ATOM ? name.getText() : null; // null = any
-    final int typeVal = specifier.getTermType() == Term.TYPE_ATOM ? Operator.getTypeFromString(specifier.getText()) : -1; // -1 = any
+    final String opNameVal = name.getTermType() == ATOM ? name.getText() : null; // null = any
+    final int typeVal = specifier.getTermType() == ATOM ? Operator.getTypeFromString(specifier.getText()) : -1; // -1 = any
     int priorityVal = 0; // 0 - any
-    if (priority.getTermType() == Term.TYPE_ATOM) {
+    if (priority.getTermType() == ATOM) {
       priorityVal = ((TermInteger) priority).getNumericValue().intValue();
       if (priorityVal < 1 || priorityVal > 1200) {
         throw new ProlDomainErrorException("Unsupported operator priority", predicate);
@@ -746,17 +723,17 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     }
 
     final ArrayList<String> names = new ArrayList<>();
-    if (atomOrList.getTermType() == Term.TYPE_LIST) {
+    if (atomOrList.getTermType() == LIST) {
       TermList list = (TermList) atomOrList;
       while (!list.isNullList()) {
         Term atom = list.getHead();
-        if ((atom instanceof NumericTerm) || atom.getTermType() != Term.TYPE_ATOM) {
+        if ((atom instanceof NumericTerm) || atom.getTermType() != ATOM) {
           throw new ProlDomainErrorException("Impossible operator name", predicate);
         }
         names.add(atom.getText());
 
         atom = list.getTail();
-        if (atom.getTermType() != Term.TYPE_LIST) {
+        if (atom.getTermType() != LIST) {
           throw new ProlDomainErrorException("Unsuppoerted atom list format", predicate);
         }
         list = (TermList) atom;
@@ -769,13 +746,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     try {
       if (priority == 0) {
-        names.forEach((name) -> {
-          base.removeOperator(name, opType);
-        });
+        names.forEach((name) -> base.removeOperator(name, opType));
       } else {
-        names.forEach((name) -> {
-          base.addOperator(new Operator(priority, opType, name));
-        });
+        names.forEach((name) -> base.addOperator(new Operator(priority, opType, name)));
       }
     } catch (SecurityException ex) {
       throw new ProlPermissionErrorException("create", "operator", "Attemption to override or remove a system operator", predicate);
@@ -854,7 +827,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Determined
   public static boolean predicateVAR(final Goal goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0);
-    if (arg.getTermType() == Term.TYPE_VAR) {
+    if (arg.getTermType() == VAR) {
       return ((Var) arg).isUndefined();
     } else {
       return false;
@@ -865,7 +838,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Determined
   public static boolean predicateNONVAR(final Goal goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0);
-    if (arg.getTermType() == Term.TYPE_VAR) {
+    if (arg.getTermType() == VAR) {
       return !((Var) arg).isUndefined();
     } else {
       return true;
@@ -876,7 +849,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Determined
   public static boolean predicateATOM(final Goal goal, final TermStruct predicate) {
     Term arg = predicate.getElement(0);
-    if (arg.getTermType() == Term.TYPE_VAR) {
+    if (arg.getTermType() == VAR) {
       arg = ((Var) arg).getValue();
       if (arg == null) {
         return false;
@@ -886,11 +859,11 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     boolean result = false;
 
     switch (arg.getTermType()) {
-      case Term.TYPE_ATOM: {
+      case ATOM: {
         result = !(arg instanceof NumericTerm);
       }
       break;
-      case Term.TYPE_LIST: {
+      case LIST: {
         result = ((TermList) arg).isNullList();
       }
       break;
@@ -904,7 +877,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   public static boolean predicateINTEGER(final Goal goal, final TermStruct predicate) {
     final Term arg = Utils.getTermFromElement(predicate.getElement(0));
 
-    if (arg.getTermType() == Term.TYPE_ATOM) {
+    if (arg.getTermType() == ATOM) {
       return arg instanceof TermInteger;
     } else {
       return false;
@@ -915,14 +888,14 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Determined
   public static boolean predicateNUMBER(final Goal goal, final TermStruct predicate) {
     final Term arg = Utils.getTermFromElement(predicate.getElement(0));
-    return (arg.getTermType() == Term.TYPE_ATOM) && (arg instanceof NumericTerm);
+    return (arg.getTermType() == ATOM) && (arg instanceof NumericTerm);
   }
 
   @Predicate(Signature = "float/1", Reference = "float(X) is true if and only if X is a float.")
   @Determined
   public static boolean predicateFLOAT(final Goal goal, final TermStruct predicate) {
     final Term arg = Utils.getTermFromElement(predicate.getElement(0));
-    if (arg.getTermType() == Term.TYPE_ATOM) {
+    if (arg.getTermType() == ATOM) {
       return arg instanceof TermFloat;
     } else {
       return false;
@@ -934,9 +907,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   public static boolean predicateCOMPOUND(final Goal goal, final TermStruct predicate) {
     final Term atom = Utils.getTermFromElement(predicate.getElement(0));
     switch (atom.getTermType()) {
-      case Term.TYPE_STRUCT:
+      case STRUCT:
         return true;
-      case Term.TYPE_LIST:
+      case LIST:
         return !((TermList) atom).isNullList();
       default:
         return false;
@@ -949,11 +922,11 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final Term arg = Utils.getTermFromElement(predicate.getElement(0));
     boolean result = false;
     switch (arg.getTermType()) {
-      case Term.TYPE_ATOM: {
+      case ATOM: {
         result = true;
       }
       break;
-      case Term.TYPE_LIST: {
+      case LIST: {
         result = ((TermList) arg).isNullList();
       }
       break;
@@ -977,7 +950,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       return false;
     }
 
-    if (compound_term.getTermType() == Term.TYPE_STRUCT) {
+    if (compound_term.getTermType() == STRUCT) {
       final TermStruct struct = (TermStruct) compound_term;
       final int elementIndex = index - 1;
       if (elementIndex >= struct.getArity()) {
@@ -997,17 +970,17 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final Term argArity = Utils.getTermFromElement(predicate.getElement(2));
 
     switch (argTerm.getTermType()) {
-      case Term.TYPE_ATOM: {
+      case ATOM: {
         final Term arity = new TermInteger(0);
         return argName.Equ(argTerm) && argArity.Equ(arity);
       }
-      case Term.TYPE_STRUCT: {
+      case STRUCT: {
         final TermStruct struct = (TermStruct) argTerm;
         final Term functor = new Term(struct.getFunctor().getText());
         final Term arity = new TermInteger(struct.getArity());
         return argName.Equ(functor) && argArity.Equ(arity);
       }
-      case Term.TYPE_LIST: {
+      case LIST: {
         final TermList list = (TermList) argTerm;
 
         Term name;
@@ -1022,7 +995,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         }
         return argName.Equ(name) && argArity.Equ(arity);
       }
-      case Term.TYPE_VAR: {
+      case VAR: {
         final int arity = ((TermInteger) argArity).getNumericValue().intValue();
         if (arity < 0) {
           throw new ProlRepresentationErrorException("Wrong arity value", predicate);
@@ -1061,7 +1034,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final Term argLeft = Utils.getTermFromElement(predicate.getElement(0));
     final Term argRight = Utils.getTermFromElement(predicate.getElement(1));
 
-    if (argRight.getTermType() != Term.TYPE_VAR) {
+    if (argRight.getTermType() != VAR) {
       Term atom = Utils.getListAsAtom(goal.getContext(), (TermList) argRight);
       return argLeft.Equ(atom);
     } else {
@@ -1101,11 +1074,11 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final ProlStreamManager streamManager = ctxt.getStreamManager();
 
     switch (term.getTermType()) {
-      case Term.TYPE_ATOM: {
+      case ATOM: {
         String name = term.getText();
         return consultFromResource(name, ctxt, streamManager);
       }
-      case Term.TYPE_LIST: {
+      case LIST: {
         TermList list = (TermList) term;
 
         while (!Thread.currentThread().isInterrupted()) {
@@ -1114,7 +1087,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
           }
           final Term headterm = Utils.getTermFromElement(list.getHead());
           final Term tailTerm = Utils.getTermFromElement(list.getTail());
-          if (tailTerm.getTermType() == Term.TYPE_LIST) {
+          if (tailTerm.getTermType() == LIST) {
             list = (TermList) tailTerm;
           } else {
             return false;
@@ -1133,7 +1106,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   private static NumericTerm calculatEvaluable(final Goal goal, Term term) {
     try {
-      if (term.getTermType() == Term.TYPE_VAR) {
+      if (term.getTermType() == VAR) {
         final Var varoriginal = (Var) term;
         term = ((Var) term).getValue();
         if (term == null) {
@@ -1142,14 +1115,14 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       }
 
       switch (term.getTermType()) {
-        case Term.TYPE_ATOM: {
+        case ATOM: {
           if (term instanceof NumericTerm) {
             return (NumericTerm) term;
           } else {
             throw new ProlTypeErrorException("number", "Not a numeric atom +[" + term + "] found at goal [" + goal + ']', term);
           }
         }
-        case Term.TYPE_STRUCT: {
+        case STRUCT: {
           final PredicateProcessor processor = ((TermStruct) term).getPredicateProcessor();
           if (processor.isEvaluable()) {
             return (NumericTerm) processor.executeEvaluable(goal, (TermStruct) term);
@@ -1172,11 +1145,11 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     Term right = Utils.getTermFromElement(predicate.getElement(1));
 
     switch (left.getTermType()) {
-      case Term.TYPE_ATOM: {
+      case ATOM: {
         left = left.asCharList();
         return left.Equ(right);
       }
-      case Term.TYPE_LIST: {
+      case LIST: {
         if (((TermList) left).isNullList()) {
           left = new Term("[]").asCharList();
           return left.Equ(right);
@@ -1186,7 +1159,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       }
     }
 
-    if (right.getTermType() == Term.TYPE_LIST) {
+    if (right.getTermType() == LIST) {
       StringBuilder builder = new StringBuilder();
 
       TermList list = (TermList) right;
@@ -1195,7 +1168,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         builder.append(head.getText());
 
         final Term tail = list.getTail();
-        if (tail.getTermType() == Term.TYPE_LIST) {
+        if (tail.getTermType() == LIST) {
           list = (TermList) tail;
         } else {
           return false;
@@ -1215,12 +1188,12 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     Term left = Utils.getTermFromElement(predicate.getElement(0));
     Term right = Utils.getTermFromElement(predicate.getElement(1));
 
-    if (left.getTermType() == Term.TYPE_ATOM) {
+    if (left.getTermType() == ATOM) {
       left = new TermInteger((int) left.getText().charAt(0));
       return right.Equ(left);
     }
 
-    if (right.getTermType() == Term.TYPE_ATOM) {
+    if (right.getTermType() == ATOM) {
       right = new Term(Character.toString((char) ((TermInteger) right).getNumericValue().intValue()));
       return left.Equ(right);
     }
@@ -1234,12 +1207,12 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     Term left = Utils.getTermFromElement(predicate.getElement(0));
     final Term right = Utils.getTermFromElement(predicate.getElement(1));
 
-    if (left.getTermType() == Term.TYPE_ATOM && right.getTermType() == Term.TYPE_VAR) {
+    if (left.getTermType() == ATOM && right.getTermType() == VAR) {
       left = left.asCharCodeList();
       return left.Equ(right);
     }
 
-    if (right.getTermType() == Term.TYPE_LIST) {
+    if (right.getTermType() == LIST) {
       final StringBuilder builder = new StringBuilder();
 
       TermList list = (TermList) right;
@@ -1248,7 +1221,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         builder.append((char) head.getNumericValue().intValue());
 
         final Term tail = list.getTail();
-        if (tail.getTermType() == Term.TYPE_LIST) {
+        if (tail.getTermType() == LIST) {
           list = (TermList) tail;
         } else {
           return false;
@@ -1285,7 +1258,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     Term left = Utils.getTermFromElement(predicate.getElement(0));
     final Term right = Utils.getTermFromElement(predicate.getElement(1));
 
-    if (right.getTermType() == Term.TYPE_LIST) {
+    if (right.getTermType() == LIST) {
       final StringBuilder builder = new StringBuilder();
 
       TermList list = (TermList) right;
@@ -1304,14 +1277,14 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         }
 
         final Term tail = list.getTail();
-        if (tail.getTermType() == Term.TYPE_LIST) {
+        if (tail.getTermType() == LIST) {
           list = (TermList) tail;
         } else {
           return false;
         }
       }
 
-      Term number = null;
+      Term number;
 
       final String numberValue = builder.toString();
 
@@ -1332,7 +1305,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       return left.Equ(number);
     }
 
-    if (left.getTermType() == Term.TYPE_ATOM) {
+    if (left.getTermType() == ATOM) {
       left = left.asCharList();
       return left.Equ(right);
     }
@@ -1343,7 +1316,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "for/3", Template = {"?term,+integer,+integer"}, Reference = "Allows to make an integer counter from a variable, (Var, Start, End).")
   public static boolean predicateFOR(final Goal goal, final TermStruct predicate) {
     final Term term = predicate.getElement(0);
-    if (term.getTermType() != Term.TYPE_VAR) {
+    if (term.getTermType() != VAR) {
       goal.noMoreVariants();
       return false;
     }
@@ -1378,7 +1351,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   public static boolean predicateRND(final Goal goal, final TermStruct predicate) {
     final Term term = Utils.getTermFromElement(predicate.getElement(0));
 
-    if (term.getTermType() == Term.TYPE_LIST) {
+    if (term.getTermType() == LIST) {
 
       final TermList list = (TermList) term;
 
@@ -1418,11 +1391,11 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     Term right = Utils.getTermFromElement(predicate.getElement(1));
 
     switch (left.getTermType()) {
-      case Term.TYPE_ATOM: {
+      case ATOM: {
         left = left.asCharCodeList();
         return left.Equ(right);
       }
-      case Term.TYPE_LIST: {
+      case LIST: {
         if (((TermList) left).isNullList()) {
           left = new Term("[]").asCharCodeList();
           return left.Equ(right);
@@ -1432,7 +1405,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       }
     }
 
-    if (left.getTermType() == Term.TYPE_ATOM) {
+    if (left.getTermType() == ATOM) {
       left = left.asCharCodeList();
 
       return left.Equ(right);
@@ -1452,7 +1425,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         builder.append((char) ((TermInteger) head).getNumericValue().intValue());
 
         final Term tail = list.getTail();
-        if (tail.getTermType() == Term.TYPE_LIST) {
+        if (tail.getTermType() == LIST) {
           list = (TermList) tail;
         } else {
           return false;
@@ -1518,7 +1491,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
       BofKey(final Goal goal, final Set<String> excludedVariables) {
         final Map<String, Term> varSnapshot = goal.findAllInstantiatedVars();
-        excludedVariables.forEach(s -> varSnapshot.remove(s));
+        excludedVariables.forEach(varSnapshot::remove);
         final List<String> orderedNames = new ArrayList<>(varSnapshot.keySet());
         Collections.sort(orderedNames);
         this.hash = orderedNames.stream().map(n -> varSnapshot.get(n).getText()).collect(Collectors.joining(":")).hashCode();
@@ -1577,7 +1550,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         final TermStruct theStruct = (TermStruct) processingGoal;
         final Term left = theStruct.getElement(0);
 
-        if (left.getTermType() == Term.TYPE_VAR) {
+        if (left.getTermType() == VAR) {
           excludedVars.add(left.getText());
         } else {
           throw new ProlTypeErrorException("var", "Expected VAR as left side argument", left);
@@ -1642,7 +1615,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
       SofKey(final Goal goal, final Set<String> excludedVariables) {
         final Map<String, Term> varSnapshot = goal.findAllInstantiatedVars();
-        excludedVariables.forEach(s -> varSnapshot.remove(s));
+        excludedVariables.forEach(varSnapshot::remove);
         final List<String> orderedNames = new ArrayList<>(varSnapshot.keySet());
         Collections.sort(orderedNames);
         this.hash = orderedNames.stream().map(n -> varSnapshot.get(n).getText()).collect(Collectors.joining(":")).hashCode();
@@ -1701,7 +1674,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         final TermStruct theStruct = (TermStruct) processingGoal;
         final Term left = theStruct.getElement(0);
 
-        if (left.getTermType() == Term.TYPE_VAR) {
+        if (left.getTermType() == VAR) {
           excludedVars.add(left.getText());
         } else {
           throw new ProlTypeErrorException("var", "Expected VAR as left side argument", left);
@@ -1739,15 +1712,15 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       }
 
       final Map<SofKey, TermList> sortedMap = new LinkedHashMap<>();
-      preparedMap.entrySet().forEach(entry -> {
-        final Term[] tmpArray = Utils.listToArray(entry.getValue());
+      preparedMap.forEach((key, value) -> {
+        final Term[] tmpArray = Utils.listToArray(value);
         Arrays.sort(tmpArray, Utils.TERM_COMPARATOR);
         final TermList sortedList = Utils.arrayToList(
             Arrays.stream(tmpArray)
                 .distinct().toArray(Term[]::new)
         );
 
-        sortedMap.put(entry.getKey(), sortedList);
+        sortedMap.put(key, sortedList);
       });
 
       preparedMap = sortedMap;
@@ -1821,7 +1794,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     Term atom = Utils.getTermFromElement(predicate.getElement(0));
 
-    if (atom.getTermType() != Term.TYPE_STRUCT) {
+    if (atom.getTermType() != STRUCT) {
       atom = new TermStruct(atom);
     }
 
@@ -1843,7 +1816,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
     Term atom = Utils.getTermFromElement(predicate.getElement(0));
 
-    if (atom.getTermType() != Term.TYPE_STRUCT) {
+    if (atom.getTermType() != STRUCT) {
       atom = new TermStruct(atom);
     }
 
@@ -1867,7 +1840,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     Term atom = Utils.getTermFromElement(predicate.getElement(0));
 
-    if (atom.getTermType() != Term.TYPE_STRUCT) {
+    if (atom.getTermType() != STRUCT) {
       atom = new TermStruct(atom);
     }
 
@@ -1888,7 +1861,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     Term atom = Utils.getTermFromElement(predicate.getElement(0));
 
-    if (atom.getTermType() != Term.TYPE_STRUCT) {
+    if (atom.getTermType() != STRUCT) {
       atom = new TermStruct(atom);
     }
 
@@ -1908,7 +1881,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
     Term atom = Utils.getTermFromElement(predicate.getElement(0));
 
-    if (atom.getTermType() != Term.TYPE_STRUCT) {
+    if (atom.getTermType() != STRUCT) {
       atom = new TermStruct(atom);
     }
 
@@ -2018,7 +1991,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     // all other errors make as custom
     //-------------------------------------
     Term arg = predicate.getElement(0);
-    if (arg.getTermType() != Term.TYPE_STRUCT) {
+    if (arg.getTermType() != STRUCT) {
       arg = new TermStruct(arg);
     }
     throw new ProlCustomErrorException(arg, predicate);
@@ -2056,7 +2029,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     if (factIterator == null) {
       Term term = origterm;
-      if (term.getTermType() == Term.TYPE_ATOM) {
+      if (term.getTermType() == ATOM) {
         // we have make the term as a struct
         term = new TermStruct(term);
       }
@@ -2079,7 +2052,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     if (nextFact == null) {
       goal.setAuxObject(null);
       goal.noMoreVariants();
-    } else if (origterm.getTermType() == Term.TYPE_ATOM) {
+    } else if (origterm.getTermType() == ATOM) {
       result = true;
     } else {
       if (!origterm.Equ(nextFact)) {
@@ -2098,7 +2071,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     if (ruleAuxObject == null) {
       Term term = Utils.getTermFromElement(predicate.getElement(0));
 
-      if (term.getTermType() == Term.TYPE_ATOM) {
+      if (term.getTermType() == ATOM) {
         // atom, we have to make a struct
         term = new TermStruct(term);
       }
@@ -2141,7 +2114,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
           final Term term = Utils.getTermFromElement(predicate.getElement(0));
 
-          if (term.getTermType() == Term.TYPE_STRUCT) {
+          if (term.getTermType() == STRUCT) {
             final TermStruct ruleClone = (TermStruct) ruleAuxObject.rule.makeClone();
             if (!term.Equ(ruleClone.getElement(0))) {
               // error critical situation
@@ -2234,7 +2207,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         final Term term = tlist.getHead();
 
         // ---- we have to check that user doesn't try share noninstantiated variables between parallel goals
-        if (term.getTermType() != Term.TYPE_ATOM) {
+        if (term.getTermType() != ATOM) {
           // find vars
           final Map<String, Var> varTable = Utils.fillTableWithVars(term);
           if (!varTable.isEmpty()) {
@@ -2261,7 +2234,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         goalList.add(new AuxForkTask(term, context));
 
         final Term tail = tlist.getTail();
-        if (tail.getTermType() == Term.TYPE_LIST) {
+        if (tail.getTermType() == LIST) {
           tlist = (TermList) tail;
         } else {
           break;
@@ -2321,7 +2294,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       }
 
       final Term tail = termlist.getTail();
-      if (tail.getTermType() == Term.TYPE_LIST) {
+      if (tail.getTermType() == LIST) {
         termlist = (TermList) tail;
       } else {
         break;
@@ -2421,9 +2394,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       }
 
       if (stopAllWorkingThreads) {
-        workingThreads.values().forEach((task) -> {
-          task.cancel(true);
-        });
+        workingThreads.values().forEach((task) -> task.cancel(true));
       }
     }
 
@@ -2877,10 +2848,6 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     }
   }
 
-  /**
-   * The class is an auxuliary class for the fork/1 predicate, it describes a
-   * task for the predicate
-   */
   private static class AuxForkTask implements Callable<Term> {
 
     private final Term term;
@@ -2889,7 +2856,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     public AuxForkTask(final Term termToSolve, final ProlContext context) {
       this.term = Utils.getTermFromElement(termToSolve.makeClone()); // we need to isolate the value to avoid any change the object
 
-      if (termToSolve.getTermType() == Term.TYPE_VAR) {
+      if (termToSolve.getTermType() == VAR) {
         this.goal = null;
       } else {
         this.goal = new Goal(this.term, context, null);

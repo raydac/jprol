@@ -20,17 +20,15 @@ import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermList;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.data.Var;
-import com.igormaznitsa.prol.utils.IntegerHashSet;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static com.igormaznitsa.prol.data.TermType.VAR;
 
 final class VariableStateSnapshot {
 
   private final List<VariableContainer> containers;
-  private IntegerHashSet processedVariables;
+  private Set<Integer> processedVariables;
 
   public VariableStateSnapshot(final VariableStateSnapshot snapshot) {
     this.containers = new ArrayList<>();
@@ -38,7 +36,7 @@ final class VariableStateSnapshot {
     final Iterator<VariableContainer> iterator = snapshot.containers.iterator();
     List<VariableContainer> changed = null;
 
-    this.processedVariables = new IntegerHashSet();
+    this.processedVariables = new HashSet<>();
 
     while (iterator.hasNext()) {
       final VariableContainer container = iterator.next();
@@ -77,7 +75,7 @@ final class VariableStateSnapshot {
       return;
     }
     switch (src.getTermType()) {
-      case Term.TYPE_LIST: {
+      case LIST: {
         final TermList list = (TermList) src;
         if (!list.isNullList()) {
           extractAllVariables(list.getHead(), predefValues);
@@ -85,7 +83,7 @@ final class VariableStateSnapshot {
         }
       }
       break;
-      case Term.TYPE_STRUCT: {
+      case STRUCT: {
         final TermStruct struct = (TermStruct) src;
         final Term[] elements = struct.getElementsAsArray();
         for (Term element : elements) {
@@ -93,9 +91,9 @@ final class VariableStateSnapshot {
         }
       }
       break;
-      case Term.TYPE_VAR: {
+      case VAR: {
         if (this.processedVariables == null) {
-          this.processedVariables = new IntegerHashSet();
+          this.processedVariables = new HashSet<>();
         }
         final Var var = (Var) src;
         final Integer uid = var.getVarUID();
@@ -141,7 +139,7 @@ final class VariableStateSnapshot {
       if (value == null) {
         valueTxt = ".NULL";
       } else {
-        if (value.getTermType() == Term.TYPE_VAR) {
+        if (value.getTermType() == VAR) {
           if (value.isUndefined()) {
             valueTxt = value.getSourceLikeRepresentation() + '{' + value.getVarUID() + '}';
           } else {

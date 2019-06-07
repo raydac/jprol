@@ -20,36 +20,13 @@ import com.igormaznitsa.prol.data.Term;
 
 import java.io.IOException;
 
-/**
- * The interface describes a prol writer allows to output terms
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 public interface ProlTextWriter {
 
-  /**
-   * Write a term into the writer
-   *
-   * @param term the term to be written, must not be null
-   * @throws IOException it will be thrown if there is any transport error
-   * during the operation
-   */
   void writeTerm(final Term term) throws IOException;
 
   void writeChar(final Term term) throws IOException;
 
-  /**
-   * Get the writer resource id
-   *
-   * @return the writer resource id as a String object
-   */
   String getResourceId();
 
-  /**
-   * Close the writer
-   *
-   * @throws IOException it will be thrown if there is any transport error
-   * during the operation
-   */
   void close() throws IOException;
 }

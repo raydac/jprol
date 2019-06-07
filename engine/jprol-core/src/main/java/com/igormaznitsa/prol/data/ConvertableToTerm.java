@@ -16,15 +16,7 @@
 
 package com.igormaznitsa.prol.data;
 
-/**
- * Interface describes an object which can be converted into a prolog term.
- */
 public interface ConvertableToTerm {
 
-  /**
-   * Method returns representaion of an object as a prolog term.
-   *
-   * @return a formed prolog term, must not be null
-   */
   Term asProlTerm();
 }

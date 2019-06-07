@@ -21,13 +21,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * The annotation shows that a function describing a prolog predicate (which one
- * has the annotation before definition) is a determined one and it will be
- * called only one time. As an example of such predicate - write/1, nl/0
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 @Target(value = ElementType.METHOD)
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface Determined {

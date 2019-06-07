@@ -20,17 +20,6 @@ import com.igormaznitsa.prol.data.TermStruct;
 
 import java.util.Iterator;
 
-/**
- * The interface describes a clause iterator to get clauses from a prol
- * knowledge base
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- * @see KnowledgeBase
- */
 public interface ClauseIterator extends Iterator<TermStruct> {
-
-  /**
-   * Cut all next variants in the iterator
-   */
   void cut();
 }

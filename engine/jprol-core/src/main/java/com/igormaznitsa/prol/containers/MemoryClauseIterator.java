@@ -20,41 +20,12 @@ import com.igormaznitsa.prol.data.TermStruct;
 
 import java.util.NoSuchElementException;
 
-/**
- * The class describes an iterator which allows to take sequently structures at
- * a knowledge base clause list and compare them with the template
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitrsa.com)
- * @see com.igormaznitsa.prol.containers.InternalKnowledgeBaseClauseList
- * @see com.igormaznitsa.prol.data.TermStruct
- */
 class MemoryClauseIterator implements ClauseIterator {
 
-  /**
-   * The variable contains the knowledge base clause list which is being used by
-   * the iterator
-   */
   protected final InternalKnowledgeBaseClauseList predicateList;
-
-  /**
-   * The variable contains the template which is being used by the iterator to
-   * find the next value
-   */
   protected final TermStruct template;
-
-  /**
-   * The variable contains the last found value by the iterator
-   */
   protected InternalClauseListItem lastFound;
 
-  /**
-   * The constructor
-   *
-   * @param list the knowledge base clause list for which we want to create the
-   * iterator, must not be null
-   * @param template the template to be used to find values in the clause list,
-   * must not be null
-   */
   public MemoryClauseIterator(final InternalKnowledgeBaseClauseList list, final TermStruct template) {
     predicateList = list;
     this.template = (TermStruct) template.makeClone();
@@ -70,12 +41,6 @@ class MemoryClauseIterator implements ClauseIterator {
     return template;
   }
 
-  /**
-   * Inside function to find the first element for the iterator, it is called
-   * from the constructor
-   *
-   * @return the first clause list item or null if it is not found
-   */
   protected InternalClauseListItem findFirstElement() {
     return predicateList.findDirect(template, null);
   }
@@ -97,9 +62,6 @@ class MemoryClauseIterator implements ClauseIterator {
     throw new UnsupportedOperationException("Not supported.");
   }
 
-  /**
-   * End the work of the iterator, null will be returned in next request
-   */
   @Override
   public void cut() {
     lastFound = null;

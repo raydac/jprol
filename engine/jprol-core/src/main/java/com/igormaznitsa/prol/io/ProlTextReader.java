@@ -21,22 +21,8 @@ import com.igormaznitsa.prol.data.TermInteger;
 
 import java.io.IOException;
 
-/**
- * The interface describea s prol text reader i.e. an object which allows to
- * read tokens, terms and chars from somewhere
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 public interface ProlTextReader {
 
-  /**
-   * Read the next token
-   *
-   * @return the next token or the END_OF_FILE term if the stream end has been
-   * reached
-   * @throws IOException it will be thrown if there is any transport error
-   * during the operation
-   */
   Term readToken() throws IOException;
 
   Term readTerm() throws IOException;

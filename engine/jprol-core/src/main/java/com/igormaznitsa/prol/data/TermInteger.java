@@ -16,6 +16,9 @@
 
 package com.igormaznitsa.prol.data;
 
+import static com.igormaznitsa.prol.data.TermType.ATOM;
+import static com.igormaznitsa.prol.data.TermType.VAR;
+
 public final class TermInteger extends Term implements NumericTerm {
 
   private final int intValue;
@@ -69,7 +72,7 @@ public final class TermInteger extends Term implements NumericTerm {
       return true;
     }
 
-    if (atom.getTermType() == Term.TYPE_VAR) {
+    if (atom.getTermType() == VAR) {
       atom = ((Var) atom).getValue();
     }
 
@@ -77,7 +80,7 @@ public final class TermInteger extends Term implements NumericTerm {
       return true;
     }
 
-    if (atom.getTermType() == TYPE_ATOM) {
+    if (atom.getTermType() == ATOM) {
       if (atom instanceof NumericTerm) {
         return compare((NumericTerm) atom) == 0;
       }
@@ -92,14 +95,14 @@ public final class TermInteger extends Term implements NumericTerm {
     }
 
     switch (atom.getTermType()) {
-      case Term.TYPE_ATOM: {
+      case ATOM: {
         if (atom instanceof NumericTerm) {
           return compare((NumericTerm) atom) == 0;
         } else {
           return getText().equals(atom.getText());
         }
       }
-      case Term.TYPE_VAR: {
+      case VAR: {
         final Var var = (Var) atom;
         final Term value = var.getValue();
         if (value == null) {
@@ -112,11 +115,6 @@ public final class TermInteger extends Term implements NumericTerm {
     return false;
   }
 
-  /**
-   * Get current integer value represented by the term
-   *
-   * @return the value as integer
-   */
   public int getValue() {
     return intValue;
   }
@@ -212,14 +210,14 @@ public final class TermInteger extends Term implements NumericTerm {
       return 0;
     }
 
-    if (atom.getTermType() == Term.TYPE_VAR && !((Var) atom).isUndefined()) {
+    if (atom.getTermType() == VAR && !((Var) atom).isUndefined()) {
       atom = ((Var) atom).getValue();
     }
 
     switch (atom.getTermType()) {
-      case Term.TYPE_VAR:
+      case VAR:
         return 1;
-      case Term.TYPE_ATOM: {
+      case ATOM: {
         if (atom instanceof NumericTerm) {
           final int value;
           if (atom instanceof TermFloat) {

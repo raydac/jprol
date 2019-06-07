@@ -22,6 +22,8 @@ import com.igormaznitsa.prol.utils.Utils;
 
 import java.util.Map;
 
+import static com.igormaznitsa.prol.data.TermType.*;
+
 public class TermStruct extends Term {
 
   private static final Term[] EMPTY_ARRAY = new Term[0];
@@ -115,7 +117,7 @@ public class TermStruct extends Term {
 
   @Override
   public int getPriority() {
-    if (functor.getTermType() == TYPE_OPERATOR) {
+    if (functor.getTermType() == OPERATOR) {
       return functor.getPriority();
     } else {
       return 0;
@@ -133,7 +135,7 @@ public class TermStruct extends Term {
   }
 
   private String getStringRepresentation(final boolean sourceLike) {
-    if (functor.getTermType() != Term.TYPE_OPERATOR) {
+    if (functor.getTermType() != OPERATOR) {
       // just struct
       final StringBuilder buffer = new StringBuilder(Utils.encodeTextSourceLike(getText()));
 
@@ -284,7 +286,7 @@ public class TermStruct extends Term {
 
   @Override
   public String forWrite() {
-    if (functor.getTermType() != Term.TYPE_OPERATOR) {
+    if (functor.getTermType() != OPERATOR) {
       // just struct
       final StringBuilder buffer = new StringBuilder(functor.forWrite());
 
@@ -360,8 +362,8 @@ public class TermStruct extends Term {
   }
 
   @Override
-  public int getTermType() {
-    return TYPE_STRUCT;
+  public TermType getTermType() {
+    return STRUCT;
   }
 
   @Override
@@ -379,7 +381,7 @@ public class TermStruct extends Term {
     }
 
     switch (atom.getTermType()) {
-      case Term.TYPE_STRUCT: {
+      case STRUCT: {
         final TermStruct thisStruct = this;
         final TermStruct thatStruct = (TermStruct) atom;
 
@@ -397,7 +399,7 @@ public class TermStruct extends Term {
         }
       }
       break;
-      case Term.TYPE_VAR: {
+      case VAR: {
         final Var var = (Var) atom;
         final Term value = var.getValue();
 
@@ -420,7 +422,7 @@ public class TermStruct extends Term {
       return true;
     }
 
-    if (atom.getTermType() == Term.TYPE_VAR) {
+    if (atom.getTermType() == VAR) {
       atom = ((Var) atom).getValue();
     }
 
@@ -432,7 +434,7 @@ public class TermStruct extends Term {
       }
     }
 
-    if (atom.getTermType() == Term.TYPE_STRUCT) {
+    if (atom.getTermType() == STRUCT) {
       final TermStruct thisStruct = this;
       final TermStruct thatStruct = (TermStruct) atom;
 
@@ -456,14 +458,14 @@ public class TermStruct extends Term {
       return 0;
     }
 
-    if (atom.getTermType() == Term.TYPE_VAR && !((Var) atom).isUndefined()) {
+    if (atom.getTermType() == VAR && !((Var) atom).isUndefined()) {
       atom = ((Var) atom).getValue();
     }
 
     switch (atom.getTermType()) {
-      case Term.TYPE_LIST:
+      case LIST:
         return -1;
-      case Term.TYPE_STRUCT: {
+      case STRUCT: {
         final TermStruct thatStruct = (TermStruct) atom;
 
         final int thisArity = getArity();
@@ -500,7 +502,7 @@ public class TermStruct extends Term {
 
   @Override
   public boolean hasAnyDifference(final Term atom) {
-    if (atom.getTermType() != Term.TYPE_STRUCT) {
+    if (atom.getTermType() != STRUCT) {
       return true;
     }
 

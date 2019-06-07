@@ -25,46 +25,21 @@ import com.igormaznitsa.prol.logic.triggers.ProlTriggerType;
 import com.igormaznitsa.prol.utils.Utils;
 
 import java.io.PrintWriter;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantLock;
 
-/**
- * The class implements the knowledge base for a Prol engine
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
+import static com.igormaznitsa.prol.data.TermType.ATOM;
+
 public final class MemoryKnowledgeBase implements KnowledgeBase {
 
-  /**
-   * The variable contains the base identifier
-   */
   private final String basedId;
-  /**
-   * The table contains defined operators
-   */
   private final Map<String, OperatorContainer> operatorTable = new HashMap<>();
-  /**
-   * The table contains defined predicates
-   */
   private final Map<String, InternalKnowledgeBaseClauseList> predicateTable = new HashMap<>();
-  /**
-   * The link to the context which is the owner of the knowledge base
-   */
   private final ProlContext context;
   private final ReentrantLock operatorLocker = new ReentrantLock();
   private final ReentrantLock predicateLocker = new ReentrantLock();
 
-  /**
-   * The constructor
-   *
-   * @param context the context-owner, must not be null
-   * @param baseId the identifier of the base, must not be null
-   */
   public MemoryKnowledgeBase(final ProlContext context, final String baseId) {
     if (baseId == null || context == null) {
       throw new IllegalArgumentException("One from the erguments is null");
@@ -73,14 +48,6 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
     this.context = context;
   }
 
-  /**
-   * Auxiliary constructor to make new knowledge base as a snapshot of existent
-   * knowledge base
-   *
-   * @param context the content for new knowledge base
-   * @param baseId the base id for new knowledge base
-   * @param etalon the etalon knowledge base
-   */
   private MemoryKnowledgeBase(final ProlContext context, final String baseId, final MemoryKnowledgeBase etalon) {
     this.basedId = baseId;
     this.context = context;
@@ -121,7 +88,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
 
   @Override
   public Operator getOperatorForTypeAndName(final String name, final int type) {
-    OperatorContainer opContainer = null;
+    OperatorContainer opContainer;
     operatorLocker.lock();
     try {
       opContainer = operatorTable.get(name);
@@ -186,7 +153,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
   @Override
   public OperatorContainer findOperatorForName(final String name) {
     final OperatorContainer systemOperator = context.getSystemOperatorForName(name);
-    OperatorContainer result = null;
+    OperatorContainer result;
 
     if (systemOperator == null) {
 
@@ -275,7 +242,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
         // it's clause
         // get left part
         Term leftPart = clause.getElement(0);
-        if (leftPart.getTermType() == Term.TYPE_ATOM) {
+        if (leftPart.getTermType() == ATOM) {
           leftPart = new TermStruct(leftPart);
           clause.setElement(0, leftPart);
         }
@@ -285,7 +252,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
         uid = clause.getSignature();
       }
 
-      boolean result = false;
+      boolean result;
 
       final ReentrantLock lockerPred = predicateLocker;
       lockerPred.lock();
@@ -414,7 +381,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
     final ReentrantLock lockerPred = predicateLocker;
 
     boolean result = false;
-    String uid = null;
+    String uid;
 
     lockerPred.lock();
     try {
@@ -451,7 +418,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
 
     final ReentrantLock lockerPred = predicateLocker;
     boolean result = false;
-    String uid = null;
+    String uid;
 
     lockerPred.lock();
     try {
@@ -487,7 +454,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
     }
 
     boolean result = false;
-    String uid = null;
+    String uid;
 
     final ReentrantLock lockerPred = predicateLocker;
     lockerPred.lock();
@@ -518,7 +485,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
   public void abolish(final String signature) {
     final ReentrantLock lockerPred = predicateLocker;
 
-    boolean result = false;
+    boolean result;
 
     final String normalizedUID = Utils.normalizeSignature(signature);
     if (normalizedUID == null) {

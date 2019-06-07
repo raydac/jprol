@@ -19,6 +19,8 @@ package com.igormaznitsa.prol.data;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.igormaznitsa.prol.data.TermType.VAR;
+
 public final class Var extends Term {
 
   private static final AtomicInteger VAR_COUNTER_ANONYM = new AtomicInteger(0);
@@ -43,8 +45,8 @@ public final class Var extends Term {
   }
 
   @Override
-  public int getTermType() {
-    return TYPE_VAR;
+  public TermType getTermType() {
+    return VAR;
   }
 
   public final Term getValue() {
@@ -64,7 +66,7 @@ public final class Var extends Term {
 
     if (value != this) {
 
-      if (value.getTermType() == Term.TYPE_VAR) {
+      if (value.getTermType() == VAR) {
         // check for loop
         Var curVar = ((Var) value);
         while (!Thread.currentThread().isInterrupted()) {
@@ -73,7 +75,7 @@ public final class Var extends Term {
             return true;
           } else {
             final Term nextval = curVar.getThisValue();
-            if (nextval != null && nextval.getTermType() == Term.TYPE_VAR) {
+            if (nextval != null && nextval.getTermType() == VAR) {
               curVar = (Var) nextval;
             } else {
               break;
@@ -119,7 +121,7 @@ public final class Var extends Term {
     if (value == null) {
       result = true;
     } else {
-      if (value.getTermType() == TYPE_VAR) {
+      if (value.getTermType() == VAR) {
         result = ((Var) value).isUndefined();
       }
     }
@@ -158,7 +160,7 @@ public final class Var extends Term {
     Var curVar = this;
     while (!Thread.currentThread().isInterrupted()) {
       final Term term = curVar.getThisValue();
-      if (term == null || term.getTermType() != Term.TYPE_VAR) {
+      if (term == null || term.getTermType() != VAR) {
         break;
       } else {
         curVar = (Var) term;
@@ -248,13 +250,13 @@ public final class Var extends Term {
       thisAtom = this;
     }
 
-    if (atom.getTermType() == Term.TYPE_VAR && !((Var) atom).isUndefined()) {
+    if (atom.getTermType() == VAR && !((Var) atom).isUndefined()) {
       atom = ((Var) atom).getValue();
     }
 
     int result = -1;
     if (thisAtom == this) {
-      if (atom.getTermType() == TYPE_VAR) {
+      if (atom.getTermType() == VAR) {
         result = getText().compareTo(atom.getText());
 
       }
@@ -266,7 +268,7 @@ public final class Var extends Term {
 
   @Override
   public boolean hasAnyDifference(final Term atom) {
-    if (atom.getTermType() != Term.TYPE_VAR) {
+    if (atom.getTermType() != VAR) {
       return true;
     }
 

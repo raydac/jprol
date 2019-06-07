@@ -13,7 +13,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 
-public class MapColorTest extends AbstractProlTest implements TraceListener {
+public class MapColorTest extends AbstractProlTest {
 
   @Test
   public void testMapColor() throws Throwable {
@@ -77,36 +77,6 @@ public class MapColorTest extends AbstractProlTest implements TraceListener {
     consult1.consult();
 
     return context1;
-  }
-
-  @Override
-  public boolean onProlGoalCall(final Goal goal) {
-    if (allowedPredicateInGoal(goal)) {
-      System.out.println("Call: " + goal.getGoalTerm());
-    }
-    return true;
-  }
-
-  @Override
-  public boolean onProlGoalRedo(final Goal goal) {
-    if (allowedPredicateInGoal(goal)) {
-      System.out.println("Redo: " + goal.getGoalTerm());
-    }
-    return true;
-  }
-
-  @Override
-  public void onProlGoalFail(final Goal goal) {
-    if (allowedPredicateInGoal(goal)) {
-      System.out.println("Fail: " + goal.getGoalTerm());
-    }
-  }
-
-  @Override
-  public void onProlGoalExit(final Goal goal) {
-    if (allowedPredicateInGoal(goal)) {
-      System.out.println("Exit: " + goal.getGoalTerm());
-    }
   }
 
   private boolean allowedPredicateInGoal(final Goal goal) {

@@ -21,41 +21,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * The annotation signals that a function which has the annotation implements a
- * prolog predicate the function can be static or dynamic and it should return
- * boolean or void it must have as arguments Goal and TermStruct
- * <pre>
- * &#64;Predicate(Signature = "put/1", Template = "+number")
- * &#64;Determined
- * public final void predicatePUT(final Goal goal, final TermStruct predicate) {
- *   final Term arg = Utils.getTermFromElement(predicate.getElement(0));
- *   ProlTextWriter outStream = goal.getContext().getCurrentOutStream();
- *   if (outStream == null) {
- *     return;
- *   }
- *
- *   try {
- *     outStream.writeChar(arg);
- *   } catch (IOException ex) {
- *     throw new ProlPermissionErrorException("write", "text_output", predicate);
- *   }
- * }
- * </pre>
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- * @see com.igormaznitsa.prol.annotations.Evaluable
- */
 @Target(value = ElementType.METHOD)
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface Predicate {
 
-  /**
-   * The signature of the predicate (as examples "+/2","nl/0","=../3". It must
-   * be defined
-   *
-   * @return the signature as string
-   */
   String Signature();
 
   String[] Template() default {};

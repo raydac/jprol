@@ -18,10 +18,7 @@ package com.igormaznitsa.prol.parser;
 
 import com.igormaznitsa.prol.containers.KnowledgeBase;
 import com.igormaznitsa.prol.containers.OperatorContainer;
-import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.data.TermFloat;
-import com.igormaznitsa.prol.data.TermInteger;
-import com.igormaznitsa.prol.data.Var;
+import com.igormaznitsa.prol.data.*;
 import com.igormaznitsa.prol.exceptions.ParserException;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 
@@ -583,7 +580,7 @@ public final class ProlTokenizer {
      * @return the result term type as integer
      * @see com.igormaznitsa.prol.data.Term
      */
-    public final int getTermType() {
+    public final TermType getTermType() {
       return term.getTermType();
     }
 

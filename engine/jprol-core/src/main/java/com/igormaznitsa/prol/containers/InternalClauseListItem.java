@@ -18,44 +18,17 @@ package com.igormaznitsa.prol.containers;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
+import lombok.Data;
 
-/**
- * The Inside class descibes a list item
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- * @see com.igormaznitsa.prol.containers.KnowledgeBaseInsideClauseList
- */
+@Data
 public final class InternalClauseListItem {
 
-  /**
-   * The clause which is saved by the element
-   */
   private final TermStruct clause;
-  /**
-   * The key term for the saved clause
-   */
   private final Term keyTerm;
-  /**
-   * This flag shows that clause is just a fact and doesn't have rule body
-   */
   private final boolean fact;
-  /**
-   * The link to the previous element, can be null
-   */
   private InternalClauseListItem previous;
-  /**
-   * The link to the next element, can be null
-   */
   private InternalClauseListItem next;
 
-  /**
-   * The constructor
-   *
-   * @param prev the previous item in the list, can be null
-   * @param next the next item in the list, can be null
-   * @param clause the clause which will be saved into the list item, must not
-   * be null
-   */
   protected InternalClauseListItem(final InternalClauseListItem prev, final InternalClauseListItem next, final TermStruct clause) {
     super();
     previous = prev;
@@ -76,72 +49,7 @@ public final class InternalClauseListItem {
     }
   }
 
-  /**
-   * To get the key term for saved clause
-   *
-   * @return the key term for the saved clause
-   */
-  public final Term getKeyTerm() {
-    return keyTerm;
-  }
 
-  /**
-   * To get the saved clause
-   *
-   * @return the saved clause
-   */
-  public final TermStruct getClause() {
-    return clause;
-  }
-
-  /**
-   * Returns the value shows that the list item contains a fact (not a rule)
-   *
-   * @return true if the list item contains a fact, else false
-   */
-  public final boolean isFact() {
-    return fact;
-  }
-
-  /**
-   * Get the previuys list item
-   *
-   * @return the previous list item if it exists else null
-   */
-  public final InternalClauseListItem getPrevious() {
-    return previous;
-  }
-
-  /**
-   * Set the previous list element
-   *
-   * @param value the previous list element, can be null
-   */
-  public final void setPrevious(final InternalClauseListItem value) {
-    previous = value;
-  }
-
-  /**
-   * Get the next list item
-   *
-   * @return the next list item if it exists else null
-   */
-  public final InternalClauseListItem getNext() {
-    return next;
-  }
-
-  /**
-   * Set the next item
-   *
-   * @param value the new next value, can be null
-   */
-  public final void setNext(final InternalClauseListItem value) {
-    next = value;
-  }
-
-  /**
-   * To remove the list element from the list
-   */
   public final void remove() {
     if (previous != null) {
       previous.setNext(this.getNext());

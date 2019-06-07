@@ -18,28 +18,13 @@ package com.igormaznitsa.prol.io;
 
 import java.io.*;
 
-/**
- * The class implements the ProlStreamManager interface and can be used to
- * read-write files and read resources from JAR
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- * @see com.igormaznitsa.prol.io.ProlStreamManager
- */
 public class DefaultProlStreamManagerImpl implements ProlStreamManager {
 
-  /**
-   * The variable contains only instance to be used
-   */
   private static DefaultProlStreamManagerImpl singltone;
 
   private DefaultProlStreamManagerImpl() {
   }
 
-  /**
-   * Get the instance of the manager
-   *
-   * @return the instance of the class
-   */
   public synchronized static DefaultProlStreamManagerImpl getInstance() {
     if (singltone == null) {
       singltone = new DefaultProlStreamManagerImpl();
@@ -47,15 +32,6 @@ public class DefaultProlStreamManagerImpl implements ProlStreamManager {
     return singltone;
   }
 
-  /**
-   * Get the reader for a resource
-   *
-   * @param resourceName the resource name, must not be null. If the name starts
-   * with "@", then it will be used as the name inside JAR resource and will be
-   * opened with Class.getResourceAsStream(). The argument must not be null.
-   * @return the opened reader as a Reader object.
-   * @throws IOException it will be thrown if there will be any transport error.
-   */
   @Override
   public synchronized Reader getReaderForResource(final String resourceName) throws IOException {
     if (resourceName == null) {

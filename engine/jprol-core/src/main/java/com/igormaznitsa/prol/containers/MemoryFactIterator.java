@@ -20,22 +20,8 @@ import com.igormaznitsa.prol.data.TermStruct;
 
 import java.util.NoSuchElementException;
 
-/**
- * This class implements an iterator allows search only facts in a knowledge
- * base
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 final class MemoryFactIterator extends MemoryClauseIterator implements FactIterator {
 
-  /**
-   * The constructor
-   *
-   * @param list the inside knowledge base list to be used by the iterator, must
-   * not be null
-   * @param template the template which will be used to find facts, must not be
-   * null
-   */
   public MemoryFactIterator(final InternalKnowledgeBaseClauseList list, final TermStruct template) {
     super(list, template);
   }

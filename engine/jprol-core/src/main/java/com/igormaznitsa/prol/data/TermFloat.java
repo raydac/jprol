@@ -70,7 +70,7 @@ public final class TermFloat extends Term implements NumericTerm {
       return true;
     }
 
-    if (atom.getTermType() == Term.TYPE_VAR) {
+    if (atom.getTermType() == VAR) {
       atom = ((Var) atom).getValue();
     }
 
@@ -78,7 +78,7 @@ public final class TermFloat extends Term implements NumericTerm {
       return true;
     }
 
-    if (atom.getTermType() == TYPE_ATOM) {
+    if (atom.getTermType() == ATOM) {
       if (atom instanceof NumericTerm) {
         return compare((NumericTerm) atom) == 0;
       }
@@ -93,14 +93,14 @@ public final class TermFloat extends Term implements NumericTerm {
     }
 
     switch (atom.getTermType()) {
-      case Term.TYPE_ATOM: {
+      case ATOM: {
         if (atom instanceof NumericTerm) {
           return compare((NumericTerm) atom) == 0;
         } else {
           return getText().equals(atom.getText());
         }
       }
-      case Term.TYPE_VAR: {
+      case VAR: {
         final Var var = (Var) atom;
         final Term value = var.getValue();
         if (value == null) {
@@ -192,14 +192,14 @@ public final class TermFloat extends Term implements NumericTerm {
       return 0;
     }
 
-    if (atom.getTermType() == Term.TYPE_VAR && !((Var) atom).isUndefined()) {
+    if (atom.getTermType() == VAR && !((Var) atom).isUndefined()) {
       atom = ((Var) atom).getValue();
     }
 
     switch (atom.getTermType()) {
-      case Term.TYPE_VAR:
+      case VAR:
         return 1;
-      case Term.TYPE_ATOM: {
+      case ATOM: {
         if (atom instanceof NumericTerm) {
           NumericTerm num = (NumericTerm) atom;
           float value = num.getNumericValue().floatValue();

@@ -19,12 +19,6 @@ package com.igormaznitsa.prol.logic;
 import com.igormaznitsa.prol.containers.KnowledgeBase;
 import com.igormaznitsa.prol.containers.MemoryKnowledgeBase;
 
-/**
- * Default knowledge base factory which use MemoryKnpwledgeBase as a default
- * base
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 public final class DefaultKnowledgeBaseFactory implements KnowledgeBaseFactory {
 
   private static final DefaultKnowledgeBaseFactory INSTANCE = new DefaultKnowledgeBaseFactory();

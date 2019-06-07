@@ -20,20 +20,8 @@ import com.igormaznitsa.prol.logic.ProlContext;
 
 import java.util.Map;
 
-/**
- * Interface describes a trigger which will be notified about assert/retract
- * operations for predicates with defined signatures
- */
 public interface ProlTrigger {
 
-  /**
-   * Get the map containing signatures and triggered events of target predicates
-   * for the trigger
-   *
-   * @return a map contains signatures and associated event types, must not be
-   * null
-   * @see ProlTriggerType
-   */
   Map<String, ProlTriggerType> getSignatures();
 
   void onTriggerEvent(TriggerEvent event) throws InterruptedException;

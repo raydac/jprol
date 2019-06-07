@@ -18,46 +18,20 @@ package com.igormaznitsa.prol.containers;
 
 import com.igormaznitsa.prol.data.Operator;
 import com.igormaznitsa.prol.data.Term;
+import com.igormaznitsa.prol.data.TermType;
 
 import java.io.PrintWriter;
 
-/**
- * The class implements an operator contaier, i.e. the object contains all
- * operators of a knowledge base which have the same names but different types
- * and priorities
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
+import static com.igormaznitsa.prol.data.TermType.OPERATORS;
+
 public final class OperatorContainer extends Term {
 
-  /**
-   * The variable contains FZ operator (i.e. fx,fy)
-   */
+  private final boolean system;
   private Operator opFZ;
-  /**
-   * The variable contains ZF operator (i.e. xf,yf)
-   */
   private Operator opZF;
-  /**
-   * The variable contains ZF operator (i.e. xfx,yfx,xfy)
-   */
   private Operator opZFZ;
-  /**
-   * The counter of operators saved by the contaier
-   */
   private int numberAtContainer;
-  /**
-   * The flag shows that it is a system operator and can't be removed or changed
-   * in runtime (as you can see it works foe all operators with the same name)
-   */
-  private boolean system;
 
-  /**
-   * Inside auxiliary constructor to make new container as copy of an existent
-   * container
-   *
-   * @param etalon the etalon
-   */
   private OperatorContainer(final OperatorContainer etalon) {
     super(etalon.getText());
     opFZ = etalon.opFZ;
@@ -67,43 +41,20 @@ public final class OperatorContainer extends Term {
     system = etalon.system;
   }
 
-  /**
-   * A constructor
-   *
-   * @param operator an operator as the ground for the container
-   */
   public OperatorContainer(final Operator operator) {
     this(operator, false);
   }
 
-  /**
-   * A constructor
-   *
-   * @param operator an operator as the ground for the container
-   * @param systemOperator if true, the operator container will be signed as a
-   * system operator
-   */
   public OperatorContainer(final Operator operator, final boolean systemOperator) {
     super(operator.getText());
     setOperator(operator);
     this.system = systemOperator;
   }
 
-  /**
-   * Chack that the container has system operators
-   *
-   * @return true if the container contains system operators else false
-   */
   public boolean isSystem() {
     return system;
   }
 
-  /**
-   * Add an operator in the container
-   *
-   * @param operator an operator to be added into the container
-   * @return true if the operator has been added, else false
-   */
   public boolean setOperator(final Operator operator) {
     switch (operator.getOperatorType()) {
       case Operator.OPTYPE_FX:
@@ -142,25 +93,14 @@ public final class OperatorContainer extends Term {
   }
 
   @Override
-  public int getTermType() {
-    return TYPE_OPERATORS;
+  public TermType getTermType() {
+    return OPERATORS;
   }
 
-  /**
-   * Return the number of operators in the container
-   *
-   * @return the operator number as integer
-   */
   public int size() {
     return numberAtContainer;
   }
 
-  /**
-   * Get an operator from the container if the operator is the only operator
-   * here
-   *
-   * @return an operator if it is only operator else null
-   */
   public Operator getOperatorIfSingle() {
     if (numberAtContainer == 1) {
       if (opZFZ != null) {
@@ -175,16 +115,6 @@ public final class OperatorContainer extends Term {
     return null;
   }
 
-  /**
-   * Get an operator from the container which can be used for situation desribed
-   * by arguments
-   *
-   * @param leftPresented true if thee is the left argument of the operator,
-   * false if there is not any
-   * @param rightPresented false if thee is the right argument of the operator,
-   * false if there is not any
-   * @return found operator or null if not found
-   */
   public Operator getCompatibleOperator(final boolean leftPresented, final boolean rightPresented) {
     if (leftPresented && rightPresented) {
       if (opZFZ != null) {
@@ -210,11 +140,6 @@ public final class OperatorContainer extends Term {
     return null;
   }
 
-  /**
-   * Write operators into a writter
-   *
-   * @param writer the writter to out operator definitions
-   */
   public void write(final PrintWriter writer) {
     if (opFZ != null) {
       opFZ.write(writer);
@@ -227,12 +152,6 @@ public final class OperatorContainer extends Term {
     }
   }
 
-  /**
-   * Get a saved operator for its type
-   *
-   * @param type the operator type
-   * @return the found operator or null
-   */
   public Operator getForTypePrecisely(final int type) {
     Operator result = null;
     switch (type) {
@@ -269,12 +188,6 @@ public final class OperatorContainer extends Term {
     return null;
   }
 
-  /**
-   * Get a saved operator for its family type
-   *
-   * @param type the family type
-   * @return the found operator or null
-   */
   public Operator getOperatorForTypeFamily(final int type) {
     switch (type) {
       case Operator.OPTYPE_FX:
@@ -292,12 +205,6 @@ public final class OperatorContainer extends Term {
     }
   }
 
-  /**
-   * Remove an operator from the container for its type
-   *
-   * @param type the operator type
-   * @return true if the operator was found and removed, else false
-   */
   public boolean removeOperatorForType(final int type) {
     boolean result = false;
     switch (type) {
@@ -332,11 +239,6 @@ public final class OperatorContainer extends Term {
     return result;
   }
 
-  /**
-   * Make copy of the operator container
-   *
-   * @return the copy of the container
-   */
   public OperatorContainer makeCopy() {
     return new OperatorContainer(this);
   }

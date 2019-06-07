@@ -12,7 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 
-public class EinsteinTest extends AbstractProlTest implements TraceListener {
+public class EinsteinTest extends AbstractProlTest {
 
     @Test
     public void testEinstein() throws Throwable {
@@ -62,36 +62,6 @@ public class EinsteinTest extends AbstractProlTest implements TraceListener {
         consult1.consult();
 
         return context1;
-    }
-
-    @Override
-    public boolean onProlGoalCall(final Goal goal) {
-        if (allowedPredicate(goal)) {
-            System.out.println("Call: " + goal.getGoalTerm());
-        }
-        return true;
-    }
-
-    @Override
-    public boolean onProlGoalRedo(final Goal goal) {
-        if (allowedPredicate(goal)) {
-            System.out.println("Redo: " + goal.getGoalTerm());
-        }
-        return true;
-    }
-
-    @Override
-    public void onProlGoalFail(final Goal goal) {
-        if (allowedPredicate(goal)) {
-            System.out.println("Fail: " + goal.getGoalTerm());
-        }
-    }
-
-    @Override
-    public void onProlGoalExit(final Goal goal) {
-        if (allowedPredicate(goal)) {
-            System.out.println("Exit: " + goal.getGoalTerm());
-        }
     }
 
     private boolean allowedPredicate(final Goal goal) {

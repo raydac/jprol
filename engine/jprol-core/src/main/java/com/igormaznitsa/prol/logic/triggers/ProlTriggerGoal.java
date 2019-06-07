@@ -24,23 +24,9 @@ import com.igormaznitsa.prol.trace.TraceListener;
 
 import java.io.IOException;
 
-/**
- * Class implements the Prol Trigger and allows to process a goal when there is
- * the trigger condition It's impossible to process the context halting state
- * with a goal trigger because the context has halted status already when it is
- * calling triggers
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 public class ProlTriggerGoal extends AbstractProlTrigger {
 
-  /**
-   * Inside prepared goal which will be called when a condition
-   */
   protected final PreparedGoal triggerGoal;
-  /**
-   * Inside variable containing work context for the trigger
-   */
   protected final ProlContext context;
 
   public ProlTriggerGoal(final String triggerGoal, final ProlContext context, final TraceListener tracer) throws IOException, InterruptedException {
@@ -52,15 +38,6 @@ public class ProlTriggerGoal extends AbstractProlTrigger {
     this.context = context;
   }
 
-  /**
-   * A constructor allows to make prepared trigger for already parsed goal
-   *
-   * @param triggerGoal the parsed goal, can be null if undefined
-   * @param context the work context for the trigger, must not be null
-   * @param tracer the tracer to listen events of the trigger goal, it can be
-   * null
-   * @throws NullPointerException if the context is null
-   */
   public ProlTriggerGoal(final Term triggerGoal, final ProlContext context, final TraceListener tracer) {
     super();
     if (context == null) {

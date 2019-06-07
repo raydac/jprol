@@ -21,21 +21,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * The annotation allows to define an operator.
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 @Target(value = ElementType.TYPE)
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface ProlOperator {
-
-  /**
-   * The priority of the operator from 0 to 1200, remember 1200 priority is less
-   * than 1199
-   *
-   * @return the operator priority as integer value between 0 and 1200
-   */
   int Priority();
 
   int Type();

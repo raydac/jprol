@@ -21,40 +21,11 @@ import com.igormaznitsa.prol.logic.ProlContext;
 
 import java.io.IOException;
 
-/**
- * The interface describes an abstract stream object which can be used by the
- * prol engine
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 public interface ProlStream {
-
-  /**
-   * The string constant which is used as the end stream flag
-   */
   String END_OF_FILE_STR = "end_of_file";
-
-  /**
-   * The constant describes the term which is used as the flag of the end of a
-   * file
-   */
   Term END_OF_FILE = new Term(END_OF_FILE_STR);
 
   ProlContext getContext();
 
   void close() throws IOException;
-
-  /**
-   * The resource id for the stream
-   *
-   * @return the resource name for the stream, must not be null
-   */
-  String getResourceId();
-
-  /**
-   * Get the stream object as a Term
-   *
-   * @return the stream object as a Term, must not be null
-   */
-  Term getAsTerm();
 }

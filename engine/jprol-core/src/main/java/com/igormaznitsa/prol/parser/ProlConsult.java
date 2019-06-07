@@ -37,15 +37,6 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * The class allows to input and parse a source string or resource to be placed
- * into a context. It could be called as interface of a context with an outside
- * world. Because you can enter data into context knowledge base only with the
- * consult object
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- * @see com.igormaznitsa.prol.logic.ProlContext
- */
 public class ProlConsult {
 
   private static final Logger LOG = Logger.getLogger(ProlConsult.class.getCanonicalName());

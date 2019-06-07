@@ -6,6 +6,8 @@ import com.igormaznitsa.prol.logic.Goal;
 import com.igormaznitsa.prol.logic.PreparedGoal;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlConsult;
+
+import static com.igormaznitsa.prol.data.TermType.ATOM;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
@@ -39,8 +41,8 @@ public class OperatorTest extends AbstractProlTest {
 
             assertEquals(lefttree.getText(), "&");
             assertEquals(lefttree.getArity(), 2);
-            assertEquals(lefttree.getElement(0).getTermType(), Term.TYPE_ATOM);
-            assertEquals(lefttree.getElement(1).getTermType(), Term.TYPE_ATOM);
+            assertEquals(lefttree.getElement(0).getTermType(), ATOM);
+            assertEquals(lefttree.getElement(1).getTermType(), ATOM);
             assertEquals(lefttree.getElement(0).getText(), "xxx");
             assertEquals(lefttree.getElement(1).getText(), "yyy");
 
@@ -51,9 +53,9 @@ public class OperatorTest extends AbstractProlTest {
             assertEquals(lefttree.getText(), "~");
             assertEquals(righttree.getArity(), 1);
             assertEquals(righttree.getText(), "~");
-            assertEquals(lefttree.getElement(0).getTermType(), Term.TYPE_ATOM);
+            assertEquals(lefttree.getElement(0).getTermType(), ATOM);
             assertEquals(lefttree.getElement(0).getText(), "xxx");
-            assertEquals(righttree.getElement(0).getTermType(), Term.TYPE_ATOM);
+            assertEquals(righttree.getElement(0).getTermType(),ATOM);
             assertEquals(righttree.getElement(0).getText(), "yyy");
 
             final PreparedGoal prepGoal2 = new PreparedGoal("moon <===> X.", context);

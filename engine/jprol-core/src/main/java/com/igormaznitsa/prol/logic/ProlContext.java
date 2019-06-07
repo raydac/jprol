@@ -247,7 +247,7 @@ public final class ProlContext {
 
   public ReentrantLock getLockerForName(final String name) {
     final Map<String, ReentrantLock> lockMap = getLockerMap();
-    ReentrantLock locker = null;
+    ReentrantLock locker;
     executorAndlockTableLocker.lock();
     try {
       locker = lockMap.get(name);
@@ -263,7 +263,7 @@ public final class ProlContext {
 
   public void lockLockerForName(final String name) {
     final Map<String, ReentrantLock> lockMap = getLockerMap();
-    ReentrantLock locker = null;
+    ReentrantLock locker;
 
     final ReentrantLock exeLocker = executorAndlockTableLocker;
 
@@ -282,7 +282,7 @@ public final class ProlContext {
 
   public boolean trylockLockerForName(final String name) {
     final Map<String, ReentrantLock> lockMap = getLockerMap();
-    ReentrantLock locker = null;
+    ReentrantLock locker;
 
     final ReentrantLock exeLocker = executorAndlockTableLocker;
 
@@ -301,7 +301,7 @@ public final class ProlContext {
 
   public void unlockLockerForName(final String name) {
     final Map<String, ReentrantLock> lockMap = getLockerMap();
-    ReentrantLock locker = null;
+    ReentrantLock locker;
 
     final ReentrantLock exeLocker = executorAndlockTableLocker;
 
@@ -809,19 +809,11 @@ public final class ProlContext {
         List<ProlTrigger> triggerListRetract = null;
 
         if (triggerType == ProlTriggerType.TRIGGER_ASSERT || triggerType == ProlTriggerType.TRIGGER_ASSERT_RETRACT) {
-          triggerListAssert = triggersOnAssert.get(signature);
-          if (triggerListAssert == null) {
-            triggerListAssert = new ArrayList<>();
-            triggersOnAssert.put(signature, triggerListAssert);
-          }
+          triggerListAssert = triggersOnAssert.computeIfAbsent(signature, k -> new ArrayList<>());
         }
 
         if (triggerType == ProlTriggerType.TRIGGER_RETRACT || triggerType == ProlTriggerType.TRIGGER_ASSERT_RETRACT) {
-          triggerListRetract = triggersOnRetract.get(signature);
-          if (triggerListRetract == null) {
-            triggerListRetract = new ArrayList<>();
-            triggersOnRetract.put(signature, triggerListRetract);
-          }
+          triggerListRetract = triggersOnRetract.computeIfAbsent(signature, k -> new ArrayList<>());
         }
 
         if (triggerListAssert != null) {
@@ -889,7 +881,7 @@ public final class ProlContext {
   public boolean hasRegisteredTriggersForSignature(final String normalizedSignature, final ProlTriggerType observedEvent) {
     triggerLocker.lock();
     try {
-      boolean result = false;
+      boolean result;
       switch (observedEvent) {
         case TRIGGER_ASSERT: {
           result = triggersOnAssert.containsKey(normalizedSignature);
@@ -928,7 +920,7 @@ public final class ProlContext {
     ProlTrigger[] triggersToProcess = null;
     triggerLocker.lock();
     try {
-      List<ProlTrigger> listOfTriggers = null;
+      List<ProlTrigger> listOfTriggers;
 
       switch (observedEvent) {
         case TRIGGER_ASSERT: {
@@ -983,13 +975,6 @@ public final class ProlContext {
     return "ProlContext(" + contextName + ')' + '[' + super.toString() + ']';
   }
 
-  /**
-   * Allows to make copy of the context and its knowledge base
-   *
-   * @return new context containing snapshot of current knowledge base
-   * @throws IOException it will be thrown if there is any exception during
-   * initialization of IO streams
-   */
   public ProlContext makeCopy() throws IOException {
     final ProlContext newContext = new ProlContext(this.streamManager, this.contextName + "_copy", this.knowledgeBaseFactory);
 
@@ -1003,11 +988,6 @@ public final class ProlContext {
     return newContext;
   }
 
-  /**
-   * Inside helper class to make Threads and handle their uncaught exceptions
-   *
-   * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
-   */
   private static final class ProlContextInsideThreadFactory implements ThreadFactory, Thread.UncaughtExceptionHandler, RejectedExecutionHandler {
 
     private final String ownercontextName;

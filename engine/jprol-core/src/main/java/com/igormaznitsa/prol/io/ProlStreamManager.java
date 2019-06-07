@@ -20,23 +20,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 
-/**
- * The interface describes an object which can be used to create reader and
- * writer streams to be used by a prol engine
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 public interface ProlStreamManager {
 
-  /**
-   * Get the reader for a resource for it's name.
-   *
-   * @param resourceName the resource name of a saved object which should be
-   * opened for reading. Must not be null
-   * @return an opened text reader for the object, must not be null
-   * @throws IOException it will be thrown if it is impossible to open the
-   * resource successfully
-   */
   Reader getReaderForResource(final String resourceName) throws IOException;
 
   Writer getWriterForResource(final String resourceName, final boolean append) throws IOException;

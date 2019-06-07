@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.igormaznitsa.prol.data.TermType.*;
+
 public final class ProlTreeBuilder {
 
   private final OperatorContainer[] OPERATORS_PHRASE;
@@ -62,7 +64,7 @@ public final class ProlTreeBuilder {
       return false;
     }
 
-    if (operator.getTermType() == Term.TYPE_OPERATORS) {
+    if (operator.getTermType() == OPERATORS) {
       final String operatorName = operator.getText();
       for (OperatorContainer endOperator : endOperators) {
         if (endOperator.getText().equals(operatorName)) {
@@ -232,7 +234,7 @@ public final class ProlTreeBuilder {
       int readAtomPriority = 0; // we make it as zero (the highest priority) default
 
       // check read atom type
-      if (readAtom.getTermType() == Term.TYPE_OPERATORS) {
+      if (readAtom.getTermType() == OPERATORS) {
         // it is operator list
         // try to get the single operator from the list if the linst contains only one
         final Operator readOperator = ((OperatorContainer) readAtom).getOperatorIfSingle();
@@ -246,7 +248,7 @@ public final class ProlTreeBuilder {
           boolean leftPresented = false;
 
           if (currentTreeItem != null) {
-            if (currentTreeItem.getItemType() != Term.TYPE_OPERATOR) {
+            if (currentTreeItem.getItemType() != OPERATOR) {
               leftPresented = true;
             } else {
               if (currentTreeItem.getRightBranch() != null) {
@@ -298,7 +300,7 @@ public final class ProlTreeBuilder {
         final ProlTokenizerResult nextToken = tokenizer.nextToken(reader, knowledgeBase);
         if (nextToken != null && nextToken.getText().equals("(")) {
           // it is a structure
-          if (readAtom.getTermType() == Term.TYPE_ATOM) {
+          if (readAtom.getTermType() == ATOM) {
             readAtom = readStruct(readAtom, reader);
           } else {
             tokenizer.pushTermBack(nextToken);
@@ -316,7 +318,7 @@ public final class ProlTreeBuilder {
       }
 
       // check for variable
-      if (readAtom.getTermType() == Term.TYPE_VAR) {
+      if (readAtom.getTermType() == VAR) {
         // it's a variable
         final Var var = (Var) readAtom;
         if (!var.isAnonymous()) {
@@ -340,7 +342,7 @@ public final class ProlTreeBuilder {
         currentTreeItem = readAtomTreeItem;
       } else {
         // not first
-        if (currentTreeItem.getItemType() == Term.TYPE_OPERATOR) {
+        if (currentTreeItem.getItemType() == OPERATOR) {
           // it's an operator
 
           if (currentTreeItem.getPriority() <= readAtomPriority) {
@@ -376,7 +378,7 @@ public final class ProlTreeBuilder {
 
           } else if (currentTreeItem.getPriority() > readAtomPriority) {
             // new has great priority
-            if (readAtomTreeItem.getItemType() != Term.TYPE_OPERATOR) {
+            if (readAtomTreeItem.getItemType() != OPERATOR) {
               // it's a ground atom
               // so check that the right branch is empty
               if (currentTreeItem.getRightBranch() != null) {
@@ -388,7 +390,7 @@ public final class ProlTreeBuilder {
           }
         } else {
           // check that it is an operator
-          if (currentTreeItem.getItemType() != Term.TYPE_OPERATOR && readAtomTreeItem.getItemType() != Term.TYPE_OPERATOR) {
+          if (currentTreeItem.getItemType() != OPERATOR && readAtomTreeItem.getItemType() != OPERATOR) {
             throw new ParserException("There must be an operator between atoms or structures", tokenizer.getLastTokenLineNum(), tokenizer.getLastTokenStrPos());
           }
 
@@ -434,7 +436,7 @@ public final class ProlTreeBuilder {
       TreeItem currentSubbranch = rightBranch;
       setRightBranch(item);
       item.setLeftBranch(currentSubbranch);
-      if (item.getItemType() == Term.TYPE_OPERATOR) {
+      if (item.getItemType() == OPERATOR) {
         return item.getPriority() == 0 ? this : item;
       }
       return this;
@@ -468,7 +470,7 @@ public final class ProlTreeBuilder {
       }
     }
 
-    private int getItemType() {
+    private TermType getItemType() {
       return savedTerm.getTermType();
     }
 
@@ -507,7 +509,7 @@ public final class ProlTreeBuilder {
     }
 
     private boolean validate() {
-      if (savedTerm.getTermType() == Term.TYPE_OPERATOR) {
+      if (savedTerm.getTermType() == OPERATOR) {
         final int priority = getPriority();
 
         switch (((Operator) savedTerm).getOperatorType()) {
@@ -546,9 +548,9 @@ public final class ProlTreeBuilder {
     }
 
     private Term convertTreeItemIntoTerm() {
-      Term result = null;
+      Term result;
       switch (savedTerm.getTermType()) {
-        case Term.TYPE_OPERATOR: {
+        case OPERATOR: {
           final TermStruct operatorStruct;
           if (!validate()) {
             throw new ParserException("Wrong operator", lineNum, strPos);
@@ -562,7 +564,7 @@ public final class ProlTreeBuilder {
 
           // this code replaces '-'(number) to '-number'
           if ("-".equals(savedTerm.getText()) && left == null) {
-            if (right instanceof NumericTerm && right.getTermType() == Term.TYPE_ATOM) {
+            if (right instanceof NumericTerm && right.getTermType() == ATOM) {
               result = (Term) ((NumericTerm) right).neg();
               break;
             }
@@ -582,7 +584,7 @@ public final class ProlTreeBuilder {
           result = operatorStruct;
         }
         break;
-        case Term.TYPE_STRUCT: {
+        case STRUCT: {
           final TermStruct struct = (TermStruct) savedTerm;
           struct.setPredicateProcessor(builder.context.findProcessor(struct));
           result = savedTerm;

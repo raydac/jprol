@@ -20,21 +20,8 @@ import com.igormaznitsa.prol.data.TermStruct;
 
 import java.util.NoSuchElementException;
 
-/**
- * This class implements an iterator allows search only rules in a knowledge
- * base
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
 final class MemoryRuleIterator extends MemoryClauseIterator implements RuleIterator {
 
-  /**
-   * The constructor
-   *
-   * @param list an inside knowledge base list to be used by the iterator, must
-   * not be null
-   * @param template the template to be used for search, must not be null
-   */
   public MemoryRuleIterator(final InternalKnowledgeBaseClauseList list, final TermStruct template) {
     super(list, template);
   }
