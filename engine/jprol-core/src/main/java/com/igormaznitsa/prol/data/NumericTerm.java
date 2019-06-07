@@ -18,9 +18,6 @@ package com.igormaznitsa.prol.data;
 
 public interface NumericTerm {
 
-  int NUMBER_INTEGER = 0;
-  int NUMBER_FLOAT = 1;
-
   Number getNumericValue();
 
   int compare(NumericTerm term);
@@ -39,5 +36,5 @@ public interface NumericTerm {
 
   NumericTerm sign();
 
-  int getNumberType();
+  boolean isFloat();
 }

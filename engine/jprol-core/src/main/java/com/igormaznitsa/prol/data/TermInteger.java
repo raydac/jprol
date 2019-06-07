@@ -141,7 +141,7 @@ public final class TermInteger extends Term implements NumericTerm {
 
   @Override
   public int compare(NumericTerm atom) {
-    if (atom.getNumberType() == NUMBER_FLOAT) {
+    if (atom.isFloat()) {
       final float value = atom.getNumericValue().floatValue();
       return Float.compare((float) intValue, value);
     }
@@ -152,7 +152,7 @@ public final class TermInteger extends Term implements NumericTerm {
 
   @Override
   public NumericTerm add(NumericTerm atom) {
-    if (atom.getNumberType() == NUMBER_FLOAT) {
+    if (atom.isFloat()) {
       final float value = atom.getNumericValue().floatValue();
       return new TermFloat((float) intValue + value);
     } else {
@@ -163,7 +163,7 @@ public final class TermInteger extends Term implements NumericTerm {
 
   @Override
   public NumericTerm sub(NumericTerm atom) {
-    if (atom.getNumberType() == NUMBER_FLOAT) {
+    if (atom.isFloat()) {
       final float value = atom.getNumericValue().floatValue();
       return new TermFloat((float) intValue - value);
     } else {
@@ -174,7 +174,7 @@ public final class TermInteger extends Term implements NumericTerm {
 
   @Override
   public NumericTerm div(NumericTerm atom) {
-    if (atom.getNumberType() == NUMBER_FLOAT) {
+    if (atom.isFloat()) {
       final float value = atom.getNumericValue().floatValue();
       return new TermFloat((float) intValue / value);
     } else {
@@ -185,7 +185,7 @@ public final class TermInteger extends Term implements NumericTerm {
 
   @Override
   public NumericTerm mul(NumericTerm atom) {
-    if (atom.getNumberType() == NUMBER_FLOAT) {
+    if (atom.isFloat()) {
       final float value = atom.getNumericValue().floatValue();
       return new TermFloat((float) intValue * value);
     } else {
@@ -200,8 +200,8 @@ public final class TermInteger extends Term implements NumericTerm {
   }
 
   @Override
-  public int getNumberType() {
-    return NUMBER_INTEGER;
+  public boolean isFloat() {
+    return false;
   }
 
   @Override

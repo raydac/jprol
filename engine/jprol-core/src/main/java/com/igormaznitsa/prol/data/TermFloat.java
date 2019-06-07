@@ -182,8 +182,8 @@ public final class TermFloat extends Term implements NumericTerm {
   }
 
   @Override
-  public int getNumberType() {
-    return NUMBER_FLOAT;
+  public boolean isFloat() {
+    return true;
   }
 
   @Override
