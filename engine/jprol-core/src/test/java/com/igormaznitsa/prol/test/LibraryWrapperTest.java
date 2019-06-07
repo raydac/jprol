@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import java.util.List;
 import java.util.Set;
+import org.junit.Ignore;
 
 
 public class LibraryWrapperTest extends AbstractProlTest {
@@ -89,6 +90,7 @@ public class LibraryWrapperTest extends AbstractProlTest {
   }
 
   @Test
+  @Ignore
   public void testLibraryWrapper() throws Exception {
     final ProlContext context = new ProlContext("test_context", DefaultProlStreamManagerImpl.getInstance());
     context.addLibrary(ProlLibraryWrapper.makeWrapper(this));

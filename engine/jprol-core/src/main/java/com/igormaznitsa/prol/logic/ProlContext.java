@@ -75,7 +75,6 @@ public final class ProlContext {
   private final Map<String, List<ProlTrigger>> triggersOnAssert;
   private final Map<String, List<ProlTrigger>> triggersOnRetract;
   private final ReentrantLock executorAndlockTableLocker = new ReentrantLock();
-  private final List<ProlMappedObjectSearcher> mappedObjectSearchers = new ArrayList<>();
   private final ReentrantLock mappedObjectLocker = new ReentrantLock();
   private final ReentrantLock ioLocker = new ReentrantLock();
   private final ReentrantLock libLocker = new ReentrantLock();
@@ -186,101 +185,6 @@ public final class ProlContext {
     }
   }
 
-  /**
-   * Add a searcher into the searcher list. The searches will be used to find
-   * associated java object for a Term or just a string name
-   *
-   * @param searcher the searcher to be added
-   */
-  public void addMappedObjectSearcher(final ProlMappedObjectSearcher searcher) {
-    if (halted) {
-      throw new IllegalStateException(CONTEXT_HALTED_MSG);
-    }
-    if (searcher != null) {
-      mappedObjectLocker.lock();
-      try {
-        mappedObjectSearchers.add(searcher);
-      } finally {
-        mappedObjectLocker.unlock();
-      }
-    }
-  }
-
-  /**
-   * Remove a searcher from the searcher list
-   *
-   * @param searcher the searcher to be removed from the list
-   */
-  public void removeMappedObjectFinder(final ProlMappedObjectSearcher searcher) {
-    if (searcher != null) {
-      mappedObjectLocker.lock();
-      try {
-        mappedObjectSearchers.remove(searcher);
-      } finally {
-        mappedObjectLocker.unlock();
-      }
-    }
-  }
-
-  public Object findMappedObjectForName(final String name) {
-    Object result = null;
-
-    final ReentrantLock locker = mappedObjectLocker;
-
-    locker.lock();
-    try {
-      for (ProlMappedObjectSearcher current : mappedObjectSearchers) {
-        result = current.findProlMappedObject(name);
-        if (result != null) {
-          break;
-        }
-      }
-    } finally {
-      locker.unlock();
-    }
-    return result;
-  }
-
-  public String findNameForMappedObject(final Object mappedObject) {
-    String result = null;
-    final ReentrantLock locker = mappedObjectLocker;
-
-    locker.lock();
-    try {
-      for (ProlMappedObjectSearcher current : mappedObjectSearchers) {
-        result = current.findProlMappedTerm(mappedObject);
-        if (result != null) {
-          break;
-        }
-      }
-    } finally {
-      locker.unlock();
-    }
-    return result;
-  }
-
-  public Object findMappedObjectForTerm(final Term term) {
-    Object result = null;
-
-    if (term != null && term.getClass() == Term.class) {
-      final String termAsText = term.getText();
-      result = findMappedObjectForName(termAsText);
-    }
-    return result;
-  }
-
-  /**
-   * Prove a goal asynchronously which is represented as a String object
-   *
-   * @param goal the goal which should be proven, must not be null
-   * @param traceListener the trace listener for the new goal, can be null
-   * @return the future object for the new created thread
-   * @throws IOException it will be thrown if the string representation is wrong
-   * @throws InterruptedException it will be thrown if the term parsing process
-   * is interrupted
-   * @throws NullPointerException it will be thrown if the goal is null
-   * @throws IllegalStateException if the context is halted
-   */
   public Future<?> solveAsynchronously(final String goal, final TraceListener traceListener) throws IOException, InterruptedException {
     if (goal == null) {
       throw new NullPointerException("The goal is null");
@@ -289,19 +193,6 @@ public final class ProlContext {
     return this.solveAsynchronously(term, traceListener);
   }
 
-  /**
-   * Prove a goal asynchronously. The thread will be added in the asynchronous
-   * daemon (!) thread pool of the context and can be checked through the
-   * "waytasync/0" term
-   *
-   * @param goal the term which should be proven, it will be proven in a loop
-   * until it fails, it must not be null
-   * @param traceListener the trace listener for the goal to be proven, it can
-   * be null
-   * @return the future object for the new created thread
-   * @throws NullPointerException it will be thrown if the goal is null
-   * @throws IllegalStateException if the context is halted
-   */
   public Future<?> solveAsynchronously(final Term goal, final TraceListener traceListener) {
     if (isHalted()) {
       throw new IllegalStateException("The context is halted");
@@ -336,23 +227,11 @@ public final class ProlContext {
     });
   }
 
-  /**
-   * Getter for the inside context executor service, it will be lazy inited when
-   * the first call detected
-   *
-   * @return an ExecutorService object which can be used for task execution
-   */
   public ThreadPoolExecutor getContextExecutorService() {
     if (executorService == null) {
       executorAndlockTableLocker.lock();
       try {
         if (executorService == null) {
-          //int cpuNumber = 2;
-          //final OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
-          //if (osBean != null) {
-          //    cpuNumber = osBean.getAvailableProcessors() + 1;
-          //}
-
           final ProlContextInsideThreadFactory threadFactory = new ProlContextInsideThreadFactory(this);
           executorService = (ThreadPoolExecutor) Executors.newCachedThreadPool(threadFactory);
           executorService.setRejectedExecutionHandler(threadFactory);
@@ -364,13 +243,6 @@ public final class ProlContext {
     return executorService;
   }
 
-  /**
-   * Getter for the inside context locker map, it will be lazy inited when the
-   * first call detected. It is direct link to the map!
-   *
-   * @return a Map containing Name-Locker pairs, you must synchronize the Map
-   * for your use
-   */
   private Map<String, ReentrantLock> getLockerMap() {
     if (lockerTable == null) {
       executorAndlockTableLocker.lock();
@@ -402,11 +274,6 @@ public final class ProlContext {
     return locker;
   }
 
-  /**
-   * Lock an inside context locker for its name
-   *
-   * @param name the locker name, must not be null
-   */
   public void lockLockerForName(final String name) {
     final Map<String, ReentrantLock> lockMap = getLockerMap();
     ReentrantLock locker = null;
@@ -426,12 +293,6 @@ public final class ProlContext {
     locker.lock();
   }
 
-  /**
-   * Try lock an inside context locker for its name
-   *
-   * @param name the name of the locker, must not be null
-   * @return true if the locker has been locked successfully else false
-   */
   public boolean trylockLockerForName(final String name) {
     final Map<String, ReentrantLock> lockMap = getLockerMap();
     ReentrantLock locker = null;

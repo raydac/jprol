@@ -749,14 +749,6 @@ public final class Utils {
                 if (cterm instanceof NumericTerm) {
                     // as numeric value
                     result = ((TermInteger) cterm).getNumericValue();
-                } else {
-                    // find mapped object
-                    final String termtext = cterm.getText();
-                    result = context.findMappedObjectForName(termtext);
-                    if (result == null) {
-                        // there is not any mapped object, so return the text
-                        result = termtext;
-                    }
                 }
             }
             break;

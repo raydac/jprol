@@ -24,7 +24,6 @@ import com.igormaznitsa.prol.logic.Goal;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.utils.Utils;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -120,190 +119,6 @@ public final class ProlLibraryWrapper extends AbstractProlLibrary {
     return name;
   }
 
-  private static void setObjectToArrayElement(final Object array, final int index, final Object element) {
-    final Class<?> componentclass = array.getClass().getComponentType();
-    if (componentclass.isPrimitive()) {
-      if (componentclass == int.class) {
-        ((int[]) array)[index] = (Integer) element;
-      } else if (componentclass == float.class) {
-        ((float[]) array)[index] = (Float) element;
-      } else if (componentclass == byte.class) {
-        ((byte[]) array)[index] = (Byte) element;
-      } else if (componentclass == char.class) {
-        ((char[]) array)[index] = (Character) element;
-      } else if (componentclass == short.class) {
-        ((short[]) array)[index] = (Short) element;
-      } else if (componentclass == double.class) {
-        ((double[]) array)[index] = (Double) element;
-      } else if (componentclass == boolean.class) {
-        ((boolean[]) array)[index] = (Boolean) element;
-      } else {
-        throw new ProlCriticalError("Unsupported primitive type [" + componentclass.getCanonicalName() + ']');
-      }
-    } else {
-      ((Object[]) array)[index] = element;
-    }
-  }
-
-  private static Object newArray(final Class<?> type, final int length) {
-    Object result = null;
-    if (type.isPrimitive()) {
-      if (type == int.class) {
-        result = new int[length];
-      } else if (type == float.class) {
-        result = new float[length];
-      } else if (type == long.class) {
-        result = new long[length];
-      } else if (type == double.class) {
-        result = new double[length];
-      } else if (type == byte.class) {
-        result = new byte[length];
-      } else if (type == short.class) {
-        result = new short[length];
-      } else if (type == char.class) {
-        result = new char[length];
-      } else if (type == boolean.class) {
-        result = new boolean[length];
-      } else {
-        throw new ProlCriticalError("Unsupported primitive type [" + type.getCanonicalName() + ']');
-      }
-    } else {
-      result = Array.newInstance(type, length);
-    }
-    return result;
-  }
-
-  private static Object term2obj(final ProlContext context, final Class<?> argclass, final Term term) {
-    Object result = null;
-    if (argclass.isArray()) {
-      final Class<?> arrayclass = argclass.getComponentType();
-      switch (term.getTermType()) {
-        case Term.TYPE_LIST: {
-          final TermList list = (TermList) term;
-          if (list.isNullList()) {
-            result = newArray(arrayclass, 0);
-          } else {
-            final int len = list.calculateLength();
-
-            final Object resultarr = newArray(arrayclass, len);
-            TermList lst = list;
-            int index = 0;
-            while (!Thread.currentThread().isInterrupted()) {
-              final Term head = lst.getHead();
-              setObjectToArrayElement(resultarr, index, term2obj(context, arrayclass, head));
-              index++;
-              final Term tail = lst.getTail();
-              if (tail.getTermType() == Term.TYPE_LIST) {
-                if (((TermList) tail).isNullList()) {
-                  break;
-                } else {
-                  lst = (TermList) tail;
-                }
-              } else {
-                setObjectToArrayElement(resultarr, index, term2obj(context, arrayclass, tail));
-                index++;
-                break;
-              }
-            }
-            if (len != index) {
-              throw new ProlCriticalError("Wrong converted array length detected [" + len + "!=" + index + ']');
-            }
-            result = resultarr;
-          }
-        }
-        break;
-        case Term.TYPE_STRUCT: {
-          final TermStruct struct = (TermStruct) term;
-          final int arity = struct.getArity();
-          final Object resultarr = newArray(arrayclass, arity + 1);
-          setObjectToArrayElement(resultarr, 0, term2obj(context, arrayclass, struct.getFunctor()));
-
-          for (int li = 0; li < arity; li++) {
-            setObjectToArrayElement(resultarr, li + 1, term2obj(context, arrayclass, struct.getElement(li)));
-          }
-          result = resultarr;
-        }
-        break;
-        default: {
-          final Object resultarr = newArray(arrayclass, 1);
-          setObjectToArrayElement(resultarr, 0, term2obj(context, arrayclass, term));
-          result = resultarr;
-        }
-        break;
-      }
-    } else {
-      if (argclass.isPrimitive()) {
-        if (argclass == int.class) {
-          if (term instanceof TermInteger) {
-            result = ((TermInteger) term).getNumericValue();
-          }
-        } else if (argclass == long.class) {
-          if (term instanceof TermInteger) {
-            result = (long) ((TermInteger) term).getNumericValue().intValue();
-          }
-        } else if (argclass == double.class) {
-          if (term instanceof TermInteger) {
-            result = ((TermInteger) term).getNumericValue().doubleValue();
-          } else if (term instanceof TermFloat) {
-            result = ((TermFloat) term).getNumericValue().doubleValue();
-          }
-        } else if (argclass == float.class) {
-          if (term instanceof TermInteger) {
-            result = ((TermInteger) term).getNumericValue().floatValue();
-          } else if (term instanceof TermFloat) {
-            result = ((TermFloat) term).getNumericValue();
-          }
-        } else if (argclass == boolean.class) {
-          if (term instanceof NumericTerm) {
-            result = ((NumericTerm) term).getNumericValue().intValue() != 0;
-          } else {
-            result = "true".equalsIgnoreCase(term.getText());
-          }
-        } else if (argclass == byte.class) {
-          if (term instanceof NumericTerm) {
-            result = ((NumericTerm) term).getNumericValue().byteValue();
-          }
-        } else if (argclass == char.class) {
-          if (term instanceof NumericTerm) {
-            result = (char) ((NumericTerm) term).getNumericValue().shortValue();
-          } else if (term.getTermType() == Term.TYPE_ATOM) {
-            final String text = term.getText();
-            if (text.length() == 1) {
-              result = text.charAt(0);
-            }
-          }
-        } else if (argclass == short.class) {
-          if (term instanceof NumericTerm) {
-            result = ((NumericTerm) term).getNumericValue().shortValue();
-          }
-        } else {
-          throw new ProlCriticalError("Unsupported primitive type [" + argclass.getCanonicalName() + ']');
-        }
-      } else {
-        if (argclass == Object.class) {
-          result = Utils.term2obj(context, term);
-        } else if (argclass == String.class) {
-          result = term.getText();
-        } else if (argclass == List.class) {
-          result = Arrays.asList((Object[]) term2obj(context, Object[].class, term));
-        } else if (argclass == Set.class) {
-          final Object[] asarray = (Object[]) term2obj(context, Object[].class, term);
-          final Set<Object> resultset = new HashSet<>(Arrays.asList(asarray));
-          result = resultset;
-
-        } else {
-          throw new ProlCriticalError("Unsupported type [" + argclass.getCanonicalName() + ']');
-        }
-
-      }
-    }
-    if (result == null) {
-      throw new ProlCriticalError("Can't convert \'" + term.toString() + "\' to \'" + argclass.getCanonicalName() + "\' compatible representation");
-    }
-
-    return result;
-  }
-
   @Override
   protected PredicateProcessor onBeforeFindProcessorForPredicate(final String signature) {
     final WrappedItem wrappedItem = this.wrappedMethodMap.get(signature);
@@ -391,7 +206,7 @@ public final class ProlLibraryWrapper extends AbstractProlLibrary {
 
     final Object[] args = new Object[arity];
     for (int li = 0; li < arity; li++) {
-      args[li] = term2obj(context, argClasses[li], predicate.getElement(li));
+      args[li] = Utils.term2obj(context, predicate.getElement(li));
     }
 
     Object result = Boolean.TRUE;
