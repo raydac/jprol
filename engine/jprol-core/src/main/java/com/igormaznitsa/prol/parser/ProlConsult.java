@@ -209,7 +209,7 @@ public class ProlConsult {
     Term result = goal.solve();
 
     if (result != null && varTable != null) {
-      result.fillVarables(varTable);
+      result.variables().forEach(e -> varTable.put(e.getText(), e));
     }
 
     return result != null;
@@ -219,7 +219,7 @@ public class ProlConsult {
     final Term result = goal.solve();
 
     if (result != null && varTable != null) {
-      result.fillVarables(varTable);
+      result.variables().forEach(e -> varTable.put(e.getText(), e));
     }
 
     return result != null;

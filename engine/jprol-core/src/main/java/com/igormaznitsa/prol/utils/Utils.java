@@ -81,7 +81,7 @@ public final class Utils {
 
   public static Map<String, Var> fillTableWithVars(final Term term) {
     final Map<String, Var> vars = new HashMap<>();
-    term.fillVarables(vars);
+    term.variables().forEach(e -> vars.put(e.getText(), e));
     return vars;
   }
 

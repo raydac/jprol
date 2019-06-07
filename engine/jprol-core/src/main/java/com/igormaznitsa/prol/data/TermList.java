@@ -19,6 +19,7 @@ package com.igormaznitsa.prol.data;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static com.igormaznitsa.prol.data.TermType.LIST;
 import static com.igormaznitsa.prol.data.TermType.VAR;
@@ -103,12 +104,13 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public void fillVarables(final Map<String, Var> table) {
-    if (isNullList()) {
-      return;
-    }
-    terms[INDEX_HEAD].fillVarables(table);
-    terms[INDEX_TAIL].fillVarables(table);
+  public Stream<Var> variables() {
+    return this.isNullList() ? Stream.empty() :  super.variables();
+  }
+
+  @Override
+  public Stream<Term> stream() {
+    return this.isNullList() ? Stream.of(this.functor) : super.stream();
   }
 
   public boolean isNullList() {
@@ -116,28 +118,11 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public boolean checkVariables() {
+  public boolean isAllVariablesInstantiated() {
     if (isNullList()) {
       return true;
     }
-
-    Term lst = this;
-
-    while (lst != NULLLIST) {
-      if (lst.getTermType() == LIST) {
-        final TermList tList = (TermList) lst;
-        if (!tList.getHead().checkVariables()) {
-          return false;
-        }
-        lst = tList.getTail();
-      } else {
-        if (!lst.checkVariables()) {
-          return false;
-        }
-      }
-
-    }
-    return true;
+    return this.stream().allMatch(Term::isAllVariablesInstantiated);
   }
 
   @Override

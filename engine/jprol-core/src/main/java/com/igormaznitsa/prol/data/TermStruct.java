@@ -20,7 +20,9 @@ import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 import com.igormaznitsa.prol.libraries.PredicateProcessor;
 import com.igormaznitsa.prol.utils.Utils;
 
+import java.util.Arrays;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static com.igormaznitsa.prol.data.TermType.*;
 
@@ -84,27 +86,13 @@ public class TermStruct extends Term {
   }
 
   @Override
-  public void fillVarables(final Map<String, Var> table) {
-    final Term[] arr = terms;
-
-    final int len = arr.length;
-
-    for (Term anArr : arr) {
-      anArr.fillVarables(table);
-    }
+  public Stream<Var> variables() {
+    return this.stream().filter(x -> x.getTermType() == VAR).map(x -> (Var)x);
   }
 
-  public final boolean hasNullElement() {
-    final Term[] arr = terms;
-
-    final int len = arr.length;
-
-    for (Term anArr : arr) {
-      if (anArr == null) {
-        return false;
-      }
-    }
-    return true;
+  @Override
+  public Stream<Term> stream() {
+    return Stream.concat(Stream.of(this.functor),Arrays.stream(this.terms).flatMap(Term::stream));
   }
 
   public final Term getElement(final int index) {
@@ -351,14 +339,8 @@ public class TermStruct extends Term {
   }
 
   @Override
-  public boolean checkVariables() {
-    final int arity = terms.length;
-    for (Term term : terms) {
-      if (!term.checkVariables()) {
-        return false;
-      }
-    }
-    return true;
+  public boolean isAllVariablesInstantiated() {
+    return this.terms.length == 0 || this.stream().allMatch(Term::isAllVariablesInstantiated);
   }
 
   @Override

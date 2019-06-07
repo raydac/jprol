@@ -18,6 +18,7 @@ package com.igormaznitsa.prol.data;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 import static com.igormaznitsa.prol.data.TermType.VAR;
 
@@ -99,8 +100,8 @@ public final class Var extends Term {
   }
 
   @Override
-  public void fillVarables(final Map<String, Var> table) {
-    table.put(getText(), this);
+  public Stream<Var> variables() {
+    return Stream.of(this);
   }
 
   public boolean isAnonymous() {
@@ -129,7 +130,7 @@ public final class Var extends Term {
   }
 
   @Override
-  public boolean checkVariables() {
+  public boolean isAllVariablesInstantiated() {
     if (isAnonymous()) {
       return true;
     }
