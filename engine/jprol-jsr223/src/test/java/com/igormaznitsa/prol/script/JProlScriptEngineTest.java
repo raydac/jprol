@@ -15,11 +15,15 @@
  */
 package com.igormaznitsa.prol.script;
 
+import com.igormaznitsa.prol.data.TermStruct;
+import org.junit.Test;
+
 import javax.script.Compilable;
 import javax.script.CompiledScript;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
-import org.junit.Test;
+import java.util.List;
+
 import static org.junit.Assert.*;
 
 public class JProlScriptEngineTest {
@@ -71,7 +75,12 @@ public class JProlScriptEngineTest {
     final JProlScriptContext context = (JProlScriptContext)engine.getContext();
     assertTrue(context.findClauses("some/1").isEmpty());
     assertNull(engine.eval("(Y=1;Y=2;Y=3),assertz(some(Y)),fail."));
-    assertEquals(3,context.findClauses("some/1").size());
+
+    final List<TermStruct> found = context.findClauses("some/1");
+    assertEquals(3, found.size());
+    assertEquals("some(1)", found.get(0).getSourceLikeRepresentation());
+    assertEquals("some(2)", found.get(1).getSourceLikeRepresentation());
+    assertEquals("some(3)", found.get(2).getSourceLikeRepresentation());
     context.abolish("some/1");
     assertTrue(context.findClauses("some/1").isEmpty());
   }

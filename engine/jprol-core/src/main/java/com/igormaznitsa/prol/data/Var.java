@@ -53,14 +53,71 @@ public final class Var extends Term {
 
   @Override
   public Term makeClone() {
-      final Term value = this.getThisValue();
-      Var result = this.isAnonymous() ? new Var() : new Var(this.getText());
-      if (value != null) {
-          final Map<Integer, Var> varHashMap = new HashMap<>();
-          varHashMap.put(this.getVarUID(), result);
-          result.setThisValue(makeClone());
+    final Term value = this.getThisValue();
+    Var result = this.isAnonymous() ? new Var() : new Var(this.getText());
+    if (value != null) {
+      final Map<Integer, Var> vars = new HashMap<>();
+      vars.put(this.getVarUID(), result);
+      result.setThisValue(doMakeClone(vars));
+    }
+    return result;
+  }
+
+  @Override
+  protected Term _makeCloneWithVarReplacement(final Map<Integer, Var> vars) {
+    Term value = this.getValue();
+    if (value == null) {
+      final Term result;
+      final Term val = this.getThisValue();
+      if (val == null) {
+        final String varName = this.getText();
+        final int varId = this.getVarUID();
+        Var newVar = vars.get(varId);
+        if (newVar == null) {
+          newVar = this.isAnonymous() ? new Var() : new Var(varName);
+          vars.put(varId, newVar);
+
+          final Term thisVal = this.getThisValue();
+
+          if (thisVal != null) {
+            newVar.setThisValue(thisVal._makeCloneWithVarReplacement(vars));
+          }
         }
+        result = newVar;
+      } else {
+        result = val.doMakeClone(vars);
+      }
       return result;
+    } else {
+      return value;
+    }
+  }
+
+  @Override
+  protected Term doMakeClone(Map<Integer, Var> vars) {
+    final Term result;
+
+    final Term val = this.getThisValue();
+    if (val == null) {
+      final String varName = this.getText();
+      final int varId = this.getVarUID();
+      Var newVar = vars.get(varId);
+      if (newVar == null) {
+        newVar = this.isAnonymous() ? new Var() : new Var(varName);
+        vars.put(varId, newVar);
+
+        final Term thisVal = this.getThisValue();
+
+        if (thisVal != null) {
+          newVar.setThisValue(thisVal.doMakeClone(vars));
+        }
+      }
+      result = newVar;
+    } else {
+      result = val.doMakeClone(vars);
+    }
+
+    return result;
   }
 
   public final Term getValue() {

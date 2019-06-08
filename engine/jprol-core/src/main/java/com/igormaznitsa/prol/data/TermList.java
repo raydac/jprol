@@ -120,7 +120,17 @@ public final class TermList extends TermStruct {
 
   @Override
   public Term makeClone() {
-    return this == TermList.NULLLIST ? this : this.makeClone(new HashMap<>());
+    return this.isNullList() ? this : this.doMakeClone(new HashMap<>());
+  }
+
+  @Override
+  protected Term _makeCloneWithVarReplacement(final Map<Integer, Var> vars) {
+    return this.isNullList() ? NULLLIST : new TermList(this.getHead()._makeCloneWithVarReplacement(vars), this.getTail()._makeCloneWithVarReplacement(vars));
+  }
+
+  @Override
+  protected Term doMakeClone(Map<Integer, Var> vars) {
+    return this.isNullList() ? NULLLIST : new TermList(this.getHead().doMakeClone(vars), this.getTail().doMakeClone(vars));
   }
 
   @Override

@@ -484,7 +484,45 @@ public class TermStruct extends Term {
   }
 
   public Term makeClone() {
-    return this.getArity() == 0 ?  this : this.makeClone(new HashMap<>());
+    return this.getArity() == 0 ? this : this.doMakeClone(new HashMap<>());
+  }
+
+  @Override
+  protected Term _makeCloneWithVarReplacement(final Map<Integer, Var> vars) {
+    final Term result;
+    if (this.getArity() == 0) {
+      result = this;
+    } else {
+      final Term[] elements = this.getElementsAsArray();
+      final int arity = elements.length;
+      final Term[] destElements = new Term[arity];
+
+      for (int li = 0; li < arity; li++) {
+        final Term element = elements[li];
+        destElements[li] = element._makeCloneWithVarReplacement(vars);
+      }
+      result = new TermStruct(this.getFunctor(), destElements, this.getPredicateProcessor());
+    }
+    return result;
+  }
+
+  @Override
+  protected Term doMakeClone(Map<Integer, Var> vars) {
+    final Term result;
+    if (this.getArity() == 0) {
+      result = this;
+    } else {
+      final Term[] elements = this.getElementsAsArray();
+      final int arity = elements.length;
+      final Term[] destElements = new Term[arity];
+
+      for (int li = 0; li < arity; li++) {
+        final Term element = elements[li];
+        destElements[li] = element.doMakeClone(vars);
+      }
+      result = new TermStruct(this.getFunctor(), destElements, this.getPredicateProcessor());
+    }
+    return result;
   }
 
   @Override

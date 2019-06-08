@@ -1480,6 +1480,51 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     return sorted.Equ(sortedList);
   }
 
+  @Predicate(Signature = "findall/3", Template = {"?term,+callable_term,?list"}, Reference = "Creates  a list of the instantiations Template gets  successively on backtracking  over Goal and unifies the  result with Bag.")
+  @Determined
+  public static boolean predicateFINDALL(final Goal goal, final TermStruct predicate) throws InterruptedException {
+    final Term template = Utils.getTermFromElement(predicate.getElement(0));
+    final Term pgoal = Utils.getTermFromElement(predicate.getElement(1));
+    final Term instances = Utils.getTermFromElement(predicate.getElement(2));
+
+    final Goal find_goal = new Goal(pgoal.makeClone(), goal.getContext(), goal.getTracer());
+
+    TermList result = null;
+    TermList currentList = null;
+
+    while (!Thread.currentThread().isInterrupted()) {
+      final Term nextTemplate = find_goal.solve();
+
+      if (nextTemplate == null) {
+        break;
+      }
+
+      final Term templateCopy = template.makeClone();
+      final Term pgoalCopy = pgoal.makeClone();
+      Utils.arrangeVariablesInsideTerms(templateCopy, pgoalCopy);
+
+      if (pgoalCopy.Equ(nextTemplate)) {
+        // good, add to the list
+        if (result == null) {
+          // first
+          result = new TermList(Utils.getTermFromElement(templateCopy).makeClone());
+          currentList = result;
+        } else {
+          // not first
+          currentList = TermList.appendItem(currentList, Utils.getTermFromElement(templateCopy).makeClone());
+        }
+      } else {
+        throw new ProlCriticalError("Impossible situation at findall/3!");
+      }
+    }
+
+    if (result == null) {
+      result = TermList.NULLLIST;
+    }
+
+    return instances.Equ(result);
+  }
+
   @Predicate(Signature = "bagof/3", Template = {"?term,+callable_term,?list"}, Reference = "Unify Bag with the alternatives of Template. If Goal has free variables besides the one sharing with Template, bagof/3 will backtrack over the alternatives of these free variables, unifying Bag with the corresponding alternatives of Template. The construct +Var^Goal tells bagof/3 not to bind Var in Goal. bagof/3 fails if Goal has no solutions.")
   @SuppressWarnings("unchecked")
   public static boolean predicateBAGOF(final Goal goal, final TermStruct predicate) throws InterruptedException {
@@ -1536,8 +1581,6 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     Map<BofKey, TermList> preparedMap = (Map<BofKey, TermList>) goal.getAuxObject();
 
     if (preparedMap == null) {
-      TermList result = null;
-
       preparedMap = new LinkedHashMap<>();
 
       final Set<String> excludedVars = new HashSet<>(Utils.fillTableWithVars(template).keySet());
@@ -1742,51 +1785,6 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     }
   }
 
-  @Predicate(Signature = "findall/3", Template = {"?term,+callable_term,?list"}, Reference = "Creates  a list of the instantiations Template gets  successively on backtracking  over Goal and unifies the  result with Bag.")
-  @Determined
-  public static boolean predicateFINDALL(final Goal goal, final TermStruct predicate) throws InterruptedException {
-    final Term template = Utils.getTermFromElement(predicate.getElement(0));
-    final Term pgoal = Utils.getTermFromElement(predicate.getElement(1));
-    final Term instances = Utils.getTermFromElement(predicate.getElement(2));
-
-    final Goal find_goal = new Goal(pgoal.makeClone(), goal.getContext(), goal.getTracer());
-
-    TermList result = null;
-    TermList currentList = null;
-
-    while (!Thread.currentThread().isInterrupted()) {
-      final Term nextTemplate = find_goal.solve();
-
-      if (nextTemplate == null) {
-        break;
-      }
-
-      final Term templateCopy = template.makeClone();
-      final Term pgoalCopy = pgoal.makeClone();
-      Utils.arrangeVariablesInsideTerms(templateCopy, pgoalCopy);
-
-      if (pgoalCopy.Equ(nextTemplate)) {
-        // good, add to the list
-        if (result == null) {
-          // first
-          result = new TermList(Utils.getTermFromElement(templateCopy).makeClone());
-          currentList = result;
-        } else {
-          // not first
-          currentList = TermList.appendItem(currentList, Utils.getTermFromElement(templateCopy).makeClone());
-        }
-      } else {
-        throw new ProlCriticalError("Impossible situation at findall/3!");
-      }
-    }
-
-    if (result == null) {
-      result = TermList.NULLLIST;
-    }
-
-    return instances.Equ(result);
-  }
-
   @Predicate(Signature = "asserta/1", Template = {"@clause"}, Reference = "Addition of a clause into the knowlwde base before all other clauses.")
   @Determined
   public static boolean predicateASSERTA(final Goal goal, final TermStruct predicate) {
@@ -1805,7 +1803,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       throw new ProlPermissionErrorException("modify", "static_procedure", new Term(signature));
     }
 
-    base.assertA((TermStruct) atom);
+    base.assertA((TermStruct) atom.makeCloneWithVarReplacement());
     return true;
   }
 
@@ -1822,12 +1820,11 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     final String signature = ((TermStruct) atom).isFunctorLikeRuleDefinition() ? ((TermStruct) atom).getElement(0).getSignature() : atom.getSignature();
 
-    // check that we doesn't overload any static system predicate
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
       throw new ProlPermissionErrorException("modify", "static_procedure", new Term(signature));
     }
 
-    base.assertZ((TermStruct) atom);
+    base.assertZ((TermStruct) atom.makeCloneWithVarReplacement());
 
     return true;
   }
@@ -1851,7 +1848,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       throw new ProlPermissionErrorException("modify", "static_procedure", new Term(signature));
     }
 
-    return base.retractA((TermStruct) atom);
+    return base.retractA((TermStruct) atom.makeCloneWithVarReplacement());
   }
 
   @Predicate(Signature = "retractz/1", Template = {"@clause"}, Reference = "Retract the last clause which can be unified with argument. True if there is such clause in the knowledge base.")
