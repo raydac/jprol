@@ -21,7 +21,7 @@ then
     if [ -f /proc/$SAVED_PID/exe ];
     then
         echo Editor already started! if it is wrong, just delete the .pid file in the editor folder root!
-	exit 1
+        exit 1
     fi
 fi
 
