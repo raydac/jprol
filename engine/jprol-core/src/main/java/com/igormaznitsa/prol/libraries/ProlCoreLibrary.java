@@ -829,7 +829,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   public static boolean predicateVAR(final Goal goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0);
     if (arg.getTermType() == VAR) {
-      return ((Var) arg).isUndefined();
+      return !arg.isBounded();
     } else {
       return false;
     }
@@ -840,7 +840,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   public static boolean predicateNONVAR(final Goal goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0);
     if (arg.getTermType() == VAR) {
-      return !((Var) arg).isUndefined();
+      return arg.isBounded();
     } else {
       return true;
     }
@@ -2170,7 +2170,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     // we have to check the goal because it must not have any noninstantiated variable!!!!
     final Map<String, Var> vars = Utils.fillTableWithVars(goalToSolve);
     for (Var var : vars.values()) {
-      if (!var.isAnonymous() && var.isUndefined()) {
+      if (!var.isAnonymous() && !var.isBounded()) {
         throw new ProlInstantiationErrorException("Variable \'" + var.getText() + "\' is not instantiated, you must have all variables instantiated for async/1 .", predicate);
       }
     }
@@ -2212,7 +2212,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
             }
             for (final Map.Entry<String, Var> pair : varTable.entrySet()) {
               final Var variable = pair.getValue();
-              if (!variable.isAnonymous() && variable.isUndefined()) {
+              if (!variable.isAnonymous() && !variable.isBounded()) {
                 // we check only undefined vars
                 final Integer varUID = variable.getVarUID();
                 if (varFlagTable.contains(varUID)) {

@@ -328,7 +328,7 @@ public final class TermList extends TermStruct {
       return 0;
     }
 
-    if (atom.getTermType() == VAR && !((Var) atom).isUndefined()) {
+    if (atom.getTermType() == VAR && atom.isBounded()) {
       atom = ((Var) atom).getValue();
     }
 

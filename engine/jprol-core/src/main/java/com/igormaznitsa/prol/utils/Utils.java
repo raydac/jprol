@@ -107,7 +107,7 @@ public final class Utils {
     }
 
     vars.forEach((name, value) -> {
-      if (!(value.isAnonymous() || value.isUndefined())) {
+      if (!(value.isAnonymous() || !value.isBounded())) {
         result.put(name, value.getValue());
       }
     });
@@ -278,7 +278,7 @@ public final class Utils {
           final Term element = struct.getElement(li);
           if (element.getTermType() == VAR) {
             final String varname = element.getText();
-            if (((Var) element).isUndefined()) {
+            if (!element.isBounded()) {
               final Var var = variables.get(varname);
               if (var == null) {
                 variables.put(varname, (Var) element);
@@ -417,7 +417,7 @@ public final class Utils {
       out.print(variable.getText());
       out.print("{uid=" + variable.getVarUID() + '}');
       out.print('=');
-      if (variable.isUndefined()) {
+      if (!variable.isBounded()) {
         out.println("???");
       } else {
         out.println(variable.toString());

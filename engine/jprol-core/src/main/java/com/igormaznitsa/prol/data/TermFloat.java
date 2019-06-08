@@ -195,7 +195,7 @@ public final class TermFloat extends Term implements NumericTerm {
       return 0;
     }
 
-    if (atom.getTermType() == VAR && !((Var) atom).isUndefined()) {
+    if (atom.getTermType() == VAR && atom.isBounded()) {
       atom = ((Var) atom).getValue();
     }
 

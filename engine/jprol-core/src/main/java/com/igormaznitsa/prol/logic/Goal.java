@@ -88,7 +88,7 @@ public class Goal {
       }
       break;
       case VAR: {
-        if (((Var) goal).isUndefined()) {
+        if (!goal.isBounded()) {
           throw new ProlInstantiationErrorException(goal);
         }
       }
@@ -158,7 +158,7 @@ public class Goal {
 
   public Map<String, Term> findAllInstantiatedVars() {
     final Map<String, Term> result = new HashMap<>();
-    this.variables.entrySet().stream().filter((v) -> (!v.getValue().isUndefined())).forEach((v) -> result.put(v.getKey(), v.getValue().getValue().makeClone()));
+    this.variables.entrySet().stream().filter((v) -> (v.getValue().isBounded())).forEach((v) -> result.put(v.getKey(), v.getValue().getValue().makeClone()));
     return result;
   }
 

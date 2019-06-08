@@ -140,10 +140,10 @@ final class VariableStateSnapshot {
         valueTxt = ".NULL";
       } else {
         if (value.getTermType() == VAR) {
-          if (value.isUndefined()) {
-            valueTxt = value.toSrcString() + '{' + value.getVarUID() + '}';
-          } else {
+          if (value.isBounded()) {
             valueTxt = value.toSrcString() + '{' + value.getVarUID() + '}' + '[' + value.getValue().toString() + ']';
+          } else {
+            valueTxt = value.toSrcString() + '{' + value.getVarUID() + '}';
           }
         } else {
           valueTxt = value.forWrite();

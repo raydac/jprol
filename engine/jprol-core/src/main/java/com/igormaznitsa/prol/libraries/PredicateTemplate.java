@@ -61,7 +61,7 @@ public class PredicateTemplate {
         }
       }
       case SHALL_BE_INSTANTIATED: {
-        if (type == VAR && ((Var) term).isUndefined()) {
+        if (type == VAR && !term.isBounded()) {
           throw new ProlInstantiationErrorException("Should be instantiated \'" + term.toSrcString() + '\'', term);
         }
         checkTermForTemplate(term);
@@ -69,7 +69,7 @@ public class PredicateTemplate {
       break;
       case SHALL_BE_INSTANTIATED_OR_VARIABLE: {
         // any
-        if (type == VAR && ((Var) term).isUndefined()) {
+        if (type == VAR && !term.isBounded()) {
           return false;
         }
 
@@ -78,7 +78,7 @@ public class PredicateTemplate {
       break;
       case SHALL_BE_VARIABLE: {
         if (type == VAR) {
-          if (!((Var) term).isUndefined()) {
+          if (term.isBounded()) {
             throw new ProlInstantiationErrorException("Should not be instantiated \'" + term.toSrcString() + '\'', term);
           }
         } else {

@@ -190,24 +190,15 @@ public final class Var extends Term {
     return result;
   }
 
-  public final boolean isUndefined() {
+  @Override
+  public boolean isBounded() {
     boolean result = false;
-    if (value == null) {
-      result = true;
-    } else {
-      if (value.getTermType() == VAR) {
-        result = ((Var) value).isUndefined();
+    if (!isAnonymous()) {
+      if (this.value != null) {
+        result = this.value.getTermType() != VAR || this.value.isBounded();
       }
     }
     return result;
-  }
-
-  @Override
-  public boolean isBounded() {
-    if (isAnonymous()) {
-      return true;
-    }
-    return !isUndefined();
   }
 
   @Override
@@ -324,7 +315,7 @@ public final class Var extends Term {
       thisAtom = this;
     }
 
-    if (atom.getTermType() == VAR && !((Var) atom).isUndefined()) {
+    if (atom.getTermType() == VAR && atom.isBounded()) {
       atom = ((Var) atom).getValue();
     }
 

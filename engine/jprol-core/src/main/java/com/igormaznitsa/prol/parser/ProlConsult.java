@@ -143,7 +143,7 @@ public class ProlConsult {
                           for (Entry<String, Var> avar : varmap.entrySet()) {
                             final String name = avar.getKey();
                             final Var value = avar.getValue();
-                            userwriter.write(String.format("%s=%s%n", name, (value.isUndefined() ? "???" : value.forWrite())));
+                            userwriter.write(String.format("%s=%s%n", name, value.isBounded() ? value.forWrite() : "???"));
                             userwriter.flush();
                           }
                         }
