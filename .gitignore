@@ -1,4 +1,6 @@
+nb-configuration.xml
 /engine/target/
 /examples/java/elife/target/
 /engine/.idea/
 /engine/jprol.iml
+/engine/jprol-jsr223/target/
