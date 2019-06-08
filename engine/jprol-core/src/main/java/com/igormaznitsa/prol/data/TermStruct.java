@@ -400,7 +400,7 @@ public class TermStruct extends Term {
   }
 
   @Override
-  public boolean equWithoutSet(Term atom) {
+  public boolean dryEqu(Term atom) {
     if (this == atom) {
       return true;
     }
@@ -423,9 +423,9 @@ public class TermStruct extends Term {
 
       final int arity = thisStruct.getArity();
 
-      if (arity == thatStruct.getArity() && thisStruct.getFunctor().equWithoutSet(thatStruct.getFunctor())) {
+      if (arity == thatStruct.getArity() && thisStruct.getFunctor().dryEqu(thatStruct.getFunctor())) {
         for (int li = 0; li < arity; li++) {
-          if (!thisStruct.getElement(li).equWithoutSet(thatStruct.getElement(li))) {
+          if (!thisStruct.getElement(li).dryEqu(thatStruct.getElement(li))) {
             return false;
           }
         }
@@ -452,7 +452,7 @@ public class TermStruct extends Term {
         final TermStruct thatStruct = (TermStruct) atom;
 
         final int thisArity = getArity();
-        final int thatArity = getArity();
+        final int thatArity = thatStruct.getArity();
 
         if (thisArity == thatArity) {
           int result = getFunctor().termComparsion(thatStruct.getFunctor());
@@ -488,7 +488,7 @@ public class TermStruct extends Term {
   }
 
   @Override
-  protected Term _makeCloneWithVarReplacement(final Map<Integer, Var> vars) {
+  protected Term makeCloneWithVarReplacement(final Map<Integer, Var> vars) {
     final Term result;
     if (this.getArity() == 0) {
       result = this;
@@ -499,7 +499,7 @@ public class TermStruct extends Term {
 
       for (int li = 0; li < arity; li++) {
         final Term element = elements[li];
-        destElements[li] = element._makeCloneWithVarReplacement(vars);
+        destElements[li] = element.makeCloneWithVarReplacement(vars);
       }
       result = new TermStruct(this.getFunctor(), destElements, this.getPredicateProcessor());
     }

@@ -46,25 +46,6 @@ public final class TermList extends TermStruct {
     super(LIST_FUNCTOR, new Term[] {head, tail});
   }
 
-  public static TermList appendItem(final TermList list, final Term term) {
-    final TermList newList = new TermList(term);
-    if (!list.isNullList()) {
-      newList.setTail(list.getTail());
-      list.setTail(newList);
-    }
-    return newList;
-  }
-
-  private static String elementToSourceString(final Term term) {
-    switch (term.getTermType()) {
-      case ATOM: {
-        return term.getSourceLikeRepresentation();
-      }
-      default:
-        return term.getSourceLikeRepresentation();
-    }
-  }
-
   public Term getHead() {
     return terms[INDEX_HEAD];
   }
@@ -124,8 +105,8 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  protected Term _makeCloneWithVarReplacement(final Map<Integer, Var> vars) {
-    return this.isNullList() ? NULLLIST : new TermList(this.getHead()._makeCloneWithVarReplacement(vars), this.getTail()._makeCloneWithVarReplacement(vars));
+  protected Term makeCloneWithVarReplacement(final Map<Integer, Var> vars) {
+    return this.isNullList() ? NULLLIST : new TermList(this.getHead().makeCloneWithVarReplacement(vars), this.getTail().makeCloneWithVarReplacement(vars));
   }
 
   @Override
@@ -194,13 +175,13 @@ public final class TermList extends TermStruct {
           builder.append(',');
         }
         final TermList asList = (TermList) list;
-        builder.append(elementToSourceString(asList.getHead()));
+        builder.append(asList.getHead().getSourceLikeRepresentation());
         list = asList.getTail();
       } else {
         if (notfirst) {
           builder.append('|');
         }
-        builder.append(elementToSourceString(list));
+        builder.append(list.getSourceLikeRepresentation());
         break;
       }
       notfirst = true;
@@ -293,7 +274,7 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public boolean equWithoutSet(Term atom) {
+  public boolean dryEqu(Term atom) {
     if (this == atom) {
       return true;
     }
@@ -321,7 +302,7 @@ public final class TermList extends TermStruct {
         }
       }
 
-      return thisList.getHead().equWithoutSet(thatList.getHead()) && thisList.getTail().equWithoutSet(thatList.getTail());
+      return thisList.getHead().dryEqu(thatList.getHead()) && thisList.getTail().dryEqu(thatList.getTail());
     }
     return false;
   }

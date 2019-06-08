@@ -85,6 +85,17 @@ public final class Utils {
     return vars;
   }
 
+  public static TermList createOrAppendToList(final TermList nullableList, final Term term) {
+    final TermList newList = new TermList(term);
+
+    if (nullableList != null && !nullableList.isNullList()) {
+      newList.setTail(nullableList.getTail());
+      nullableList.setTail(newList);
+    }
+
+    return newList;
+  }
+
   public static Map<String, Term> fillTableWithFoundVarContent(final Term term, final Map<String, Term> map) {
     final Map<String, Var> vars = fillTableWithVars(term);
     final Map<String, Term> result;
@@ -194,7 +205,7 @@ public final class Utils {
     TermList next = result;
     final int length = array.length;
     for (int li = 1; li < length; li++) {
-      next = TermList.appendItem(next, array[li]);
+      next = createOrAppendToList(next, array[li]);
     }
 
     return result;
@@ -234,7 +245,7 @@ public final class Utils {
         TermList curResult = result;
         final int arity = struct.getArity();
         for (int li = 0; li < arity; li++) {
-          curResult = TermList.appendItem(curResult, struct.getElement(li));
+          curResult = createOrAppendToList(curResult, struct.getElement(li));
         }
         return result;
       }
@@ -742,7 +753,7 @@ public final class Utils {
             accumulator = new TermList(obj2term(item));
             result = accumulator; // the first list
           } else {
-            accumulator = TermList.appendItem(accumulator, obj2term(item));
+            accumulator = createOrAppendToList(accumulator, obj2term(item));
           }
         }
       }

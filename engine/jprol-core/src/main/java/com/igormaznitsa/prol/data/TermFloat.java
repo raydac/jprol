@@ -65,7 +65,7 @@ public final class TermFloat extends Term implements NumericTerm {
   }
 
   @Override
-  public boolean equWithoutSet(Term atom) {
+  public boolean dryEqu(Term atom) {
     if (this == atom) {
       return true;
     }
@@ -78,10 +78,8 @@ public final class TermFloat extends Term implements NumericTerm {
       return true;
     }
 
-    if (atom.getTermType() == ATOM) {
-      if (atom instanceof NumericTerm) {
+    if (atom.getTermType() == ATOM && atom instanceof NumericTerm) {
         return compare((NumericTerm) atom) == 0;
-      }
     }
     return false;
   }

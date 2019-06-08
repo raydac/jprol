@@ -145,7 +145,7 @@ final class InternalKnowledgeBaseClauseList {
 
       final Term keyTerm = sinceContainer.getKeyTerm();
 
-      if (keyTerm.equWithoutSet(template)) {
+      if (keyTerm.dryEqu(template)) {
         // looks similar but we need to check a bit deeper to be ensure
         if (template.makeClone().Equ(keyTerm.makeClone())) {
           result = sinceContainer;
@@ -169,7 +169,7 @@ final class InternalKnowledgeBaseClauseList {
 
     while (sinceContainer != null) {
       final Term keyterm = sinceContainer.getKeyTerm();
-      if (keyterm.equWithoutSet(template)) {
+      if (keyterm.dryEqu(template)) {
         // check deeper because equWithoutSet is not precise for speed
         if (keyterm.makeClone().Equ(template.makeClone())) {
           result = sinceContainer;

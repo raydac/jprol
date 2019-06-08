@@ -23,6 +23,7 @@ import com.igormaznitsa.prol.exceptions.ParserException;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlTokenizer.ProlTokenizerResult;
+import com.igormaznitsa.prol.utils.Utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.igormaznitsa.prol.data.TermType.*;
+import static com.igormaznitsa.prol.utils.Utils.createOrAppendToList;
 
 public final class ProlTreeBuilder {
 
@@ -162,10 +164,10 @@ public final class ProlTreeBuilder {
               throw new ParserException("There is not any list element", tokenizer.getLastTokenLineNum(), tokenizer.getLastTokenStrPos());
             }
             if (leftPartFirst.isNullList()) {
-              leftPartFirst = TermList.appendItem(leftPart, block);
+              leftPartFirst = createOrAppendToList(leftPart, block);
               leftPart = leftPartFirst;
             } else {
-              leftPart = TermList.appendItem(leftPart, block);
+              leftPart = createOrAppendToList(leftPart, block);
             }
             hasSeparator = true;
             rightPart = readBlock(reader, OPERATORS_END_LIST);
@@ -185,10 +187,10 @@ public final class ProlTreeBuilder {
         }
       }
       if (leftPartFirst.isNullList()) {
-        leftPartFirst = TermList.appendItem(leftPart, block);
+        leftPartFirst = Utils.createOrAppendToList(leftPart, block);
         leftPart = leftPartFirst;
       } else {
-        leftPart = TermList.appendItem(leftPart, block);
+        leftPart = Utils.createOrAppendToList(leftPart, block);
       }
     }
 

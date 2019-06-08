@@ -41,6 +41,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.igormaznitsa.prol.data.TermType.*;
+import static com.igormaznitsa.prol.utils.Utils.createOrAppendToList;
 
 @ProlOperators(Operators = {
     //------------------------
@@ -593,7 +594,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
             bodyClause = TRUE;
           }
 
-          if (headClause.equWithoutSet(head) && bodyClause.equWithoutSet(body)) {
+          if (headClause.dryEqu(head) && bodyClause.dryEqu(body)) {
             if (!(headClause.Equ(head) && bodyClause.Equ(body))) {
               throw new ProlCriticalError("Impossible state at clause/2 #982342");
             }
@@ -1208,7 +1209,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final Term right = Utils.getTermFromElement(predicate.getElement(1));
 
     if (left.getTermType() == ATOM && right.getTermType() == VAR) {
-      left = left.asCharCodeList();
+      left = left.toCharCodeList();
       return left.Equ(right);
     }
 
@@ -1392,12 +1393,12 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     switch (left.getTermType()) {
       case ATOM: {
-        left = left.asCharCodeList();
+        left = left.toCharCodeList();
         return left.Equ(right);
       }
       case LIST: {
         if (((TermList) left).isNullList()) {
-          left = new Term("[]").asCharCodeList();
+          left = new Term("[]").toCharCodeList();
           return left.Equ(right);
         } else {
           throw new ProlTypeErrorException("atom", predicate);
@@ -1406,7 +1407,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     }
 
     if (left.getTermType() == ATOM) {
-      left = left.asCharCodeList();
+      left = left.toCharCodeList();
 
       return left.Equ(right);
     }
@@ -1511,7 +1512,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
           currentList = result;
         } else {
           // not first
-          currentList = TermList.appendItem(currentList, Utils.getTermFromElement(templateCopy).makeClone());
+          currentList = createOrAppendToList(currentList, Utils.getTermFromElement(templateCopy).makeClone());
         }
       } else {
         throw new ProlCriticalError("Impossible situation at findall/3!");
@@ -1567,7 +1568,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         if (that instanceof BofKey && ((BofKey) that).vars.size() == this.vars.size()) {
           final BofKey thatKey = (BofKey) that;
           result = this.vars.entrySet().stream()
-              .allMatch(e -> thatKey.vars.containsKey(e.getKey()) && thatKey.vars.get(e.getKey()).equWithoutSet(e.getValue()));
+              .allMatch(e -> thatKey.vars.containsKey(e.getKey()) && thatKey.vars.get(e.getKey()).dryEqu(e.getValue()));
         }
         return result;
       }
@@ -1620,7 +1621,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
           final TermList resultList;
           if (preparedMap.containsKey(thekey)) {
             resultList = preparedMap.get(thekey);
-            TermList.appendItem(resultList, Utils.getTermFromElement(templateCopy).makeClone());
+            createOrAppendToList(resultList, Utils.getTermFromElement(templateCopy).makeClone());
           } else {
             resultList = new TermList(Utils.getTermFromElement(templateCopy).makeClone());
             preparedMap.put(thekey, resultList);
@@ -1689,7 +1690,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         if (that instanceof SofKey && ((SofKey) that).vars.size() == this.vars.size()) {
           final SofKey thatKey = (SofKey) that;
           result = this.vars.entrySet().stream()
-              .allMatch(e -> thatKey.vars.containsKey(e.getKey()) && thatKey.vars.get(e.getKey()).equWithoutSet(e.getValue()));
+              .allMatch(e -> thatKey.vars.containsKey(e.getKey()) && thatKey.vars.get(e.getKey()).dryEqu(e.getValue()));
         }
         return result;
       }
@@ -1703,8 +1704,6 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     Map<SofKey, TermList> preparedMap = (Map<SofKey, TermList>) goal.getAuxObject();
 
     if (preparedMap == null) {
-      TermList result = null;
-
       preparedMap = new LinkedHashMap<>();
 
       final Set<String> excludedVars = new HashSet<>(Utils.fillTableWithVars(template).keySet());
@@ -1744,7 +1743,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
           final TermList resultList;
           if (preparedMap.containsKey(thekey)) {
             resultList = preparedMap.get(thekey);
-            TermList.appendItem(resultList, Utils.getTermFromElement(templateCopy).makeClone());
+            Utils.createOrAppendToList(resultList, Utils.getTermFromElement(templateCopy).makeClone());
           } else {
             resultList = new TermList(Utils.getTermFromElement(templateCopy).makeClone());
             preparedMap.put(thekey, resultList);

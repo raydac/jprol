@@ -64,7 +64,7 @@ public final class Var extends Term {
   }
 
   @Override
-  protected Term _makeCloneWithVarReplacement(final Map<Integer, Var> vars) {
+  protected Term makeCloneWithVarReplacement(final Map<Integer, Var> vars) {
     Term value = this.getValue();
     if (value == null) {
       final Term result;
@@ -80,7 +80,7 @@ public final class Var extends Term {
           final Term thisVal = this.getThisValue();
 
           if (thisVal != null) {
-            newVar.setThisValue(thisVal._makeCloneWithVarReplacement(vars));
+            newVar.setThisValue(thisVal.makeCloneWithVarReplacement(vars));
           }
         }
         result = newVar;
@@ -299,12 +299,12 @@ public final class Var extends Term {
   }
 
   @Override
-  public boolean equWithoutSet(final Term atom) {
+  public boolean dryEqu(final Term atom) {
     boolean result = true;
     if (this != atom) {
       final Term val = getValue();
       if (val != null) {
-        result = val.equWithoutSet(atom);
+        result = val.dryEqu(atom);
       }
     }
     return result;
