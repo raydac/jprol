@@ -21,6 +21,7 @@ import com.igormaznitsa.prol.libraries.PredicateProcessor;
 import com.igormaznitsa.prol.utils.Utils;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -480,6 +481,10 @@ public class TermStruct extends Term {
       default:
         return 1;
     }
+  }
+
+  public Term makeClone() {
+    return this.getArity() == 0 ?  this : this.makeClone(new HashMap<>());
   }
 
   @Override

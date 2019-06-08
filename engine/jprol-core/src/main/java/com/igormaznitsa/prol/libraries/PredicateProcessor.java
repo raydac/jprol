@@ -34,9 +34,6 @@ public final class PredicateProcessor {
   public static final PredicateProcessor NULL_PROCESSOR = new PredicateProcessor(null, null, null, null);
   protected static final MethodHandles.Lookup METHOD_LOOKUP = MethodHandles.lookup();
   private static final Class<?> CLASS_RESULT_VOID = void.class;
-  private static final Class<Determined> CLASS_ANNOTATION_DETERMINED = Determined.class;
-  private static final Class<Evaluable> CLASS_ANNOTATION_EVALUABLE = Evaluable.class;
-  private static final Class<ItChangesGoalChain> CLASS_CHANGE_GOAL_CHAIN = ItChangesGoalChain.class;
   private final String predicateSignature;
   private final MethodHandle methodHandle;
   private final AbstractProlLibrary ownerLibrary;
@@ -70,9 +67,9 @@ public final class PredicateProcessor {
       }
 
       this.voidResult = method.getReturnType() == CLASS_RESULT_VOID;
-      this.determined = method.isAnnotationPresent(CLASS_ANNOTATION_DETERMINED);
-      this.evaluable = method.isAnnotationPresent(CLASS_ANNOTATION_EVALUABLE);
-      this.changesGoalChain = method.isAnnotationPresent(CLASS_CHANGE_GOAL_CHAIN);
+      this.determined = method.isAnnotationPresent(Determined.class);
+      this.evaluable = method.isAnnotationPresent(Evaluable.class);
+      this.changesGoalChain = method.isAnnotationPresent(ItChangesGoalChain.class);
     }
   }
 

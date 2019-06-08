@@ -18,6 +18,7 @@ package com.igormaznitsa.prol.data;
 
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -115,6 +116,11 @@ public final class TermList extends TermStruct {
 
   public boolean isNullList() {
     return this == NULLLIST;
+  }
+
+  @Override
+  public Term makeClone() {
+    return this == TermList.NULLLIST ? this : this.makeClone(new HashMap<>());
   }
 
   @Override

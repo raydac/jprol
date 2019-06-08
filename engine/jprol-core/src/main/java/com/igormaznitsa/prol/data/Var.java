@@ -16,6 +16,7 @@
 
 package com.igormaznitsa.prol.data;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
@@ -48,6 +49,18 @@ public final class Var extends Term {
   @Override
   public TermType getTermType() {
     return VAR;
+  }
+
+  @Override
+  public Term makeClone() {
+      final Term value = this.getThisValue();
+      Var result = this.isAnonymous() ? new Var() : new Var(this.getText());
+      if (value != null) {
+          final Map<Integer, Var> varHashMap = new HashMap<>();
+          varHashMap.put(this.getVarUID(), result);
+          result.setThisValue(makeClone());
+        }
+      return result;
   }
 
   public final Term getValue() {
