@@ -67,6 +67,11 @@ public final class TermInteger extends Term implements NumericTerm {
   }
 
   @Override
+  public boolean stronglyEqualsTo(final Term term) {
+    return this == term || (term.getClass() == TermInteger.class && this.intValue == ((TermInteger) term).intValue);
+  }
+
+  @Override
   public boolean dryUnifyTo(Term atom) {
     if (this == atom) {
       return true;
@@ -232,17 +237,6 @@ public final class TermInteger extends Term implements NumericTerm {
       default:
         return -1;
     }
-  }
-
-  @Override
-  public boolean hasAnyDifference(final Term atom) {
-    if (!(atom instanceof TermInteger)) {
-      return true;
-    }
-
-    final TermInteger thatInt = (TermInteger) atom;
-
-    return intValue != thatInt.intValue;
   }
 
   @Override

@@ -65,6 +65,11 @@ public final class TermFloat extends Term implements NumericTerm {
   }
 
   @Override
+  public boolean stronglyEqualsTo(final Term term) {
+    return this == term || (term.getClass() == TermFloat.class && Float.compare(this.floatValue, ((TermFloat) term).floatValue) == 0);
+  }
+
+  @Override
   public boolean dryUnifyTo(Term atom) {
     if (this == atom) {
       return true;
@@ -79,7 +84,7 @@ public final class TermFloat extends Term implements NumericTerm {
     }
 
     if (atom.getTermType() == ATOM && atom instanceof NumericTerm) {
-        return compare((NumericTerm) atom) == 0;
+      return compare((NumericTerm) atom) == 0;
     }
     return false;
   }
@@ -209,17 +214,6 @@ public final class TermFloat extends Term implements NumericTerm {
       default:
         return -1;
     }
-  }
-
-  @Override
-  public boolean hasAnyDifference(final Term atom) {
-    if (!(atom instanceof TermFloat)) {
-      return true;
-    }
-
-    final TermFloat thatFloat = (TermFloat) atom;
-
-    return Float.compare(floatValue, thatFloat.floatValue) != 0;
   }
 
   @Override

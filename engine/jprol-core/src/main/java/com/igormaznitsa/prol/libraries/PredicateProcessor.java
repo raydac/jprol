@@ -163,7 +163,7 @@ public final class PredicateProcessor {
           if (nonchangeable[li] == null) {
             continue;
           }
-          if (nonchangeable[li].hasAnyDifference(elements[li])) {
+          if (!nonchangeable[li].stronglyEqualsTo(elements[li])) {
             throw new ProlInstantiationErrorException("Nonchangeable element was changed [" + nonchangeable[li] + "<>" + elements[li] + "]", predicate);
           }
         }
@@ -206,7 +206,7 @@ public final class PredicateProcessor {
           if (nonchangeable[li] == null) {
             continue;
           }
-          if (nonchangeable[li].hasAnyDifference(elements[li])) {
+          if (!nonchangeable[li].stronglyEqualsTo(elements[li])) {
             throw new ProlInstantiationErrorException("Nonchangeable element was changed [" + nonchangeable[li] + "<>" + elements[li] + "]", predicate);
           }
         }

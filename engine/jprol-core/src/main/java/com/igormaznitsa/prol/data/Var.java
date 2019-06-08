@@ -67,7 +67,7 @@ public final class Var extends Term {
   }
 
   @Override
-  protected Term makeCloneWithVarReplacement(final Map<Integer, Var> vars) {
+  protected Term makeCloneAndVarBound(final Map<Integer, Var> vars) {
     Term value = this.getValue();
     if (value == null) {
       final Term result;
@@ -83,7 +83,7 @@ public final class Var extends Term {
           final Term thisVal = this.getThisValue();
 
           if (thisVal != null) {
-            newVar.setThisValue(thisVal.makeCloneWithVarReplacement(vars));
+            newVar.setThisValue(thisVal.makeCloneAndVarBound(vars));
           }
         }
         result = newVar;
@@ -341,26 +341,23 @@ public final class Var extends Term {
   }
 
   @Override
-  public boolean hasAnyDifference(final Term atom) {
-    if (atom.getTermType() != VAR) {
-      return true;
+  public boolean stronglyEqualsTo(final Term term) {
+    boolean result = false;
+    if (term.getClass() == Var.class) {
+      final Var thatVar = (Var) term;
+
+      if (this.uid == thatVar.uid) {
+        final Term value = this.value;
+        final Term thatValue = thatVar.value;
+        if (value == null && thatValue == null) {
+          result = true;
+        } else {
+          result = value != null && thatValue != null && value.stronglyEqualsTo(thatValue);
+        }
+      }
     }
 
-    final Var thatVar = (Var) atom;
-
-    if (!getText().equals(thatVar.getText())) {
-      return true;
-    }
-
-    final Term thisVal = getValue();
-    final Term thatVal = thatVar.getValue();
-    if (thisVal == null && thatVal == null) {
-      return false;
-    }
-    if (thisVal != null && thatVal != null) {
-      return thisVal.hasAnyDifference(thatVal);
-    }
-    return true;
+    return result;
   }
 
   @Override

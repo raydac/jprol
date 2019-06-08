@@ -1802,7 +1802,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       throw new ProlPermissionErrorException("modify", "static_procedure", new Term(signature));
     }
 
-    base.assertA((TermStruct) atom.makeCloneWithVarReplacement());
+    base.assertA((TermStruct) atom.makeCloneAndVarBound());
     return true;
   }
 
@@ -1823,7 +1823,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       throw new ProlPermissionErrorException("modify", "static_procedure", new Term(signature));
     }
 
-    base.assertZ((TermStruct) atom.makeCloneWithVarReplacement());
+    base.assertZ((TermStruct) atom.makeCloneAndVarBound());
 
     return true;
   }
@@ -1847,7 +1847,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       throw new ProlPermissionErrorException("modify", "static_procedure", new Term(signature));
     }
 
-    return base.retractA((TermStruct) atom.makeCloneWithVarReplacement());
+    return base.retractA((TermStruct) atom.makeCloneAndVarBound());
   }
 
   @Predicate(Signature = "retractz/1", Template = {"@clause"}, Reference = "Retract the last clause which can be unified with argument. True if there is such clause in the knowledge base.")

@@ -105,8 +105,8 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  protected Term makeCloneWithVarReplacement(final Map<Integer, Var> vars) {
-    return this.isNullList() ? NULLLIST : new TermList(this.getHead().makeCloneWithVarReplacement(vars), this.getTail().makeCloneWithVarReplacement(vars));
+  protected Term makeCloneAndVarBound(final Map<Integer, Var> vars) {
+    return this.isNullList() ? NULLLIST : new TermList(this.getHead().makeCloneAndVarBound(vars), this.getTail().makeCloneAndVarBound(vars));
   }
 
   @Override
@@ -274,6 +274,21 @@ public final class TermList extends TermStruct {
   }
 
   @Override
+  public boolean stronglyEqualsTo(final Term term) {
+    boolean result = false;
+
+    if (term.getClass() == TermList.class) {
+      final TermList thatList = (TermList) term;
+      if (this.isNullList() && thatList.isNullList()) {
+        result = true;
+      } else {
+        result = this.getHead().stronglyEqualsTo(thatList.getHead()) && this.getTail().stronglyEqualsTo(thatList.getTail());
+      }
+    }
+    return result;
+  }
+
+  @Override
   public boolean dryUnifyTo(Term atom) {
     if (this == atom) {
       return true;
@@ -346,27 +361,6 @@ public final class TermList extends TermStruct {
       default:
         return 1;
     }
-  }
-
-  @Override
-  public boolean hasAnyDifference(final Term atom) {
-    if (atom.getTermType() != LIST) {
-      return true;
-    }
-
-    TermList thisList = this;
-    TermList thatList = (TermList) atom;
-
-    if (thisList == NULLLIST) {
-      return thisList != thatList;
-    } else if (thatList == NULLLIST) {
-      return true;
-    }
-
-    if (thisList.getHead().hasAnyDifference(thatList.getHead())) {
-      return true;
-    }
-    return thisList.getTail().hasAnyDifference(thatList.getTail());
   }
 
   @Override

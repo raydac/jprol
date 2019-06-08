@@ -88,12 +88,12 @@ public class TermStruct extends Term {
 
   @Override
   public Stream<Var> variables() {
-    return this.stream().filter(x -> x.getTermType() == VAR).map(x -> (Var)x);
+    return this.stream().filter(x -> x.getTermType() == VAR).map(x -> (Var) x);
   }
 
   @Override
   public Stream<Term> stream() {
-    return Stream.concat(Stream.of(this.functor),Arrays.stream(this.terms).flatMap(Term::stream));
+    return Stream.concat(Stream.of(this.functor), Arrays.stream(this.terms).flatMap(Term::stream));
   }
 
   public final Term getElement(final int index) {
@@ -400,6 +400,24 @@ public class TermStruct extends Term {
   }
 
   @Override
+  public boolean stronglyEqualsTo(final Term term) {
+    boolean result = false;
+
+    if (term.getClass() == TermStruct.class) {
+      final TermStruct thatStruct = (TermStruct) term;
+      final int arity = this.getArity();
+      if (arity == thatStruct.getArity() && this.getFunctor().stronglyEqualsTo(thatStruct.getFunctor())) {
+        result = true;
+        for (int i = 0; i < arity && result; i++) {
+          result = this.getElement(i).stronglyEqualsTo(thatStruct.getElement(i));
+        }
+      }
+    }
+
+    return result;
+  }
+
+  @Override
   public boolean dryUnifyTo(Term atom) {
     if (this == atom) {
       return true;
@@ -488,7 +506,7 @@ public class TermStruct extends Term {
   }
 
   @Override
-  protected Term makeCloneWithVarReplacement(final Map<Integer, Var> vars) {
+  protected Term makeCloneAndVarBound(final Map<Integer, Var> vars) {
     final Term result;
     if (this.getArity() == 0) {
       result = this;
@@ -499,7 +517,7 @@ public class TermStruct extends Term {
 
       for (int li = 0; li < arity; li++) {
         final Term element = elements[li];
-        destElements[li] = element.makeCloneWithVarReplacement(vars);
+        destElements[li] = element.makeCloneAndVarBound(vars);
       }
       result = new TermStruct(this.getFunctor(), destElements, this.getPredicateProcessor());
     }
@@ -525,32 +543,6 @@ public class TermStruct extends Term {
     return result;
   }
 
-  @Override
-  public boolean hasAnyDifference(final Term atom) {
-    if (atom.getTermType() != STRUCT) {
-      return true;
-    }
-
-    final TermStruct thatStruct = (TermStruct) atom;
-    if (functor.hasAnyDifference(thatStruct.functor)) {
-      return true;
-    }
-    final int thisarity = getArity();
-    final int thatarity = thatStruct.getArity();
-
-    if (thatarity == thisarity) {
-
-      for (int li = 0; li < thisarity; li++) {
-        if (terms[li].hasAnyDifference(thatStruct.terms[li])) {
-          return true;
-        }
-      }
-    } else {
-      return true;
-    }
-
-    return false;
-  }
 
   @Override
   public boolean hasVariableWithName(final String name) {
