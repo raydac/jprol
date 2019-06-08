@@ -44,7 +44,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
       if (argSECOND.getTermType() == ATOM) {
         // the first case
         Term term = new Term(argFIRST.getText() + argSECOND.getText());
-        return argTHIRD.Equ(term);
+        return argTHIRD.unifyTo(term);
       } else {
         // the second case
         String startText = argFIRST.getText();
@@ -54,7 +54,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
         }
         String endText = fullText.substring(startText.length());
         Term second = new Term(endText);
-        return argSECOND.Equ(second);
+        return argSECOND.unifyTo(second);
       }
     } else {
       // the third case
@@ -65,7 +65,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
       }
       String startText = fullText.substring(0, fullText.length() - endText.length());
       Term first = new Term(startText);
-      return argFIRST.Equ(first);
+      return argFIRST.unifyTo(first);
     }
   }
 
@@ -77,7 +77,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
 
     Term result = new Term(argLeft.getText().trim());
 
-    return argRight.Equ(result);
+    return argRight.unifyTo(result);
   }
 
   @Predicate(Signature = "frontstr/4", Template = {"+integer,+atom,?atom,?atom"}, Reference = "Extracts the first n characters from a string.")
@@ -96,7 +96,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
     final Term frontStr = Utils.getTermFromElement(predicate.getElement(2));
     final Term restStr = Utils.getTermFromElement(predicate.getElement(3));
 
-    return frontStr.Equ(new Term(fstr)) && restStr.Equ(new Term(rstr));
+    return frontStr.unifyTo(new Term(fstr)) && restStr.unifyTo(new Term(rstr));
   }
 
   @Predicate(Signature = "upper_lower/2", Template = {"+atom,?atom", "?atom,+atom"}, Reference = "Allows to make upper or lower case text version of an atom.")
@@ -108,11 +108,11 @@ public class ProlStrLibrary extends AbstractProlLibrary {
     if (argLeft.getTermType() == ATOM) {
       // the first case
       Term term = new Term(argLeft.getText().toLowerCase());
-      return argRight.Equ(term);
+      return argRight.unifyTo(term);
     } else {
       // the second case
       Term term = new Term(argRight.getText().toUpperCase());
-      return argLeft.Equ(term);
+      return argLeft.unifyTo(term);
     }
   }
 
@@ -124,7 +124,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
 
     TermInteger result = new TermInteger(argLeft.getText().length());
 
-    return argRight.Equ(result);
+    return argRight.unifyTo(result);
   }
 
   @Predicate(Signature = "str_int/2", Template = {"+atom,?integer", "?atom,+integer"}, Reference = "Convert a text atom to an integer atom (or back).")
@@ -141,11 +141,11 @@ public class ProlStrLibrary extends AbstractProlLibrary {
       } catch (NumberFormatException ex) {
         return false;
       }
-      return argRight.Equ(result);
+      return argRight.unifyTo(result);
     } else {
       // the second case
       Term result = new Term(argRight.getText());
-      return argLeft.Equ(result);
+      return argLeft.unifyTo(result);
     }
   }
 
@@ -163,11 +163,11 @@ public class ProlStrLibrary extends AbstractProlLibrary {
       } catch (NumberFormatException ex) {
         return false;
       }
-      return argRight.Equ(result);
+      return argRight.unifyTo(result);
     } else {
       // the second case
       Term result = new Term(argRight.getText());
-      return argLeft.Equ(result);
+      return argLeft.unifyTo(result);
     }
   }
 }

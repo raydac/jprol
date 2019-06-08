@@ -67,7 +67,7 @@ public final class TermInteger extends Term implements NumericTerm {
   }
 
   @Override
-  public boolean dryEqu(Term atom) {
+  public boolean dryUnifyTo(Term atom) {
     if (this == atom) {
       return true;
     }
@@ -87,7 +87,7 @@ public final class TermInteger extends Term implements NumericTerm {
   }
 
   @Override
-  public boolean Equ(Term atom) {
+  public boolean unifyTo(Term atom) {
     if (this == atom) {
       return true;
     }
@@ -106,7 +106,7 @@ public final class TermInteger extends Term implements NumericTerm {
         if (value == null) {
           return ((Var) atom).setValue(this);
         } else {
-          return Equ(value);
+          return unifyTo(value);
         }
       }
     }
@@ -123,7 +123,7 @@ public final class TermInteger extends Term implements NumericTerm {
   }
 
   @Override
-  public String getSourceLikeRepresentation() {
+  public String toSourceString() {
     return Integer.toString(intValue);
   }
 

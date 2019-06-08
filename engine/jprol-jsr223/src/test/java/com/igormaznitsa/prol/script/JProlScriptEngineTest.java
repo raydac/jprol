@@ -78,9 +78,9 @@ public class JProlScriptEngineTest {
 
     final List<TermStruct> found = context.findClauses("some/1");
     assertEquals(3, found.size());
-    assertEquals("some(1)", found.get(0).getSourceLikeRepresentation());
-    assertEquals("some(2)", found.get(1).getSourceLikeRepresentation());
-    assertEquals("some(3)", found.get(2).getSourceLikeRepresentation());
+    assertEquals("some(1)", found.get(0).toSourceString());
+    assertEquals("some(2)", found.get(1).toSourceString());
+    assertEquals("some(3)", found.get(2).toSourceString());
     context.abolish("some/1");
     assertTrue(context.findClauses("some/1").isEmpty());
   }

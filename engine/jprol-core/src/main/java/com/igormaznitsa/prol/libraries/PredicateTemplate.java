@@ -62,7 +62,7 @@ public class PredicateTemplate {
       }
       case SHALL_BE_INSTANTIATED: {
         if (type == VAR && ((Var) term).isUndefined()) {
-          throw new ProlInstantiationErrorException("Should be instantiated \'" + term.getSourceLikeRepresentation() + '\'', term);
+          throw new ProlInstantiationErrorException("Should be instantiated \'" + term.toSourceString() + '\'', term);
         }
         checkTermForTemplate(term);
       }
@@ -79,10 +79,10 @@ public class PredicateTemplate {
       case SHALL_BE_VARIABLE: {
         if (type == VAR) {
           if (!((Var) term).isUndefined()) {
-            throw new ProlInstantiationErrorException("Should not be instantiated \'" + term.getSourceLikeRepresentation() + '\'', term);
+            throw new ProlInstantiationErrorException("Should not be instantiated \'" + term.toSourceString() + '\'', term);
           }
         } else {
-          throw new ProlInstantiationErrorException("Should be noninstantiated variable \'" + term.getSourceLikeRepresentation() + '\'', term);
+          throw new ProlInstantiationErrorException("Should be noninstantiated variable \'" + term.toSourceString() + '\'', term);
         }
         return true;
       }

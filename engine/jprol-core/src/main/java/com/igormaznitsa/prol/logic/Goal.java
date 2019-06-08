@@ -370,7 +370,7 @@ public class Goal {
             break;
           }
         } else {
-          if (!this.thisConnector.Equ(this.subGoalConnector)) {
+          if (!this.thisConnector.unifyTo(this.subGoalConnector)) {
             throw new ProlCriticalError("Critical error #980234");
           }
           result = GOALRESULT_SOLVED;
@@ -390,7 +390,7 @@ public class Goal {
             goalTermForEqu = this.goalTerm.makeClone();
           }
 
-          if (!goalTermForEqu.Equ(structFromBase.isFunctorLikeRuleDefinition() ? structFromBase.getElement(0) : structFromBase)) {
+          if (!goalTermForEqu.unifyTo(structFromBase.isFunctorLikeRuleDefinition() ? structFromBase.getElement(0) : structFromBase)) {
             throw new ProlCriticalError("impossible situation #2123123");
           }
 
@@ -400,7 +400,7 @@ public class Goal {
             this.subGoal = new Goal(structFromBase.getElement(1), this.context, this.tracer);
             continue;
           } else {
-            if (!this.goalTerm.Equ(structFromBase)) {
+            if (!this.goalTerm.unifyTo(structFromBase)) {
               throw new ProlCriticalError("Impossible situation #0009824");
             }
             result = GOALRESULT_SOLVED;

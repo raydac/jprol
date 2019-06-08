@@ -119,7 +119,7 @@ public class TermStruct extends Term {
   }
 
   @Override
-  public String getSourceLikeRepresentation() {
+  public String toSourceString() {
     return getStringRepresentation(true);
   }
 
@@ -134,7 +134,7 @@ public class TermStruct extends Term {
           if (li > 0) {
             buffer.append(',');
           }
-          buffer.append(sourceLike ? getElement(li).getSourceLikeRepresentation() : getElement(li).toString());
+          buffer.append(sourceLike ? getElement(li).toSourceString() : getElement(li).toString());
         }
         buffer.append(')');
       }
@@ -142,7 +142,7 @@ public class TermStruct extends Term {
       return buffer.toString();
     } else {
       // it's an operator
-      final String opName = sourceLike ? functor.getSourceLikeRepresentation() : functor.toString();
+      final String opName = sourceLike ? functor.toSourceString() : functor.toString();
       final StringBuilder builder = new StringBuilder();
 
       final Operator OperatorFunctor = (Operator) functor;
@@ -154,7 +154,7 @@ public class TermStruct extends Term {
           builder.append(opName);
           builder.append(' ');
 
-          final String text = sourceLike ? getElement(0).getSourceLikeRepresentation() : getElement(0).toString();
+          final String text = sourceLike ? getElement(0).toSourceString() : getElement(0).toString();
 
           if (getElement(0).getPriority() >= priority) {
             builder.append('(').append(text).append(')');
@@ -167,7 +167,7 @@ public class TermStruct extends Term {
           builder.append(opName);
           builder.append(' ');
 
-          final String text = sourceLike ? getElement(0).getSourceLikeRepresentation() : getElement(0).toString();
+          final String text = sourceLike ? getElement(0).toSourceString() : getElement(0).toString();
 
           if (getElement(0).getPriority() > priority) {
             builder.append('(').append(text).append(')');
@@ -177,7 +177,7 @@ public class TermStruct extends Term {
         }
         break;
         case Operator.OPTYPE_XF: {
-          final String text = sourceLike ? getElement(0).getSourceLikeRepresentation() : getElement(0).toString();
+          final String text = sourceLike ? getElement(0).toSourceString() : getElement(0).toString();
 
           if (getElement(0).getPriority() >= priority) {
             builder.append('(').append(text).append(')');
@@ -190,7 +190,7 @@ public class TermStruct extends Term {
         }
         break;
         case Operator.OPTYPE_YF: {
-          final String text = sourceLike ? getElement(0).getSourceLikeRepresentation() : getElement(0).toString();
+          final String text = sourceLike ? getElement(0).toSourceString() : getElement(0).toString();
 
           if (getElement(0).getPriority() > priority) {
             builder.append('(').append(text).append(')');
@@ -203,8 +203,8 @@ public class TermStruct extends Term {
         }
         break;
         case Operator.OPTYPE_XFX: {
-          final String text = sourceLike ? getElement(0).getSourceLikeRepresentation() : getElement(0).toString();
-          final String text2 = sourceLike ? getElement(1).getSourceLikeRepresentation() : getElement(1).toString();
+          final String text = sourceLike ? getElement(0).toSourceString() : getElement(0).toString();
+          final String text2 = sourceLike ? getElement(1).toSourceString() : getElement(1).toString();
 
           if (getElement(0).getPriority() >= priority) {
             builder.append('(').append(text).append(')');
@@ -224,8 +224,8 @@ public class TermStruct extends Term {
         }
         break;
         case Operator.OPTYPE_YFX: {
-          final String text = sourceLike ? getElement(0).getSourceLikeRepresentation() : getElement(0).toString();
-          final String text2 = sourceLike ? getElement(1).getSourceLikeRepresentation() : getElement(1).toString();
+          final String text = sourceLike ? getElement(0).toSourceString() : getElement(0).toString();
+          final String text2 = sourceLike ? getElement(1).toSourceString() : getElement(1).toString();
 
           if (getElement(0).getPriority() > priority) {
             builder.append('(').append(text).append(')');
@@ -245,8 +245,8 @@ public class TermStruct extends Term {
         }
         break;
         case Operator.OPTYPE_XFY: {
-          final String text = sourceLike ? getElement(0).getSourceLikeRepresentation() : getElement(0).toString();
-          final String text2 = sourceLike ? getElement(1).getSourceLikeRepresentation() : getElement(1).toString();
+          final String text = sourceLike ? getElement(0).toSourceString() : getElement(0).toString();
+          final String text2 = sourceLike ? getElement(1).toSourceString() : getElement(1).toString();
 
           if (getElement(0).getPriority() >= priority) {
             builder.append('(').append(text).append(')');
@@ -358,7 +358,7 @@ public class TermStruct extends Term {
   }
 
   @Override
-  public boolean Equ(final Term atom) {
+  public boolean unifyTo(final Term atom) {
     if (this == atom) {
       return true;
     }
@@ -370,11 +370,11 @@ public class TermStruct extends Term {
 
         final int arity = thisStruct.getArity();
 
-        if (arity == thatStruct.getArity() && thisStruct.getFunctor().Equ(thatStruct.getFunctor())) {
+        if (arity == thatStruct.getArity() && thisStruct.getFunctor().unifyTo(thatStruct.getFunctor())) {
           for (int li = 0; li < arity; li++) {
             final Term thiselement = thisStruct.getElement(li);
             final Term thatelement = thatStruct.getElement(li);
-            if (thiselement != thatelement && !thiselement.Equ(thatelement)) {
+            if (thiselement != thatelement && !thiselement.unifyTo(thatelement)) {
               return false;
             }
           }
@@ -392,7 +392,7 @@ public class TermStruct extends Term {
           if (value == this) {
             return true;
           }
-          return value.Equ(this);
+          return value.unifyTo(this);
         }
       }
     }
@@ -400,7 +400,7 @@ public class TermStruct extends Term {
   }
 
   @Override
-  public boolean dryEqu(Term atom) {
+  public boolean dryUnifyTo(Term atom) {
     if (this == atom) {
       return true;
     }
@@ -423,9 +423,9 @@ public class TermStruct extends Term {
 
       final int arity = thisStruct.getArity();
 
-      if (arity == thatStruct.getArity() && thisStruct.getFunctor().dryEqu(thatStruct.getFunctor())) {
+      if (arity == thatStruct.getArity() && thisStruct.getFunctor().dryUnifyTo(thatStruct.getFunctor())) {
         for (int li = 0; li < arity; li++) {
-          if (!thisStruct.getElement(li).dryEqu(thatStruct.getElement(li))) {
+          if (!thisStruct.getElement(li).dryUnifyTo(thatStruct.getElement(li))) {
             return false;
           }
         }

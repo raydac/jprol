@@ -160,7 +160,7 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public String getSourceLikeRepresentation() {
+  public String toSourceString() {
     if (isNullList()) {
       return "[]";
     }
@@ -175,13 +175,13 @@ public final class TermList extends TermStruct {
           builder.append(',');
         }
         final TermList asList = (TermList) list;
-        builder.append(asList.getHead().getSourceLikeRepresentation());
+        builder.append(asList.getHead().toSourceString());
         list = asList.getTail();
       } else {
         if (notfirst) {
           builder.append('|');
         }
-        builder.append(list.getSourceLikeRepresentation());
+        builder.append(list.toSourceString());
         break;
       }
       notfirst = true;
@@ -208,7 +208,7 @@ public final class TermList extends TermStruct {
 
   @Override
   public String getSignature() {
-    return getSourceLikeRepresentation();
+    return toSourceString();
   }
 
   @Override
@@ -244,7 +244,7 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public boolean Equ(final Term atom) {
+  public boolean unifyTo(final Term atom) {
     if (this == atom) {
       return true;
     }
@@ -258,7 +258,7 @@ public final class TermList extends TermStruct {
           return this.isNullList();
         }
 
-        return this.getHead().Equ(thatList.getHead()) && this.getTail().Equ(thatList.getTail());
+        return this.getHead().unifyTo(thatList.getHead()) && this.getTail().unifyTo(thatList.getTail());
       }
       case VAR: {
         final Var var = (Var) atom;
@@ -266,7 +266,7 @@ public final class TermList extends TermStruct {
         if (value == null) {
           return ((Var) atom).setValue(this);
         } else {
-          return Equ(value);
+          return unifyTo(value);
         }
       }
     }
@@ -274,7 +274,7 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public boolean dryEqu(Term atom) {
+  public boolean dryUnifyTo(Term atom) {
     if (this == atom) {
       return true;
     }
@@ -302,7 +302,7 @@ public final class TermList extends TermStruct {
         }
       }
 
-      return thisList.getHead().dryEqu(thatList.getHead()) && thisList.getTail().dryEqu(thatList.getTail());
+      return thisList.getHead().dryUnifyTo(thatList.getHead()) && thisList.getTail().dryUnifyTo(thatList.getTail());
     }
     return false;
   }

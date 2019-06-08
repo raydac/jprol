@@ -596,7 +596,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
     if (arg.getTermType() == VAR) {
       locker.lock();
       try {
-        return arg.Equ(getColorAsTerm(brushColor));
+        return arg.unifyTo(getColorAsTerm(brushColor));
       } finally {
         locker.unlock();
       }
@@ -639,7 +639,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
     if (arg.getTermType() == VAR) {
       locker.lock();
       try {
-        return arg.Equ(getColorAsTerm(penColor));
+        return arg.unifyTo(getColorAsTerm(penColor));
       } finally {
         locker.unlock();
       }
@@ -680,7 +680,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
       final TermInteger lpy = new TermInteger(lastPointY);
 
       if (elemX.getTermType() == VAR) {
-        if (!elemX.Equ(lpx)) {
+        if (!elemX.unifyTo(lpx)) {
           return false;
         }
       } else {
@@ -688,7 +688,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
       }
 
       if (elemY.getTermType() == VAR) {
-        if (!elemY.Equ(lpy)) {
+        if (!elemY.unifyTo(lpy)) {
           return false;
         }
       } else {
@@ -780,13 +780,13 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
       int height2 = heightOrig;
 
       if (width.getTermType() == VAR) {
-        width.Equ(new TermInteger(widthOrig));
+        width.unifyTo(new TermInteger(widthOrig));
       } else {
         width2 = ((TermInteger) width).getNumericValue().intValue();
       }
 
       if (height.getTermType() == VAR) {
-        height.Equ(new TermInteger(widthOrig));
+        height.unifyTo(new TermInteger(widthOrig));
       } else {
         height2 = ((TermInteger) height).getNumericValue().intValue();
       }

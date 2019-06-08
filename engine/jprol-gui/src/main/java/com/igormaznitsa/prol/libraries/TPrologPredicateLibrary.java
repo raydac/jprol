@@ -76,7 +76,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
     if (str.getTermType() == VAR) {
       if (file.isFile()) {
         try {
-          result = str.Equ(new Term(Utils.readFileAsUTF8Str(file)));
+          result = str.unifyTo(new Term(Utils.readFileAsUTF8Str(file)));
         } catch (IOException ex) {
           MainFrame.MAIN_FRAME_INSTANCE.get().addErrorText("Can't read file '" + file + "' : " + ex.getMessage());
         }
@@ -142,7 +142,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
 
     boolean result = false;
     if (choosenFile != null) {
-      result = selected.Equ(new Term(choosenFile.getName()));
+      result = selected.unifyTo(new Term(choosenFile.getName()));
     }
     return result;
   }
@@ -155,7 +155,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
     boolean result = false;
     try {
       if (thePath.getTermType() == VAR) {
-        return thePath.Equ(new Term(path.getCanonicalPath()));
+        return thePath.unifyTo(new Term(path.getCanonicalPath()));
       } else {
         final String str = thePath.getText();
         final File file = new File(str);

@@ -501,7 +501,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     if (rightPart == null) {
       return false;
     }
-    return leftPart.Equ((Term) rightPart);
+    return leftPart.unifyTo((Term) rightPart);
   }
 
   @Predicate(Signature = "true/0", Reference = "The perdicate is always true.")
@@ -528,7 +528,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   public static boolean predicateEQU(final Goal goal, final TermStruct predicate) {
     final Term left = predicate.getElement(0);
     final Term right = predicate.getElement(1);
-    return left.Equ(right);
+    return left.unifyTo(right);
   }
 
   @Predicate(Signature = "\\=/2", Reference = "Unify X and Y terms. It is true if X and Y are not-unifiable.")
@@ -536,7 +536,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   public static boolean predicateNOTEQU(final Goal goal, final TermStruct predicate) {
     final Term left = predicate.getElement(0);
     final Term right = predicate.getElement(1);
-    return !left.Equ(right);
+    return !left.unifyTo(right);
   }
 
   @Predicate(Signature = "!/0", Reference = "! is true. All choice ponts between the cut and the parent goal are removed. The effect is commit to use of both the current clause and the substitutions found at the point of the cut.")
@@ -594,8 +594,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
             bodyClause = TRUE;
           }
 
-          if (headClause.dryEqu(head) && bodyClause.dryEqu(body)) {
-            if (!(headClause.Equ(head) && bodyClause.Equ(body))) {
+          if (headClause.dryUnifyTo(head) && bodyClause.dryUnifyTo(body)) {
+            if (!(headClause.unifyTo(head) && bodyClause.unifyTo(body))) {
               throw new ProlCriticalError("Impossible state at clause/2 #982342");
             }
             return true;
@@ -696,7 +696,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       final Term specifierOfFound = new Term(last_operator.getTypeAsString());
       final Term nameOfFound = new Term(last_operator.getText());
 
-      if (!(predicate.getElement(0).Equ(priorityOfFound) && predicate.getElement(1).Equ(specifierOfFound) && predicate.getElement(2).Equ(nameOfFound))) {
+      if (!(predicate.getElement(0).unifyTo(priorityOfFound) && predicate.getElement(1).unifyTo(specifierOfFound) && predicate.getElement(2).unifyTo(nameOfFound))) {
         goal.noMoreVariants();
         goal.setAuxObject(null);
         return false;
@@ -773,7 +773,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     boolean result = false;
 
     if (nextResult != null) {
-      if (!argument.Equ(nextResult)) {
+      if (!argument.unifyTo(nextResult)) {
         throw new ProlCriticalError("Can't make equ for result of CALL");
       }
       if (currentgoal.isCompleted()) {
@@ -957,7 +957,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       if (elementIndex >= struct.getArity()) {
         return false;
       }
-      return element.Equ(struct.getElement(elementIndex));
+      return element.unifyTo(struct.getElement(elementIndex));
     } else {
       return false;
     }
@@ -973,13 +973,13 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     switch (argTerm.getTermType()) {
       case ATOM: {
         final Term arity = new TermInteger(0);
-        return argName.Equ(argTerm) && argArity.Equ(arity);
+        return argName.unifyTo(argTerm) && argArity.unifyTo(arity);
       }
       case STRUCT: {
         final TermStruct struct = (TermStruct) argTerm;
         final Term functor = new Term(struct.getFunctor().getText());
         final Term arity = new TermInteger(struct.getArity());
-        return argName.Equ(functor) && argArity.Equ(arity);
+        return argName.unifyTo(functor) && argArity.unifyTo(arity);
       }
       case LIST: {
         final TermList list = (TermList) argTerm;
@@ -994,7 +994,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
           arity = new TermInteger(2);
           name = TermList.LIST_FUNCTOR_AS_TERM;
         }
-        return argName.Equ(name) && argArity.Equ(arity);
+        return argName.unifyTo(name) && argArity.unifyTo(arity);
       }
       case VAR: {
         final int arity = ((TermInteger) argArity).getNumericValue().intValue();
@@ -1004,7 +1004,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
         if (argName instanceof NumericTerm) {
           if (arity == 0) {
-            return argTerm.Equ(argName);
+            return argTerm.unifyTo(argName);
           } else {
             throw new ProlTypeErrorException("atom", predicate);
           }
@@ -1021,7 +1021,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
         final TermStruct newStruct = new TermStruct(argName, elements);
 
-        return argTerm.Equ(newStruct);
+        return argTerm.unifyTo(newStruct);
       }
       default:
         throw new ProlCriticalError("Unsupported type found!");
@@ -1037,10 +1037,10 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     if (argRight.getTermType() != VAR) {
       Term atom = Utils.getListAsAtom(goal.getContext(), (TermList) argRight);
-      return argLeft.Equ(atom);
+      return argLeft.unifyTo(atom);
     } else {
       TermList lst = Utils.unrollTermIntoList(argLeft);
-      return argRight.Equ(lst);
+      return argRight.unifyTo(lst);
     }
   }
 
@@ -1148,12 +1148,12 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     switch (left.getTermType()) {
       case ATOM: {
         left = left.asCharList();
-        return left.Equ(right);
+        return left.unifyTo(right);
       }
       case LIST: {
         if (((TermList) left).isNullList()) {
           left = new Term("[]").asCharList();
-          return left.Equ(right);
+          return left.unifyTo(right);
         } else {
           throw new ProlTypeErrorException("atom", predicate);
         }
@@ -1177,7 +1177,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       }
 
       right = new Term(builder.toString());
-      return left.Equ(right);
+      return left.unifyTo(right);
     }
 
     return false;
@@ -1191,12 +1191,12 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     if (left.getTermType() == ATOM) {
       left = new TermInteger((int) left.getText().charAt(0));
-      return right.Equ(left);
+      return right.unifyTo(left);
     }
 
     if (right.getTermType() == ATOM) {
       right = new Term(Character.toString((char) ((TermInteger) right).getNumericValue().intValue()));
-      return left.Equ(right);
+      return left.unifyTo(right);
     }
 
     return false;
@@ -1210,7 +1210,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     if (left.getTermType() == ATOM && right.getTermType() == VAR) {
       left = left.toCharCodeList();
-      return left.Equ(right);
+      return left.unifyTo(right);
     }
 
     if (right.getTermType() == LIST) {
@@ -1247,7 +1247,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         }
       }
 
-      return left.Equ(number);
+      return left.unifyTo(number);
     }
 
     return false;
@@ -1303,12 +1303,12 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         }
       }
 
-      return left.Equ(number);
+      return left.unifyTo(number);
     }
 
     if (left.getTermType() == ATOM) {
       left = left.asCharList();
-      return left.Equ(right);
+      return left.unifyTo(right);
     }
 
     return false;
@@ -1365,13 +1365,13 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         result = array[RANDOMIZEGEN.nextInt(array.length)];
       }
 
-      return predicate.getElement(1).Equ(result);
+      return predicate.getElement(1).unifyTo(result);
 
     } else {
       final int limit = ((TermInteger) Utils.getTermFromElement(predicate.getElement(0))).getNumericValue().intValue();
 
       final TermInteger genVal = new TermInteger(RANDOMIZEGEN.nextInt(limit));
-      return predicate.getElement(1).Equ(genVal);
+      return predicate.getElement(1).unifyTo(genVal);
     }
   }
 
@@ -1382,7 +1382,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final Term right = Utils.getTermFromElement(predicate.getElement(1));
 
     left = new TermInteger(left.getTextLength());
-    return left.Equ(right);
+    return left.unifyTo(right);
   }
 
   @Predicate(Signature = "atom_codes/2", Template = {"+atom,?character_code_list", "?atom,+list"}, Reference = "atom_codes(Atom, List) succeeds if and only if List is a list whose elements are the character codes that in order correspond to the characters that make up  Atom.")
@@ -1394,12 +1394,12 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     switch (left.getTermType()) {
       case ATOM: {
         left = left.toCharCodeList();
-        return left.Equ(right);
+        return left.unifyTo(right);
       }
       case LIST: {
         if (((TermList) left).isNullList()) {
           left = new Term("[]").toCharCodeList();
-          return left.Equ(right);
+          return left.unifyTo(right);
         } else {
           throw new ProlTypeErrorException("atom", predicate);
         }
@@ -1409,7 +1409,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     if (left.getTermType() == ATOM) {
       left = left.toCharCodeList();
 
-      return left.Equ(right);
+      return left.unifyTo(right);
     }
 
     if (right.getTermType() == LIST) {
@@ -1434,7 +1434,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       }
 
       right = new Term(builder.toString());
-      return left.Equ(right);
+      return left.unifyTo(right);
     }
 
     return false;
@@ -1478,7 +1478,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     Arrays.sort(bufferarray, Utils.TERM_COMPARATOR);
     final TermList sortedList = Utils.arrayToList(bufferarray);
 
-    return sorted.Equ(sortedList);
+    return sorted.unifyTo(sortedList);
   }
 
   @Predicate(Signature = "findall/3", Template = {"?term,+callable_term,?list"}, Reference = "Creates  a list of the instantiations Template gets  successively on backtracking  over Goal and unifies the  result with Bag.")
@@ -1504,7 +1504,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       final Term pgoalCopy = pgoal.makeClone();
       Utils.arrangeVariablesInsideTerms(templateCopy, pgoalCopy);
 
-      if (pgoalCopy.Equ(nextTemplate)) {
+      if (pgoalCopy.unifyTo(nextTemplate)) {
         // good, add to the list
         if (result == null) {
           // first
@@ -1523,7 +1523,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       result = TermList.NULLLIST;
     }
 
-    return instances.Equ(result);
+    return instances.unifyTo(result);
   }
 
   @Predicate(Signature = "bagof/3", Template = {"?term,+callable_term,?list"}, Reference = "Unify Bag with the alternatives of Template. If Goal has free variables besides the one sharing with Template, bagof/3 will backtrack over the alternatives of these free variables, unifying Bag with the corresponding alternatives of Template. The construct +Var^Goal tells bagof/3 not to bind Var in Goal. bagof/3 fails if Goal has no solutions.")
@@ -1548,7 +1548,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         this.vars.keySet().forEach(name -> {
           final Var thatvar = goal.getVarForName(name);
           if (thatvar != null) {
-            thatvar.Equ(this.vars.get(name));
+            thatvar.unifyTo(this.vars.get(name));
           }
         });
       }
@@ -1568,7 +1568,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         if (that instanceof BofKey && ((BofKey) that).vars.size() == this.vars.size()) {
           final BofKey thatKey = (BofKey) that;
           result = this.vars.entrySet().stream()
-              .allMatch(e -> thatKey.vars.containsKey(e.getKey()) && thatKey.vars.get(e.getKey()).dryEqu(e.getValue()));
+              .allMatch(e -> thatKey.vars.containsKey(e.getKey()) && thatKey.vars.get(e.getKey()).dryUnifyTo(e.getValue()));
         }
         return result;
       }
@@ -1616,7 +1616,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         final Term pgoalCopy = processingGoal.makeClone();
         Utils.arrangeVariablesInsideTerms(templateCopy, pgoalCopy);
 
-        if (pgoalCopy.Equ(nextTemplate)) {
+        if (pgoalCopy.unifyTo(nextTemplate)) {
           final BofKey thekey = new BofKey(find_goal, excludedVars);
           final TermList resultList;
           if (preparedMap.containsKey(thekey)) {
@@ -1639,7 +1639,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     } else {
       final BofKey firstKey = preparedMap.keySet().stream().findFirst().get();
       final TermList list = preparedMap.remove(firstKey);
-      if (instances.Equ(list)) {
+      if (instances.unifyTo(list)) {
         firstKey.restoreVarValues(goal);
         return true;
       } else {
@@ -1670,7 +1670,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         this.vars.keySet().forEach(name -> {
           final Var thatvar = goal.getVarForName(name);
           if (thatvar != null) {
-            thatvar.Equ(this.vars.get(name));
+            thatvar.unifyTo(this.vars.get(name));
           }
         });
       }
@@ -1690,7 +1690,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         if (that instanceof SofKey && ((SofKey) that).vars.size() == this.vars.size()) {
           final SofKey thatKey = (SofKey) that;
           result = this.vars.entrySet().stream()
-              .allMatch(e -> thatKey.vars.containsKey(e.getKey()) && thatKey.vars.get(e.getKey()).dryEqu(e.getValue()));
+              .allMatch(e -> thatKey.vars.containsKey(e.getKey()) && thatKey.vars.get(e.getKey()).dryUnifyTo(e.getValue()));
         }
         return result;
       }
@@ -1738,7 +1738,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         final Term pgoalCopy = processingGoal.makeClone();
         Utils.arrangeVariablesInsideTerms(templateCopy, pgoalCopy);
 
-        if (pgoalCopy.Equ(nextTemplate)) {
+        if (pgoalCopy.unifyTo(nextTemplate)) {
           final SofKey thekey = new SofKey(find_goal, excludedVars);
           final TermList resultList;
           if (preparedMap.containsKey(thekey)) {
@@ -1775,7 +1775,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     } else {
       final SofKey firstKey = preparedMap.keySet().stream().findFirst().get();
       final TermList list = preparedMap.remove(firstKey);
-      if (instances.Equ(list)) {
+      if (instances.unifyTo(list)) {
         firstKey.restoreVarValues(goal);
         return true;
       } else {
@@ -1931,7 +1931,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         }
       } catch (ProlAbstractCatcheableException ex) {
         // exception was thrown
-        if (catcher.Equ(ex.getAsStruct())) {
+        if (catcher.unifyTo(ex.getAsStruct())) {
           catchGoal = new Goal(solver, goal.getContext(), goal.getTracer());
           goal.setAuxObject(catchGoal);
           final Term result = catchGoal.solve();
@@ -2051,8 +2051,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     } else if (origterm.getTermType() == ATOM) {
       result = true;
     } else {
-      if (!origterm.Equ(nextFact)) {
-        throw new ProlCriticalError("Critical error, not Equ!");
+      if (!origterm.unifyTo(nextFact)) {
+        throw new ProlCriticalError("Critical error, not unifyTo!");
       }
       result = true;
     }
@@ -2112,9 +2112,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
           if (term.getTermType() == STRUCT) {
             final TermStruct ruleClone = (TermStruct) ruleAuxObject.rule.makeClone();
-            if (!term.Equ(ruleClone.getElement(0))) {
+            if (!term.unifyTo(ruleClone.getElement(0))) {
               // error critical situation
-              throw new ProlCriticalError("Can't make Equ, impossible case!");
+              throw new ProlCriticalError("Can't make unifyTo, impossible case!");
             }
           }
 
@@ -2273,7 +2273,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
           result = false;
           break;
         } else {
-          if (!head.Equ(resultOfTask)) {
+          if (!head.unifyTo(resultOfTask)) {
             final ProlCriticalError err = new ProlCriticalError("Impossible situation, the proven fork task goal is not equal the etalon task goal.");
             LOG.throwing(ProlCoreLibrary.class.getCanonicalName(), "fork/1", err);
             throw err;
@@ -2367,7 +2367,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
               // check the result
               final int threadindex = completedIndex;
               final Term originalGoal = parsedgoal[threadindex];
-              if (!originalGoal.Equ(resultterm)) {
+              if (!originalGoal.unifyTo(resultterm)) {
                 final ProlCriticalError err = new ProlCriticalError("Impossible situation, the proven fork task goal is not equal the etalon task goal. [index=" + threadindex + ']');
                 LOG.throwing(ProlCoreLibrary.class.getCanonicalName(), "ifork/1", err);
                 throw err;
@@ -2478,7 +2478,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   public final boolean predicateCOPYTERM(final Goal goal, final TermStruct predicate) {
     final Term left = Utils.getTermFromElement(predicate.getElement(0)).makeClone();
     final Term right = Utils.getTermFromElement(predicate.getElement(1));
-    return right.Equ(left);
+    return right.unifyTo(left);
   }
 
   @Predicate(Signature = "time/1", Template = "+callable_term", Reference = "Execute  Goal just but  print used time, It supports choice point (!) for inside goal.")
@@ -2520,7 +2520,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final TermInteger seconds = new TermInteger(date.get(Calendar.SECOND));
     final TermInteger milliseconds = new TermInteger(date.get(Calendar.MILLISECOND));
 
-    return predicate.getElement(0).Equ(hours) && predicate.getElement(1).Equ(minutes) && predicate.getElement(2).Equ(seconds) && predicate.getElement(3).Equ(milliseconds);
+    return predicate.getElement(0).unifyTo(hours) && predicate.getElement(1).unifyTo(minutes) && predicate.getElement(2).unifyTo(seconds) && predicate.getElement(3).unifyTo(milliseconds);
   }
 
   @Predicate(Signature = "date/3", Template = {"?integer,?integer,?integer"}, Reference = "Get current date Year, Month, Day. The January is 1st month")
@@ -2531,7 +2531,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final TermInteger month = new TermInteger(date.get(Calendar.MONTH) + 1);
     final TermInteger day = new TermInteger(date.get(Calendar.DAY_OF_MONTH));
 
-    return predicate.getElement(0).Equ(year) && predicate.getElement(1).Equ(month) && predicate.getElement(2).Equ(day);
+    return predicate.getElement(0).unifyTo(year) && predicate.getElement(1).unifyTo(month) && predicate.getElement(2).unifyTo(day);
   }
 
   @Predicate(Signature = "write/1", Reference = "Write a term into the current output stream.")
@@ -2573,7 +2573,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     }
     try {
       final Term nextchar = inStream.readChar();
-      return arg.Equ(nextchar);
+      return arg.unifyTo(nextchar);
     } catch (IOException ex) {
       throw new ProlPermissionErrorException("write", "text_output", predicate, ex);
     }
@@ -2594,7 +2594,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         if (num >= 0 && Character.isSpaceChar((char) num)) {
           continue;
         }
-        return arg.Equ(nextchar);
+        return arg.unifyTo(nextchar);
       }
     } catch (IOException ex) {
       throw new ProlPermissionErrorException("write", "text_output", predicate, ex);
@@ -2616,7 +2616,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       if (term == null) {
         term = ProlStream.END_OF_FILE;
       }
-      return arg.Equ(term);
+      return arg.unifyTo(term);
     } catch (IOException ex) {
       throw new ProlPermissionErrorException("read", "text_input", predicate, ex);
     }
@@ -2689,7 +2689,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Determined
   public final boolean predicateReadLn(final Goal goal, final TermStruct predicate) {
     final Term arg = Utils.getTermFromElement(predicate.getElement(0));
-    return arg.Equ(new Term(readFromCurrentInputStreamUntilNL(goal, predicate)));
+    return arg.unifyTo(new Term(readFromCurrentInputStreamUntilNL(goal, predicate)));
   }
 
   @Predicate(Signature = "readint/1", Reference = " Read  an integer number (and ignore white space) until NL symbol from the current input stream as an integer atom or the end_of_file atom. It sypports backspace to remove last symbol from buffer. If the input string can't be converted to an integer atom, the predicate will return false.")
@@ -2707,7 +2707,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         return false;
       }
     }
-    return arg.Equ(term);
+    return arg.unifyTo(term);
   }
 
   @Predicate(Signature = "readchar/1", Reference = " Read  char from the current input stream as an integer atom or the end_of_file atom")
@@ -2716,7 +2716,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final Term arg = Utils.getTermFromElement(predicate.getElement(0));
     final TermInteger value = readChar(goal, predicate);
     Term term = value.getValue() < 0 ? ProlStream.END_OF_FILE : value;
-    return arg.Equ(term);
+    return arg.unifyTo(term);
   }
 
   @Predicate(Signature = "readreal/1", Reference = " Read  an real number (and ignore white space) until NL symbol from the current input stream as an real atom or the end_of_file atom. It sypports backspace to remove last symbol from buffer. If the input string can't be converted to a real atom, the predicate will return false.")
@@ -2734,7 +2734,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         return false;
       }
     }
-    return arg.Equ(term);
+    return arg.unifyTo(term);
   }
 
   @Predicate(Signature = "see/1", Template = "+atom", Reference = "Open SrcDest for reading and make it the current input")
@@ -2772,7 +2772,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     if (inStream != null) {
       result = new Term(inStream.getResourceId());
     }
-    return arg.Equ(result);
+    return arg.unifyTo(result);
   }
 
   @Predicate(Signature = "telling/1", Template = "?term", Reference = "Return the current output stream name.")
@@ -2784,7 +2784,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     if (outStream != null) {
       result = new Term(outStream.getResourceId());
     }
-    return arg.Equ(result);
+    return arg.unifyTo(result);
   }
 
   @Predicate(Signature = "told/0", Reference = "Close the current output stream.")

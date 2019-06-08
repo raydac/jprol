@@ -296,7 +296,7 @@ public final class Utils {
         final String name = term.getText();
         if (variables.containsKey(name)) {
           final Var var = variables.get(name);
-          term.Equ(var);
+          term.unifyTo(var);
         } else {
           variables.put(name, (Var) term);
         }
@@ -406,7 +406,7 @@ public final class Utils {
   }
 
   public static void printTermState(final PrintStream out, final Term term) {
-    out.println(term.getSourceLikeRepresentation());
+    out.println(term.toSourceString());
 
     final Map<String, Var> vars = Utils.fillTableWithVars(term);
 

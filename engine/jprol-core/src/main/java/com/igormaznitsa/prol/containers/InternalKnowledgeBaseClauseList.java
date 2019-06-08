@@ -145,9 +145,9 @@ final class InternalKnowledgeBaseClauseList {
 
       final Term keyTerm = sinceContainer.getKeyTerm();
 
-      if (keyTerm.dryEqu(template)) {
+      if (keyTerm.dryUnifyTo(template)) {
         // looks similar but we need to check a bit deeper to be ensure
-        if (template.makeClone().Equ(keyTerm.makeClone())) {
+        if (template.makeClone().unifyTo(keyTerm.makeClone())) {
           result = sinceContainer;
           break;
         }
@@ -169,9 +169,9 @@ final class InternalKnowledgeBaseClauseList {
 
     while (sinceContainer != null) {
       final Term keyterm = sinceContainer.getKeyTerm();
-      if (keyterm.dryEqu(template)) {
+      if (keyterm.dryUnifyTo(template)) {
         // check deeper because equWithoutSet is not precise for speed
-        if (keyterm.makeClone().Equ(template.makeClone())) {
+        if (keyterm.makeClone().unifyTo(template.makeClone())) {
           result = sinceContainer;
           break;
         }
@@ -190,7 +190,7 @@ final class InternalKnowledgeBaseClauseList {
       if (item == null) {
         break;
       }
-      writer.write(String.format("%s.%n", item.getClause().getSourceLikeRepresentation()));
+      writer.write(String.format("%s.%n", item.getClause().toSourceString()));
       item = item.getNext();
     }
     writer.println();

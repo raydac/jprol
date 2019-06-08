@@ -181,7 +181,7 @@ public final class Operator extends Term {
   }
 
   @Override
-  public String getSourceLikeRepresentation() {
+  public String toSourceString() {
     return getText();
   }
 
@@ -218,7 +218,7 @@ public final class Operator extends Term {
   }
 
   @Override
-  public boolean Equ(final Term atom) {
+  public boolean unifyTo(final Term atom) {
     if (this == atom) {
       return true;
     }
@@ -236,7 +236,7 @@ public final class Operator extends Term {
         if (value == null) {
           return ((Var) atom).setValue(this);
         } else {
-          return Equ(value);
+          return unifyTo(value);
         }
       }
     }

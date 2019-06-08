@@ -25,25 +25,28 @@ import static com.igormaznitsa.prol.data.TermType.VAR;
 
 public final class Var extends Term {
 
-  private static final AtomicInteger VAR_COUNTER_ANONYM = new AtomicInteger(0);
-  private static final AtomicInteger VAR_COUNTER_UID = new AtomicInteger(0);
-  private final int variableUID;
+  private static final AtomicInteger ANONYM_GENERATOR = new AtomicInteger(0);
+  private static final AtomicInteger UID_GENERATOR = new AtomicInteger(0);
+  private final int uid;
+  private final boolean anonymous;
+  private volatile Term value;
 
-  private Term value;
-  private boolean anonymous;
+  private Var(final String name, final boolean anonymous) {
+    super(name);
+    this.uid = UID_GENERATOR.incrementAndGet();
+    this.anonymous = anonymous;
+  }
 
   public Var(final String name) {
-    super(name);
-    variableUID = VAR_COUNTER_UID.incrementAndGet();
+    this(name, false);
   }
 
   public Var() {
-    this("_$" + Long.toHexString(VAR_COUNTER_ANONYM.incrementAndGet()));
-    anonymous = true;
+    this("_$" + Long.toHexString(ANONYM_GENERATOR.incrementAndGet()), true);
   }
 
   public final int getVarUID() {
-    return variableUID;
+    return uid;
   }
 
   @Override
@@ -162,7 +165,7 @@ public final class Var extends Term {
         if (curValue == null) {
           ((Var) this.value).setValue(value);
         } else {
-          result = curValue.Equ(value);
+          result = curValue.unifyTo(value);
         }
       }
     }
@@ -179,7 +182,7 @@ public final class Var extends Term {
   }
 
   @Override
-  public String getSourceLikeRepresentation() {
+  public String toSourceString() {
     String result = "_";
     if (!isAnonymous()) {
       result = getText();
@@ -212,7 +215,7 @@ public final class Var extends Term {
     final StringBuilder builder = new StringBuilder();
     final Term val = getValue();
     if (val == null) {
-      builder.append(isAnonymous() ? '_' : getText());//.append("{uid=").append(variableUID).append('}');
+      builder.append(isAnonymous() ? '_' : getText());//.append("{uid=").append(uid).append('}');
     } else {
       builder.append(val.toString());
     }
@@ -247,7 +250,7 @@ public final class Var extends Term {
 
   @Override
   public int hashCode() {
-    return variableUID;
+    return uid;
   }
 
   @Override
@@ -260,7 +263,7 @@ public final class Var extends Term {
     }
     if (obj.getClass() == Var.class) {
       final Var that = (Var) obj;
-      return (variableUID == that.variableUID && that.getText().hashCode() == getText().hashCode());
+      return (uid == that.uid && that.getText().hashCode() == getText().hashCode());
     }
     return false;
   }
@@ -285,26 +288,26 @@ public final class Var extends Term {
   }
 
   @Override
-  public boolean Equ(final Term atom) {
+  public boolean unifyTo(final Term atom) {
     boolean result = true;
     if (this != atom) {
       final Term val = getValue();
       if (val == null) {
         result = setValue(atom);
       } else {
-        result = val.Equ(atom);
+        result = val.unifyTo(atom);
       }
     }
     return result;
   }
 
   @Override
-  public boolean dryEqu(final Term atom) {
+  public boolean dryUnifyTo(final Term atom) {
     boolean result = true;
     if (this != atom) {
       final Term val = getValue();
       if (val != null) {
-        result = val.dryEqu(atom);
+        result = val.dryUnifyTo(atom);
       }
     }
     return result;
