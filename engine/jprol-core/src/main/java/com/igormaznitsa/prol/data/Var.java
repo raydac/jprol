@@ -182,7 +182,7 @@ public final class Var extends Term {
   }
 
   @Override
-  public String toSourceString() {
+  public String toSrcString() {
     String result = "_";
     if (!isAnonymous()) {
       result = getText();
@@ -203,7 +203,7 @@ public final class Var extends Term {
   }
 
   @Override
-  public boolean isAllVariablesInstantiated() {
+  public boolean isBounded() {
     if (isAnonymous()) {
       return true;
     }
@@ -314,7 +314,7 @@ public final class Var extends Term {
   }
 
   @Override
-  public int termComparsion(Term atom) {
+  public int compareTermTo(Term atom) {
     if (this == atom) {
       return 0;
     }
@@ -335,7 +335,7 @@ public final class Var extends Term {
 
       }
     } else {
-      result = thisAtom.termComparsion(atom);
+      result = thisAtom.compareTermTo(atom);
     }
     return result;
   }

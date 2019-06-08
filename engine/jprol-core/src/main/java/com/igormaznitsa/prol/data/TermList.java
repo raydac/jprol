@@ -115,11 +115,11 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public boolean isAllVariablesInstantiated() {
+  public boolean isBounded() {
     if (isNullList()) {
       return true;
     }
-    return this.stream().allMatch(Term::isAllVariablesInstantiated);
+    return this.stream().allMatch(Term::isBounded);
   }
 
   @Override
@@ -160,7 +160,7 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public String toSourceString() {
+  public String toSrcString() {
     if (isNullList()) {
       return "[]";
     }
@@ -175,13 +175,13 @@ public final class TermList extends TermStruct {
           builder.append(',');
         }
         final TermList asList = (TermList) list;
-        builder.append(asList.getHead().toSourceString());
+        builder.append(asList.getHead().toSrcString());
         list = asList.getTail();
       } else {
         if (notfirst) {
           builder.append('|');
         }
-        builder.append(list.toSourceString());
+        builder.append(list.toSrcString());
         break;
       }
       notfirst = true;
@@ -208,7 +208,7 @@ public final class TermList extends TermStruct {
 
   @Override
   public String getSignature() {
-    return toSourceString();
+    return toSrcString();
   }
 
   @Override
@@ -308,7 +308,7 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public int termComparsion(Term atom) {
+  public int compareTermTo(Term atom) {
     if (this == atom) {
       return 0;
     }
@@ -336,12 +336,12 @@ public final class TermList extends TermStruct {
         final Term thisHead = thisList.getHead();
         final Term thatHead = thatList.getHead();
 
-        int result = thisHead.termComparsion(thatHead);
+        int result = thisHead.compareTermTo(thatHead);
         if (result != 0) {
           return result;
         }
 
-        return thisList.getTail().termComparsion(thatList.getTail());
+        return thisList.getTail().compareTermTo(thatList.getTail());
       }
       default:
         return 1;

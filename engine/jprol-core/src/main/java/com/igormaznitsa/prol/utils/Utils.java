@@ -36,7 +36,7 @@ import static com.igormaznitsa.prol.data.TermType.*;
 
 public final class Utils {
 
-  public static final Comparator<Term> TERM_COMPARATOR = Term::termComparsion;
+  public static final Comparator<Term> TERM_COMPARATOR = Term::compareTermTo;
 
   // hide the constructor
   private Utils() {
@@ -406,7 +406,7 @@ public final class Utils {
   }
 
   public static void printTermState(final PrintStream out, final Term term) {
-    out.println(term.toSourceString());
+    out.println(term.toSrcString());
 
     final Map<String, Var> vars = Utils.fillTableWithVars(term);
 
@@ -425,7 +425,7 @@ public final class Utils {
     }
   }
 
-  public static String encodeTextSourceLike(final String string) {
+  public static String escapeSrc(final String string) {
 
     if (string.length() == 0) {
       return string;

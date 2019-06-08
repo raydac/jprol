@@ -123,7 +123,7 @@ public final class TermInteger extends Term implements NumericTerm {
   }
 
   @Override
-  public String toSourceString() {
+  public String toSrcString() {
     return Integer.toString(intValue);
   }
 
@@ -203,7 +203,7 @@ public final class TermInteger extends Term implements NumericTerm {
   }
 
   @Override
-  public int termComparsion(Term atom) {
+  public int compareTermTo(Term atom) {
     if (this == atom) {
       return 0;
     }

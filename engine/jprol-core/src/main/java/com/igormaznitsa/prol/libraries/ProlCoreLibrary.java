@@ -117,37 +117,37 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "@</2", Template = {"?term,?term"}, Reference = "Term less than")
   @Determined
   public static boolean predicateTermLess(final Goal goal, final TermStruct predicate) {
-    return predicate.getElement(0).termComparsion(predicate.getElement(1)) < 0;
+    return predicate.getElement(0).compareTermTo(predicate.getElement(1)) < 0;
   }
 
   @Predicate(Signature = "@=</2", Template = {"?term,?term"}, Reference = "Term less than or equal to.")
   @Determined
   public static boolean predicateTermLessOrEqu(final Goal goal, final TermStruct predicate) {
-    return predicate.getElement(0).termComparsion(predicate.getElement(1)) <= 0;
+    return predicate.getElement(0).compareTermTo(predicate.getElement(1)) <= 0;
   }
 
   @Predicate(Signature = "@>/2", Template = {"?term,?term"}, Reference = "Term greater than")
   @Determined
   public static boolean predicateTermMore(final Goal goal, final TermStruct predicate) {
-    return predicate.getElement(0).termComparsion(predicate.getElement(1)) > 0;
+    return predicate.getElement(0).compareTermTo(predicate.getElement(1)) > 0;
   }
 
   @Predicate(Signature = "@>=/2", Template = {"?term,?term"}, Reference = "Term greater than or equal to.")
   @Determined
   public static boolean predicateTermMoreOrEqu(final Goal goal, final TermStruct predicate) {
-    return predicate.getElement(0).termComparsion(predicate.getElement(1)) >= 0;
+    return predicate.getElement(0).compareTermTo(predicate.getElement(1)) >= 0;
   }
 
   @Predicate(Signature = "==/2", Template = {"?term,?term"}, Reference = "Term identical")
   @Determined
   public static boolean predicateTermEqu(final Goal goal, final TermStruct predicate) {
-    return predicate.getElement(0).termComparsion(predicate.getElement(1)) == 0;
+    return predicate.getElement(0).compareTermTo(predicate.getElement(1)) == 0;
   }
 
   @Predicate(Signature = "\\==/2", Template = {"?term,?term"}, Reference = "Term not identical")
   @Determined
   public static boolean predicateNotTermEqu(final Goal goal, final TermStruct predicate) {
-    return predicate.getElement(0).termComparsion(predicate.getElement(1)) != 0;
+    return predicate.getElement(0).compareTermTo(predicate.getElement(1)) != 0;
   }
 
   @Predicate(Signature = ">/2", Template = {"@evaluable,@evaluable"}, Reference = "Arithmetic greater than")
@@ -1147,12 +1147,12 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     switch (left.getTermType()) {
       case ATOM: {
-        left = left.asCharList();
+        left = left.toCharList();
         return left.unifyTo(right);
       }
       case LIST: {
         if (((TermList) left).isNullList()) {
-          left = new Term("[]").asCharList();
+          left = new Term("[]").toCharList();
           return left.unifyTo(right);
         } else {
           throw new ProlTypeErrorException("atom", predicate);
@@ -1307,7 +1307,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     }
 
     if (left.getTermType() == ATOM) {
-      left = left.asCharList();
+      left = left.toCharList();
       return left.unifyTo(right);
     }
 

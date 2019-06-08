@@ -181,7 +181,7 @@ public final class Operator extends Term {
   }
 
   @Override
-  public String toSourceString() {
+  public String toSrcString() {
     return getText();
   }
 

@@ -126,7 +126,7 @@ public final class TermFloat extends Term implements NumericTerm {
   }
 
   @Override
-  public String toSourceString() {
+  public String toSrcString() {
     String text = getText();
     if (text.indexOf('.') < 0) {
       text += ".0";
@@ -185,7 +185,7 @@ public final class TermFloat extends Term implements NumericTerm {
   }
 
   @Override
-  public int termComparsion(Term atom) {
+  public int compareTermTo(Term atom) {
     if (this == atom) {
       return 0;
     }

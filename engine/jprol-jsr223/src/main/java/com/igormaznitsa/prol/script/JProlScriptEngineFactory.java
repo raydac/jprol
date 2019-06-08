@@ -96,7 +96,7 @@ public final class JProlScriptEngineFactory implements ScriptEngineFactory {
 
   @Override
   public String getOutputStatement(final String toDisplay) {
-    return String.format("write(%s)", new Term(toDisplay).toSourceString());
+    return String.format("write(%s)", new Term(toDisplay).toSrcString());
   }
 
   @Override

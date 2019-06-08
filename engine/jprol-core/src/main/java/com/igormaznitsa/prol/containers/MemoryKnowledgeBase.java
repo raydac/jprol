@@ -277,7 +277,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
       return result;
 
     } catch (IllegalArgumentException ex) {
-      throw new ProlKnowledgeBaseException("You can't add such atom into the base [" + clause.toSourceString() + ']', ex);
+      throw new ProlKnowledgeBaseException("You can't add such atom into the base [" + clause.toSrcString() + ']', ex);
     }
   }
 

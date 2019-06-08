@@ -141,16 +141,16 @@ final class VariableStateSnapshot {
       } else {
         if (value.getTermType() == VAR) {
           if (value.isUndefined()) {
-            valueTxt = value.toSourceString() + '{' + value.getVarUID() + '}';
+            valueTxt = value.toSrcString() + '{' + value.getVarUID() + '}';
           } else {
-            valueTxt = value.toSourceString() + '{' + value.getVarUID() + '}' + '[' + value.getValue().toString() + ']';
+            valueTxt = value.toSrcString() + '{' + value.getVarUID() + '}' + '[' + value.getValue().toString() + ']';
           }
         } else {
           valueTxt = value.forWrite();
         }
       }
 
-      buffer.append(value == null ? valueTxt : value.toSourceString()).append('{').append(value == null ? "<NULL>" : value.getVarUID()).append('}').append('=').append(valueTxt);
+      buffer.append(value == null ? valueTxt : value.toSrcString()).append('{').append(value == null ? "<NULL>" : value.getVarUID()).append('}').append('=').append(valueTxt);
     }
     buffer.append(']');
     return buffer.toString();

@@ -190,7 +190,7 @@ final class InternalKnowledgeBaseClauseList {
       if (item == null) {
         break;
       }
-      writer.write(String.format("%s.%n", item.getClause().toSourceString()));
+      writer.write(String.format("%s.%n", item.getClause().toSrcString()));
       item = item.getNext();
     }
     writer.println();
