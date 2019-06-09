@@ -620,11 +620,21 @@ public class PredicateTemplate {
       case PREDICATE_INDICATOR: {
         if (checkAtom != null) {
           boolean error = true;
-          switch (checkAtom.getTermType()) {
-            case STRUCT: {
-              error = Utils.extractPredicateSignatureFromStructure(checkAtom) == null;
+          if (checkAtom.getTermType() == STRUCT) {
+            final TermStruct struct = (TermStruct) checkAtom;
+            if (struct.getArity() == 2 && "/".equals(struct.getFunctor().getText())) {
+              final Term left = struct.getElement(0);
+              final Term right = struct.getElement(1);
+
+              final boolean leftIsCorrect = (left.getTermType() == ATOM && left.getClass() == Term.class)
+                  || (left.getTermType() == STRUCT && ((TermStruct) left).getArity() == 0)
+                  || (left.getTermType() == VAR && !left.isBounded());
+
+              final boolean rightIsCorrect = (right.getTermType() == ATOM && right.getClass() == TermInteger.class)
+                  || (right.getTermType() == VAR && !right.isBounded());
+
+              error = !(leftIsCorrect && rightIsCorrect);
             }
-            break;
           }
 
           if (error) {

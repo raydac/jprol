@@ -588,14 +588,26 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  @Ignore
   public void testCurrentPredicate() throws Exception {
-    //TODO current_predicate/1
+    final Goal goal = prepareGoal("current_predicate(halt/X).");
+    assertNotNull(goal.solve());
+    assertEquals(0, goal.getVarAsNumber("X"));
+    assertNotNull(goal.solve());
+    assertEquals(1, goal.getVarAsNumber("X"));
+    assertNull(goal.solve());
+
     //[current_predicate(current_predicate/1), failure].
+    checkOnce("current_predicate(current_predicate/2).", false);
     //[current_predicate(run_tests/1), success].
+    checkOnce("current_predicate(atom/1).", true);
     //[current_predicate(4), type_error(predicate_indicator, 4)].
+    checkException("current_predicate(4).");
     //[current_predicate(dog), type_error(predicate_indicator, dog)].
+    checkException("current_predicate(dog).");
     //[current_predicate(0/dog), type_error(predicate_indicator, 0/dog)].
+    checkException("current_predicate(0/dog).");
+
+    checkOnce("current_predicate(current_predicate/3).", false);
   }
 
   @Test

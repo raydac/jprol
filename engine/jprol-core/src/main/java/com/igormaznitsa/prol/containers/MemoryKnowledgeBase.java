@@ -18,6 +18,7 @@ package com.igormaznitsa.prol.containers;
 
 import com.igormaznitsa.prol.data.Operator;
 import com.igormaznitsa.prol.data.Term;
+import com.igormaznitsa.prol.data.TermInteger;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.exceptions.ProlKnowledgeBaseException;
 import com.igormaznitsa.prol.logic.ProlContext;
@@ -28,8 +29,10 @@ import java.io.PrintWriter;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 import static com.igormaznitsa.prol.data.TermType.ATOM;
+import static java.lang.Integer.parseInt;
 
 public final class MemoryKnowledgeBase implements KnowledgeBase {
 
@@ -342,10 +345,29 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public List<TermStruct> findAllForSignature(final String signature) {
-    final ReentrantLock lockerPred = this.predicateLocker;
+  public List<TermStruct> findAllForPredicateIndicator(final TermStruct predicateIndicator) {
+    this.predicateLocker.lock();
+    try {
+      return this.predicateTable.keySet()
+          .stream()
+          .map(key -> {
+            final int index = key.lastIndexOf('/');
+            return new TermStruct("/",
+                new Term[] {
+                    new Term(key.substring(0, index)),
+                    new TermInteger(parseInt(key.substring(index + 1)))
+                });
+          })
+          .filter(k -> predicateIndicator == null || predicateIndicator.dryUnifyTo(k))
+          .collect(Collectors.toList());
+    } finally {
+      this.predicateLocker.unlock();
+    }
+  }
 
-    lockerPred.lock();
+  @Override
+  public List<TermStruct> findAllForSignature(final String signature) {
+    this.predicateLocker.lock();
     try {
       final InternalKnowledgeBaseClauseList list = this.predicateTable.get(signature);
 
@@ -355,7 +377,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
         return list.asList();
       }
     } finally {
-      lockerPred.unlock();
+      this.predicateLocker.unlock();
     }
   }
 

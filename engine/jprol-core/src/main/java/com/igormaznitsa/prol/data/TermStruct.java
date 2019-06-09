@@ -395,6 +395,9 @@ public class TermStruct extends Term {
           return value.unifyTo(this);
         }
       }
+      case ATOM: {
+        return this.getArity() == 0 && this.getFunctor().getText().equals(atom.getText());
+      }
     }
     return false;
   }
@@ -449,6 +452,8 @@ public class TermStruct extends Term {
         }
         return true;
       }
+    } else if (this.getArity() == 0 && atom.getTermType() == ATOM) {
+      return this.getFunctor().getText().equals(atom.getText());
     }
     return false;
   }

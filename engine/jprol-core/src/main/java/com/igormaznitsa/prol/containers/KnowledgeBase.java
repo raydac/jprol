@@ -48,6 +48,8 @@ public interface KnowledgeBase {
 
   ClauseIterator getClauseIterator(TermStruct template);
 
+  List<TermStruct> findAllForPredicateIndicator(final TermStruct predicateIndicator);
+
   List<TermStruct> findAllForSignature(final String signature);
 
   boolean assertZ(TermStruct clause);

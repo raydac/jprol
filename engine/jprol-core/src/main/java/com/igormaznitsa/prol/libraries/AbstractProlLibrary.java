@@ -22,6 +22,8 @@ import com.igormaznitsa.prol.annotations.ProlOperator;
 import com.igormaznitsa.prol.annotations.ProlOperators;
 import com.igormaznitsa.prol.containers.OperatorContainer;
 import com.igormaznitsa.prol.data.Operator;
+import com.igormaznitsa.prol.data.Term;
+import com.igormaznitsa.prol.data.TermInteger;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 import com.igormaznitsa.prol.logic.ProlContext;
@@ -29,6 +31,9 @@ import com.igormaznitsa.prol.utils.Utils;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.lang.Integer.parseInt;
 
 public abstract class AbstractProlLibrary {
 
@@ -48,6 +53,21 @@ public abstract class AbstractProlLibrary {
     final Set<String> zeroArityPredicates = new HashSet<>();
     this.predicateMethodsMap = Collections.unmodifiableMap(extractAnnotatedMethodsAsPredicates(libraryUid, zeroArityPredicates));
     this.zeroArityPredicateNames = Collections.unmodifiableSet(zeroArityPredicates);
+  }
+
+  public List<TermStruct> findAllForPredicateIndicator(final TermStruct predicateIndicator) {
+    return this.predicateMethodsMap.keySet()
+        .stream()
+        .map(key -> {
+          final int index = key.lastIndexOf('/');
+          return new TermStruct("/",
+              new Term[] {
+                  new Term(key.substring(0, index)),
+                  new TermInteger(parseInt(key.substring(index + 1)))
+              });
+        })
+        .filter(k -> predicateIndicator == null || predicateIndicator.dryUnifyTo(k))
+        .collect(Collectors.toList());
   }
 
   private static void registerStaticOperator(final Map<String, OperatorContainer> operatorMap, final ProlOperator operator) {

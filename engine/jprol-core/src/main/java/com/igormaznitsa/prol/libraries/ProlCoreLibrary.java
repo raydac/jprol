@@ -1254,6 +1254,31 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     return false;
   }
 
+  @Predicate(Signature = "current_predicate/1",
+      Template = {"?predicate_indicator"},
+      Reference = "True if PredicateIndicator is a currently defined predicate. A predicate is considered defined if it exists in the specified module."
+  )
+  public static boolean predicateCURRENTPREDICATE(final Goal goal, final TermStruct predicate) {
+    final Term predicateIndicator = getTermFromElement(predicate.getElement(0));
+    List<TermStruct> list = goal.getAuxObject();
+    if (list == null) {
+      list = new ArrayList<>(goal.getContext().findAllForPredicateIndicatorInLibs((TermStruct) predicateIndicator));
+      list.addAll(goal.getContext()
+          .getKnowledgeBase()
+          .findAllForPredicateIndicator(
+              predicateIndicator.getTermType() == VAR ? null : (TermStruct) predicateIndicator
+          ));
+      Collections.sort(list, TermStruct::compareTermTo);
+      goal.setAuxObject(list);
+    }
+
+    if (list.isEmpty()) {
+      return false;
+    } else {
+      return predicateIndicator.unifyTo(list.remove(0));
+    }
+  }
+
   @Predicate(Signature = "atom_concat/3",
       Template = {"?atom,?atom,?atom"},
       Reference = "Atom3 forms the concatenation of Atom1 and Atom2.")

@@ -42,6 +42,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Stream.concat;
 
@@ -622,6 +623,19 @@ public final class ProlContext {
         li--;
       }
       return result;
+    } finally {
+      locker.unlock();
+    }
+  }
+
+  public List<TermStruct> findAllForPredicateIndicatorInLibs(final TermStruct predicateIndicator) {
+    final ReentrantLock locker = this.libLocker;
+
+    locker.lock();
+    try {
+      return this.libraries.stream()
+          .flatMap(lib -> lib.findAllForPredicateIndicator(predicateIndicator).stream())
+          .collect(Collectors.toList());
     } finally {
       locker.unlock();
     }

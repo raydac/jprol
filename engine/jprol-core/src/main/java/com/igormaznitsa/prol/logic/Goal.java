@@ -253,8 +253,9 @@ public class Goal {
     return newGoal;
   }
 
-  public Object getAuxObject() {
-    return this.auxObject;
+  @SuppressWarnings("unchecked")
+  public <T> T getAuxObject() {
+    return (T) this.auxObject;
   }
 
   public void setAuxObject(final Object obj) {
