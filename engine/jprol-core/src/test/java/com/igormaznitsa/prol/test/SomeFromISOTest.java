@@ -613,22 +613,56 @@ public class SomeFromISOTest extends AbstractProlTest {
   @Test
   @Ignore
   public void testAtomConcat() throws Exception {
-    //TODO atom_concat/3
     //[atom_concat('hello',' world',A), [[A <-- 'hello world']]].
+    checkOnceVar("atom_concat('hello',' world',A).", "A", "'hello world'");
     //[atom_concat(T,' world','small world'), [[T <-- 'small']]].
+    checkOnceVar("atom_concat(T,' world','small world').", "T", "'small'");
     //[atom_concat('hello',' world','small world'), failure].
-    //[atom_concat(T1,T2,'hello'),
-    //    [[T1 <-- '',T2 <-- 'hello'],
-    //    [T1 <-- 'h',T2 <-- 'ello'],
-    //    [T1 <-- 'he',T2 <-- 'llo'],
-    //    [T1 <-- 'hel',T2 <-- 'lo'],
-    //    [T1 <-- 'hell',T2 <-- 'o'],
-    //    [T1 <-- 'hello',T2 <-- '']]].
+    checkOnce("atom_concat('hello',' world','small world').", false);
+    checkOnce("atom_concat('small',' world','small world').", true);
+
+    //[atom_concat(T1,T2,'hello'), [[T1 <-- '',T2 <-- 'hello'],[T1 <-- 'h',T2 <-- 'ello'],[T1 <-- 'he',T2 <-- 'llo'],[T1 <-- 'hel',T2 <-- 'lo'],[T1 <-- 'hell',T2 <-- 'o'],[T1 <-- 'hello',T2 <-- '']]].
+    final Goal goal = prepareGoal("atom_concat(T1,T2,'hello').");
+    assertNotNull(goal.solve());
+    assertEquals("''", goal.getVarAsText("T1"));
+    assertEquals("'hello'", goal.getVarAsText("T2"));
+    assertNotNull(goal.solve());
+    assertEquals("'h'", goal.getVarAsText("T1"));
+    assertEquals("'ello'", goal.getVarAsText("T2"));
+    assertNotNull(goal.solve());
+    assertEquals("'he'", goal.getVarAsText("T1"));
+    assertEquals("'llo'", goal.getVarAsText("T2"));
+    assertNotNull(goal.solve());
+    assertEquals("'hel'", goal.getVarAsText("T1"));
+    assertEquals("'lo'", goal.getVarAsText("T2"));
+    assertNotNull(goal.solve());
+    assertEquals("'hell'", goal.getVarAsText("T1"));
+    assertEquals("'o'", goal.getVarAsText("T2"));
+    assertNotNull(goal.solve());
+    assertEquals("'hello'", goal.getVarAsText("T1"));
+    assertEquals("''", goal.getVarAsText("T2"));
+    assertNull(goal.solve());
+
+    final Goal goal2 = prepareGoal("atom_concat(T1,T2,'').");
+    assertNotNull(goal2.solve());
+    assertEquals("''", goal2.getVarAsText("T1"));
+    assertEquals("''", goal2.getVarAsText("T2"));
+    assertNull(goal2.solve());
+
     //[atom_concat(A1,'iso',A3), instantiation_error].
+    checkException("atom_concat(A1,'iso',A3).");
+
     //[atom_concat('iso',A2,A3), instantiation_error].
+    checkException("atom_concat('iso',A2,A3).");
+
     //[atom_concat(f(a),'iso',A3), type_error(atom,f(a))].
+    checkException("atom_concat(f(a),'iso',A3).");
+
     //[atom_concat('iso',f(a),A3), type_error(atom,f(a))].
+    checkException("atom_concat('iso',f(a),A3).");
+
     //[atom_concat(A1,A2,f(a)), type_error(atom,f(a))].
+    checkException("atom_concat(A1,A2,f(a)).");
   }
 
   @Test

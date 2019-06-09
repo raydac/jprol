@@ -1254,6 +1254,86 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     return false;
   }
 
+  @Predicate(Signature = "atom_concat/3",
+      Template = {"?atom,?atom,?atom"},
+      Reference = "Atom3 forms the concatenation of Atom1 and Atom2.")
+  public static boolean predicateATOMCONCAT(final Goal goal, final TermStruct predicate) {
+    final Term atom1 = getTermFromElement(predicate.getElement(0));
+    final Term atom2 = getTermFromElement(predicate.getElement(1));
+    final Term atom3 = getTermFromElement(predicate.getElement(2));
+
+    final int bounded = (atom1.isBounded() ? 1 : 0) + (atom2.isBounded() ? 1 : 0) + (atom3.isBounded() ? 2 : 0);
+
+    class AtomConcatState {
+      final StringBuilder seq1;
+      final StringBuilder seq2;
+
+      AtomConcatState(final String text2) {
+        this.seq1 = new StringBuilder(text2.length());
+        this.seq2 = new StringBuilder(text2);
+      }
+
+      boolean next() {
+        boolean result = false;
+        if (this.seq2.length() > 0) {
+          this.seq1.append(this.seq2.charAt(0));
+          this.seq2.delete(0, 1);
+          result = true;
+        }
+        return result;
+      }
+
+      Term getSeq1AsTerm() {
+        return new Term(this.seq1.toString());
+      }
+
+      Term getSeq2AsTerm() {
+        return new Term(this.seq2.toString());
+      }
+    }
+
+    if (bounded < 2) {
+      throw new ProlInstantiationErrorException(predicate);
+    } else {
+      final AtomConcatState state = (AtomConcatState) goal.getAuxObject();
+      if (state == null) {
+        if (atom1.isBounded() && atom2.isBounded()) {
+          goal.noMoreVariants();
+          return atom3.unifyTo(new Term(atom1.getText() + atom2.getText()));
+        } else if (atom1.isBounded()) {
+          goal.noMoreVariants();
+          final String text1 = atom1.getText();
+          final String text3 = atom3.getText();
+          if (text3.startsWith(text1)) {
+            return atom2.unifyTo(new Term(text3.substring(text1.length())));
+          }
+        } else if (atom2.isBounded()) {
+          goal.noMoreVariants();
+          final String text2 = atom2.getText();
+          final String text3 = atom3.getText();
+          if (text3.endsWith(text2)) {
+            return atom1.unifyTo(new Term(text3.substring(0, text3.length() - text2.length())));
+          }
+        } else {
+          final String wholeText = atom3.getText();
+          final AtomConcatState newState = new AtomConcatState(wholeText);
+          goal.setAuxObject(newState);
+          return atom1.unifyTo(newState.getSeq1AsTerm()) && atom2.unifyTo(newState.getSeq2AsTerm());
+        }
+      } else {
+        boolean result = state.next();
+        if (result) {
+          result = atom1.unifyTo(state.getSeq1AsTerm()) && atom2.unifyTo(state.getSeq2AsTerm());
+        } else {
+          goal.noMoreVariants();
+        }
+        return result;
+      }
+    }
+    return false;
+  }
+
+
   @Predicate(Signature = "number_chars/2",
       Template = {"+number,?character_list", "-number,+character_list"},
       Reference = "number_chars(Number, List) succeeds if and only if List is a list whose elements are the one character atoms that in order make up Number.")
