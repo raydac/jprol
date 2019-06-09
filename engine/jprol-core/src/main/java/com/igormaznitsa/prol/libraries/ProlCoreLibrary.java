@@ -567,7 +567,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       throw new ProlPermissionErrorException("access", "private_procedure", predicate);
     }
 
-    ClauseIterator clIterator = (ClauseIterator) goal.getAuxObject();
+    ClauseIterator clIterator = goal.getAuxObject();
 
     if (clIterator == null) {
       clIterator = goal.getContext().getKnowledgeBase().getClauseIterator(head.getTermType() == STRUCT ? (TermStruct) head : new TermStruct(head));
@@ -615,7 +615,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final Term specifier = getTermFromElement(predicate.getElement(1));
     final Term name = getTermFromElement(predicate.getElement(2));
 
-    Object[] auxObject = (Object[]) goal.getAuxObject();
+    Object[] auxObject = goal.getAuxObject();
     if (auxObject == null) {
       // the first call
       final Iterator<OperatorContainer> operator_iterator = goal.getContext().getKnowledgeBase().getOperatorIterator();
@@ -760,7 +760,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "call/1", Template = {"+callable_term"}, Reference = "call(G) is true if and only if G represents a goal which is true.")
   public static boolean predicateCALL(final Goal goal, final TermStruct predicate) throws InterruptedException {
-    Goal currentgoal = (Goal) goal.getAuxObject();
+    Goal currentgoal = goal.getAuxObject();
     final Term argument = getTermFromElement(predicate.getElement(0));
 
     if (currentgoal == null) {
@@ -1320,7 +1320,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     if (bounded < 2) {
       throw new ProlInstantiationErrorException(predicate);
     } else {
-      final AtomConcatState state = (AtomConcatState) goal.getAuxObject();
+      final AtomConcatState state = goal.getAuxObject();
       if (state == null) {
         if (atom1.isBounded() && atom2.isBounded()) {
           goal.noMoreVariants();
@@ -1434,7 +1434,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final int start = ((TermInteger) getTermFromElement(predicate.getElement(1))).getNumericValue().intValue();
     final int limit = ((TermInteger) getTermFromElement(predicate.getElement(2))).getNumericValue().intValue();
 
-    Integer currentInt = (Integer) goal.getAuxObject();
+    Integer currentInt = goal.getAuxObject();
 
     if (currentInt == null) {
       // first call
@@ -1687,7 +1687,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final Term pgoal = getTermFromElement(predicate.getElement(1));
     final Term instances = getTermFromElement(predicate.getElement(2));
 
-    Map<BofKey, TermList> preparedMap = (Map<BofKey, TermList>) goal.getAuxObject();
+    Map<BofKey, TermList> preparedMap = goal.getAuxObject();
 
     if (preparedMap == null) {
       preparedMap = new LinkedHashMap<>();
@@ -1809,7 +1809,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final Term pgoal = getTermFromElement(predicate.getElement(1));
     final Term instances = getTermFromElement(predicate.getElement(2));
 
-    Map<SofKey, TermList> preparedMap = (Map<SofKey, TermList>) goal.getAuxObject();
+    Map<SofKey, TermList> preparedMap = goal.getAuxObject();
 
     if (preparedMap == null) {
       preparedMap = new LinkedHashMap<>();
@@ -2001,7 +2001,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "catch/3", Template = "+callable_term,?term,+callable_term", Reference = "A goal catch(Goal, Catcher, Handler) is true if\n1. call(Goal) is true, or\n2. An exception is raised which throws a Ball that is caught by Catcher and Handler then succeeds ")
   public static boolean predicateCATCH(final Goal goal, final TermStruct predicate) throws InterruptedException {
-    Goal catchGoal = (Goal) goal.getAuxObject();
+    Goal catchGoal = goal.getAuxObject();
 
     final Term catching = getTermFromElement(predicate.getElement(0));
     final Term catcher = getTermFromElement(predicate.getElement(1));
@@ -2128,7 +2128,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "facts/1", Template = {"+callable_term"}, Reference = "Finds only facts at the knowledge base.")
   public static boolean predicateFACTS(final Goal goal, final TermStruct predicate) {
-    FactIterator factIterator = (FactIterator) goal.getAuxObject();
+    FactIterator factIterator = goal.getAuxObject();
     final Term origterm = getTermFromElement(predicate.getElement(0));
 
     if (factIterator == null) {
@@ -2171,7 +2171,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "rules/1", Template = {"+callable_term"}, Reference = "Finds and call only rules at the knowledge base.")
   public static boolean predicateRULES(final Goal goal, final TermStruct predicate) throws InterruptedException {
 
-    RuleAuxObject ruleAuxObject = (RuleAuxObject) goal.getAuxObject();
+    RuleAuxObject ruleAuxObject = goal.getAuxObject();
     if (ruleAuxObject == null) {
       Term term = getTermFromElement(predicate.getElement(0));
 
@@ -2298,7 +2298,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   @SuppressWarnings("unchecked")
   private static List<Future<Term>> startListAsFork(final Goal goal, final TermStruct predicate, final TermList termlist) throws InterruptedException {
-    List<AuxForkTask> goalList = (List<AuxForkTask>) goal.getAuxObject();
+    List<AuxForkTask> goalList = goal.getAuxObject();
 
     if (goalList == null) {
       Set<Integer> varFlagTable = null; // the lazy initing map allows us to find out that there are non instantiated shared variables

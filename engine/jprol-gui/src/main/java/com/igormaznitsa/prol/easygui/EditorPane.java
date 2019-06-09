@@ -34,10 +34,11 @@ public class EditorPane extends JTextPane {
   private volatile JPopupMenu popupMenu;
   private volatile EventReplacer replacer;
   private float fontScale = 1.0f;
-  private float fontOriginalSize;
+  private Font baseFont;
 
   public EditorPane(final boolean scalable) {
     super();
+    this.baseFont = this.getFont();
 
     this.setOpaque(true);
 
@@ -69,14 +70,15 @@ public class EditorPane extends JTextPane {
   }
 
   public Font getBaseFont() {
-    return this.getFont().deriveFont(this.fontOriginalSize);
+    return this.baseFont;
   }
 
   @Override
   public void setFont(final Font font) {
-    super.setFont(font);
+    this.baseFont = font;
+    super.setFont(this.baseFont);
     this.fontScale = 1.0f;
-    this.fontOriginalSize = font.getSize2D();
+    this.updateFontForScale();
   }
 
   public void setEventReplacer(final EventReplacer replacer) {
@@ -99,7 +101,7 @@ public class EditorPane extends JTextPane {
   }
 
   private void updateFontForScale() {
-    final Font newFont = this.getFont().deriveFont(this.fontScale * this.fontOriginalSize);
+    final Font newFont = this.getFont().deriveFont(this.fontScale * this.baseFont.getSize2D());
     if (newFont.getSize() > 0) {
       super.setFont(newFont);
     } else {

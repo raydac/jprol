@@ -31,11 +31,11 @@ public final class ScalableRsyntaxTextArea extends RSyntaxTextArea {
   private static final float SCALE_MIN = 1.0f;
   private static final float SCALE_MAX = 10.0f;
   private float fontScale = 1.0f;
-  private float fontOriginalSize;
+  private Font baseFont;
 
   public ScalableRsyntaxTextArea() {
     super();
-    this.fontOriginalSize = this.getFont().getSize2D();
+    this.baseFont = this.getFont();
 
     this.addMouseWheelListener((final MouseWheelEvent e) -> {
       final int allModifiers = MouseWheelEvent.CTRL_DOWN_MASK | MouseWheelEvent.ALT_DOWN_MASK | MouseWheelEvent.META_DOWN_MASK | MouseWheelEvent.SHIFT_DOWN_MASK;
@@ -51,16 +51,27 @@ public final class ScalableRsyntaxTextArea extends RSyntaxTextArea {
     updateFontForScale();
   }
 
+  public void setFont(final Font font) {
+    this.setBaseFont(font);
+  }
+
   public Font getBaseFont() {
-    return this.getFont().deriveFont(this.fontOriginalSize);
+    return this.baseFont;
+  }
+
+  public void setBaseFont(final Font font) {
+    this.baseFont = font;
+    this.fontScale = 1.0f;
+    super.setFont(this.baseFont);
+    updateFontForScale();
   }
 
   private void updateFontForScale() {
-    final Font newFont = this.getFont().deriveFont(this.fontScale * this.fontOriginalSize);
+    final Font newFont = this.getFont().deriveFont(this.fontScale * this.baseFont.getSize2D());
     if (newFont.getSize() > 0) {
-      this.setFont(newFont);
+      super.setFont(newFont);
     } else {
-      this.setFont(this.getFont().deriveFont(1.0f));
+      super.setFont(this.getFont().deriveFont(1.0f));
     }
     this.invalidate();
 
@@ -70,13 +81,6 @@ public final class ScalableRsyntaxTextArea extends RSyntaxTextArea {
       parent.repaint();
     }
 
-    this.repaint();
-  }
-
-  public void updateConfig() {
-    this.fontOriginalSize = this.getFont().getSize2D();
-    updateFontForScale();
-    this.revalidate();
     this.repaint();
   }
 
