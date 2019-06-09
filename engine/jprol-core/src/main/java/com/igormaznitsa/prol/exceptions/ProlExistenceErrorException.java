@@ -18,6 +18,7 @@ package com.igormaznitsa.prol.exceptions;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
+import com.igormaznitsa.prol.utils.Utils;
 
 public class ProlExistenceErrorException extends ProlAbstractCatcheableException {
 
@@ -54,7 +55,7 @@ public class ProlExistenceErrorException extends ProlAbstractCatcheableException
 
   @Override
   public TermStruct getAsStruct() {
-    return new TermStruct(ERROR_FUNCTOR, new Term[] {ERROR_TERM, new Term(this.objectType), getCulprit()});
+    return this.makeErrorStruct(ERROR_TERM, Utils.arrayToList(new Term(this.objectType), getCulprit()));
   }
 
 }

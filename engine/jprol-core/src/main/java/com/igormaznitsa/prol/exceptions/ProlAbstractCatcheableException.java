@@ -21,7 +21,7 @@ import com.igormaznitsa.prol.data.TermStruct;
 
 public abstract class ProlAbstractCatcheableException extends ProlException {
 
-  protected static final String ERROR_FUNCTOR = "error";
+  private static final String ERROR_FUNCTOR = "error";
   private final Term culprit;
   static final Term UNDEFINED = new Term("<undefined>");
   private static final long serialVersionUID = 6911111912695145529L;
