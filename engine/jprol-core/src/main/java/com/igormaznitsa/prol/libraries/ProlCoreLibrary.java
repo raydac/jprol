@@ -1256,7 +1256,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "current_predicate/1",
       Template = {"?predicate_indicator"},
-      Reference = "True if PredicateIndicator is a currently defined predicate. A predicate is considered defined if it exists in the specified module."
+      Reference = "True if PredicateIndicator is a currently defined predicate. A predicate is considered defined if it exists in the knowledge base or attached library."
   )
   public static boolean predicateCURRENTPREDICATE(final Goal goal, final TermStruct predicate) {
     final Term predicateIndicator = getTermFromElement(predicate.getElement(0));
