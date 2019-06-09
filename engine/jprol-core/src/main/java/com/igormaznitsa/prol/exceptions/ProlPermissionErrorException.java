@@ -60,14 +60,15 @@ public class ProlPermissionErrorException extends ProlAbstractCatcheableExceptio
     return permissionType;
   }
 
+
   @Override
-  public Term getFunctorForErrorStruct() {
+  public Term getErrorTerm() {
     return TERM_ERROR;
   }
 
   @Override
   public TermStruct getAsStruct() {
-    return new TermStruct(TERM_ERROR, new Term[] {(operation == null ? UNDEFINED : new Term(operation)), (permissionType == null ? UNDEFINED : new Term(permissionType)), getCulprit() == null ? UNDEFINED : getCulprit()});
+    return new TermStruct("error", new Term[] {TERM_ERROR, (operation == null ? UNDEFINED : new Term(operation)), (permissionType == null ? UNDEFINED : new Term(permissionType)), getCulprit() == null ? UNDEFINED : getCulprit()});
   }
 
 }

@@ -47,14 +47,15 @@ public class ProlExistenceErrorException extends ProlAbstractCatcheableException
     this.objectType = objectType;
   }
 
+
   @Override
-  public Term getFunctorForErrorStruct() {
+  public Term getErrorTerm() {
     return ERROR_TERM;
   }
 
   @Override
   public TermStruct getAsStruct() {
-    return new TermStruct(objectType, new Term[] {objectType == null ? UNDEFINED : new Term(objectType), getCulprit() == null ? UNDEFINED : getCulprit()});
+    return new TermStruct("error", new Term[] {ERROR_TERM, objectType == null ? UNDEFINED : new Term(objectType), getCulprit() == null ? UNDEFINED : getCulprit()});
   }
 
 }

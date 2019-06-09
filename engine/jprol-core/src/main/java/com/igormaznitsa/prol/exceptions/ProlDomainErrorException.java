@@ -52,12 +52,12 @@ public class ProlDomainErrorException extends ProlAbstractCatcheableException {
   }
 
   @Override
-  public Term getFunctorForErrorStruct() {
+  public Term getErrorTerm() {
     return ERROR_TERM;
   }
 
   @Override
   public TermStruct getAsStruct() {
-    return new TermStruct(ERROR_TERM, new Term[] {validDomain == null ? UNDEFINED : new Term(validDomain), getCulprit() == null ? UNDEFINED : getCulprit()});
+    return new TermStruct("error", new Term[] {ERROR_TERM, validDomain == null ? UNDEFINED : new Term(validDomain), getCulprit() == null ? UNDEFINED : getCulprit()});
   }
 }

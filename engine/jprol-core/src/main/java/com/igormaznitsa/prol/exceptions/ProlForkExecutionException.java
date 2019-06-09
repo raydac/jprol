@@ -44,13 +44,13 @@ public class ProlForkExecutionException extends ProlAbstractCatcheableException 
   }
 
   @Override
-  public Term getFunctorForErrorStruct() {
-    return ERROR_TERM;
+  public TermStruct getAsStruct() {
+    return new TermStruct("error", new Term[] {ERROR_TERM, new TermInteger(throwables.length)});
   }
 
   @Override
-  public TermStruct getAsStruct() {
-    return new TermStruct(ERROR_TERM, new Term[] {new TermInteger(throwables.length)});
+  public Term getErrorTerm() {
+    return ERROR_TERM;
   }
 
   @Override

@@ -50,13 +50,14 @@ public class ProlRepresentationErrorException extends ProlAbstractCatcheableExce
     return flag;
   }
 
+
   @Override
-  public Term getFunctorForErrorStruct() {
+  public Term getErrorTerm() {
     return TERM_ERROR;
   }
 
   @Override
   public TermStruct getAsStruct() {
-    return new TermStruct(TERM_ERROR, new Term[] {this.flag == null ? UNDEFINED : new Term(this.flag)});
+    return new TermStruct("error", new Term[] {TERM_ERROR, this.flag == null ? UNDEFINED : new Term(this.flag)});
   }
 }

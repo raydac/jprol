@@ -51,13 +51,14 @@ public class ProlEvaluationErrorException extends ProlAbstractCatcheableExceptio
     return this.error;
   }
 
+
   @Override
-  public Term getFunctorForErrorStruct() {
+  public Term getErrorTerm() {
     return TERM_ERROR;
   }
 
   @Override
   public TermStruct getAsStruct() {
-    return new TermStruct(TERM_ERROR, new Term[] {this.error == null ? UNDEFINED : new Term(this.error)});
+    return new TermStruct("error", new Term[] {TERM_ERROR, this.error == null ? UNDEFINED : new Term(this.error)});
   }
 }

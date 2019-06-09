@@ -51,14 +51,15 @@ public class ProlTypeErrorException extends ProlAbstractCatcheableException {
     return validType;
   }
 
+
   @Override
-  public Term getFunctorForErrorStruct() {
+  public Term getErrorTerm() {
     return TERM_ERROR;
   }
 
   @Override
   public TermStruct getAsStruct() {
-    return new TermStruct(TERM_ERROR, new Term[] {validType == null ? UNDEFINED : new Term(validType), getCulprit() == null ? UNDEFINED : getCulprit()});
+    return new TermStruct("error", new Term[] {TERM_ERROR, validType == null ? UNDEFINED : new Term(validType), getCulprit() == null ? UNDEFINED : getCulprit()});
   }
 
 }

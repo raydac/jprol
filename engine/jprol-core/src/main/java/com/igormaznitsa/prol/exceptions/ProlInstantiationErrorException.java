@@ -17,6 +17,7 @@
 package com.igormaznitsa.prol.exceptions;
 
 import com.igormaznitsa.prol.data.Term;
+import com.igormaznitsa.prol.data.TermList;
 import com.igormaznitsa.prol.data.TermStruct;
 
 public class ProlInstantiationErrorException extends ProlAbstractCatcheableException {
@@ -41,13 +42,15 @@ public class ProlInstantiationErrorException extends ProlAbstractCatcheableExcep
     super(culprit);
   }
 
+
   @Override
-  public Term getFunctorForErrorStruct() {
+  public Term getErrorTerm() {
     return TERM_ERROR;
   }
 
   @Override
   public TermStruct getAsStruct() {
-    return new TermStruct(TERM_ERROR);
+    final Term causeTerm = this.getCulprit() == null ? TermList.NULLLIST : this.getCulprit();
+    return new TermStruct("error", new Term[] {TERM_ERROR, causeTerm});
   }
 }

@@ -5,8 +5,9 @@ import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
 import com.igormaznitsa.prol.logic.Goal;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlConsult;
-import static org.junit.Assert.*;
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 public class PrimitiveTest extends AbstractProlTest {
 
@@ -75,7 +76,7 @@ public class PrimitiveTest extends AbstractProlTest {
     @Test
     public void testThrowCatch() throws Exception {
         final ProlContext context = makeContext("a(X):-X=999;throw(some_exception).");
-        final Goal goal = new Goal("catch(a(X),Err,Y='exc').", context);
+      final Goal goal = new Goal("catch(a(X),error(Err,_),Y='exc').", context);
 
         assertNotNull(goal.solve());
         assertEquals(goal.getVarAsText("X"), "999");

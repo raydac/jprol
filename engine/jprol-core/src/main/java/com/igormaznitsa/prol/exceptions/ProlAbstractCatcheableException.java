@@ -44,11 +44,11 @@ public abstract class ProlAbstractCatcheableException extends ProlException {
     this.culprit = culprit;
   }
 
+  public abstract Term getErrorTerm();
+
   public Term getCulprit() {
     return culprit;
   }
-
-  public abstract Term getFunctorForErrorStruct();
 
   public abstract TermStruct getAsStruct();
 }

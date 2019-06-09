@@ -19,8 +19,6 @@ package com.igormaznitsa.prol.exceptions;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
 
-import static com.igormaznitsa.prol.data.TermType.STRUCT;
-
 public class ProlCustomErrorException extends ProlAbstractCatcheableException {
 
   private static final long serialVersionUID = -4720280738591345468L;
@@ -35,24 +33,14 @@ public class ProlCustomErrorException extends ProlAbstractCatcheableException {
     this.error = error;
   }
 
-  public Term getError() {
+  @Override
+  public Term getErrorTerm() {
     return this.error;
   }
 
   @Override
-  public Term getFunctorForErrorStruct() {
-    return getAsStruct().getFunctor();
-  }
-
-  @Override
   public TermStruct getAsStruct() {
-    final TermStruct result;
-    if (error.getTermType() == STRUCT) {
-      result = (TermStruct) error;
-    } else {
-      result = new TermStruct(error);
-    }
-    return result;
+    return new TermStruct("error", new Term[] {this.error, this.getCulprit() == null ? UNDEFINED : this.getCulprit()});
   }
 
 }
