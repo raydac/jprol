@@ -18,6 +18,7 @@ package com.igormaznitsa.prol.exceptions;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
+import com.igormaznitsa.prol.utils.Utils;
 
 public class ProlRepresentationErrorException extends ProlAbstractCatcheableException {
 
@@ -28,22 +29,22 @@ public class ProlRepresentationErrorException extends ProlAbstractCatcheableExce
 
   public ProlRepresentationErrorException(final String flag, final Term culprit, final Throwable cause) {
     super(culprit, cause);
-    this.flag = flag;
+    this.flag = flag == null ? UNDEFINED.getText() : flag;
   }
 
   public ProlRepresentationErrorException(final String flag, final String message, final Term culprit, final Throwable cause) {
     super(message, culprit, cause);
-    this.flag = flag;
+    this.flag = flag == null ? UNDEFINED.getText() : flag;
   }
 
   public ProlRepresentationErrorException(final String flag, final String message, final Term culprit) {
     super(message, culprit);
-    this.flag = flag;
+    this.flag = flag == null ? UNDEFINED.getText() : flag;
   }
 
   public ProlRepresentationErrorException(final String flag, final Term culprit) {
     super(culprit);
-    this.flag = flag;
+    this.flag = flag == null ? UNDEFINED.getText() : flag;
   }
 
   public String getFlag() {
@@ -58,6 +59,6 @@ public class ProlRepresentationErrorException extends ProlAbstractCatcheableExce
 
   @Override
   public TermStruct getAsStruct() {
-    return new TermStruct("error", new Term[] {TERM_ERROR, this.flag == null ? UNDEFINED : new Term(this.flag)});
+    return this.makeErrorStruct(TERM_ERROR, Utils.arrayToList(new Term(this.flag), this.getCulprit()));
   }
 }

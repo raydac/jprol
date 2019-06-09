@@ -29,24 +29,23 @@ public class ProlExistenceErrorException extends ProlAbstractCatcheableException
 
   public ProlExistenceErrorException(final String objectType, final Term culprit, final Throwable cause) {
     super(culprit, cause);
-    this.objectType = objectType;
+    this.objectType = objectType == null ? UNDEFINED.getText() : objectType;
   }
 
   public ProlExistenceErrorException(final String objectType, final String message, final Term culprit, final Throwable cause) {
     super(message, culprit, cause);
-    this.objectType = objectType;
+    this.objectType = objectType == null ? UNDEFINED.getText() : objectType;
   }
 
   public ProlExistenceErrorException(final String objectType, final String message, final Term culprit) {
     super(message, culprit);
-    this.objectType = objectType;
+    this.objectType = objectType == null ? UNDEFINED.getText() : objectType;
   }
 
   public ProlExistenceErrorException(final String objectType, final Term culprit) {
     super(culprit);
-    this.objectType = objectType;
+    this.objectType = objectType == null ? UNDEFINED.getText() : objectType;
   }
-
 
   @Override
   public Term getErrorTerm() {
@@ -55,7 +54,7 @@ public class ProlExistenceErrorException extends ProlAbstractCatcheableException
 
   @Override
   public TermStruct getAsStruct() {
-    return new TermStruct("error", new Term[] {ERROR_TERM, objectType == null ? UNDEFINED : new Term(objectType), getCulprit() == null ? UNDEFINED : getCulprit()});
+    return new TermStruct(ERROR_FUNCTOR, new Term[] {ERROR_TERM, new Term(this.objectType), getCulprit()});
   }
 
 }

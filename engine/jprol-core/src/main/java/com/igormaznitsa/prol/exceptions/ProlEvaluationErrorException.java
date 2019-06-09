@@ -18,6 +18,7 @@ package com.igormaznitsa.prol.exceptions;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
+import com.igormaznitsa.prol.utils.Utils;
 
 public class ProlEvaluationErrorException extends ProlAbstractCatcheableException {
 
@@ -29,17 +30,17 @@ public class ProlEvaluationErrorException extends ProlAbstractCatcheableExceptio
 
   public ProlEvaluationErrorException(final String error, final Term culprit, final Throwable cause) {
     super(culprit, cause);
-    this.error = error;
+    this.error = error == null ? UNDEFINED.getText() : error;
   }
 
   public ProlEvaluationErrorException(final String error, final String message, final Term culprit, final Throwable cause) {
     super(message, culprit, cause);
-    this.error = error;
+    this.error = error == null ? UNDEFINED.getText() : error;
   }
 
   public ProlEvaluationErrorException(final String error, final String message, final Term culprit) {
     super(message, culprit);
-    this.error = error;
+    this.error = error == null ? UNDEFINED.getText() : error;
   }
 
   public ProlEvaluationErrorException(final String error, final Term culprit) {
@@ -59,6 +60,6 @@ public class ProlEvaluationErrorException extends ProlAbstractCatcheableExceptio
 
   @Override
   public TermStruct getAsStruct() {
-    return new TermStruct("error", new Term[] {TERM_ERROR, this.error == null ? UNDEFINED : new Term(this.error)});
+    return this.makeErrorStruct(TERM_ERROR, Utils.arrayToList(new Term(this.error), this.getCulprit()));
   }
 }

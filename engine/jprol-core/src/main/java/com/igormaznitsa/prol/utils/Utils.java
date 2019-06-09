@@ -196,7 +196,7 @@ public final class Utils {
     }
   }
 
-  public static TermList arrayToList(final Term[] array) {
+  public static TermList arrayToList(final Term... array) {
     if (array == null || array.length == 0) {
       return TermList.NULLLIST;
     }

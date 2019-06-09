@@ -40,12 +40,12 @@ public class ProlForkExecutionException extends ProlAbstractCatcheableException 
   }
 
   public Throwable[] getThrowables() {
-    return throwables;
+    return this.throwables.clone();
   }
 
   @Override
   public TermStruct getAsStruct() {
-    return new TermStruct("error", new Term[] {ERROR_TERM, new TermInteger(throwables.length)});
+    return makeErrorStruct(ERROR_TERM, new TermInteger(throwables.length));
   }
 
   @Override

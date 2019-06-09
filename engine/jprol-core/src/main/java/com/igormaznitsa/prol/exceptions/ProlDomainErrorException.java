@@ -18,6 +18,7 @@ package com.igormaznitsa.prol.exceptions;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
+import com.igormaznitsa.prol.utils.Utils;
 
 public class ProlDomainErrorException extends ProlAbstractCatcheableException {
 
@@ -29,22 +30,22 @@ public class ProlDomainErrorException extends ProlAbstractCatcheableException {
 
   public ProlDomainErrorException(final String validDomain, final Term culprit, final Throwable cause) {
     super(culprit, cause);
-    this.validDomain = validDomain;
+    this.validDomain = validDomain == null ? UNDEFINED.getText() : validDomain;
   }
 
   public ProlDomainErrorException(final String validDomain, final String message, final Term culprit, final Throwable cause) {
     super(message, culprit, cause);
-    this.validDomain = validDomain;
+    this.validDomain = validDomain == null ? UNDEFINED.getText() : validDomain;
   }
 
   public ProlDomainErrorException(final String validDomain, final String message, final Term culprit) {
     super(message, culprit);
-    this.validDomain = validDomain;
+    this.validDomain = validDomain == null ? UNDEFINED.getText() : validDomain;
   }
 
   public ProlDomainErrorException(final String validDomain, final Term culprit) {
     super(culprit);
-    this.validDomain = validDomain;
+    this.validDomain = validDomain == null ? UNDEFINED.getText() : validDomain;
   }
 
   public String getValidDomain() {
@@ -58,6 +59,6 @@ public class ProlDomainErrorException extends ProlAbstractCatcheableException {
 
   @Override
   public TermStruct getAsStruct() {
-    return new TermStruct("error", new Term[] {ERROR_TERM, validDomain == null ? UNDEFINED : new Term(validDomain), getCulprit() == null ? UNDEFINED : getCulprit()});
+    return this.makeErrorStruct(ERROR_TERM, Utils.arrayToList(ERROR_TERM, new Term(this.validDomain), this.getCulprit()));
   }
 }

@@ -40,7 +40,7 @@ public class ProlCustomErrorException extends ProlAbstractCatcheableException {
 
   @Override
   public TermStruct getAsStruct() {
-    return new TermStruct("error", new Term[] {this.error, this.getCulprit() == null ? UNDEFINED : this.getCulprit()});
+    return this.makeErrorStruct(this.error, this.getCulprit());
   }
 
 }

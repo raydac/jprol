@@ -21,9 +21,10 @@ import com.igormaznitsa.prol.data.TermStruct;
 
 public abstract class ProlAbstractCatcheableException extends ProlException {
 
-  public static final Term UNDEFINED = new Term("<undefined>");
-  private static final long serialVersionUID = 6911111912695145529L;
+  protected static final String ERROR_FUNCTOR = "error";
   private final Term culprit;
+  static final Term UNDEFINED = new Term("<undefined>");
+  private static final long serialVersionUID = 6911111912695145529L;
 
   public ProlAbstractCatcheableException(final Term culprit) {
     this.culprit = culprit;
@@ -31,23 +32,27 @@ public abstract class ProlAbstractCatcheableException extends ProlException {
 
   public ProlAbstractCatcheableException(final String message, final Term culprit) {
     super(message);
-    this.culprit = culprit;
+    this.culprit = culprit == null ? UNDEFINED : culprit.makeCloneAndVarBound();
   }
 
   public ProlAbstractCatcheableException(final String message, final Term culprit, final Throwable cause) {
     super(message, cause);
-    this.culprit = culprit;
+    this.culprit = culprit == null ? UNDEFINED : culprit.makeCloneAndVarBound();
   }
 
   public ProlAbstractCatcheableException(final Term culprit, final Throwable cause) {
     super(cause);
-    this.culprit = culprit;
+    this.culprit = culprit == null ? UNDEFINED : culprit.makeCloneAndVarBound();
   }
 
   public abstract Term getErrorTerm();
 
   public Term getCulprit() {
-    return culprit;
+    return this.culprit.makeClone();
+  }
+
+  protected TermStruct makeErrorStruct(final Term formal, final Term context) {
+    return new TermStruct(ERROR_FUNCTOR, new Term[] {formal, context});
   }
 
   public abstract TermStruct getAsStruct();

@@ -18,6 +18,7 @@ package com.igormaznitsa.prol.exceptions;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
+import com.igormaznitsa.prol.utils.Utils;
 
 public class ProlPermissionErrorException extends ProlAbstractCatcheableException {
 
@@ -30,26 +31,26 @@ public class ProlPermissionErrorException extends ProlAbstractCatcheableExceptio
 
   public ProlPermissionErrorException(final String operation, final String permissionType, final Term culprit, final Throwable cause) {
     super(culprit, cause);
-    this.operation = operation;
-    this.permissionType = permissionType;
+    this.operation = operation == null ? UNDEFINED.getText() : operation;
+    this.permissionType = permissionType == null ? UNDEFINED.getText() : permissionType;
   }
 
   public ProlPermissionErrorException(final String operation, final String permissionType, final String message, final Term culprit, final Throwable cause) {
     super(message, culprit, cause);
-    this.operation = operation;
-    this.permissionType = permissionType;
+    this.operation = operation == null ? UNDEFINED.getText() : operation;
+    this.permissionType = permissionType == null ? UNDEFINED.getText() : permissionType;
   }
 
   public ProlPermissionErrorException(final String operation, final String permissionType, final String message, final Term culprit) {
     super(message, culprit);
-    this.operation = operation;
-    this.permissionType = permissionType;
+    this.operation = operation == null ? UNDEFINED.getText() : operation;
+    this.permissionType = permissionType == null ? UNDEFINED.getText() : permissionType;
   }
 
   public ProlPermissionErrorException(final String operation, final String permissionType, final Term culprit) {
     super(culprit);
-    this.operation = operation;
-    this.permissionType = permissionType;
+    this.operation = operation == null ? UNDEFINED.getText() : operation;
+    this.permissionType = permissionType == null ? UNDEFINED.getText() : permissionType;
   }
 
   public String getOperation() {
@@ -60,7 +61,6 @@ public class ProlPermissionErrorException extends ProlAbstractCatcheableExceptio
     return permissionType;
   }
 
-
   @Override
   public Term getErrorTerm() {
     return TERM_ERROR;
@@ -68,7 +68,7 @@ public class ProlPermissionErrorException extends ProlAbstractCatcheableExceptio
 
   @Override
   public TermStruct getAsStruct() {
-    return new TermStruct("error", new Term[] {TERM_ERROR, (operation == null ? UNDEFINED : new Term(operation)), (permissionType == null ? UNDEFINED : new Term(permissionType)), getCulprit() == null ? UNDEFINED : getCulprit()});
+    return this.makeErrorStruct(TERM_ERROR, Utils.arrayToList(new Term(this.operation), new Term(permissionType), getCulprit()));
   }
 
 }

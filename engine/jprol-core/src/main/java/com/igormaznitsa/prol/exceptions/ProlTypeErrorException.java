@@ -18,6 +18,7 @@ package com.igormaznitsa.prol.exceptions;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
+import com.igormaznitsa.prol.utils.Utils;
 
 public class ProlTypeErrorException extends ProlAbstractCatcheableException {
 
@@ -29,22 +30,22 @@ public class ProlTypeErrorException extends ProlAbstractCatcheableException {
 
   public ProlTypeErrorException(final String validType, final Term culprit, final Throwable cause) {
     super(culprit, cause);
-    this.validType = validType;
+    this.validType = validType == null ? UNDEFINED.getText() : validType;
   }
 
   public ProlTypeErrorException(final String validType, final String message, final Term culprit, final Throwable cause) {
     super(message, culprit, cause);
-    this.validType = validType;
+    this.validType = validType == null ? UNDEFINED.getText() : validType;
   }
 
   public ProlTypeErrorException(final String validType, final String message, final Term culprit) {
     super(message, culprit);
-    this.validType = validType;
+    this.validType = validType == null ? UNDEFINED.getText() : validType;
   }
 
   public ProlTypeErrorException(final String validType, final Term culprit) {
     super(culprit);
-    this.validType = validType;
+    this.validType = validType == null ? UNDEFINED.getText() : validType;
   }
 
   public String getValidType() {
@@ -59,7 +60,7 @@ public class ProlTypeErrorException extends ProlAbstractCatcheableException {
 
   @Override
   public TermStruct getAsStruct() {
-    return new TermStruct("error", new Term[] {TERM_ERROR, validType == null ? UNDEFINED : new Term(validType), getCulprit() == null ? UNDEFINED : getCulprit()});
+    return this.makeErrorStruct(TERM_ERROR, Utils.arrayToList(new Term(this.validType), getCulprit()));
   }
 
 }
