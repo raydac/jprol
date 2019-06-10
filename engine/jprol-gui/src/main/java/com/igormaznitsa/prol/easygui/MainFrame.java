@@ -28,7 +28,7 @@ import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlConsult;
 import com.igormaznitsa.prol.trace.TraceEvent;
-import com.igormaznitsa.prol.trace.TraceListener;
+import com.igormaznitsa.prol.trace.TracingChoicePointListener;
 import com.igormaznitsa.prol.utils.Utils;
 
 import javax.swing.*;
@@ -54,7 +54,7 @@ import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class MainFrame extends javax.swing.JFrame implements ProlStreamManager, Runnable, UndoableEditListener, WindowListener, DocumentListener, HyperlinkListener, TraceListener {
+public final class MainFrame extends javax.swing.JFrame implements ProlStreamManager, Runnable, UndoableEditListener, WindowListener, DocumentListener, HyperlinkListener, TracingChoicePointListener {
 
   protected static final String PROL_EXTENSION = ".prl";
   private static final long serialVersionUID = 72348723421332L;
@@ -246,7 +246,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   }
 
   @Override
-  public void onTraceEvet(final TraceEvent event, final ChoicePoint source) {
+  public void onTraceChoicePointEvent(final TraceEvent event, final ChoicePoint source) {
     switch (event) {
       case CALL:
         traceEditor.addCallText(source.getGoalTerm().forWrite());

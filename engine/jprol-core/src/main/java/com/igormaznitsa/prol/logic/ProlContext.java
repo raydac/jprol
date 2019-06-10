@@ -32,7 +32,7 @@ import com.igormaznitsa.prol.logic.triggers.TriggerEvent;
 import com.igormaznitsa.prol.parser.ProlConsult;
 import com.igormaznitsa.prol.parser.ProlTreeBuilder;
 import com.igormaznitsa.prol.trace.TraceEvent;
-import com.igormaznitsa.prol.trace.TraceListener;
+import com.igormaznitsa.prol.trace.TracingChoicePointListener;
 import com.igormaznitsa.prol.utils.Utils;
 
 import java.io.IOException;
@@ -76,7 +76,7 @@ public final class ProlContext {
   private volatile boolean halted;
   private ThreadPoolExecutor executorService;
   private Map<String, ReentrantLock> lockerTable;
-  private final List<TraceListener> traceListeners = new CopyOnWriteArrayList<>();
+  private final List<TracingChoicePointListener> traceListeners = new CopyOnWriteArrayList<>();
 
   public ProlContext(final String name) {
     this(name, DefaultProlStreamManagerImpl.getInstance(), null);
@@ -138,11 +138,11 @@ public final class ProlContext {
     }
   }
 
-  public void addTraceListener(final TraceListener listener) {
+  public void addTraceListener(final TracingChoicePointListener listener) {
     this.traceListeners.add(listener);
   }
 
-  public void removeTraceListener(final TraceListener listener) {
+  public void removeTraceListener(final TracingChoicePointListener listener) {
     this.traceListeners.remove(listener);
   }
 
@@ -184,7 +184,7 @@ public final class ProlContext {
 
   void fireTraceEvent(final TraceEvent event, final ChoicePoint choicePoint) {
     if (!this.traceListeners.isEmpty()) {
-      this.traceListeners.forEach(l -> l.onTraceEvet(event, choicePoint));
+      this.traceListeners.forEach(l -> l.onTraceChoicePointEvent(event, choicePoint));
     }
   }
 

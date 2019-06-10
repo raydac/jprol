@@ -18,6 +18,6 @@ package com.igormaznitsa.prol.trace;
 
 import com.igormaznitsa.prol.logic.ChoicePoint;
 
-public interface TraceListener {
-  void onTraceEvet(TraceEvent event, ChoicePoint source);
+public interface TracingChoicePointListener {
+  void onTraceChoicePointEvent(TraceEvent event, ChoicePoint source);
 }

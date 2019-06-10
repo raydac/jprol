@@ -21,7 +21,7 @@ import com.igormaznitsa.prol.data.TermFloat;
 import com.igormaznitsa.prol.data.TermInteger;
 import com.igormaznitsa.prol.data.Var;
 import com.igormaznitsa.prol.parser.ProlTreeBuilder;
-import com.igormaznitsa.prol.trace.TraceListener;
+import com.igormaznitsa.prol.trace.TracingChoicePointListener;
 import com.igormaznitsa.prol.utils.Utils;
 
 import java.io.IOException;
@@ -50,7 +50,7 @@ public class DeferredGoal {
     this(goal, workContext, null);
   }
 
-  public DeferredGoal(final String goal, final ProlContext workContext, final TraceListener tracer) throws IOException {
+  public DeferredGoal(final String goal, final ProlContext workContext, final TracingChoicePointListener tracer) throws IOException {
     if (goal == null || workContext == null) {
       throw new NullPointerException("Needed argument is null");
     }
