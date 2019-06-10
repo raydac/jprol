@@ -567,7 +567,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       throw new ProlPermissionErrorException("access", "private_procedure", predicate);
     }
 
-    ClauseIterator clIterator = goal.getAuxObject();
+    ClauseIterator clIterator = goal.getPayload();
 
     if (clIterator == null) {
       clIterator = goal.getContext().getKnowledgeBase().getClauseIterator(head.getTermType() == STRUCT ? (TermStruct) head : new TermStruct(head));
@@ -576,7 +576,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         return false;
       }
 
-      goal.setAuxObject(clIterator);
+      goal.setPayload(clIterator);
     }
 
     if (clIterator.hasNext()) {
@@ -615,12 +615,12 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final Term specifier = getTermFromElement(predicate.getElement(1));
     final Term name = getTermFromElement(predicate.getElement(2));
 
-    Object[] auxObject = goal.getAuxObject();
+    Object[] auxObject = goal.getPayload();
     if (auxObject == null) {
       // the first call
       final Iterator<OperatorContainer> operator_iterator = goal.getContext().getKnowledgeBase().getOperatorIterator();
       auxObject = new Object[] {operator_iterator, null, null};
-      goal.setAuxObject(auxObject);
+      goal.setPayload(auxObject);
     }
 
     final Iterator<OperatorContainer> operator_iterator = (Iterator<OperatorContainer>) auxObject[0];
@@ -655,7 +655,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         if (last_container == null) {
           // there are not more variants
           goal.resetVariants();
-          goal.setAuxObject(null);
+          goal.setPayload(null);
           return false;
         }
       }
@@ -699,7 +699,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
       if (!(predicate.getElement(0).unifyTo(priorityOfFound) && predicate.getElement(1).unifyTo(specifierOfFound) && predicate.getElement(2).unifyTo(nameOfFound))) {
         goal.resetVariants();
-        goal.setAuxObject(null);
+        goal.setPayload(null);
         return false;
       } else {
         return true;
@@ -760,13 +760,13 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "call/1", Template = {"+callable_term"}, Reference = "call(G) is true if and only if G represents a goal which is true.")
   public static boolean predicateCALL(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
-    ChoicePoint currentgoal = goal.getAuxObject();
+    ChoicePoint currentgoal = goal.getPayload();
     final Term argument = getTermFromElement(predicate.getElement(0));
 
     if (currentgoal == null) {
       // first call of the goal
       currentgoal = new ChoicePoint(argument, goal.getContext());
-      goal.setAuxObject(currentgoal);
+      goal.setPayload(currentgoal);
     }
 
     final Term nextResult = currentgoal.next();
@@ -1260,7 +1260,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   )
   public static boolean predicateCURRENTPREDICATEALL(final ChoicePoint goal, final TermStruct predicate) {
     final Term predicateIndicator = getTermFromElement(predicate.getElement(0));
-    List<TermStruct> list = goal.getAuxObject();
+    List<TermStruct> list = goal.getPayload();
     if (list == null) {
       list = new ArrayList<>(goal.getContext().findAllForPredicateIndicatorInLibs((TermStruct) predicateIndicator));
       list.addAll(goal.getContext()
@@ -1269,7 +1269,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
               predicateIndicator.getTermType() == VAR ? null : (TermStruct) predicateIndicator
           ));
       Collections.sort(list, TermStruct::compareTermTo);
-      goal.setAuxObject(list);
+      goal.setPayload(list);
     }
 
     if (list.isEmpty()) {
@@ -1285,7 +1285,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   )
   public static boolean predicateCURRENTPREDICATE(final ChoicePoint goal, final TermStruct predicate) {
     final Term predicateIndicator = getTermFromElement(predicate.getElement(0));
-    List<TermStruct> list = goal.getAuxObject();
+    List<TermStruct> list = goal.getPayload();
     if (list == null) {
       list = goal.getContext()
           .getKnowledgeBase()
@@ -1293,7 +1293,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
               predicateIndicator.getTermType() == VAR ? null : (TermStruct) predicateIndicator
           );
       Collections.sort(list, TermStruct::compareTermTo);
-      goal.setAuxObject(list);
+      goal.setPayload(list);
     }
 
     if (list.isEmpty()) {
@@ -1344,7 +1344,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     if (bounded < 2) {
       throw new ProlInstantiationErrorException(predicate);
     } else {
-      final AtomConcatState state = goal.getAuxObject();
+      final AtomConcatState state = goal.getPayload();
       if (state == null) {
         if (atom1.isGround() && atom2.isGround()) {
           goal.resetVariants();
@@ -1366,7 +1366,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         } else {
           final String wholeText = atom3.getText();
           final AtomConcatState newState = new AtomConcatState(wholeText);
-          goal.setAuxObject(newState);
+          goal.setPayload(newState);
           return atom1.unifyTo(newState.getSeq1AsTerm()) && atom2.unifyTo(newState.getSeq2AsTerm());
         }
       } else {
@@ -1458,12 +1458,12 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final int start = ((TermInteger) getTermFromElement(predicate.getElement(1))).getNumericValue().intValue();
     final int limit = ((TermInteger) getTermFromElement(predicate.getElement(2))).getNumericValue().intValue();
 
-    Integer currentInt = goal.getAuxObject();
+    Integer currentInt = goal.getPayload();
 
     if (currentInt == null) {
       // first call
       var.changeValue(new TermInteger(start));
-      goal.setAuxObject(start);
+      goal.setPayload(start);
     } else {
       // not first call
       currentInt++;
@@ -1472,7 +1472,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         return false;
       } else {
         var.changeValue(new TermInteger(currentInt));
-        goal.setAuxObject(currentInt);
+        goal.setPayload(currentInt);
       }
     }
 
@@ -1711,7 +1711,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final Term pgoal = getTermFromElement(predicate.getElement(1));
     final Term instances = getTermFromElement(predicate.getElement(2));
 
-    Map<BofKey, TermList> preparedMap = goal.getAuxObject();
+    Map<BofKey, TermList> preparedMap = goal.getPayload();
 
     if (preparedMap == null) {
       preparedMap = new LinkedHashMap<>();
@@ -1763,7 +1763,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         }
       }
 
-      goal.setAuxObject(preparedMap);
+      goal.setPayload(preparedMap);
     }
 
     if (preparedMap.isEmpty()) {
@@ -1833,7 +1833,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final Term pgoal = getTermFromElement(predicate.getElement(1));
     final Term instances = getTermFromElement(predicate.getElement(2));
 
-    Map<SofKey, TermList> preparedMap = goal.getAuxObject();
+    Map<SofKey, TermList> preparedMap = goal.getPayload();
 
     if (preparedMap == null) {
       preparedMap = new LinkedHashMap<>();
@@ -1899,7 +1899,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
       preparedMap = sortedMap;
 
-      goal.setAuxObject(preparedMap);
+      goal.setPayload(preparedMap);
     }
 
     if (preparedMap.isEmpty()) {
@@ -2025,7 +2025,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "catch/3", Template = "+callable_term,?term,+callable_term", Reference = "A goal catch(Goal, Catcher, Handler) is true if\n1. call(Goal) is true, or\n2. An exception is raised which throws a Ball that is caught by Catcher and Handler then succeeds ")
   public static boolean predicateCATCH(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
-    ChoicePoint catchGoal = goal.getAuxObject();
+    ChoicePoint catchGoal = goal.getPayload();
 
     final Term catching = getTermFromElement(predicate.getElement(0));
     final Term catcher = getTermFromElement(predicate.getElement(1));
@@ -2033,7 +2033,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     if (catchGoal == null) {
       catchGoal = new ChoicePoint(catching, goal.getContext());
-      goal.setAuxObject(catchGoal);
+      goal.setPayload(catchGoal);
     }
 
     if (catchGoal.getGoalTerm() == solver) {
@@ -2065,7 +2065,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         // exception was thrown
         if (catcher.unifyTo(ex.getAsStruct())) {
           catchGoal = new ChoicePoint(solver, goal.getContext());
-          goal.setAuxObject(catchGoal);
+          goal.setPayload(catchGoal);
           final Term result = catchGoal.next();
           if (result == null) {
             goal.resetVariants();
@@ -2074,7 +2074,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
             if (catchGoal.hasVariants()) {
               goal.resetVariants();
             }
-            goal.setAuxObject(catchGoal);
+            goal.setPayload(catchGoal);
             return true;
           }
         } else {
@@ -2152,7 +2152,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "facts/1", Template = {"+callable_term"}, Reference = "Finds only facts at the knowledge base.")
   public static boolean predicateFACTS(final ChoicePoint goal, final TermStruct predicate) {
-    FactIterator factIterator = goal.getAuxObject();
+    FactIterator factIterator = goal.getPayload();
     final Term origterm = getTermFromElement(predicate.getElement(0));
 
     if (factIterator == null) {
@@ -2170,7 +2170,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         goal.resetVariants();
         return false;
       } else {
-        goal.setAuxObject(factIterator);
+        goal.setPayload(factIterator);
       }
     }
 
@@ -2178,7 +2178,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     final TermStruct nextFact = processIterator(goal, factIterator);
     if (nextFact == null) {
-      goal.setAuxObject(null);
+      goal.setPayload(null);
       goal.resetVariants();
     } else if (origterm.getTermType() == ATOM) {
       result = true;
@@ -2195,7 +2195,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "rules/1", Template = {"+callable_term"}, Reference = "Finds and call only rules at the knowledge base.")
   public static boolean predicateRULES(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
 
-    RuleAuxObject ruleAuxObject = goal.getAuxObject();
+    RuleAuxObject ruleAuxObject = goal.getPayload();
     if (ruleAuxObject == null) {
       Term term = getTermFromElement(predicate.getElement(0));
 
@@ -2213,7 +2213,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         return false;
       } else {
         ruleAuxObject = new RuleAuxObject(ruleIterator);
-        goal.setAuxObject(ruleAuxObject);
+        goal.setPayload(ruleAuxObject);
       }
     }
 
@@ -2225,7 +2225,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         final TermStruct nextRule = processIterator(goal, ruleAuxObject.iterator);
         if (nextRule == null) {
           // end
-          goal.setAuxObject(null);
+          goal.setPayload(null);
           goal.resetVariants();
           break;
         }
@@ -2312,17 +2312,26 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "waitasync/0", Reference = "Blocking waiting until all daemon threads (started with either fork/1 or async/1) in the context will be completed and deactivated (it checks the queue of the threads and their activity). Always true.")
   @Determined
-  public static void predicateWAITASYNC(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
+  public static void predicateWAITASYNC(final ChoicePoint goal, final TermStruct predicate) {
     final ThreadPoolExecutor service = goal.getContext().getContextExecutorService();
 
     while (!Thread.currentThread().isInterrupted() && (!service.getQueue().isEmpty() || service.getActiveCount() > 0)) {
-      Thread.sleep(1);
+      try {
+        Thread.sleep(10);
+      } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt();
+      }
+    }
+
+    if (Thread.currentThread().isInterrupted()) {
+      service.shutdown();
+      throw new ProlForkExecutionException("Execution interrupted", predicate, null);
     }
   }
 
   @SuppressWarnings("unchecked")
   private static List<Future<Term>> startListAsFork(final ChoicePoint goal, final TermStruct predicate, final TermList termlist) throws InterruptedException {
-    List<AuxForkTask> goalList = goal.getAuxObject();
+    List<AuxForkTask> goalList = goal.getPayload();
 
     if (goalList == null) {
       Set<Integer> varFlagTable = null; // the lazy initing map allows us to find out that there are non instantiated shared variables
@@ -2368,7 +2377,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
           break;
         }
       }
-      goal.setAuxObject(goalList);
+      goal.setPayload(goalList);
     }
 
     List<Future<Term>> resultList = new ArrayList<>();

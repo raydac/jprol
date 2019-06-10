@@ -24,7 +24,7 @@ public interface ProlTrigger {
 
   Map<String, ProlTriggerType> getSignatures();
 
-  void onTriggerEvent(TriggerEvent event) throws InterruptedException;
+  void onTriggerEvent(TriggerEvent event);
 
   void onContextHalting(ProlContext context);
 }

@@ -46,22 +46,18 @@ final class JProlCompiledScript extends CompiledScript {
   @Override
   public Object eval(final ScriptContext context) throws ScriptException {
     final JProlScriptContext jprolContext = (JProlScriptContext) context;
-    try {
-      final Map<String, Term> predefinedValues = new HashMap<>();
-      JProlScriptEngine.fillGoalByBindings(jprolContext.getJProlBindings(ScriptContext.GLOBAL_SCOPE), predefinedValues);
-      JProlScriptEngine.fillGoalByBindings(jprolContext.getJProlBindings(ScriptContext.ENGINE_SCOPE), predefinedValues);
-      final ChoicePoint preparedGoal = new ChoicePoint(this.compiled.makeClone(), jprolContext.getProlContext(), predefinedValues);
+    final Map<String, Term> predefinedValues = new HashMap<>();
+    JProlScriptEngine.fillGoalByBindings(jprolContext.getJProlBindings(ScriptContext.GLOBAL_SCOPE), predefinedValues);
+    JProlScriptEngine.fillGoalByBindings(jprolContext.getJProlBindings(ScriptContext.ENGINE_SCOPE), predefinedValues);
+    final ChoicePoint preparedGoal = new ChoicePoint(this.compiled.makeClone(), jprolContext.getProlContext(), predefinedValues);
 
-      final Object result = preparedGoal.next();
+    final Object result = preparedGoal.next();
 
-      if (result != null) {
-        jprolContext.getJProlBindings(ScriptContext.ENGINE_SCOPE).fillByValues(preparedGoal.findAllGroundedVars());
-      }
-
-      return result;
-    } catch (InterruptedException ex) {
-      return null;
+    if (result != null) {
+      jprolContext.getJProlBindings(ScriptContext.ENGINE_SCOPE).fillByValues(preparedGoal.findAllGroundedVars());
     }
+
+    return result;
   }
 
   @Override

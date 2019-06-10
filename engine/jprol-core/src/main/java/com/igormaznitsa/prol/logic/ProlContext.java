@@ -41,8 +41,6 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Stream.concat;
@@ -50,7 +48,6 @@ import static java.util.stream.Stream.concat;
 public final class ProlContext {
   public static final String ENGINE_VERSION = "2.0.0";
   public static final String ENGINE_NAME = "Prol";
-  protected static final Logger LOG = Logger.getLogger(ProlContext.class.getCanonicalName());
   private static final String CONTEXT_HALTED_MSG = "Context halted";
   private static final String USER_STREAM = "user";
   private final ProlCoreLibrary coreLibraryInstance;
@@ -200,24 +197,13 @@ public final class ProlContext {
     final ProlContext thisContext = this;
 
     return getContextExecutorService().submit(() -> {
-      final ChoicePoint asyncGoal;
-      try {
-        asyncGoal = new ChoicePoint(goal, thisContext);
-      } catch (Exception ex) {
-        LOG.log(Level.SEVERE, "Can't create a goal from the term \'" + goal.toString() + '\'', ex);
-        return;
-      }
+      final ChoicePoint asyncGoal = new ChoicePoint(goal, thisContext);
 
-      try {
-
-        while (!Thread.currentThread().isInterrupted()) {
-          final Term result = asyncGoal.next();
-          if (result == null) {
-            break;
-          }
+      while (!Thread.currentThread().isInterrupted()) {
+        final Term result = asyncGoal.next();
+        if (result == null) {
+          break;
         }
-      } catch (InterruptedException ex) {
-        LOG.log(Level.INFO, "Asynchronous thread for \'" + goal.toString() + "\' has been interrupted", ex);
       }
     });
   }
@@ -752,8 +738,6 @@ public final class ProlContext {
               if (!notifiedTriggers.contains(trigger)) {
                 trigger.onContextHalting(this);
               }
-            } catch (Throwable ex) {
-              LOG.log(Level.SEVERE, "Exception during a context halting notification", ex);
             } finally {
               notifiedTriggers.add(trigger);
             }
@@ -784,11 +768,7 @@ public final class ProlContext {
       } finally {
         // notify all libraries that the context is halted
         libraries.forEach((library) -> {
-          try {
-            library.contextHasBeenHalted(this);
-          } catch (Exception ex) {
-            LOG.log(Level.SEVERE, "library.contextHasBeenHalted();", ex);
-          }
+          library.contextHasBeenHalted(this);
         });
       }
     } finally {
@@ -839,12 +819,10 @@ public final class ProlContext {
 
         if (triggerListAssert != null) {
           triggerListAssert.add(trigger);
-          LOG.info("Registered handler as TRIGGER_ASSERT " + " for \'" + signature + "\', the handler is " + trigger.toString());
         }
 
         if (triggerListRetract != null) {
           triggerListRetract.add(trigger);
-          LOG.info("Registered handler as TRIGGER_RETRACT " + " for \'" + signature + "\', the handler is " + trigger.toString());
         }
       }
     } finally {
@@ -982,11 +960,7 @@ public final class ProlContext {
     if (triggersToProcess != null) {
       final TriggerEvent event = new TriggerEvent(this, normalizedSignature, observedEvent);
       for (final ProlTrigger trigger : triggersToProcess) {
-        try {
-          trigger.onTriggerEvent(event);
-        } catch (Exception ex) {
-          LOG.log(Level.SEVERE, "Exception during a trigger processing [" + trigger.toString() + ']', ex);
-        }
+        trigger.onTriggerEvent(event);
       }
     }
   }
@@ -996,7 +970,7 @@ public final class ProlContext {
     return "ProlContext(" + contextName + ')' + '[' + super.toString() + ']';
   }
 
-  public ProlContext makeCopy() throws IOException {
+  public ProlContext makeCopy() {
     final ProlContext newContext = new ProlContext(this.streamManager, this.contextName + "_copy", this.knowledgeBaseFactory);
 
     newContext.libraries.addAll(libraries);
@@ -1027,12 +1001,12 @@ public final class ProlContext {
 
     @Override
     public void uncaughtException(final Thread thread, final Throwable exception) {
-      LOG.log(Level.SEVERE, "Uncaught exception detected at " + thread.getName() + '[' + exception.toString() + ']', exception);
+      System.err.println("Detected uncaught exception in " + thread.getName());
+      exception.printStackTrace();
     }
 
     @Override
     public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-      LOG.log(Level.SEVERE, "Rejected execution!  {0}''{1}''", new Object[] {r.toString(), ownercontextName});
       throw new InternalError("A Prol thread was rejected. [" + ownercontextName + ']');
     }
   }

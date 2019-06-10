@@ -40,16 +40,17 @@ import static java.util.stream.Collectors.toMap;
 
 public final class ChoicePoint {
 
-  private final ChoicePoint rootGoal;
   private final Map<String, Var> variables;
   private final VariableStateSnapshot varSnapshot;
   private final ProlContext context;
-  private Object auxObject;
+  private final ChoicePoint rootCp;
   private boolean noVariants;
   private Term goalTerm;
-  private ChoicePoint prevChoicePoint;
+  private Object payload;
+  private ChoicePoint prevCp;
   private ChoicePoint rootLastGoalAtChain;
-  private ChoicePoint subChoicePoint;
+  private ChoicePoint subCp;
+
   private Term subChoicePointConnector;
   private Term thisConnector;
   private Term nextAndTerm;
@@ -59,18 +60,18 @@ public final class ChoicePoint {
   private boolean notFirstProve;
 
   private ChoicePoint(
-      final ChoicePoint rootGoal,
+      final ChoicePoint rootCp,
       final Term goalToSolve,
       final ProlContext context,
       final Map<String, Term> predefinedVarValues
   ) {
-    this.rootGoal = rootGoal == null ? this : rootGoal;
+    this.rootCp = rootCp == null ? this : rootCp;
     this.goalTerm = goalToSolve.getTermType() == ATOM ? new TermStruct(goalToSolve) : goalToSolve;
     this.context = context;
 
     final Term goal = assertCallable(goalToSolve.findNonVarOrDefault(goalToSolve));
 
-    if (rootGoal == null) {
+    if (rootCp == null) {
       if (goal.getTermType() == ATOM) {
         this.varSnapshot = null;
         this.variables = null;
@@ -79,16 +80,16 @@ public final class ChoicePoint {
         this.varSnapshot = new VariableStateSnapshot(goal, predefinedVarValues);
       }
       this.rootLastGoalAtChain = this;
-      this.prevChoicePoint = null;
+      this.prevCp = null;
     } else {
       this.variables = null;
       if (goal.getTermType() == ATOM) {
         this.varSnapshot = null;
       } else {
-        this.varSnapshot = new VariableStateSnapshot(rootGoal.varSnapshot);
+        this.varSnapshot = new VariableStateSnapshot(rootCp.varSnapshot);
       }
-      this.prevChoicePoint = rootGoal.rootLastGoalAtChain;
-      rootGoal.rootLastGoalAtChain = this;
+      this.prevCp = rootCp.rootLastGoalAtChain;
+      rootCp.rootLastGoalAtChain = this;
     }
   }
 
@@ -181,12 +182,12 @@ public final class ChoicePoint {
   }
 
   public ChoicePoint replaceLastGoalAtChain(final Term goal) {
-    this.context.fireTraceEvent(EXIT, this.rootGoal.rootLastGoalAtChain);
+    this.context.fireTraceEvent(EXIT, this.rootCp.rootLastGoalAtChain);
 
-    final ChoicePoint newGoal = new ChoicePoint(this.rootGoal, goal, this.context, null);
-    final ChoicePoint prevGoal = newGoal.prevChoicePoint;
+    final ChoicePoint newGoal = new ChoicePoint(this.rootCp, goal, this.context, null);
+    final ChoicePoint prevGoal = newGoal.prevCp;
     if (prevGoal != null) {
-      newGoal.prevChoicePoint = prevGoal.prevChoicePoint;
+      newGoal.prevCp = prevGoal.prevCp;
       newGoal.nextAndTerm = prevGoal.nextAndTerm;
       newGoal.nextAndTermForNextGoal = prevGoal.nextAndTermForNextGoal;
     }
@@ -194,12 +195,12 @@ public final class ChoicePoint {
   }
 
   @SuppressWarnings("unchecked")
-  public <T> T getAuxObject() {
-    return (T) this.auxObject;
+  public <T> T getPayload() {
+    return (T) this.payload;
   }
 
-  public void setAuxObject(final Object obj) {
-    this.auxObject = obj;
+  public void setPayload(final Object obj) {
+    this.payload = obj;
   }
 
   public Term getGoalTerm() {
@@ -210,7 +211,7 @@ public final class ChoicePoint {
     return this.context;
   }
 
-  public Term next() throws InterruptedException {
+  public Term next() {
     Term result = null;
 
     boolean loop = true;
@@ -221,7 +222,7 @@ public final class ChoicePoint {
         throw new ProlHaltExecutionException();
       }
 
-      ChoicePoint goalToProcess = this.rootGoal.rootLastGoalAtChain;
+      ChoicePoint goalToProcess = this.rootCp.rootLastGoalAtChain;
       if (goalToProcess == null) {
         break;
       } else {
@@ -230,18 +231,18 @@ public final class ChoicePoint {
             case FAIL: {
               this.context.fireTraceEvent(TraceEvent.FAIL, goalToProcess);
               this.context.fireTraceEvent(EXIT, goalToProcess);
-              this.rootGoal.rootLastGoalAtChain = goalToProcess.prevChoicePoint;
+              this.rootCp.rootLastGoalAtChain = goalToProcess.prevCp;
             }
             break;
             case SUCCESS: {
               // we have to renew data about last chain goal because it can be changed during the operation
-              goalToProcess = this.rootGoal.rootLastGoalAtChain;
+              goalToProcess = this.rootCp.rootLastGoalAtChain;
 
               if (goalToProcess.nextAndTerm != null) {
-                final ChoicePoint nextGoal = new ChoicePoint(this.rootGoal, goalToProcess.nextAndTerm, localcontext, null);
+                final ChoicePoint nextGoal = new ChoicePoint(this.rootCp, goalToProcess.nextAndTerm, localcontext, null);
                 nextGoal.nextAndTerm = goalToProcess.nextAndTermForNextGoal;
               } else {
-                result = this.rootGoal.goalTerm;
+                result = this.rootCp.goalTerm;
                 loop = false;
               }
             }
@@ -254,7 +255,7 @@ public final class ChoicePoint {
           }
         } else {
           this.context.fireTraceEvent(EXIT, goalToProcess);
-          this.rootGoal.rootLastGoalAtChain = goalToProcess.prevChoicePoint;
+          this.rootCp.rootLastGoalAtChain = goalToProcess.prevCp;
         }
       }
     }
@@ -262,9 +263,9 @@ public final class ChoicePoint {
     return result;
   }
 
-  private ChoicePointResult resolve() throws InterruptedException {
+  private ChoicePointResult resolve() {
     if (Thread.currentThread().isInterrupted()) {
-      throw new InterruptedException();
+      return ChoicePointResult.FAIL;
     }
       if (this.notFirstProve) {
         this.context.fireTraceEvent(TraceEvent.REDO, this);
@@ -283,16 +284,16 @@ public final class ChoicePoint {
         this.varSnapshot.resetToState();
       }
 
-      if (this.subChoicePoint != null) {
+      if (this.subCp != null) {
         // solve subgoal
-        final Term solvedTerm = this.subChoicePoint.next();
+        final Term solvedTerm = this.subCp.next();
 
-        if (this.subChoicePoint.cutMeet) {
+        if (this.subCp.cutMeet) {
           this.clauseIterator = null;
         }
 
         if (solvedTerm == null) {
-          this.subChoicePoint = null;
+          this.subCp = null;
           if (this.clauseIterator == null) {
             result = ChoicePointResult.FAIL;
             break;
@@ -325,7 +326,7 @@ public final class ChoicePoint {
           if (structFromBase.isFunctorLikeRuleDefinition()) {
             this.thisConnector = goalTerm;
             this.subChoicePointConnector = structFromBase.getElement(0);
-            this.subChoicePoint = new ChoicePoint(structFromBase.getElement(1), this.context);
+            this.subCp = new ChoicePoint(structFromBase.getElement(1), this.context);
             continue;
           } else {
             if (!this.goalTerm.unifyTo(structFromBase)) {
@@ -360,9 +361,9 @@ public final class ChoicePoint {
             this.subChoicePointConnector = structClone.getElement(0);
 
             if (arity == 1) {
-              this.subChoicePoint = new ChoicePoint(structClone.getElement(0), this.context);
+              this.subCp = new ChoicePoint(structClone.getElement(0), this.context);
             } else {
-              this.subChoicePoint = new ChoicePoint(structClone.getElement(1), this.context);
+              this.subCp = new ChoicePoint(structClone.getElement(1), this.context);
             }
           } else {
 
@@ -401,11 +402,11 @@ public final class ChoicePoint {
                   doLoop = false;
                   nonConsumed = false;
                 } else if (functorText.charAt(0) == ';') {// or
-                  if (getAuxObject() == null) {
+                  if (getPayload() == null) {
                     // left subbranch
-                    final ChoicePoint leftSubbranch = new ChoicePoint(this.rootGoal, struct.getElement(0), this.context, null);
+                    final ChoicePoint leftSubbranch = new ChoicePoint(this.rootCp, struct.getElement(0), this.context, null);
                     leftSubbranch.nextAndTerm = this.nextAndTerm;
-                    setAuxObject(leftSubbranch);
+                    setPayload(leftSubbranch);
                   } else {
                     // right subbranch
                     replaceLastGoalAtChain(struct.getElement(1));
@@ -467,13 +468,13 @@ public final class ChoicePoint {
   }
 
   public void cut() {
-    this.rootGoal.cutMeet = true;
-    this.rootGoal.clauseIterator = null;
-    this.prevChoicePoint = null;
+    this.rootCp.cutMeet = true;
+    this.rootCp.clauseIterator = null;
+    this.prevCp = null;
   }
 
   public void cutLocally() {
-    this.prevChoicePoint = null;
+    this.prevCp = null;
   }
 
   private PredicateProcessor ensureProcessor(final TermStruct structure) {
@@ -486,6 +487,6 @@ public final class ChoicePoint {
   }
 
   public boolean hasVariants() {
-    return this.rootGoal.rootLastGoalAtChain == null || this.noVariants;
+    return this.rootCp.rootLastGoalAtChain == null || this.noVariants;
   }
 }

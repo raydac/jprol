@@ -62,9 +62,6 @@ final class JProlScriptEngine extends AbstractScriptEngine implements Compilable
       throw new ScriptException(ex.getMessage(), "script", ex.getLine(), ex.getPos());
     } catch (IOException ex) {
       throw new ScriptException(ex);
-    } catch (InterruptedException ex) {
-      Thread.currentThread().interrupt();
-      return null;
     }
   }
 

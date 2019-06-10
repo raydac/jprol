@@ -53,13 +53,15 @@ public class PredicateTemplate {
 
   public final boolean shouldNotBeAltered(final Term term) {
     final TermType type = term.getTermType();
+    boolean result = false;
     switch (Modifier) {
       case SHALL_REMAIN_UNALTERED: {
-        if (type == LIST || type == STRUCT) {
-          checkTermForTemplate(term);
-          return false;
+        if (!(type == LIST || type == STRUCT) && term.findNonVarOrDefault(term).getTermType() == VAR) {
+          throw new ProlInstantiationErrorException("Should be instantiated \'" + term.toSrcString() + '\'', term);
         }
+        checkTermForTemplate(term);
       }
+      break;
       case SHALL_BE_INSTANTIATED: {
         if (term.findNonVarOrDefault(term).getTermType() == VAR) {
           throw new ProlInstantiationErrorException("Should be instantiated \'" + term.toSrcString() + '\'', term);
@@ -69,23 +71,23 @@ public class PredicateTemplate {
       break;
       case SHALL_BE_INSTANTIATED_OR_VARIABLE: {
         // any
-        if (term.findNonVarOrDefault(term).getTermType() == VAR) {
-          return false;
+        if (term.findNonVarOrDefault(term).getTermType() != VAR) {
+          checkTermForTemplate(term);
         }
-
-        checkTermForTemplate(term);
       }
       break;
       case SHALL_BE_VARIABLE: {
         if (term.findNonVarOrDefault(term).getTermType() != VAR) {
           throw new ProlInstantiationErrorException("Should be noninstantiated variable \'" + term.toSrcString() + '\'', term);
+        } else {
+          result = true;
         }
-        return true;
       }
+      break;
       default:
-        throw new ProlCriticalError("Unknown template modifier");
+        throw new ProlCriticalError("Unknown template modifier:" + Modifier);
     }
-    return false;
+    return result;
   }
 
   private boolean checkTermForTemplate(final Term term) {

@@ -36,7 +36,7 @@ public class ProlTriggerGoal extends AbstractProlTrigger {
   }
 
   @Override
-  public void onTriggerEvent(final TriggerEvent event) throws InterruptedException {
+  public void onTriggerEvent(final TriggerEvent event) {
     if (goal != null) {
       final ChoicePoint tobesolved = goal.getNonparametrizedGoalInstance();
 

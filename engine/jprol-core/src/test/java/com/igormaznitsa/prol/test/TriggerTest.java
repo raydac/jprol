@@ -165,7 +165,7 @@ public class TriggerTest extends AbstractProlTest {
         }
 
         @Override
-        public void onTriggerEvent(TriggerEvent event) throws InterruptedException {
+        public void onTriggerEvent(TriggerEvent event) {
             buffer.add(event);
             System.out.println("Event: " + event);
         }

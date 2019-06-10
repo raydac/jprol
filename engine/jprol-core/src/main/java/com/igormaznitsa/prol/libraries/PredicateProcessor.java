@@ -189,7 +189,7 @@ public final class PredicateProcessor {
     }
   }
 
-  public final boolean execute(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
+  public final boolean execute(final ChoicePoint goal, final TermStruct predicate) {
     try {
       Term[] nonchangeable = null;
       if (templates != null) {
@@ -230,17 +230,11 @@ public final class PredicateProcessor {
 
       if (cause instanceof ThreadDeath) {
         throw (ThreadDeath) cause;
-      }
-
-      if (cause instanceof InterruptedException) {
-        throw (InterruptedException) cause;
-      }
-
-      if (cause instanceof ProlAbstractCatcheableException) {
+      } else if (cause instanceof InterruptedException) {
+        Thread.currentThread().interrupt();
+      } else if (cause instanceof ProlAbstractCatcheableException) {
         throw (ProlAbstractCatcheableException) cause;
-      }
-
-      if (cause instanceof ProlException) {
+      } else if (cause instanceof ProlException) {
         throw (ProlException) cause;
       }
       throw new ProlCriticalError("Exception at [" + goal + ']', cause == null ? thr : cause);
