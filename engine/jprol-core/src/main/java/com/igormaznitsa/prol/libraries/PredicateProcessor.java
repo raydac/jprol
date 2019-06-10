@@ -41,9 +41,9 @@ public final class PredicateProcessor {
   private final boolean determined;
   private final boolean evaluable;
   private final boolean changesGoalChain;
-  private final PredicateTemplate[][] templates;
+  private final CheckingTemplate[][] templates;
 
-  protected PredicateProcessor(final AbstractProlLibrary owner, final String signature, final Method method, final PredicateTemplate[][] templates) {
+  protected PredicateProcessor(final AbstractProlLibrary owner, final String signature, final Method method, final CheckingTemplate[][] templates) {
     super();
     this.predicateSignature = signature;
     this.ownerLibrary = owner;
@@ -97,14 +97,11 @@ public final class PredicateProcessor {
     return this.methodHandle;
   }
 
-  public PredicateTemplate[][] getTemplates() {
+  public CheckingTemplate[][] getTemplates() {
     return this.templates;
   }
 
   private Term[] checkTemplates(final TermStruct predicate) {
-    final PredicateTemplate[][] templatesarray = this.templates;
-
-    final int len = templatesarray.length;
     final Term[] structelements = predicate.getElementsAsArray();
     final int structElementsNumber = predicate.getArity();
 
@@ -112,8 +109,8 @@ public final class PredicateProcessor {
 
     Term[] result = null;
 
-    for (final PredicateTemplate[] curtemplate : templatesarray) {
-      final int lencur = curtemplate.length;
+    for (final CheckingTemplate[] template : this.templates) {
+      final int lencur = template.length;
 
       lastException = null;
       Term[] currentResult = null;
@@ -121,9 +118,9 @@ public final class PredicateProcessor {
       try {
         if (lencur == structElementsNumber) {
           for (int ld = 0; ld < lencur; ld++) {
-            final PredicateTemplate curTemplate = curtemplate[ld];
+            final CheckingTemplate curTemplate = template[ld];
             final Term element = structelements[ld];
-            if (curTemplate.shouldNotBeAltered(element)) {
+            if (curTemplate.isTermMustNotBeAltered(element)) {
               if (currentResult == null) {
                 currentResult = new Term[lencur];
               }
@@ -149,22 +146,22 @@ public final class PredicateProcessor {
 
   public final Term executeEvaluable(final ChoicePoint goal, final TermStruct predicate) {
     try {
-      Term[] nonchangeable = null;
+      Term[] termsToNotBeChanged = null;
       if (templates != null) {
-        nonchangeable = checkTemplates(predicate);
+        termsToNotBeChanged = checkTemplates(predicate);
       }
 
       final Object result = methodHandle.invoke(goal, predicate);
 
-      if (nonchangeable != null) {
+      if (termsToNotBeChanged != null) {
         final Term[] elements = predicate.getElementsAsArray();
         final int len = elements.length;
         for (int li = 0; li < len; li++) {
-          if (nonchangeable[li] == null) {
+          if (termsToNotBeChanged[li] == null) {
             continue;
           }
-          if (!nonchangeable[li].stronglyEqualsTo(elements[li])) {
-            throw new ProlInstantiationErrorException("Nonchangeable element was changed [" + nonchangeable[li] + "<>" + elements[li] + "]", predicate);
+          if (!termsToNotBeChanged[li].stronglyEqualsTo(elements[li])) {
+            throw new ProlInstantiationErrorException("Nonchangeable element was changed [" + termsToNotBeChanged[li] + "<>" + elements[li] + "]", predicate);
           }
         }
       }
@@ -191,23 +188,23 @@ public final class PredicateProcessor {
 
   public final boolean execute(final ChoicePoint goal, final TermStruct predicate) {
     try {
-      Term[] nonchangeable = null;
+      Term[] termsToNotBeChanged = null;
       if (templates != null) {
-        nonchangeable = checkTemplates(predicate);
+        termsToNotBeChanged = checkTemplates(predicate);
       }
 
       final Object result;
       result = methodHandle.invoke(goal, predicate);
 
-      if (nonchangeable != null) {
+      if (termsToNotBeChanged != null) {
         final Term[] elements = predicate.getElementsAsArray();
         final int len = elements.length;
         for (int li = 0; li < len; li++) {
-          if (nonchangeable[li] == null) {
+          if (termsToNotBeChanged[li] == null) {
             continue;
           }
-          if (!nonchangeable[li].stronglyEqualsTo(elements[li])) {
-            throw new ProlInstantiationErrorException("Nonchangeable element was changed [" + nonchangeable[li] + "<>" + elements[li] + "]", predicate);
+          if (!termsToNotBeChanged[li].stronglyEqualsTo(elements[li])) {
+            throw new ProlInstantiationErrorException("Nonchangeable element was changed [" + termsToNotBeChanged[li] + "<>" + elements[li] + "]", predicate);
           }
         }
       }

@@ -161,15 +161,15 @@ public abstract class AbstractProlLibrary {
           throw new ProlCriticalError("Duplicated predicate method " + signature + " at " + libraryUID);
         }
 
-        PredicateTemplate[][] templates = null;
+        CheckingTemplate[][] templates = null;
         final String[] templateStrings = predicateAnnotation.Template();
         if (templateStrings != null && templateStrings.length > 0) {
-          templates = new PredicateTemplate[templateStrings.length][];
+          templates = new CheckingTemplate[templateStrings.length][];
           for (int lt = 0; lt < templateStrings.length; lt++) {
             final String[] str = templateStrings[lt].split(",");
-            PredicateTemplate[] curtemp = new PredicateTemplate[str.length];
+            CheckingTemplate[] curtemp = new CheckingTemplate[str.length];
             for (int ld = 0; ld < str.length; ld++) {
-              curtemp[ld] = new PredicateTemplate(str[ld]);
+              curtemp[ld] = new CheckingTemplate(str[ld]);
             }
             templates[lt] = curtemp;
           }
