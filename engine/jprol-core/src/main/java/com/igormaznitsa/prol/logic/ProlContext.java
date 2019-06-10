@@ -211,7 +211,7 @@ public final class ProlContext {
       try {
 
         while (!Thread.currentThread().isInterrupted()) {
-          final Term result = asyncGoal.solve();
+          final Term result = asyncGoal.next();
           if (result == null) {
             break;
           }

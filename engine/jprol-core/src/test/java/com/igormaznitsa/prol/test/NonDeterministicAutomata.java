@@ -92,9 +92,9 @@ public class NonDeterministicAutomata extends AbstractProlTest {
       final ChoicePoint goal = new ChoicePoint("X=[_,_,_,_,_,_,_],accepts(s1,X).", context);
 
         for (final String e : etal) {
-            assertNotNull(goal.solve());
+          assertNotNull(goal.next());
             assertEquals(goal.getVarAsText("X"), e);
         }
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 }

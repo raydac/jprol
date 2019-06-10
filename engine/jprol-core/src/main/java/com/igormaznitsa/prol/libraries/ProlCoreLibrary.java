@@ -520,7 +520,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Determined
   public static boolean predicateNOT(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
     final ChoicePoint localGoal = new ChoicePoint(predicate.getElement(0), goal.getContext());
-    final Term result = localGoal.solve();
+    final Term result = localGoal.next();
     return result == null;
   }
 
@@ -769,7 +769,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       goal.setAuxObject(currentgoal);
     }
 
-    final Term nextResult = currentgoal.solve();
+    final Term nextResult = currentgoal.next();
 
     boolean result = false;
 
@@ -793,7 +793,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final Term argument = getTermFromElement(predicate.getElement(0));
     final ChoicePoint currentgoal = new ChoicePoint(argument, goal.getContext());
 
-    final Term nextResult = currentgoal.solve();
+    final Term nextResult = currentgoal.next();
 
     return nextResult != null;
   }
@@ -814,7 +814,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     // if-then
     final ChoicePoint leftSubbranch = new ChoicePoint(predicate.getElement(0), goal.getContext());
     boolean result = false;
-    if (leftSubbranch.solve() != null) {
+    if (leftSubbranch.next() != null) {
       // replace current goal by the 'then' goal
       final ChoicePoint thenPart = goal.replaceLastGoalAtChain(predicate.getElement(1));
       thenPart.cutTillPrevChoicePoint(); // remove all previous choice points
@@ -1626,7 +1626,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     TermList currentList = null;
 
     while (!Thread.currentThread().isInterrupted()) {
-      final Term nextTemplate = find_goal.solve();
+      final Term nextTemplate = find_goal.next();
 
       if (nextTemplate == null) {
         break;
@@ -1738,7 +1738,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       final ChoicePoint find_goal = new ChoicePoint(processingGoal.makeClone(), goal.getContext());
 
       while (!Thread.currentThread().isInterrupted()) {
-        final Term nextTemplate = find_goal.solve();
+        final Term nextTemplate = find_goal.next();
 
         if (nextTemplate == null) {
           break;
@@ -1860,7 +1860,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       final ChoicePoint find_goal = new ChoicePoint(processingGoal.makeClone(), goal.getContext());
 
       while (!Thread.currentThread().isInterrupted()) {
-        final Term nextTemplate = find_goal.solve();
+        final Term nextTemplate = find_goal.next();
 
         if (nextTemplate == null) {
           break;
@@ -2037,7 +2037,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     }
 
     if (catchGoal.getGoalTerm() == solver) {
-      final Term result = catchGoal.solve();
+      final Term result = catchGoal.next();
 
       if (result == null) {
         goal.setNoVariants();
@@ -2051,7 +2051,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     } else {
 
       try {
-        final Term result = catchGoal.solve();
+        final Term result = catchGoal.next();
         if (result == null) {
           goal.setNoVariants();
           return false;
@@ -2066,7 +2066,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         if (catcher.unifyTo(ex.getAsStruct())) {
           catchGoal = new ChoicePoint(solver, goal.getContext());
           goal.setAuxObject(catchGoal);
-          final Term result = catchGoal.solve();
+          final Term result = catchGoal.next();
           if (result == null) {
             goal.setNoVariants();
             return false;
@@ -2233,7 +2233,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         ruleAuxObject.rule = nextRule;
         ruleAuxObject.currentActiveGoal = new ChoicePoint(nextRule, goal.getContext());
       } else {
-        final Term goalresult = currentGoal.solve();
+        final Term goalresult = currentGoal.next();
         if (goalresult == null) {
           // end for the goal
           ruleAuxObject.currentActiveGoal = null;
@@ -2293,7 +2293,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     return goal.getContext().trylockLockerForName(atomName);
   }
 
-  @Predicate(Signature = "async/1", Template = {"+callable_term"}, Reference = "Allows to solve a goal asynchronously, it will be started as a daemon so it will be stopped when the main goal will be solved or failed. If there will be uncatched exception it will be just out at the log.")
+  @Predicate(Signature = "async/1", Template = {"+callable_term"}, Reference = "Allows to next a goal asynchronously, it will be started as a daemon so it will be stopped when the main goal will be solved or failed. If there will be uncatched exception it will be just out at the log.")
   @Determined
   public static void predicateASYNC(final ChoicePoint goal, final TermStruct predicate) {
     final Term goalToSolve = getTermFromElement(predicate.getElement(0));
@@ -2640,7 +2640,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   public final boolean predicateCannotBeProven(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
     final Term argument = predicate.getElement(0);
     final ChoicePoint subgoal = new ChoicePoint(argument, goal.getContext());
-    return subgoal.solve() == null;
+    return subgoal.next() == null;
   }
 
   @Predicate(Signature = "time/4", Template = {"?integer,?integer,?integer,?integer"}, Reference = "Get current time Hours,Minutes,Seconds,Milliseconds.")
@@ -3001,7 +3001,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     @Override
     public Term call() throws InterruptedException {
-      return this.goal == null ? null : this.goal.solve();
+      return this.goal == null ? null : this.goal.next();
     }
 
     @Override

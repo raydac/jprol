@@ -20,7 +20,7 @@ public class HanoiTowersTest extends AbstractProlTest {
         consult.consult();
 
       final ChoicePoint goal = new ChoicePoint("tell(\'+hanoi\'),move(3,left,right,center).", context);
-        if (goal.solve() != null && goal.solve() == null) {
+      if (goal.next() != null && goal.next() == null) {
             assertTrue(true);
         } else {
             fail();

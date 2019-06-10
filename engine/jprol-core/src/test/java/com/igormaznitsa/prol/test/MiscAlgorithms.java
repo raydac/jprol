@@ -18,13 +18,13 @@ public class MiscAlgorithms extends AbstractProlTest {
         consult.consult();
         final String goalText = "akkerman(" + m + ',' + n + ",A).";
       final ChoicePoint goal = new ChoicePoint(goalText, context);
-        final Term resultterm = goal.solve();
+      final Term resultterm = goal.next();
         assertNotNull(resultterm);
         final Term result = goal.getVarForName("A").getValue();
         assertNotNull(result);
         final int intresult = ((TermInteger) result).getNumericValue().intValue();
         assertEquals(a, intresult);
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     @Test
@@ -59,9 +59,9 @@ public class MiscAlgorithms extends AbstractProlTest {
 
       final ChoicePoint goal = new ChoicePoint("fib(22,Result).", context);
 
-        assertNotNull(goal.solve());
+      assertNotNull(goal.next());
         assertEquals(goal.getVarAsNumber("Result").intValue(), 17711);
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     @Test
@@ -74,9 +74,9 @@ public class MiscAlgorithms extends AbstractProlTest {
 
       final ChoicePoint goal = new ChoicePoint("Rec1=rectangle(4,3),send(Rec1,area(Area)).", context);
 
-        assertNotNull(goal.solve());
+      assertNotNull(goal.next());
         assertEquals(goal.getVarAsNumber("Area").intValue(), 12);
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     private ProlContext makeContext(final String knowledgeBase) throws Exception {

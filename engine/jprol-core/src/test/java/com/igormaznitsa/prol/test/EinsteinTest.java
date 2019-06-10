@@ -39,9 +39,9 @@ public class EinsteinTest extends AbstractProlTest {
                 + "member2(E,[E|_]). member2(E,[_|L]) :- member2(E,L).");
 
       final ChoicePoint goal = new ChoicePoint("einstein(_,X).", context);
-        assertNotNull(goal.solve());
+      assertNotNull(goal.next());
         assertEquals(goal.getVarAsText("X"), "'german'");
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     private ProlContext makeContext(final String knowledgeBase) throws Exception {

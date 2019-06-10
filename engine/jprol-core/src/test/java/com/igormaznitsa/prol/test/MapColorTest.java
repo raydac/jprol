@@ -46,7 +46,7 @@ public class MapColorTest extends AbstractProlTest {
     int counter = 0;
     Term result0 = null;
     Term result7775 = null;
-    while (goal.solve() != null) {
+    while (goal.next() != null) {
       if (counter == 0) {
         result0 = goal.getVarForName("X").getValue().makeClone();
       } else if (counter == 7775) {

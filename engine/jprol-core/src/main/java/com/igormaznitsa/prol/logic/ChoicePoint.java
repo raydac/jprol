@@ -207,7 +207,7 @@ public final class ChoicePoint {
     return this.context;
   }
 
-  public Term solve() throws InterruptedException {
+  public Term next() throws InterruptedException {
     Term result = null;
 
     boolean loop = true;
@@ -282,7 +282,7 @@ public final class ChoicePoint {
 
       if (this.subChoicePoint != null) {
         // solve subgoal
-        final Term solvedTerm = this.subChoicePoint.solve();
+        final Term solvedTerm = this.subChoicePoint.next();
 
         if (this.subChoicePoint.cutMeet) {
           this.clauseIterator = null;

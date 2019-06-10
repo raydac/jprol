@@ -23,7 +23,7 @@ public class IOPipeMemoryTest extends AbstractProlTest {
       final ChoicePoint goal = new ChoicePoint("tell(\'+buff\'),save_to_memory([1,2,3,4,5,6,7,8,9,10]),told,see(\'+buff\'),tell(\'+buff2\'),all_from_memory,seen,told.", context);
 
       while (true) {
-        final Term result = goal.solve();
+        final Term result = goal.next();
         if (result == null) {
           break;
         }

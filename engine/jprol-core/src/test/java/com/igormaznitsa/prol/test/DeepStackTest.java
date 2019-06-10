@@ -23,7 +23,7 @@ public class DeepStackTest extends AbstractProlTest {
         consult.consult();
         final String goalText = "depth(" + depth + ", R).";
       final ChoicePoint goal = new ChoicePoint(goalText, context);
-        final Term resultterm = goal.solve();
+        final Term resultterm = goal.next();
         assertNotNull(resultterm);
         final TermList result = (TermList) goal.getVarForName("R").getValue();
         return result;

@@ -65,7 +65,7 @@ public class OperatorTest extends AbstractProlTest {
           final ChoicePoint gl = prepGoal2.getNonparametrizedGoalInstance();
             String text = null;
             while (true) {
-                final Term curresult = gl.solve();
+              final Term curresult = gl.next();
                 if (curresult == null) {
                     break;
                 }

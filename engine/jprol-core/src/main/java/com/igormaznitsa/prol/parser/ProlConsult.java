@@ -206,7 +206,7 @@ public class ProlConsult {
   public boolean processGoal(final Term goalterm, final Map<String, Var> varTable) throws InterruptedException {
     final ChoicePoint goal = new ChoicePoint(goalterm, context, null);
 
-    Term result = goal.solve();
+    Term result = goal.next();
 
     if (result != null && varTable != null) {
       result.variables().forEach(e -> varTable.put(e.getText(), e));
@@ -216,7 +216,7 @@ public class ProlConsult {
   }
 
   private boolean solveGoal(final ChoicePoint goal, final Map<String, Var> varTable) throws InterruptedException {
-    final Term result = goal.solve();
+    final Term result = goal.next();
 
     if (result != null && varTable != null) {
       result.variables().forEach(e -> varTable.put(e.getText(), e));
@@ -227,6 +227,6 @@ public class ProlConsult {
 
   private boolean processDirective(final Term directive) throws IOException, InterruptedException {
     final ChoicePoint goal = new ChoicePoint(directive, context, null);
-    return goal.solve() != null;
+    return goal.next() != null;
   }
 }

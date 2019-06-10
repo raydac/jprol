@@ -52,7 +52,7 @@ final class JProlCompiledScript extends CompiledScript {
       JProlScriptEngine.fillGoalByBindings(jprolContext.getJProlBindings(ScriptContext.ENGINE_SCOPE), predefinedValues);
       final ChoicePoint preparedGoal = new ChoicePoint(this.compiled.makeClone(), jprolContext.getProlContext(), predefinedValues);
 
-      final Object result = preparedGoal.solve();
+      final Object result = preparedGoal.next();
 
       if (result != null) {
         jprolContext.getJProlBindings(ScriptContext.ENGINE_SCOPE).fillByValues(preparedGoal.findAllGroundedVars());

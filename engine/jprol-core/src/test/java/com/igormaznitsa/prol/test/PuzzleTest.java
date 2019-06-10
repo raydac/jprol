@@ -32,19 +32,19 @@ public class PuzzleTest extends AbstractProlTest {
         final String[] puzzle2solZ = new String[]{"[0,8,3,5,6]", "[0,6,3,7,8]", "[0,4,2,8,9]", "[0,7,5,8,9]", "[0,9,3,4,6]", "[0,9,4,5,7]", "[0,4,1,7,9]", "[0,6,3,7,9]", "[0,8,4,6,9]", "[0,7,5,8,1]", "[0,9,2,3,7]", "[0,7,2,5,9]", "[0,8,3,5,9]", "[0,7,1,4,9]", "[0,8,1,3,9]", "[1,0,6,5,2]", "[0,3,1,8,5]", "[0,7,1,4,3]", "[0,8,2,4,3]", "[0,8,3,5,4]", "[0,8,4,6,5]", "[0,4,1,7,6]", "[0,3,1,8,7]", "[0,4,2,8,7]", "[0,6,4,8,7]"
         };
 
-//        assertNotNull(goal.solve());
+//        assertNotNull(goal.next());
 //        assertEquals(goal.getVarAsText("X"), puzzle1solXYZ[0]);
 //        assertEquals(goal.getVarAsText("Y"), puzzle1solXYZ[1]);
 //        assertEquals(goal.getVarAsText("Z"), puzzle1solXYZ[2]);
-//        assertNull(goal.solve());
+//        assertNull(goal.next());
       final ChoicePoint goal2 = new ChoicePoint("puzzle2(X,Y,Z),sum(X,Y,Z).", context);
 
         for (final String aPuzzle2solZ : puzzle2solZ) {
-            assertNotNull(goal2.solve());
+          assertNotNull(goal2.next());
             assertEquals(goal2.getVarAsText("Z"), aPuzzle2solZ);
         }
 
-        assertNull(goal2.solve());
+      assertNull(goal2.next());
     }
 
     private ProlContext makeContext(final String knowledgeBase) throws Exception {

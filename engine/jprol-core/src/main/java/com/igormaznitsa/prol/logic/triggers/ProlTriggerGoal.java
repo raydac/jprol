@@ -41,7 +41,7 @@ public class ProlTriggerGoal extends AbstractProlTrigger {
       final ChoicePoint tobesolved = goal.getNonparametrizedGoalInstance();
 
       while (!Thread.currentThread().isInterrupted()) {
-        final Term result = tobesolved.solve();
+        final Term result = tobesolved.next();
         if (result == null) {
           break;
         }

@@ -39,7 +39,7 @@ public class TriggerTest extends AbstractProlTest {
 
             int decisionnum = 0;
             while (true) {
-                if (goal.solve() == null) {
+              if (goal.next() == null) {
                     break;
                 }
                 decisionnum++;
@@ -53,7 +53,7 @@ public class TriggerTest extends AbstractProlTest {
 
             decisionnum = 0;
             while (true) {
-                final Term resultterm = goal.solve();
+              final Term resultterm = goal.next();
                 if (resultterm == null) {
                     break;
                 }
@@ -100,7 +100,7 @@ public class TriggerTest extends AbstractProlTest {
 
           goal = new ChoicePoint("assert(testboth(111)),assert(testboth(222)),testboth(222),retractall(testboth(_)).", context);
             while (true) {
-                final Term resultterm = goal.solve();
+              final Term resultterm = goal.next();
                 if (resultterm == null) {
                     break;
                 }

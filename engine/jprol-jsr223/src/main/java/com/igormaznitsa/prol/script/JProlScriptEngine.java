@@ -51,7 +51,7 @@ final class JProlScriptEngine extends AbstractScriptEngine implements Compilable
       fillGoalByBindings(context.getJProlBindings(ScriptContext.ENGINE_SCOPE), varValues);
 
       final ChoicePoint goal = new ChoicePoint(reader, context.getProlContext(), varValues.isEmpty() ? null : varValues);
-      final Object result = goal.solve();
+      final Object result = goal.next();
 
       if (result != null) {
         context.getJProlBindings(ScriptContext.ENGINE_SCOPE).fillByValues(goal.findAllGroundedVars());

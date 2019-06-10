@@ -57,15 +57,17 @@ public class CryptoTest extends AbstractProlTest {
         consult.consult();
 
       final ChoicePoint goal = new ChoicePoint("puzzle1(N1,N2,N), sum(N1,N2,N).", context);
-        assertNotNull(goal.solve());
+      assertNotNull(goal.next());
         assertEquals("[7,2,3,9,7,0]", goal.getVarAsText("N"));
         assertEquals("[5,2,6,4,8,5]", goal.getVarAsText("N1"));
         assertEquals("[1,9,7,4,8,5]", goal.getVarAsText("N2"));
-        assertNull(goal.solve());
+      assertNull(goal.next());
 
       final ChoicePoint goal2 = new ChoicePoint("puzzle2(N1,N2,N), sum(N1,N2,N).", context);
         int counter = 0;
-        while(goal2.solve()!=null) counter++;
+      while (goal2.next() != null) {
+        counter++;
+      }
         assertEquals(25, counter);
     }
 }

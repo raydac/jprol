@@ -116,7 +116,7 @@ public class DeferredGoal {
   public final Term processGoalOnce() throws InterruptedException {
     final Term target = getParsedGoal().makeClone();
     final ChoicePoint goal = new ChoicePoint(target, getContext());
-    return goal.solve();
+    return goal.next();
   }
 
   public final ChoicePoint forIntegerParameters(final int... parameters) {

@@ -16,9 +16,9 @@ public class PrimitiveTest extends AbstractProlTest {
         final ProlContext context = makeContext("list(X):-X=A,A=B,B=C,C=D,D=E,A=[_,_,_,_],B=[a,_,_,_],C=[_,b,_,_],D=[_,_,c,_],E=[_,_,_,e].");
       final ChoicePoint goal = new ChoicePoint("list(F).", context);
 
-        assertNotNull(goal.solve());
+      assertNotNull(goal.next());
         assertEquals(goal.getVarAsText("F"), "['a','b','c','e']");
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     @Test
@@ -36,10 +36,10 @@ public class PrimitiveTest extends AbstractProlTest {
         };
 
         for (String anEtalon : etalon) {
-            assertNotNull(goal.solve());
+          assertNotNull(goal.next());
             assertEquals(goal.getVarAsText("X"), anEtalon);
         }
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     @Test
@@ -47,9 +47,9 @@ public class PrimitiveTest extends AbstractProlTest {
         final ProlContext context = makeContext("a(a1).a(X):-X=100. a(2).");
       final ChoicePoint goal = new ChoicePoint("X=Y,Y=X,Y=2.", context);
 
-        assertNotNull(goal.solve());
+      assertNotNull(goal.next());
         assertEquals(goal.getVarAsText("Y"), "2");
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     @Test
@@ -57,19 +57,19 @@ public class PrimitiveTest extends AbstractProlTest {
         final ProlContext context = makeContext("a(a1).a(X):-X=100. a(2).");
       final ChoicePoint goal = new ChoicePoint("clause(a(X),Y).", context);
 
-        assertNotNull(goal.solve());
+      assertNotNull(goal.next());
         assertEquals(goal.getVarAsText("X"), "'a1'");
         assertEquals(goal.getVarAsText("Y"), "'true'");
 
-        assertNotNull(goal.solve());
+      assertNotNull(goal.next());
         assertNull(goal.getVarAsText("X"));
         assertEquals(goal.getVarAsText("Y"), "X = 100");
 
-        assertNotNull(goal.solve());
+      assertNotNull(goal.next());
         assertEquals(goal.getVarAsText("X"), "2");
         assertEquals(goal.getVarAsText("Y"), "'true'");
 
-        assertNull(goal.solve());
+      assertNull(goal.next());
 
     }
 
@@ -78,17 +78,17 @@ public class PrimitiveTest extends AbstractProlTest {
         final ProlContext context = makeContext("a(X):-X=999;throw(some_exception).");
       final ChoicePoint goal = new ChoicePoint("catch(a(X),error(Err,_),Y='exc').", context);
 
-        assertNotNull(goal.solve());
+      assertNotNull(goal.next());
         assertEquals(goal.getVarAsText("X"), "999");
         assertNull(goal.getVarAsText("Err"));
         assertNull(goal.getVarAsText("Y"));
 
-        assertNotNull(goal.solve());
+      assertNotNull(goal.next());
         assertNull(goal.getVarAsText("X"));
         assertEquals(goal.getVarAsText("Err"), "some_exception");
         assertEquals(goal.getVarAsText("Y"), "'exc'");
 
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     @Test
@@ -99,17 +99,17 @@ public class PrimitiveTest extends AbstractProlTest {
 
         final String[] results = new String[]{"'a1'", "'a2'", "'a3'", "'a4'"};
 
-        assertNotNull(goal.solve());
+      assertNotNull(goal.next());
         assertEquals(goal.getVarAsText("B"), "'b1'");
         assertEquals(goal.getVarAsText("A"), "'a1'");
         assertNull(goal.getVarAsText("C"));
 
-        assertNotNull(goal.solve());
+      assertNotNull(goal.next());
         assertEquals(goal.getVarAsText("B"), "'b1'");
         assertEquals(goal.getVarAsText("A"), "'a2'");
         assertNull(goal.getVarAsText("C"));
 
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     @Test
@@ -123,7 +123,7 @@ public class PrimitiveTest extends AbstractProlTest {
         int index = 0;
 
         while (true) {
-            Term result = goal.solve();
+          Term result = goal.next();
             if (result == null) {
                 break;
             }
@@ -143,11 +143,11 @@ public class PrimitiveTest extends AbstractProlTest {
         final String[] results = new String[]{"'a'", "'b'", "'c'", "'d'"};
 
         for (String result : results) {
-            assertNotNull(goal.solve());
+          assertNotNull(goal.next());
             assertEquals(goal.getVarAsText("X"), result);
         }
 
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     @Test
@@ -160,7 +160,7 @@ public class PrimitiveTest extends AbstractProlTest {
 
         int index = 0;
         while (true) {
-            final Term term = goal.solve();
+          final Term term = goal.next();
             if (term == null) {
                 break;
             }
@@ -181,10 +181,10 @@ public class PrimitiveTest extends AbstractProlTest {
 
         int index = 0;
         for (String result : results) {
-            assertNotNull(goal.solve());
+          assertNotNull(goal.next());
             assertEquals(goal.getVarAsText("X"), results[index++]);
         }
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     @Test
@@ -196,13 +196,13 @@ public class PrimitiveTest extends AbstractProlTest {
         final String[] results = new String[]{"'a1'", "'a2'", "'a3'", "'a4'"};
 
         for (String result : results) {
-            assertNotNull(goal.solve());
+          assertNotNull(goal.next());
             assertEquals(goal.getVarAsText("X"), result);
         }
-        assertNull(goal.solve());
+      assertNull(goal.next());
 
       final ChoicePoint goal2 = new ChoicePoint("aa(X).", context);
-        assertNull(goal2.solve());
+      assertNull(goal2.next());
     }
 
     @Test
@@ -211,9 +211,9 @@ public class PrimitiveTest extends AbstractProlTest {
 
       final ChoicePoint goal = new ChoicePoint("a(a3,X).", context);
 
-        assertNotNull(goal.solve());
+      assertNotNull(goal.next());
         assertEquals("'b3'", goal.getVarAsText("X"));
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     @Test
@@ -225,10 +225,10 @@ public class PrimitiveTest extends AbstractProlTest {
         final String[] results = new String[]{"'a1'", "'a2'", "'a3'", "'a4'"};
 
         for (String result : results) {
-            assertNotNull(goal.solve());
+          assertNotNull(goal.next());
             assertEquals(goal.getVarAsText("X"), result);
         }
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     @Test
@@ -240,10 +240,10 @@ public class PrimitiveTest extends AbstractProlTest {
         final String[] results = new String[]{"'a1'", "'a2'", "'a3'", "'a4'"};
 
         for (String result : results) {
-            assertNotNull(goal.solve());
+          assertNotNull(goal.next());
             assertEquals(goal.getVarAsText("X"), result);
         }
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     @Test
@@ -255,10 +255,10 @@ public class PrimitiveTest extends AbstractProlTest {
         final String[] results = new String[]{"'c1'", "'c2'", "'a2'", "'a3'", "'a4'"};
 
         for (String result : results) {
-            assertNotNull(goal.solve());
+          assertNotNull(goal.next());
             assertEquals(goal.getVarAsText("X"), result);
         }
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     @Test
@@ -272,13 +272,13 @@ public class PrimitiveTest extends AbstractProlTest {
 
         for (int la = 0; la < 2; la++) {
             for (int lb = 0; lb < 2; lb++) {
-                assertNotNull(goal.solve());
+              assertNotNull(goal.next());
                 assertEquals(goal.getVarAsText("A"), resultsA[la]);
                 assertEquals(goal.getVarAsText("B"), resultsB[lb]);
             }
         }
 
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     @Test
@@ -289,10 +289,10 @@ public class PrimitiveTest extends AbstractProlTest {
         final String[] results = new String[]{"'a1'", "'a2'", "'b1'", "'b2'"};
 
         for (String result : results) {
-            assertNotNull(goal.solve());
+          assertNotNull(goal.next());
             assertEquals(goal.getVarAsText("A"), result);
         }
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     @Test
@@ -306,13 +306,13 @@ public class PrimitiveTest extends AbstractProlTest {
 
         for (String aResultsA : resultsA) {
             for (String aResultsB : resultsB) {
-                assertNotNull(goal.solve());
+              assertNotNull(goal.next());
                 assertEquals(goal.getVarAsText("A"), aResultsA);
                 assertEquals(goal.getVarAsText("B"), aResultsB);
             }
         }
 
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     @Test
@@ -320,9 +320,9 @@ public class PrimitiveTest extends AbstractProlTest {
         final ProlContext context = makeContext("a(a1):-!.a(a2).a(a3).a(a4).");
 
       final ChoicePoint goal = new ChoicePoint("a(X).", context);
-        assertNotNull(goal.solve());
+      assertNotNull(goal.next());
         assertEquals(goal.getVarAsText("X"), "'a1'");
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     @Test
@@ -334,10 +334,10 @@ public class PrimitiveTest extends AbstractProlTest {
         final String[] results = new String[]{"'c1'", "'c2'", "'a2'"};
 
         for (String result : results) {
-            assertNotNull(goal.solve());
+          assertNotNull(goal.next());
             assertEquals(goal.getVarAsText("X"), result);
         }
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     @Test
@@ -349,10 +349,10 @@ public class PrimitiveTest extends AbstractProlTest {
         final String[] results = new String[]{"'c1'", "'c2'"};
 
         for (String result : results) {
-            assertNotNull(goal.solve());
+          assertNotNull(goal.next());
             assertEquals(goal.getVarAsText("X"), result);
         }
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     @Test
@@ -364,10 +364,10 @@ public class PrimitiveTest extends AbstractProlTest {
         final String[] results = new String[]{"'c1'", "'c2'", "'c3'", "'f1'", "'f2'"};
 
         for (String result : results) {
-            assertNotNull(goal.solve());
+          assertNotNull(goal.next());
             assertEquals(goal.getVarAsText("X"), result);
         }
-        assertNull(goal.solve());
+      assertNull(goal.next());
     }
 
     @Test
@@ -378,10 +378,10 @@ public class PrimitiveTest extends AbstractProlTest {
         final String[] results = new String[]{"'c1'", "'a2'", "'a3'", "'a4'"};
 
         for (String result : results) {
-            assertNotNull(goal.solve());
+          assertNotNull(goal.next());
             assertEquals(goal.getVarAsText("X"), result);
         }
-        assertNull(goal.solve());
+      assertNull(goal.next());
 
     }
 

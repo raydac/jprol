@@ -29,7 +29,7 @@ public class PreparedGoalTest extends AbstractProlTest {
             final int precalculatedResult = a + b / c * d;
 
             final ChoicePoint workGoal = goal.forIntegerParameters(a, b, c, d);
-            final Term resultTerm = workGoal.solve();
+            final Term resultTerm = workGoal.next();
 
             assertEquals(workGoal.getVarAsNumber("Result").intValue(), precalculatedResult);
           }

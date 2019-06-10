@@ -63,7 +63,7 @@ public class MiscTest extends AbstractProlTest {
 
         final List<Result> result = new ArrayList<Result>();
         while (true) {
-            final Term t = goal.solve();
+          final Term t = goal.next();
             if (t == null) break;
             result.add(new Result(Utils.fillTableWithFoundVarContent(t, null)));
         }
@@ -90,7 +90,7 @@ public class MiscTest extends AbstractProlTest {
         Var result = null;
 
         while (!Thread.currentThread().isInterrupted()) {
-            final Term t = goal.solve();
+          final Term t = goal.next();
             if (t == null) {
                 break;
             }

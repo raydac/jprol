@@ -131,9 +131,9 @@ public class EightQueensTest extends AbstractProlTest {
     int combinatioCounter = 0;
 
     for (final String anEtal : etal) {
-      assertNotNull(goal.solve());
+      assertNotNull(goal.next());
       assertEquals(goal.getVarAsText("Res"), anEtal);
     }
-    assertNull(goal.solve());
+    assertNull(goal.next());
   }
 }
