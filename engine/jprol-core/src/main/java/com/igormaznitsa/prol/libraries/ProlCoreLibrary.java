@@ -572,7 +572,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     if (clIterator == null) {
       clIterator = goal.getContext().getKnowledgeBase().getClauseIterator(head.getTermType() == STRUCT ? (TermStruct) head : new TermStruct(head));
       if (clIterator == null || !clIterator.hasNext()) {
-        goal.setNoVariants();
+        goal.resetVariants();
         return false;
       }
 
@@ -604,7 +604,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         }
       }
     }
-    goal.setNoVariants();
+    goal.resetVariants();
     return false;
   }
 
@@ -654,7 +654,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
         if (last_container == null) {
           // there are not more variants
-          goal.setNoVariants();
+          goal.resetVariants();
           goal.setAuxObject(null);
           return false;
         }
@@ -698,7 +698,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       final Term nameOfFound = new Term(last_operator.getText());
 
       if (!(predicate.getElement(0).unifyTo(priorityOfFound) && predicate.getElement(1).unifyTo(specifierOfFound) && predicate.getElement(2).unifyTo(nameOfFound))) {
-        goal.setNoVariants();
+        goal.resetVariants();
         goal.setAuxObject(null);
         return false;
       } else {
@@ -777,8 +777,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       if (!argument.unifyTo(nextResult)) {
         throw new ProlCriticalError("Can't make equ for result of CALL");
       }
-      if (currentgoal.isCompleted()) {
-        goal.setNoVariants();
+      if (currentgoal.hasVariants()) {
+        goal.resetVariants();
       }
 
       result = true;
@@ -817,10 +817,10 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     if (leftSubbranch.next() != null) {
       // replace current goal by the 'then' goal
       final ChoicePoint thenPart = goal.replaceLastGoalAtChain(predicate.getElement(1));
-      thenPart.cutTillPrevChoicePoint(); // remove all previous choice points
+      thenPart.cutLocally(); // remove all previous choice points
       result = true;
     } else {
-      goal.setNoVariants();
+      goal.resetVariants();
     }
     return result;
   }
@@ -1347,17 +1347,17 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       final AtomConcatState state = goal.getAuxObject();
       if (state == null) {
         if (atom1.isGround() && atom2.isGround()) {
-          goal.setNoVariants();
+          goal.resetVariants();
           return atom3.unifyTo(new Term(atom1.getText() + atom2.getText()));
         } else if (atom1.isGround()) {
-          goal.setNoVariants();
+          goal.resetVariants();
           final String text1 = atom1.getText();
           final String text3 = atom3.getText();
           if (text3.startsWith(text1)) {
             return atom2.unifyTo(new Term(text3.substring(text1.length())));
           }
         } else if (atom2.isGround()) {
-          goal.setNoVariants();
+          goal.resetVariants();
           final String text2 = atom2.getText();
           final String text3 = atom3.getText();
           if (text3.endsWith(text2)) {
@@ -1374,7 +1374,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         if (result) {
           result = atom1.unifyTo(state.getSeq1AsTerm()) && atom2.unifyTo(state.getSeq2AsTerm());
         } else {
-          goal.setNoVariants();
+          goal.resetVariants();
         }
         return result;
       }
@@ -1450,7 +1450,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   public static boolean predicateFOR(final ChoicePoint goal, final TermStruct predicate) {
     final Term term = predicate.getElement(0);
     if (term.getTermType() != VAR) {
-      goal.setNoVariants();
+      goal.resetVariants();
       return false;
     }
 
@@ -1468,7 +1468,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       // not first call
       currentInt++;
       if (currentInt > limit) {
-        goal.setNoVariants();
+        goal.resetVariants();
         return false;
       } else {
         var.changeValue(new TermInteger(currentInt));
@@ -2040,11 +2040,11 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       final Term result = catchGoal.next();
 
       if (result == null) {
-        goal.setNoVariants();
+        goal.resetVariants();
         return false;
       } else {
-        if (catchGoal.isCompleted()) {
-          goal.setNoVariants();
+        if (catchGoal.hasVariants()) {
+          goal.resetVariants();
         }
         return true;
       }
@@ -2053,11 +2053,11 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       try {
         final Term result = catchGoal.next();
         if (result == null) {
-          goal.setNoVariants();
+          goal.resetVariants();
           return false;
         } else {
-          if (catchGoal.isCompleted()) {
-            goal.setNoVariants();
+          if (catchGoal.hasVariants()) {
+            goal.resetVariants();
           }
           return true;
         }
@@ -2068,11 +2068,11 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
           goal.setAuxObject(catchGoal);
           final Term result = catchGoal.next();
           if (result == null) {
-            goal.setNoVariants();
+            goal.resetVariants();
             return false;
           } else {
-            if (catchGoal.isCompleted()) {
-              goal.setNoVariants();
+            if (catchGoal.hasVariants()) {
+              goal.resetVariants();
             }
             goal.setAuxObject(catchGoal);
             return true;
@@ -2144,7 +2144,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     if (iterator.hasNext()) {
       result = iterator.next();
     } else {
-      goal.setNoVariants();
+      goal.resetVariants();
     }
 
     return result;
@@ -2167,7 +2167,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       factIterator = base.getFactIterator((TermStruct) term);
 
       if (factIterator == null) {
-        goal.setNoVariants();
+        goal.resetVariants();
         return false;
       } else {
         goal.setAuxObject(factIterator);
@@ -2179,7 +2179,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final TermStruct nextFact = processIterator(goal, factIterator);
     if (nextFact == null) {
       goal.setAuxObject(null);
-      goal.setNoVariants();
+      goal.resetVariants();
     } else if (origterm.getTermType() == ATOM) {
       result = true;
     } else {
@@ -2209,7 +2209,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       final RuleIterator ruleIterator = base.getRuleIterator((TermStruct) term);
 
       if (ruleIterator == null) {
-        goal.setNoVariants();
+        goal.resetVariants();
         return false;
       } else {
         ruleAuxObject = new RuleAuxObject(ruleIterator);
@@ -2226,7 +2226,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         if (nextRule == null) {
           // end
           goal.setAuxObject(null);
-          goal.setNoVariants();
+          goal.resetVariants();
           break;
         }
 
@@ -2439,7 +2439,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     }
 
     if (!result) {
-      goal.setNoVariants();
+      goal.resetVariants();
     }
 
     return result;
@@ -2534,7 +2534,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     }
 
     if (!result) {
-      goal.setNoVariants();
+      goal.resetVariants();
     }
 
     return result;
@@ -2630,7 +2630,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       }
     }
     if (!result) {
-      goal.setNoVariants();
+      goal.resetVariants();
     }
     return result;
   }

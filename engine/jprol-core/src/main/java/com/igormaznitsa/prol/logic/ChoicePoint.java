@@ -68,27 +68,7 @@ public final class ChoicePoint {
     this.goalTerm = goalToSolve.getTermType() == ATOM ? new TermStruct(goalToSolve) : goalToSolve;
     this.context = context;
 
-    final Term goal = goalToSolve.findNonVarOrDefault(goalToSolve);
-
-    switch (goal.getTermType()) {
-      case ATOM: {
-        if (goal instanceof NumericTerm) {
-          throw new ProlTypeErrorException("callable", goal);
-        }
-      }
-      break;
-      case VAR: {
-        if (!goal.isGround()) {
-          throw new ProlInstantiationErrorException("callable", goal);
-        }
-      }
-      break;
-      case LIST: {
-        throw new ProlTypeErrorException("callable", goal);
-      }
-      default:
-        break;
-    }
+    final Term goal = assertCallable(goalToSolve.findNonVarOrDefault(goalToSolve));
 
     if (rootGoal == null) {
       if (goal.getTermType() == ATOM) {
@@ -128,6 +108,29 @@ public final class ChoicePoint {
     this(null, goal, context, predefinedVarValues);
   }
 
+  private static Term assertCallable(final Term term) {
+    switch (term.getTermType()) {
+      case ATOM: {
+        if (term instanceof NumericTerm) {
+          throw new ProlTypeErrorException("callable", term);
+        }
+      }
+      break;
+      case VAR: {
+        if (!term.isGround()) {
+          throw new ProlInstantiationErrorException("callable", term);
+        }
+      }
+      break;
+      case LIST: {
+        throw new ProlTypeErrorException("callable", term);
+      }
+      default:
+        break;
+    }
+    return term;
+  }
+
   public Map<String, Term> findAllGroundedVars() {
     return this.variables.entrySet()
         .stream()
@@ -137,7 +140,7 @@ public final class ChoicePoint {
 
   @Override
   public String toString() {
-    return (this.isCompleted() ? "Completed " : "Active ") + "Goal(" + this.goalTerm.toString() + ')';
+    return (this.hasVariants() ? "Completed " : "Active ") + "Goal(" + this.goalTerm.toString() + ')';
   }
 
   public Number getVarAsNumber(final String varName) {
@@ -333,7 +336,7 @@ public final class ChoicePoint {
           }
         } else {
           this.clauseIterator = null;
-          setNoVariants();
+          resetVariants();
           break;
         }
       }
@@ -342,7 +345,7 @@ public final class ChoicePoint {
         case ATOM: {
           final String text = this.goalTerm.getText();
           result = this.context.hasZeroArityPredicateForName(text) ? ChoicePointResult.SUCCESS : ChoicePointResult.FAIL;
-          setNoVariants();
+          resetVariants();
           doLoop = false;
         }
         break;
@@ -368,62 +371,50 @@ public final class ChoicePoint {
 
             boolean nonConsumed = true;
 
-            switch (arity) {
-              case 0: {
-                final int len = functorText.length();
-                if (len == 1 && functorText.charAt(0) == '!') {
-                  // cut
-                  cut();
-                  nonConsumed = false;
-                  doLoop = false;
-                  result = ChoicePointResult.SUCCESS;
-                  this.noVariants = true;
-                } else if (len == 2 && "!!".equals(functorText)) {
-                  // cut local
-                  cutTillPrevChoicePoint();
-                  nonConsumed = false;
-                  doLoop = false;
-                  this.noVariants = true;
-                  result = ChoicePointResult.SUCCESS;
-                }
+            if (arity == 0) {
+              final int len = functorText.length();
+              if (len == 1 && functorText.charAt(0) == '!') {
+                // cut
+                cut();
+                nonConsumed = false;
+                doLoop = false;
+                result = ChoicePointResult.SUCCESS;
+                this.noVariants = true;
+              } else if (len == 2 && "!!".equals(functorText)) {
+                // cut local
+                cutLocally();
+                nonConsumed = false;
+                doLoop = false;
+                this.noVariants = true;
+                result = ChoicePointResult.SUCCESS;
               }
-              break;
-              case 2: {
-                final int textLen = functorText.length();
-                if (textLen == 1) {
-                  switch (functorText.charAt(0)) {
-                    case ',': {
-                      // and
-                      final ChoicePoint leftSubgoal = replaceLastGoalAtChain(struct.getElement(0));
-                      leftSubgoal.nextAndTerm = struct.getElement(1);
-                      leftSubgoal.nextAndTermForNextGoal = this.nextAndTerm;
+            } else if (arity == 2) {
+              final int textLen = functorText.length();
+              if (textLen == 1) {
+                if (functorText.charAt(0) == ',') {// and
+                  final ChoicePoint leftSubgoal = replaceLastGoalAtChain(struct.getElement(0));
+                  leftSubgoal.nextAndTerm = struct.getElement(1);
+                  leftSubgoal.nextAndTermForNextGoal = this.nextAndTerm;
 
-                      result = ChoicePointResult.STACK_CHANGED;
+                  result = ChoicePointResult.STACK_CHANGED;
 
-                      doLoop = false;
-                      nonConsumed = false;
-                    }
-                    break;
-                    case ';': {
-                      // or
-                      if (getAuxObject() == null) {
-                        // left subbranch
-                        final ChoicePoint leftSubbranch = new ChoicePoint(this.rootGoal, struct.getElement(0), this.context, null);
-                        leftSubbranch.nextAndTerm = this.nextAndTerm;
-                        setAuxObject(leftSubbranch);
-                      } else {
-                        // right subbranch
-                        replaceLastGoalAtChain(struct.getElement(1));
-                      }
-                      result = ChoicePointResult.STACK_CHANGED;
-                      nonConsumed = false;
-                      doLoop = false;
-                    }
-                    break;
+                  doLoop = false;
+                  nonConsumed = false;
+                } else if (functorText.charAt(0) == ';') {// or
+                  if (getAuxObject() == null) {
+                    // left subbranch
+                    final ChoicePoint leftSubbranch = new ChoicePoint(this.rootGoal, struct.getElement(0), this.context, null);
+                    leftSubbranch.nextAndTerm = this.nextAndTerm;
+                    setAuxObject(leftSubbranch);
+                  } else {
+                    // right subbranch
+                    replaceLastGoalAtChain(struct.getElement(1));
                   }
+                  result = ChoicePointResult.STACK_CHANGED;
+                  nonConsumed = false;
+                  doLoop = false;
                 }
               }
-              break;
             }
 
             if (nonConsumed) {
@@ -434,13 +425,13 @@ public final class ChoicePoint {
                 this.clauseIterator = this.context.getKnowledgeBase().getClauseIterator(struct);
                 if (this.clauseIterator == null || !this.clauseIterator.hasNext()) {
                   doLoop = false;
-                  setNoVariants();
+                  resetVariants();
                   result = ChoicePointResult.FAIL;
                 }
               } else {
                 // it is a processor
                 if (processor.isEvaluable() || processor.isDetermined()) {
-                  setNoVariants();
+                  resetVariants();
                 }
 
                 if (processor.execute(this, struct)) {
@@ -462,7 +453,7 @@ public final class ChoicePoint {
         default: {
           result = ChoicePointResult.FAIL;
           doLoop = false;
-          setNoVariants();
+          resetVariants();
         }
         break;
       }
@@ -471,7 +462,7 @@ public final class ChoicePoint {
     return result;
   }
 
-  public void setNoVariants() {
+  public void resetVariants() {
     this.noVariants = true;
   }
 
@@ -481,7 +472,7 @@ public final class ChoicePoint {
     this.prevChoicePoint = null;
   }
 
-  public void cutTillPrevChoicePoint() {
+  public void cutLocally() {
     this.prevChoicePoint = null;
   }
 
@@ -494,7 +485,7 @@ public final class ChoicePoint {
     return processor;
   }
 
-  public boolean isCompleted() {
+  public boolean hasVariants() {
     return this.rootGoal.rootLastGoalAtChain == null || this.noVariants;
   }
 }
