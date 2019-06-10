@@ -31,6 +31,7 @@ import com.igormaznitsa.prol.logic.triggers.ProlTriggerType;
 import com.igormaznitsa.prol.logic.triggers.TriggerEvent;
 import com.igormaznitsa.prol.parser.ProlConsult;
 import com.igormaznitsa.prol.parser.ProlTreeBuilder;
+import com.igormaznitsa.prol.trace.TraceEvent;
 import com.igormaznitsa.prol.trace.TraceListener;
 import com.igormaznitsa.prol.utils.Utils;
 
@@ -75,7 +76,7 @@ public final class ProlContext {
   private volatile boolean halted;
   private ThreadPoolExecutor executorService;
   private Map<String, ReentrantLock> lockerTable;
-  private TraceListener defaultTraceListener;
+  private final List<TraceListener> traceListeners = new CopyOnWriteArrayList<>();
 
   public ProlContext(final String name) {
     this(name, DefaultProlStreamManagerImpl.getInstance(), null);
@@ -137,12 +138,12 @@ public final class ProlContext {
     }
   }
 
-  public TraceListener getDefaultTraceListener() {
-    return this.defaultTraceListener;
+  public void addTraceListener(final TraceListener listener) {
+    this.traceListeners.add(listener);
   }
 
-  public void setDefaultTraceListener(final TraceListener traceListener) {
-    this.defaultTraceListener = traceListener;
+  public void removeTraceListener(final TraceListener listener) {
+    this.traceListeners.remove(listener);
   }
 
   public final String getName() {
@@ -173,15 +174,21 @@ public final class ProlContext {
     }
   }
 
-  public Future<?> solveAsynchronously(final String goal, final TraceListener traceListener) throws IOException, InterruptedException {
+  public Future<?> solveAsynchronously(final String goal) throws IOException {
     if (goal == null) {
       throw new NullPointerException("The goal is null");
     }
     final Term term = new ProlTreeBuilder(this).readPhraseAndMakeTree(goal);
-    return this.solveAsynchronously(term, traceListener);
+    return this.solveAsynchronously(term);
   }
 
-  public Future<?> solveAsynchronously(final Term goal, final TraceListener traceListener) {
+  void fireTraceEvent(final TraceEvent event, final ChoicePoint choicePoint) {
+    if (!this.traceListeners.isEmpty()) {
+      this.traceListeners.forEach(l -> l.onTraceEvet(event, choicePoint));
+    }
+  }
+
+  public Future<?> solveAsynchronously(final Term goal) {
     if (isHalted()) {
       throw new IllegalStateException("The context is halted");
     }
@@ -193,9 +200,9 @@ public final class ProlContext {
     final ProlContext thisContext = this;
 
     return getContextExecutorService().submit(() -> {
-      final Goal asyncGoal;
+      final ChoicePoint asyncGoal;
       try {
-        asyncGoal = new Goal(goal, thisContext, traceListener);
+        asyncGoal = new ChoicePoint(goal, thisContext);
       } catch (Exception ex) {
         LOG.log(Level.SEVERE, "Can't create a goal from the term \'" + goal.toString() + '\'', ex);
         return;
@@ -628,7 +635,7 @@ public final class ProlContext {
     }
   }
 
-  public List<TermStruct> findAllForPredicateIndicatorInLibs(final TermStruct predicateIndicator) {
+  public List<TermStruct> findAllForPredicateIndicatorInLibs(final Term predicateIndicator) {
     final ReentrantLock locker = this.libLocker;
 
     locker.lock();

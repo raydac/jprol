@@ -345,20 +345,20 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public List<TermStruct> findAllForPredicateIndicator(final TermStruct predicateIndicator) {
+  public List<TermStruct> findAllForPredicateIndicator(final Term predicateIndicator) {
     this.predicateLocker.lock();
     try {
       return this.predicateTable.keySet()
           .stream()
           .map(key -> {
             final int index = key.lastIndexOf('/');
-            return new TermStruct("/",
+            return new TermStruct(Utils.SIGNATURE_OPERATOR,
                 new Term[] {
                     new Term(key.substring(0, index)),
                     new TermInteger(parseInt(key.substring(index + 1)))
                 });
           })
-          .filter(k -> predicateIndicator == null || predicateIndicator.dryUnifyTo(k))
+          .filter(predicateIndicator::dryUnifyTo)
           .collect(Collectors.toList());
     } finally {
       this.predicateLocker.unlock();

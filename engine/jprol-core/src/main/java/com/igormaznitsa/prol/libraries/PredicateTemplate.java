@@ -61,7 +61,7 @@ public class PredicateTemplate {
         }
       }
       case SHALL_BE_INSTANTIATED: {
-        if (type == VAR && !term.isBounded()) {
+        if (term.findNonVarOrDefault(term).getTermType() == VAR) {
           throw new ProlInstantiationErrorException("Should be instantiated \'" + term.toSrcString() + '\'', term);
         }
         checkTermForTemplate(term);
@@ -69,7 +69,7 @@ public class PredicateTemplate {
       break;
       case SHALL_BE_INSTANTIATED_OR_VARIABLE: {
         // any
-        if (type == VAR && !term.isBounded()) {
+        if (term.findNonVarOrDefault(term).getTermType() == VAR) {
           return false;
         }
 
@@ -77,11 +77,7 @@ public class PredicateTemplate {
       }
       break;
       case SHALL_BE_VARIABLE: {
-        if (type == VAR) {
-          if (term.isBounded()) {
-            throw new ProlInstantiationErrorException("Should not be instantiated \'" + term.toSrcString() + '\'', term);
-          }
-        } else {
+        if (term.findNonVarOrDefault(term).getTermType() != VAR) {
           throw new ProlInstantiationErrorException("Should be noninstantiated variable \'" + term.toSrcString() + '\'', term);
         }
         return true;
@@ -628,10 +624,10 @@ public class PredicateTemplate {
 
               final boolean leftIsCorrect = (left.getTermType() == ATOM && left.getClass() == Term.class)
                   || (left.getTermType() == STRUCT && ((TermStruct) left).getArity() == 0)
-                  || (left.getTermType() == VAR && !left.isBounded());
+                  || (left.getTermType() == VAR && !((Var) left).isGround());
 
               final boolean rightIsCorrect = (right.getTermType() == ATOM && right.getClass() == TermInteger.class)
-                  || (right.getTermType() == VAR && !right.isBounded());
+                  || (right.getTermType() == VAR && !((Var) right).isGround());
 
               error = !(leftIsCorrect && rightIsCorrect);
             }

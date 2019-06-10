@@ -1,7 +1,7 @@
 package com.igormaznitsa.prol.test;
 
 import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
-import com.igormaznitsa.prol.logic.Goal;
+import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlConsult;
 import org.junit.Test;
@@ -9,6 +9,7 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
+
 import static org.junit.Assert.*;
 
 public class CryptoTest extends AbstractProlTest {
@@ -55,14 +56,14 @@ public class CryptoTest extends AbstractProlTest {
 
         consult.consult();
 
-        final Goal goal = new Goal("puzzle1(N1,N2,N), sum(N1,N2,N).", context);
+      final ChoicePoint goal = new ChoicePoint("puzzle1(N1,N2,N), sum(N1,N2,N).", context);
         assertNotNull(goal.solve());
         assertEquals("[7,2,3,9,7,0]", goal.getVarAsText("N"));
         assertEquals("[5,2,6,4,8,5]", goal.getVarAsText("N1"));
         assertEquals("[1,9,7,4,8,5]", goal.getVarAsText("N2"));
         assertNull(goal.solve());
-        
-        final Goal goal2 = new Goal("puzzle2(N1,N2,N), sum(N1,N2,N).", context);
+
+      final ChoicePoint goal2 = new ChoicePoint("puzzle2(N1,N2,N), sum(N1,N2,N).", context);
         int counter = 0;
         while(goal2.solve()!=null) counter++;
         assertEquals(25, counter);

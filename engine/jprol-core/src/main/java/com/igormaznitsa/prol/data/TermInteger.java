@@ -213,9 +213,7 @@ public final class TermInteger extends Term implements NumericTerm {
       return 0;
     }
 
-    if (atom.getTermType() == VAR && atom.isBounded()) {
-      atom = ((Var) atom).getValue();
-    }
+    atom = atom.findNonVarOrDefault(atom);
 
     switch (atom.getTermType()) {
       case VAR:

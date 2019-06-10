@@ -23,7 +23,7 @@ import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.easygui.MainFrame;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
-import com.igormaznitsa.prol.logic.Goal;
+import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.utils.Utils;
 
 import javax.swing.filechooser.FileFilter;
@@ -55,7 +55,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "renamefile/2", Template = {"+term,+term"}, Reference = "Rename file")
   @Determined
-  public static boolean predicateRenameFile(final Goal goal, final TermStruct predicate) {
+  public static boolean predicateRenameFile(final ChoicePoint goal, final TermStruct predicate) {
     final Term oldpath = Utils.getTermFromElement(predicate.getElement(0));
     final Term newname = Utils.getTermFromElement(predicate.getElement(1));
 
@@ -67,7 +67,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "file_str/2", Template = {"+term,?term"}, Reference = "Reads string from a file and transfers it to a variable, or creates a file and writes the string into the file.")
   @Determined
-  public boolean predicateFileStr(final Goal goal, final TermStruct predicate) {
+  public boolean predicateFileStr(final ChoicePoint goal, final TermStruct predicate) {
     final File file = new File(path, Utils.getTermFromElement(predicate.getElement(0)).getText());
     final Term str = Utils.getTermFromElement(predicate.getElement(1));
 
@@ -95,7 +95,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "deletefile/1", Template = {"+term"}, Reference = "Delete file for name")
   @Determined
-  public boolean predicateDeleteFile(final Goal goal, final TermStruct predicate) {
+  public boolean predicateDeleteFile(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = Utils.getTermFromElement(predicate.getElement(0));
 
     final String filePath = arg.getText();
@@ -106,7 +106,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "existfile/1", Template = {"+term"}, Reference = "Ceck that a file exists in current directory")
   @Determined
-  public boolean predicateExistFile(final Goal goal, final TermStruct predicate) {
+  public boolean predicateExistFile(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = Utils.getTermFromElement(predicate.getElement(0));
 
     final String filePath = arg.getText();
@@ -117,7 +117,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "dir/3", Template = {"+term,+term,?term"}, Reference = "Open directory to select file")
   @Determined
-  public boolean predicateDir(final Goal goal, final TermStruct predicate) {
+  public boolean predicateDir(final ChoicePoint goal, final TermStruct predicate) {
     final String thePath = Utils.getTermFromElement(predicate.getElement(0)).getText();
     final String extension = Utils.getTermFromElement(predicate.getElement(1)).getText();
     final Term selected = Utils.getTermFromElement(predicate.getElement(2));
@@ -149,7 +149,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "disk/1", Template = {"?term"}, Reference = "Set or get current path")
   @Determined
-  public boolean predicateDisk(final Goal goal, final TermStruct predicate) {
+  public boolean predicateDisk(final ChoicePoint goal, final TermStruct predicate) {
     Term thePath = Utils.getTermFromElement(predicate.getElement(0));
 
     boolean result = false;
@@ -174,7 +174,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "save/1", Template = {"+term"}, Reference = "Save current data base")
   @Determined
-  public boolean predicateSave(final Goal goal, final TermStruct predicate) {
+  public boolean predicateSave(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = Utils.getTermFromElement(predicate.getElement(0));
 
     final String filePath = arg.getText();

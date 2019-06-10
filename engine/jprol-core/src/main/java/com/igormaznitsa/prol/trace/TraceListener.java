@@ -16,8 +16,8 @@
 
 package com.igormaznitsa.prol.trace;
 
-import com.igormaznitsa.prol.logic.Goal;
+import com.igormaznitsa.prol.logic.ChoicePoint;
 
 public interface TraceListener {
-  void onTraceEvet(TraceEvent event, Goal source);
+  void onTraceEvet(TraceEvent event, ChoicePoint source);
 }

@@ -30,38 +30,30 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class PreparedGoal {
+public class DeferredGoal {
 
-  private final TraceListener tracer;
   private String goalAsText;
   private ProlContext context;
   private Term parsedGoal;
   private List<String> orderedVars;
 
-  public PreparedGoal(final Term goal, final ProlContext workContext) {
-    this(goal, workContext, null);
-  }
-
-  @SuppressWarnings("unchecked")
-  public PreparedGoal(final Term goal, final ProlContext workContext, final TraceListener tracer) {
+  public DeferredGoal(final Term goal, final ProlContext workContext) {
     if (goal == null || workContext == null) {
       throw new NullPointerException("Null argument detected");
     }
-    this.tracer = tracer;
     setContext(workContext);
     setParsedGoal(goal);
-    setOrderedVars(Collections.EMPTY_LIST);
+    setOrderedVars(Collections.emptyList());
   }
 
-  public PreparedGoal(final String goal, final ProlContext workContext) throws IOException {
+  public DeferredGoal(final String goal, final ProlContext workContext) throws IOException {
     this(goal, workContext, null);
   }
 
-  public PreparedGoal(final String goal, final ProlContext workContext, final TraceListener tracer) throws IOException {
+  public DeferredGoal(final String goal, final ProlContext workContext, final TraceListener tracer) throws IOException {
     if (goal == null || workContext == null) {
       throw new NullPointerException("Needed argument is null");
     }
-    this.tracer = tracer;
     setContext(workContext);
 
     // find ordered vars
@@ -123,11 +115,11 @@ public class PreparedGoal {
 
   public final Term processGoalOnce() throws InterruptedException {
     final Term target = getParsedGoal().makeClone();
-    final Goal goal = new Goal(target, getContext(), tracer);
+    final ChoicePoint goal = new ChoicePoint(target, getContext());
     return goal.solve();
   }
 
-  public final Goal forIntegerParameters(final int... parameters) {
+  public final ChoicePoint forIntegerParameters(final int... parameters) {
     final Term[] termarray = new Term[parameters.length];
     for (int li = 0; li < parameters.length; li++) {
       termarray[li] = new TermInteger(parameters[li]);
@@ -135,7 +127,7 @@ public class PreparedGoal {
     return this.forParameters(termarray);
   }
 
-  public final Goal forStringParameters(final String... parameters) {
+  public final ChoicePoint forStringParameters(final String... parameters) {
     final Term[] termarray = new Term[parameters.length];
     for (int li = 0; li < parameters.length; li++) {
       termarray[li] = new Term(parameters[li]);
@@ -143,7 +135,7 @@ public class PreparedGoal {
     return this.forParameters(termarray);
   }
 
-  public final Goal forFloatParameters(final float... parameters) {
+  public final ChoicePoint forFloatParameters(final float... parameters) {
     final Term[] termarray = new Term[parameters.length];
     for (int li = 0; li < parameters.length; li++) {
       termarray[li] = new TermFloat(parameters[li]);
@@ -151,7 +143,7 @@ public class PreparedGoal {
     return this.forParameters(termarray);
   }
 
-  public final Goal forParameters(final Term... parameters) {
+  public final ChoicePoint forParameters(final Term... parameters) {
     if (orderedVars.size() != parameters.length) {
       throw new IllegalArgumentException("Incompatible parameter number [" + orderedVars.size() + "!=" + parameters.length);
     }
@@ -174,10 +166,10 @@ public class PreparedGoal {
       varTerm.setValue(parameter);
     }
 
-    return new Goal(goalClone, getContext(), tracer);
+    return new ChoicePoint(goalClone, getContext());
   }
 
-  public final Goal forParameters(final Map<String, Term> vars) {
+  public final ChoicePoint forParameters(final Map<String, Term> vars) {
     if (vars == null) {
       throw new NullPointerException();
     }
@@ -192,10 +184,10 @@ public class PreparedGoal {
       foundVar.setValue(value);
     });
 
-    return new Goal(goalClone, getContext(), tracer);
+    return new ChoicePoint(goalClone, getContext());
   }
 
-  public final Goal getNonparametrizedGoalInstance() {
-    return new Goal(getParsedGoal(), getContext(), tracer);
+  public final ChoicePoint getNonparametrizedGoalInstance() {
+    return new ChoicePoint(getParsedGoal(), getContext());
   }
 }

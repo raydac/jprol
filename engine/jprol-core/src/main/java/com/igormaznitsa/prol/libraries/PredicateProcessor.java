@@ -22,7 +22,7 @@ import com.igormaznitsa.prol.annotations.ItChangesGoalChain;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.exceptions.*;
-import com.igormaznitsa.prol.logic.Goal;
+import com.igormaznitsa.prol.logic.ChoicePoint;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -147,7 +147,7 @@ public final class PredicateProcessor {
     return result;
   }
 
-  public final Term executeEvaluable(final Goal goal, final TermStruct predicate) {
+  public final Term executeEvaluable(final ChoicePoint goal, final TermStruct predicate) {
     try {
       Term[] nonchangeable = null;
       if (templates != null) {
@@ -189,7 +189,7 @@ public final class PredicateProcessor {
     }
   }
 
-  public final boolean execute(final Goal goal, final TermStruct predicate) throws InterruptedException {
+  public final boolean execute(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
     try {
       Term[] nonchangeable = null;
       if (templates != null) {

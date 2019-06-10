@@ -79,7 +79,7 @@ public class TermStruct extends Term {
   }
 
   public final Term[] getElementsAsArray() {
-    return terms;
+    return this.terms;
   }
 
   public final void setElement(final int index, final Term element) {
@@ -88,7 +88,7 @@ public class TermStruct extends Term {
 
   @Override
   public Stream<Var> variables() {
-    return this.stream().filter(x -> x.getTermType() == VAR).map(x -> (Var) x);
+    return this.stream().flatMap(Term::variables);
   }
 
   @Override
@@ -340,8 +340,8 @@ public class TermStruct extends Term {
   }
 
   @Override
-  public boolean isBounded() {
-    return this.terms.length == 0 || this.stream().allMatch(Term::isBounded);
+  public boolean isGround() {
+    return this.getArity() == 0 || this.stream().allMatch(Term::isGround);
   }
 
   @Override
@@ -464,9 +464,7 @@ public class TermStruct extends Term {
       return 0;
     }
 
-    if (atom.getTermType() == VAR && atom.isBounded()) {
-      atom = ((Var) atom).getValue();
-    }
+    atom = atom.findNonVarOrDefault(atom);
 
     switch (atom.getTermType()) {
       case LIST:

@@ -3,7 +3,7 @@ package com.igormaznitsa.prol.test;
 import com.igormaznitsa.prol.exceptions.ProlCustomErrorException;
 import com.igormaznitsa.prol.exceptions.ProlException;
 import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
-import com.igormaznitsa.prol.logic.Goal;
+import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlConsult;
 import org.junit.Ignore;
@@ -67,7 +67,7 @@ public class SomeFromISOTest extends AbstractProlTest {
     checkOnce("findall(X,(X=2;X=1),[1,2]).", false);
 
     //[findall(X,(X=1 ; X=2),[X,Y]), [[X <-- 1, Y <-- 2]]].
-    final Goal goal = proveGoal("findall(X,(X=1;X=2),[X1,Y1])."); // changed from original because at Prol all variables linked by their names inside a goal, so that it is not a bug, it is a feature
+    final ChoicePoint goal = proveGoal("findall(X,(X=1;X=2),[X1,Y1])."); // changed from original because at Prol all variables linked by their names inside a goal, so that it is not a bug, it is a feature
     assertEquals(goal.getVarAsText("X1"), "1");
     assertEquals(goal.getVarAsText("Y1"), "2");
     assertNull(goal.solve());
@@ -94,7 +94,7 @@ public class SomeFromISOTest extends AbstractProlTest {
     checkOnce("setof(X,fail,L).", false);
 
     //[setof(1,(Y=2;Y=1),L), [[L <-- [1], Y <-- 1], [L <-- [1], Y <-- 2]]].
-    final Goal goal1 = prepareGoal("setof(1,(Y=2;Y=1),L).");
+    final ChoicePoint goal1 = prepareGoal("setof(1,(Y=2;Y=1),L).");
     assertNotNull(goal1.solve());
     assertEquals("[1]", goal1.getVarAsText("L"));
     assertEquals("2", goal1.getVarAsText("Y"));
@@ -114,7 +114,7 @@ public class SomeFromISOTest extends AbstractProlTest {
     //[(set_prolog_flag(unknown, warning), setof(X,Y^(X=1;Y=1;X=3),S)), [[S <-- [_, 1,3]]]].
     checkOnceVar("setof(X,Y^(X=1;Y=1;X=3),S).", "S", "[X,1,3]");
     //[setof(X,(X=Y;X=Z;Y=1),L), [[L <-- [Y, Z]], [L <-- [_], Y <-- 1]]].
-    final Goal goal2 = prepareGoal("setof(X,(X=Y;X=Z;Y=1),L).");
+    final ChoicePoint goal2 = prepareGoal("setof(X,(X=Y;X=Z;Y=1),L).");
     assertNotNull(goal2.solve());
     assertEquals("[Y,Z]", goal2.getVarAsText("L"));
     assertNull(goal2.getVarAsText("Y"));
@@ -139,7 +139,7 @@ public class SomeFromISOTest extends AbstractProlTest {
     checkOnceVar("bagof(X,(X=Y;X=Z),L).", "L", "[Y,Z]");
 
     //[bagof(1, (Y = 1; Y = 2),L), [[L<-- [1], Y<-- 1], [L<-- [1], Y<-- 2]]].
-    final Goal goal = prepareGoal("bagof(1,(Y = 1; Y = 2),L).");
+    final ChoicePoint goal = prepareGoal("bagof(1,(Y = 1; Y = 2),L).");
     assertNotNull(goal.solve());
     assertEquals("[1]", goal.getVarAsText("L"));
     assertEquals("1", goal.getVarAsText("Y"));
@@ -152,7 +152,7 @@ public class SomeFromISOTest extends AbstractProlTest {
     checkOnce("bagof(X, fail, L).", false);
 
     //[bagof(X, (X = Y; X = Z; Y = 1),L), [[L<-- [Y, Z]], [L<-- [_], Y<-- 1]]].
-    final Goal goal2 = prepareGoal("bagof(X, (X = Y; X = Z; Y = 1),L).");
+    final ChoicePoint goal2 = prepareGoal("bagof(X, (X = Y; X = Z; Y = 1),L).");
     assertNotNull(goal2.solve());
     assertEquals("[Y,Z]", goal2.getVarAsText("L"));
     assertNotNull(goal2.solve());
@@ -161,25 +161,25 @@ public class SomeFromISOTest extends AbstractProlTest {
     assertNull(goal2.solve());
 
     //[(set_prolog_flag(unknown, warning),bagof(X, (Y ^ (X = 1;Y = 1);X = 3),S)), [[S<-- [3]]]].
-    final Goal goal3 = prepareGoal("bagof(X, (Y ^ (X = 1;Y = 1);X = 3),S).");
+    final ChoicePoint goal3 = prepareGoal("bagof(X, (Y ^ (X = 1;Y = 1);X = 3),S).");
     assertNotNull(goal3.solve());
     assertEquals("[3]", goal3.getVarAsText("S"));
     assertNull(goal3.solve());
 
     //[bagof(X, Y ^ ((X = 1; Y = 1);(X = 2,Y = 2)),S), [[S<-- [1, _, 2]]]].
-    final Goal goal4 = prepareGoal("bagof(X, Y ^ ((X = 1; Y = 1);(X = 2,Y = 2)),S).");
+    final ChoicePoint goal4 = prepareGoal("bagof(X, Y ^ ((X = 1; Y = 1);(X = 2,Y = 2)),S).");
     assertNotNull(goal4.solve());
     assertEquals("[1,2,X]", goal4.getVarAsText("S"));
     assertNull(goal4.solve());
 
     //[bagof(X, Y ^ ((X = 1, Y = 1);(X = 2,Y = 2)),S), [[S<-- [1, 2]]]].
-    final Goal goal5 = prepareGoal("bagof(X, Y ^ ((X = 1, Y = 1);(X = 2,Y = 2)),S).");
+    final ChoicePoint goal5 = prepareGoal("bagof(X, Y ^ ((X = 1, Y = 1);(X = 2,Y = 2)),S).");
     assertNotNull(goal5.solve());
     assertEquals("[1,2]", goal5.getVarAsText("S"));
     assertNull(goal5.solve());
 
     //[bagof(f(X, Y), (X = a; Y = b),L), [[L<-- [f(a, _), f(_, b)]]]].
-    final Goal goal6 = prepareGoal("bagof(f(X, Y), (X = a; Y = b),L).");
+    final ChoicePoint goal6 = prepareGoal("bagof(f(X, Y), (X = a; Y = b),L).");
     assertNotNull(goal6.solve());
     assertEquals("[f('a',Y),f(X,'b')]", goal6.getVarAsText("L"));
     assertNull(goal6.solve());
@@ -588,18 +588,21 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testCurrentPredicate() throws Exception {
-    final Goal goal = prepareGoal("current_predicate(halt/X).");
+  public void testCurrentPredicateAndCurrentPredicateAll() throws Exception {
+    //[current_predicate(current_predicate/1), failure].
+    checkOnce("current_predicate(current_predicate/1).", false);
+
+    final ChoicePoint goal = prepareGoal("some(). some(huzzaa).", "current_predicate(some/X).");
     assertNotNull(goal.solve());
     assertEquals(0, goal.getVarAsNumber("X"));
     assertNotNull(goal.solve());
     assertEquals(1, goal.getVarAsNumber("X"));
     assertNull(goal.solve());
 
-    //[current_predicate(current_predicate/1), failure].
-    checkOnce("current_predicate(current_predicate/2).", false);
     //[current_predicate(run_tests/1), success].
-    checkOnce("current_predicate(atom/1).", true);
+    checkOnce("current_predicate_all(atom/1).", true);
+    checkOnceVar("current_predicate_all(halt/X).", "X", "0", "1");
+
     //[current_predicate(4), type_error(predicate_indicator, 4)].
     checkException("current_predicate(4).");
     //[current_predicate(dog), type_error(predicate_indicator, dog)].
@@ -634,7 +637,7 @@ public class SomeFromISOTest extends AbstractProlTest {
     checkOnce("atom_concat('small',' world','small world').", true);
 
     //[atom_concat(T1,T2,'hello'), [[T1 <-- '',T2 <-- 'hello'],[T1 <-- 'h',T2 <-- 'ello'],[T1 <-- 'he',T2 <-- 'llo'],[T1 <-- 'hel',T2 <-- 'lo'],[T1 <-- 'hell',T2 <-- 'o'],[T1 <-- 'hello',T2 <-- '']]].
-    final Goal goal = prepareGoal("atom_concat(T1,T2,'hello').");
+    final ChoicePoint goal = prepareGoal("atom_concat(T1,T2,'hello').");
     assertNotNull(goal.solve());
     assertEquals("''", goal.getVarAsText("T1"));
     assertEquals("'hello'", goal.getVarAsText("T2"));
@@ -655,7 +658,7 @@ public class SomeFromISOTest extends AbstractProlTest {
     assertEquals("''", goal.getVarAsText("T2"));
     assertNull(goal.solve());
 
-    final Goal goal2 = prepareGoal("atom_concat(T1,T2,'').");
+    final ChoicePoint goal2 = prepareGoal("atom_concat(T1,T2,'').");
     assertNotNull(goal2.solve());
     assertEquals("''", goal2.getVarAsText("T1"));
     assertEquals("''", goal2.getVarAsText("T2"));
@@ -784,7 +787,7 @@ public class SomeFromISOTest extends AbstractProlTest {
     checkOnce("functor(foo(a,b,c),foo,3).", true);
 
     //[functor(foo(a,b,c),X,Y),[[X <-- foo, Y <-- 3]]].
-    final Goal goal = proveGoal("functor(foo(a,b,c),X,Y).");
+    final ChoicePoint goal = proveGoal("functor(foo(a,b,c),X,Y).");
     assertEquals(goal.getVarAsText("X"), "'foo'");
     assertEquals(goal.getVarAsNumber("Y"), 3);
     assertNull(goal.solve());
@@ -796,7 +799,7 @@ public class SomeFromISOTest extends AbstractProlTest {
     checkOnceVar("functor(X,foo,0).", "X", "foo");
 
     //[functor(mats(A,B),A,B), [[A <-- mats,B <-- 2]]].
-    final Goal goal2 = proveGoal("functor(mats(A,B),A,B).");
+    final ChoicePoint goal2 = proveGoal("functor(mats(A,B),A,B).");
     assertEquals("'mats'", goal2.getVarAsText("A"));
     assertEquals(2, goal2.getVarAsNumber("B"));
     assertNull(goal2.solve());
@@ -808,13 +811,13 @@ public class SomeFromISOTest extends AbstractProlTest {
     checkOnce("functor(foo(a),fo,1).", false);
 
     //[functor(1,X,Y), [[X <-- 1,Y <-- 0]]].
-    final Goal goal3 = proveGoal("functor(1,X,Y).");
+    final ChoicePoint goal3 = proveGoal("functor(1,X,Y).");
     assertEquals("1", goal3.getVarAsText("X"), "1");
     assertEquals(0, goal3.getVarAsNumber("Y"));
     assertNull(goal3.solve());
 
     //[functor(X,1.1,0), [[X <-- 1.1]]].
-    final Goal goal4 = proveGoal("functor(X,1.1,0).");
+    final ChoicePoint goal4 = proveGoal("functor(X,1.1,0).");
     assertEquals(1.1f, goal4.getVarAsNumber("X"));
     assertNull(goal4.solve());
 
@@ -851,10 +854,10 @@ public class SomeFromISOTest extends AbstractProlTest {
     //[(current_prolog_flag(max_arity,A), X is A + 1, functor(T, foo, X)),representation_error(max_arity)].
 
     //[functor(foo(a,b,c),foo,3), success].
-    checkOnce("functor(foo(a,b,c),3).", true);
+    checkOnce("functor(foo(a,b,c),foo,3).", true);
 
     //[functor(foo(a,b,c),X,Y), [[X <-- foo, Y <-- 3]]].
-    Goal goal = proveGoal("functor(foo(a,b,c),X,Y).");
+    ChoicePoint goal = proveGoal("functor(foo(a,b,c),X,Y).");
     assertEquals(goal.getVarAsText("X"), "'foo'");
     assertEquals(goal.getVarAsNumber("Y"), 3);
     assertNull(goal.solve());
@@ -946,7 +949,7 @@ public class SomeFromISOTest extends AbstractProlTest {
     checkOnceVar("arg(1,foo(a,b),X).", "X", "'a'");
 
     //[arg(2,foo(a, f(X,b), c), f(a, Y)), [[X <-- a, Y <-- b]]].
-    final Goal goal = proveGoal("arg(2,foo(a, f(X,b), c), f(a, Y)).");
+    final ChoicePoint goal = proveGoal("arg(2,foo(a, f(X,b), c), f(a, Y)).");
     assertEquals(goal.getVarAsText("X"), "'a'");
     assertEquals(goal.getVarAsText("Y"), "'b'");
     assertNull(goal.solve());
@@ -984,7 +987,7 @@ public class SomeFromISOTest extends AbstractProlTest {
     checkOnceVar("'is'(Result,3+11.0).", "Result", 14.0f);
 
     //[(X = 1 + 2, 'is'(Y, X * 3)),[[X <-- (1 + 2), Y <-- 9]]]. % error? 1+2
-    Goal goal = proveGoal("X=1+2,'is'(Y,X*3).");
+    ChoicePoint goal = proveGoal("X=1+2,'is'(Y,X*3).");
     assertEquals(goal.getVarAsText("X"), "1 + 2");
     assertEquals(goal.getVarAsNumber("Y"), 9);
     assertNull(goal.solve());
@@ -1037,7 +1040,7 @@ public class SomeFromISOTest extends AbstractProlTest {
     checkOnceVar("Y=3,'='(X,Y).", "X", 3);
 
     //[('='(X,Y),'='(X,abc)),[[X <-- abc, Y <-- abc]]].
-    Goal goal = proveGoal("X=Y,'='(X,abc).");
+    ChoicePoint goal = proveGoal("X=Y,'='(X,abc).");
     assertEquals(goal.getVarAsText("X"), "'abc'");
     assertEquals(goal.getVarAsText("Y"), "'abc'");
     assertNull(goal.solve());
@@ -1261,6 +1264,9 @@ public class SomeFromISOTest extends AbstractProlTest {
 
   @Test
   public void testCut() throws Exception {
+    checkOnce("p1 :- \\+ q1. q1 :- fail. q1 :- true. p2:- \\+ q2. q2 :- !, fail. q2 :- true.", "p1.", false);
+    checkOnce("p1 :- \\+ q1. q1 :- fail. q1 :- true. p2:- \\+ q2. q2 :- !, fail. q2 :- true.", "p2.", true);
+
     //[!, success].
     checkOnce("!.", true);
     //[(!,fail;true), failure].
@@ -1325,10 +1331,14 @@ public class SomeFromISOTest extends AbstractProlTest {
 //    checkOnceVar("number_chars(A,['0','\\'','A']).", "A", 65);
   }
 
-  private void checkOnce(String goal, boolean result) throws Exception {
-    final ProlContext context = makeContext(goal);
-    final Goal thisGoal = new Goal(goal, context);
-    if (result) {
+  private void checkOnce(String goal, boolean expectedResult) throws Exception {
+    this.checkOnce("", goal, expectedResult);
+  }
+
+  private void checkOnce(String consult, String goal, boolean expectedResult) throws Exception {
+    final ProlContext context = makeContext(consult);
+    final ChoicePoint thisGoal = new ChoicePoint(goal, context);
+    if (expectedResult) {
       assertNotNull(thisGoal.solve());
       assertNull(thisGoal.solve());
     } else {
@@ -1337,8 +1347,8 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   private void checkException(String goal) throws Exception {
-    final ProlContext context = makeContext(goal);
-    final Goal thisGoal = new Goal(goal, context);
+    final ProlContext context = makeContext("");
+    final ChoicePoint thisGoal = new ChoicePoint(goal, context);
     try {
       thisGoal.solve();
       fail();
@@ -1348,21 +1358,27 @@ public class SomeFromISOTest extends AbstractProlTest {
     }
   }
 
-  private Goal prepareGoal(String goal) throws Exception {
-    final ProlContext context = makeContext(goal);
-    final Goal thisGoal = new Goal(goal, context);
+  private ChoicePoint prepareGoal(String goal) throws Exception {
+    final ProlContext context = makeContext("");
+    final ChoicePoint thisGoal = new ChoicePoint(goal, context);
     return thisGoal;
   }
 
-  private Goal proveGoal(String goal) throws Exception {
-    final Goal thisGoal = this.prepareGoal(goal);
+  private ChoicePoint prepareGoal(String consult, String goal) throws Exception {
+    final ProlContext context = makeContext(consult);
+    final ChoicePoint thisGoal = new ChoicePoint(goal, context);
+    return thisGoal;
+  }
+
+  private ChoicePoint proveGoal(String goal) throws Exception {
+    final ChoicePoint thisGoal = this.prepareGoal(goal);
     assertNotNull(thisGoal.solve());
     return thisGoal;
   }
 
   private void checkOnceVar(String goal, String var, Object... result) throws Exception {
-    final ProlContext context = makeContext(goal);
-    final Goal thisGoal = new Goal(goal, context);
+    final ProlContext context = makeContext("");
+    final ChoicePoint thisGoal = new ChoicePoint(goal, context);
 
     for (Object res : result) {
       assertNotNull(thisGoal.solve());

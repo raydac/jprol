@@ -24,7 +24,7 @@ import com.igormaznitsa.prol.exceptions.ParserException;
 import com.igormaznitsa.prol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.prol.io.ProlStreamManager;
 import com.igormaznitsa.prol.libraries.*;
-import com.igormaznitsa.prol.logic.Goal;
+import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlConsult;
 import com.igormaznitsa.prol.trace.TraceEvent;
@@ -58,14 +58,13 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
   protected static final String PROL_EXTENSION = ".prl";
   private static final long serialVersionUID = 72348723421332L;
+
   private static final String[] PROL_LIBRARIES = new String[] {
       ProlGfxLibrary.class.getCanonicalName(),
       ProlStrLibrary.class.getCanonicalName(),
       TPrologPredicateLibrary.class.getCanonicalName()
   };
-  /**
-   * Inside logger
-   */
+
   private static final Logger LOG = Logger.getLogger("PROL_NOTE_PAD");
   private static final FileFilter PROL_FILE_FILTER = new FileFilter() {
 
@@ -247,7 +246,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   }
 
   @Override
-  public void onTraceEvet(final TraceEvent event, final Goal source) {
+  public void onTraceEvet(final TraceEvent event, final ChoicePoint source) {
     switch (event) {
       case CALL:
         traceEditor.addCallText(source.getGoalTerm().forWrite());
@@ -833,7 +832,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     new HelpDialog(this).setVisible(true);
   }
 
-  private void menuEditOptionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuEditOptionsActionPerformed
+  private void menuEditOptionsActionPerformed(java.awt.event.ActionEvent evt) {
     OptionsDialog dialog = new OptionsDialog(this, new TreeModel[] {sourceEditor, dialogEditor, messageEditor, traceEditor});
     dialog.setVisible(true);
   }
@@ -1104,7 +1103,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       try {
         context = new ProlContext("ProlScript", this);
         if (this.startedInTracing.get()) {
-          context.setDefaultTraceListener(this);
+          context.addTraceListener(this);
         }
 
         for (final String str : PROL_LIBRARIES) {
@@ -1564,10 +1563,6 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     }
   }
 
-  /**
-   * This class is a helper Prol library to allow a user to print messages at
-   * the Message dialog window (and the log too) directly from its scripts
-   */
   protected final class LogLibrary extends AbstractProlLibrary {
 
     public LogLibrary() {
@@ -1576,7 +1571,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     @Predicate(Signature = "msgerror/1", Reference = "The predicate allows to output information marked as error at the message window.")
     @Determined
-    public void predicateMSGERROR(final Goal goal, final TermStruct struct) {
+    public void predicateMSGERROR(final ChoicePoint goal, final TermStruct struct) {
       final Term term = Utils.getTermFromElement(struct.getElement(0));
       final String text = term.forWrite();
       LOG.log(Level.SEVERE, "msgerror/1 : {0}", text);
@@ -1585,7 +1580,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     @Predicate(Signature = "msgwarning/1", Reference = "The predicate allows to output information marked as warning at the message window.")
     @Determined
-    public void predicateMSGWARNING(final Goal goal, final TermStruct struct) {
+    public void predicateMSGWARNING(final ChoicePoint goal, final TermStruct struct) {
       final Term term = Utils.getTermFromElement(struct.getElement(0));
       final String text = term.forWrite();
       LOG.log(Level.WARNING, "msgwarning/1 : {0}", text);
@@ -1594,7 +1589,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
 
     @Predicate(Signature = "msginfo/1", Reference = "The predicate allows to output information marked as info at the message window.")
     @Determined
-    public void predicateMSGINFO(final Goal goal, final TermStruct struct) {
+    public void predicateMSGINFO(final ChoicePoint goal, final TermStruct struct) {
       final Term term = Utils.getTermFromElement(struct.getElement(0));
       final String text = term.forWrite();
       LOG.log(Level.INFO, "msginfo/1 : {0}", text);

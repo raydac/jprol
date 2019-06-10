@@ -2,7 +2,7 @@ package com.igormaznitsa.prol.script;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.exceptions.ParserException;
-import com.igormaznitsa.prol.logic.Goal;
+import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlReader;
 import com.igormaznitsa.prol.parser.ProlTreeBuilder;
@@ -50,12 +50,12 @@ final class JProlCompiledScript extends CompiledScript {
       final Map<String, Term> predefinedValues = new HashMap<>();
       JProlScriptEngine.fillGoalByBindings(jprolContext.getJProlBindings(ScriptContext.GLOBAL_SCOPE), predefinedValues);
       JProlScriptEngine.fillGoalByBindings(jprolContext.getJProlBindings(ScriptContext.ENGINE_SCOPE), predefinedValues);
-      final Goal preparedGoal = new Goal(this.compiled.makeClone(), jprolContext.getProlContext(), predefinedValues, null);
+      final ChoicePoint preparedGoal = new ChoicePoint(this.compiled.makeClone(), jprolContext.getProlContext(), predefinedValues);
 
       final Object result = preparedGoal.solve();
 
       if (result != null) {
-        jprolContext.getJProlBindings(ScriptContext.ENGINE_SCOPE).fillByValues(preparedGoal.findAllInstantiatedVars());
+        jprolContext.getJProlBindings(ScriptContext.ENGINE_SCOPE).fillByValues(preparedGoal.findAllGroundedVars());
       }
 
       return result;

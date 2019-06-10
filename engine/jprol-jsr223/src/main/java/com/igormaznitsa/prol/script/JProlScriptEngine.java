@@ -18,7 +18,7 @@ package com.igormaznitsa.prol.script;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.exceptions.ParserException;
-import com.igormaznitsa.prol.logic.Goal;
+import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.parser.ProlReader;
 
 import javax.script.*;
@@ -50,11 +50,11 @@ final class JProlScriptEngine extends AbstractScriptEngine implements Compilable
       fillGoalByBindings(context.getJProlBindings(ScriptContext.GLOBAL_SCOPE), varValues);
       fillGoalByBindings(context.getJProlBindings(ScriptContext.ENGINE_SCOPE), varValues);
 
-      final Goal goal = new Goal(reader, context.getProlContext(), varValues.isEmpty() ? null : varValues);
+      final ChoicePoint goal = new ChoicePoint(reader, context.getProlContext(), varValues.isEmpty() ? null : varValues);
       final Object result = goal.solve();
 
       if (result != null) {
-        context.getJProlBindings(ScriptContext.ENGINE_SCOPE).fillByValues(goal.findAllInstantiatedVars());
+        context.getJProlBindings(ScriptContext.ENGINE_SCOPE).fillByValues(goal.findAllGroundedVars());
       }
 
       return result;

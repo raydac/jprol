@@ -17,40 +17,28 @@
 package com.igormaznitsa.prol.logic.triggers;
 
 import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.logic.Goal;
-import com.igormaznitsa.prol.logic.PreparedGoal;
+import com.igormaznitsa.prol.logic.ChoicePoint;
+import com.igormaznitsa.prol.logic.DeferredGoal;
 import com.igormaznitsa.prol.logic.ProlContext;
-import com.igormaznitsa.prol.trace.TraceListener;
-
-import java.io.IOException;
 
 public class ProlTriggerGoal extends AbstractProlTrigger {
 
-  protected final PreparedGoal triggerGoal;
+  protected final DeferredGoal goal;
   protected final ProlContext context;
 
-  public ProlTriggerGoal(final String triggerGoal, final ProlContext context, final TraceListener tracer) throws IOException, InterruptedException {
+  public ProlTriggerGoal(final Term goal, final ProlContext context) {
     super();
     if (context == null) {
       throw new NullPointerException("Context is null");
     }
-    this.triggerGoal = triggerGoal == null ? null : new PreparedGoal(triggerGoal, context, tracer);
-    this.context = context;
-  }
-
-  public ProlTriggerGoal(final Term triggerGoal, final ProlContext context, final TraceListener tracer) {
-    super();
-    if (context == null) {
-      throw new NullPointerException("Context is null");
-    }
-    this.triggerGoal = triggerGoal == null ? null : new PreparedGoal(triggerGoal, context, tracer);
+    this.goal = new DeferredGoal(goal, context);
     this.context = context;
   }
 
   @Override
   public void onTriggerEvent(final TriggerEvent event) throws InterruptedException {
-    if (triggerGoal != null) {
-      final Goal tobesolved = triggerGoal.getNonparametrizedGoalInstance();// we don't have parameters in the
+    if (goal != null) {
+      final ChoicePoint tobesolved = goal.getNonparametrizedGoalInstance();
 
       while (!Thread.currentThread().isInterrupted()) {
         final Term result = tobesolved.solve();

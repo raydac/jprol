@@ -29,37 +29,28 @@ import com.igormaznitsa.prol.libraries.PredicateProcessor;
 import com.igormaznitsa.prol.parser.ProlReader;
 import com.igormaznitsa.prol.parser.ProlTreeBuilder;
 import com.igormaznitsa.prol.trace.TraceEvent;
-import com.igormaznitsa.prol.trace.TraceListener;
 import com.igormaznitsa.prol.utils.Utils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static com.igormaznitsa.prol.data.TermType.ATOM;
-import static com.igormaznitsa.prol.data.TermType.VAR;
 import static com.igormaznitsa.prol.trace.TraceEvent.EXIT;
+import static java.util.stream.Collectors.toMap;
 
-public class Goal {
+public final class ChoicePoint {
 
-  private static final int GOALRESULT_SOLVED = 0;
-  private static final int GOALRESULT_FAIL = 1;
-  private static final int GOALRESULT_STACK_CHANGED = 2;
-
-  private final Goal rootGoal;
+  private final ChoicePoint rootGoal;
   private final Map<String, Var> variables;
   private final VariableStateSnapshot varSnapshot;
   private final ProlContext context;
-  private final TraceListener tracer;
   private Object auxObject;
-  private boolean noMoreVariantsFlag;
+  private boolean noVariants;
   private Term goalTerm;
-  private Goal prevGoalAtChain;
-  private Goal rootLastGoalAtChain;
-  private Goal subGoal;
-  private Term subGoalConnector;
+  private ChoicePoint prevChoicePoint;
+  private ChoicePoint rootLastGoalAtChain;
+  private ChoicePoint subChoicePoint;
+  private Term subChoicePointConnector;
   private Term thisConnector;
   private Term nextAndTerm;
   private Term nextAndTermForNextGoal;
@@ -67,18 +58,17 @@ public class Goal {
   private boolean cutMeet;
   private boolean notFirstProve;
 
-  private Goal(final Goal rootGoal, Term goal, final ProlContext context, final Map<String, Term> predefinedVarValues, final TraceListener tracer) {
+  private ChoicePoint(
+      final ChoicePoint rootGoal,
+      final Term goalToSolve,
+      final ProlContext context,
+      final Map<String, Term> predefinedVarValues
+  ) {
     this.rootGoal = rootGoal == null ? this : rootGoal;
-    this.goalTerm = goal.getTermType() == ATOM ? new TermStruct(goal) : goal;
+    this.goalTerm = goalToSolve.getTermType() == ATOM ? new TermStruct(goalToSolve) : goalToSolve;
     this.context = context;
-    this.tracer = tracer == null ? context.getDefaultTraceListener() : tracer;
 
-    if (goal.getTermType() == VAR) {
-      goal = Utils.getTermFromElement(goal);
-      if (goal.getTermType() == VAR) {
-        throw new ProlInstantiationErrorException("callable", goal);
-      }
-    }
+    final Term goal = goalToSolve.findNonVarOrDefault(goalToSolve);
 
     switch (goal.getTermType()) {
       case ATOM: {
@@ -88,111 +78,68 @@ public class Goal {
       }
       break;
       case VAR: {
-        if (!goal.isBounded()) {
-          throw new ProlInstantiationErrorException(goal);
+        if (!goal.isGround()) {
+          throw new ProlInstantiationErrorException("callable", goal);
         }
       }
       break;
       case LIST: {
         throw new ProlTypeErrorException("callable", goal);
       }
+      default:
+        break;
     }
 
     if (rootGoal == null) {
       if (goal.getTermType() == ATOM) {
-        varSnapshot = null;
-        variables = null;
+        this.varSnapshot = null;
+        this.variables = null;
       } else {
-        variables = Utils.fillTableWithVars(goal);
-        varSnapshot = new VariableStateSnapshot(goal, predefinedVarValues);
+        this.variables = Utils.fillTableWithVars(goal);
+        this.varSnapshot = new VariableStateSnapshot(goal, predefinedVarValues);
       }
-      rootLastGoalAtChain = this;
-      prevGoalAtChain = null;
+      this.rootLastGoalAtChain = this;
+      this.prevChoicePoint = null;
     } else {
-      variables = null;
+      this.variables = null;
       if (goal.getTermType() == ATOM) {
-        varSnapshot = null;
+        this.varSnapshot = null;
       } else {
-        varSnapshot = new VariableStateSnapshot(rootGoal.varSnapshot);
+        this.varSnapshot = new VariableStateSnapshot(rootGoal.varSnapshot);
       }
-      this.prevGoalAtChain = rootGoal.rootLastGoalAtChain;
+      this.prevChoicePoint = rootGoal.rootLastGoalAtChain;
       rootGoal.rootLastGoalAtChain = this;
     }
   }
 
-  protected Goal() {
-    this.rootGoal = null;
-    this.variables = null;
-    this.varSnapshot = null;
-    this.context = null;
-    this.tracer = null;
-  }
-
-  public Goal(final String goal, final ProlContext context, final TraceListener tracer) throws IOException {
-    this(new ProlTreeBuilder(context).readPhraseAndMakeTree(goal), context, tracer);
-  }
-
-  public Goal(final String goal, final ProlContext context) throws IOException, InterruptedException {
+  public ChoicePoint(final String goal, final ProlContext context) throws IOException {
     this(new ProlTreeBuilder(context).readPhraseAndMakeTree(goal), context, null);
   }
 
-  public Goal(final ProlReader reader, final ProlContext context) throws IOException, InterruptedException {
-    this(new ProlTreeBuilder(context).readPhraseAndMakeTree(reader), context, null);
+  public ChoicePoint(final ProlReader reader, final ProlContext context, final Map<String, Term> predefVarValues) throws IOException {
+    this(new ProlTreeBuilder(context).readPhraseAndMakeTree(reader), context, predefVarValues);
   }
 
-  public Goal(final ProlReader reader, final ProlContext context, final Map<String, Term> predefVarValues) throws IOException {
-    this(new ProlTreeBuilder(context).readPhraseAndMakeTree(reader), context, predefVarValues, null);
+  public ChoicePoint(final Term goal, final ProlContext context) {
+    this(null, goal, context, null);
   }
 
-  public Goal(final Term goal, final ProlContext context, final TraceListener tracer) {
-    this(null, goal, context, null, tracer);
+  public ChoicePoint(final Term goal, final ProlContext context, final Map<String, Term> predefinedVarValues) {
+    this(null, goal, context, predefinedVarValues);
   }
 
-  public Goal(final Term goal, final ProlContext context, final Map<String, Term> predefinedVarValues, final TraceListener tracer) {
-    this(null, goal, context, predefinedVarValues, tracer);
-  }
-
-  public Goal(final Term goal, final ProlContext context) {
-    this(null, goal, context, null, null);
-  }
-
-  public Map<String, Term> findAllInstantiatedVars() {
-    final Map<String, Term> result = new HashMap<>();
-    this.variables.entrySet().stream().filter((v) -> (v.getValue().isBounded())).forEach((v) -> result.put(v.getKey(), v.getValue().getValue().makeClone()));
-    return result;
+  public Map<String, Term> findAllGroundedVars() {
+    return this.variables.entrySet()
+        .stream()
+        .filter(v -> v.getValue().isGround())
+        .collect(toMap(Map.Entry::getKey, e -> e.getValue().makeClone()));
   }
 
   @Override
   public String toString() {
-    return (isCompleted() ? "Completed " : "Active ") + "Goal(" + goalTerm.toString() + ')';
+    return (this.isCompleted() ? "Completed " : "Active ") + "Goal(" + this.goalTerm.toString() + ')';
   }
 
-  /**
-   * Get the current goal chain as a List
-   *
-   * @return a List object contains all goals at the goal chain of the root goal
-   */
-  public List<Goal> getChainAsList() {
-    final List<Goal> result = new ArrayList<>();
-
-    Goal curgoal = rootGoal.rootLastGoalAtChain;
-    while (curgoal != null) {
-      result.add(0, curgoal);
-      curgoal = curgoal.prevGoalAtChain;
-    }
-
-    return result;
-  }
-
-  /**
-   * Get the value of a goal variable as a Number object.
-   *
-   * @param varName the name of the variable, must not be null;
-   * @return null if the variable is not-instantiated one or its value as a
-   * Number object
-   * @throws IllegalArgumentException if the variable name is wrong
-   * @throws NumberFormatException    if the value is not-numeric one
-   */
   public Number getVarAsNumber(final String varName) {
     final Var var = getVarForName(varName);
     if (var == null) {
@@ -210,14 +157,6 @@ public class Goal {
     }
   }
 
-  /**
-   * Get the value of a goal variable as a String object.
-   *
-   * @param varName the name of the variable, must not be null;
-   * @return null if the variable is not-instantiated one or its text
-   * representation (like it will be written by the write/1)
-   * @throws IllegalArgumentException if the variable name is wrong
-   */
   public String getVarAsText(final String varName) {
     final Var var = getVarForName(varName);
     if (var == null) {
@@ -238,15 +177,13 @@ public class Goal {
     return this.variables == null ? null : this.variables.get(name);
   }
 
-  public Goal replaceLastGoalAtChain(final Term goal) {
-    if (this.tracer != null) {
-      this.tracer.onTraceEvet(EXIT, this.rootGoal.rootLastGoalAtChain);
-    }
+  public ChoicePoint replaceLastGoalAtChain(final Term goal) {
+    this.context.fireTraceEvent(EXIT, this.rootGoal.rootLastGoalAtChain);
 
-    final Goal newGoal = new Goal(this.rootGoal, goal, this.context, null, this.rootGoal.tracer);
-    final Goal prevGoal = newGoal.prevGoalAtChain;
+    final ChoicePoint newGoal = new ChoicePoint(this.rootGoal, goal, this.context, null);
+    final ChoicePoint prevGoal = newGoal.prevChoicePoint;
     if (prevGoal != null) {
-      newGoal.prevGoalAtChain = prevGoal.prevGoalAtChain;
+      newGoal.prevChoicePoint = prevGoal.prevChoicePoint;
       newGoal.nextAndTerm = prevGoal.nextAndTerm;
       newGoal.nextAndTermForNextGoal = prevGoal.nextAndTermForNextGoal;
     }
@@ -260,10 +197,6 @@ public class Goal {
 
   public void setAuxObject(final Object obj) {
     this.auxObject = obj;
-  }
-
-  public TraceListener getTracer() {
-    return tracer;
   }
 
   public Term getGoalTerm() {
@@ -280,33 +213,29 @@ public class Goal {
     boolean loop = true;
     final ProlContext localcontext = this.context;
 
-    final boolean tracingOn = this.tracer != null;
-
     while (loop && !Thread.currentThread().isInterrupted()) {
       if (localcontext.isHalted()) {
         throw new ProlHaltExecutionException();
       }
 
-      Goal goalToProcess = this.rootGoal.rootLastGoalAtChain;
+      ChoicePoint goalToProcess = this.rootGoal.rootLastGoalAtChain;
       if (goalToProcess == null) {
         break;
       } else {
-        if (!goalToProcess.noMoreVariantsFlag) {
+        if (!goalToProcess.noVariants) {
           switch (goalToProcess.resolve()) {
-            case GOALRESULT_FAIL: {
-              if (tracingOn) {
-                this.tracer.onTraceEvet(TraceEvent.FAIL, goalToProcess);
-                this.tracer.onTraceEvet(EXIT, goalToProcess);
-              }
-              this.rootGoal.rootLastGoalAtChain = goalToProcess.prevGoalAtChain;
+            case FAIL: {
+              this.context.fireTraceEvent(TraceEvent.FAIL, goalToProcess);
+              this.context.fireTraceEvent(EXIT, goalToProcess);
+              this.rootGoal.rootLastGoalAtChain = goalToProcess.prevChoicePoint;
             }
             break;
-            case GOALRESULT_SOLVED: {
+            case SUCCESS: {
               // we have to renew data about last chain goal because it can be changed during the operation
               goalToProcess = this.rootGoal.rootLastGoalAtChain;
 
               if (goalToProcess.nextAndTerm != null) {
-                final Goal nextGoal = new Goal(this.rootGoal, goalToProcess.nextAndTerm, localcontext, null, this.rootGoal.tracer);
+                final ChoicePoint nextGoal = new ChoicePoint(this.rootGoal, goalToProcess.nextAndTerm, localcontext, null);
                 nextGoal.nextAndTerm = goalToProcess.nextAndTermForNextGoal;
               } else {
                 result = this.rootGoal.goalTerm;
@@ -314,17 +243,15 @@ public class Goal {
               }
             }
             break;
-            case GOALRESULT_STACK_CHANGED: {
+            case STACK_CHANGED: {
             }
             break;
             default:
-              throw new Error("Unexpected result");
+              throw new Error("Unexpected status");
           }
         } else {
-          if (tracingOn) {
-            this.tracer.onTraceEvet(EXIT, goalToProcess);
-          }
-          this.rootGoal.rootLastGoalAtChain = goalToProcess.prevGoalAtChain;
+          this.context.fireTraceEvent(EXIT, goalToProcess);
+          this.rootGoal.rootLastGoalAtChain = goalToProcess.prevChoicePoint;
         }
       }
     }
@@ -332,21 +259,18 @@ public class Goal {
     return result;
   }
 
-  private int resolve() throws InterruptedException {
+  private ChoicePointResult resolve() throws InterruptedException {
     if (Thread.currentThread().isInterrupted()) {
       throw new InterruptedException();
     }
-
-    if (this.tracer != null) {
       if (this.notFirstProve) {
-        this.tracer.onTraceEvet(TraceEvent.REDO, this);
+        this.context.fireTraceEvent(TraceEvent.REDO, this);
       } else {
         this.notFirstProve = true;
-        this.tracer.onTraceEvet(TraceEvent.CALL, this);
+        this.context.fireTraceEvent(TraceEvent.CALL, this);
       }
-    }
 
-    int result = GOALRESULT_FAIL;
+    ChoicePointResult result = ChoicePointResult.FAIL;
 
     boolean doLoop = true;
 
@@ -356,25 +280,25 @@ public class Goal {
         this.varSnapshot.resetToState();
       }
 
-      if (this.subGoal != null) {
+      if (this.subChoicePoint != null) {
         // solve subgoal
-        final Term solvedTerm = this.subGoal.solve();
+        final Term solvedTerm = this.subChoicePoint.solve();
 
-        if (this.subGoal.cutMeet) {
+        if (this.subChoicePoint.cutMeet) {
           this.clauseIterator = null;
         }
 
         if (solvedTerm == null) {
-          this.subGoal = null;
+          this.subChoicePoint = null;
           if (this.clauseIterator == null) {
-            result = GOALRESULT_FAIL;
+            result = ChoicePointResult.FAIL;
             break;
           }
         } else {
-          if (!this.thisConnector.unifyTo(this.subGoalConnector)) {
+          if (!this.thisConnector.unifyTo(this.subChoicePointConnector)) {
             throw new ProlCriticalError("Critical error #980234");
           }
-          result = GOALRESULT_SOLVED;
+          result = ChoicePointResult.SUCCESS;
           break;
         }
       }
@@ -397,19 +321,19 @@ public class Goal {
 
           if (structFromBase.isFunctorLikeRuleDefinition()) {
             this.thisConnector = goalTerm;
-            this.subGoalConnector = structFromBase.getElement(0);
-            this.subGoal = new Goal(structFromBase.getElement(1), this.context, this.tracer);
+            this.subChoicePointConnector = structFromBase.getElement(0);
+            this.subChoicePoint = new ChoicePoint(structFromBase.getElement(1), this.context);
             continue;
           } else {
             if (!this.goalTerm.unifyTo(structFromBase)) {
               throw new ProlCriticalError("Impossible situation #0009824");
             }
-            result = GOALRESULT_SOLVED;
+            result = ChoicePointResult.SUCCESS;
             break;
           }
         } else {
           this.clauseIterator = null;
-          noMoreVariants();
+          setNoVariants();
           break;
         }
       }
@@ -417,8 +341,8 @@ public class Goal {
       switch (this.goalTerm.getTermType()) {
         case ATOM: {
           final String text = this.goalTerm.getText();
-          result = this.context.hasZeroArityPredicateForName(text) ? GOALRESULT_SOLVED : GOALRESULT_FAIL;
-          noMoreVariants();
+          result = this.context.hasZeroArityPredicateForName(text) ? ChoicePointResult.SUCCESS : ChoicePointResult.FAIL;
+          setNoVariants();
           doLoop = false;
         }
         break;
@@ -430,12 +354,12 @@ public class Goal {
             final TermStruct structClone = (TermStruct) struct.makeClone();
 
             this.thisConnector = struct.getElement(0);
-            this.subGoalConnector = structClone.getElement(0);
+            this.subChoicePointConnector = structClone.getElement(0);
 
             if (arity == 1) {
-              this.subGoal = new Goal(structClone.getElement(0), this.context, this.tracer);
+              this.subChoicePoint = new ChoicePoint(structClone.getElement(0), this.context);
             } else {
-              this.subGoal = new Goal(structClone.getElement(1), this.context, this.tracer);
+              this.subChoicePoint = new ChoicePoint(structClone.getElement(1), this.context);
             }
           } else {
 
@@ -452,15 +376,15 @@ public class Goal {
                   cut();
                   nonConsumed = false;
                   doLoop = false;
-                  result = GOALRESULT_SOLVED;
-                  this.noMoreVariantsFlag = true;
+                  result = ChoicePointResult.SUCCESS;
+                  this.noVariants = true;
                 } else if (len == 2 && "!!".equals(functorText)) {
                   // cut local
-                  cutLocal();
+                  cutTillPrevChoicePoint();
                   nonConsumed = false;
                   doLoop = false;
-                  this.noMoreVariantsFlag = true;
-                  result = GOALRESULT_SOLVED;
+                  this.noVariants = true;
+                  result = ChoicePointResult.SUCCESS;
                 }
               }
               break;
@@ -470,11 +394,11 @@ public class Goal {
                   switch (functorText.charAt(0)) {
                     case ',': {
                       // and
-                      final Goal leftSubgoal = replaceLastGoalAtChain(struct.getElement(0));
+                      final ChoicePoint leftSubgoal = replaceLastGoalAtChain(struct.getElement(0));
                       leftSubgoal.nextAndTerm = struct.getElement(1);
                       leftSubgoal.nextAndTermForNextGoal = this.nextAndTerm;
 
-                      result = GOALRESULT_STACK_CHANGED;
+                      result = ChoicePointResult.STACK_CHANGED;
 
                       doLoop = false;
                       nonConsumed = false;
@@ -484,14 +408,14 @@ public class Goal {
                       // or
                       if (getAuxObject() == null) {
                         // left subbranch
-                        final Goal leftSubbranch = new Goal(this.rootGoal, struct.getElement(0), this.context, null, this.tracer);
+                        final ChoicePoint leftSubbranch = new ChoicePoint(this.rootGoal, struct.getElement(0), this.context, null);
                         leftSubbranch.nextAndTerm = this.nextAndTerm;
                         setAuxObject(leftSubbranch);
                       } else {
                         // right subbranch
                         replaceLastGoalAtChain(struct.getElement(1));
                       }
-                      result = GOALRESULT_STACK_CHANGED;
+                      result = ChoicePointResult.STACK_CHANGED;
                       nonConsumed = false;
                       doLoop = false;
                     }
@@ -503,30 +427,30 @@ public class Goal {
             }
 
             if (nonConsumed) {
-              final PredicateProcessor processor = ensureStructProcessor(struct);
+              final PredicateProcessor processor = ensureProcessor(struct);
               if (processor == PredicateProcessor.NULL_PROCESSOR) {
                 // just a struct
                 // find it at knowledge base
                 this.clauseIterator = this.context.getKnowledgeBase().getClauseIterator(struct);
                 if (this.clauseIterator == null || !this.clauseIterator.hasNext()) {
                   doLoop = false;
-                  noMoreVariants();
-                  result = GOALRESULT_FAIL;
+                  setNoVariants();
+                  result = ChoicePointResult.FAIL;
                 }
               } else {
                 // it is a processor
                 if (processor.isEvaluable() || processor.isDetermined()) {
-                  noMoreVariants();
+                  setNoVariants();
                 }
 
                 if (processor.execute(this, struct)) {
-                  result = GOALRESULT_SOLVED;
+                  result = ChoicePointResult.SUCCESS;
                 } else {
-                  result = GOALRESULT_FAIL;
+                  result = ChoicePointResult.FAIL;
                 }
 
-                if (result == GOALRESULT_SOLVED && processor.doesChangeGoalChain()) {
-                  result = GOALRESULT_STACK_CHANGED;
+                if (result == ChoicePointResult.SUCCESS && processor.doesChangeGoalChain()) {
+                  result = ChoicePointResult.STACK_CHANGED;
                 }
 
                 doLoop = false;
@@ -536,9 +460,9 @@ public class Goal {
         }
         break;
         default: {
-          result = GOALRESULT_FAIL;
+          result = ChoicePointResult.FAIL;
           doLoop = false;
-          noMoreVariants();
+          setNoVariants();
         }
         break;
       }
@@ -547,21 +471,21 @@ public class Goal {
     return result;
   }
 
-  public void noMoreVariants() {
-    this.noMoreVariantsFlag = true;
+  public void setNoVariants() {
+    this.noVariants = true;
   }
 
   public void cut() {
     this.rootGoal.cutMeet = true;
     this.rootGoal.clauseIterator = null;
-    this.prevGoalAtChain = null;
+    this.prevChoicePoint = null;
   }
 
-  public void cutLocal() {
-    this.prevGoalAtChain = null;
+  public void cutTillPrevChoicePoint() {
+    this.prevChoicePoint = null;
   }
 
-  private PredicateProcessor ensureStructProcessor(final TermStruct structure) {
+  private PredicateProcessor ensureProcessor(final TermStruct structure) {
     PredicateProcessor processor = structure.getPredicateProcessor();
     if (processor == null) {
       processor = this.context.findProcessor(structure);
@@ -571,6 +495,6 @@ public class Goal {
   }
 
   public boolean isCompleted() {
-    return this.rootGoal.rootLastGoalAtChain == null || noMoreVariantsFlag;
+    return this.rootGoal.rootLastGoalAtChain == null || this.noVariants;
   }
 }

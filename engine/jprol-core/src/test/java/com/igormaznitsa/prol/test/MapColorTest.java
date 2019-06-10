@@ -2,16 +2,16 @@ package com.igormaznitsa.prol.test;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
-import com.igormaznitsa.prol.logic.Goal;
+import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlConsult;
-import com.igormaznitsa.prol.trace.TraceListener;
-import static org.junit.Assert.*;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
+
+import static org.junit.Assert.assertEquals;
 
 public class MapColorTest extends AbstractProlTest {
 
@@ -42,7 +42,7 @@ public class MapColorTest extends AbstractProlTest {
             + "member(X, [_|T]):-\n"
             + "        member(X, T).");
 
-    final Goal goal = new Goal("colour_countries(X).", context);
+    final ChoicePoint goal = new ChoicePoint("colour_countries(X).", context);
     int counter = 0;
     Term result0 = null;
     Term result7775 = null;
@@ -79,7 +79,7 @@ public class MapColorTest extends AbstractProlTest {
     return context1;
   }
 
-  private boolean allowedPredicateInGoal(final Goal goal) {
+  private boolean allowedPredicateInGoal(final ChoicePoint goal) {
     final String signature = goal.getGoalTerm().getSignature();
     return !(signature.equals(",/2") || signature.equals(";/2"));
   }

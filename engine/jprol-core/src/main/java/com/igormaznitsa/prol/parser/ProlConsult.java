@@ -24,7 +24,7 @@ import com.igormaznitsa.prol.data.Var;
 import com.igormaznitsa.prol.exceptions.ParserException;
 import com.igormaznitsa.prol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.prol.exceptions.ProlKnowledgeBaseException;
-import com.igormaznitsa.prol.logic.Goal;
+import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 
 import java.io.IOException;
@@ -131,7 +131,7 @@ public class ProlConsult {
                   final Map<String, Var> varmap = new HashMap<>();
                   int solutioncounter = 0;
 
-                  final Goal thisGoal = new Goal(termGoal, context, null);
+                  final ChoicePoint thisGoal = new ChoicePoint(termGoal, context, null);
 
                   while (!Thread.currentThread().isInterrupted()) {
                     varmap.clear();
@@ -143,7 +143,7 @@ public class ProlConsult {
                           for (Entry<String, Var> avar : varmap.entrySet()) {
                             final String name = avar.getKey();
                             final Var value = avar.getValue();
-                            userwriter.write(String.format("%s=%s%n", name, value.isBounded() ? value.forWrite() : "???"));
+                            userwriter.write(String.format("%s=%s%n", name, value.isFree() ? "???" : value.forWrite()));
                             userwriter.flush();
                           }
                         }
@@ -204,7 +204,7 @@ public class ProlConsult {
   }
 
   public boolean processGoal(final Term goalterm, final Map<String, Var> varTable) throws InterruptedException {
-    final Goal goal = new Goal(goalterm, context, null);
+    final ChoicePoint goal = new ChoicePoint(goalterm, context, null);
 
     Term result = goal.solve();
 
@@ -215,7 +215,7 @@ public class ProlConsult {
     return result != null;
   }
 
-  private boolean solveGoal(final Goal goal, final Map<String, Var> varTable) throws InterruptedException {
+  private boolean solveGoal(final ChoicePoint goal, final Map<String, Var> varTable) throws InterruptedException {
     final Term result = goal.solve();
 
     if (result != null && varTable != null) {
@@ -226,7 +226,7 @@ public class ProlConsult {
   }
 
   private boolean processDirective(final Term directive) throws IOException, InterruptedException {
-    final Goal goal = new Goal(directive, context, null);
+    final ChoicePoint goal = new ChoicePoint(directive, context, null);
     return goal.solve() != null;
   }
 }

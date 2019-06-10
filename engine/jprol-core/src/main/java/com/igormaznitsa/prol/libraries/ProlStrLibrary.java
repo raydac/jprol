@@ -22,7 +22,7 @@ import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermFloat;
 import com.igormaznitsa.prol.data.TermInteger;
 import com.igormaznitsa.prol.data.TermStruct;
-import com.igormaznitsa.prol.logic.Goal;
+import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.utils.Utils;
 
 import static com.igormaznitsa.prol.data.TermType.ATOM;
@@ -35,7 +35,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "concat/3", Template = {"+atom,+atom,?atom", "+atom,?atom,+atom", "?atom,+atom,+atom"}, Reference = "Concat two strings.")
   @Determined
-  public static boolean predicateCONCAT(final Goal goal, final TermStruct predicate) {
+  public static boolean predicateCONCAT(final ChoicePoint goal, final TermStruct predicate) {
     final Term argFIRST = Utils.getTermFromElement(predicate.getElement(0));
     final Term argSECOND = Utils.getTermFromElement(predicate.getElement(1));
     final Term argTHIRD = Utils.getTermFromElement(predicate.getElement(2));
@@ -71,7 +71,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "str_trim/2", Template = {"+atom,?atom"}, Reference = "Trim string.")
   @Determined
-  public static boolean predicateSTRTRIM(final Goal goal, final TermStruct predicate) {
+  public static boolean predicateSTRTRIM(final ChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = Utils.getTermFromElement(predicate.getElement(0));
     final Term argRight = Utils.getTermFromElement(predicate.getElement(1));
 
@@ -82,7 +82,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "frontstr/4", Template = {"+integer,+atom,?atom,?atom"}, Reference = "Extracts the first n characters from a string.")
   @Determined
-  public static boolean predicateFRONTSTR(final Goal goal, final TermStruct predicate) {
+  public static boolean predicateFRONTSTR(final ChoicePoint goal, final TermStruct predicate) {
     final int numberOfChars = Utils.getNumberFromElement(predicate.getElement(0)).intValue();
     final String str1 = Utils.getStringFromElement(predicate.getElement(1));
 
@@ -101,7 +101,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "upper_lower/2", Template = {"+atom,?atom", "?atom,+atom"}, Reference = "Allows to make upper or lower case text version of an atom.")
   @Determined
-  public static boolean predicateUPPERLOWER(final Goal goal, final TermStruct predicate) {
+  public static boolean predicateUPPERLOWER(final ChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = Utils.getTermFromElement(predicate.getElement(0));
     final Term argRight = Utils.getTermFromElement(predicate.getElement(1));
 
@@ -118,7 +118,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "str_len/2", Template = {"+atom,?integer"}, Reference = "Get string length.")
   @Determined
-  public static boolean predicateSTRLEN(final Goal goal, final TermStruct predicate) {
+  public static boolean predicateSTRLEN(final ChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = Utils.getTermFromElement(predicate.getElement(0));
     final Term argRight = Utils.getTermFromElement(predicate.getElement(1));
 
@@ -129,7 +129,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "str_int/2", Template = {"+atom,?integer", "?atom,+integer"}, Reference = "Convert a text atom to an integer atom (or back).")
   @Determined
-  public static boolean predicateSTRINT(final Goal goal, final TermStruct predicate) {
+  public static boolean predicateSTRINT(final ChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = Utils.getTermFromElement(predicate.getElement(0));
     final Term argRight = Utils.getTermFromElement(predicate.getElement(1));
 
@@ -151,7 +151,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "str_real/2", Template = {"+atom,?number", "?atom,+number"}, Reference = "Convert a text atom to a real numeric atom (or back).")
   @Determined
-  public static boolean predicateSTRREAL(final Goal goal, final TermStruct predicate) {
+  public static boolean predicateSTRREAL(final ChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = Utils.getTermFromElement(predicate.getElement(0));
     final Term argRight = Utils.getTermFromElement(predicate.getElement(1));
 

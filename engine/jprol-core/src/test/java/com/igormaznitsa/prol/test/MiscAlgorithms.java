@@ -3,11 +3,12 @@ package com.igormaznitsa.prol.test;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermInteger;
 import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
-import com.igormaznitsa.prol.logic.Goal;
+import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlConsult;
-import static org.junit.Assert.*;
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 public class MiscAlgorithms extends AbstractProlTest {
 
@@ -16,7 +17,7 @@ public class MiscAlgorithms extends AbstractProlTest {
         final ProlConsult consult = new ProlConsult("akkerman(0,N,X):- X is N+1,!. akkerman(M,0,X):- Mn is M-1, !, akkerman(Mn,1,X). akkerman(M,N,X):- Mn is M-1, Nn is N-1, !, akkerman(M,Nn,Y), !, akkerman(Mn,Y,X).", context);
         consult.consult();
         final String goalText = "akkerman(" + m + ',' + n + ",A).";
-        final Goal goal = new Goal(goalText, context);
+      final ChoicePoint goal = new ChoicePoint(goalText, context);
         final Term resultterm = goal.solve();
         assertNotNull(resultterm);
         final Term result = goal.getVarForName("A").getValue();
@@ -56,7 +57,7 @@ public class MiscAlgorithms extends AbstractProlTest {
     public void testFibbonachi() throws Exception {
         final ProlContext context = makeContext("fib(1,1):-!. fib(0,0):-!. fib(N,Result):-Npp is N-2, Np is N-1, fib(Npp,Resultpp), fib(Np,Resultp), Result is Resultpp+Resultp.");
 
-        final Goal goal = new Goal("fib(22,Result).", context);
+      final ChoicePoint goal = new ChoicePoint("fib(22,Result).", context);
 
         assertNotNull(goal.solve());
         assertEquals(goal.getVarAsNumber("Result").intValue(), 17711);
@@ -71,7 +72,7 @@ public class MiscAlgorithms extends AbstractProlTest {
                 + "process(Message,[(Message :- Body)|_]):-call(Body)."
                 + "process(Message,[_|Methods]):-process(Message,Methods).");
 
-        final Goal goal = new Goal("Rec1=rectangle(4,3),send(Rec1,area(Area)).", context);
+      final ChoicePoint goal = new ChoicePoint("Rec1=rectangle(4,3),send(Rec1,area(Area)).", context);
 
         assertNotNull(goal.solve());
         assertEquals(goal.getVarAsNumber("Area").intValue(), 12);

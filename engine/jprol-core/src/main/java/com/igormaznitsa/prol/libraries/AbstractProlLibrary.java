@@ -33,6 +33,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.igormaznitsa.prol.utils.Utils.SIGNATURE_OPERATOR;
 import static java.lang.Integer.parseInt;
 
 public abstract class AbstractProlLibrary {
@@ -55,18 +56,18 @@ public abstract class AbstractProlLibrary {
     this.zeroArityPredicateNames = Collections.unmodifiableSet(zeroArityPredicates);
   }
 
-  public List<TermStruct> findAllForPredicateIndicator(final TermStruct predicateIndicator) {
+  public List<TermStruct> findAllForPredicateIndicator(final Term predicateIndicator) {
     return this.predicateMethodsMap.keySet()
         .stream()
         .map(key -> {
           final int index = key.lastIndexOf('/');
-          return new TermStruct("/",
+          return new TermStruct(SIGNATURE_OPERATOR,
               new Term[] {
                   new Term(key.substring(0, index)),
                   new TermInteger(parseInt(key.substring(index + 1)))
               });
         })
-        .filter(k -> predicateIndicator == null || predicateIndicator.dryUnifyTo(k))
+        .filter(predicateIndicator::dryUnifyTo)
         .collect(Collectors.toList());
   }
 

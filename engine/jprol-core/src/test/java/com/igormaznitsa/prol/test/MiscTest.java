@@ -20,7 +20,7 @@ import com.igormaznitsa.prol.data.TermInteger;
 import com.igormaznitsa.prol.data.TermList;
 import com.igormaznitsa.prol.data.Var;
 import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
-import com.igormaznitsa.prol.logic.Goal;
+import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlConsult;
 import com.igormaznitsa.prol.utils.Utils;
@@ -43,7 +43,7 @@ public class MiscTest extends AbstractProlTest {
         final ProlConsult consult = new ProlConsult("map(one,1,a). map(two,2,b). map(three,3,c).", context);
         consult.consult();
 
-        final Goal goal = new Goal("map(X,Y,_).", context);
+      final ChoicePoint goal = new ChoicePoint("map(X,Y,_).", context);
 
         final class Result {
             final String name;
@@ -85,7 +85,7 @@ public class MiscTest extends AbstractProlTest {
         context = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
         final ProlConsult consult = new ProlConsult("powerSet([],[]).powerSet([_|Xt],Y) :- powerSet(Xt,Y).powerSet([Xh|Xt],[Xh|Yt]) :- powerSet(Xt,Yt).", context);
         consult.consult();
-        final Goal goal = new Goal("findall(X,powerSet([a,b],X),Y).", context);
+      final ChoicePoint goal = new ChoicePoint("findall(X,powerSet([a,b],X),Y).", context);
 
         Var result = null;
 

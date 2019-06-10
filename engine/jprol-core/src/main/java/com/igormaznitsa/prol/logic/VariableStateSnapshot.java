@@ -140,7 +140,7 @@ final class VariableStateSnapshot {
         valueTxt = ".NULL";
       } else {
         if (value.getTermType() == VAR) {
-          if (value.isBounded()) {
+          if (value.isGround()) {
             valueTxt = value.toSrcString() + '{' + value.getVarUID() + '}' + '[' + value.getValue().toString() + ']';
           } else {
             valueTxt = value.toSrcString() + '{' + value.getVarUID() + '}';

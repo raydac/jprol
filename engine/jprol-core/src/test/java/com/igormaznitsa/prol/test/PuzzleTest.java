@@ -1,15 +1,16 @@
 package com.igormaznitsa.prol.test;
 
 import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
-import com.igormaznitsa.prol.logic.Goal;
+import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlConsult;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
+
+import static org.junit.Assert.*;
 
 public class PuzzleTest extends AbstractProlTest {
 
@@ -24,7 +25,7 @@ public class PuzzleTest extends AbstractProlTest {
                 + "del_var(A,[B|L],[B|L1]):-del_var(A,L,L1)."
                 + "puzzle1([D,O,N,A,L,D],[G,E,R,A,L,D],[R,O,B,E,R,T])."
                 + "puzzle2([0,S,E,N,D],[0,M,O,R,E],[M,O,N,E,Y]).");
-        final Goal goal = new Goal("puzzle1(X,Y,Z),sum(X,Y,Z).", context);
+      final ChoicePoint goal = new ChoicePoint("puzzle1(X,Y,Z),sum(X,Y,Z).", context);
 
         final String[] puzzle1solXYZ = new String[]{"[5,2,6,4,8,5]", "[1,9,7,4,8,5]", "[7,2,3,9,7,0]"};
 
@@ -36,7 +37,7 @@ public class PuzzleTest extends AbstractProlTest {
 //        assertEquals(goal.getVarAsText("Y"), puzzle1solXYZ[1]);
 //        assertEquals(goal.getVarAsText("Z"), puzzle1solXYZ[2]);
 //        assertNull(goal.solve());
-        final Goal goal2 = new Goal("puzzle2(X,Y,Z),sum(X,Y,Z).", context);
+      final ChoicePoint goal2 = new ChoicePoint("puzzle2(X,Y,Z),sum(X,Y,Z).", context);
 
         for (final String aPuzzle2solZ : puzzle2solZ) {
             assertNotNull(goal2.solve());

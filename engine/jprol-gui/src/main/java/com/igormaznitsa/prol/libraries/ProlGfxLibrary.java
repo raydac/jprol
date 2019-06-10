@@ -25,7 +25,7 @@ import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.easygui.MainFrame;
 import com.igormaznitsa.prol.easygui.UiUtils;
 import com.igormaznitsa.prol.exceptions.ProlPermissionErrorException;
-import com.igormaznitsa.prol.logic.Goal;
+import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.utils.Utils;
 
@@ -206,7 +206,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
   @Predicate(Signature = "beep/0", Reference = "Make a short sound. It depends on the OS.")
   @Determined
-  public static void predicateBEEP(final Goal goal, final TermStruct predicate) {
+  public static void predicateBEEP(final ChoicePoint goal, final TermStruct predicate) {
     Toolkit.getDefaultToolkit().beep();
   }
 
@@ -293,7 +293,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
   @Predicate(Signature = "dot/2", Template = {"+number,+number"}, Reference = "Draw a point in the coordinates (X,Y) with the current pen color.")
   @Determined
-  public void predicateDOT(final Goal goal, final TermStruct predicate) {
+  public void predicateDOT(final ChoicePoint goal, final TermStruct predicate) {
     final int argx = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(0))).getNumericValue().intValue();
     final int argy = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(1))).getNumericValue().intValue();
 
@@ -317,7 +317,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
   @Predicate(Signature = "removeaction/1", Template = {"+term"}, Reference = "Remove an action from the action menu for its name.")
   @Determined
-  public final void predicateREMOVEACTION(final Goal goal, final TermStruct predicate) {
+  public final void predicateREMOVEACTION(final ChoicePoint goal, final TermStruct predicate) {
     final Term menuitem = Utils.getTermFromElement(predicate.getElement(0));
     final String menuItemName = menuitem.forWrite();
 
@@ -354,7 +354,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
   @Predicate(Signature = "removeallactions/0", Template = {}, Reference = "Remove all actions from the action menu")
   @Determined
-  public final void predicateREMOVEALLACTIONS(final Goal goal, final TermStruct predicate) {
+  public final void predicateREMOVEALLACTIONS(final ChoicePoint goal, final TermStruct predicate) {
     synchronized (menuBar) {
       bindedMenu.removeAll();
       menuBar.remove(bindedMenu);
@@ -369,7 +369,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
   @Predicate(Signature = "bindaction/2", Template = {"+term,+callable_term"}, Reference = "Bind a goal to an action menu item (menu_item_name, action) which can be selected by user.")
   @Determined
-  public final void predicateBINDACTION(final Goal goal, final TermStruct predicate) {
+  public final void predicateBINDACTION(final ChoicePoint goal, final TermStruct predicate) {
     final Term menuitem = Utils.getTermFromElement(predicate.getElement(0));
     final Term action = Utils.getTermFromElement(predicate.getElement(1));
 
@@ -428,7 +428,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
   @Predicate(Signature = "rectangle/4", Template = {"+number,+number,+number,+number"}, Reference = "Draw a rectangle in the coordinates (X,Y,Width,Height) with the current pen color.")
   @Determined
-  public final void predicateRECTANGLE(final Goal goal, final TermStruct predicate) {
+  public final void predicateRECTANGLE(final ChoicePoint goal, final TermStruct predicate) {
     final int argx = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(0))).getNumericValue().intValue();
     final int argy = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(1))).getNumericValue().intValue();
     final int argw = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(2))).getNumericValue().intValue();
@@ -453,7 +453,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
   @Predicate(Signature = "fillrectangle/4", Template = {"+number,+number,+number,+number"}, Reference = "Fill a rectangle in the coordinates (X,Y,Width,Height) with the current brush color.")
   @Determined
-  public void predicateFILLRECTANGLE(final Goal goal, final TermStruct predicate) {
+  public void predicateFILLRECTANGLE(final ChoicePoint goal, final TermStruct predicate) {
     final int argx = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(0))).getNumericValue().intValue();
     final int argy = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(1))).getNumericValue().intValue();
     final int argw = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(2))).getNumericValue().intValue();
@@ -478,7 +478,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
   @Predicate(Signature = "plot/4", Template = {"+number,+number,+number,+number"}, Reference = "Draw a line (X1,Y1,X2,Y2) with the current pen color.")
   @Determined
-  public void predicatePLOT(final Goal goal, final TermStruct predicate) {
+  public void predicatePLOT(final ChoicePoint goal, final TermStruct predicate) {
     final int argx = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(0))).getNumericValue().intValue();
     final int argy = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(1))).getNumericValue().intValue();
     final int argxx = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(2))).getNumericValue().intValue();
@@ -503,7 +503,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
   @Predicate(Signature = "plot/2", Template = {"+number,+number"}, Reference = "Draw a line from the last point to (X,Y) with the current pen color.")
   @Determined
-  public void predicatePLOT2(final Goal goal, final TermStruct predicate) {
+  public void predicatePLOT2(final ChoicePoint goal, final TermStruct predicate) {
     final int argx = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(0))).getNumericValue().intValue();
     final int argy = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(1))).getNumericValue().intValue();
 
@@ -525,7 +525,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
   @Predicate(Signature = "oval/4", Template = {"+number,+number,+number,+number"}, Reference = "Draw an oval into a rectangle area with coords (X,Y,Width,Height) with the current pen color.")
   @Determined
-  public void predicateOVAL(final Goal goal, final TermStruct predicate) {
+  public void predicateOVAL(final ChoicePoint goal, final TermStruct predicate) {
     final int argx = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(0))).getNumericValue().intValue();
     final int argy = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(1))).getNumericValue().intValue();
     final int argw = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(2))).getNumericValue().intValue();
@@ -549,7 +549,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
   @Predicate(Signature = "filloval/4", Template = {"+number,+number,+number,+number"}, Reference = "Fill an oval into a rectangle area with coords (X,Y,Width,Height) with the current pen color.")
   @Determined
-  public void predicateFILLOVAL(final Goal goal, final TermStruct predicate) {
+  public void predicateFILLOVAL(final ChoicePoint goal, final TermStruct predicate) {
     final int argx = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(0))).getNumericValue().intValue();
     final int argy = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(1))).getNumericValue().intValue();
     final int argw = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(2))).getNumericValue().intValue();
@@ -573,7 +573,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
   @Predicate(Signature = "fillscreen/0", Reference = "Fill all screen by the brush color.")
   @Determined
-  public void predicateFILLSCREEN(final Goal goal, final TermStruct predicate) {
+  public void predicateFILLSCREEN(final ChoicePoint goal, final TermStruct predicate) {
     final ReentrantLock locker = insideLocker;
     locker.lock();
     try {
@@ -589,7 +589,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
   @Predicate(Signature = "brushcolor/1", Template = {"?atom"}, Reference = "Change or get the current brush color. If it can't set color then it will return false")
   @Determined
-  public boolean predicateBRUSHCOLOR(final Goal goal, final TermStruct predicate) {
+  public boolean predicateBRUSHCOLOR(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = Utils.getTermFromElement(predicate.getElement(0));
     final ReentrantLock locker = insideLocker;
 
@@ -625,14 +625,14 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
   @Predicate(Signature = "settitle/1", Template = {"+atom"}, Reference = "Set the title for the current graphic screen")
   @Determined
-  public void predicateSETTITLE(final Goal goal, final TermStruct predicate) {
+  public void predicateSETTITLE(final ChoicePoint goal, final TermStruct predicate) {
     final String title = Utils.getTermFromElement(predicate.getElement(0)).getText();
     SwingUtilities.invokeLater(() -> graphicFrame.setTitle(title));
   }
 
   @Predicate(Signature = "pencolor/1", Template = {"?atom"}, Reference = "Change or get the current pen color. If it can't set color then it will return false")
   @Determined
-  public boolean predicatePENCOLOR(final Goal goal, final TermStruct predicate) {
+  public boolean predicatePENCOLOR(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = Utils.getTermFromElement(predicate.getElement(0));
     final ReentrantLock locker = insideLocker;
 
@@ -668,7 +668,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
   @Predicate(Signature = "cursor/2", Template = {"?number,?number"}, Reference = "Set or get the current cursor position (X,Y).")
   @Determined
-  public boolean predicateCURSOR(final Goal goal, final TermStruct predicate) {
+  public boolean predicateCURSOR(final ChoicePoint goal, final TermStruct predicate) {
     final Term elemX = Utils.getTermFromElement(predicate.getElement(0));
     final Term elemY = Utils.getTermFromElement(predicate.getElement(1));
 
@@ -703,7 +703,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
   @Predicate(Signature = "print/1", Template = {"+term"}, Reference = "Print the text representation of the term with the current pen color. The baseline of the leftmost character is at the cursor position.")
   @Determined
-  public void predicatePRINT(final Goal goal, final TermStruct predicate) {
+  public void predicatePRINT(final ChoicePoint goal, final TermStruct predicate) {
     final Term elem = Utils.getTermFromElement(predicate.getElement(0));
 
     final String text = elem.forWrite();
@@ -759,7 +759,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
   @Predicate(Signature = "saveimage/2", Template = {"+atom,+atom"}, Reference = "Arguments (image_name,format_name). Format can be 'png','jpg' or 'gif'. Save the current graphic buffer state as a named image with the type. It can throw \'permission_error\' exception if it is not possible to write the image.")
   @Determined
-  public void predicateSAVEIMAGE(final Goal goal, final TermStruct predicate) {
+  public void predicateSAVEIMAGE(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = Utils.getTermFromElement(predicate.getElement(0));
     final Term format = Utils.getTermFromElement(predicate.getElement(1));
     saveCurrentBuffer(arg.getText(), format.getText().trim().toLowerCase(), predicate);
@@ -767,7 +767,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
   @Predicate(Signature = "graphics/2", Template = {"?integer,?integer"}, Reference = "Change or get the graphic screen size (width,heigh) and fill it with the curren background color. Pay attention, the predicate creates the new offscreen buffer so don't use it to clear screen.")
   @Determined
-  public boolean predicateGRAPHICS(final Goal goal, final TermStruct predicate) {
+  public boolean predicateGRAPHICS(final ChoicePoint goal, final TermStruct predicate) {
     final Term width = Utils.getTermFromElement(predicate.getElement(0));
     final Term height = Utils.getTermFromElement(predicate.getElement(1));
 
@@ -952,7 +952,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
         return false;
       }
       try {
-        contextForTheAction.solveAsynchronously(action, null);
+        contextForTheAction.solveAsynchronously(action);
         return true;
       } catch (Throwable thr) {
         LOG.log(Level.SEVERE, "Can't execute registered action " + menuText, thr);

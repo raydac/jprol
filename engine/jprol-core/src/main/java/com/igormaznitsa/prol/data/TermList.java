@@ -115,11 +115,8 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public boolean isBounded() {
-    if (isNullList()) {
-      return true;
-    }
-    return this.stream().allMatch(Term::isBounded);
+  public boolean isGround() {
+    return this.isNullList() || this.stream().allMatch(Term::isGround);
   }
 
   @Override
@@ -328,7 +325,7 @@ public final class TermList extends TermStruct {
       return 0;
     }
 
-    if (atom.getTermType() == VAR && atom.isBounded()) {
+    if (atom.getTermType() == VAR && atom.isGround()) {
       atom = ((Var) atom).getValue();
     }
 

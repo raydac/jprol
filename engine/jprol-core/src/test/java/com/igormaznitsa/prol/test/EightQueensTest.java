@@ -1,7 +1,7 @@
 package com.igormaznitsa.prol.test;
 
 import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
-import com.igormaznitsa.prol.logic.Goal;
+import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlConsult;
 import org.junit.Test;
@@ -9,6 +9,7 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
+
 import static org.junit.Assert.*;
 
 public class EightQueensTest extends AbstractProlTest {
@@ -126,7 +127,7 @@ public class EightQueensTest extends AbstractProlTest {
 
     consult.consult();
 
-    final Goal goal = new Goal("solution([1/Y1,2/Y2,3/Y3,4/Y4,5/Y5,6/Y6,7/Y7,8/Y8]),Res = [Y1,Y2,Y3,Y4,Y5,Y6,Y7,Y8].", context);
+    final ChoicePoint goal = new ChoicePoint("solution([1/Y1,2/Y2,3/Y3,4/Y4,5/Y5,6/Y6,7/Y7,8/Y8]),Res = [Y1,Y2,Y3,Y4,Y5,Y6,Y7,Y8].", context);
     int combinatioCounter = 0;
 
     for (final String anEtal : etal) {

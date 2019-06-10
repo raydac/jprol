@@ -38,6 +38,8 @@ public final class Utils {
 
   public static final Comparator<Term> TERM_COMPARATOR = Term::compareTermTo;
 
+  public static final Operator SIGNATURE_OPERATOR = new Operator(400, Operator.OPTYPE_YFX, "/");
+
   // hide the constructor
   private Utils() {
   }
@@ -107,7 +109,7 @@ public final class Utils {
     }
 
     vars.forEach((name, value) -> {
-      if (!(value.isAnonymous() || !value.isBounded())) {
+      if (value.isGround()) {
         result.put(name, value.getValue());
       }
     });
@@ -277,8 +279,9 @@ public final class Utils {
         for (int li = 0; li < arity; li++) {
           final Term element = struct.getElement(li);
           if (element.getTermType() == VAR) {
-            final String varname = element.getText();
-            if (!element.isBounded()) {
+            final Var thatVar = (Var) element;
+            final String varname = thatVar.getText();
+            if (!thatVar.isAnonymous() && thatVar.isFree()) {
               final Var var = variables.get(varname);
               if (var == null) {
                 variables.put(varname, (Var) element);
@@ -401,26 +404,6 @@ public final class Utils {
       break;
       default: {
         out.println(term);
-      }
-    }
-  }
-
-  public static void printTermState(final PrintStream out, final Term term) {
-    out.println(term.toSrcString());
-
-    final Map<String, Var> vars = Utils.fillTableWithVars(term);
-
-    for (Var variable : vars.values()) {
-      if (variable.isAnonymous()) {
-        continue;
-      }
-      out.print(variable.getText());
-      out.print("{uid=" + variable.getVarUID() + '}');
-      out.print('=');
-      if (!variable.isBounded()) {
-        out.println("???");
-      } else {
-        out.println(variable.toString());
       }
     }
   }

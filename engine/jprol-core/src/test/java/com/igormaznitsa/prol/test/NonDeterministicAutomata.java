@@ -1,11 +1,12 @@
 package com.igormaznitsa.prol.test;
 
 import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
-import com.igormaznitsa.prol.logic.Goal;
+import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlConsult;
-import static org.junit.Assert.*;
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 public class NonDeterministicAutomata extends AbstractProlTest {
 
@@ -88,7 +89,7 @@ public class NonDeterministicAutomata extends AbstractProlTest {
                 "['b','b','b','b','b','a','b']"
         };
 
-        final Goal goal = new Goal("X=[_,_,_,_,_,_,_],accepts(s1,X).", context);
+      final ChoicePoint goal = new ChoicePoint("X=[_,_,_,_,_,_,_],accepts(s1,X).", context);
 
         for (final String e : etal) {
             assertNotNull(goal.solve());

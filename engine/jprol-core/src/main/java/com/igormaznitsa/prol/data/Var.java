@@ -174,7 +174,7 @@ public final class Var extends Term {
 
   @Override
   public Stream<Var> variables() {
-    return Stream.of(this);
+    return this.isAnonymous() ? Stream.empty() : Stream.of(this);
   }
 
   public boolean isAnonymous() {
@@ -190,15 +190,17 @@ public final class Var extends Term {
     return result;
   }
 
+  public boolean isGround() {
+    return this.value != null && this.value.isGround();
+  }
+
+  public boolean isFree() {
+    return this.value == null || (this.value.getTermType() == VAR && ((Var) this.value).isFree());
+  }
+
   @Override
-  public boolean isBounded() {
-    boolean result = false;
-    if (!isAnonymous()) {
-      if (this.value != null) {
-        result = this.value.getTermType() != VAR || this.value.isBounded();
-      }
-    }
-    return result;
+  public Term findNonVarOrDefault(final Term term) {
+    return this.value == null ? term : this.value.findNonVarOrDefault(term);
   }
 
   @Override
@@ -206,7 +208,7 @@ public final class Var extends Term {
     final StringBuilder builder = new StringBuilder();
     final Term val = getValue();
     if (val == null) {
-      builder.append(isAnonymous() ? '_' : getText());//.append("{uid=").append(uid).append('}');
+      builder.append(isAnonymous() ? '_' : getText());
     } else {
       builder.append(val.toString());
     }
@@ -266,12 +268,12 @@ public final class Var extends Term {
 
   @Override
   public String forWrite() {
-    final Term val = getValue();
+    final Term val = this.getValue();
     if (val == null) {
       if (isAnonymous()) {
         return "_";
       } else {
-        return getText();
+        return this.getText();
       }
     } else {
       return val.forWrite();
@@ -315,15 +317,12 @@ public final class Var extends Term {
       thisAtom = this;
     }
 
-    if (atom.getTermType() == VAR && atom.isBounded()) {
-      atom = ((Var) atom).getValue();
-    }
+    atom = atom.findNonVarOrDefault(atom);
 
     int result = -1;
     if (thisAtom == this) {
       if (atom.getTermType() == VAR) {
         result = getText().compareTo(atom.getText());
-
       }
     } else {
       result = thisAtom.compareTermTo(atom);

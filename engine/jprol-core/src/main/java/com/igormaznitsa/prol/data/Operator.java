@@ -223,23 +223,55 @@ public final class Operator extends Term {
       return true;
     }
 
+    final boolean result;
+
     switch (atom.getTermType()) {
+      case OPERATOR:
       case ATOM: {
-        return getText().equals(atom.getText());
+        result = getText().equals(atom.getText());
       }
-      case OPERATOR: {
-        return this == atom;
-      }
+      break;
       case VAR: {
         final Var var = (Var) atom;
         final Term value = var.getValue();
         if (value == null) {
-          return ((Var) atom).setValue(this);
+          result = ((Var) atom).setValue(this);
         } else {
-          return unifyTo(value);
+          result = unifyTo(value);
         }
       }
+      break;
+      default:
+        result = false;
+        break;
     }
-    return false;
+    return result;
+  }
+
+  @Override
+  public boolean dryUnifyTo(final Term atom) {
+    if (this == atom) {
+      return true;
+    }
+
+    final boolean result;
+
+    switch (atom.getTermType()) {
+      case OPERATOR:
+      case ATOM: {
+        result = getText().equals(atom.getText());
+      }
+      break;
+      case VAR: {
+        final Var var = (Var) atom;
+        final Term value = var.getValue();
+        result = value == null || this.dryUnifyTo(value);
+      }
+      break;
+      default:
+        result = false;
+        break;
+    }
+    return result;
   }
 }

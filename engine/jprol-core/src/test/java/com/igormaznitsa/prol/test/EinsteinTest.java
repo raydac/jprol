@@ -1,16 +1,16 @@
 package com.igormaznitsa.prol.test;
 
 import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
-import com.igormaznitsa.prol.logic.Goal;
+import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlConsult;
-import com.igormaznitsa.prol.trace.TraceListener;
-import static org.junit.Assert.*;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
+
+import static org.junit.Assert.*;
 
 public class EinsteinTest extends AbstractProlTest {
 
@@ -38,7 +38,7 @@ public class EinsteinTest extends AbstractProlTest {
                 + "iright(L,R,[L,R|_]). iright(L,R,[_|Rest]) :- iright(L,R,Rest)."
                 + "member2(E,[E|_]). member2(E,[_|L]) :- member2(E,L).");
 
-        final Goal goal = new Goal("einstein(_,X).", context);
+      final ChoicePoint goal = new ChoicePoint("einstein(_,X).", context);
         assertNotNull(goal.solve());
         assertEquals(goal.getVarAsText("X"), "'german'");
         assertNull(goal.solve());
@@ -64,7 +64,7 @@ public class EinsteinTest extends AbstractProlTest {
         return context1;
     }
 
-    private boolean allowedPredicate(final Goal goal) {
+  private boolean allowedPredicate(final ChoicePoint goal) {
         final String signature = goal.getGoalTerm().getSignature();
         return !(signature.equals(",/2") || signature.equals(";/2"));
     }
