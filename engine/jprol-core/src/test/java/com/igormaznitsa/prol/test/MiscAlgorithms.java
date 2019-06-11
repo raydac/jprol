@@ -1,7 +1,6 @@
 package com.igormaznitsa.prol.test;
 
 import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.data.TermInteger;
 import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
@@ -22,7 +21,7 @@ public class MiscAlgorithms extends AbstractProlTest {
         assertNotNull(resultterm);
         final Term result = goal.getVarForName("A").getValue();
         assertNotNull(result);
-        final int intresult = ((TermInteger) result).getNumericValue().intValue();
+      final int intresult = result.toNumber().intValue();
         assertEquals(a, intresult);
       assertNull(goal.next());
     }

@@ -16,14 +16,12 @@
 package com.igormaznitsa.prol.test;
 
 import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.data.TermInteger;
 import com.igormaznitsa.prol.data.TermList;
 import com.igormaznitsa.prol.data.Var;
 import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlConsult;
-import com.igormaznitsa.prol.utils.Utils;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -52,7 +50,7 @@ public class MiscTest extends AbstractProlTest {
             Result(final Map<String, Term> map) {
                 assertEquals(2, map.size());
                 this.name = map.get("X").getText();
-                this.value = (Integer) ((TermInteger) map.get("Y")).getNumericValue();
+              this.value = map.get("Y").toNumber().intValue();
             }
 
             @Override
@@ -65,7 +63,7 @@ public class MiscTest extends AbstractProlTest {
         while (true) {
           final Term t = goal.next();
             if (t == null) break;
-            result.add(new Result(Utils.fillTableWithFoundVarContent(t, null)));
+          result.add(new Result(t.allNamedVarValuesAsMap()));
         }
 
         assertEquals(3, result.size());

@@ -42,7 +42,6 @@ import java.util.stream.Collectors;
 
 import static com.igormaznitsa.prol.data.TermType.*;
 import static com.igormaznitsa.prol.utils.Utils.createOrAppendToList;
-import static com.igormaznitsa.prol.utils.Utils.getTermFromElement;
 
 @ProlOperators(Operators = {
     //------------------------
@@ -203,8 +202,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
     if (left instanceof TermInteger && right instanceof TermInteger) {
-      final int lft = left.getNumericValue().intValue();
-      final int rght = right.getNumericValue().intValue();
+      final int lft = left.toNumber().intValue();
+      final int rght = right.toNumber().intValue();
 
       return new TermInteger(lft ^ rght);
     } else {
@@ -218,7 +217,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
 
     if (left instanceof TermInteger) {
-      final int lft = left.getNumericValue().intValue();
+      final int lft = left.toNumber().intValue();
 
       return new TermInteger(~lft);
     } else {
@@ -233,8 +232,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
     if (left instanceof TermInteger && right instanceof TermInteger) {
-      final int lft = left.getNumericValue().intValue();
-      final int rght = right.getNumericValue().intValue();
+      final int lft = left.toNumber().intValue();
+      final int rght = right.toNumber().intValue();
 
       return new TermInteger(lft | rght);
     } else {
@@ -249,8 +248,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
     if (left instanceof TermInteger && right instanceof TermInteger) {
-      final int lft = left.getNumericValue().intValue();
-      final int rght = right.getNumericValue().intValue();
+      final int lft = left.toNumber().intValue();
+      final int rght = right.toNumber().intValue();
 
       return new TermInteger(lft & rght);
     } else {
@@ -264,8 +263,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
-    final int leftval = left.getNumericValue().intValue();
-    final int rightval = right.getNumericValue().intValue();
+    final int leftval = left.toNumber().intValue();
+    final int rightval = right.toNumber().intValue();
 
     return new TermInteger(leftval % rightval);
   }
@@ -276,8 +275,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
-    final int leftval = left.getNumericValue().intValue();
-    final int rightval = right.getNumericValue().intValue();
+    final int leftval = left.toNumber().intValue();
+    final int rightval = right.toNumber().intValue();
 
     return new TermInteger(leftval - (leftval / rightval) * rightval);
   }
@@ -288,8 +287,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
-    final float leftval = left.getNumericValue().floatValue();
-    final float rightval = right.getNumericValue().floatValue();
+    final float leftval = left.toNumber().floatValue();
+    final float rightval = right.toNumber().floatValue();
 
     return new TermFloat((float) Math.pow(leftval, rightval));
   }
@@ -300,14 +299,14 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
-    return (Term) (left.add(right));
+    return left.add(right);
   }
 
   @Predicate(Signature = "sin/1", Template = {"+evaluable"}, Reference = "Sine")
   @Evaluable
   public static Term predicateSIN(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.getNumericValue().floatValue();
+    final float value = arg.toNumber().floatValue();
     return new TermFloat((float) Math.sin(value));
   }
 
@@ -315,7 +314,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Evaluable
   public static Term predicateFLOATINTEGERPART(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final int value = arg.getNumericValue().intValue();
+    final int value = arg.toNumber().intValue();
     return new TermInteger(value);
   }
 
@@ -323,7 +322,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Evaluable
   public static Term predicateFLOATFRACTIONALPART(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.getNumericValue().floatValue();
+    final float value = arg.toNumber().floatValue();
     final int valueInt = (int) value;
     return new TermFloat(value - (float) valueInt);
   }
@@ -332,7 +331,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Evaluable
   public static Term predicateFLOOR(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.getNumericValue().floatValue();
+    final float value = arg.toNumber().floatValue();
     return new TermInteger((int) Math.floor(value));
   }
 
@@ -340,7 +339,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Evaluable
   public static Term predicateTRUNCATE(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.getNumericValue().floatValue();
+    final float value = arg.toNumber().floatValue();
     return new TermInteger(value < 0 ? (int) Math.ceil(value) : (int) Math.floor(value));
   }
 
@@ -348,7 +347,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Evaluable
   public static Term predicateROUND(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.getNumericValue().floatValue();
+    final float value = arg.toNumber().floatValue();
     return new TermInteger(Math.round(value));
   }
 
@@ -356,7 +355,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Evaluable
   public static Term predicateCEILING(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.getNumericValue().floatValue();
+    final float value = arg.toNumber().floatValue();
     return new TermInteger((int) Math.ceil(value));
   }
 
@@ -364,7 +363,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Evaluable
   public static Term predicateCOS(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.getNumericValue().floatValue();
+    final float value = arg.toNumber().floatValue();
     return new TermFloat((float) Math.cos(value));
   }
 
@@ -372,7 +371,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Evaluable
   public static Term predicateATAN(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.getNumericValue().floatValue();
+    final float value = arg.toNumber().floatValue();
     return new TermFloat((float) Math.atan(value));
   }
 
@@ -380,7 +379,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Evaluable
   public static Term predicateEXP(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.getNumericValue().floatValue();
+    final float value = arg.toNumber().floatValue();
     return new TermFloat((float) Math.exp(value));
   }
 
@@ -388,7 +387,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Evaluable
   public static Term predicateLOG(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.getNumericValue().floatValue();
+    final float value = arg.toNumber().floatValue();
     return new TermFloat((float) Math.log(value));
   }
 
@@ -396,7 +395,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Evaluable
   public static Term predicateSQRT(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.getNumericValue().floatValue();
+    final float value = arg.toNumber().floatValue();
     return new TermFloat((float) Math.sqrt(value));
   }
 
@@ -404,14 +403,14 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Evaluable
   public static Term predicateABS(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    return (Term) arg.abs();
+    return arg.abs();
   }
 
   @Predicate(Signature = "sign/1", Template = {"+evaluable"}, Reference = "SIGN")
   @Evaluable
   public static Term predicateSIGN(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    return (Term) arg.sign();
+    return arg.sign();
   }
 
   @Predicate(Signature = "-/2", Template = {"+evaluable,+evaluable"}, Reference = "Subtraction")
@@ -420,20 +419,20 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
-    return (Term) (left.sub(right));
+    return left.sub(right);
   }
 
   @Predicate(Signature = "-/1", Template = {"+evaluable"}, Reference = "Negation")
   @Evaluable
   public static Term predicateNeg(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm val = calculatEvaluable(goal, predicate.getElement(0));
-    return (Term) (val.neg());
+    return val.neg();
   }
 
   @Predicate(Signature = "+/1", Template = {"+evaluable"}, Reference = "Not action over a number")
   @Evaluable
   public static Term predicateTheSame(final ChoicePoint goal, final TermStruct predicate) {
-    return (Term) calculatEvaluable(goal, predicate.getElement(0));
+    return calculatEvaluable(goal, predicate.getElement(0));
   }
 
   @Predicate(Signature = "*/2", Template = {"+evaluable,+evaluable"}, Reference = "Multiplication")
@@ -442,7 +441,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
-    return (Term) (left.mul(right));
+    return left.mul(right);
   }
 
   @Predicate(Signature = "//2", Template = {"+evaluable,+evaluable"}, Reference = "Dividsion")
@@ -451,7 +450,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
-    return (Term) (left.div(right));
+    return left.div(right);
   }
 
   @Predicate(Signature = "///2", Template = {"+evaluable,+evaluable"}, Reference = "Integer division")
@@ -460,9 +459,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
-    Term result = (Term) left.div(right);
+    Term result = left.div(right);
     if (result instanceof TermFloat) {
-      result = new TermInteger(((NumericTerm) result).getNumericValue().intValue());
+      result = new TermInteger(result.toNumber().intValue());
     }
 
     return result;
@@ -474,8 +473,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
-    final int value = left.getNumericValue().intValue();
-    final int shift = right.getNumericValue().intValue();
+    final int value = left.toNumber().intValue();
+    final int shift = right.toNumber().intValue();
 
     return new TermInteger(value << shift);
   }
@@ -486,8 +485,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
-    final int value = left.getNumericValue().intValue();
-    final int shift = right.getNumericValue().intValue();
+    final int value = left.toNumber().intValue();
+    final int shift = right.toNumber().intValue();
 
     return new TermInteger(value >> shift);
   }
@@ -502,7 +501,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     if (rightPart == null) {
       return false;
     }
-    return leftPart.unifyTo((Term) rightPart);
+    return leftPart.unifyTo(rightPart);
   }
 
   @Predicate(Signature = "true/0", Reference = "The perdicate is always true.")
@@ -559,8 +558,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "clause/2", Template = {"+head,?callable_term"}, Reference = "clause(Head, Body) is true if and only if\n* The predicate of Head is public (the standard does not specify how a predicate is declared public but dynamic predicates are public, and\n* There is a clause in the database which corresponds to a term H:- B which unifies with Head :- Body.")
   public static boolean predicateCLAUSE(final ChoicePoint goal, final TermStruct predicate) {
-    final Term head = getTermFromElement(predicate.getElement(0));
-    final Term body = getTermFromElement(predicate.getElement(1));
+    final Term head = predicate.getElement(0).findNonVarOrSame();
+    final Term body = predicate.getElement(1).findNonVarOrSame();
 
     final TermStruct struct = head.getTermType() == STRUCT ? (TermStruct) head : new TermStruct(head);
     if (goal.getContext().findProcessor(struct) != PredicateProcessor.NULL_PROCESSOR) {
@@ -611,9 +610,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "current_op/3", Template = "?integer,?operator_specifier,?atom", Reference = "current_op(Priority, Op_specifier, Operator) is true if and only if Operator is an operator with properties given by  Op_specifier and Priority")
   @SuppressWarnings("unchecked")
   public static boolean predicateCURRENTOP(final ChoicePoint goal, final TermStruct predicate) {
-    final Term priority = getTermFromElement(predicate.getElement(0));
-    final Term specifier = getTermFromElement(predicate.getElement(1));
-    final Term name = getTermFromElement(predicate.getElement(2));
+    final Term priority = predicate.getElement(0).findNonVarOrSame();
+    final Term specifier = predicate.getElement(1).findNonVarOrSame();
+    final Term name = predicate.getElement(2).findNonVarOrSame();
 
     Object[] auxObject = goal.getPayload();
     if (auxObject == null) {
@@ -631,7 +630,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final int typeVal = specifier.getTermType() == ATOM ? Operator.getTypeFromString(specifier.getText()) : -1; // -1 = any
     int priorityVal = 0; // 0 - any
     if (priority.getTermType() == ATOM) {
-      priorityVal = ((TermInteger) priority).getNumericValue().intValue();
+      priorityVal = priority.toNumber().intValue();
       if (priorityVal < 1 || priorityVal > 1200) {
         throw new ProlDomainErrorException("Unsupported operator priority", predicate);
       }
@@ -712,9 +711,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "op/3", Template = "+integer,+operator_specifier,@atom_or_atom_list", Reference = "These predicates allow the operator table to be altered or inspected.\nop(Priority, Op_Specifier, Operator) is true, with the side effect that\n1. if Priority is 0 then Operator is removed from the operator table, else\n2. Operator is added to the Operator table, with priority (lower binds tighter) Priority and associativity determined by Op_Specifier")
   @Determined
   public static boolean predicateOP(final ChoicePoint goal, final TermStruct predicate) {
-    final int priority = ((TermInteger) getTermFromElement(predicate.getElement(0))).getNumericValue().intValue();
-    final String specifier = getTermFromElement(predicate.getElement(1)).getText();
-    final Term atomOrList = getTermFromElement(predicate.getElement(2));
+    final int priority = predicate.getElement(0).findNonVarOrSame().toNumber().intValue();
+    final String specifier = predicate.getElement(1).findNonVarOrSame().getText();
+    final Term atomOrList = predicate.getElement(2).findNonVarOrSame();
 
     if (priority < 0 || priority > 1200) {
       throw new ProlDomainErrorException("Priority must be between 0 and 1200 inclusive", predicate);
@@ -761,7 +760,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "call/1", Template = {"+callable_term"}, Reference = "call(G) is true if and only if G represents a goal which is true.")
   public static boolean predicateCALL(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
     ChoicePoint currentgoal = goal.getPayload();
-    final Term argument = getTermFromElement(predicate.getElement(0));
+    final Term argument = predicate.getElement(0).findNonVarOrSame();
 
     if (currentgoal == null) {
       // first call of the goal
@@ -790,7 +789,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "once/1", Template = {"+callable_term"}, Reference = "once(Term) is true. once/1 is not re-executable.")
   @Determined
   public static boolean predicateONCE(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
-    final Term argument = getTermFromElement(predicate.getElement(0));
+    final Term argument = predicate.getElement(0).findNonVarOrSame();
     final ChoicePoint currentgoal = new ChoicePoint(argument, goal.getContext());
 
     final Term nextResult = currentgoal.next();
@@ -877,7 +876,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "integer/1", Reference = "integer(X) is true if and only if X is an integer.")
   @Determined
   public static boolean predicateINTEGER(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
 
     if (arg.getTermType() == ATOM) {
       return arg instanceof TermInteger;
@@ -889,14 +888,14 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "number/1", Reference = "number(X) is true if and only if X is an integer or a float.")
   @Determined
   public static boolean predicateNUMBER(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
     return (arg.getTermType() == ATOM) && (arg instanceof NumericTerm);
   }
 
   @Predicate(Signature = "float/1", Reference = "float(X) is true if and only if X is a float.")
   @Determined
   public static boolean predicateFLOAT(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
     if (arg.getTermType() == ATOM) {
       return arg instanceof TermFloat;
     } else {
@@ -907,7 +906,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "compound/1", Reference = "compound(X) is true if and only if X is a compound term, that is neither atomic nor a variable.")
   @Determined
   public static boolean predicateCOMPOUND(final ChoicePoint goal, final TermStruct predicate) {
-    final Term atom = getTermFromElement(predicate.getElement(0));
+    final Term atom = predicate.getElement(0).findNonVarOrSame();
     switch (atom.getTermType()) {
       case STRUCT:
         return true;
@@ -921,7 +920,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "atomic/1", Reference = "atomic(X) is true if and only if X is atomic (that is an atom, an integer or a float).")
   @Determined
   public static boolean predicateATOMIC(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
     boolean result = false;
     switch (arg.getTermType()) {
       case ATOM: {
@@ -939,11 +938,11 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "arg/3", Template = {"+integer,+compound_term,?term"}, Reference = "arg(N,Term, Arg) is true if nad only if the Nth argument of Term is Arg")
   @Determined
   public static boolean predicateARG(final ChoicePoint goal, final TermStruct predicate) {
-    final TermInteger number = (TermInteger) getTermFromElement(predicate.getElement(0));
-    final Term compound_term = getTermFromElement(predicate.getElement(1));
-    final Term element = getTermFromElement(predicate.getElement(2));
+    final TermInteger number = predicate.getElement(0).findNonVarOrSame();
+    final Term compound_term = predicate.getElement(1).findNonVarOrSame();
+    final Term element = predicate.getElement(2).findNonVarOrSame();
 
-    final int index = number.getNumericValue().intValue();
+    final int index = number.toNumber().intValue();
 
     if (index < 0) {
       throw new ProlDomainErrorException("Element number less than zero", number);
@@ -967,9 +966,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "functor/3", Template = {"-nonvar,+atomic,+integer", "+nonvar,?atomic,?integer"}, Reference = "functor(Term, Name, Arity) is true if and only if Term is a compound term with functor name Name and arity Arity or Term is an atomic term equal to Name and Arity is 0.")
   @Determined
   public static boolean predicateFUNCTOR(final ChoicePoint goal, final TermStruct predicate) {
-    final Term argTerm = getTermFromElement(predicate.getElement(0));
-    final Term argName = getTermFromElement(predicate.getElement(1));
-    final Term argArity = getTermFromElement(predicate.getElement(2));
+    final Term argTerm = predicate.getElement(0).findNonVarOrSame();
+    final Term argName = predicate.getElement(1).findNonVarOrSame();
+    final Term argArity = predicate.getElement(2).findNonVarOrSame();
 
     switch (argTerm.getTermType()) {
       case ATOM: {
@@ -998,7 +997,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         return argName.unifyTo(name) && argArity.unifyTo(arity);
       }
       case VAR: {
-        final int arity = ((TermInteger) argArity).getNumericValue().intValue();
+        final int arity = argArity.toNumber().intValue();
         if (arity < 0) {
           throw new ProlRepresentationErrorException("Wrong arity value", predicate);
         }
@@ -1033,8 +1032,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "=../2", Template = {"+nonvar,?non_empty_list", "-nonvar,+non_empty_list"}, Reference = "Term =.. List is true if and only if\n* Term is an atomic term and List is the list whose only element is Term, or\n* Term is a compound term and List is the list whose head is the functor name of Term and whose tail is the list of the arguments of Term. ")
   @Determined
   public static boolean predicateUNIV(final ChoicePoint goal, final TermStruct predicate) {
-    final Term argLeft = getTermFromElement(predicate.getElement(0));
-    final Term argRight = getTermFromElement(predicate.getElement(1));
+    final Term argLeft = predicate.getElement(0).findNonVarOrSame();
+    final Term argRight = predicate.getElement(1).findNonVarOrSame();
 
     if (argRight.getTermType() != VAR) {
       Term atom = Utils.getListAsAtom(goal.getContext(), (TermList) argRight);
@@ -1070,7 +1069,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Determined
   @SuppressWarnings("fallthrough")
   public static boolean predicateCONSULT(final ChoicePoint goal, final TermStruct predicate) {
-    final Term term = getTermFromElement(predicate.getElement(0));
+    final Term term = predicate.getElement(0).findNonVarOrSame();
 
     final ProlContext ctxt = goal.getContext();
     final ProlStreamManager streamManager = ctxt.getStreamManager();
@@ -1087,8 +1086,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
           if (list.isNullList()) {
             return true;
           }
-          final Term headterm = getTermFromElement(list.getHead());
-          final Term tailTerm = getTermFromElement(list.getTail());
+          final Term headterm = list.getHead().findNonVarOrSame();
+          final Term tailTerm = list.getTail().findNonVarOrSame();
           if (tailTerm.getTermType() == LIST) {
             list = (TermList) tailTerm;
           } else {
@@ -1143,8 +1142,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "atom_chars/2", Template = {"+atom,?list", "-atom,+character_list"}, Reference = "atom_chars(Atom, List) succeeds if and only if List is a list whose elements are the one character atoms that in order make up  Atom.")
   @Determined
   public static boolean predicateATOMCHARS(final ChoicePoint goal, final TermStruct predicate) {
-    Term left = getTermFromElement(predicate.getElement(0));
-    Term right = getTermFromElement(predicate.getElement(1));
+    Term left = predicate.getElement(0).findNonVarOrSame();
+    Term right = predicate.getElement(1).findNonVarOrSame();
 
     switch (left.getTermType()) {
       case ATOM: {
@@ -1187,8 +1186,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "char_code/2", Template = {"+character,?character_code", "-character,+character_code"}, Reference = "char_code(Char, Code) succeeds if and only if Code is the character code that corresponds to the character Char.")
   @Determined
   public static boolean predicateCHARCODE(final ChoicePoint goal, final TermStruct predicate) {
-    Term left = getTermFromElement(predicate.getElement(0));
-    Term right = getTermFromElement(predicate.getElement(1));
+    Term left = predicate.getElement(0).findNonVarOrSame();
+    Term right = predicate.getElement(1).findNonVarOrSame();
 
     if (left.getTermType() == ATOM) {
       left = new TermInteger((int) left.getText().charAt(0));
@@ -1196,7 +1195,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     }
 
     if (right.getTermType() == ATOM) {
-      right = new Term(Character.toString((char) ((TermInteger) right).getNumericValue().intValue()));
+      right = new Term(Character.toString((char) right.toNumber().intValue()));
       return left.unifyTo(right);
     }
 
@@ -1206,8 +1205,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "number_codes/2", Template = {"+number,?character_code_list", "-number,+character_code_list"}, Reference = "number_codes(Number, CodeList) succeeds if and only if CodeList is a list whose elements are the codes for the one character atoms that in order make up Number.")
   @Determined
   public static boolean predicateNUMBERCODES(final ChoicePoint goal, final TermStruct predicate) {
-    Term left = getTermFromElement(predicate.getElement(0));
-    final Term right = getTermFromElement(predicate.getElement(1));
+    Term left = predicate.getElement(0).findNonVarOrSame();
+    final Term right = predicate.getElement(1).findNonVarOrSame();
 
     if (left.getTermType() == ATOM && right.getTermType() == VAR) {
       left = left.toCharCodeList();
@@ -1219,8 +1218,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
       TermList list = (TermList) right;
       while (list != TermList.NULLLIST) {
-        final TermInteger head = (TermInteger) list.getHead();
-        builder.append((char) head.getNumericValue().intValue());
+        final TermInteger head = list.getHead();
+        builder.append((char) head.toNumber().intValue());
 
         final Term tail = list.getTail();
         if (tail.getTermType() == LIST) {
@@ -1259,16 +1258,16 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       Reference = "True if PredicateIndicator is a currently defined predicate. It looks for predicates both in knowledge base and attached libraries."
   )
   public static boolean predicateCURRENTPREDICATEALL(final ChoicePoint goal, final TermStruct predicate) {
-    final Term predicateIndicator = getTermFromElement(predicate.getElement(0));
+    final Term predicateIndicator = predicate.getElement(0).findNonVarOrSame();
     List<TermStruct> list = goal.getPayload();
     if (list == null) {
-      list = new ArrayList<>(goal.getContext().findAllForPredicateIndicatorInLibs((TermStruct) predicateIndicator));
+      list = new ArrayList<>(goal.getContext().findAllForPredicateIndicatorInLibs(predicateIndicator));
       list.addAll(goal.getContext()
           .getKnowledgeBase()
           .findAllForPredicateIndicator(
               predicateIndicator.getTermType() == VAR ? null : (TermStruct) predicateIndicator
           ));
-      Collections.sort(list, TermStruct::compareTermTo);
+      list.sort(TermStruct::compareTermTo);
       goal.setPayload(list);
     }
 
@@ -1284,7 +1283,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       Reference = "True if PredicateIndicator is a currently defined predicate. It looks for predicates only in current knowledge base."
   )
   public static boolean predicateCURRENTPREDICATE(final ChoicePoint goal, final TermStruct predicate) {
-    final Term predicateIndicator = getTermFromElement(predicate.getElement(0));
+    final Term predicateIndicator = predicate.getElement(0).findNonVarOrSame();
     List<TermStruct> list = goal.getPayload();
     if (list == null) {
       list = goal.getContext()
@@ -1292,7 +1291,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
           .findAllForPredicateIndicator(
               predicateIndicator.getTermType() == VAR ? null : (TermStruct) predicateIndicator
           );
-      Collections.sort(list, TermStruct::compareTermTo);
+      list.sort(TermStruct::compareTermTo);
       goal.setPayload(list);
     }
 
@@ -1307,9 +1306,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       Template = {"?atom,?atom,?atom"},
       Reference = "Atom3 forms the concatenation of Atom1 and Atom2.")
   public static boolean predicateATOMCONCAT(final ChoicePoint goal, final TermStruct predicate) {
-    final Term atom1 = getTermFromElement(predicate.getElement(0));
-    final Term atom2 = getTermFromElement(predicate.getElement(1));
-    final Term atom3 = getTermFromElement(predicate.getElement(2));
+    final Term atom1 = predicate.getElement(0).findNonVarOrSame();
+    final Term atom2 = predicate.getElement(1).findNonVarOrSame();
+    final Term atom3 = predicate.getElement(2).findNonVarOrSame();
 
     final int bounded = (atom1.isGround() ? 1 : 0) + (atom2.isGround() ? 1 : 0) + (atom3.isGround() ? 2 : 0);
 
@@ -1388,8 +1387,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       Reference = "number_chars(Number, List) succeeds if and only if List is a list whose elements are the one character atoms that in order make up Number.")
   @Determined
   public static boolean predicateNUMBERCHARS(final ChoicePoint goal, final TermStruct predicate) {
-    Term left = getTermFromElement(predicate.getElement(0));
-    final Term right = getTermFromElement(predicate.getElement(1));
+    Term left = predicate.getElement(0).findNonVarOrSame();
+    final Term right = predicate.getElement(1).findNonVarOrSame();
 
     if (right.getTermType() == LIST) {
       final StringBuilder builder = new StringBuilder();
@@ -1454,9 +1453,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       return false;
     }
 
-    final Var var = (Var) predicate.getElement(0);
-    final int start = ((TermInteger) getTermFromElement(predicate.getElement(1))).getNumericValue().intValue();
-    final int limit = ((TermInteger) getTermFromElement(predicate.getElement(2))).getNumericValue().intValue();
+    final Var var = predicate.getElement(0);
+    final int start = predicate.getElement(1).findNonVarOrSame().toNumber().intValue();
+    final int limit = predicate.getElement(2).findNonVarOrSame().toNumber().intValue();
 
     Integer currentInt = goal.getPayload();
 
@@ -1482,7 +1481,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "rnd/2", Template = {"+integer,?integer", "+list,?term"}, Reference = "Allows to generate a pseudo randomize integer (limit,value) between 0 (inclusive) and the limit (exclusive) or select random element from the list.")
   @Determined
   public static boolean predicateRND(final ChoicePoint goal, final TermStruct predicate) {
-    final Term term = getTermFromElement(predicate.getElement(0));
+    final Term term = predicate.getElement(0).findNonVarOrSame();
 
     if (term.getTermType() == LIST) {
 
@@ -1500,7 +1499,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       return predicate.getElement(1).unifyTo(result);
 
     } else {
-      final int limit = ((TermInteger) getTermFromElement(predicate.getElement(0))).getNumericValue().intValue();
+      final int limit = predicate.getElement(0).findNonVarOrSame().toNumber().intValue();
 
       final TermInteger genVal = new TermInteger(RANDOMIZEGEN.nextInt(limit));
       return predicate.getElement(1).unifyTo(genVal);
@@ -1510,8 +1509,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "atom_length/2", Template = {"+atom,?integer"}, Reference = "atom_length(Atom, Length) is true if and only if the integer Length equals the number of characters in the name of the atom Atom.")
   @Determined
   public static boolean predicateATOMLENGTH(final ChoicePoint goal, final TermStruct predicate) {
-    Term left = getTermFromElement(predicate.getElement(0));
-    final Term right = getTermFromElement(predicate.getElement(1));
+    Term left = predicate.getElement(0).findNonVarOrSame();
+    final Term right = predicate.getElement(1).findNonVarOrSame();
 
     left = new TermInteger(left.getTextLength());
     return left.unifyTo(right);
@@ -1520,8 +1519,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "atom_codes/2", Template = {"+atom,?character_code_list", "?atom,+list"}, Reference = "atom_codes(Atom, List) succeeds if and only if List is a list whose elements are the character codes that in order correspond to the characters that make up  Atom.")
   @Determined
   public static boolean predicateATOMCHARCODES(final ChoicePoint goal, final TermStruct predicate) {
-    Term left = getTermFromElement(predicate.getElement(0));
-    Term right = getTermFromElement(predicate.getElement(1));
+    Term left = predicate.getElement(0).findNonVarOrSame();
+    Term right = predicate.getElement(1).findNonVarOrSame();
 
     switch (left.getTermType()) {
       case ATOM: {
@@ -1555,7 +1554,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
           throw new ProlRepresentationErrorException("character_code", predicate);
         }
 
-        builder.append((char) ((TermInteger) head).getNumericValue().intValue());
+        builder.append((char) head.toNumber().intValue());
 
         final Term tail = list.getTail();
         if (tail.getTermType() == LIST) {
@@ -1580,7 +1579,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       goal.getContext().halt();
       throw new ProlHaltExecutionException();
     } else {
-      final int status = ((TermInteger) getTermFromElement(predicate.getElement(0))).getNumericValue().intValue();
+      final int status = predicate.getElement(0).findNonVarOrSame().toNumber().intValue();
       goal.getContext().halt();
       throw new ProlHaltExecutionException(status);
     }
@@ -1603,8 +1602,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "sort/2", Template = {"+list,?list"}, Reference = "True if Sorted can be unified with a list holding the elements of List, sorted to the standard order of terms")
   @Determined
   public static boolean predicateSORT(final ChoicePoint goal, final TermStruct predicate) {
-    final Term nonsorted = getTermFromElement(predicate.getElement(0));
-    final Term sorted = getTermFromElement(predicate.getElement(1));
+    final Term nonsorted = predicate.getElement(0).findNonVarOrSame();
+    final Term sorted = predicate.getElement(1).findNonVarOrSame();
 
     final Term[] bufferarray = Utils.listToArray((TermList) nonsorted);
     Arrays.sort(bufferarray, Utils.TERM_COMPARATOR);
@@ -1616,9 +1615,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "findall/3", Template = {"?term,+callable_term,?list"}, Reference = "Creates  a list of the instantiations Template gets  successively on backtracking  over Goal and unifies the  result with Bag.")
   @Determined
   public static boolean predicateFINDALL(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
-    final Term template = getTermFromElement(predicate.getElement(0));
-    final Term pgoal = getTermFromElement(predicate.getElement(1));
-    final Term instances = getTermFromElement(predicate.getElement(2));
+    final Term template = predicate.getElement(0).findNonVarOrSame();
+    final Term pgoal = predicate.getElement(1).findNonVarOrSame();
+    final Term instances = predicate.getElement(2).findNonVarOrSame();
 
     final ChoicePoint find_goal = new ChoicePoint(pgoal.makeClone(), goal.getContext());
 
@@ -1640,11 +1639,11 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         // good, add to the list
         if (result == null) {
           // first
-          result = new TermList(getTermFromElement(templateCopy).makeClone());
+          result = new TermList(templateCopy.findNonVarOrSame().makeClone());
           currentList = result;
         } else {
           // not first
-          currentList = createOrAppendToList(currentList, getTermFromElement(templateCopy).makeClone());
+          currentList = createOrAppendToList(currentList, templateCopy.findNonVarOrSame().makeClone());
         }
       } else {
         throw new ProlCriticalError("Impossible situation at findall/3!");
@@ -1659,7 +1658,6 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   }
 
   @Predicate(Signature = "bagof/3", Template = {"?term,+callable_term,?list"}, Reference = "Unify Bag with the alternatives of Template. If Goal has free variables besides the one sharing with Template, bagof/3 will backtrack over the alternatives of these free variables, unifying Bag with the corresponding alternatives of Template. The construct +Var^Goal tells bagof/3 not to bind Var in Goal. bagof/3 fails if Goal has no solutions.")
-  @SuppressWarnings("unchecked")
   public static boolean predicateBAGOF(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
 
     final class BofKey {
@@ -1707,16 +1705,16 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     }
 
-    final Term template = getTermFromElement(predicate.getElement(0));
-    final Term pgoal = getTermFromElement(predicate.getElement(1));
-    final Term instances = getTermFromElement(predicate.getElement(2));
+    final Term template = predicate.getElement(0).findNonVarOrSame();
+    final Term pgoal = predicate.getElement(1).findNonVarOrSame();
+    final Term instances = predicate.getElement(2).findNonVarOrSame();
 
     Map<BofKey, TermList> preparedMap = goal.getPayload();
 
     if (preparedMap == null) {
       preparedMap = new LinkedHashMap<>();
 
-      final Set<String> excludedVars = new HashSet<>(Utils.fillTableWithVars(template).keySet());
+      final Set<String> excludedVars = new HashSet<>(template.allNamedVarsAsMap().keySet());
 
       Term processingGoal = pgoal;
       while (processingGoal.getTermType() == STRUCT
@@ -1753,9 +1751,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
           final TermList resultList;
           if (preparedMap.containsKey(thekey)) {
             resultList = preparedMap.get(thekey);
-            createOrAppendToList(resultList, getTermFromElement(templateCopy).makeClone());
+            createOrAppendToList(resultList, templateCopy.findNonVarOrSame().makeClone());
           } else {
-            resultList = new TermList(getTermFromElement(templateCopy).makeClone());
+            resultList = new TermList(templateCopy.findNonVarOrSame().makeClone());
             preparedMap.put(thekey, resultList);
           }
         } else {
@@ -1781,7 +1779,6 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   }
 
   @Predicate(Signature = "setof/3", Template = {"?term,+callable_term,?list"}, Reference = "Equivalent to bagof/3, but sorts the result using sort/2 to get a sorted list of alternatives without duplicates.")
-  @SuppressWarnings("unchecked")
   public static boolean predicateSETOF(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
 
     final class SofKey {
@@ -1829,16 +1826,16 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     }
 
-    final Term template = getTermFromElement(predicate.getElement(0));
-    final Term pgoal = getTermFromElement(predicate.getElement(1));
-    final Term instances = getTermFromElement(predicate.getElement(2));
+    final Term template = predicate.getElement(0).findNonVarOrSame();
+    final Term pgoal = predicate.getElement(1).findNonVarOrSame();
+    final Term instances = predicate.getElement(2).findNonVarOrSame();
 
     Map<SofKey, TermList> preparedMap = goal.getPayload();
 
     if (preparedMap == null) {
       preparedMap = new LinkedHashMap<>();
 
-      final Set<String> excludedVars = new HashSet<>(Utils.fillTableWithVars(template).keySet());
+      final Set<String> excludedVars = new HashSet<>(template.allNamedVarsAsMap().keySet());
 
       Term processingGoal = pgoal;
       while (processingGoal.getTermType() == STRUCT
@@ -1875,9 +1872,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
           final TermList resultList;
           if (preparedMap.containsKey(thekey)) {
             resultList = preparedMap.get(thekey);
-            Utils.createOrAppendToList(resultList, getTermFromElement(templateCopy).makeClone());
+            Utils.createOrAppendToList(resultList, templateCopy.findNonVarOrSame().makeClone());
           } else {
-            resultList = new TermList(getTermFromElement(templateCopy).makeClone());
+            resultList = new TermList(templateCopy.findNonVarOrSame().makeClone());
             preparedMap.put(thekey, resultList);
           }
         } else {
@@ -1921,7 +1918,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   public static boolean predicateASSERTA(final ChoicePoint goal, final TermStruct predicate) {
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
 
-    Term atom = getTermFromElement(predicate.getElement(0));
+    Term atom = predicate.getElement(0).findNonVarOrSame();
 
     if (atom.getTermType() != STRUCT) {
       atom = new TermStruct(atom);
@@ -1943,7 +1940,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Determined
   public static boolean predicateASSERTZ(final ChoicePoint goal, final TermStruct predicate) {
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
-    Term atom = getTermFromElement(predicate.getElement(0));
+    Term atom = predicate.getElement(0).findNonVarOrSame();
 
     if (atom.getTermType() != STRUCT) {
       atom = new TermStruct(atom);
@@ -1966,7 +1963,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   public static boolean predicateRETRACT(final ChoicePoint goal, final TermStruct predicate) {
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
 
-    Term atom = getTermFromElement(predicate.getElement(0));
+    Term atom = predicate.getElement(0).findNonVarOrSame();
 
     if (atom.getTermType() != STRUCT) {
       atom = new TermStruct(atom);
@@ -1987,7 +1984,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   public static boolean predicateRETRACTZ(final ChoicePoint goal, final TermStruct predicate) {
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
 
-    Term atom = getTermFromElement(predicate.getElement(0));
+    Term atom = predicate.getElement(0).findNonVarOrSame();
 
     if (atom.getTermType() != STRUCT) {
       atom = new TermStruct(atom);
@@ -2007,7 +2004,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Determined
   public static boolean predicateRETRACTALL(final ChoicePoint goal, final TermStruct predicate) {
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
-    Term atom = getTermFromElement(predicate.getElement(0));
+    Term atom = predicate.getElement(0).findNonVarOrSame();
 
     if (atom.getTermType() != STRUCT) {
       atom = new TermStruct(atom);
@@ -2027,9 +2024,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   public static boolean predicateCATCH(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
     ChoicePoint catchGoal = goal.getPayload();
 
-    final Term catching = getTermFromElement(predicate.getElement(0));
-    final Term catcher = getTermFromElement(predicate.getElement(1));
-    final Term solver = getTermFromElement(predicate.getElement(2));
+    final Term catching = predicate.getElement(0).findNonVarOrSame();
+    final Term catcher = predicate.getElement(1).findNonVarOrSame();
+    final Term solver = predicate.getElement(2).findNonVarOrSame();
 
     if (catchGoal == null) {
       catchGoal = new ChoicePoint(catching, goal.getContext());
@@ -2087,7 +2084,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "throw/1", Template = "+callable_term", Reference = "Throw an exception which can be catched by catch/3")
   @Determined
   public static void predicateTHROW(final ChoicePoint goal, final TermStruct predicate) {
-    final Term term = getTermFromElement(predicate.getElement(0));
+    final Term term = predicate.getElement(0).findNonVarOrSame();
     final String exceptionSignature = term.getSignature();
 
     LOG.info("throw/1 " + exceptionSignature);
@@ -2128,9 +2125,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "pause/1", Template = {"+number"}, Reference = "Make a pause for defined millisecond number.")
   @Determined
   public static void predicatePAUSE(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
-    final NumericTerm term = (NumericTerm) predicate.getElement(0);
+    final NumericTerm term = predicate.getElement(0);
 
-    final int milliseconds = term.getNumericValue().intValue();
+    final int milliseconds = term.toNumber().intValue();
     if (milliseconds > 0) {
 
       Thread.sleep(milliseconds);
@@ -2153,7 +2150,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "facts/1", Template = {"+callable_term"}, Reference = "Finds only facts at the knowledge base.")
   public static boolean predicateFACTS(final ChoicePoint goal, final TermStruct predicate) {
     FactIterator factIterator = goal.getPayload();
-    final Term origterm = getTermFromElement(predicate.getElement(0));
+    final Term origterm = predicate.getElement(0).findNonVarOrSame();
 
     if (factIterator == null) {
       Term term = origterm;
@@ -2197,7 +2194,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     RuleAuxObject ruleAuxObject = goal.getPayload();
     if (ruleAuxObject == null) {
-      Term term = getTermFromElement(predicate.getElement(0));
+      Term term = predicate.getElement(0).findNonVarOrSame();
 
       if (term.getTermType() == ATOM) {
         // atom, we have to make a struct
@@ -2240,7 +2237,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         } else {
           // solved
 
-          final Term term = getTermFromElement(predicate.getElement(0));
+          final Term term = predicate.getElement(0).findNonVarOrSame();
 
           if (term.getTermType() == STRUCT) {
             final TermStruct ruleClone = (TermStruct) ruleAuxObject.rule.makeClone();
@@ -2296,11 +2293,11 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "async/1", Template = {"+callable_term"}, Reference = "Allows to next a goal asynchronously, it will be started as a daemon so it will be stopped when the main goal will be solved or failed. If there will be uncatched exception it will be just out at the log.")
   @Determined
   public static void predicateASYNC(final ChoicePoint goal, final TermStruct predicate) {
-    final Term goalToSolve = getTermFromElement(predicate.getElement(0));
+    final Term goalToSolve = predicate.getElement(0).findNonVarOrSame();
     final ProlContext context = goal.getContext();
 
     // we have to check the goal because it must not have any noninstantiated variable!!!!
-    final Map<String, Var> vars = Utils.fillTableWithVars(goalToSolve);
+    final Map<String, Var> vars = goalToSolve.allNamedVarsAsMap();
     for (Var var : vars.values()) {
       if (!var.isGround()) {
         throw new ProlInstantiationErrorException("Variable \'" + var.getText() + "\' is not instantiated, you must have all variables instantiated for async/1 .", predicate);
@@ -2329,7 +2326,6 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     }
   }
 
-  @SuppressWarnings("unchecked")
   private static List<Future<Term>> startListAsFork(final ChoicePoint goal, final TermStruct predicate, final TermList termlist) throws InterruptedException {
     List<AuxForkTask> goalList = goal.getPayload();
 
@@ -2346,7 +2342,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         // ---- we have to check that user doesn't try share noninstantiated variables between parallel goals
         if (term.getTermType() != ATOM) {
           // find vars
-          final Map<String, Var> varTable = Utils.fillTableWithVars(term);
+          final Map<String, Var> varTable = term.allNamedVarsAsMap();
           if (!varTable.isEmpty()) {
             if (varFlagTable == null) {
               varFlagTable = new HashSet<>();
@@ -2393,7 +2389,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "fork/1", Template = {"+list"}, Reference = "Allows to prove a few goals (non linked between each other) in separated threads simultaneously, it is blocking the calling thread until all threads (started by the predicate) are completed. The fork implements AND operation (i.e. all goals have to be true else the predicate will fail).You must not have the same noninstantiated variables in terms that will be executed in different threads. The fork_error/1 will be thrown if any thread will throw an exception.")
   public static boolean predicateFORK(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
-    TermList termlist = (TermList) getTermFromElement(predicate.getElement(0));
+    TermList termlist = predicate.getElement(0).findNonVarOrSame();
 
     // invoke all taska and wait for them all
     final List<Future<Term>> taskList = startListAsFork(goal, predicate, termlist);
@@ -2456,7 +2452,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "ifork/1", Template = {"+list"}, Reference = "It works like fork/1 but it will interrupt all noncompleted threads of the fork if any proven result is fail.")
   public static boolean predicateIFORK(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
-    final TermList termlist = (TermList) getTermFromElement(predicate.getElement(0));
+    final TermList termlist = predicate.getElement(0).findNonVarOrSame();
 
     // invoke all taska and wait for them all
     final List<Future<Term>> taskList = startListAsFork(goal, predicate, termlist);
@@ -2553,8 +2549,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Determined
   public static boolean predicateREGTRIGGER(final ChoicePoint goal, final TermStruct predicate) {
     final String signature = Utils.extractPredicateSignatureFromStructure(predicate.getElement(0));
-    final String triggerevent = getTermFromElement(predicate.getElement(1)).getText();
-    final Term callableTerm = getTermFromElement(predicate.getElement(2));
+    final String triggerevent = predicate.getElement(1).findNonVarOrSame().getText();
+    final Term callableTerm = predicate.getElement(2).findNonVarOrSame();
     final ProlContext context = goal.getContext();
 
     final ProlTriggerGoal triggergoal = new ProlTriggerGoal(callableTerm, context);
@@ -2600,7 +2596,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Determined
   public final void predicateTAB(final ChoicePoint goal, final TermStruct predicate) {
     final ProlTextWriter outStream = goal.getContext().getCurrentOutStream();
-    final int spaces = ((NumericTerm) predicate.getElement(0)).getNumericValue().intValue();
+    final int spaces = predicate.getElement(0).toNumber().intValue();
 
     if (outStream == null) {
       return;
@@ -2617,8 +2613,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "copy_term/2", Template = {"?term,?term"}, Reference = "copy_term(X,Y) is true if and only if Y unifies with a term T which is a renamed copy of X.")
   @Determined
   public final boolean predicateCOPYTERM(final ChoicePoint goal, final TermStruct predicate) {
-    final Term left = getTermFromElement(predicate.getElement(0)).makeClone();
-    final Term right = getTermFromElement(predicate.getElement(1));
+    final Term left = predicate.getElement(0).findNonVarOrSame().makeClone();
+    final Term right = predicate.getElement(1).findNonVarOrSame();
     return right.unifyTo(left);
   }
 
@@ -2692,7 +2688,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "put/1", Template = "+number", Reference = "Write a char for its code into the current output stream.")
   @Determined
   public final void predicatePUT(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
     final ProlTextWriter outStream = goal.getContext().getCurrentOutStream();
     if (outStream == null) {
       return;
@@ -2707,7 +2703,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "get/1", Template = "?number", Reference = "Read next non-blank char code from the current input stream.")
   @Determined
   public final boolean predicateGET(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
     final ProlTextReader inStream = goal.getContext().getCurrentInputStream();
     if (inStream == null) {
       throw new ProlPermissionErrorException("read", "text_input", predicate);
@@ -2723,7 +2719,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "get0/1", Template = "?number", Reference = "Read next char code from the current input stream.")
   @Determined
   public final boolean predicateGET0(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
     final ProlTextReader inStream = goal.getContext().getCurrentInputStream();
     if (inStream == null) {
       throw new ProlPermissionErrorException("read", "text_input", predicate);
@@ -2731,7 +2727,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     try {
       while (!Thread.currentThread().isInterrupted()) {
         final TermInteger nextchar = inStream.readChar();
-        final int num = nextchar.getNumericValue().intValue();
+        final int num = nextchar.toNumber().intValue();
         if (num >= 0 && Character.isSpaceChar((char) num)) {
           continue;
         }
@@ -2747,7 +2743,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "read/1", Reference = " Read  the next Prolog term from the current input stream.")
   @Determined
   public final boolean predicateRead(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
-    final Term arg = getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
     final ProlTextReader outStream = goal.getContext().getCurrentInputStream();
     if (outStream == null) {
       throw new ProlPermissionErrorException("read", "text_input", predicate);
@@ -2787,7 +2783,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       boolean working = true;
       while (working) {
         final TermInteger integer = outStream.readChar();
-        final int code = integer.getNumericValue().intValue();
+        final int code = integer.toNumber().intValue();
         switch (code) {
           case -1: {
             if (builder.length() <= 0) {
@@ -2829,14 +2825,14 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "readln/1", Reference = " Read  the next line (until NL symbol) from the current input stream as an atom. It sypports backspace to remove last symbol from buffer.")
   @Determined
   public final boolean predicateReadLn(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
     return arg.unifyTo(new Term(readFromCurrentInputStreamUntilNL(goal, predicate)));
   }
 
   @Predicate(Signature = "readint/1", Reference = " Read  an integer number (and ignore white space) until NL symbol from the current input stream as an integer atom or the end_of_file atom. It sypports backspace to remove last symbol from buffer. If the input string can't be converted to an integer atom, the predicate will return false.")
   @Determined
   public final boolean predicateReadInt(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
     final String str = readFromCurrentInputStreamUntilNL(goal, predicate).trim();
     Term term;
     if (str.equals(ProlStream.END_OF_FILE_STR)) {
@@ -2854,16 +2850,16 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "readchar/1", Reference = " Read  char from the current input stream as an integer atom or the end_of_file atom")
   @Determined
   public final boolean predicateReadChar(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
     final TermInteger value = readChar(goal, predicate);
-    Term term = value.getValue() < 0 ? ProlStream.END_OF_FILE : value;
+    Term term = value.toNumber().intValue() < 0 ? ProlStream.END_OF_FILE : value;
     return arg.unifyTo(term);
   }
 
   @Predicate(Signature = "readreal/1", Reference = " Read  an real number (and ignore white space) until NL symbol from the current input stream as an real atom or the end_of_file atom. It sypports backspace to remove last symbol from buffer. If the input string can't be converted to a real atom, the predicate will return false.")
   @Determined
   public final boolean predicateReadReal(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
     final String str = readFromCurrentInputStreamUntilNL(goal, predicate).trim();
     final Term term;
     if (str.equals(ProlStream.END_OF_FILE_STR)) {
@@ -2881,7 +2877,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "see/1", Template = "+atom", Reference = "Open SrcDest for reading and make it the current input")
   @Determined
   public final void predicateSEE(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrDefault(null);
     final String name = arg.getText();
     try {
       goal.getContext().see(name);
@@ -2907,7 +2903,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "seeing/1", Template = "?term", Reference = "Return the current input stream name.")
   @Determined
   public final boolean predicateSEEING(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrDefault(null);
     final ProlTextReader inStream = goal.getContext().getCurrentInputStream();
     Term result = TermList.NULLLIST;
     if (inStream != null) {
@@ -2919,7 +2915,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "telling/1", Template = "?term", Reference = "Return the current output stream name.")
   @Determined
   public final boolean predicateTELLING(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrDefault(null);
     final ProlTextWriter outStream = goal.getContext().getCurrentOutStream();
     Term result = TermList.NULLLIST;
     if (outStream != null) {
@@ -2941,7 +2937,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "tell/1", Template = "+atom", Reference = "Open SrcDest for writing and make it the current output")
   @Determined
   public final void predicateTELL(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrDefault(null);
     final String name = arg.getText();
     try {
       goal.getContext().tell(name, false);
@@ -2957,7 +2953,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "append/1", Template = "+atom", Reference = "Open SrcDest to append new data and make it the current input")
   @Determined
   public final void predicateAPPEND(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrDefault(null);
     final String name = arg.getText();
     try {
       goal.getContext().tell(name, true);
@@ -2991,7 +2987,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     private final ChoicePoint goal;
 
     public AuxForkTask(final Term termToSolve, final ProlContext context) {
-      this.term = getTermFromElement(termToSolve.makeClone()); // we need to isolate the value to avoid any change the object
+      this.term = termToSolve.makeClone().findNonVarOrDefault(null);
 
       if (termToSolve.getTermType() == VAR) {
         this.goal = null;

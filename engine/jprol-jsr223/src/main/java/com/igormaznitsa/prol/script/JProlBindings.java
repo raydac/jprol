@@ -40,7 +40,7 @@ final class JProlBindings implements Bindings {
     assertPrologName(name);
     final Term converted = value instanceof Term ? (Term) value : Utils.obj2term(value);
     final Term prev = this.internalMap.put(name, converted);
-    return prev == null ? null : Utils.term2obj(this.context.getProlContext(), prev);
+    return prev == null ? null : prev.toObject();
   }
 
   @Override
@@ -60,7 +60,7 @@ final class JProlBindings implements Bindings {
   public Object get(final Object key) {
     assertPrologName(String.valueOf(key));
     final Term theTerm = this.internalMap.get(key);
-    return theTerm == null ? null : Utils.term2obj(this.context.getProlContext(), theTerm);
+    return theTerm == null ? null : theTerm.toObject();
   }
 
   @Override
@@ -101,14 +101,14 @@ final class JProlBindings implements Bindings {
 
   @Override
   public Collection<Object> values() {
-    return this.internalMap.values().stream().map(x -> Utils.term2obj(this.context.getProlContext(), x)).collect(Collectors.toList());
+    return this.internalMap.values().stream().map(Term::toObject).collect(Collectors.toList());
   }
 
   @Override
   public Set<Entry<String, Object>> entrySet() {
     return this.internalMap.entrySet()
         .stream()
-        .map(x -> new ConvertedEntry(x.getKey(), Utils.term2obj(this.context.getProlContext(), x.getValue())))
+        .map(x -> new ConvertedEntry(x.getKey(), x.getValue().toObject()))
         .collect(Collectors.toSet());
   }
 

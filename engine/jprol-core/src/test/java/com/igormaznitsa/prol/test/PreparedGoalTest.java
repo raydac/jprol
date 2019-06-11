@@ -40,7 +40,7 @@ public class PreparedGoalTest extends AbstractProlTest {
 
     for (int li = 0; li < 1000; li++) {
       final Term result = oncegoal.processGoalOnce();
-      final int goalResult = ((TermInteger) result.variables().filter(x -> "Result".equals(x.getText())).findFirst().orElse(null).getValue()).getNumericValue().intValue();
+      final int goalResult = ((TermInteger) result.variables().filter(x -> "Result".equals(x.getText())).findFirst().orElse(null).getValue()).toNumber().intValue();
       if (goalResult < 1 || goalResult > 5) {
         fail("Wrong result, returned value is outbound");
       }

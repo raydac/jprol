@@ -397,7 +397,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
     TermStruct struct = clause;
     if (struct.isFunctorLikeRuleDefinition()) {
       // it's a clause
-      struct = (TermStruct) struct.getElement(0);
+      struct = struct.getElement(0);
     }
 
     final ReentrantLock lockerPred = predicateLocker;
@@ -435,7 +435,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
     TermStruct struct = clause;
     if (struct.isFunctorLikeRuleDefinition()) {
       // it's a clause
-      struct = (TermStruct) struct.getElement(0);
+      struct = struct.getElement(0);
     }
 
     final ReentrantLock lockerPred = predicateLocker;
@@ -472,7 +472,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
     TermStruct struct = clause;
     if (struct.isFunctorLikeRuleDefinition()) {
       // it's a clause
-      struct = (TermStruct) struct.getElement(0);
+      struct = struct.getElement(0);
     }
 
     boolean result = false;

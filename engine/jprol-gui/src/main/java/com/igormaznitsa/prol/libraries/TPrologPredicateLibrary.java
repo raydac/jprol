@@ -56,8 +56,8 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "renamefile/2", Template = {"+term,+term"}, Reference = "Rename file")
   @Determined
   public static boolean predicateRenameFile(final ChoicePoint goal, final TermStruct predicate) {
-    final Term oldpath = Utils.getTermFromElement(predicate.getElement(0));
-    final Term newname = Utils.getTermFromElement(predicate.getElement(1));
+    final Term oldpath = predicate.getElement(0).findNonVarOrSame();
+    final Term newname = predicate.getElement(1).findNonVarOrSame();
 
     final File file = new File(path, oldpath.getText());
     final File newfile = new File(file.getParentFile(), newname.getText());
@@ -68,22 +68,22 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "file_str/2", Template = {"+term,?term"}, Reference = "Reads string from a file and transfers it to a variable, or creates a file and writes the string into the file.")
   @Determined
   public boolean predicateFileStr(final ChoicePoint goal, final TermStruct predicate) {
-    final File file = new File(path, Utils.getTermFromElement(predicate.getElement(0)).getText());
-    final Term str = Utils.getTermFromElement(predicate.getElement(1));
+    final File file = new File(path, predicate.getElement(0).findNonVarOrSame().getText());
+    final Term str = predicate.getElement(1).findNonVarOrSame();
 
     boolean result = false;
 
     if (str.getTermType() == VAR) {
       if (file.isFile()) {
         try {
-          result = str.unifyTo(new Term(Utils.readFileAsUTF8Str(file)));
+          result = str.unifyTo(new Term(Utils.readAsUtf8(file)));
         } catch (IOException ex) {
           MainFrame.MAIN_FRAME_INSTANCE.get().addErrorText("Can't read file '" + file + "' : " + ex.getMessage());
         }
       }
     } else {
       try {
-        Utils.writeFileAsUTF8Str(file, str.getText());
+        Utils.writeAsUtf8(file, str.getText());
         result = true;
       } catch (IOException ex) {
         MainFrame.MAIN_FRAME_INSTANCE.get().addErrorText("Can't write file '" + file + "' : " + ex.getMessage());
@@ -96,7 +96,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "deletefile/1", Template = {"+term"}, Reference = "Delete file for name")
   @Determined
   public boolean predicateDeleteFile(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = Utils.getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
 
     final String filePath = arg.getText();
     final File file = new File(path, filePath);
@@ -107,7 +107,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "existfile/1", Template = {"+term"}, Reference = "Ceck that a file exists in current directory")
   @Determined
   public boolean predicateExistFile(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = Utils.getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
 
     final String filePath = arg.getText();
     final File file = new File(path, filePath);
@@ -118,9 +118,9 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "dir/3", Template = {"+term,+term,?term"}, Reference = "Open directory to select file")
   @Determined
   public boolean predicateDir(final ChoicePoint goal, final TermStruct predicate) {
-    final String thePath = Utils.getTermFromElement(predicate.getElement(0)).getText();
-    final String extension = Utils.getTermFromElement(predicate.getElement(1)).getText();
-    final Term selected = Utils.getTermFromElement(predicate.getElement(2));
+    final String thePath = predicate.getElement(0).findNonVarOrSame().getText();
+    final String extension = predicate.getElement(1).findNonVarOrSame().getText();
+    final Term selected = predicate.getElement(2).findNonVarOrSame();
 
     final File choosenFile = MainFrame.MAIN_FRAME_INSTANCE.get().chooseFile(new File(thePath), new FileFilter() {
       final String ext = '.' + extension;
@@ -150,7 +150,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "disk/1", Template = {"?term"}, Reference = "Set or get current path")
   @Determined
   public boolean predicateDisk(final ChoicePoint goal, final TermStruct predicate) {
-    Term thePath = Utils.getTermFromElement(predicate.getElement(0));
+    Term thePath = predicate.getElement(0).findNonVarOrSame();
 
     boolean result = false;
     try {
@@ -175,7 +175,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "save/1", Template = {"+term"}, Reference = "Save current data base")
   @Determined
   public boolean predicateSave(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = Utils.getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
 
     final String filePath = arg.getText();
 
@@ -190,7 +190,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
 
     boolean result = false;
     try {
-      Utils.writeFileAsUTF8Str(path, dbtext);
+      Utils.writeAsUtf8(path, dbtext);
       result = true;
     } catch (IOException ex) {
       MainFrame.MAIN_FRAME_INSTANCE.get().addWarnText("Can't save data base as file, error : " + ex.getMessage());

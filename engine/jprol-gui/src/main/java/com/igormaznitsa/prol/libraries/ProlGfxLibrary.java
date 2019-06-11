@@ -18,7 +18,6 @@ package com.igormaznitsa.prol.libraries;
 
 import com.igormaznitsa.prol.annotations.Determined;
 import com.igormaznitsa.prol.annotations.Predicate;
-import com.igormaznitsa.prol.data.NumericTerm;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermInteger;
 import com.igormaznitsa.prol.data.TermStruct;
@@ -27,7 +26,6 @@ import com.igormaznitsa.prol.easygui.UiUtils;
 import com.igormaznitsa.prol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
-import com.igormaznitsa.prol.utils.Utils;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -294,8 +292,8 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
   @Predicate(Signature = "dot/2", Template = {"+number,+number"}, Reference = "Draw a point in the coordinates (X,Y) with the current pen color.")
   @Determined
   public void predicateDOT(final ChoicePoint goal, final TermStruct predicate) {
-    final int argx = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(0))).getNumericValue().intValue();
-    final int argy = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(1))).getNumericValue().intValue();
+    final int argx = predicate.getElement(0).findNonVarOrSame().toNumber().intValue();
+    final int argy = predicate.getElement(1).findNonVarOrSame().toNumber().intValue();
 
     final ReentrantLock locker = insideLocker;
 
@@ -318,7 +316,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
   @Predicate(Signature = "removeaction/1", Template = {"+term"}, Reference = "Remove an action from the action menu for its name.")
   @Determined
   public final void predicateREMOVEACTION(final ChoicePoint goal, final TermStruct predicate) {
-    final Term menuitem = Utils.getTermFromElement(predicate.getElement(0));
+    final Term menuitem = predicate.getElement(0).findNonVarOrSame();
     final String menuItemName = menuitem.forWrite();
 
     JMenuItem removedItem = null;
@@ -370,8 +368,8 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
   @Predicate(Signature = "bindaction/2", Template = {"+term,+callable_term"}, Reference = "Bind a goal to an action menu item (menu_item_name, action) which can be selected by user.")
   @Determined
   public final void predicateBINDACTION(final ChoicePoint goal, final TermStruct predicate) {
-    final Term menuitem = Utils.getTermFromElement(predicate.getElement(0));
-    final Term action = Utils.getTermFromElement(predicate.getElement(1));
+    final Term menuitem = predicate.getElement(0).findNonVarOrSame();
+    final Term action = predicate.getElement(1).findNonVarOrSame();
 
     final String menuItemName = menuitem.forWrite();
 
@@ -429,10 +427,10 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
   @Predicate(Signature = "rectangle/4", Template = {"+number,+number,+number,+number"}, Reference = "Draw a rectangle in the coordinates (X,Y,Width,Height) with the current pen color.")
   @Determined
   public final void predicateRECTANGLE(final ChoicePoint goal, final TermStruct predicate) {
-    final int argx = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(0))).getNumericValue().intValue();
-    final int argy = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(1))).getNumericValue().intValue();
-    final int argw = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(2))).getNumericValue().intValue();
-    final int argh = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(3))).getNumericValue().intValue();
+    final int argx = predicate.getElement(0).findNonVarOrSame().toNumber().intValue();
+    final int argy = predicate.getElement(1).findNonVarOrSame().toNumber().intValue();
+    final int argw = predicate.getElement(2).findNonVarOrSame().toNumber().intValue();
+    final int argh = predicate.getElement(3).findNonVarOrSame().toNumber().intValue();
 
     final ReentrantLock locker = insideLocker;
 
@@ -454,10 +452,10 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
   @Predicate(Signature = "fillrectangle/4", Template = {"+number,+number,+number,+number"}, Reference = "Fill a rectangle in the coordinates (X,Y,Width,Height) with the current brush color.")
   @Determined
   public void predicateFILLRECTANGLE(final ChoicePoint goal, final TermStruct predicate) {
-    final int argx = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(0))).getNumericValue().intValue();
-    final int argy = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(1))).getNumericValue().intValue();
-    final int argw = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(2))).getNumericValue().intValue();
-    final int argh = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(3))).getNumericValue().intValue();
+    final int argx = predicate.getElement(0).toNumber().intValue();
+    final int argy = predicate.getElement(1).toNumber().intValue();
+    final int argw = predicate.getElement(2).toNumber().intValue();
+    final int argh = predicate.getElement(3).toNumber().intValue();
 
     final ReentrantLock locker = insideLocker;
 
@@ -479,10 +477,10 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
   @Predicate(Signature = "plot/4", Template = {"+number,+number,+number,+number"}, Reference = "Draw a line (X1,Y1,X2,Y2) with the current pen color.")
   @Determined
   public void predicatePLOT(final ChoicePoint goal, final TermStruct predicate) {
-    final int argx = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(0))).getNumericValue().intValue();
-    final int argy = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(1))).getNumericValue().intValue();
-    final int argxx = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(2))).getNumericValue().intValue();
-    final int argyy = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(3))).getNumericValue().intValue();
+    final int argx = predicate.getElement(0).findNonVarOrSame().toNumber().intValue();
+    final int argy = predicate.getElement(1).findNonVarOrSame().toNumber().intValue();
+    final int argxx = predicate.getElement(2).findNonVarOrSame().toNumber().intValue();
+    final int argyy = predicate.getElement(3).findNonVarOrSame().toNumber().intValue();
 
     final ReentrantLock locker = insideLocker;
 
@@ -504,8 +502,8 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
   @Predicate(Signature = "plot/2", Template = {"+number,+number"}, Reference = "Draw a line from the last point to (X,Y) with the current pen color.")
   @Determined
   public void predicatePLOT2(final ChoicePoint goal, final TermStruct predicate) {
-    final int argx = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(0))).getNumericValue().intValue();
-    final int argy = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(1))).getNumericValue().intValue();
+    final int argx = predicate.getElement(0).findNonVarOrSame().toNumber().intValue();
+    final int argy = predicate.getElement(1).findNonVarOrSame().toNumber().intValue();
 
     final ReentrantLock locker = insideLocker;
     locker.lock();
@@ -526,10 +524,10 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
   @Predicate(Signature = "oval/4", Template = {"+number,+number,+number,+number"}, Reference = "Draw an oval into a rectangle area with coords (X,Y,Width,Height) with the current pen color.")
   @Determined
   public void predicateOVAL(final ChoicePoint goal, final TermStruct predicate) {
-    final int argx = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(0))).getNumericValue().intValue();
-    final int argy = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(1))).getNumericValue().intValue();
-    final int argw = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(2))).getNumericValue().intValue();
-    final int argh = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(3))).getNumericValue().intValue();
+    final int argx = predicate.getElement(0).findNonVarOrSame().toNumber().intValue();
+    final int argy = predicate.getElement(1).findNonVarOrSame().toNumber().intValue();
+    final int argw = predicate.getElement(2).findNonVarOrSame().toNumber().intValue();
+    final int argh = predicate.getElement(3).findNonVarOrSame().toNumber().intValue();
 
     final ReentrantLock locker = insideLocker;
     locker.lock();
@@ -550,10 +548,10 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
   @Predicate(Signature = "filloval/4", Template = {"+number,+number,+number,+number"}, Reference = "Fill an oval into a rectangle area with coords (X,Y,Width,Height) with the current pen color.")
   @Determined
   public void predicateFILLOVAL(final ChoicePoint goal, final TermStruct predicate) {
-    final int argx = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(0))).getNumericValue().intValue();
-    final int argy = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(1))).getNumericValue().intValue();
-    final int argw = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(2))).getNumericValue().intValue();
-    final int argh = ((NumericTerm) Utils.getTermFromElement(predicate.getElement(3))).getNumericValue().intValue();
+    final int argx = predicate.getElement(0).findNonVarOrSame().toNumber().intValue();
+    final int argy = predicate.getElement(1).findNonVarOrSame().toNumber().intValue();
+    final int argw = predicate.getElement(2).findNonVarOrSame().toNumber().intValue();
+    final int argh = predicate.getElement(3).findNonVarOrSame().toNumber().intValue();
 
     final ReentrantLock locker = insideLocker;
     locker.lock();
@@ -590,7 +588,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
   @Predicate(Signature = "brushcolor/1", Template = {"?atom"}, Reference = "Change or get the current brush color. If it can't set color then it will return false")
   @Determined
   public boolean predicateBRUSHCOLOR(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = Utils.getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
     final ReentrantLock locker = insideLocker;
 
     if (arg.getTermType() == VAR) {
@@ -626,14 +624,14 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
   @Predicate(Signature = "settitle/1", Template = {"+atom"}, Reference = "Set the title for the current graphic screen")
   @Determined
   public void predicateSETTITLE(final ChoicePoint goal, final TermStruct predicate) {
-    final String title = Utils.getTermFromElement(predicate.getElement(0)).getText();
+    final String title = predicate.getElement(0).findNonVarOrSame().getText();
     SwingUtilities.invokeLater(() -> graphicFrame.setTitle(title));
   }
 
   @Predicate(Signature = "pencolor/1", Template = {"?atom"}, Reference = "Change or get the current pen color. If it can't set color then it will return false")
   @Determined
   public boolean predicatePENCOLOR(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = Utils.getTermFromElement(predicate.getElement(0));
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
     final ReentrantLock locker = insideLocker;
 
     if (arg.getTermType() == VAR) {
@@ -669,8 +667,8 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
   @Predicate(Signature = "cursor/2", Template = {"?number,?number"}, Reference = "Set or get the current cursor position (X,Y).")
   @Determined
   public boolean predicateCURSOR(final ChoicePoint goal, final TermStruct predicate) {
-    final Term elemX = Utils.getTermFromElement(predicate.getElement(0));
-    final Term elemY = Utils.getTermFromElement(predicate.getElement(1));
+    final Term elemX = predicate.getElement(0).findNonVarOrSame();
+    final Term elemY = predicate.getElement(1).findNonVarOrSame();
 
     final ReentrantLock locker = insideLocker;
 
@@ -684,7 +682,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
           return false;
         }
       } else {
-        lastPointX = ((NumericTerm) elemX).getNumericValue().intValue();
+        lastPointX = elemX.toNumber().intValue();
       }
 
       if (elemY.getTermType() == VAR) {
@@ -692,7 +690,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
           return false;
         }
       } else {
-        lastPointY = ((NumericTerm) elemY).getNumericValue().intValue();
+        lastPointY = elemY.toNumber().intValue();
       }
     } finally {
       locker.unlock();
@@ -704,7 +702,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
   @Predicate(Signature = "print/1", Template = {"+term"}, Reference = "Print the text representation of the term with the current pen color. The baseline of the leftmost character is at the cursor position.")
   @Determined
   public void predicatePRINT(final ChoicePoint goal, final TermStruct predicate) {
-    final Term elem = Utils.getTermFromElement(predicate.getElement(0));
+    final Term elem = predicate.getElement(0).findNonVarOrSame();
 
     final String text = elem.forWrite();
     final ReentrantLock locker = insideLocker;
@@ -760,16 +758,16 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
   @Predicate(Signature = "saveimage/2", Template = {"+atom,+atom"}, Reference = "Arguments (image_name,format_name). Format can be 'png','jpg' or 'gif'. Save the current graphic buffer state as a named image with the type. It can throw \'permission_error\' exception if it is not possible to write the image.")
   @Determined
   public void predicateSAVEIMAGE(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = Utils.getTermFromElement(predicate.getElement(0));
-    final Term format = Utils.getTermFromElement(predicate.getElement(1));
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
+    final Term format = predicate.getElement(1).findNonVarOrSame();
     saveCurrentBuffer(arg.getText(), format.getText().trim().toLowerCase(), predicate);
   }
 
   @Predicate(Signature = "graphics/2", Template = {"?integer,?integer"}, Reference = "Change or get the graphic screen size (width,heigh) and fill it with the curren background color. Pay attention, the predicate creates the new offscreen buffer so don't use it to clear screen.")
   @Determined
   public boolean predicateGRAPHICS(final ChoicePoint goal, final TermStruct predicate) {
-    final Term width = Utils.getTermFromElement(predicate.getElement(0));
-    final Term height = Utils.getTermFromElement(predicate.getElement(1));
+    final Term width = predicate.getElement(0).findNonVarOrSame();
+    final Term height = predicate.getElement(1).findNonVarOrSame();
 
     insideLocker.lock();
     try {
@@ -782,13 +780,13 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
       if (width.getTermType() == VAR) {
         width.unifyTo(new TermInteger(widthOrig));
       } else {
-        width2 = ((TermInteger) width).getNumericValue().intValue();
+        width2 = width.toNumber().intValue();
       }
 
       if (height.getTermType() == VAR) {
         height.unifyTo(new TermInteger(widthOrig));
       } else {
-        height2 = ((TermInteger) height).getNumericValue().intValue();
+        height2 = height.toNumber().intValue();
       }
 
       if (widthOrig == width2 && heightOrig == height2) {

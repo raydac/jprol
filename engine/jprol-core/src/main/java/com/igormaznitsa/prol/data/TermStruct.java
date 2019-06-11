@@ -96,8 +96,9 @@ public class TermStruct extends Term {
     return Stream.concat(Stream.of(this.functor), Arrays.stream(this.terms).flatMap(Term::stream));
   }
 
-  public final Term getElement(final int index) {
-    return terms[index];
+  @SuppressWarnings("unchecked")
+  public final <T extends Term> T getElement(final int index) {
+    return (T) this.terms[index];
   }
 
   public final int getArity() {
@@ -121,6 +122,20 @@ public class TermStruct extends Term {
   @Override
   public String toSrcString() {
     return getStringRepresentation(true);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public <T> T toObject() {
+    final int size = this.getArity() + 1;
+    final Object[] array = new Object[size];
+
+    array[0] = this.getFunctor().toObject();
+    for (int li = 1; li < size; li++) {
+      array[li] = this.getElement(li - 1).toObject();
+    }
+
+    return (T) array;
   }
 
   private String getStringRepresentation(final boolean sourceLike) {

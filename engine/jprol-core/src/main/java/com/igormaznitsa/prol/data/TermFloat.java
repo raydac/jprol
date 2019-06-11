@@ -19,7 +19,7 @@ package com.igormaznitsa.prol.data;
 import static com.igormaznitsa.prol.data.TermType.ATOM;
 import static com.igormaznitsa.prol.data.TermType.VAR;
 
-public final class TermFloat extends Term implements NumericTerm {
+public final class TermFloat extends NumericTerm {
 
   private final float floatValue;
 
@@ -116,13 +116,9 @@ public final class TermFloat extends Term implements NumericTerm {
     return false;
   }
 
-  public float getValue() {
-    return floatValue;
-  }
-
   @Override
-  public Number getNumericValue() {
-    return floatValue;
+  public Number toNumber() {
+    return this.floatValue;
   }
 
   @Override
@@ -150,32 +146,32 @@ public final class TermFloat extends Term implements NumericTerm {
   }
 
   @Override
-  public int compare(NumericTerm atom) {
-    final float value = atom.getNumericValue().floatValue();
+  public int compare(final NumericTerm atom) {
+    final float value = atom.toNumber().floatValue();
     return Float.compare(floatValue, value);
   }
 
   @Override
-  public NumericTerm add(NumericTerm atom) {
-    final float value = atom.getNumericValue().floatValue();
+  public NumericTerm add(final NumericTerm atom) {
+    final float value = atom.toNumber().floatValue();
     return new TermFloat(floatValue + value);
   }
 
   @Override
-  public NumericTerm sub(NumericTerm atom) {
-    final float value = atom.getNumericValue().floatValue();
+  public NumericTerm sub(final NumericTerm atom) {
+    final float value = atom.toNumber().floatValue();
     return new TermFloat(floatValue - value);
   }
 
   @Override
-  public NumericTerm div(NumericTerm atom) {
-    final float value = atom.getNumericValue().floatValue();
+  public NumericTerm div(final NumericTerm atom) {
+    final float value = atom.toNumber().floatValue();
     return new TermFloat(floatValue / value);
   }
 
   @Override
-  public NumericTerm mul(NumericTerm atom) {
-    final float value = atom.getNumericValue().floatValue();
+  public NumericTerm mul(final NumericTerm atom) {
+    final float value = atom.toNumber().floatValue();
     return new TermFloat(floatValue * value);
   }
 
@@ -203,7 +199,7 @@ public final class TermFloat extends Term implements NumericTerm {
       case ATOM: {
         if (atom instanceof NumericTerm) {
           NumericTerm num = (NumericTerm) atom;
-          float value = num.getNumericValue().floatValue();
+          float value = num.toNumber().floatValue();
           return Float.compare(floatValue, value);
         } else {
           return -1;

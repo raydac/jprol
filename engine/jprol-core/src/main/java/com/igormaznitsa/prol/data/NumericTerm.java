@@ -16,25 +16,33 @@
 
 package com.igormaznitsa.prol.data;
 
-public interface NumericTerm {
+public abstract class NumericTerm extends Term {
 
-  Number getNumericValue();
+  public NumericTerm(final String text) {
+    super(text);
+  }
 
-  int compare(NumericTerm term);
+  public abstract int compare(NumericTerm term);
 
-  NumericTerm add(NumericTerm term);
+  public abstract NumericTerm add(NumericTerm term);
 
-  NumericTerm sub(NumericTerm term);
+  public abstract NumericTerm sub(NumericTerm term);
 
-  NumericTerm div(NumericTerm term);
+  public abstract NumericTerm div(NumericTerm term);
 
-  NumericTerm mul(NumericTerm term);
+  public abstract NumericTerm mul(NumericTerm term);
 
-  NumericTerm neg();
+  public abstract NumericTerm neg();
 
-  NumericTerm abs();
+  public abstract NumericTerm abs();
 
-  NumericTerm sign();
+  public abstract NumericTerm sign();
 
-  boolean isFloat();
+  public abstract boolean isFloat();
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public <T> T toObject() {
+    return (T) this.toNumber();
+  }
 }

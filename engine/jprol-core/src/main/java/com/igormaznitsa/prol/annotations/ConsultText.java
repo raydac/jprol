@@ -23,12 +23,6 @@ import java.lang.annotation.Target;
 
 @Target(value = ElementType.TYPE)
 @Retention(value = RetentionPolicy.RUNTIME)
-public @interface Consult {
-  String URL() default "";
-
-  String[] URLs() default {};
-
-  String Text() default "";
-
-  String[] Texts() default {};
+public @interface ConsultText {
+  String value() default "";
 }

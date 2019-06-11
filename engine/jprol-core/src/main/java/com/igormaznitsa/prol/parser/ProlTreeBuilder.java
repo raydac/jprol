@@ -567,7 +567,7 @@ public final class ProlTreeBuilder {
           // this code replaces '-'(number) to '-number'
           if ("-".equals(savedTerm.getText()) && left == null) {
             if (right instanceof NumericTerm && right.getTermType() == ATOM) {
-              result = (Term) ((NumericTerm) right).neg();
+              result = ((NumericTerm) right).neg();
               break;
             }
           }

@@ -159,7 +159,6 @@ public class DeferredGoal {
         throw new NullPointerException();
       }
       final Var varTerm = goalClone.variables().filter(x -> varName.equals(x.getText())).findFirst().orElse(null);
-      ;
       if (varTerm == null) {
         throw new IllegalArgumentException("Can't find a variable for \'" + varName + "\' name");
       }

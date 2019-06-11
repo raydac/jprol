@@ -7,7 +7,6 @@ import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlConsult;
-import com.igormaznitsa.prol.utils.Utils;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -32,12 +31,12 @@ public class DeepStackTest extends AbstractProlTest {
     private boolean checkList(int depth, TermList list) {
         TermList cList = list;
         while (!cList.isNullList()) {
-            final TermInteger intterm = (TermInteger) Utils.getTermFromElement(cList.getHead());
-            if (depth != intterm.getValue()) {
+          final TermInteger intterm = cList.getHead();
+          if (depth != intterm.toNumber().intValue()) {
                 return false;
             }
             depth--;
-            cList = (TermList) Utils.getTermFromElement(cList.getTail());
+          cList = cList.getTail().findNonVarOrSame();
         }
         return true;
     }

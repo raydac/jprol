@@ -75,7 +75,7 @@ public class ProlTextOutputStream implements ProlStream, ProlTextWriter {
   public synchronized void writeChar(final Term term) throws IOException {
     char charToWrite = 0;
     if (term instanceof NumericTerm) {
-      charToWrite = (char) ((NumericTerm) term).getNumericValue().intValue();
+      charToWrite = (char) term.toNumber().intValue();
     } else {
       final String text = term.getText();
       if (text != null) {

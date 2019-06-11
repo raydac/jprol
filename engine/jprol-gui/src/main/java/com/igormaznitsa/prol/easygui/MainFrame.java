@@ -1360,7 +1360,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     final String textFromEditor = this.sourceEditor.getEditor().getText();
 
     try {
-      Utils.writeFileAsUTF8Str(file, textFromEditor);
+      Utils.writeAsUtf8(file, textFromEditor);
       this.recentFiles.put(file.getAbsolutePath());
     } catch (Throwable thr) {
       LOG.throwing(this.getClass().getCanonicalName(), "saveFile()", thr);
@@ -1420,7 +1420,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       this.lastOpenedFile = fileToOpen;
 
       try {
-        setTextToDocument(Utils.readFileAsUTF8Str(fileToOpen));
+        setTextToDocument(Utils.readAsUtf8(fileToOpen));
         this.currentOpenedFile = fileToOpen;
         setTitle(this.currentOpenedFile.getCanonicalPath());
         this.repaint();
@@ -1572,7 +1572,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     @Predicate(Signature = "msgerror/1", Reference = "The predicate allows to output information marked as error at the message window.")
     @Determined
     public void predicateMSGERROR(final ChoicePoint goal, final TermStruct struct) {
-      final Term term = Utils.getTermFromElement(struct.getElement(0));
+      final Term term = struct.getElement(0).findNonVarOrSame();
       final String text = term.forWrite();
       LOG.log(Level.SEVERE, "msgerror/1 : {0}", text);
       messageEditor.addErrorText(text);
@@ -1581,7 +1581,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     @Predicate(Signature = "msgwarning/1", Reference = "The predicate allows to output information marked as warning at the message window.")
     @Determined
     public void predicateMSGWARNING(final ChoicePoint goal, final TermStruct struct) {
-      final Term term = Utils.getTermFromElement(struct.getElement(0));
+      final Term term = struct.getElement(0).findNonVarOrSame();
       final String text = term.forWrite();
       LOG.log(Level.WARNING, "msgwarning/1 : {0}", text);
       messageEditor.addWarningText(text);
@@ -1590,7 +1590,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     @Predicate(Signature = "msginfo/1", Reference = "The predicate allows to output information marked as info at the message window.")
     @Determined
     public void predicateMSGINFO(final ChoicePoint goal, final TermStruct struct) {
-      final Term term = Utils.getTermFromElement(struct.getElement(0));
+      final Term term = struct.getElement(0).findNonVarOrSame();
       final String text = term.forWrite();
       LOG.log(Level.INFO, "msginfo/1 : {0}", text);
       messageEditor.addInfoText(text);

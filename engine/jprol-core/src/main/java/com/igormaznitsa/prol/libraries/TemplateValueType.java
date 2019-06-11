@@ -101,7 +101,7 @@ public enum TemplateValueType {
   BYTE(t -> {
     boolean error = true;
     if (t instanceof TermInteger) {
-      final int value = ((TermInteger) t).getNumericValue().intValue();
+      final int value = t.toNumber().intValue();
       if ((value & 0xFF) == 0) {
         error = false;
       }
@@ -139,7 +139,7 @@ public enum TemplateValueType {
   CHARACTER_CODE(t -> {
     boolean error = true;
     if (t instanceof TermInteger) {
-      final int value = ((TermInteger) t).getNumericValue().intValue();
+      final int value = t.toNumber().intValue();
       if ((value & 0xFFFF0000) == 0) {
         error = false;
       }
@@ -149,7 +149,7 @@ public enum TemplateValueType {
     }
   }),
   CHARACTER_CODE_LIST(t -> {
-    boolean error = false;
+    boolean error;
     if (t.getTermType() == TermType.LIST) {
       TermList lst = (TermList) t;
       error = false;
@@ -165,7 +165,7 @@ public enum TemplateValueType {
           }
           if (head.getTermType() == TermType.ATOM) {
             if (head instanceof TermInteger) {
-              if ((((TermInteger) head).getNumericValue().intValue() & 0xFFFF0000) != 0) {
+              if ((head.toNumber().intValue() & 0xFFFF0000) != 0) {
                 error = true;
                 break;
               }
@@ -198,7 +198,7 @@ public enum TemplateValueType {
     }
   }),
   CHARACTER_LIST(t -> {
-    boolean error = false;
+    boolean error;
     if (t.getTermType() == TermType.LIST) {
       TermList lst = (TermList) t;
       error = false;
@@ -268,10 +268,7 @@ public enum TemplateValueType {
               }
             }
             break;
-            case LIST: {
-              error = true;
-            }
-            break;
+            case LIST:
             case VAR: {
               error = true;
             }
@@ -285,10 +282,7 @@ public enum TemplateValueType {
               }
             }
             break;
-            case LIST: {
-              error = true;
-            }
-            break;
+            case LIST:
             case VAR: {
               error = true;
             }
@@ -357,7 +351,7 @@ public enum TemplateValueType {
   IN_BYTE(t -> {
     boolean error = false;
     if (t instanceof TermInteger) {
-      final int val = ((TermInteger) t).getNumericValue().intValue();
+      final int val = t.toNumber().intValue();
       if ((val & 0xFF) != 0 && val == -1) {
         error = true;
       }
@@ -385,7 +379,7 @@ public enum TemplateValueType {
   IN_CHARACTER_CODE(t -> {
     boolean error = false;
     if (t instanceof TermInteger) {
-      final int val = ((TermInteger) t).getNumericValue().intValue();
+      final int val = t.toNumber().intValue();
       if ((val & 0xFFFF0000) != 0 && val != -1) {
         error = true;
       }
@@ -432,10 +426,7 @@ public enum TemplateValueType {
     boolean error;
     if (t.getTermType() == TermType.ATOM && !(t instanceof NumericTerm)) {
       final String text = t.getText();
-      error = true;
-      if (Operator.getTypeFromString(text) >= 0) {
-        error = false;
-      }
+      error = Operator.getTypeFromString(text) < 0;
     } else {
       error = true;
     }
@@ -453,10 +444,10 @@ public enum TemplateValueType {
 
         final boolean leftIsCorrect = (left.getTermType() == TermType.ATOM && left.getClass() == Term.class)
             || (left.getTermType() == STRUCT && ((TermStruct) left).getArity() == 0)
-            || (left.getTermType() == VAR && !((Var) left).isGround());
+            || (left.getTermType() == VAR && !left.isGround());
 
         final boolean rightIsCorrect = (right.getTermType() == TermType.ATOM && right.getClass() == TermInteger.class)
-            || (right.getTermType() == VAR && !((Var) right).isGround());
+            || (right.getTermType() == VAR && !right.isGround());
 
         error = !(leftIsCorrect && rightIsCorrect);
       }

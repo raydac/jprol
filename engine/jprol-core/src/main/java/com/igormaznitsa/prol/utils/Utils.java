@@ -18,17 +18,11 @@ package com.igormaznitsa.prol.utils;
 
 import com.igormaznitsa.prol.annotations.*;
 import com.igormaznitsa.prol.data.*;
-import com.igormaznitsa.prol.exceptions.ProlCriticalError;
-import com.igormaznitsa.prol.exceptions.ProlInstantiationErrorException;
-import com.igormaznitsa.prol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.prol.libraries.AbstractProlLibrary;
 import com.igormaznitsa.prol.logic.ProlContext;
-import com.igormaznitsa.prol.parser.ProlConsult;
 
 import java.io.*;
 import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -51,14 +45,14 @@ public final class Utils {
     }
   }
 
-  public static void writeFileAsUTF8Str(final File file, final CharSequence seq) throws IOException {
+  public static void writeAsUtf8(final File file, final CharSequence seq) throws IOException {
     try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false), StandardCharsets.UTF_8))) {
       writer.write(seq.toString());
       writer.flush();
     }
   }
 
-  public static String readFileAsUTF8Str(final File file) throws IOException {
+  public static String readAsUtf8(final File file) throws IOException {
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
       final StringBuilder buffer = new StringBuilder((int) file.length() < 0 ? 16384 : (int) file.length());
       while (!Thread.currentThread().isInterrupted()) {
@@ -72,12 +66,6 @@ public final class Utils {
     }
   }
 
-  public static Map<String, Var> fillTableWithVars(final Term term) {
-    final Map<String, Var> vars = new HashMap<>();
-    term.variables().forEach(e -> vars.put(e.getText(), e));
-    return vars;
-  }
-
   public static TermList createOrAppendToList(final TermList nullableList, final Term term) {
     final TermList newList = new TermList(term);
 
@@ -87,65 +75,6 @@ public final class Utils {
     }
 
     return newList;
-  }
-
-  public static Map<String, Term> fillTableWithFoundVarContent(final Term term, final Map<String, Term> map) {
-    final Map<String, Var> vars = fillTableWithVars(term);
-    final Map<String, Term> result;
-    if (map == null) {
-      result = new HashMap<>();
-    } else {
-      map.clear();
-      result = map;
-    }
-
-    vars.forEach((name, value) -> {
-      if (value.isGround()) {
-        result.put(name, value.getValue());
-      }
-    });
-    return result;
-  }
-
-  public static Number getNumberFromElement(Term term) {
-    if (term.getTermType() == VAR) {
-      final Term origTerm = term;
-      term = ((Var) term).getValue();
-      if (term == null) {
-        throw new ProlInstantiationErrorException("NonInstantiated variable", origTerm);
-      }
-    }
-
-    if (term instanceof NumericTerm) {
-      return ((NumericTerm) term).getNumericValue();
-    } else {
-      throw new ProlTypeErrorException("numeric", "NonNumeric term", term);
-    }
-  }
-
-  public static String getStringFromElement(Term term) {
-    if (term.getTermType() == VAR) {
-      final Term origTerm = term;
-      term = ((Var) term).getValue();
-      if (term == null) {
-        throw new ProlInstantiationErrorException("NonInstantiated variable", origTerm);
-      }
-    }
-
-    return term.forWrite();
-  }
-
-  public static Term getTermFromElement(final Term element) {
-    if (element.getTermType() == VAR) {
-      final Term val = ((Var) element).getValue();
-      if (val == null) {
-        return element;
-      } else {
-        return val;
-      }
-    } else {
-      return element;
-    }
   }
 
   public static Term getListAsAtom(final ProlContext context, final TermList list) {
@@ -159,8 +88,8 @@ public final class Utils {
       if (length == 3) {
         // may be it is a list
         if (list.getHead().getText().equals(".")) {
-          final TermList secondElement = (TermList) list.getTail();
-          final TermList thirdElement = (TermList) secondElement.getTail();
+          final TermList secondElement = list.getTail();
+          final TermList thirdElement = secondElement.getTail();
 
           if (thirdElement.getHead().getTermType() == LIST) {
             // it's a list
@@ -174,11 +103,11 @@ public final class Utils {
         result = new TermStruct(list.getHead());
       } else {
         Term[] elements = new Term[length - 1];
-        TermList lst = (TermList) list.getTail();
+        TermList lst = list.getTail();
         int index = 0;
         while (lst != TermList.NULLLIST) {
           elements[index++] = lst.getHead();
-          lst = (TermList) lst.getTail();
+          lst = lst.getTail();
         }
         result = new TermStruct(list.getHead(), elements);
       }
@@ -375,27 +304,23 @@ public final class Utils {
   }
 
   public static void printTree(final PrintStream out, final int spaces, final Term term) {
-    switch (term.getTermType()) {
-      case STRUCT: {
-        final TermStruct struct = (TermStruct) term;
-        if (struct.getFunctor().getTermType() == OPERATOR) {
-          out.println('(' + struct.getFunctor().toString() + ')');
-          final int spaces2 = spaces + 1;
+    if (term.getTermType() == STRUCT) {
+      final TermStruct struct = (TermStruct) term;
+      if (struct.getFunctor().getTermType() == OPERATOR) {
+        out.println('(' + struct.getFunctor().toString() + ')');
+        final int spaces2 = spaces + 1;
+        spaces(out, spaces2);
+        out.println('|');
+        for (int li = 0; li < struct.getArity(); li++) {
           spaces(out, spaces2);
-          out.println('|');
-          for (int li = 0; li < struct.getArity(); li++) {
-            spaces(out, spaces2);
-            out.print("\\-");
-            printTree(out, spaces2 + 2, struct.getElement(li));
-          }
-        } else {
-          out.println(term.toString());
+          out.print("\\-");
+          printTree(out, spaces2 + 2, struct.getElement(li));
         }
+      } else {
+        out.println(term.toString());
       }
-      break;
-      default: {
-        out.println(term);
-      }
+    } else {
+      out.println(term);
     }
   }
 
@@ -447,48 +372,14 @@ public final class Utils {
     return builder.toString();
   }
 
-  public static void consultFromURLConnection(final String url, final ProlContext context) throws IOException {
-    if (url == null || context == null) {
-      throw new IllegalArgumentException("There is a null as an argument");
-    }
-
-    final InputStream inStream;
-    if (url.startsWith("this://")) {
-      final String purePath = url.substring(7); // remove the prefix
-      inStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(purePath);
-      if (inStream == null) {
-        throw new IOException("Can't find the resource addressed as \"" + purePath + "\" through the class loader");
-      }
-    } else {
-      final URL parsed = new URL(url);
-      final URLConnection connection = parsed.openConnection();
-      connection.setDoInput(true);
-      connection.setDoOutput(false);
-      connection.setAllowUserInteraction(false);
-      connection.setUseCaches(true);
-      inStream = connection.getInputStream();
-    }
-
-    try {
-      new ProlConsult(inStream, context).consult();
-    } finally {
-      if (inStream != null) {
-        try {
-          inStream.close();
-        } catch (Exception thr) {
-        }
-      }
-    }
-  }
-
   public static String extractPredicateSignatureFromStructure(final Term term) {
-    final TermStruct struct = (TermStruct) Utils.getTermFromElement(term);
+    final TermStruct struct = term.findNonVarOrSame();
 
     if (struct.getArity() != 2) {
       return null;
     }
-    final Term left = getTermFromElement(struct.getElement(0));
-    final Term right = getTermFromElement(struct.getElement(1));
+    final Term left = struct.getElement(0).findNonVarOrDefault(null);
+    final Term right = struct.getElement(1).findNonVarOrDefault(null);
 
     if (right instanceof TermInteger && left.getTermType() == ATOM) {
       return left.getText() + '/' + right.getText();
@@ -571,67 +462,6 @@ public final class Utils {
       }
     }
     return null;
-  }
-
-  public static Object term2obj(final ProlContext context, final Term term) {
-    final Term cterm = Utils.getTermFromElement(term);
-    Object result = null;
-    switch (cterm.getTermType()) {
-      case ATOM: {
-        if (cterm instanceof NumericTerm) {
-          // as numeric value
-          result = ((TermInteger) cterm).getNumericValue();
-        }
-      }
-      break;
-      case LIST: {
-        // make List<Object>
-        final List<Object> list = new ArrayList<>();
-        TermList tlist = (TermList) cterm;
-        while (tlist.isNullList()) {
-          list.add(term2obj(context, tlist.getHead()));
-          final Term tail = tlist.getTail();
-          if (tail.getTermType() == LIST) {
-            tlist = (TermList) tail;
-          } else {
-            list.add(term2obj(context, tail));
-            break;
-          }
-        }
-        result = list;
-      }
-      break;
-      case OPERATORS:
-      case OPERATOR: {
-        // just as text
-        result = cterm.getText();
-      }
-      break;
-      case STRUCT: {
-        // struct
-        final TermStruct sterm = (TermStruct) cterm;
-        final int size = sterm.getArity() + 1;
-        final Object[] array = new Object[size];
-
-        // the first element is the term
-        array[0] = term2obj(context, sterm.getFunctor());
-
-        // other elements
-        for (int li = 1; li < size; li++) {
-          array[li] = term2obj(context, sterm.getElement(li - 1));
-        }
-
-        result = array;
-      }
-      break;
-      case VAR: {
-        throw new IllegalArgumentException("It is non instantiate variable \'" + cterm.getText() + "\'");
-      }
-      default: {
-        throw new ProlCriticalError("Unsupported term type");
-      }
-    }
-    return result;
   }
 
   public static Term obj2term(final Object object) {

@@ -129,7 +129,7 @@ public class ProlMemoryPipe implements ProlStream, ProlTextReader, ProlTextWrite
     synchronized (reader) {
       final ByteArrayOutputStream buffer = new ByteArrayOutputStream(1024);
       while (!Thread.currentThread().isInterrupted()) {
-        final int chr = reader.readChar().getNumericValue().intValue();
+        final int chr = reader.readChar().toNumber().intValue();
 
         if (chr < 0) {
           break;

@@ -29,7 +29,6 @@ import com.igormaznitsa.prol.libraries.PredicateProcessor;
 import com.igormaznitsa.prol.parser.ProlReader;
 import com.igormaznitsa.prol.parser.ProlTreeBuilder;
 import com.igormaznitsa.prol.trace.TraceEvent;
-import com.igormaznitsa.prol.utils.Utils;
 
 import java.io.IOException;
 import java.util.Map;
@@ -76,7 +75,7 @@ public final class ChoicePoint {
         this.varSnapshot = null;
         this.variables = null;
       } else {
-        this.variables = Utils.fillTableWithVars(goal);
+        this.variables = goal.allNamedVarsAsMap();
         this.varSnapshot = new VariableStateSnapshot(goal, predefinedVarValues);
       }
       this.rootLastGoalAtChain = this;
@@ -149,16 +148,7 @@ public final class ChoicePoint {
     if (var == null) {
       throw new IllegalArgumentException("Unknown variable for name \'" + varName + '\'');
     }
-    final Term value = var.getValue();
-    if (value == null) {
-      return null;
-    } else {
-      if (value instanceof NumericTerm) {
-        return ((NumericTerm) value).getNumericValue();
-      } else {
-        throw new NumberFormatException("The variable contains a non-numeric value");
-      }
-    }
+    return var.toNumber();
   }
 
   public String getVarAsText(final String varName) {

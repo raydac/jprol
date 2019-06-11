@@ -32,14 +32,18 @@
 
 package com.igormaznitsa.prol.data;
 
+import com.igormaznitsa.prol.exceptions.ProlTypeErrorException;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
 import static com.igormaznitsa.prol.data.TermList.NULLLIST;
 import static com.igormaznitsa.prol.data.TermType.ATOM;
+import static com.igormaznitsa.prol.data.TermType.VAR;
 import static com.igormaznitsa.prol.utils.Utils.createOrAppendToList;
 import static com.igormaznitsa.prol.utils.Utils.escapeSrc;
+import static java.util.stream.Collectors.toMap;
 
 public class Term {
 
@@ -87,12 +91,29 @@ public class Term {
     }
   }
 
+  public Map<String, Var> allNamedVarsAsMap() {
+    return this.variables()
+        .collect(toMap(Var::getText, e -> e, (v1, v2) -> v2));
+  }
+
+  public Map<String, Term> allNamedVarValuesAsMap() {
+    return this.variables()
+        .filter(v -> v.<Term>findNonVarOrDefault(v).getTermType() != VAR)
+        .collect(toMap(Var::getText, e -> e.findNonVarOrDefault(e), (v1, v2) -> v2));
+  }
+
   public boolean isGround() {
     return true;
   }
 
-  public Term findNonVarOrDefault(final Term term) {
-    return this;
+  @SuppressWarnings("unchecked")
+  public <T extends Term> T findNonVarOrSame() {
+    return (T) this;
+  }
+
+  @SuppressWarnings("unchecked")
+  public <T extends Term> T findNonVarOrDefault(final T term) {
+    return (T) this;
   }
 
   public Stream<Term> stream() {
@@ -119,6 +140,10 @@ public class Term {
     } else {
       return text.hashCode();
     }
+  }
+
+  public Number toNumber() {
+    throw new ProlTypeErrorException("numeric", "NonNumeric term", this);
   }
 
   @Override
@@ -251,6 +276,11 @@ public class Term {
       default:
         return -1;
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  public <T> T toObject() {
+    return (T) this.text;
   }
 
   public int getTextLength() {

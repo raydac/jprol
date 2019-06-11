@@ -16,7 +16,7 @@
 
 package com.igormaznitsa.prol.logic;
 
-import com.igormaznitsa.prol.annotations.Consult;
+import com.igormaznitsa.prol.annotations.ConsultText;
 import com.igormaznitsa.prol.containers.KnowledgeBase;
 import com.igormaznitsa.prol.containers.OperatorContainer;
 import com.igormaznitsa.prol.data.Term;
@@ -499,38 +499,11 @@ public final class ProlContext {
       }
       libraries.add(library);
 
-      // consult with the library
-      final Consult consult = library.getClass().getAnnotation(Consult.class);
-
+      final ConsultText consult = library.getClass().getAnnotation(ConsultText.class);
       if (consult != null) {
-        // check url
-        final String url = consult.URL();
-        if (url != null && url.length() > 0) {
-          Utils.consultFromURLConnection(url, this);
-        }
-        // check urls
-        final String[] urls = consult.URLs();
-        if (urls != null && urls.length > 0) {
-          for (final String urlToBeProcessed : urls) {
-            if (urlToBeProcessed != null && urlToBeProcessed.length() > 0) {
-              Utils.consultFromURLConnection(urlToBeProcessed, this);
-            }
-          }
-        }
-
-        // check text
-        final String text = consult.Text();
-        if (text != null && text.length() > 0) {
-          // there is any text
+        final String text = consult.value();
+        if (text.length() > 0) {
           new ProlConsult(text, this).consult();
-        }
-
-        // check texts
-        final String[] texts = consult.Texts();
-        if (texts != null) {
-          for (String text1 : texts) {
-            new ProlConsult(text1, this).consult();
-          }
         }
       }
     } finally {
@@ -767,9 +740,7 @@ public final class ProlContext {
         getContextExecutorService().shutdownNow();
       } finally {
         // notify all libraries that the context is halted
-        libraries.forEach((library) -> {
-          library.contextHasBeenHalted(this);
-        });
+        libraries.forEach((library) -> library.contextHasBeenHalted(this));
       }
     } finally {
       libLocker.unlock();

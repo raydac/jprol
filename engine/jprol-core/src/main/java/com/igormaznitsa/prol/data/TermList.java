@@ -18,7 +18,9 @@ package com.igormaznitsa.prol.data;
 
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -46,21 +48,23 @@ public final class TermList extends TermStruct {
     super(LIST_FUNCTOR, new Term[] {head, tail});
   }
 
-  public Term getHead() {
-    return terms[INDEX_HEAD];
+  @SuppressWarnings("unchecked")
+  public <T extends Term> T getHead() {
+    return (T) this.terms[INDEX_HEAD];
   }
 
-  public Term getTail() {
+  @SuppressWarnings("unchecked")
+  public <T extends Term> T getTail() {
     final Term tail = this.terms[INDEX_TAIL];
     switch (tail.getTermType()) {
       case VAR: {
         final Var var = (Var) tail;
         final Term val = var.getValue();
-        return val == null ? var : val;
+        return (T) (val == null ? var : val);
       }
       case LIST:
       default:
-        return tail;
+        return (T) tail;
     }
   }
 
@@ -358,6 +362,24 @@ public final class TermList extends TermStruct {
       default:
         return 1;
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public <T> T toObject() {
+    final List<Object> list = new ArrayList<>();
+    TermList tlist = this;
+    while (tlist.isNullList()) {
+      list.add(tlist.getHead().toObject());
+      final Term tail = tlist.getTail();
+      if (tail.getTermType() == LIST) {
+        tlist = (TermList) tail;
+      } else {
+        list.add(tail.toObject());
+        break;
+      }
+    }
+    return (T) list;
   }
 
   @Override

@@ -16,6 +16,8 @@
 
 package com.igormaznitsa.prol.data;
 
+import com.igormaznitsa.prol.exceptions.ProlInstantiationErrorException;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -64,6 +66,15 @@ public final class Var extends Term {
       result.setThisValue(doMakeClone(vars));
     }
     return result;
+  }
+
+  @Override
+  public Number toNumber() {
+    final Term data = this.getValue();
+    if (data instanceof NumericTerm) {
+      return data.toNumber();
+    }
+    throw new ProlInstantiationErrorException("NonInstantiated variable", this);
   }
 
   @Override
@@ -199,8 +210,24 @@ public final class Var extends Term {
   }
 
   @Override
-  public Term findNonVarOrDefault(final Term term) {
+  @SuppressWarnings("unchecked")
+  public <T extends Term> T findNonVarOrSame() {
+    return this.value == null ? (T) this : (T) this.value.findNonVarOrDefault(this);
+  }
+
+  @Override
+  public <T extends Term> T findNonVarOrDefault(final T term) {
     return this.value == null ? term : this.value.findNonVarOrDefault(term);
+  }
+
+  @Override
+  public <T> T toObject() {
+    final Term foundValue = this.findNonVarOrDefault(null);
+    if (foundValue == null) {
+      throw new IllegalStateException(String.format("Free variable \'%s\' can't be converted into Object", this.getText()));
+    } else {
+      return foundValue.toObject();
+    }
   }
 
   @Override

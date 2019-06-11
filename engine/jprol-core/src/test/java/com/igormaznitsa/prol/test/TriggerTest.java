@@ -57,7 +57,7 @@ public class TriggerTest extends AbstractProlTest {
                     break;
                 }
 
-              result = ((NumericTerm) resultterm.variables().filter(x -> "X".equals(x.getText())).findFirst().orElse(null).getValue()).getNumericValue().intValue();
+              result = ((NumericTerm) resultterm.variables().filter(x -> "X".equals(x.getText())).findFirst().orElse(null).getValue()).toNumber().intValue();
 
                 decisionnum++;
             }
