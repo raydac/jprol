@@ -22,7 +22,6 @@ import com.igormaznitsa.prol.data.TermInteger;
 import com.igormaznitsa.prol.data.Var;
 import com.igormaznitsa.prol.parser.ProlTreeBuilder;
 import com.igormaznitsa.prol.trace.TracingChoicePointListener;
-import com.igormaznitsa.prol.utils.Utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -159,7 +158,8 @@ public class DeferredGoal {
       if (parameter == null) {
         throw new NullPointerException();
       }
-      final Var varTerm = Utils.findVarInsideTerm(goalClone, varName);
+      final Var varTerm = goalClone.variables().filter(x -> varName.equals(x.getText())).findFirst().orElse(null);
+      ;
       if (varTerm == null) {
         throw new IllegalArgumentException("Can't find a variable for \'" + varName + "\' name");
       }
@@ -177,7 +177,7 @@ public class DeferredGoal {
     final Term goalClone = getParsedGoal().makeClone();
 
     vars.forEach((key, value) -> {
-      final Var foundVar = Utils.findVarInsideTerm(goalClone, key);
+      final Var foundVar = goalClone.variables().filter(x -> key.equals(x.getText())).findFirst().orElse(null);
       if (foundVar == null) {
         throw new IllegalArgumentException("Can't find variable for \'" + key + "\' name");
       }

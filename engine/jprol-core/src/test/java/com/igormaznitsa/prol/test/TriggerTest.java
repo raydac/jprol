@@ -7,7 +7,6 @@ import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.logic.triggers.AbstractProlTrigger;
 import com.igormaznitsa.prol.logic.triggers.ProlTriggerType;
 import com.igormaznitsa.prol.logic.triggers.TriggerEvent;
-import com.igormaznitsa.prol.utils.Utils;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -58,7 +57,7 @@ public class TriggerTest extends AbstractProlTest {
                     break;
                 }
 
-                result = ((NumericTerm) Utils.findVarInsideTerm(resultterm, "X").getValue()).getNumericValue().intValue();
+              result = ((NumericTerm) resultterm.variables().filter(x -> "X".equals(x.getText())).findFirst().orElse(null).getValue()).getNumericValue().intValue();
 
                 decisionnum++;
             }

@@ -7,7 +7,6 @@ import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.DeferredGoal;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlConsult;
-import com.igormaznitsa.prol.utils.Utils;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -41,7 +40,7 @@ public class PreparedGoalTest extends AbstractProlTest {
 
     for (int li = 0; li < 1000; li++) {
       final Term result = oncegoal.processGoalOnce();
-      final int goalResult = ((TermInteger) Utils.findVarInsideTerm(result, "Result").getValue()).getNumericValue().intValue();
+      final int goalResult = ((TermInteger) result.variables().filter(x -> "Result".equals(x.getText())).findFirst().orElse(null).getValue()).getNumericValue().intValue();
       if (goalResult < 1 || goalResult > 5) {
         fail("Wrong result, returned value is outbound");
       }

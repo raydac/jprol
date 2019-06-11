@@ -51,15 +51,6 @@ public final class Utils {
     }
   }
 
-  public static boolean isPrologVariable(final String name) {
-    boolean result = false;
-    if (name.length() > 0) {
-      final char firstChar = name.charAt(0);
-      result = firstChar == '_' || (Character.isAlphabetic(firstChar) && Character.isUpperCase(firstChar));
-    }
-    return result;
-  }
-
   public static void writeFileAsUTF8Str(final File file, final CharSequence seq) throws IOException {
     try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false), StandardCharsets.UTF_8))) {
       writer.write(seq.toString());
@@ -528,60 +519,6 @@ public final class Utils {
       }
     }
     return sig;
-  }
-
-  public static Var findVarInsideTerm(final Term term, final String name) {
-    if (term == null || name == null) {
-      throw new NullPointerException();
-    }
-
-    Var result = null;
-    switch (term.getTermType()) {
-      case STRUCT: {
-        final TermStruct struct = (TermStruct) term;
-        final Term[] elements = struct.getElementsAsArray();
-        for (Term element : elements) {
-          result = findVarInsideTerm(element, name);
-          if (result != null) {
-            break;
-          }
-        }
-      }
-      break;
-      case LIST: {
-        final TermList list = (TermList) term;
-        if (!list.isNullList()) {
-          final Term headterm = list.getHead();
-          if (headterm != null) {
-            result = findVarInsideTerm(headterm, name);
-          }
-          if (result == null) {
-            final Term tailterm = list.getTail();
-            if (tailterm != null) {
-              result = findVarInsideTerm(tailterm, name);
-            }
-          }
-        }
-      }
-      break;
-      case VAR: {
-        final Var varTerm = (Var) term;
-        if (varTerm.getText().equals(name)) {
-          result = varTerm;
-        } else {
-          final Term value = varTerm.getThisValue();
-          if (value != null) {
-            result = findVarInsideTerm(value, name);
-          }
-        }
-
-      }
-      break;
-      default: {
-      }
-      break;
-    }
-    return result;
   }
 
   public static String validateSignature(final String signature) {
