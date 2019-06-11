@@ -18,7 +18,6 @@ package com.igormaznitsa.prol.libraries;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
-import com.igormaznitsa.prol.utils.Utils;
 
 public class CheckingTemplate {
 
@@ -43,7 +42,7 @@ public class CheckingTemplate {
 
   public final boolean isTermMustNotBeAltered(final Term term) {
     if (this.modifier.shouldCheckTemplate(term)) {
-      this.type.check(Utils.getTermFromElement(term));
+      this.type.check(term.findNonVarOrDefault(term));
     }
     return this.modifier.isShouldNotBeAltered();
   }
