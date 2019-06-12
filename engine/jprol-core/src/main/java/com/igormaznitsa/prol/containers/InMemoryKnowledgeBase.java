@@ -286,7 +286,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public RuleIterator getRuleIterator(final TermStruct template) {
+  public ClauseIterator getRuleIterator(final TermStruct template) {
     final String uid = template.getSignature();
 
     final ReentrantLock lockerPred = predicateLocker;
@@ -294,7 +294,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     try {
       final InternalKnowledgeBaseClauseList list = predicateTable.get(uid);
 
-      RuleIterator result = null;
+      ClauseIterator result = null;
 
       if (list != null) {
         result = new MemoryRuleIterator(list, template);

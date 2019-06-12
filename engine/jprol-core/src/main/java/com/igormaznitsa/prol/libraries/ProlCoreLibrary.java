@@ -20,7 +20,6 @@ import com.igormaznitsa.prol.annotations.*;
 import com.igormaznitsa.prol.containers.ClauseIterator;
 import com.igormaznitsa.prol.containers.FactIterator;
 import com.igormaznitsa.prol.containers.KnowledgeBase;
-import com.igormaznitsa.prol.containers.RuleIterator;
 import com.igormaznitsa.prol.data.*;
 import com.igormaznitsa.prol.exceptions.*;
 import com.igormaznitsa.prol.io.ProlStream;
@@ -521,7 +520,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "not/1", Reference = "True if goal cannot be proven")
   @Determined
-  public static boolean predicateNOT(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
+  public static boolean predicateNOT(final ChoicePoint goal, final TermStruct predicate) {
     final ChoicePoint localGoal = new ChoicePoint(predicate.getElement(0), goal.getContext());
     final Term result = localGoal.next();
     return result == null;
@@ -762,7 +761,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   }
 
   @Predicate(Signature = "call/1", Template = {"+callable_term"}, Reference = "call(G) is true if and only if G represents a goal which is true.")
-  public static boolean predicateCALL(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
+  public static boolean predicateCALL(final ChoicePoint goal, final TermStruct predicate) {
     ChoicePoint currentgoal = goal.getPayload();
     final Term argument = predicate.getElement(0).findNonVarOrSame();
 
@@ -792,7 +791,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "once/1", Template = {"+callable_term"}, Reference = "once(Term) is true. once/1 is not re-executable.")
   @Determined
-  public static boolean predicateONCE(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
+  public static boolean predicateONCE(final ChoicePoint goal, final TermStruct predicate) {
     final Term argument = predicate.getElement(0).findNonVarOrSame();
     final ChoicePoint currentgoal = new ChoicePoint(argument, goal.getContext());
 
@@ -802,18 +801,18 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   }
 
   @Predicate(Signature = ";/2", Reference = "';'(Either, Or) is true if either Either or Or is true.")
-  public static void predicateOR(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
+  public static void predicateOR(final ChoicePoint goal, final TermStruct predicate) {
     // stub, see Goal#resolve
   }
 
   @Predicate(Signature = ",/2", Reference = "','(First, Second) is true if and only if First is true and Second is true.")
-  public static void predicateAND(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
+  public static void predicateAND(final ChoicePoint goal, final TermStruct predicate) {
     // stub, see Goal#resolve
   }
 
   @Predicate(Signature = "->/2", Reference = "'->'(If, Then) is true if and only if If is true and Then is true for the first solution of If")
-  @ItChangesGoalChain
-  public static boolean predicateIFTHEN(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
+  @ChangesChoosePointChain
+  public static boolean predicateIFTHEN(final ChoicePoint goal, final TermStruct predicate) {
     // if-then
     final ChoicePoint leftSubbranch = new ChoicePoint(predicate.getElement(0), goal.getContext());
     boolean result = false;
@@ -1621,7 +1620,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "findall/3", Template = {"?term,+callable_term,?list"}, Reference = "Creates  a list of the instantiations Template gets  successively on backtracking  over Goal and unifies the  result with Bag.")
   @Determined
-  public static boolean predicateFINDALL(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
+  public static boolean predicateFINDALL(final ChoicePoint goal, final TermStruct predicate) {
     final Term template = predicate.getElement(0).findNonVarOrSame();
     final Term pgoal = predicate.getElement(1).findNonVarOrSame();
     final Term instances = predicate.getElement(2).findNonVarOrSame();
@@ -1665,7 +1664,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   }
 
   @Predicate(Signature = "bagof/3", Template = {"?term,+callable_term,?list"}, Reference = "Unify Bag with the alternatives of Template. If Goal has free variables besides the one sharing with Template, bagof/3 will backtrack over the alternatives of these free variables, unifying Bag with the corresponding alternatives of Template. The construct +Var^Goal tells bagof/3 not to bind Var in Goal. bagof/3 fails if Goal has no solutions.")
-  public static boolean predicateBAGOF(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
+  public static boolean predicateBAGOF(final ChoicePoint goal, final TermStruct predicate) {
 
     final class BofKey {
 
@@ -1786,7 +1785,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   }
 
   @Predicate(Signature = "setof/3", Template = {"?term,+callable_term,?list"}, Reference = "Equivalent to bagof/3, but sorts the result using sort/2 to get a sorted list of alternatives without duplicates.")
-  public static boolean predicateSETOF(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
+  public static boolean predicateSETOF(final ChoicePoint goal, final TermStruct predicate) {
 
     final class SofKey {
 
@@ -2028,7 +2027,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   }
 
   @Predicate(Signature = "catch/3", Template = "+callable_term,?term,+callable_term", Reference = "A goal catch(Goal, Catcher, Handler) is true if\n1. call(Goal) is true, or\n2. An exception is raised which throws a Ball that is caught by Catcher and Handler then succeeds ")
-  public static boolean predicateCATCH(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
+  public static boolean predicateCATCH(final ChoicePoint goal, final TermStruct predicate) {
     ChoicePoint catchGoal = goal.getPayload();
 
     final Term catching = predicate.getElement(0).findNonVarOrSame();
@@ -2136,7 +2135,6 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     final int milliseconds = term.toNumber().intValue();
     if (milliseconds > 0) {
-
       Thread.sleep(milliseconds);
     }
   }
@@ -2197,7 +2195,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   }
 
   @Predicate(Signature = "rules/1", Template = {"+callable_term"}, Reference = "Finds and call only rules at the knowledge base.")
-  public static boolean predicateRULES(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
+  public static boolean predicateRULES(final ChoicePoint goal, final TermStruct predicate) {
 
     RuleAuxObject ruleAuxObject = goal.getPayload();
     if (ruleAuxObject == null) {
@@ -2210,7 +2208,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
       // it's the first call so we have to get fact iterator from the base
       final KnowledgeBase base = goal.getContext().getKnowledgeBase();
-      final RuleIterator ruleIterator = base.getRuleIterator((TermStruct) term);
+      final ClauseIterator ruleIterator = base.getRuleIterator((TermStruct) term);
 
       if (ruleIterator == null) {
         goal.resetVariants();
@@ -2333,7 +2331,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     }
   }
 
-  private static List<Future<Term>> startListAsFork(final ChoicePoint goal, final TermStruct predicate, final TermList termlist) throws InterruptedException {
+  private static List<Future<Term>> startListAsFork(final ChoicePoint goal, final TermStruct predicate, final TermList termlist) {
     List<AuxForkTask> goalList = goal.getPayload();
 
     if (goalList == null) {
@@ -2626,7 +2624,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   }
 
   @Predicate(Signature = "time/1", Template = "+callable_term", Reference = "Execute  Goal just but  print used time, It supports choice point (!) for inside goal.")
-  public final boolean predicateTime(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
+  public final boolean predicateTime(final ChoicePoint goal, final TermStruct predicate) {
     long time = System.nanoTime();
     final boolean result = predicateCALL(goal, predicate);
 
@@ -2649,7 +2647,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "\\+/1", Template = "+callable_term", Reference = "\\+(Term) is true if and only if call(Term) is false.")
   @Determined
-  public final boolean predicateCannotBeProven(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
+  public final boolean predicateCannotBeProven(final ChoicePoint goal, final TermStruct predicate) {
     final Term argument = predicate.getElement(0);
     final ChoicePoint subgoal = new ChoicePoint(argument, goal.getContext());
     return subgoal.next() == null;
@@ -2749,7 +2747,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "read/1", Reference = " Read  the next Prolog term from the current input stream.")
   @Determined
-  public final boolean predicateRead(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
+  public final boolean predicateRead(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     final ProlTextReader outStream = goal.getContext().getCurrentInputStream();
     if (outStream == null) {
@@ -2979,11 +2977,11 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
    */
   private static class RuleAuxObject {
 
-    private final RuleIterator iterator;
+    private final ClauseIterator iterator;
     private ChoicePoint currentActiveGoal;
     private TermStruct rule;
 
-    RuleAuxObject(final RuleIterator iterator) {
+    RuleAuxObject(final ClauseIterator iterator) {
       this.iterator = iterator;
     }
   }
@@ -3012,7 +3010,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     }
 
     @Override
-    public Term call() throws InterruptedException {
+    public Term call() {
       return this.goal == null ? null : this.goal.next();
     }
 

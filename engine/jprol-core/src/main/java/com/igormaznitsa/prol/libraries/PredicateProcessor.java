@@ -16,9 +16,9 @@
 
 package com.igormaznitsa.prol.libraries;
 
+import com.igormaznitsa.prol.annotations.ChangesChoosePointChain;
 import com.igormaznitsa.prol.annotations.Determined;
 import com.igormaznitsa.prol.annotations.Evaluable;
-import com.igormaznitsa.prol.annotations.ItChangesGoalChain;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.exceptions.*;
@@ -69,7 +69,7 @@ public final class PredicateProcessor {
       this.voidResult = method.getReturnType() == CLASS_RESULT_VOID;
       this.determined = method.isAnnotationPresent(Determined.class);
       this.evaluable = method.isAnnotationPresent(Evaluable.class);
-      this.changesGoalChain = method.isAnnotationPresent(ItChangesGoalChain.class);
+      this.changesGoalChain = method.isAnnotationPresent(ChangesChoosePointChain.class);
     }
   }
 

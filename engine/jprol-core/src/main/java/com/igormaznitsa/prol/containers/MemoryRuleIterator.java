@@ -20,7 +20,7 @@ import com.igormaznitsa.prol.data.TermStruct;
 
 import java.util.NoSuchElementException;
 
-final class MemoryRuleIterator extends MemoryClauseIterator implements RuleIterator {
+final class MemoryRuleIterator extends MemoryClauseIterator implements ClauseIterator {
 
   public MemoryRuleIterator(final InternalKnowledgeBaseClauseList list, final TermStruct template) {
     super(list, template);

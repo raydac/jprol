@@ -46,7 +46,7 @@ public interface KnowledgeBase {
 
   FactIterator getFactIterator(TermStruct template);
 
-  RuleIterator getRuleIterator(TermStruct template);
+  ClauseIterator getRuleIterator(TermStruct template);
 
   ClauseIterator getClauseIterator(TermStruct template);
 
