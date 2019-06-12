@@ -17,14 +17,16 @@
 package com.igormaznitsa.prol.exceptions;
 
 import com.igormaznitsa.prol.data.Term;
+import com.igormaznitsa.prol.data.TermList;
 import com.igormaznitsa.prol.data.TermStruct;
-import com.igormaznitsa.prol.utils.Utils;
+
+import static com.igormaznitsa.prol.data.Terms.newAtom;
 
 public class ProlExistenceErrorException extends ProlAbstractCatcheableException {
 
   private static final long serialVersionUID = 8133227498750254779L;
 
-  private static final Term ERROR_TERM = new Term("existence_error");
+  private static final Term ERROR_TERM = newAtom("existence_error");
 
   private final String objectType;
 
@@ -55,7 +57,7 @@ public class ProlExistenceErrorException extends ProlAbstractCatcheableException
 
   @Override
   public TermStruct getAsStruct() {
-    return this.makeErrorStruct(ERROR_TERM, Utils.arrayToList(new Term(this.objectType), getCulprit()));
+    return this.makeErrorStruct(ERROR_TERM, TermList.asTermList(newAtom(this.objectType), getCulprit()));
   }
 
 }

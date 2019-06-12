@@ -42,7 +42,7 @@ public enum TemplateValueType {
       case LIST: {
         TermList lst = (TermList) t;
         error = false;
-        if (lst == TermList.NULLLIST) {
+        if (lst.isNullList()) {
           break;
         }
 
@@ -61,7 +61,7 @@ public enum TemplateValueType {
           }
 
           final Term tail = lst.getTail();
-          if (tail == TermList.NULLLIST) {
+          if (tail == Terms.NULL_LIST) {
             break;
           }
           if (tail.getTermType() == TermType.LIST) {
@@ -153,7 +153,7 @@ public enum TemplateValueType {
     if (t.getTermType() == TermType.LIST) {
       TermList lst = (TermList) t;
       error = false;
-      if (lst != TermList.NULLLIST) {
+      if (!lst.isNullList()) {
         while (!Thread.currentThread().isInterrupted()) {
           Term head = lst.getHead();
           if (head.getTermType() == TermType.VAR) {
@@ -179,7 +179,7 @@ public enum TemplateValueType {
           }
 
           final Term tail = lst.getTail();
-          if (tail == TermList.NULLLIST) {
+          if (tail == Terms.NULL_LIST) {
             break;
           }
           if (tail.getTermType() == TermType.LIST) {
@@ -202,7 +202,7 @@ public enum TemplateValueType {
     if (t.getTermType() == TermType.LIST) {
       TermList lst = (TermList) t;
       error = false;
-      if (lst != TermList.NULLLIST) {
+      if (!lst.isNullList()) {
 
         while (!Thread.currentThread().isInterrupted()) {
           Term head = lst.getHead();
@@ -224,7 +224,7 @@ public enum TemplateValueType {
           }
 
           final Term tail = lst.getTail();
-          if (tail == TermList.NULLLIST) {
+          if (tail == Terms.NULL_LIST) {
             break;
           }
           if (tail.getTermType() == TermType.LIST) {
@@ -463,7 +463,7 @@ public enum TemplateValueType {
     if (t.getTermType() != TermType.LIST) {
       throw new ProlInstantiationErrorException("Should be list \'" + t + '\'', t);
     } else {
-      if (t == TermList.NULLLIST) {
+      if (t == Terms.NULL_LIST) {
         throw new ProlInstantiationErrorException("Should not be empty list \'" + t + '\'', t);
       }
     }

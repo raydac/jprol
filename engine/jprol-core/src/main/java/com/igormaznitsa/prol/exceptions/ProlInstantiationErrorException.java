@@ -19,11 +19,13 @@ package com.igormaznitsa.prol.exceptions;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
 
+import static com.igormaznitsa.prol.data.Terms.newAtom;
+
 public class ProlInstantiationErrorException extends ProlAbstractCatcheableException {
 
   private static final long serialVersionUID = -5157739502740121566L;
 
-  private static final Term TERM_ERROR = new Term("instantiation_error");
+  private static final Term TERM_ERROR = newAtom("instantiation_error");
 
   public ProlInstantiationErrorException(final Term culprit, final Throwable cause) {
     super(culprit, cause);

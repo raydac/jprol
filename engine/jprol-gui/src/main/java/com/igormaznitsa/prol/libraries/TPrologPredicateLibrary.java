@@ -21,6 +21,7 @@ import com.igormaznitsa.prol.annotations.Predicate;
 import com.igormaznitsa.prol.containers.KnowledgeBase;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
+import com.igormaznitsa.prol.data.Terms;
 import com.igormaznitsa.prol.easygui.MainFrame;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 import com.igormaznitsa.prol.logic.ChoicePoint;
@@ -76,7 +77,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
     if (str.getTermType() == VAR) {
       if (file.isFile()) {
         try {
-          result = str.unifyTo(new Term(Utils.readAsUtf8(file)));
+          result = str.unifyTo(Terms.newAtom(Utils.readAsUtf8(file)));
         } catch (IOException ex) {
           MainFrame.MAIN_FRAME_INSTANCE.get().addErrorText("Can't read file '" + file + "' : " + ex.getMessage());
         }
@@ -142,7 +143,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
 
     boolean result = false;
     if (choosenFile != null) {
-      result = selected.unifyTo(new Term(choosenFile.getName()));
+      result = selected.unifyTo(Terms.newAtom(choosenFile.getName()));
     }
     return result;
   }
@@ -155,7 +156,7 @@ public final class TPrologPredicateLibrary extends AbstractProlLibrary {
     boolean result = false;
     try {
       if (thePath.getTermType() == VAR) {
-        return thePath.unifyTo(new Term(path.getCanonicalPath()));
+        return thePath.unifyTo(Terms.newAtom(path.getCanonicalPath()));
       } else {
         final String str = thePath.getText();
         final File file = new File(str);

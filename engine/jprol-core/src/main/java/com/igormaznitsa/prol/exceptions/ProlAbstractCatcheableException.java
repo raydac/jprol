@@ -19,11 +19,14 @@ package com.igormaznitsa.prol.exceptions;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
 
+import static com.igormaznitsa.prol.data.Terms.newAtom;
+import static com.igormaznitsa.prol.data.Terms.newStruct;
+
 public abstract class ProlAbstractCatcheableException extends ProlException {
 
   private static final String ERROR_FUNCTOR = "error";
   private final Term culprit;
-  static final Term UNDEFINED = new Term("<undefined>");
+  static final Term UNDEFINED = newAtom("<undefined>");
   private static final long serialVersionUID = 6911111912695145529L;
 
   public ProlAbstractCatcheableException(final Term culprit) {
@@ -52,7 +55,7 @@ public abstract class ProlAbstractCatcheableException extends ProlException {
   }
 
   protected TermStruct makeErrorStruct(final Term formal, final Term context) {
-    return new TermStruct(ERROR_FUNCTOR, new Term[] {formal, context});
+    return newStruct(ERROR_FUNCTOR, new Term[] {formal, context});
   }
 
   public abstract TermStruct getAsStruct();

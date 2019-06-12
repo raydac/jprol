@@ -21,9 +21,11 @@ import com.igormaznitsa.prol.logic.ProlContext;
 
 import java.io.IOException;
 
+import static com.igormaznitsa.prol.data.Terms.newAtom;
+
 public interface ProlStream {
   String END_OF_FILE_STR = "end_of_file";
-  Term END_OF_FILE = new Term(END_OF_FILE_STR);
+  Term END_OF_FILE = newAtom(END_OF_FILE_STR);
 
   ProlContext getContext();
 

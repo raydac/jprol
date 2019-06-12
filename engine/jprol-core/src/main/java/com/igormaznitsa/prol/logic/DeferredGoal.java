@@ -17,8 +17,7 @@
 package com.igormaznitsa.prol.logic;
 
 import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.data.TermFloat;
-import com.igormaznitsa.prol.data.TermInteger;
+import com.igormaznitsa.prol.data.Terms;
 import com.igormaznitsa.prol.data.Var;
 import com.igormaznitsa.prol.parser.ProlTreeBuilder;
 import com.igormaznitsa.prol.trace.TracingChoicePointListener;
@@ -121,7 +120,7 @@ public class DeferredGoal {
   public final ChoicePoint forIntegerParameters(final int... parameters) {
     final Term[] termarray = new Term[parameters.length];
     for (int li = 0; li < parameters.length; li++) {
-      termarray[li] = new TermInteger(parameters[li]);
+      termarray[li] = Terms.newInt(parameters[li]);
     }
     return this.forParameters(termarray);
   }
@@ -129,7 +128,7 @@ public class DeferredGoal {
   public final ChoicePoint forStringParameters(final String... parameters) {
     final Term[] termarray = new Term[parameters.length];
     for (int li = 0; li < parameters.length; li++) {
-      termarray[li] = new Term(parameters[li]);
+      termarray[li] = Terms.newAtom(parameters[li]);
     }
     return this.forParameters(termarray);
   }
@@ -137,7 +136,7 @@ public class DeferredGoal {
   public final ChoicePoint forFloatParameters(final float... parameters) {
     final Term[] termarray = new Term[parameters.length];
     for (int li = 0; li < parameters.length; li++) {
-      termarray[li] = new TermFloat(parameters[li]);
+      termarray[li] = Terms.newFloat(parameters[li]);
     }
     return this.forParameters(termarray);
   }

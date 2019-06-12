@@ -18,6 +18,8 @@ package com.igormaznitsa.prol.data;
 
 import static com.igormaznitsa.prol.data.TermType.ATOM;
 import static com.igormaznitsa.prol.data.TermType.VAR;
+import static com.igormaznitsa.prol.data.Terms.newFloat;
+import static com.igormaznitsa.prol.data.Terms.newInt;
 
 public final class TermInteger extends NumericTerm {
 
@@ -151,9 +153,9 @@ public final class TermInteger extends NumericTerm {
   public NumericTerm add(final NumericTerm atom) {
     if (atom.isFloat()) {
       final float value = atom.toNumber().floatValue();
-      return new TermFloat((float) intValue + value);
+      return newFloat((float) intValue + value);
     } else {
-      return new TermInteger(intValue + atom.toNumber().intValue());
+      return newInt(intValue + atom.toNumber().intValue());
     }
   }
 
@@ -161,9 +163,9 @@ public final class TermInteger extends NumericTerm {
   public NumericTerm sub(final NumericTerm atom) {
     if (atom.isFloat()) {
       final float value = atom.toNumber().floatValue();
-      return new TermFloat((float) intValue - value);
+      return newFloat((float) intValue - value);
     } else {
-      return new TermInteger(intValue - atom.toNumber().intValue());
+      return newInt(intValue - atom.toNumber().intValue());
     }
   }
 
@@ -171,9 +173,9 @@ public final class TermInteger extends NumericTerm {
   public NumericTerm div(final NumericTerm atom) {
     if (atom.isFloat()) {
       final float value = atom.toNumber().floatValue();
-      return new TermFloat((float) intValue / value);
+      return newFloat((float) intValue / value);
     } else {
-      return new TermInteger(intValue / atom.toNumber().intValue());
+      return newInt(intValue / atom.toNumber().intValue());
     }
   }
 
@@ -181,15 +183,15 @@ public final class TermInteger extends NumericTerm {
   public NumericTerm mul(final NumericTerm atom) {
     if (atom.isFloat()) {
       final float value = atom.toNumber().floatValue();
-      return new TermFloat((float) intValue * value);
+      return newFloat((float) intValue * value);
     } else {
-      return new TermInteger(intValue * atom.toNumber().intValue());
+      return newInt(intValue * atom.toNumber().intValue());
     }
   }
 
   @Override
   public NumericTerm neg() {
-    return new TermInteger(-intValue);
+    return newInt(-intValue);
   }
 
   @Override
@@ -227,7 +229,7 @@ public final class TermInteger extends NumericTerm {
     if (intValue >= 0) {
       return this;
     }
-    return new TermInteger(Math.abs(intValue));
+    return newInt(Math.abs(intValue));
   }
 
   @Override
@@ -238,6 +240,6 @@ public final class TermInteger extends NumericTerm {
     } else if (intValue > 0) {
       sign = 1;
     }
-    return new TermInteger(sign);
+    return newInt(sign);
   }
 }

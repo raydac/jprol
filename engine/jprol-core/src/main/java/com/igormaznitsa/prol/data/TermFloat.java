@@ -18,6 +18,7 @@ package com.igormaznitsa.prol.data;
 
 import static com.igormaznitsa.prol.data.TermType.ATOM;
 import static com.igormaznitsa.prol.data.TermType.VAR;
+import static com.igormaznitsa.prol.data.Terms.newFloat;
 
 public final class TermFloat extends NumericTerm {
 
@@ -154,30 +155,30 @@ public final class TermFloat extends NumericTerm {
   @Override
   public NumericTerm add(final NumericTerm atom) {
     final float value = atom.toNumber().floatValue();
-    return new TermFloat(floatValue + value);
+    return newFloat(floatValue + value);
   }
 
   @Override
   public NumericTerm sub(final NumericTerm atom) {
     final float value = atom.toNumber().floatValue();
-    return new TermFloat(floatValue - value);
+    return newFloat(floatValue - value);
   }
 
   @Override
   public NumericTerm div(final NumericTerm atom) {
     final float value = atom.toNumber().floatValue();
-    return new TermFloat(floatValue / value);
+    return newFloat(floatValue / value);
   }
 
   @Override
   public NumericTerm mul(final NumericTerm atom) {
     final float value = atom.toNumber().floatValue();
-    return new TermFloat(floatValue * value);
+    return newFloat(floatValue * value);
   }
 
   @Override
   public NumericTerm neg() {
-    return new TermFloat(-floatValue);
+    return newFloat(-floatValue);
   }
 
   @Override
@@ -215,11 +216,11 @@ public final class TermFloat extends NumericTerm {
     if (floatValue >= 0) {
       return this;
     }
-    return new TermFloat(Math.abs(floatValue));
+    return newFloat(Math.abs(floatValue));
   }
 
   @Override
   public NumericTerm sign() {
-    return new TermFloat(Math.signum(floatValue));
+    return newFloat(Math.signum(floatValue));
   }
 }

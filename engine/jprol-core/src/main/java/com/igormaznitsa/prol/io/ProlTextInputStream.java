@@ -27,6 +27,8 @@ import com.igormaznitsa.prol.parser.ProlTreeBuilder;
 import java.io.IOException;
 import java.io.Reader;
 
+import static com.igormaznitsa.prol.data.Terms.newInt;
+
 public class ProlTextInputStream implements ProlStream, ProlTextReader {
 
   private final ProlTokenizer tokenizer;
@@ -104,6 +106,6 @@ public class ProlTextInputStream implements ProlStream, ProlTextReader {
   @Override
   public synchronized TermInteger readChar() throws IOException {
     int chr = reader.read();
-    return new TermInteger(chr);
+    return newInt(chr);
   }
 }

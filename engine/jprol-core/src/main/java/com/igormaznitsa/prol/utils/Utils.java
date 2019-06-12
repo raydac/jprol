@@ -24,9 +24,9 @@ import com.igormaznitsa.prol.logic.ProlContext;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Comparator;
 
-import static com.igormaznitsa.prol.data.TermType.*;
+import static com.igormaznitsa.prol.data.TermType.ATOM;
 
 public final class Utils {
 
@@ -67,7 +67,7 @@ public final class Utils {
   }
 
   public static TermList createOrAppendToList(final TermList nullableList, final Term term) {
-    final TermList newList = new TermList(term);
+    final TermList newList = Terms.newList(term);
 
     if (nullableList != null && !nullableList.isNullList()) {
       newList.setTail(nullableList.getTail());

@@ -17,14 +17,16 @@
 package com.igormaznitsa.prol.exceptions;
 
 import com.igormaznitsa.prol.data.Term;
+import com.igormaznitsa.prol.data.TermList;
 import com.igormaznitsa.prol.data.TermStruct;
-import com.igormaznitsa.prol.utils.Utils;
+
+import static com.igormaznitsa.prol.data.Terms.newAtom;
 
 public class ProlRepresentationErrorException extends ProlAbstractCatcheableException {
 
   private static final long serialVersionUID = -4337637438675029939L;
 
-  private static final Term TERM_ERROR = new Term("representation_error");
+  private static final Term TERM_ERROR = newAtom("representation_error");
   private final String flag;
 
   public ProlRepresentationErrorException(final String flag, final Term culprit, final Throwable cause) {
@@ -59,6 +61,6 @@ public class ProlRepresentationErrorException extends ProlAbstractCatcheableExce
 
   @Override
   public TermStruct getAsStruct() {
-    return this.makeErrorStruct(TERM_ERROR, Utils.arrayToList(new Term(this.flag), this.getCulprit()));
+    return this.makeErrorStruct(TERM_ERROR, TermList.asTermList(newAtom(this.flag), this.getCulprit()));
   }
 }

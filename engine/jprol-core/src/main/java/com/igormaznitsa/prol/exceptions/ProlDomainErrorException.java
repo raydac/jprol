@@ -17,14 +17,16 @@
 package com.igormaznitsa.prol.exceptions;
 
 import com.igormaznitsa.prol.data.Term;
+import com.igormaznitsa.prol.data.TermList;
 import com.igormaznitsa.prol.data.TermStruct;
-import com.igormaznitsa.prol.utils.Utils;
+
+import static com.igormaznitsa.prol.data.Terms.newAtom;
 
 public class ProlDomainErrorException extends ProlAbstractCatcheableException {
 
   private static final long serialVersionUID = -7481773982226534683L;
 
-  private static final Term ERROR_TERM = new Term("domain_error");
+  private static final Term ERROR_TERM = newAtom("domain_error");
 
   private final String validDomain;
 
@@ -59,6 +61,6 @@ public class ProlDomainErrorException extends ProlAbstractCatcheableException {
 
   @Override
   public TermStruct getAsStruct() {
-    return this.makeErrorStruct(ERROR_TERM, Utils.arrayToList(ERROR_TERM, new Term(this.validDomain), this.getCulprit()));
+    return this.makeErrorStruct(ERROR_TERM, TermList.asTermList(ERROR_TERM, newAtom(this.validDomain), this.getCulprit()));
   }
 }

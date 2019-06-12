@@ -17,14 +17,16 @@
 package com.igormaznitsa.prol.exceptions;
 
 import com.igormaznitsa.prol.data.Term;
+import com.igormaznitsa.prol.data.TermList;
 import com.igormaznitsa.prol.data.TermStruct;
-import com.igormaznitsa.prol.utils.Utils;
+
+import static com.igormaznitsa.prol.data.Terms.newAtom;
 
 public class ProlEvaluationErrorException extends ProlAbstractCatcheableException {
 
   private static final long serialVersionUID = -8773616695972049425L;
 
-  private static final Term TERM_ERROR = new Term("evaluation_error");
+  private static final Term TERM_ERROR = newAtom("evaluation_error");
 
   private final String error;
 
@@ -60,6 +62,6 @@ public class ProlEvaluationErrorException extends ProlAbstractCatcheableExceptio
 
   @Override
   public TermStruct getAsStruct() {
-    return this.makeErrorStruct(TERM_ERROR, Utils.arrayToList(new Term(this.error), this.getCulprit()));
+    return this.makeErrorStruct(TERM_ERROR, TermList.asTermList(newAtom(this.error), this.getCulprit()));
   }
 }

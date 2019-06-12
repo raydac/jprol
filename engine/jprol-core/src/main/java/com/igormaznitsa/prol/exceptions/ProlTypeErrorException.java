@@ -18,13 +18,15 @@ package com.igormaznitsa.prol.exceptions;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
-import com.igormaznitsa.prol.utils.Utils;
+
+import static com.igormaznitsa.prol.data.TermList.asTermList;
+import static com.igormaznitsa.prol.data.Terms.newAtom;
 
 public class ProlTypeErrorException extends ProlAbstractCatcheableException {
 
   private static final long serialVersionUID = -3258214534404942716L;
 
-  private static final Term TERM_ERROR = new Term("type_error");
+  private static final Term TERM_ERROR = newAtom("type_error");
 
   private final String validType;
 
@@ -60,7 +62,7 @@ public class ProlTypeErrorException extends ProlAbstractCatcheableException {
 
   @Override
   public TermStruct getAsStruct() {
-    return this.makeErrorStruct(TERM_ERROR, Utils.arrayToList(new Term(this.validType), getCulprit()));
+    return this.makeErrorStruct(TERM_ERROR, asTermList(newAtom(this.validType), getCulprit()));
   }
 
 }

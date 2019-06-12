@@ -20,10 +20,9 @@ import com.igormaznitsa.prol.annotations.Predicate;
 import com.igormaznitsa.prol.annotations.PredicateSynonyms;
 import com.igormaznitsa.prol.annotations.ProlOperator;
 import com.igormaznitsa.prol.annotations.ProlOperators;
-import com.igormaznitsa.prol.containers.OperatorContainer;
 import com.igormaznitsa.prol.data.Operator;
+import com.igormaznitsa.prol.data.OperatorContainer;
 import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.data.TermInteger;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 import com.igormaznitsa.prol.logic.ProlContext;
@@ -33,6 +32,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.igormaznitsa.prol.data.Terms.*;
 import static com.igormaznitsa.prol.utils.Utils.SIGNATURE_OPERATOR;
 import static java.lang.Integer.parseInt;
 
@@ -61,10 +61,10 @@ public abstract class AbstractProlLibrary {
         .stream()
         .map(key -> {
           final int index = key.lastIndexOf('/');
-          return new TermStruct(SIGNATURE_OPERATOR,
+          return newStruct(SIGNATURE_OPERATOR,
               new Term[] {
-                  new Term(key.substring(0, index)),
-                  new TermInteger(parseInt(key.substring(index + 1)))
+                  newAtom(key.substring(0, index)),
+                  newInt(parseInt(key.substring(index + 1)))
               });
         })
         .filter(predicateIndicator::dryUnifyTo)

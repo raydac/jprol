@@ -24,6 +24,8 @@ import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 
 import java.io.IOException;
 
+import static com.igormaznitsa.prol.data.Terms.*;
+
 /**
  * The class implements a tokenizer which can parse a prolog source
  *
@@ -230,9 +232,9 @@ public final class ProlTokenizer {
             return new ProlTokenizerResult(makeTermFromString(str, state), INSIDE_STATE_ATOM);
           case INSIDE_STATE_VARIABLE:
             if (str.equals("_")) {
-              return new ProlTokenizerResult(new Var(), state);
+              return new ProlTokenizerResult(newVar(), state);
             } else {
-              return new ProlTokenizerResult(new Var(str), state);
+              return new ProlTokenizerResult(newVar(str), state);
             }
 
           case INSIDE_STATE_STRING:
@@ -468,16 +470,16 @@ public final class ProlTokenizer {
           if (Character.isISOControl(chr) || Character.isWhitespace(chr)) {
             final String name = strbuffer.toString();
             if (name.equals("_")) {
-              return new ProlTokenizerResult(new Var(), state);
+              return new ProlTokenizerResult(newVar(), state);
             }
-            return new ProlTokenizerResult(new Var(name), state);
+            return new ProlTokenizerResult(newVar(name), state);
           } else if (chr != '_' && !Character.isLetterOrDigit(chr)) {
             reader.pushCharBack(chr);
             final String name = strbuffer.toString();
             if (name.equals("_")) {
-              return new ProlTokenizerResult(new Var(), state);
+              return new ProlTokenizerResult(newVar(), state);
             }
-            return new ProlTokenizerResult(new Var(name), state);
+            return new ProlTokenizerResult(newVar(name), state);
           } else {
             strbuffer.append(chr);
           }
@@ -502,14 +504,14 @@ public final class ProlTokenizer {
     switch (state) {
       case INSIDE_STATE_INTEGER: {
         try {
-          result = new TermInteger(string);
+          result = newInt(string);
         } catch (NumberFormatException ex) {
         }
       }
       break;
       case INSIDE_STATE_FLOAT: {
         try {
-          result = new TermFloat(string);
+          result = newFloat(string);
         } catch (NumberFormatException ex) {
         }
       }
@@ -517,7 +519,7 @@ public final class ProlTokenizer {
     }
 
     if (result == null) {
-      result = new Term(string);
+      result = newAtom(string);
     }
 
     return result;

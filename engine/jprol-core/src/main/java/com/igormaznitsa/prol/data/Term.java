@@ -38,8 +38,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static com.igormaznitsa.prol.data.TermList.NULLLIST;
 import static com.igormaznitsa.prol.data.TermType.ATOM;
+import static com.igormaznitsa.prol.data.Terms.*;
 import static com.igormaznitsa.prol.utils.Utils.createOrAppendToList;
 import static com.igormaznitsa.prol.utils.Utils.escapeSrc;
 import static java.util.stream.Collectors.toMap;
@@ -210,11 +210,75 @@ public class Term {
     return result;
   }
 
+  public static Term toTerm(final Object src) {
+    Term result = null;
+
+    if (src == null) {
+      result = Terms.NULL_LIST;
+    } else if (src instanceof Term) {
+      result = (Term) src;
+    } else if (src instanceof ConvertableToTerm) {
+      result = ((ConvertableToTerm) src).asProlTerm().orElse(NULL_LIST);
+    } else if (src instanceof String) {
+      // atom or mapped object
+      result = new Term((String) src);
+    } else if (src instanceof Number) {
+      if (src instanceof Integer) {
+        result = newInt(((Integer) src));
+      } else if (src instanceof Float) {
+        result = newFloat(((Float) src));
+      } else {
+        throw new IllegalArgumentException("Unsupported number format.");
+      }
+    } else if (src instanceof Collection) {
+      // list
+      final Collection<?> lst = (Collection) src;
+
+      if (lst.isEmpty()) {
+        result = NULL_LIST;
+      } else {
+        TermList accumulator = null;
+        // fill the list
+        for (Object item : lst) {
+          if (accumulator == null) {
+            accumulator = newList(toTerm(item));
+            result = accumulator; // the first list
+          } else {
+            accumulator = createOrAppendToList(accumulator, toTerm(item));
+          }
+        }
+      }
+    } else if (src instanceof Object[]) {
+      // struct
+      final Object[] array = (Object[]) src;
+      final int arrlen = array.length;
+      if (arrlen == 0) {
+        // as null list
+        result = Terms.NULL_LIST;
+      } else {
+        final Term functor = new Term(array[0].toString());
+        if (arrlen == 1) {
+          result = newStruct(functor);
+        } else {
+          final Term[] terms = new Term[arrlen - 1];
+          for (int li = 1; li < arrlen; li++) {
+            terms[li - 1] = toTerm(array[li]);
+          }
+          result = newStruct(functor, terms);
+        }
+      }
+    } else {
+      throw new IllegalArgumentException("Unsupported object to be represented as a Term");
+    }
+    return result;
+
+  }
+
   public TermList toCharList() {
     final String text = getText();
     final int len = text.length();
     if (len == 0) {
-      return NULLLIST;
+      return Terms.NULL_LIST;
     }
 
     final StringBuilder buff = new StringBuilder(1);
@@ -227,7 +291,7 @@ public class Term {
       final Term newAtom = new Term(buff.toString());
       buff.setLength(0);
       if (li == 0) {
-        resultList = new TermList(newAtom);
+        resultList = newList(newAtom);
         curList = resultList;
       } else {
         curList = createOrAppendToList(curList, newAtom);
@@ -235,21 +299,6 @@ public class Term {
     }
 
     return resultList;
-  }
-
-  public TermList toCharCodeList() {
-    final String text = this.getText();
-
-    if (text == null || text.isEmpty()) {
-      return NULLLIST;
-    } else {
-      final TermList result = createOrAppendToList(null, new TermInteger(text.charAt(0)));
-      TermList current = result;
-      for (int i = 1; i < text.length(); i++) {
-        current = createOrAppendToList(current, new TermInteger(text.charAt(i)));
-      }
-      return result;
-    }
   }
 
   public int compareTermTo(Term atom) {
@@ -275,6 +324,30 @@ public class Term {
       default:
         return -1;
     }
+  }
+
+  public TermList toCharCodeList() {
+    final String text = this.getText();
+
+    if (text == null || text.isEmpty()) {
+      return Terms.NULL_LIST;
+    } else {
+      final TermList result = createOrAppendToList(null, newInt(text.charAt(0)));
+      TermList current = result;
+      for (int i = 1; i < text.length(); i++) {
+        current = createOrAppendToList(current, newInt(text.charAt(i)));
+      }
+      return result;
+    }
+  }
+
+  protected void doArrabgeVars(final Map<String, Var> variables) {
+  }
+
+  public final void arrangeVariablesInsideTerms(final Term termTwo) {
+    final Map<String, Var> varMap = new HashMap<>();
+    this.doArrabgeVars(varMap);
+    termTwo.doArrabgeVars(varMap);
   }
 
   @SuppressWarnings("unchecked")

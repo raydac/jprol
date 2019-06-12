@@ -17,14 +17,16 @@
 package com.igormaznitsa.prol.exceptions;
 
 import com.igormaznitsa.prol.data.Term;
+import com.igormaznitsa.prol.data.TermList;
 import com.igormaznitsa.prol.data.TermStruct;
-import com.igormaznitsa.prol.utils.Utils;
+
+import static com.igormaznitsa.prol.data.Terms.newAtom;
 
 public class ProlPermissionErrorException extends ProlAbstractCatcheableException {
 
   private static final long serialVersionUID = 7752699517532895102L;
 
-  private static final Term TERM_ERROR = new Term("permission_error");
+  private static final Term TERM_ERROR = newAtom("permission_error");
   private final String operation;
 
   private final String permissionType;
@@ -68,7 +70,7 @@ public class ProlPermissionErrorException extends ProlAbstractCatcheableExceptio
 
   @Override
   public TermStruct getAsStruct() {
-    return this.makeErrorStruct(TERM_ERROR, Utils.arrayToList(new Term(this.operation), new Term(permissionType), getCulprit()));
+    return this.makeErrorStruct(TERM_ERROR, TermList.asTermList(newAtom(this.operation), newAtom(permissionType), getCulprit()));
   }
 
 }

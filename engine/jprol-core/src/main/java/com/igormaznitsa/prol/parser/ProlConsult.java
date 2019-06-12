@@ -37,6 +37,8 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.igormaznitsa.prol.data.Terms.newStruct;
+
 public class ProlConsult {
 
   private static final Logger LOG = Logger.getLogger(ProlConsult.class.getCanonicalName());
@@ -89,7 +91,7 @@ public class ProlConsult {
       try {
         switch (nextItem.getTermType()) {
           case ATOM: {
-            base.assertZ(new TermStruct(nextItem));
+            base.assertZ(newStruct(nextItem));
           }
           break;
           case STRUCT: {

@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.igormaznitsa.prol.data.TermType.*;
+import static com.igormaznitsa.prol.data.Terms.newStruct;
 import static com.igormaznitsa.prol.utils.Utils.createOrAppendToList;
 
 public final class ProlTreeBuilder {
@@ -128,13 +129,13 @@ public final class ProlTreeBuilder {
       }
     }
 
-    final TermStruct result = new TermStruct(functor, listOfAtoms.toArray(new Term[0]));
+    final TermStruct result = newStruct(functor, listOfAtoms.toArray(new Term[0]));
     result.setPredicateProcessor(context.findProcessor(result));
     return result;
   }
 
   private Term readList(final ProlReader reader) throws IOException {
-    TermList leftPart = TermList.NULLLIST;
+    TermList leftPart = Terms.NULL_LIST;
     TermList leftPartFirst = leftPart;
     Term rightPart = null;
 
@@ -314,7 +315,7 @@ public final class ProlTreeBuilder {
 
           // check read atom to be zero-struct
           if (readAtomContainer.getState() == ProlTokenizerResult.STATE_ATOM && context.hasZeroArityPredicateForName(readAtom.getText())) {
-            readAtom = new TermStruct(readAtom);
+            readAtom = newStruct(readAtom);
           }
         }
       }
@@ -574,12 +575,12 @@ public final class ProlTreeBuilder {
 
           if (left != null) {
             if (right == null) {
-              operatorStruct = new TermStruct(savedTerm, new Term[] {left});
+              operatorStruct = newStruct(savedTerm, new Term[] {left});
             } else {
-              operatorStruct = new TermStruct(savedTerm, new Term[] {left, right});
+              operatorStruct = newStruct(savedTerm, new Term[] {left, right});
             }
           } else {
-            operatorStruct = new TermStruct(savedTerm, new Term[] {right});
+            operatorStruct = newStruct(savedTerm, new Term[] {right});
           }
 
           operatorStruct.setPredicateProcessor(builder.context.findProcessor(operatorStruct));

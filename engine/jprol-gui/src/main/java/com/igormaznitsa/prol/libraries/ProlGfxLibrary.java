@@ -21,6 +21,7 @@ import com.igormaznitsa.prol.annotations.Predicate;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermInteger;
 import com.igormaznitsa.prol.data.TermStruct;
+import com.igormaznitsa.prol.data.Terms;
 import com.igormaznitsa.prol.easygui.MainFrame;
 import com.igormaznitsa.prol.easygui.UiUtils;
 import com.igormaznitsa.prol.exceptions.ProlPermissionErrorException;
@@ -162,7 +163,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
     }
     bldr.append(colorhex);
 
-    return new Term(bldr.toString());
+    return Terms.newAtom(bldr.toString());
   }
 
   /**
@@ -674,8 +675,8 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
     locker.lock();
     try {
-      final TermInteger lpx = new TermInteger(lastPointX);
-      final TermInteger lpy = new TermInteger(lastPointY);
+      final TermInteger lpx = Terms.newInt(lastPointX);
+      final TermInteger lpy = Terms.newInt(lastPointY);
 
       if (elemX.getTermType() == VAR) {
         if (!elemX.unifyTo(lpx)) {
@@ -778,13 +779,13 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
       int height2 = heightOrig;
 
       if (width.getTermType() == VAR) {
-        width.unifyTo(new TermInteger(widthOrig));
+        width.unifyTo(Terms.newInt(widthOrig));
       } else {
         width2 = width.toNumber().intValue();
       }
 
       if (height.getTermType() == VAR) {
-        height.unifyTo(new TermInteger(widthOrig));
+        height.unifyTo(Terms.newInt(widthOrig));
       } else {
         height2 = height.toNumber().intValue();
       }

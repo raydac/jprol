@@ -25,6 +25,7 @@ import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 
 import static com.igormaznitsa.prol.data.TermType.ATOM;
+import static com.igormaznitsa.prol.data.Terms.*;
 
 public class ProlStrLibrary extends AbstractProlLibrary {
 
@@ -42,7 +43,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
     if (argFIRST.getTermType() == ATOM) {
       if (argSECOND.getTermType() == ATOM) {
         // the first case
-        Term term = new Term(argFIRST.getText() + argSECOND.getText());
+        Term term = newAtom(argFIRST.getText() + argSECOND.getText());
         return argTHIRD.unifyTo(term);
       } else {
         // the second case
@@ -52,7 +53,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
           return false;
         }
         String endText = fullText.substring(startText.length());
-        Term second = new Term(endText);
+        Term second = newAtom(endText);
         return argSECOND.unifyTo(second);
       }
     } else {
@@ -63,7 +64,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
         return false;
       }
       String startText = fullText.substring(0, fullText.length() - endText.length());
-      Term first = new Term(startText);
+      Term first = newAtom(startText);
       return argFIRST.unifyTo(first);
     }
   }
@@ -74,7 +75,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
     final Term argLeft = predicate.getElement(0).findNonVarOrSame();
     final Term argRight = predicate.getElement(1).findNonVarOrSame();
 
-    Term result = new Term(argLeft.getText().trim());
+    Term result = newAtom(argLeft.getText().trim());
 
     return argRight.unifyTo(result);
   }
@@ -95,7 +96,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
     final Term frontStr = predicate.getElement(2).findNonVarOrSame();
     final Term restStr = predicate.getElement(3).findNonVarOrSame();
 
-    return frontStr.unifyTo(new Term(fstr)) && restStr.unifyTo(new Term(rstr));
+    return frontStr.unifyTo(newAtom(fstr)) && restStr.unifyTo(newAtom(rstr));
   }
 
   @Predicate(Signature = "upper_lower/2", Template = {"+atom,?atom", "?atom,+atom"}, Reference = "Allows to make upper or lower case text version of an atom.")
@@ -106,11 +107,11 @@ public class ProlStrLibrary extends AbstractProlLibrary {
 
     if (argLeft.getTermType() == ATOM) {
       // the first case
-      Term term = new Term(argLeft.getText().toLowerCase());
+      Term term = newAtom(argLeft.getText().toLowerCase());
       return argRight.unifyTo(term);
     } else {
       // the second case
-      Term term = new Term(argRight.getText().toUpperCase());
+      Term term = newAtom(argRight.getText().toUpperCase());
       return argLeft.unifyTo(term);
     }
   }
@@ -121,7 +122,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
     final Term argLeft = predicate.getElement(0).findNonVarOrSame();
     final Term argRight = predicate.getElement(1).findNonVarOrSame();
 
-    TermInteger result = new TermInteger(argLeft.getText().length());
+    TermInteger result = newInt(argLeft.getText().length());
 
     return argRight.unifyTo(result);
   }
@@ -136,14 +137,14 @@ public class ProlStrLibrary extends AbstractProlLibrary {
       // the first case
       final TermInteger result;
       try {
-        result = new TermInteger(argLeft.getText().trim());
+        result = newInt(argLeft.getText().trim());
       } catch (NumberFormatException ex) {
         return false;
       }
       return argRight.unifyTo(result);
     } else {
       // the second case
-      Term result = new Term(argRight.getText());
+      Term result = newAtom(argRight.getText());
       return argLeft.unifyTo(result);
     }
   }
@@ -158,14 +159,14 @@ public class ProlStrLibrary extends AbstractProlLibrary {
       // the first case
       final TermFloat result;
       try {
-        result = new TermFloat(argLeft.getText().trim());
+        result = newFloat(argLeft.getText().trim());
       } catch (NumberFormatException ex) {
         return false;
       }
       return argRight.unifyTo(result);
     } else {
       // the second case
-      Term result = new Term(argRight.getText());
+      Term result = newAtom(argRight.getText());
       return argLeft.unifyTo(result);
     }
   }

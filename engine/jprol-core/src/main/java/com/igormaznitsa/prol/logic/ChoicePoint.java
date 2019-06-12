@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import static com.igormaznitsa.prol.data.TermType.ATOM;
+import static com.igormaznitsa.prol.data.Terms.newStruct;
 import static com.igormaznitsa.prol.trace.TraceEvent.EXIT;
 import static java.util.stream.Collectors.toMap;
 
@@ -65,7 +66,7 @@ public final class ChoicePoint {
       final Map<String, Term> predefinedVarValues
   ) {
     this.rootCp = rootCp == null ? this : rootCp;
-    this.goalTerm = goalToSolve.getTermType() == ATOM ? new TermStruct(goalToSolve) : goalToSolve;
+    this.goalTerm = goalToSolve.getTermType() == ATOM ? newStruct(goalToSolve) : goalToSolve;
     this.context = context;
 
     final Term goal = assertCallable(goalToSolve.findNonVarOrDefault(goalToSolve));

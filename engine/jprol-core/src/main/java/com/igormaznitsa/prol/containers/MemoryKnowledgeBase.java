@@ -16,10 +16,7 @@
 
 package com.igormaznitsa.prol.containers;
 
-import com.igormaznitsa.prol.data.Operator;
-import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.data.TermInteger;
-import com.igormaznitsa.prol.data.TermStruct;
+import com.igormaznitsa.prol.data.*;
 import com.igormaznitsa.prol.exceptions.ProlKnowledgeBaseException;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.logic.triggers.ProlTriggerType;
@@ -32,6 +29,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import static com.igormaznitsa.prol.data.TermType.ATOM;
+import static com.igormaznitsa.prol.data.Terms.newStruct;
 import static java.lang.Integer.parseInt;
 
 public final class MemoryKnowledgeBase implements KnowledgeBase {
@@ -246,7 +244,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
         // get left part
         Term leftPart = clause.getElement(0);
         if (leftPart.getTermType() == ATOM) {
-          leftPart = new TermStruct(leftPart);
+          leftPart = newStruct(leftPart);
           clause.setElement(0, leftPart);
         }
         uid = leftPart.getSignature();
@@ -352,10 +350,10 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
           .stream()
           .map(key -> {
             final int index = key.lastIndexOf('/');
-            return new TermStruct(Utils.SIGNATURE_OPERATOR,
+            return newStruct(Utils.SIGNATURE_OPERATOR,
                 new Term[] {
-                    new Term(key.substring(0, index)),
-                    new TermInteger(parseInt(key.substring(index + 1)))
+                    Terms.newAtom(key.substring(0, index)),
+                    Terms.newInt(parseInt(key.substring(index + 1)))
                 });
           })
           .filter(predicateIndicator::dryUnifyTo)

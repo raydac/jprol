@@ -29,7 +29,7 @@ import static com.igormaznitsa.prol.data.TermType.*;
 
 public class TermStruct extends Term {
 
-  private static final Term[] EMPTY_ARRAY = new Term[0];
+  protected static final Term[] EMPTY_ARRAY = new Term[0];
   protected final Term[] terms;
   protected final Term functor;
   protected PredicateProcessor predicateProcessor;
@@ -82,8 +82,8 @@ public class TermStruct extends Term {
     return this.terms;
   }
 
-  public final void setElement(final int index, final Term element) {
-    terms[index] = element;
+  public void setElement(final int index, final Term element) {
+    this.terms[index] = element;
   }
 
   @Override
@@ -97,7 +97,7 @@ public class TermStruct extends Term {
   }
 
   @SuppressWarnings("unchecked")
-  public final <T extends Term> T getElement(final int index) {
+  public <T extends Term> T getElement(final int index) {
     return (T) this.terms[index];
   }
 
@@ -537,7 +537,7 @@ public class TermStruct extends Term {
         final Term element = elements[li];
         destElements[li] = element.makeCloneAndVarBound(vars);
       }
-      result = new TermStruct(this.getFunctor(), destElements, this.getPredicateProcessor());
+      result = Terms.newStruct(this.getFunctor(), destElements, this.getPredicateProcessor());
     }
     return result;
   }
@@ -556,7 +556,7 @@ public class TermStruct extends Term {
         final Term element = elements[li];
         destElements[li] = element.doMakeClone(vars);
       }
-      result = new TermStruct(this.getFunctor(), destElements, this.getPredicateProcessor());
+      result = Terms.newStruct(this.getFunctor(), destElements, this.getPredicateProcessor());
     }
     return result;
   }

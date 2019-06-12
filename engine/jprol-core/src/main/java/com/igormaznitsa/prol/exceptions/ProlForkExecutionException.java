@@ -17,16 +17,18 @@
 package com.igormaznitsa.prol.exceptions;
 
 import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.data.TermInteger;
 import com.igormaznitsa.prol.data.TermStruct;
 
 import java.util.Arrays;
+
+import static com.igormaznitsa.prol.data.Terms.newAtom;
+import static com.igormaznitsa.prol.data.Terms.newInt;
 
 public class ProlForkExecutionException extends ProlAbstractCatcheableException {
 
   private static final long serialVersionUID = 3401072948341099491L;
 
-  private static final Term ERROR_TERM = new Term("fork_error");
+  private static final Term ERROR_TERM = newAtom("fork_error");
 
   private final Throwable[] throwables;
 
@@ -45,7 +47,7 @@ public class ProlForkExecutionException extends ProlAbstractCatcheableException 
 
   @Override
   public TermStruct getAsStruct() {
-    return makeErrorStruct(ERROR_TERM, new TermInteger(throwables.length));
+    return makeErrorStruct(ERROR_TERM, newInt(throwables.length));
   }
 
   @Override

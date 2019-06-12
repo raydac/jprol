@@ -16,7 +16,7 @@
 
 package com.igormaznitsa.prol.script;
 
-import com.igormaznitsa.prol.data.Term;
+import com.igormaznitsa.prol.data.Terms;
 import com.igormaznitsa.prol.logic.ProlContext;
 
 import javax.script.ScriptEngine;
@@ -96,7 +96,7 @@ public final class JProlScriptEngineFactory implements ScriptEngineFactory {
 
   @Override
   public String getOutputStatement(final String toDisplay) {
-    return String.format("write(%s)", new Term(toDisplay).toSrcString());
+    return String.format("write(%s)", Terms.newAtom(toDisplay).toSrcString());
   }
 
   @Override

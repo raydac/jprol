@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import static com.igormaznitsa.prol.data.TermType.VAR;
+import static com.igormaznitsa.prol.data.Terms.newVar;
 
 public final class Var extends Term {
 
