@@ -40,7 +40,6 @@ import java.util.stream.Stream;
 
 import static com.igormaznitsa.prol.data.TermList.NULLLIST;
 import static com.igormaznitsa.prol.data.TermType.ATOM;
-import static com.igormaznitsa.prol.data.TermType.VAR;
 import static com.igormaznitsa.prol.utils.Utils.createOrAppendToList;
 import static com.igormaznitsa.prol.utils.Utils.escapeSrc;
 import static java.util.stream.Collectors.toMap;
@@ -98,8 +97,8 @@ public class Term {
 
   public Map<String, Term> allNamedVarValuesAsMap() {
     return this.variables()
-        .filter(v -> v.<Term>findNonVarOrDefault(v).getTermType() != VAR)
-        .collect(toMap(Var::getText, e -> e.findNonVarOrDefault(e), (v1, v2) -> v2));
+        .filter(v -> !v.isFree())
+        .collect(toMap(Var::getText, e -> e.<Term>findNonVarOrDefault(e), (v1, v2) -> v2));
   }
 
   public boolean isGround() {
