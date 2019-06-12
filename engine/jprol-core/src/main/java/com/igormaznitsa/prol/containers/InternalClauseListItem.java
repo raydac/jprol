@@ -25,7 +25,7 @@ public final class InternalClauseListItem {
 
   private final TermStruct clause;
   private final Term keyTerm;
-  private final boolean fact;
+  private final boolean rightPartPresented;
   private InternalClauseListItem previous;
   private InternalClauseListItem next;
 
@@ -40,12 +40,12 @@ public final class InternalClauseListItem {
       next.setPrevious(this);
     }
     this.clause = clause;
-    if (clause.isFunctorLikeRuleDefinition()) {
-      fact = false;
-      keyTerm = clause.getElement(0);
+    if (":-".equals(clause.getFunctor().getText())) {
+      this.rightPartPresented = true;
+      this.keyTerm = clause.getElement(0);
     } else {
-      fact = true;
-      keyTerm = clause;
+      this.rightPartPresented = false;
+      this.keyTerm = clause;
     }
   }
 

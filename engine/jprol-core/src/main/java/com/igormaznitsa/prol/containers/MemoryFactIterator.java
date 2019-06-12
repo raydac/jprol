@@ -20,7 +20,7 @@ import com.igormaznitsa.prol.data.TermStruct;
 
 import java.util.NoSuchElementException;
 
-final class MemoryFactIterator extends MemoryClauseIterator implements FactIterator {
+final class MemoryFactIterator extends MemoryClauseIterator {
 
   public MemoryFactIterator(final InternalKnowledgeBaseClauseList list, final TermStruct template) {
     super(list, template);
@@ -29,10 +29,9 @@ final class MemoryFactIterator extends MemoryClauseIterator implements FactItera
   @Override
   protected InternalClauseListItem findFirstElement() {
     InternalClauseListItem firstitem = null;
-
     while (!Thread.currentThread().isInterrupted()) {
       firstitem = predicateList.findDirect(template, firstitem);
-      if (firstitem == null || firstitem.isFact()) {
+      if (firstitem == null || (!firstitem.isRightPartPresented() && firstitem.getKeyTerm().isGround())) {
         break;
       }
     }
@@ -50,7 +49,7 @@ final class MemoryFactIterator extends MemoryClauseIterator implements FactItera
 
     while (!Thread.currentThread().isInterrupted()) {
       lastFound = predicateList.findDirect(template, lastFound);
-      if (lastFound == null || lastFound.isFact()) {
+      if (lastFound == null || (!lastFound.isRightPartPresented() && lastFound.getKeyTerm().isGround())) {
         break;
       }
     }

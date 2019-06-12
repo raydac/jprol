@@ -18,7 +18,6 @@ package com.igormaznitsa.prol.libraries;
 
 import com.igormaznitsa.prol.annotations.*;
 import com.igormaznitsa.prol.containers.ClauseIterator;
-import com.igormaznitsa.prol.containers.FactIterator;
 import com.igormaznitsa.prol.containers.KnowledgeBase;
 import com.igormaznitsa.prol.data.*;
 import com.igormaznitsa.prol.exceptions.*;
@@ -589,7 +588,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         if (nxtStruct != null) {
           Term headClause;
           Term bodyClause;
-          if (nxtStruct.isFunctorLikeRuleDefinition()) {
+          if (":-".equals(nxtStruct.getFunctor().getText())) {
             headClause = nxtStruct.getElement(0);
             bodyClause = nxtStruct.getElement(1);
           } else {
@@ -1930,7 +1929,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       atom = newStruct(atom);
     }
 
-    final String signature = ((TermStruct) atom).isFunctorLikeRuleDefinition() ? ((TermStruct) atom).getElement(0).getSignature() : atom.getSignature();
+    final String signature = ":-".equals(((TermStruct) atom).getFunctor().getText()) ? ((TermStruct) atom).getElement(0).getSignature() : atom.getSignature();
 
     // check that we doesn't overload any static system predicate
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
@@ -1952,7 +1951,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       atom = newStruct(atom);
     }
 
-    final String signature = ((TermStruct) atom).isFunctorLikeRuleDefinition() ? ((TermStruct) atom).getElement(0).getSignature() : atom.getSignature();
+    final String signature = ":-".equals(((TermStruct) atom).getFunctor().getText()) ? ((TermStruct) atom).getElement(0).getSignature() : atom.getSignature();
 
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
       throw new ProlPermissionErrorException("modify", "static_procedure", newAtom(signature));
@@ -1975,7 +1974,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       atom = newStruct(atom);
     }
 
-    final String signature = ((TermStruct) atom).isFunctorLikeRuleDefinition() ? ((TermStruct) atom).getElement(0).getSignature() : atom.getSignature();
+    final String signature = ":-".equals(((TermStruct) atom).getFunctor().getText()) ? ((TermStruct) atom).getElement(0).getSignature() : atom.getSignature();
 
     // check that we doesn't overload any static system predicate
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
@@ -1996,7 +1995,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       atom = newStruct(atom);
     }
 
-    final String signature = ((TermStruct) atom).isFunctorLikeRuleDefinition() ? ((TermStruct) atom).getElement(0).getSignature() : atom.getSignature();
+    final String signature = ":-".equals(((TermStruct) atom).getFunctor().getText()) ? ((TermStruct) atom).getElement(0).getSignature() : atom.getSignature();
 
     // check that we doesn't overload any static system predicate
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
@@ -2016,7 +2015,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       atom = newStruct(atom);
     }
 
-    final String signature = ((TermStruct) atom).isFunctorLikeRuleDefinition() ? ((TermStruct) atom).getElement(0).getSignature() : atom.getSignature();
+    final String signature = ":-".equals(((TermStruct) atom).getFunctor().getText()) ? ((TermStruct) atom).getElement(0).getSignature() : atom.getSignature();
 
     // check that we doesn't overload any static system predicate
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
@@ -2154,17 +2153,15 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "facts/1", Template = {"+callable_term"}, Reference = "Finds only facts at the knowledge base.")
   public static boolean predicateFACTS(final ChoicePoint goal, final TermStruct predicate) {
-    FactIterator factIterator = goal.getPayload();
+    ClauseIterator factIterator = goal.getPayload();
     final Term origterm = predicate.getElement(0).findNonVarOrSame();
 
     if (factIterator == null) {
       Term term = origterm;
       if (term.getTermType() == ATOM) {
-        // we have make the term as a struct
         term = newStruct(term);
       }
 
-      // it's the first call so we have to get fact iterator from the base
       final KnowledgeBase base = goal.getContext().getKnowledgeBase();
       factIterator = base.getFactIterator((TermStruct) term);
 
@@ -2189,73 +2186,6 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         throw new ProlCriticalError("Critical error, not unifyTo!");
       }
       result = true;
-    }
-
-    return result;
-  }
-
-  @Predicate(Signature = "rules/1", Template = {"+callable_term"}, Reference = "Finds and call only rules at the knowledge base.")
-  public static boolean predicateRULES(final ChoicePoint goal, final TermStruct predicate) {
-
-    RuleAuxObject ruleAuxObject = goal.getPayload();
-    if (ruleAuxObject == null) {
-      Term term = predicate.getElement(0).findNonVarOrSame();
-
-      if (term.getTermType() == ATOM) {
-        // atom, we have to make a struct
-        term = newStruct(term);
-      }
-
-      // it's the first call so we have to get fact iterator from the base
-      final KnowledgeBase base = goal.getContext().getKnowledgeBase();
-      final ClauseIterator ruleIterator = base.getRuleIterator((TermStruct) term);
-
-      if (ruleIterator == null) {
-        goal.resetVariants();
-        return false;
-      } else {
-        ruleAuxObject = new RuleAuxObject(ruleIterator);
-        goal.setPayload(ruleAuxObject);
-      }
-    }
-
-    boolean result = false;
-
-    while (!Thread.currentThread().isInterrupted()) {
-      final ChoicePoint currentGoal = ruleAuxObject.currentActiveGoal;
-      if (currentGoal == null) {
-        final TermStruct nextRule = processIterator(goal, ruleAuxObject.iterator);
-        if (nextRule == null) {
-          // end
-          goal.setPayload(null);
-          goal.resetVariants();
-          break;
-        }
-
-        ruleAuxObject.rule = nextRule;
-        ruleAuxObject.currentActiveGoal = new ChoicePoint(nextRule, goal.getContext());
-      } else {
-        final Term goalresult = currentGoal.next();
-        if (goalresult == null) {
-          // end for the goal
-          ruleAuxObject.currentActiveGoal = null;
-        } else {
-          // solved
-
-          final Term term = predicate.getElement(0).findNonVarOrSame();
-
-          if (term.getTermType() == STRUCT) {
-            final TermStruct ruleClone = (TermStruct) ruleAuxObject.rule.makeClone();
-            if (!term.unifyTo(ruleClone.getElement(0))) {
-              // error critical situation
-              throw new ProlCriticalError("Can't make unifyTo, impossible case!");
-            }
-          }
-
-          result = true;
-          break;
-        }
-      }
     }
 
     return result;

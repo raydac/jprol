@@ -226,7 +226,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   private boolean assertClause(final ProlContext context, final TermStruct clause, final boolean asFirst) {
     try {
       final String uid;
-      if (clause.isFunctorLikeRuleDefinition()) {
+      if (":-".equals(clause.getFunctor().getText())) {
         Term leftPart = clause.getElement(0);
         if (leftPart.getTermType() == ATOM) {
           leftPart = newStruct(leftPart);
@@ -267,7 +267,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public FactIterator getFactIterator(final TermStruct template) {
+  public ClauseIterator getFactIterator(final TermStruct template) {
     final String uid = template.getSignature();
 
     final ReentrantLock lockerPred = predicateLocker;
@@ -275,29 +275,9 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     lockerPred.lock();
     try {
       final InternalKnowledgeBaseClauseList list = predicateTable.get(uid);
-      FactIterator result = null;
+      ClauseIterator result = null;
       if (list != null) {
         result = new MemoryFactIterator(list, template);
-      }
-      return result;
-    } finally {
-      lockerPred.unlock();
-    }
-  }
-
-  @Override
-  public ClauseIterator getRuleIterator(final TermStruct template) {
-    final String uid = template.getSignature();
-
-    final ReentrantLock lockerPred = predicateLocker;
-    lockerPred.lock();
-    try {
-      final InternalKnowledgeBaseClauseList list = predicateTable.get(uid);
-
-      ClauseIterator result = null;
-
-      if (list != null) {
-        result = new MemoryRuleIterator(list, template);
       }
       return result;
     } finally {
@@ -377,7 +357,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   @Override
   public boolean retractAll(final ProlContext context, final TermStruct clause) {
     TermStruct struct = clause;
-    if (struct.isFunctorLikeRuleDefinition()) {
+    if (":-".equals(struct.getFunctor().getText())) {
       // it's a clause
       struct = struct.getElement(0);
     }
@@ -415,7 +395,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   @Override
   public boolean retractA(final ProlContext context, final TermStruct clause) {
     TermStruct struct = clause;
-    if (struct.isFunctorLikeRuleDefinition()) {
+    if (":-".equals(struct.getFunctor().getText())) {
       // it's a clause
       struct = struct.getElement(0);
     }
@@ -452,7 +432,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   @Override
   public boolean retractZ(final ProlContext context, final TermStruct clause) {
     TermStruct struct = clause;
-    if (struct.isFunctorLikeRuleDefinition()) {
+    if (":-".equals(struct.getFunctor().getText())) {
       // it's a clause
       struct = struct.getElement(0);
     }

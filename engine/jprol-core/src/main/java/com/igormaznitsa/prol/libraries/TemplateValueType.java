@@ -255,7 +255,7 @@ public enum TemplateValueType {
         final TermStruct struct = (TermStruct) t;
         final Term functor = struct.getFunctor();
 
-        final boolean rule = struct.isFunctorLikeRuleDefinition();
+        final boolean rule = ":-".equals(struct.getFunctor().getText());
         final TermType functorType = functor.getTermType();
 
         // check left part

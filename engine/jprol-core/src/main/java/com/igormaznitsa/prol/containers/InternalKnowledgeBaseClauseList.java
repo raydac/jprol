@@ -131,28 +131,25 @@ final class InternalKnowledgeBaseClauseList {
     return result;
   }
 
-  InternalClauseListItem findDirect(final TermStruct template, InternalClauseListItem sinceContainer) {
+  InternalClauseListItem findDirect(final TermStruct template, InternalClauseListItem startClause) {
 
-    if (sinceContainer == null) {
-      sinceContainer = first;
+    if (startClause == null) {
+      startClause = this.first;
     } else {
-      sinceContainer = sinceContainer.getNext();
+      startClause = startClause.getNext();
     }
 
     InternalClauseListItem result = null;
 
-    while (sinceContainer != null) {
-
-      final Term keyTerm = sinceContainer.getKeyTerm();
-
+    while (startClause != null) {
+      final Term keyTerm = startClause.getKeyTerm();
       if (keyTerm.dryUnifyTo(template)) {
-        // looks similar but we need to check a bit deeper to be ensure
         if (template.makeClone().unifyTo(keyTerm.makeClone())) {
-          result = sinceContainer;
+          result = startClause;
           break;
         }
       }
-      sinceContainer = sinceContainer.getNext();
+      startClause = startClause.getNext();
 
     }
     return result;
@@ -170,7 +167,6 @@ final class InternalKnowledgeBaseClauseList {
     while (sinceContainer != null) {
       final Term keyterm = sinceContainer.getKeyTerm();
       if (keyterm.dryUnifyTo(template)) {
-        // check deeper because equWithoutSet is not precise for speed
         if (keyterm.makeClone().unifyTo(template.makeClone())) {
           result = sinceContainer;
           break;

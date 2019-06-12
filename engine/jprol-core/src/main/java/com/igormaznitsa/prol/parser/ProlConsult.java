@@ -104,7 +104,7 @@ public class ProlConsult {
                 final String text = op.getText();
                 final int type = op.getOperatorType();
 
-                if (struct.isFunctorLikeRuleDefinition()) {
+                if (":-".equals(struct.getFunctor().getText())) {
                   switch (type) {
                     case Operator.OPTYPE_XFX: {
                       // new rule

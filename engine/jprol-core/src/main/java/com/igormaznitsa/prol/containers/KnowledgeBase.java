@@ -44,9 +44,7 @@ public interface KnowledgeBase {
 
   void write(PrintWriter writer);
 
-  FactIterator getFactIterator(TermStruct template);
-
-  ClauseIterator getRuleIterator(TermStruct template);
+  ClauseIterator getFactIterator(TermStruct template);
 
   ClauseIterator getClauseIterator(TermStruct template);
 

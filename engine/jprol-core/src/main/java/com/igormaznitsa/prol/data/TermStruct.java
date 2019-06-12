@@ -34,8 +34,6 @@ public class TermStruct extends Term {
   protected final Term functor;
   protected PredicateProcessor predicateProcessor;
   private String structureSignature;
-  private boolean rulefunctor;
-  private boolean rulefunctorset;
 
   TermStruct(final Term functor) {
     this(functor, EMPTY_ARRAY);
@@ -43,20 +41,10 @@ public class TermStruct extends Term {
 
   TermStruct(final String functor, final Term[] elements) {
     this(new Term(functor), elements);
-    if (functor.length() != 2) {
-      rulefunctor = false;
-      rulefunctorset = true;
-    }
   }
 
   TermStruct(final Term functor, final Term[] elements) {
     super(functor.getText());
-    final String functorText = functor.getText();
-    if (functorText.length() != 2) {
-      rulefunctor = false;
-      rulefunctorset = true;
-    }
-
     this.functor = functor;
     this.terms = elements == null ? EMPTY_ARRAY : elements;
   }
@@ -64,14 +52,6 @@ public class TermStruct extends Term {
   TermStruct(final Term functor, final Term[] elements, final PredicateProcessor processor) {
     this(functor, elements);
     predicateProcessor = processor;
-  }
-
-  public final boolean isFunctorLikeRuleDefinition() {
-    if (!rulefunctorset) {
-      rulefunctor = ":-".equals(functor.getText());
-      rulefunctorset = true;
-    }
-    return rulefunctor;
   }
 
   public final Term getFunctor() {

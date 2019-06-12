@@ -304,17 +304,17 @@ public final class ChoicePoint {
           final TermStruct structFromBase = this.clauseIterator.next();
 
           final Term goalTermForEqu;
-          if (((TermStruct) this.goalTerm).isFunctorLikeRuleDefinition()) {
+          if (":-".equals(((TermStruct) this.goalTerm).getFunctor().getText())) {
             goalTermForEqu = ((TermStruct) this.goalTerm).getElement(0).makeClone();
           } else {
             goalTermForEqu = this.goalTerm.makeClone();
           }
 
-          if (!goalTermForEqu.unifyTo(structFromBase.isFunctorLikeRuleDefinition() ? structFromBase.getElement(0) : structFromBase)) {
+          if (!goalTermForEqu.unifyTo(":-".equals(structFromBase.getFunctor().getText()) ? structFromBase.getElement(0) : structFromBase)) {
             throw new ProlCriticalError("impossible situation #2123123");
           }
 
-          if (structFromBase.isFunctorLikeRuleDefinition()) {
+          if (":-".equals(structFromBase.getFunctor().getText())) {
             this.thisConnector = goalTerm;
             this.subChoicePointConnector = structFromBase.getElement(0);
             this.subCp = new ChoicePoint(structFromBase.getElement(1), this.context);
@@ -345,7 +345,7 @@ public final class ChoicePoint {
           final TermStruct struct = (TermStruct) goalTerm;
           final int arity = struct.getArity();
 
-          if (struct.isFunctorLikeRuleDefinition()) {
+          if (":-".equals(struct.getFunctor().getText())) {
             final TermStruct structClone = (TermStruct) struct.makeClone();
 
             this.thisConnector = struct.getElement(0);
