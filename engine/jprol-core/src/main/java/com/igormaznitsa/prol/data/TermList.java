@@ -328,9 +328,7 @@ public final class TermList extends TermStruct {
       return 0;
     }
 
-    if (atom.getTermType() == VAR && atom.isGround()) {
-      atom = ((Var) atom).getValue();
-    }
+    atom = atom.findNonVarOrSame();
 
     switch (atom.getTermType()) {
       case LIST: {

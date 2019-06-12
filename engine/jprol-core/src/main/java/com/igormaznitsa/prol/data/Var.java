@@ -351,13 +351,8 @@ public final class Var extends Term {
     if (this == atom) {
       return 0;
     }
-
-    Term thisAtom = getValue();
-    if (thisAtom == null) {
-      thisAtom = this;
-    }
-
-    atom = atom.findNonVarOrDefault(atom);
+    final Term thisAtom = this.findNonVarOrSame();
+    atom = atom.findNonVarOrSame();
 
     int result = -1;
     if (thisAtom == this) {

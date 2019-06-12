@@ -307,7 +307,7 @@ public class Term {
       return 0;
     }
 
-    atom = atom.findNonVarOrDefault(atom);
+    atom = atom.findNonVarOrSame();
 
     switch (atom.getTermType()) {
       case ATOM: {
