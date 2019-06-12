@@ -18,7 +18,7 @@ package com.igormaznitsa.prol.logic;
 
 import com.igormaznitsa.prol.annotations.ConsultText;
 import com.igormaznitsa.prol.containers.KnowledgeBase;
-import com.igormaznitsa.prol.containers.OperatorContainer;
+import com.igormaznitsa.prol.data.OperatorContainer;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.exceptions.ProlException;

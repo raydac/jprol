@@ -1040,10 +1040,13 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final Term argRight = predicate.getElement(1).findNonVarOrSame();
 
     if (argRight.getTermType() != VAR) {
-      Term atom = Utils.getListAsAtom(goal.getContext(), (TermList) argRight);
+      final Term atom = ((TermList) argRight).toAtom();
+      if (atom.getTermType() == STRUCT) {
+        ((TermStruct) atom).setPredicateProcessor(goal.getContext().findProcessor((TermStruct) atom));
+      }
       return argLeft.unifyTo(atom);
     } else {
-      TermList lst = Utils.unrollTermIntoList(argLeft);
+      TermList lst = TermList.asTermList(argLeft);
       return argRight.unifyTo(lst);
     }
   }
@@ -1496,7 +1499,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         result = Terms.NULL_LIST;
       } else {
         // calculate length of the list
-        final Term[] array = Utils.listToArray(list);
+        final Term[] array = list.toArray();
         result = array[RANDOMIZEGEN.nextInt(array.length)];
       }
 
@@ -1609,9 +1612,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final Term nonsorted = predicate.getElement(0).findNonVarOrSame();
     final Term sorted = predicate.getElement(1).findNonVarOrSame();
 
-    final Term[] bufferarray = Utils.listToArray((TermList) nonsorted);
+    final Term[] bufferarray = ((TermList) nonsorted).toArray();
     Arrays.sort(bufferarray, Utils.TERM_COMPARATOR);
-    final TermList sortedList = Utils.arrayToList(bufferarray);
+    final TermList sortedList = TermList.asTermList(bufferarray);
 
     return sorted.unifyTo(sortedList);
   }
@@ -1637,7 +1640,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
       final Term templateCopy = template.makeClone();
       final Term pgoalCopy = pgoal.makeClone();
-      Utils.arrangeVariablesInsideTerms(templateCopy, pgoalCopy);
+      templateCopy.arrangeVariablesInsideTerms(pgoalCopy);
 
       if (pgoalCopy.unifyTo(nextTemplate)) {
         // good, add to the list
@@ -1748,7 +1751,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
         final Term templateCopy = template.makeClone();
         final Term pgoalCopy = processingGoal.makeClone();
-        Utils.arrangeVariablesInsideTerms(templateCopy, pgoalCopy);
+        templateCopy.arrangeVariablesInsideTerms(pgoalCopy);
 
         if (pgoalCopy.unifyTo(nextTemplate)) {
           final BofKey thekey = new BofKey(find_goal, excludedVars);
@@ -1869,7 +1872,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
         final Term templateCopy = template.makeClone();
         final Term pgoalCopy = processingGoal.makeClone();
-        Utils.arrangeVariablesInsideTerms(templateCopy, pgoalCopy);
+        templateCopy.arrangeVariablesInsideTerms(pgoalCopy);
 
         if (pgoalCopy.unifyTo(nextTemplate)) {
           final SofKey thekey = new SofKey(find_goal, excludedVars);
@@ -1888,9 +1891,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
       final Map<SofKey, TermList> sortedMap = new LinkedHashMap<>();
       preparedMap.forEach((key, value) -> {
-        final Term[] tmpArray = Utils.listToArray(value);
+        final Term[] tmpArray = value.toArray();
         Arrays.sort(tmpArray, Utils.TERM_COMPARATOR);
-        final TermList sortedList = Utils.arrayToList(
+        final TermList sortedList = TermList.asTermList(
             Arrays.stream(tmpArray)
                 .distinct().toArray(Term[]::new)
         );
@@ -2467,7 +2470,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     Term termThrowsException = null;
 
     // parse the list for terms
-    final Term[] parsedgoal = Utils.listToArray(termlist);
+    final Term[] parsedgoal = termlist.toArray();
 
     final Map<Integer, Future<Term>> workingThreads = new HashMap<>();
     int index = 0;

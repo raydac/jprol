@@ -17,6 +17,7 @@
 package com.igormaznitsa.prol.containers;
 
 import com.igormaznitsa.prol.data.Operator;
+import com.igormaznitsa.prol.data.OperatorContainer;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.logic.ProlContext;

@@ -1,7 +1,6 @@
 package com.igormaznitsa.prol.script;
 
 import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.utils.Utils;
 
 import javax.script.Bindings;
 import java.util.Collection;
@@ -38,7 +37,7 @@ final class JProlBindings implements Bindings {
   @Override
   public Object put(final String name, final Object value) {
     assertPrologName(name);
-    final Term converted = value instanceof Term ? (Term) value : Utils.obj2term(value);
+    final Term converted = Term.toTerm(value);
     final Term prev = this.internalMap.put(name, converted);
     return prev == null ? null : prev.toObject();
   }
@@ -85,7 +84,7 @@ final class JProlBindings implements Bindings {
     if (value == null) {
       throw new NullPointerException("Value is null");
     }
-    final Term theTerm = value instanceof Term ? (Term) value : Utils.obj2term(value);
+    final Term theTerm = Term.toTerm(value);
     return this.internalMap.containsValue(theTerm);
   }
 

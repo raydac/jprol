@@ -17,7 +17,6 @@
 package com.igormaznitsa.prol.parser;
 
 import com.igormaznitsa.prol.containers.KnowledgeBase;
-import com.igormaznitsa.prol.containers.OperatorContainer;
 import com.igormaznitsa.prol.data.*;
 import com.igormaznitsa.prol.exceptions.ParserException;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;

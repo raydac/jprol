@@ -26,6 +26,9 @@ import java.util.stream.Stream;
 
 import static com.igormaznitsa.prol.data.TermType.LIST;
 import static com.igormaznitsa.prol.data.TermType.VAR;
+import static com.igormaznitsa.prol.data.Terms.newList;
+import static com.igormaznitsa.prol.data.Terms.newStruct;
+import static com.igormaznitsa.prol.utils.Utils.createOrAppendToList;
 
 public final class TermList extends TermStruct {
 
@@ -40,8 +43,8 @@ public final class TermList extends TermStruct {
     super(Terms.LIST_FUNCTOR, new Term[] {term, Terms.NULL_LIST});
   }
 
-  public TermList(final Term head, final Term tail) {
-    super(LIST_FUNCTOR, new Term[] {head, tail});
+  TermList(final Term head, final Term tail) {
+    super(Terms.LIST_FUNCTOR, new Term[] {head, tail});
   }
 
   @SuppressWarnings("unchecked")

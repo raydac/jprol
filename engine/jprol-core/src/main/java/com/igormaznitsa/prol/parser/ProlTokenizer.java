@@ -17,8 +17,9 @@
 package com.igormaznitsa.prol.parser;
 
 import com.igormaznitsa.prol.containers.KnowledgeBase;
-import com.igormaznitsa.prol.containers.OperatorContainer;
-import com.igormaznitsa.prol.data.*;
+import com.igormaznitsa.prol.data.OperatorContainer;
+import com.igormaznitsa.prol.data.Term;
+import com.igormaznitsa.prol.data.TermType;
 import com.igormaznitsa.prol.exceptions.ParserException;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 

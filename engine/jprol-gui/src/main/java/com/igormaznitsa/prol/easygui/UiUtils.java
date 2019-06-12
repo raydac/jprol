@@ -16,6 +16,10 @@
 
 package com.igormaznitsa.prol.easygui;
 
+import com.igormaznitsa.prol.annotations.*;
+import com.igormaznitsa.prol.data.Operator;
+import com.igormaznitsa.prol.libraries.AbstractProlLibrary;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -23,6 +27,8 @@ import java.awt.image.BufferedImage;
 import java.io.Closeable;
 import java.io.File;
 import java.io.InputStream;
+import java.io.PrintStream;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -43,6 +49,69 @@ public final class UiUtils {
       try {
         closeable.close();
       } catch (Exception ex) {
+      }
+    }
+  }
+
+  public static void printPredicatesForLibrary(final PrintStream out, final Class<?> libraryClass) {
+    if (!AbstractProlLibrary.class.isAssignableFrom(libraryClass)) {
+      out.println(libraryClass.getCanonicalName() + " is not an AbstractLibrary class");
+      return;
+    }
+
+    final Method[] methods = libraryClass.getMethods();
+    out.println(libraryClass.getCanonicalName());
+    out.println("===============================================");
+
+    final ProlOperators operators = libraryClass.getAnnotation(ProlOperators.class);
+    if (operators != null) {
+      // there is defined operators
+      final ProlOperator[] ops = operators.Operators();
+      if (ops.length > 0) {
+        out.println("Operators\n-----------------------");
+        for (final ProlOperator oper : ops) {
+          if (oper.Priority() > 0) {
+            out.println(":-op(" + oper.Priority() + "," + Operator.getTypeFromIndex(oper.Type()) + ",\'" + oper.Name() + "\').");
+          }
+        }
+        out.println("-----------------------");
+      }
+    }
+
+    for (final Method method : methods) {
+      final Predicate predicate = method.getAnnotation(Predicate.class);
+      if (predicate != null) {
+        final boolean determined = method.getAnnotation(Determined.class) != null;
+        final PredicateSynonyms predicateSynonims = method.getAnnotation(PredicateSynonyms.class);
+        out.print(predicate.Signature());
+        if (predicateSynonims != null) {
+          out.print(" {");
+          final String[] signatures = predicateSynonims.Signatures();
+          for (int ls = 0; ls < signatures.length; ls++) {
+            if (ls > 0) {
+              out.print(", ");
+            }
+            out.print(signatures[ls]);
+          }
+          out.print("}");
+        }
+        if (determined) {
+          out.print(" [DETERMINED]");
+        }
+        out.println();
+
+        final String[] templates = predicate.Template();
+        for (String template : templates) {
+          out.println('[' + template + ']');
+        }
+
+        final String reference = predicate.Reference();
+        if (reference != null && reference.length() > 0) {
+          out.println();
+          out.println(reference);
+        }
+
+        out.println("---------------------\r\n");
       }
     }
   }

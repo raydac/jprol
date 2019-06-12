@@ -37,11 +37,11 @@ public class TermStruct extends Term {
   private boolean rulefunctor;
   private boolean rulefunctorset;
 
-  public TermStruct(final Term functor) {
+  TermStruct(final Term functor) {
     this(functor, EMPTY_ARRAY);
   }
 
-  public TermStruct(final String functor, final Term[] elements) {
+  TermStruct(final String functor, final Term[] elements) {
     this(new Term(functor), elements);
     if (functor.length() != 2) {
       rulefunctor = false;
@@ -49,7 +49,7 @@ public class TermStruct extends Term {
     }
   }
 
-  public TermStruct(final Term functor, final Term[] elements) {
+  TermStruct(final Term functor, final Term[] elements) {
     super(functor.getText());
     final String functorText = functor.getText();
     if (functorText.length() != 2) {
@@ -61,7 +61,7 @@ public class TermStruct extends Term {
     this.terms = elements == null ? EMPTY_ARRAY : elements;
   }
 
-  public TermStruct(final Term functor, final Term[] elements, final PredicateProcessor processor) {
+  TermStruct(final Term functor, final Term[] elements, final PredicateProcessor processor) {
     this(functor, elements);
     predicateProcessor = processor;
   }
@@ -541,6 +541,31 @@ public class TermStruct extends Term {
     }
     return result;
   }
+
+  @Override
+  protected void doArrabgeVars(final Map<String, Var> variables) {
+    final TermStruct struct = this;
+    final int arity = struct.getArity();
+
+    for (int li = 0; li < arity; li++) {
+      final Term element = struct.getElement(li);
+      if (element.getTermType() == VAR) {
+        final Var thatVar = (Var) element;
+        final String varname = thatVar.getText();
+        if (!thatVar.isAnonymous() && thatVar.isFree()) {
+          final Var var = variables.get(varname);
+          if (var == null) {
+            variables.put(varname, (Var) element);
+          } else {
+            struct.setElement(li, var);
+          }
+        }
+      } else {
+        element.doArrabgeVars(variables);
+      }
+    }
+  }
+
 
   @Override
   protected Term doMakeClone(Map<Integer, Var> vars) {

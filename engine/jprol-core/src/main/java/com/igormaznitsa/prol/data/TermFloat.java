@@ -24,7 +24,7 @@ public final class TermFloat extends NumericTerm {
 
   private final float floatValue;
 
-  public TermFloat(final String name) {
+  TermFloat(final String name) {
     super(name);
 
     int len = name.length() - 1;
@@ -37,7 +37,7 @@ public final class TermFloat extends NumericTerm {
     floatValue = Float.parseFloat(name);
   }
 
-  public TermFloat(final float value) {
+  TermFloat(final float value) {
     super("");
     floatValue = value;
   }

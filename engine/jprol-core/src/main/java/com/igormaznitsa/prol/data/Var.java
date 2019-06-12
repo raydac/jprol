@@ -40,11 +40,11 @@ public final class Var extends Term {
     this.anonymous = anonymous;
   }
 
-  public Var(final String name) {
+  Var(final String name) {
     this(name, false);
   }
 
-  public Var() {
+  Var() {
     this("_$" + Long.toHexString(ANONYM_GENERATOR.incrementAndGet()), true);
   }
 
@@ -60,7 +60,7 @@ public final class Var extends Term {
   @Override
   public Term makeClone() {
     final Term value = this.getThisValue();
-    Var result = this.isAnonymous() ? new Var() : new Var(this.getText());
+    Var result = this.isAnonymous() ? newVar() : newVar(this.getText());
     if (value != null) {
       final Map<Integer, Var> vars = new HashMap<>();
       vars.put(this.getVarUID(), result);
@@ -79,6 +79,18 @@ public final class Var extends Term {
   }
 
   @Override
+  protected void doArrabgeVars(final Map<String, Var> variables) {
+    final String name = this.getText();
+    if (variables.containsKey(name)) {
+      final Var var = variables.get(name);
+      this.unifyTo(var);
+    } else {
+      variables.put(name, this);
+    }
+  }
+
+
+  @Override
   protected Term makeCloneAndVarBound(final Map<Integer, Var> vars) {
     Term value = this.getValue();
     if (value == null) {
@@ -89,7 +101,7 @@ public final class Var extends Term {
         final int varId = this.getVarUID();
         Var newVar = vars.get(varId);
         if (newVar == null) {
-          newVar = this.isAnonymous() ? new Var() : new Var(varName);
+          newVar = this.isAnonymous() ? newVar() : newVar(varName);
           vars.put(varId, newVar);
 
           final Term thisVal = this.getThisValue();
@@ -118,7 +130,7 @@ public final class Var extends Term {
       final int varId = this.getVarUID();
       Var newVar = vars.get(varId);
       if (newVar == null) {
-        newVar = this.isAnonymous() ? new Var() : new Var(varName);
+        newVar = this.isAnonymous() ? newVar() : newVar(varName);
         vars.put(varId, newVar);
 
         final Term thisVal = this.getThisValue();

@@ -25,12 +25,12 @@ public final class TermInteger extends NumericTerm {
 
   private final int intValue;
 
-  public TermInteger(final String name) {
+  TermInteger(final String name) {
     super(name);
     intValue = Integer.parseInt(name);
   }
 
-  public TermInteger(final int value) {
+  TermInteger(final int value) {
     super("");
     intValue = value;
   }

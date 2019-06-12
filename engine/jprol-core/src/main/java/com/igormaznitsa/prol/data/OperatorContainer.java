@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-package com.igormaznitsa.prol.containers;
-
-import com.igormaznitsa.prol.data.Operator;
-import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.data.TermType;
+package com.igormaznitsa.prol.data;
 
 import java.io.PrintWriter;
 

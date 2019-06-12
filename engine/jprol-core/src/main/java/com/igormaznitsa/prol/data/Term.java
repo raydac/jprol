@@ -34,6 +34,7 @@ package com.igormaznitsa.prol.data;
 
 import com.igormaznitsa.prol.exceptions.ProlTypeErrorException;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -48,7 +49,7 @@ public class Term {
 
   private final String text;
 
-  public Term(final String text) {
+  Term(final String text) {
     this.text = text;
   }
 

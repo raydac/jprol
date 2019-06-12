@@ -16,7 +16,6 @@
 
 package com.igormaznitsa.prol.easygui;
 
-import com.igormaznitsa.prol.utils.Utils;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
@@ -92,7 +91,7 @@ public final class LibraryInfoDialog extends javax.swing.JDialog {
     try (PrintStream out = new PrintStream(baos)) {
       for (int li = 0; li < libraries.length; li++) {
         final Class<?> libraryClass = Class.forName(libraries[li]);
-        Utils.printPredicatesForLibrary(out, libraryClass);
+        UiUtils.printPredicatesForLibrary(out, libraryClass);
         if (li < libraries.length) {
           out.println(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n\n");
         }
