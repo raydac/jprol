@@ -83,7 +83,7 @@ public class ProlTextInputStream implements ProlStream, ProlTextReader {
 
   @Override
   public synchronized Term readToken() throws IOException {
-    ProlTokenizerResult result = tokenizer.nextToken(reader, context.getKnowledgeBase());
+    ProlTokenizerResult result = tokenizer.nextToken(reader, context);
     if (result == null) {
       return END_OF_FILE;
     }

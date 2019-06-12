@@ -16,12 +16,12 @@
 
 package com.igormaznitsa.prol.parser;
 
-import com.igormaznitsa.prol.containers.KnowledgeBase;
 import com.igormaznitsa.prol.data.OperatorContainer;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermType;
 import com.igormaznitsa.prol.exceptions.ParserException;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
+import com.igormaznitsa.prol.logic.ProlContext;
 
 import java.io.IOException;
 
@@ -111,18 +111,7 @@ public final class ProlTokenizer {
     lastPushedTerm = object;
   }
 
-  /**
-   * Peek the next token from the incomming stream. The token will be read and
-   * available but it will not be removed from the incomming stream.
-   *
-   * @param reader the reader to get the incomming token, must not be null
-   * @param voc    the knowledge base which will be used for the operation, must
-   *               not be null
-   * @return a read token as a ProlTokenizerResult, or null if there is not any
-   * token in the stream
-   * @throws IOException it will be throws if there is any transport problem
-   */
-  public ProlTokenizerResult peekToken(final ProlReader reader, final KnowledgeBase voc) throws IOException {
+  public ProlTokenizerResult peekToken(final ProlReader reader, final ProlContext voc) throws IOException {
     final ProlTokenizerResult result;
     if (lastPushedTerm == null) {
       result = nextToken(reader, voc);
@@ -192,7 +181,7 @@ public final class ProlTokenizer {
    *                     during the operation
    */
   @SuppressWarnings("fallthrough")
-  public ProlTokenizerResult nextToken(final ProlReader reader, final KnowledgeBase voc) throws IOException {
+  public ProlTokenizerResult nextToken(final ProlReader reader, final ProlContext voc) throws IOException {
 
     if (lastPushedTerm != null) {
       try {

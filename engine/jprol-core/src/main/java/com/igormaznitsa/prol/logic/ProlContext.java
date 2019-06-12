@@ -17,6 +17,7 @@
 package com.igormaznitsa.prol.logic;
 
 import com.igormaznitsa.prol.annotations.ConsultText;
+import com.igormaznitsa.prol.containers.InMemoryKnowledgeBase;
 import com.igormaznitsa.prol.containers.KnowledgeBase;
 import com.igormaznitsa.prol.data.OperatorContainer;
 import com.igormaznitsa.prol.data.Term;
@@ -50,7 +51,6 @@ public final class ProlContext {
   public static final String ENGINE_NAME = "Prol";
   private static final String CONTEXT_HALTED_MSG = "Context halted";
   private static final String USER_STREAM = "user";
-  private final ProlCoreLibrary coreLibraryInstance;
   private final String contextName;
   private final ReentrantLock knowledgeBaseLocker = new ReentrantLock();
   private final List<AbstractProlLibrary> libraries;
@@ -65,8 +65,7 @@ public final class ProlContext {
   private final ReentrantLock ioLocker = new ReentrantLock();
   private final ReentrantLock libLocker = new ReentrantLock();
   private final ReentrantLock triggerLocker = new ReentrantLock();
-  private final KnowledgeBaseFactory knowledgeBaseFactory;
-  private KnowledgeBase knowledgeBase;
+  private final KnowledgeBase knowledgeBase;
   private ProlTextReader currentInputStream;
   private ProlTextWriter currentOutputStream;
   private ProlTextWriter currentErrorStream;
@@ -76,49 +75,29 @@ public final class ProlContext {
   private final List<TracingChoicePointListener> traceListeners = new CopyOnWriteArrayList<>();
 
   public ProlContext(final String name) {
-    this(name, DefaultProlStreamManagerImpl.getInstance(), null);
+    this(name, DefaultProlStreamManagerImpl.getInstance());
   }
 
   public ProlContext(final String name, final ProlStreamManager streamManager) {
-    this(name, streamManager, null);
+    this(name, streamManager, new InMemoryKnowledgeBase(name + "_kbase"));
   }
 
-  public ProlContext(final String name, final ProlStreamManager streamManager, final KnowledgeBase knowledgebase) {
-    this(streamManager, name, DefaultKnowledgeBaseFactory.getInstance());
-    knowledgeBaseLocker.lock();
-    try {
-      if (knowledgebase == null) {
-        this.knowledgeBase = knowledgeBaseFactory.makeDefaultKnowledgeBase(this, name + "_kbase");
-      } else {
-        this.knowledgeBase = knowledgebase;
-      }
-    } finally {
-      knowledgeBaseLocker.unlock();
-    }
-    try {
-      addLibrary(coreLibraryInstance);
-    } catch (IOException ex) {
-      throw new Error("Can't load core library", ex);
-    }
-  }
-
-  private ProlContext(final ProlStreamManager streamManager, final String name, final KnowledgeBaseFactory kbfactory) {
+  private ProlContext(final String name, final ProlStreamManager streamManager, final KnowledgeBase base) {
     if (name == null) {
       throw new NullPointerException("The context name must not be null");
     }
     if (streamManager == null) {
       throw new NullPointerException("The stream manager for a context must be defined");
     }
-    if (kbfactory == null) {
+    if (base == null) {
       throw new NullPointerException("The knowledge base factory is null");
     }
 
-    this.coreLibraryInstance = new ProlCoreLibrary();
     this.contextName = name;
 
-    this.knowledgeBaseFactory = kbfactory;
+    this.libraries = new ArrayList<>();
+    this.libraries.add(new ProlCoreLibrary());
 
-    this.libraries = new ArrayList<>(16);
     this.streamManager = streamManager;
 
     this.inputStreams = new HashMap<>();
@@ -126,6 +105,8 @@ public final class ProlContext {
     this.pipes = new HashMap<>();
     this.triggersOnAssert = new HashMap<>();
     this.triggersOnRetract = new HashMap<>();
+
+    this.knowledgeBase = base;
 
     try {
       see(USER_STREAM);
@@ -145,30 +126,6 @@ public final class ProlContext {
 
   public final String getName() {
     return this.contextName;
-  }
-
-  public KnowledgeBaseFactory getKnowledgeBaseFactory() {
-    return this.knowledgeBaseFactory;
-  }
-
-  public void changeKnowledgeBase(final String knowledge_base_id, final String knowledge_base_type) {
-    if (knowledge_base_id == null) {
-      throw new NullPointerException("Knowledge base Id is null");
-    }
-    if (knowledge_base_type == null) {
-      throw new NullPointerException("Knowledge base type is null");
-    }
-
-    KnowledgeBase kb = this.knowledgeBaseFactory.makeKnowledgeBase(this, knowledge_base_id, knowledge_base_type);
-    if (kb == null) {
-      throw new IllegalArgumentException("Can't make knowledge base [" + knowledge_base_id + ',' + knowledge_base_type + ']');
-    }
-    this.knowledgeBaseLocker.lock();
-    try {
-      this.knowledgeBase = kb;
-    } finally {
-      this.knowledgeBaseLocker.unlock();
-    }
   }
 
   public Future<?> solveAsynchronously(final String goal) throws IOException {
@@ -942,16 +899,20 @@ public final class ProlContext {
   }
 
   public ProlContext makeCopy() {
-    final ProlContext newContext = new ProlContext(this.streamManager, this.contextName + "_copy", this.knowledgeBaseFactory);
-
-    newContext.libraries.addAll(libraries);
     knowledgeBaseLocker.lock();
     try {
-      newContext.knowledgeBase = knowledgeBase == null ? null : knowledgeBase.makeCopy(newContext);
+      return new ProlContext(this.contextName + "_copy", this.streamManager, this.knowledgeBase.makeCopy());
     } finally {
       knowledgeBaseLocker.unlock();
     }
-    return newContext;
+  }
+
+  public boolean hasOperatorStartsWith(String operator) {
+    return this.knowledgeBase.hasOperatorStartsWith(this, operator);
+  }
+
+  public OperatorContainer findOperatorForName(String operator) {
+    return this.knowledgeBase.findOperatorForName(this, operator);
   }
 
   private static final class ProlContextInsideThreadFactory implements ThreadFactory, Thread.UncaughtExceptionHandler, RejectedExecutionHandler {

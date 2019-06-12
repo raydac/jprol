@@ -28,19 +28,19 @@ import java.util.List;
 
 public interface KnowledgeBase {
 
-  String getVocabularyId();
+  String getId();
 
-  void addOperators(Operator[] operators);
+  void addOperators(ProlContext context, Operator[] operators);
 
   Operator getOperatorForTypeAndName(String name, int type);
 
   boolean removeOperator(String name, int type);
 
-  void addOperator(Operator operator);
+  void addOperator(ProlContext context, Operator operator);
 
-  OperatorContainer findOperatorForName(String name);
+  OperatorContainer findOperatorForName(ProlContext context, String name);
 
-  boolean hasOperatorStartsWith(String str);
+  boolean hasOperatorStartsWith(ProlContext context, String str);
 
   void write(PrintWriter writer);
 
@@ -54,19 +54,19 @@ public interface KnowledgeBase {
 
   List<TermStruct> findAllForSignature(final String signature);
 
-  boolean assertZ(TermStruct clause);
+  boolean assertZ(ProlContext context, TermStruct clause);
 
-  boolean assertA(TermStruct clause);
+  boolean assertA(ProlContext context, TermStruct clause);
 
-  boolean retractAll(TermStruct clause);
+  boolean retractAll(ProlContext context, TermStruct clause);
 
-  boolean retractA(TermStruct clause);
+  boolean retractA(ProlContext context, TermStruct clause);
 
-  boolean retractZ(final TermStruct clause);
+  boolean retractZ(ProlContext context, TermStruct clause);
 
-  void abolish(final String signature);
+  void abolish(ProlContext context, String signature);
 
   Iterator<OperatorContainer> getOperatorIterator();
 
-  KnowledgeBase makeCopy(ProlContext context);
+  KnowledgeBase makeCopy();
 }

@@ -753,7 +753,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       if (priority == 0) {
         names.forEach((name) -> base.removeOperator(name, opType));
       } else {
-        names.forEach((name) -> base.addOperator(new Operator(priority, opType, name)));
+        names.forEach((name) -> base.addOperator(goal.getContext(), new Operator(priority, opType, name)));
       }
     } catch (SecurityException ex) {
       throw new ProlPermissionErrorException("create", "operator", "Attemption to override or remove a system operator", predicate);
@@ -1602,7 +1602,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       throw new ProlPermissionErrorException("modify", "static_procedure", newAtom(signature));
     }
 
-    base.abolish(signature);
+    base.abolish(goal.getContext(), signature);
     return true;
   }
 
@@ -1938,7 +1938,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       throw new ProlPermissionErrorException("modify", "static_procedure", newAtom(signature));
     }
 
-    base.assertA((TermStruct) atom.makeCloneAndVarBound());
+    base.assertA(goal.getContext(), (TermStruct) atom.makeCloneAndVarBound());
     return true;
   }
 
@@ -1959,7 +1959,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       throw new ProlPermissionErrorException("modify", "static_procedure", newAtom(signature));
     }
 
-    base.assertZ((TermStruct) atom.makeCloneAndVarBound());
+    base.assertZ(goal.getContext(), (TermStruct) atom.makeCloneAndVarBound());
 
     return true;
   }
@@ -1983,7 +1983,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       throw new ProlPermissionErrorException("modify", "static_procedure", newAtom(signature));
     }
 
-    return base.retractA((TermStruct) atom.makeCloneAndVarBound());
+    return base.retractA(goal.getContext(), (TermStruct) atom.makeCloneAndVarBound());
   }
 
   @Predicate(Signature = "retractz/1", Template = {"@clause"}, Reference = "Retract the last clause which can be unified with argument. True if there is such clause in the knowledge base.")
@@ -2004,7 +2004,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       throw new ProlPermissionErrorException("modify", "static_procedure", newAtom(signature));
     }
 
-    return base.retractZ((TermStruct) atom);
+    return base.retractZ(goal.getContext(), (TermStruct) atom);
   }
 
   @Predicate(Signature = "retractall/1", Template = {"@clause"}, Reference = "Retract all clauses which can be unified with argument. True if there is as minimum one clause in the knowledge base.")
@@ -2024,7 +2024,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       throw new ProlPermissionErrorException("modify", "static_procedure", newAtom(signature));
     }
 
-    return base.retractAll((TermStruct) atom);
+    return base.retractAll(goal.getContext(), (TermStruct) atom);
   }
 
   @Predicate(Signature = "catch/3", Template = "+callable_term,?term,+callable_term", Reference = "A goal catch(Goal, Catcher, Handler) is true if\n1. call(Goal) is true, or\n2. An exception is raised which throws a Ball that is caught by Catcher and Handler then succeeds ")

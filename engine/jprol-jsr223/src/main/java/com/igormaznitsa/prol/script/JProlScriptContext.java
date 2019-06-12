@@ -53,12 +53,12 @@ public final class JProlScriptContext implements ScriptContext {
 
   public void addOperators(final Operator... operators) {
     for (final Operator op : operators) {
-      this.context.getKnowledgeBase().addOperator(op);
+      this.context.getKnowledgeBase().addOperator(this.context, op);
     }
   }
 
   public void abolish(final String signature) {
-    this.context.getKnowledgeBase().abolish(signature);
+    this.context.getKnowledgeBase().abolish(this.context, signature);
   }
 
   public List<TermStruct> findClauses(final String signature) {

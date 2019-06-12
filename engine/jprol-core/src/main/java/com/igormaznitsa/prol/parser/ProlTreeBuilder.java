@@ -89,7 +89,7 @@ public final class ProlTreeBuilder {
       if (result == null) {
         return null; // end_of_file
       }
-      final ProlTokenizerResult endAtom = tokenizer.nextToken(reader, knowledgeBase);
+      final ProlTokenizerResult endAtom = tokenizer.nextToken(reader, this.context);
       if (endAtom == null || !endAtom.getText().equals(".")) {
         throw new ParserException("End operator is not found", reader.getLineNumber(), reader.getStrPos());
       }
@@ -109,7 +109,7 @@ public final class ProlTreeBuilder {
     while (!Thread.currentThread().isInterrupted()) {
       final Term block = readBlock(reader, OPERATORS_INSIDE_STRUCT);
 
-      final ProlTokenizerResult nextAtom = tokenizer.nextToken(reader, knowledgeBase);
+      final ProlTokenizerResult nextAtom = tokenizer.nextToken(reader, this.context);
       final String nextText = nextAtom.getText();
 
       if (",".equals(nextText)) {
@@ -145,7 +145,7 @@ public final class ProlTreeBuilder {
     OUTER:
     while (doRead) {
       final Term block = readBlock(reader, OPERATORS_INSIDE_LIST);
-      ProlTokenizerResult nextAtom = tokenizer.nextToken(reader, knowledgeBase);
+      ProlTokenizerResult nextAtom = tokenizer.nextToken(reader, this.context);
       final String text = nextAtom.getText();
       if (null == text) {
         throw new ProlCriticalError("Nonprocessd state at list definition");
@@ -171,7 +171,7 @@ public final class ProlTreeBuilder {
             }
             hasSeparator = true;
             rightPart = readBlock(reader, OPERATORS_END_LIST);
-            nextAtom = tokenizer.nextToken(reader, knowledgeBase);
+            nextAtom = tokenizer.nextToken(reader, this.context);
             if (!nextAtom.getText().equals("]")) {
               throw new ParserException("Wrong end of the list tail", tokenizer.getLastTokenLineNum(), tokenizer.getLastTokenStrPos());
             }
@@ -210,7 +210,7 @@ public final class ProlTreeBuilder {
 
     while (!Thread.currentThread().isInterrupted()) {
       // read next atom from tokenizer
-      ProlTokenizerResult readAtomContainer = tokenizer.nextToken(reader, knowledgeBase);
+      ProlTokenizerResult readAtomContainer = tokenizer.nextToken(reader, this.context);
       boolean atBrakes = false;
 
       if (readAtomContainer == null) {
@@ -259,7 +259,7 @@ public final class ProlTreeBuilder {
             }
           }
 
-          final boolean rightPresented = !isEndOperator(tokenizer.peekToken(reader, knowledgeBase).getTerm(), endOperators);
+          final boolean rightPresented = !isEndOperator(tokenizer.peekToken(reader, this.context).getTerm(), endOperators);
 
           readAtom = readOperators.getCompatibleOperator(leftPresented, rightPresented);
 
@@ -285,7 +285,7 @@ public final class ProlTreeBuilder {
                 atBrakes = true;
                 readAtom = readBlock(reader, OPERATORS_SUBBLOCK);
                 readAtomPriority = 0;
-                final Term closingAtom = tokenizer.nextToken(reader, knowledgeBase).getTerm();
+                final Term closingAtom = tokenizer.nextToken(reader, this.context).getTerm();
                 if (closingAtom == null || !closingAtom.getText().equals(")")) {
                   throw new ParserException("Non-closed brakes", reader.getLineNumber(), reader.getStrPos());
                 }
@@ -299,7 +299,7 @@ public final class ProlTreeBuilder {
           }
         }
       } else {
-        final ProlTokenizerResult nextToken = tokenizer.nextToken(reader, knowledgeBase);
+        final ProlTokenizerResult nextToken = tokenizer.nextToken(reader, this.context);
         if (nextToken != null && nextToken.getText().equals("(")) {
           // it is a structure
           if (readAtom.getTermType() == ATOM) {

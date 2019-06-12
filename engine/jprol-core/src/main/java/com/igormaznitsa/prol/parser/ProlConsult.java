@@ -91,7 +91,7 @@ public class ProlConsult {
       try {
         switch (nextItem.getTermType()) {
           case ATOM: {
-            base.assertZ(newStruct(nextItem));
+            base.assertZ(this.context, newStruct(nextItem));
           }
           break;
           case STRUCT: {
@@ -108,7 +108,7 @@ public class ProlConsult {
                   switch (type) {
                     case Operator.OPTYPE_XFX: {
                       // new rule
-                      base.assertZ(struct);
+                      base.assertZ(this.context, struct);
                     }
                     break;
                     case Operator.OPTYPE_FX: {
@@ -172,12 +172,12 @@ public class ProlConsult {
 
                   throw new ProlHaltExecutionException("Halted because goal failed.", 1);
                 } else {
-                  base.assertZ(struct);
+                  base.assertZ(this.context, struct);
                 }
               }
               break;
               default: {
-                base.assertZ(struct);
+                base.assertZ(this.context, struct);
               }
               break;
             }

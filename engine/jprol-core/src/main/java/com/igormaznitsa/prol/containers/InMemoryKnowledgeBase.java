@@ -32,26 +32,23 @@ import static com.igormaznitsa.prol.data.TermType.ATOM;
 import static com.igormaznitsa.prol.data.Terms.newStruct;
 import static java.lang.Integer.parseInt;
 
-public final class MemoryKnowledgeBase implements KnowledgeBase {
+public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
-  private final String basedId;
+  private final String knowledgeBaseId;
   private final Map<String, OperatorContainer> operatorTable = new HashMap<>();
   private final Map<String, InternalKnowledgeBaseClauseList> predicateTable = new HashMap<>();
-  private final ProlContext context;
   private final ReentrantLock operatorLocker = new ReentrantLock();
   private final ReentrantLock predicateLocker = new ReentrantLock();
 
-  public MemoryKnowledgeBase(final ProlContext context, final String baseId) {
-    if (baseId == null || context == null) {
-      throw new IllegalArgumentException("One from the erguments is null");
+  public InMemoryKnowledgeBase(final String id) {
+    if (id == null) {
+      throw new NullPointerException("Id must not be null");
     }
-    this.basedId = baseId;
-    this.context = context;
+    this.knowledgeBaseId = id;
   }
 
-  private MemoryKnowledgeBase(final ProlContext context, final String baseId, final MemoryKnowledgeBase etalon) {
-    this.basedId = baseId;
-    this.context = context;
+  private InMemoryKnowledgeBase(final String baseId, final InMemoryKnowledgeBase etalon) {
+    this.knowledgeBaseId = baseId;
     etalon.operatorLocker.lock();
     try {
       etalon.predicateLocker.lock();
@@ -71,16 +68,16 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public String getVocabularyId() {
-    return basedId;
+  public String getId() {
+    return this.knowledgeBaseId;
   }
 
   @Override
-  public void addOperators(final Operator[] operators) {
+  public void addOperators(final ProlContext context, final Operator[] operators) {
     operatorLocker.lock();
     try {
       for (Operator operator : operators) {
-        addOperator(operator);
+        addOperator(context, operator);
       }
     } finally {
       operatorLocker.unlock();
@@ -126,7 +123,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public void addOperator(final Operator operator) {
+  public void addOperator(final ProlContext context, final Operator operator) {
     final String operatorName = operator.getText();
 
     final ReentrantLock lockerOp = operatorLocker;
@@ -152,7 +149,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public OperatorContainer findOperatorForName(final String name) {
+  public OperatorContainer findOperatorForName(final ProlContext context, final String name) {
     final OperatorContainer systemOperator = context.getSystemOperatorForName(name);
     OperatorContainer result;
 
@@ -173,7 +170,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public boolean hasOperatorStartsWith(final String str) {
+  public boolean hasOperatorStartsWith(final ProlContext context, final String str) {
     boolean result = false;
     if (context.hasSystemOperatorStartsWith(str)) {
       result = true;
@@ -226,22 +223,10 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
     }
   }
 
-  /**
-   * Assert new clause ino the knowledge base
-   *
-   * @param clause  the clause to be added
-   * @param asFirst if true then the clause will be made as the first in the
-   *                list of similar clauses, else as the last
-   * @return true if the clause has been added successfully, else false
-   * @throws com.igormaznitsa.prol.exceptions.ProlKnowledgeBaseException if such
-   *                                                                     clause is incompatible with the knowledge base
-   */
-  private boolean assertClause(final TermStruct clause, final boolean asFirst) {
+  private boolean assertClause(final ProlContext context, final TermStruct clause, final boolean asFirst) {
     try {
       final String uid;
       if (clause.isFunctorLikeRuleDefinition()) {
-        // it's clause
-        // get left part
         Term leftPart = clause.getElement(0);
         if (leftPart.getTermType() == ATOM) {
           leftPart = newStruct(leftPart);
@@ -249,7 +234,6 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
         }
         uid = leftPart.getSignature();
       } else {
-        // it's just structure
         uid = clause.getSignature();
       }
 
@@ -381,17 +365,17 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
 
 
   @Override
-  public boolean assertZ(final TermStruct clause) {
-    return assertClause(clause, false);
+  public boolean assertZ(final ProlContext context, final TermStruct clause) {
+    return assertClause(context, clause, false);
   }
 
   @Override
-  public boolean assertA(final TermStruct clause) {
-    return assertClause(clause, true);
+  public boolean assertA(final ProlContext context, final TermStruct clause) {
+    return assertClause(context, clause, true);
   }
 
   @Override
-  public boolean retractAll(final TermStruct clause) {
+  public boolean retractAll(final ProlContext context, final TermStruct clause) {
     TermStruct struct = clause;
     if (struct.isFunctorLikeRuleDefinition()) {
       // it's a clause
@@ -429,7 +413,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public boolean retractA(final TermStruct clause) {
+  public boolean retractA(final ProlContext context, final TermStruct clause) {
     TermStruct struct = clause;
     if (struct.isFunctorLikeRuleDefinition()) {
       // it's a clause
@@ -466,7 +450,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public boolean retractZ(final TermStruct clause) {
+  public boolean retractZ(final ProlContext context, final TermStruct clause) {
     TermStruct struct = clause;
     if (struct.isFunctorLikeRuleDefinition()) {
       // it's a clause
@@ -502,7 +486,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public void abolish(final String signature) {
+  public void abolish(final ProlContext context, final String signature) {
     final ReentrantLock lockerPred = predicateLocker;
 
     boolean result;
@@ -538,7 +522,7 @@ public final class MemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public KnowledgeBase makeCopy(final ProlContext context) {
-    return new MemoryKnowledgeBase(context, basedId + "_copy", this);
+  public KnowledgeBase makeCopy() {
+    return new InMemoryKnowledgeBase(knowledgeBaseId + "_copy", this);
   }
 }
