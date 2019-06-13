@@ -6,15 +6,15 @@ import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlConsult;
-import org.junit.Ignore;
-import org.junit.Test;
+import jdk.nashorn.internal.ir.annotations.Ignore;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class SomeFromISOTest extends AbstractProlTest {
+class SomeFromISOTest extends AbstractProlTest {
 
   @Test
-  public void testAbolish() throws Exception {
+  void testAbolish() throws Exception {
 
     checkOnce("assert(test(1)),test(X),X==1,abolish(test/1),\\+ test(_).", true);
 
@@ -32,7 +32,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testRetract() throws Exception {
+  void testRetract() throws Exception {
     //[retract((4 :- X)), type_error(callable, 4)].
     checkException("retract((4:-X)).");
     //[retract((atom(_) :- X == '[]')),permission_error(modify,static_procedure,atom/1)].
@@ -40,7 +40,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testFail() throws Exception {
+  void testFail() throws Exception {
     //[undef_pred, existence_error(procedure, undef_pred/0)]. % the value of flag 'unknown' is 'error'.
     //[(set_prolog_flag(unknown, fail), undef_pred), failure].
     //[(set_prolog_flag(unknown, warning), undef_pred), failure].
@@ -50,7 +50,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testFindAll() throws Exception {
+  void testFindAll() throws Exception {
 
     checkOnceVar("findall(X,(X=1;X=2),X).", "X", "[1,2]");
     //[findall(X,(X=1 ; X=2),S),[[S <-- [1,2]]]].
@@ -68,8 +68,8 @@ public class SomeFromISOTest extends AbstractProlTest {
 
     //[findall(X,(X=1 ; X=2),[X,Y]), [[X <-- 1, Y <-- 2]]].
     final ChoicePoint goal = proveGoal("findall(X,(X=1;X=2),[X1,Y1])."); // changed from original because at Prol all variables linked by their names inside a goal, so that it is not a bug, it is a feature
-    assertEquals(goal.getVarAsText("X1"), "1");
-    assertEquals(goal.getVarAsText("Y1"), "2");
+    assertEquals("1", goal.getVarAsText("X1"));
+    assertEquals("2", goal.getVarAsText("Y1"));
     assertNull(goal.next());
 
     //[findall(X,Goal,S),instantiation_error]. % Culprit Goal
@@ -81,7 +81,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testSetOf() throws Exception {
+  void testSetOf() throws Exception {
     //[setof(X,(X=1;X=2),L), [[L <-- [1, 2]]]].
     checkOnceVar("setof(X,(X=1;X=2),L).", "L", "[1,2]");
     //[setof(X,(X=1;X=2),X), [[X <-- [1, 2]]]].
@@ -129,7 +129,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testBagOf() throws Exception {
+  void testBagOf() throws Exception {
     //[bagof(X, (X = 1; X = 2),L), [[L<-- [1, 2]]]].
     checkOnceVar("bagof(X,(X=1;X=2),L).", "L", "[1,2]");
     //[bagof(X, (X = 1; X = 2),X), [[X<-- [1, 2]]]].
@@ -194,7 +194,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testAssertZ() throws Exception {
+  void testAssertZ() throws Exception {
     //[assertz((foo(X) :- X -> call(X))), success].
     checkOnce("assertz((foo(X):-X->call(X))).", true);
     //[assertz(_), instantiation_error].
@@ -210,7 +210,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testAssertA() throws Exception {
+  void testAssertA() throws Exception {
     //[(asserta((bar(X) :- X)), clause(bar(X), B)), [[B <-- call(X)]]].
     checkOnceVar("asserta(bar(X):-call(X)),clause(bar(X),B).", "B", "call(X)");
 
@@ -228,7 +228,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testNumberCodes() throws Exception {
+  void testNumberCodes() throws Exception {
     //[number_codes(33.0,[0'3,0'.,0'3,0'E,0'+,0'0,0'1]), success].
     //[number_codes(A,[0'-,0'2,0'5]), [[A <-- (-25)]]].
     //[number_codes(A,[0' ,0'3]), [[A <-- 3]]].
@@ -261,7 +261,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testTermLtEq() throws Exception {
+  void testTermLtEq() throws Exception {
     //['@=<'(1.0,1), success].
     checkOnce("'@=<'(1.0,1).", true);
     //['@=<'(aardvark,zebra), success].
@@ -279,7 +279,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testTermLt() throws Exception {
+  void testTermLt() throws Exception {
     //['@<'(1.0,1), success].
     checkOnce("'@<'(1.0,1).", false);// ???
     //['@<'(aardvark,zebra), success].
@@ -297,7 +297,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testTermGtEqu() throws Exception {
+  void testTermGtEqu() throws Exception {
     //['@>='(1.0,1), failure].
     checkOnce("'@>='(1.0,1).", true);// ???
     //['@>='(aardvark,zebra), failure].
@@ -315,7 +315,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testTermGt() throws Exception {
+  void testTermGt() throws Exception {
     //['@>'(1.0,1), failure].
     checkOnce("'@>'(1.0,1).", false);
     //['@>'(aardvark,zebra), failure].
@@ -333,7 +333,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testEqu() throws Exception {
+  void testEqu() throws Exception {
     //['=='(1,1), success].
     checkOnce("'=='(1,1).", true);
     //['=='(X,X), success].
@@ -353,7 +353,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testDiff() throws Exception {
+  void testDiff() throws Exception {
     //['\\=='(1,1), failure].
     checkOnce("'\\\\=='(1,1).", false);
     //['\\=='(X,X), failure].
@@ -373,7 +373,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testLtEqu() throws Exception {
+  void testLtEqu() throws Exception {
     //['=<'(0,1), success].
     checkOnce("'=<'(0,1).", true);
     //['=<'(1.0,1), success].
@@ -387,7 +387,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testLt() throws Exception {
+  void testLt() throws Exception {
     //['<'(0,1), success].
     checkOnce("'<'(0,1).", true);
     //['<'(1.0,1), failure].
@@ -401,7 +401,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testGtEqu() throws Exception {
+  void testGtEqu() throws Exception {
     //['>='(0,1), failure].
     checkOnce("'>='(0,1).", false);
     //['>='(1.0,1), success].
@@ -415,7 +415,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testGt() throws Exception {
+  void testGt() throws Exception {
     //['>'(0,1), failure].
     checkOnce("'>'(0,1).", false);
     //['>'(1.0,1), failure].
@@ -429,7 +429,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testArithEq() throws Exception {
+  void testArithEq() throws Exception {
     //['=:='(0,1), failure].
     checkOnce("'=:='(0,1).", false);
     //['=:='(1.0,1), success].
@@ -445,7 +445,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testArithDiff() throws Exception {
+  void testArithDiff() throws Exception {
     //['=\\='(0,1), success].
     checkOnce("'=\\\\='(0,1).", true);
     //['=\\='(1.0,1), failure].
@@ -459,7 +459,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testCopyTerm() throws Exception {
+  void testCopyTerm() throws Exception {
     //[copy_term(X,Y), success].
     checkOnce("copy_term(X,Y).", true);
     //[copy_term(X,3), success].
@@ -488,7 +488,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testClause() throws Exception {
+  void testClause() throws Exception {
     //[clause(x,Body), failure].
     checkOnce("clause(x,Body).", false);
     //[clause(_,B), instantiation_error].
@@ -502,7 +502,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testCatchAndThrow() throws Exception {
+  void testCatchAndThrow() throws Exception {
     //[(catch(true, C, write('something')), throw(blabla)), system_error].
     try {
       checkOnce("catch(true, C, write('something')), throw(blabla).", true);
@@ -516,7 +516,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testCall() throws Exception {
+  void testCall() throws Exception {
     //[call(!),success].
     checkOnce("call(!).", true);
     //[call(fail), failure].
@@ -547,14 +547,14 @@ public class SomeFromISOTest extends AbstractProlTest {
 
   @Test
   @Ignore
-  public void testCurrentInput() throws Exception {
+  void testCurrentInput() throws Exception {
     //TODO current_input/1
     //[exists(current_input/1), success].
   }
 
   @Test
   @Ignore
-  public void testSubAtom() throws Exception {
+  void testSubAtom() throws Exception {
     //TODO
     //[sub_atom(abracadabra, 0, 5, _, S2), [[S2 <-- 'abrac']]].
     //[sub_atom(abracadabra, _, 5, 0, S2), [[S2 <-- 'dabra']]].
@@ -573,7 +573,7 @@ public class SomeFromISOTest extends AbstractProlTest {
 
   @Test
   @Ignore
-  public void testFileManip() throws Exception {
+  void testFileManip() throws Exception {
     //TODO
     //[(seek(my_file,3),at(my_file,X)),in(my_file),[[X <-- 3]]].
     //[(seek(my_file,eof),at(my_file,X)),in(my_file),[[X <-- eof]]].
@@ -582,13 +582,13 @@ public class SomeFromISOTest extends AbstractProlTest {
 
   @Test
   @Ignore
-  public void testCurrentOutput() throws Exception {
+  void testCurrentOutput() throws Exception {
     //TODO current_output/1
     //[exists(current_output/1), success].
   }
 
   @Test
-  public void testCurrentPredicateAndCurrentPredicateAll() throws Exception {
+  void testCurrentPredicateAndCurrentPredicateAll() throws Exception {
     //[current_predicate(current_predicate/1), failure].
     checkOnce("current_predicate(current_predicate/1).", false);
 
@@ -615,7 +615,7 @@ public class SomeFromISOTest extends AbstractProlTest {
 
   @Test
   @Ignore
-  public void testCurrentPrologFlag() throws Exception {
+  void testCurrentPrologFlag() throws Exception {
     //TODO current_prolog_flag/2
     //[current_prolog_flag(debug, off), success].
     //[(set_prolog_flag(unknown, warning),current_prolog_flag(unknown, warning)), success].
@@ -627,7 +627,7 @@ public class SomeFromISOTest extends AbstractProlTest {
 
   @Test
   @Ignore
-  public void testAtomConcat() throws Exception {
+  void testAtomConcat() throws Exception {
     //[atom_concat('hello',' world',A), [[A <-- 'hello world']]].
     checkOnceVar("atom_concat('hello',' world',A).", "A", "'hello world'");
     //[atom_concat(T,' world','small world'), [[T <-- 'small']]].
@@ -681,7 +681,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testHalt() throws Exception {
+  void testHalt() throws Exception {
     //[dispose, impl_defined].
 //    checkException("dispose.");
     //[dispose(1), impl_defined].
@@ -691,7 +691,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testAtomCodes() throws Exception {
+  void testAtomCodes() throws Exception {
 
     //[atom_codes('',L), [[L <-- []]]].
     checkOnceVar("atom_codes('',L).", "L", "[]");
@@ -723,7 +723,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testCharCode() throws Exception {
+  void testCharCode() throws Exception {
     //[char_code(Char,0'c),[[Char <-- c]]].
     //[char_code(Char,163),[[Char <-- '\xa3\']]].
 
@@ -746,7 +746,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testAtomChars() throws Exception {
+  void testAtomChars() throws Exception {
 
     //[atom_chars('''',L), [[L <-- ['''']]]].
     checkOnceVar("atom_chars('\\'',L).", "L", "['\\'']");
@@ -782,7 +782,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testFunctor_Bis() throws Exception {
+  void testFunctor_Bis() throws Exception {
     //[functor(foo(a,b,c),foo,3),success].
     checkOnce("functor(foo(a,b,c),foo,3).", true);
 
@@ -850,7 +850,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testFunctor() throws Exception {
+  void testFunctor() throws Exception {
     //[(current_prolog_flag(max_arity,A), X is A + 1, functor(T, foo, X)),representation_error(max_arity)].
 
     //[functor(foo(a,b,c),foo,3), success].
@@ -906,7 +906,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testNotProvable() throws Exception {
+  void testNotProvable() throws Exception {
     //[\+(true), failure].
     checkOnce("\\+(true).", false);
     //[\+(!), failure].
@@ -924,7 +924,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testOnce() throws Exception {
+  void testOnce() throws Exception {
     //[once(!), success].
     checkOnce("once(!).", true);
     //[(once(!), (X=1; X=2)), [[X <-- 1],[X <-- 2]]].
@@ -940,7 +940,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testArg() throws Exception {
+  void testArg() throws Exception {
     //[arg(1,foo(a,b),a), success].
     checkOnce("arg(1,foo(a,b),a).", true);
     //[arg(1,foo(X,b),a), [[X <-- a]]].
@@ -979,7 +979,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testIs() throws Exception {
+  void testIs() throws Exception {
     //['is'(X,float(3)),[[X <-- 3.0]]].
 //    checkException("'is'(X,float(3))."); //TODO strange
 
@@ -1001,7 +1001,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testAtomLength() throws Exception {
+  void testAtomLength() throws Exception {
     //[atom_length('enchanted evening', N), [[N <-- 17]]].
     checkOnceVar("atom_length('enchanted evening', N).", "N", 17L);
     //[atom_length('', N), [[N <-- 0]]].
@@ -1017,7 +1017,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testFloat() throws Exception {
+  void testFloat() throws Exception {
     //[float(3.3), success].
     checkOnce("float(3.3).", true);
     //[float(-3.3), success].
@@ -1031,7 +1031,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testUnify() throws Exception {
+  void testUnify() throws Exception {
     //['='(1,1), success].
     checkOnce("'='(1,1).", true);
     //['='(X,1),[[X <-- 1]]].
@@ -1076,20 +1076,20 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testTrueFail() throws Exception {
+  void testTrueFail() throws Exception {
     //[true, success].
     checkOnce("true.", true);
     checkOnce("fail.", false);
   }
 
   @Test
-  public void testRepeat() throws Exception {
+  void testRepeat() throws Exception {
     //[(repeat,!,fail), failure].
     checkOnce("repeat,!,fail.", false);
   }
 
   @Test
-  public void testNotUnify() throws Exception {
+  void testNotUnify() throws Exception {
     //['\\='(1,1), failure].
     checkOnce("'\\\\='(1,1).", false);
     //['\\='(X,1), failure].
@@ -1113,7 +1113,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testNonVar() throws Exception {
+  void testNonVar() throws Exception {
     //[nonvar(33.3), success].
     checkOnce("nonvar(33.3).", true);
     //[nonvar(foo), success].
@@ -1129,7 +1129,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testCompound() throws Exception {
+  void testCompound() throws Exception {
 
     //[compound(33.3), failure].
     checkOnce("compound(33.3).", false);
@@ -1151,7 +1151,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testAtomic() throws Exception {
+  void testAtomic() throws Exception {
     //[atomic(atom), success].
     checkOnce("atomic(atom).", true);
     //[atomic(a(b)), failure].
@@ -1167,7 +1167,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testAtom() throws Exception {
+  void testAtom() throws Exception {
     //[atom(atom), success].
     checkOnce("atom(atom).", true);
     //[atom('string'), success].
@@ -1185,7 +1185,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testInteger() throws Exception {
+  void testInteger() throws Exception {
     //[integer(3), success].
     checkOnce("integer(3).", true);
     //[integer(-3), success].
@@ -1199,7 +1199,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testOr() throws Exception {
+  void testOr() throws Exception {
     //[';'(true, fail), success].
     checkOnce("';'(true, fail).", true);
     //[';'((!, fail), true), failure].
@@ -1213,7 +1213,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testAnd() throws Exception {
+  void testAnd() throws Exception {
     //[','(X=1, var(X)), failure].
     checkOnce("','(X=1,var(X)).", false);
     //[','(var(X), X=1), [[X <-- 1]]].
@@ -1227,7 +1227,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testIfThenElse() throws Exception {
+  void testIfThenElse() throws Exception {
     //[';'('->'(true, true), fail), success].
     checkOnce("';'('->'(true, true), fail).", true);
     //[';'('->'(fail, true), true), success].
@@ -1247,7 +1247,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testIfThen() throws Exception {
+  void testIfThen() throws Exception {
     //['->'(true, true), success].
     checkOnce("'->'(true, true).", true);
     //['->'(true, fail), failure].
@@ -1263,7 +1263,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testCut() throws Exception {
+  void testCut() throws Exception {
     checkOnce("p1 :- \\+ q1. q1 :- fail. q1 :- true. p2:- \\+ q2. q2 :- !, fail. q2 :- true.", "p1.", false);
     checkOnce("p1 :- \\+ q1. q1 :- fail. q1 :- true. p2:- \\+ q2. q2 :- !, fail. q2 :- true.", "p2.", true);
 
@@ -1276,7 +1276,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testNumber() throws Exception {
+  void testNumber() throws Exception {
     //[number(3), success].
     checkOnce("number(3).", true);
     //[number(3.3), success].
@@ -1290,7 +1290,7 @@ public class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  public void testNumberChars() throws Exception {
+  void testNumberChars() throws Exception {
     //[number_chars(33,['3','3']), success].
     checkOnce("number_chars(33,['3','3']).", true);
 
@@ -1346,28 +1346,18 @@ public class SomeFromISOTest extends AbstractProlTest {
     }
   }
 
-  private void checkException(String goal) throws Exception {
+  private void checkException(final String goal) throws Exception {
     final ProlContext context = makeContext("");
     final ChoicePoint thisGoal = new ChoicePoint(goal, context);
-    try {
-      thisGoal.next();
-      fail();
-    } catch (ProlException ex) {
-      assertTrue(ex.toString(), true);
-
-    }
+    assertThrows(ProlException.class, thisGoal::next);
   }
 
   private ChoicePoint prepareGoal(String goal) throws Exception {
-    final ProlContext context = makeContext("");
-    final ChoicePoint thisGoal = new ChoicePoint(goal, context);
-    return thisGoal;
+    return new ChoicePoint(goal, makeContext(""));
   }
 
   private ChoicePoint prepareGoal(String consult, String goal) throws Exception {
-    final ProlContext context = makeContext(consult);
-    final ChoicePoint thisGoal = new ChoicePoint(goal, context);
-    return thisGoal;
+    return new ChoicePoint(goal, makeContext(consult));
   }
 
   private ChoicePoint proveGoal(String goal) throws Exception {
@@ -1380,11 +1370,11 @@ public class SomeFromISOTest extends AbstractProlTest {
     final ProlContext context = makeContext("");
     final ChoicePoint thisGoal = new ChoicePoint(goal, context);
 
-    for (Object res : result) {
+    for (final Object res : result) {
       assertNotNull(thisGoal.next());
       if (res instanceof Number) {
         if (res instanceof Double) {
-          assertTrue(Double.compare(thisGoal.getVarAsNumber(var).doubleValue(), (Double) res) == 0);
+          assertEquals(0, Double.compare(thisGoal.getVarAsNumber(var).doubleValue(), (Double) res));
         } else {
           assertEquals(res, thisGoal.getVarAsNumber(var));
         }

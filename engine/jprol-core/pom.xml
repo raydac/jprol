@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -30,8 +31,8 @@
             <version>2.0.0</version>
         </dependency-->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -43,29 +44,29 @@
 
     <build>
         <plugins>
-        <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>animal-sniffer-maven-plugin</artifactId>
-            <executions>
-                <execution>
-                    <id>ensure-android-3.0_r2-class-library</id>
-                    <phase>test</phase>
-                    <goals>
-                        <goal>check</goal>
-                    </goals>
-                    <configuration>
-                        <signature>
-                            <groupId>net.sf.androidscents.signature</groupId>
-                            <artifactId>android-api-level-26</artifactId>
-                            <version>8.0.0_r2</version>
-                        </signature>
-                        <ignores>
-                            <ignore>java.lang.invoke.*</ignore>
-                        </ignores>
-                    </configuration>
-                </execution>
-            </executions>
-        </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>animal-sniffer-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>ensure-android-3.0_r2-class-library</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <signature>
+                                <groupId>net.sf.androidscents.signature</groupId>
+                                <artifactId>android-api-level-26</artifactId>
+                                <version>8.0.0_r2</version>
+                            </signature>
+                            <ignores>
+                                <ignore>java.lang.invoke.*</ignore>
+                            </ignores>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 

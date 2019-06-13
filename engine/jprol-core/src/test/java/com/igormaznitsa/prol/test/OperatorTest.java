@@ -6,82 +6,68 @@ import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.DeferredGoal;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlConsult;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.igormaznitsa.prol.data.TermType.ATOM;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class OperatorTest extends AbstractProlTest {
+class OperatorTest extends AbstractProlTest {
 
-    @Test
-    public void testOperatorDefs() {
-        try {
-            final ProlContext context = new ProlContext("Operator_test");
-            final ProlConsult consult = new ProlConsult(":-op(800,xfx,'<===>'). :-op(700,xfy,'v'). :-op(600,xfy,'&'). :-op(500,fy,'~'). moon <===> earth.", context);
-            consult.consult();
+  @Test
+  void testOperatorDefs() throws Exception {
+    final ProlContext context = new ProlContext("Operator_test");
+    final ProlConsult consult = new ProlConsult(":-op(800,xfx,'<===>'). :-op(700,xfy,'v'). :-op(600,xfy,'&'). :-op(500,fy,'~'). moon <===> earth.", context);
+    consult.consult();
 
-          final ChoicePoint prepGoal = new ChoicePoint("~(xxx & yyy) <===> ~xxx v ~yyy.", context);
-          TermStruct root = (TermStruct) prepGoal.getGoalTerm();
+    final ChoicePoint prepGoal = new ChoicePoint("~(xxx & yyy) <===> ~xxx v ~yyy.", context);
+    TermStruct root = (TermStruct) prepGoal.getGoalTerm();
 
-            assertEquals(root.getText(), "<===>");
-            assertEquals(root.getArity(), 2);
+    assertEquals("<===>", root.getText());
+    assertEquals(2, root.getArity());
 
-            TermStruct lefttree = (TermStruct) root.getElement(0);
-            TermStruct righttree = (TermStruct) root.getElement(1);
+    TermStruct lefttree = root.getElement(0);
+    TermStruct righttree = root.getElement(1);
 
-            assertEquals(lefttree.getText(), "~");
-            assertEquals(lefttree.getArity(), 1);
-            assertEquals(righttree.getText(), "v");
-            assertEquals(righttree.getArity(), 2);
+    assertEquals("~", lefttree.getText());
+    assertEquals(1, lefttree.getArity());
+    assertEquals("v", righttree.getText());
+    assertEquals(2, righttree.getArity());
 
-            final TermStruct prevrighttree = righttree;
+    final TermStruct prevrighttree = righttree;
 
-            lefttree = (TermStruct) lefttree.getElement(0);
-            righttree = (TermStruct) righttree.getElement(0);
+    lefttree = (TermStruct) lefttree.getElement(0);
+    righttree = (TermStruct) righttree.getElement(0);
 
-            assertEquals(lefttree.getText(), "&");
-            assertEquals(lefttree.getArity(), 2);
-            assertEquals(lefttree.getElement(0).getTermType(), ATOM);
-            assertEquals(lefttree.getElement(1).getTermType(), ATOM);
-            assertEquals(lefttree.getElement(0).getText(), "xxx");
-            assertEquals(lefttree.getElement(1).getText(), "yyy");
+    assertEquals("&", lefttree.getText());
+    assertEquals(2, lefttree.getArity());
+    assertEquals(ATOM, lefttree.getElement(0).getTermType());
+    assertEquals(ATOM, lefttree.getElement(1).getTermType());
+    assertEquals("xxx", lefttree.getElement(0).getText());
+    assertEquals("yyy", lefttree.getElement(1).getText());
 
-            lefttree = (TermStruct) prevrighttree.getElement(0);
-            righttree = (TermStruct) prevrighttree.getElement(1);
+    lefttree = prevrighttree.getElement(0);
+    righttree = prevrighttree.getElement(1);
 
-            assertEquals(lefttree.getArity(), 1);
-            assertEquals(lefttree.getText(), "~");
-            assertEquals(righttree.getArity(), 1);
-            assertEquals(righttree.getText(), "~");
-            assertEquals(lefttree.getElement(0).getTermType(), ATOM);
-            assertEquals(lefttree.getElement(0).getText(), "xxx");
-            assertEquals(righttree.getElement(0).getTermType(),ATOM);
-            assertEquals(righttree.getElement(0).getText(), "yyy");
+    assertEquals(1, lefttree.getArity(), 1);
+    assertEquals("~", lefttree.getText(), "~");
+    assertEquals(1, righttree.getArity(), 1);
+    assertEquals("~", righttree.getText(), "~");
+    assertEquals(ATOM, lefttree.getElement(0).getTermType());
+    assertEquals("xxx", lefttree.getElement(0).getText());
+    assertEquals(ATOM, righttree.getElement(0).getTermType());
+    assertEquals("yyy", righttree.getElement(0).getText());
 
-          final DeferredGoal prepGoal2 = new DeferredGoal("moon <===> X.", context);
-            int solvecounter = 0;
-            Term result = null;
-          final ChoicePoint gl = prepGoal2.getNonparametrizedGoalInstance();
-            String text = null;
-            while (true) {
-              final Term curresult = gl.next();
-                if (curresult == null) {
-                    break;
-                }
-
-                text = gl.getVarForName("X").getValue().getText();
-
-                result = curresult;
-                solvecounter++;
-            }
-
-            assertEquals(solvecounter, 1);
-            assertEquals(text, "earth");
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            fail(ex.toString());
-        }
+    final DeferredGoal prepGoal2 = new DeferredGoal("moon <===> X.", context);
+    int solvecounter = 0;
+    final ChoicePoint gl = prepGoal2.getNonparametrizedGoalInstance();
+    String text = null;
+    Term curresult;
+    while ((curresult = gl.next()) != null) {
+      text = gl.getVarForName("X").getValue().getText();
+      solvecounter++;
     }
+
+    assertEquals(1, solvecounter);
+    assertEquals("earth", text);
+  }
 }

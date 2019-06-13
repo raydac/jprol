@@ -111,13 +111,13 @@ public class DeferredGoal {
     this.goalAsText = text;
   }
 
-  public final Term processGoalOnce() throws InterruptedException {
+  public final Term processGoalOnce() {
     final Term target = getParsedGoal().makeClone();
     final ChoicePoint goal = new ChoicePoint(target, getContext());
     return goal.next();
   }
 
-  public final ChoicePoint forIntegerParameters(final int... parameters) {
+  public final ChoicePoint forIntegerParameters(final long... parameters) {
     final Term[] termarray = new Term[parameters.length];
     for (int li = 0; li < parameters.length; li++) {
       termarray[li] = Terms.newLong(parameters[li]);

@@ -1,177 +1,119 @@
 package com.igormaznitsa.prol.test;
 
-import com.igormaznitsa.prol.data.NumericTerm;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.logic.triggers.AbstractProlTrigger;
 import com.igormaznitsa.prol.logic.triggers.ProlTriggerType;
 import com.igormaznitsa.prol.logic.triggers.TriggerEvent;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class TriggerTest extends AbstractProlTest {
+class TriggerTest extends AbstractProlTest {
 
-    public TriggerTest() {
-    }
+  @Test
+  void testTrigger() throws Exception {
+    final InternaltestTrigger trigger = new InternaltestTrigger();
+    trigger.addSignature("testassert/1", ProlTriggerType.TRIGGER_ASSERT);
+    trigger.addSignature("testretract/1", ProlTriggerType.TRIGGER_RETRACT);
+    trigger.addSignature("testboth/1", ProlTriggerType.TRIGGER_ASSERT_RETRACT);
 
-    @Test
-    public void testTrigger() {
-        try {
-            final insideTrigger trigger = new insideTrigger();
-            trigger.addSignature("testassert/1", ProlTriggerType.TRIGGER_ASSERT);
-            trigger.addSignature("testretract/1", ProlTriggerType.TRIGGER_RETRACT);
-            trigger.addSignature("testboth/1", ProlTriggerType.TRIGGER_ASSERT_RETRACT);
+    ProlContext context = new ProlContext("TestContext");
 
-            ProlContext context = new ProlContext("TestContext");
-
-            context.registerTrigger(trigger);
+    context.registerTrigger(trigger);
 
 //            ProlConsult consult = new ProlConsult(testa, context);
 //            consult.consult();
-          ChoicePoint goal = new ChoicePoint("assert(testassert(1000)),asserta(testassert(1)),assertz(testassert(2)).", context);
+    ChoicePoint goal = new ChoicePoint("assert(testassert(1000)),asserta(testassert(1)),assertz(testassert(2)).", context);
 
-            int decisionnum = 0;
-            while (true) {
-              if (goal.next() == null) {
-                    break;
-                }
-                decisionnum++;
-            }
-
-            assertEquals(decisionnum, 1);
-
-          goal = new ChoicePoint("retracta(testassert(_)),retractz(testassert(_)),testassert(X),assert(testretract(test)),retract(testretract(_)),assert(testretract(world)),abolish(testretract/1).", context);
-
-            int result = -1;
-
-            decisionnum = 0;
-            while (true) {
-              final Term resultterm = goal.next();
-                if (resultterm == null) {
-                    break;
-                }
-
-              result = ((NumericTerm) resultterm.variables().filter(x -> "X".equals(x.getText())).findFirst().orElse(null).getValue()).toNumber().intValue();
-
-                decisionnum++;
-            }
-
-            assertEquals(result, 1000);
-
-            int assertevents = 0;
-            int retractevents = 0;
-            int assertretractevents = 0;
-
-            for (TriggerEvent event : trigger.getBuffer()) {
-                switch (event.getEventType()) {
-                    case TRIGGER_ASSERT: {
-                        assertevents++;
-                    }
-                    break;
-                    case TRIGGER_RETRACT: {
-                        retractevents++;
-                    }
-                    break;
-                    case TRIGGER_ASSERT_RETRACT: {
-                        assertretractevents++;
-                    }
-                    break;
-                    default: {
-                        fail("Unsupported event type");
-                        return;
-                    }
-                }
-            }
-
-            assertEquals(assertevents, 3);
-            assertEquals(retractevents, 2);
-            assertEquals(assertretractevents, 0);
-
-            trigger.getBuffer().clear();
-
-            decisionnum = 0;
-
-          goal = new ChoicePoint("assert(testboth(111)),assert(testboth(222)),testboth(222),retractall(testboth(_)).", context);
-            while (true) {
-              final Term resultterm = goal.next();
-                if (resultterm == null) {
-                    break;
-                }
-                decisionnum++;
-            }
-
-            assertEquals(decisionnum, 1);
-
-            assertevents = 0;
-            retractevents = 0;
-            assertretractevents = 0;
-
-            for (TriggerEvent event : trigger.getBuffer()) {
-                switch (event.getEventType()) {
-                    case TRIGGER_ASSERT: {
-                        assertevents++;
-                    }
-                    break;
-                    case TRIGGER_RETRACT: {
-                        retractevents++;
-                    }
-                    break;
-                    case TRIGGER_ASSERT_RETRACT: {
-                        assertretractevents++;
-                    }
-                    break;
-                    default: {
-                        fail("Unsupported event type");
-                        return;
-                    }
-                }
-            }
-
-            assertEquals(assertevents, 2);
-            assertEquals(retractevents, 1);
-
-          context.dispose();
-
-            assertEquals(trigger.haltCounter, 1);
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            fail();
-        }
+    int decisionnum = 0;
+    while (goal.next() != null) {
+      decisionnum++;
     }
 
-    private static class insideTrigger extends AbstractProlTrigger {
+    assertEquals(1, decisionnum);
 
-        private final List<TriggerEvent> buffer = new ArrayList<>();
-        private volatile int haltCounter = 0;
+    goal = new ChoicePoint("retracta(testassert(_)),retractz(testassert(_)),testassert(X),assert(testretract(test)),retract(testretract(_)),assert(testretract(world)),abolish(testretract/1).", context);
 
-        public insideTrigger() {
-            super();
-        }
+    int result = -1;
 
-        public int getHaltCounter() {
-            return haltCounter;
-        }
-
-        public List<TriggerEvent> getBuffer() {
-            return buffer;
-        }
-
-        @Override
-        public void onTriggerEvent(TriggerEvent event) {
-            buffer.add(event);
-            System.out.println("Event: " + event);
-        }
-
-        @Override
-        public void onContextHalting(ProlContext context) {
-            haltCounter++;
-        }
+    decisionnum = 0;
+    Term resultterm;
+    while ((resultterm = goal.next()) != null) {
+      result = resultterm.variables()
+          .filter(x -> "X".equals(x.getText()))
+          .findFirst()
+          .orElse(null)
+          .getValue()
+          .toNumber()
+          .intValue();
+      decisionnum++;
     }
+
+    assertEquals(result, 1000);
+
+    assertEquals(3, trigger.assertevents.get());
+    assertEquals(2, trigger.retractevents.get());
+    assertEquals(0, trigger.assertretractevents.get());
+
+    trigger.clear();
+
+    decisionnum = 0;
+    goal = new ChoicePoint("assert(testboth(111)),assert(testboth(222)),testboth(222),retractall(testboth(_)).", context);
+    while (goal.next() != null) {
+      decisionnum++;
+    }
+
+    assertEquals(1, decisionnum);
+
+    assertEquals(2, trigger.assertevents.get());
+    assertEquals(1, trigger.retractevents.get());
+    assertEquals(0, trigger.assertretractevents.get());
+
+    context.dispose();
+
+    assertEquals(1, trigger.haltCounter.get());
+  }
+
+  private static class InternaltestTrigger extends AbstractProlTrigger {
+
+    private final AtomicInteger haltCounter = new AtomicInteger();
+    private final AtomicInteger assertevents = new AtomicInteger();
+    private final AtomicInteger retractevents = new AtomicInteger();
+    private final AtomicInteger assertretractevents = new AtomicInteger();
+
+    InternaltestTrigger() {
+      super();
+    }
+
+    void clear() {
+      this.haltCounter.set(0);
+      this.assertretractevents.set(0);
+      this.assertevents.set(0);
+      this.retractevents.set(0);
+    }
+
+    @Override
+    public void onTriggerEvent(TriggerEvent event) {
+      switch (event.getEventType()) {
+        case TRIGGER_ASSERT:
+          assertevents.incrementAndGet();
+          break;
+        case TRIGGER_RETRACT:
+          retractevents.incrementAndGet();
+          break;
+        case TRIGGER_ASSERT_RETRACT:
+          assertretractevents.incrementAndGet();
+          break;
+      }
+    }
+
+    @Override
+    public void onContextHalting(ProlContext context) {
+      haltCounter.incrementAndGet();
+    }
+  }
 }
