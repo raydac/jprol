@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class MiscAlgorithmsTest extends AbstractProlTest {
 
-  private void akkermanCalculate(int m, int n, int a) throws Exception {
+  private void calcAkkerman(int m, int n, int a) throws Exception {
     final ProlContext context = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
     final ProlConsult consult = new ProlConsult("akkerman(0,N,X):- X is N+1,!. akkerman(M,0,X):- Mn is M-1, !, akkerman(Mn,1,X). akkerman(M,N,X):- Mn is M-1, Nn is N-1, !, akkerman(M,Nn,Y), !, akkerman(Mn,Y,X).", context);
     consult.consult();
@@ -26,29 +26,24 @@ class MiscAlgorithmsTest extends AbstractProlTest {
   }
 
   @Test
-  void testAkkerman() {
-    try {
-      akkermanCalculate(0, 0, 1);
-      akkermanCalculate(1, 0, 2);
-      akkermanCalculate(2, 0, 3);
-      akkermanCalculate(3, 0, 5);
-      akkermanCalculate(4, 0, 13);
+  void testAkkerman() throws Exception {
+    calcAkkerman(0, 0, 1);
+    calcAkkerman(1, 0, 2);
+    calcAkkerman(2, 0, 3);
+    calcAkkerman(3, 0, 5);
+    calcAkkerman(4, 0, 13);
 
-      akkermanCalculate(0, 1, 2);
-      akkermanCalculate(1, 1, 3);
-      akkermanCalculate(2, 1, 5);
-      akkermanCalculate(3, 1, 13);
+    calcAkkerman(0, 1, 2);
+    calcAkkerman(1, 1, 3);
+    calcAkkerman(2, 1, 5);
+    calcAkkerman(3, 1, 13);
 
-      akkermanCalculate(0, 5, 6);
-      akkermanCalculate(1, 5, 7);
-      akkermanCalculate(2, 5, 13);
-      akkermanCalculate(3, 5, 253);
+    calcAkkerman(0, 5, 6);
+    calcAkkerman(1, 5, 7);
+    calcAkkerman(2, 5, 13);
+    calcAkkerman(3, 5, 253);
 
-//            akkermanCalculate(4, 1, 65533); // in linux it hangs java
-    } catch (Throwable thr) {
-      thr.printStackTrace();
-      fail("Exception during operation");
-    }
+    //calcAkkerman(4, 1, 65533); // too deep stack
   }
 
   @Test
@@ -58,7 +53,7 @@ class MiscAlgorithmsTest extends AbstractProlTest {
     final ChoicePoint goal = new ChoicePoint("fib(22,Result).", context);
 
     assertNotNull(goal.next());
-    assertEquals(goal.getVarAsNumber("Result").intValue(), 17711);
+    assertEquals(17711L, goal.getVarAsNumber("Result").intValue());
     assertNull(goal.next());
   }
 
@@ -73,7 +68,7 @@ class MiscAlgorithmsTest extends AbstractProlTest {
     final ChoicePoint goal = new ChoicePoint("Rec1=rectangle(4,3),send(Rec1,area(Area)).", context);
 
     assertNotNull(goal.next());
-    assertEquals(goal.getVarAsNumber("Area").intValue(), 12);
+    assertEquals(12L, goal.getVarAsNumber("Area").longValue());
     assertNull(goal.next());
   }
 
