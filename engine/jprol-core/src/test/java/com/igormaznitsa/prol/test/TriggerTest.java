@@ -136,7 +136,7 @@ public class TriggerTest extends AbstractProlTest {
             assertEquals(assertevents, 2);
             assertEquals(retractevents, 1);
 
-            context.halt();
+          context.dispose();
 
             assertEquals(trigger.haltCounter, 1);
 

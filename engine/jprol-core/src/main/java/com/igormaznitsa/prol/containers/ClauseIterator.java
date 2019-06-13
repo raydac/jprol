@@ -21,5 +21,6 @@ import com.igormaznitsa.prol.data.TermStruct;
 import java.util.Iterator;
 
 public interface ClauseIterator extends Iterator<TermStruct> {
+  ClauseIteratorType getType();
   void cut();
 }

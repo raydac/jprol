@@ -66,7 +66,7 @@ public class JProlScriptEngineTest {
     final ScriptEngine engine = JPROL_ENGINE_FACTORY.getScriptEngine();
     engine.put("X", 5);
     assertNotNull(engine.eval("Y is X + 10."));
-    assertEquals(15, engine.get("Y"));
+    assertEquals(15L, engine.get("Y"));
   }
 
   @Test

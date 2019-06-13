@@ -19,7 +19,7 @@ package com.igormaznitsa.prol.libraries;
 import com.igormaznitsa.prol.annotations.Determined;
 import com.igormaznitsa.prol.annotations.Predicate;
 import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.data.TermInteger;
+import com.igormaznitsa.prol.data.TermLong;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.data.Terms;
 import com.igormaznitsa.prol.easygui.MainFrame;
@@ -675,8 +675,8 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
     locker.lock();
     try {
-      final TermInteger lpx = Terms.newInt(lastPointX);
-      final TermInteger lpy = Terms.newInt(lastPointY);
+      final TermLong lpx = Terms.newLong(lastPointX);
+      final TermLong lpy = Terms.newLong(lastPointY);
 
       if (elemX.getTermType() == VAR) {
         if (!elemX.unifyTo(lpx)) {
@@ -779,13 +779,13 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
       int height2 = heightOrig;
 
       if (width.getTermType() == VAR) {
-        width.unifyTo(Terms.newInt(widthOrig));
+        width.unifyTo(Terms.newLong(widthOrig));
       } else {
         width2 = width.toNumber().intValue();
       }
 
       if (height.getTermType() == VAR) {
-        height.unifyTo(Terms.newInt(widthOrig));
+        height.unifyTo(Terms.newLong(widthOrig));
       } else {
         height2 = height.toNumber().intValue();
       }
@@ -947,11 +947,11 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
     }
 
     public boolean execute() {
-      if (contextForTheAction.isHalted()) {
+      if (contextForTheAction.isDisposed()) {
         return false;
       }
       try {
-        contextForTheAction.solveAsynchronously(action);
+        contextForTheAction.submitAsync(action);
         return true;
       } catch (Throwable thr) {
         LOG.log(Level.SEVERE, "Can't execute registered action " + menuText, thr);

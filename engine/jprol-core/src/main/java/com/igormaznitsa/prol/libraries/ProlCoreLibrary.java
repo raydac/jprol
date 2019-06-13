@@ -18,6 +18,7 @@ package com.igormaznitsa.prol.libraries;
 
 import com.igormaznitsa.prol.annotations.*;
 import com.igormaznitsa.prol.containers.ClauseIterator;
+import com.igormaznitsa.prol.containers.ClauseIteratorType;
 import com.igormaznitsa.prol.containers.KnowledgeBase;
 import com.igormaznitsa.prol.data.*;
 import com.igormaznitsa.prol.exceptions.*;
@@ -36,7 +37,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -203,11 +207,11 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
-    if (left instanceof TermInteger && right instanceof TermInteger) {
-      final int lft = left.toNumber().intValue();
-      final int rght = right.toNumber().intValue();
+    if (left instanceof TermLong && right instanceof TermLong) {
+      final long lft = left.toNumber().longValue();
+      final long rght = right.toNumber().longValue();
 
-      return newInt(lft ^ rght);
+      return newLong(lft ^ rght);
     } else {
       throw new ProlInstantiationErrorException("Both arguments must be integer", predicate);
     }
@@ -218,10 +222,10 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   public static Term predicateBITWISENOT(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
 
-    if (left instanceof TermInteger) {
-      final int lft = left.toNumber().intValue();
+    if (left instanceof TermLong) {
+      final long lft = left.toNumber().longValue();
 
-      return newInt(~lft);
+      return newLong(~lft);
     } else {
       throw new ProlInstantiationErrorException("Argument must be integer", predicate);
     }
@@ -233,11 +237,11 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
-    if (left instanceof TermInteger && right instanceof TermInteger) {
-      final int lft = left.toNumber().intValue();
-      final int rght = right.toNumber().intValue();
+    if (left instanceof TermLong && right instanceof TermLong) {
+      final long lft = left.toNumber().longValue();
+      final long rght = right.toNumber().longValue();
 
-      return newInt(lft | rght);
+      return newLong(lft | rght);
     } else {
       throw new ProlInstantiationErrorException("Both arguments must be integer", predicate);
     }
@@ -249,11 +253,11 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
-    if (left instanceof TermInteger && right instanceof TermInteger) {
-      final int lft = left.toNumber().intValue();
-      final int rght = right.toNumber().intValue();
+    if (left instanceof TermLong && right instanceof TermLong) {
+      final long lft = left.toNumber().longValue();
+      final long rght = right.toNumber().longValue();
 
-      return newInt(lft & rght);
+      return newLong(lft & rght);
     } else {
       throw new ProlInstantiationErrorException("Both arguments must be integer", predicate);
     }
@@ -265,10 +269,10 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
-    final int leftval = left.toNumber().intValue();
-    final int rightval = right.toNumber().intValue();
+    final long leftval = left.toNumber().longValue();
+    final long rightval = right.toNumber().longValue();
 
-    return newInt(leftval % rightval);
+    return newLong(leftval % rightval);
   }
 
   @Predicate(Signature = "rem/2", Template = {"+evaluable,+evaluable"}, Reference = "Remainder")
@@ -277,10 +281,10 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
-    final int leftval = left.toNumber().intValue();
-    final int rightval = right.toNumber().intValue();
+    final long leftval = left.toNumber().longValue();
+    final long rightval = right.toNumber().longValue();
 
-    return newInt(leftval - (leftval / rightval) * rightval);
+    return newLong(leftval - (leftval / rightval) * rightval);
   }
 
   @Predicate(Signature = "**/2", Template = {"+evaluable,+evaluable"}, Reference = "Power")
@@ -289,10 +293,10 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
-    final float leftval = left.toNumber().floatValue();
-    final float rightval = right.toNumber().floatValue();
+    final double leftval = left.toNumber().doubleValue();
+    final double rightval = right.toNumber().doubleValue();
 
-    return newFloat(((float) Math.pow(leftval, rightval)));
+    return newDouble(Math.pow(leftval, rightval));
   }
 
   @Predicate(Signature = "+/2", Template = {"+evaluable,+evaluable"}, Reference = "Addition")
@@ -308,97 +312,97 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Evaluable
   public static Term predicateSIN(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.toNumber().floatValue();
-    return newFloat((float) Math.sin(value));
+    final double value = arg.toNumber().doubleValue();
+    return newDouble(Math.sin(value));
   }
 
   @Predicate(Signature = "float_integer_part/1", Template = {"+evaluable"}, Reference = "Integer part")
   @Evaluable
   public static Term predicateFLOATINTEGERPART(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final int value = arg.toNumber().intValue();
-    return newInt(value);
+    final long value = arg.toNumber().longValue();
+    return newLong(value);
   }
 
   @Predicate(Signature = "float_fractional_part/1", Template = {"+evaluable"}, Reference = "Fractional part")
   @Evaluable
   public static Term predicateFLOATFRACTIONALPART(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.toNumber().floatValue();
-    final int valueInt = (int) value;
-    return newFloat(value - (float) valueInt);
+    final double value = arg.toNumber().doubleValue();
+    final long valueInt = (long) value;
+    return newDouble(value - (double) valueInt);
   }
 
   @Predicate(Signature = "floor/1", Template = {"+evaluable"}, Reference = "Floor")
   @Evaluable
   public static Term predicateFLOOR(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.toNumber().floatValue();
-    return newInt((int) Math.floor(value));
+    final double value = arg.toNumber().doubleValue();
+    return newLong((long) Math.floor(value));
   }
 
   @Predicate(Signature = "truncate/1", Template = {"+evaluable"}, Reference = "Truncate")
   @Evaluable
   public static Term predicateTRUNCATE(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.toNumber().floatValue();
-    return newInt(value < 0 ? (int) Math.ceil(value) : (int) Math.floor(value));
+    final double value = arg.toNumber().doubleValue();
+    return newLong(value < 0 ? (long) Math.ceil(value) : (long) Math.floor(value));
   }
 
   @Predicate(Signature = "round/1", Template = {"+evaluable"}, Reference = "Round")
   @Evaluable
   public static Term predicateROUND(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.toNumber().floatValue();
-    return newInt(Math.round(value));
+    final double value = arg.toNumber().doubleValue();
+    return newLong(Math.round(value));
   }
 
   @Predicate(Signature = "ceiling/1", Template = {"+evaluable"}, Reference = "Ceiling")
   @Evaluable
   public static Term predicateCEILING(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.toNumber().floatValue();
-    return newInt((int) Math.ceil(value));
+    final double value = arg.toNumber().doubleValue();
+    return newLong((long) Math.ceil(value));
   }
 
   @Predicate(Signature = "cos/1", Template = {"+evaluable"}, Reference = "Cosine")
   @Evaluable
   public static Term predicateCOS(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.toNumber().floatValue();
-    return newFloat((float) Math.cos(value));
+    final double value = arg.toNumber().doubleValue();
+    return newDouble(Math.cos(value));
   }
 
   @Predicate(Signature = "atan/1", Template = {"+evaluable"}, Reference = "Arc tangent")
   @Evaluable
   public static Term predicateATAN(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.toNumber().floatValue();
-    return newFloat((float) Math.atan(value));
+    final double value = arg.toNumber().doubleValue();
+    return newDouble(Math.atan(value));
   }
 
   @Predicate(Signature = "exp/1", Template = {"+evaluable"}, Reference = "Exponentiation")
   @Evaluable
   public static Term predicateEXP(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.toNumber().floatValue();
-    return newFloat((float) Math.exp(value));
+    final double value = arg.toNumber().doubleValue();
+    return newDouble(Math.exp(value));
   }
 
   @Predicate(Signature = "log/1", Template = {"+evaluable"}, Reference = "Log")
   @Evaluable
   public static Term predicateLOG(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.toNumber().floatValue();
-    return newFloat((float) Math.log(value));
+    final double value = arg.toNumber().doubleValue();
+    return newDouble(Math.log(value));
   }
 
   @Predicate(Signature = "sqrt/1", Template = {"+evaluable"}, Reference = "Square root")
   @Evaluable
   public static Term predicateSQRT(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
-    final float value = arg.toNumber().floatValue();
-    return newFloat((float) Math.sqrt(value));
+    final double value = arg.toNumber().doubleValue();
+    return newDouble(Math.sqrt(value));
   }
 
   @Predicate(Signature = "abs/1", Template = {"+evaluable"}, Reference = "Absolute value")
@@ -462,8 +466,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
     Term result = left.div(right);
-    if (result instanceof TermFloat) {
-      result = newInt(result.toNumber().intValue());
+    if (result instanceof TermDouble) {
+      result = newLong(result.toNumber().longValue());
     }
 
     return result;
@@ -475,10 +479,10 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
-    final int value = left.toNumber().intValue();
-    final int shift = right.toNumber().intValue();
+    final long value = left.toNumber().longValue();
+    final long shift = right.toNumber().longValue();
 
-    return newInt(value << shift);
+    return newLong(value << shift);
   }
 
   @Predicate(Signature = ">>/2", Template = {"+evaluable,+evaluable"}, Reference = "Bitwise right shift")
@@ -487,10 +491,10 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
-    final int value = left.toNumber().intValue();
-    final int shift = right.toNumber().intValue();
+    final long value = left.toNumber().longValue();
+    final long shift = right.toNumber().longValue();
 
-    return newInt(value >> shift);
+    return newLong(value >> shift);
   }
 
   @Predicate(Signature = "is/2", Template = {"?evaluable,@evaluable"}, Reference = "'is'(Result, Expression) is true if and only if the value of evaluating Expression as an expression is Result")
@@ -571,7 +575,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     ClauseIterator clIterator = goal.getPayload();
 
     if (clIterator == null) {
-      clIterator = goal.getContext().getKnowledgeBase().getClauseIterator(head.getTermType() == STRUCT ? (TermStruct) head : newStruct(head));
+      clIterator = goal.getContext().getKnowledgeBase().getClauseIterator(ClauseIteratorType.ANY, head.getTermType() == STRUCT ? (TermStruct) head : newStruct(head));
       if (clIterator == null || !clIterator.hasNext()) {
         goal.resetVariants();
         return false;
@@ -588,7 +592,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         if (nxtStruct != null) {
           Term headClause;
           Term bodyClause;
-          if (":-".equals(nxtStruct.getFunctor().getText())) {
+          if (nxtStruct.isClause()) {
             headClause = nxtStruct.getElement(0);
             bodyClause = nxtStruct.getElement(1);
           } else {
@@ -630,10 +634,10 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     final String opNameVal = name.getTermType() == ATOM ? name.getText() : null; // null = any
     final int typeVal = specifier.getTermType() == ATOM ? Operator.getTypeFromString(specifier.getText()) : -1; // -1 = any
-    int priorityVal = 0; // 0 - any
+    long priorityVal = 0; // 0 - any
     if (priority.getTermType() == ATOM) {
-      priorityVal = priority.toNumber().intValue();
-      if (priorityVal < 1 || priorityVal > 1200) {
+      priorityVal = priority.toNumber().longValue();
+      if (priorityVal < 1L || priorityVal > 1200L) {
         throw new ProlDomainErrorException("Unsupported operator priority", predicate);
       }
     }
@@ -694,7 +698,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       auxObject[1] = last_container;
       auxObject[2] = last_operator;
 
-      final Term priorityOfFound = newInt(last_operator.getPriority());
+      final Term priorityOfFound = newLong(last_operator.getPriority());
       final Term specifierOfFound = newAtom(last_operator.getTypeAsString());
       final Term nameOfFound = newAtom(last_operator.getText());
 
@@ -717,7 +721,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final String specifier = predicate.getElement(1).findNonVarOrSame().getText();
     final Term atomOrList = predicate.getElement(2).findNonVarOrSame();
 
-    if (priority < 0 || priority > 1200) {
+    if (priority < 0L || priority > 1200L) {
       throw new ProlDomainErrorException("Priority must be between 0 and 1200 inclusive", predicate);
     }
     final int opType = Operator.getTypeFromString(specifier);
@@ -881,7 +885,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
 
     if (arg.getTermType() == ATOM) {
-      return arg instanceof TermInteger;
+      return arg instanceof TermLong;
     } else {
       return false;
     }
@@ -899,7 +903,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   public static boolean predicateFLOAT(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     if (arg.getTermType() == ATOM) {
-      return arg instanceof TermFloat;
+      return arg instanceof TermDouble;
     } else {
       return false;
     }
@@ -940,11 +944,11 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "arg/3", Template = {"+integer,+compound_term,?term"}, Reference = "arg(N,Term, Arg) is true if nad only if the Nth argument of Term is Arg")
   @Determined
   public static boolean predicateARG(final ChoicePoint goal, final TermStruct predicate) {
-    final TermInteger number = predicate.getElement(0).findNonVarOrSame();
+    final TermLong number = predicate.getElement(0).findNonVarOrSame();
     final Term compound_term = predicate.getElement(1).findNonVarOrSame();
     final Term element = predicate.getElement(2).findNonVarOrSame();
 
-    final int index = number.toNumber().intValue();
+    final long index = number.toNumber().longValue();
 
     if (index < 0) {
       throw new ProlDomainErrorException("Element number less than zero", number);
@@ -955,11 +959,11 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     if (compound_term.getTermType() == STRUCT) {
       final TermStruct struct = (TermStruct) compound_term;
-      final int elementIndex = index - 1;
+      final long elementIndex = index - 1;
       if (elementIndex >= struct.getArity()) {
         return false;
       }
-      return element.unifyTo(struct.getElement(elementIndex));
+      return element.unifyTo(struct.getElement((int) elementIndex));
     } else {
       return false;
     }
@@ -974,13 +978,13 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     switch (argTerm.getTermType()) {
       case ATOM: {
-        final Term arity = newInt(0);
+        final Term arity = newLong(0);
         return argName.unifyTo(argTerm) && argArity.unifyTo(arity);
       }
       case STRUCT: {
         final TermStruct struct = (TermStruct) argTerm;
         final Term functor = newAtom(struct.getFunctor().getText());
-        final Term arity = newInt(struct.getArity());
+        final Term arity = newLong(struct.getArity());
         return argName.unifyTo(functor) && argArity.unifyTo(arity);
       }
       case LIST: {
@@ -990,16 +994,16 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         Term arity;
 
         if (list.isNullList()) {
-          arity = newInt(0);
+          arity = newLong(0);
           name = NULL_LIST;
         } else {
-          arity = newInt(2);
+          arity = newLong(2);
           name = LIST_FUNCTOR;
         }
         return argName.unifyTo(name) && argArity.unifyTo(arity);
       }
       case VAR: {
-        final int arity = argArity.toNumber().intValue();
+        final int arity = (int) argArity.toNumber().longValue();
         if (arity < 0) {
           throw new ProlRepresentationErrorException("Wrong arity value", predicate);
         }
@@ -1195,12 +1199,12 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     Term right = predicate.getElement(1).findNonVarOrSame();
 
     if (left.getTermType() == ATOM) {
-      left = newInt((int) left.getText().charAt(0));
+      left = newLong((int) left.getText().charAt(0));
       return right.unifyTo(left);
     }
 
     if (right.getTermType() == ATOM) {
-      right = newAtom(Character.toString((char) right.toNumber().intValue()));
+      right = newAtom(Character.toString((char) right.toNumber().shortValue()));
       return left.unifyTo(right);
     }
 
@@ -1223,8 +1227,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
       TermList list = (TermList) right;
       while (!list.isNullList()) {
-        final TermInteger head = list.getHead();
-        builder.append((char) head.toNumber().intValue());
+        final TermLong head = list.getHead();
+        builder.append((char) head.toNumber().shortValue());
 
         final Term tail = list.getTail();
         if (tail.getTermType() == LIST) {
@@ -1240,13 +1244,13 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
       try {
         if (numberValue.startsWith("0x")) {
-          number = newInt(Integer.parseInt(numberValue.substring(2), 16));
+          number = newLong(Long.parseLong(numberValue.substring(2), 16));
         } else {
-          number = newInt(numberValue);
+          number = newLong(numberValue);
         }
       } catch (NumberFormatException ex) {
         try {
-          number = newFloat(numberValue);
+          number = newDouble(numberValue);
         } catch (NumberFormatException exx) {
           number = newAtom(numberValue);
         }
@@ -1427,13 +1431,13 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
       try {
         if (numberValue.startsWith("0x")) {
-          number = newInt(Integer.parseInt(numberValue.substring(2), 16));
+          number = newLong(Long.parseLong(numberValue.substring(2), 16));
         } else {
-          number = newInt(numberValue);
+          number = newLong(numberValue);
         }
       } catch (NumberFormatException ex) {
         try {
-          number = newFloat(numberValue);
+          number = newDouble(numberValue);
         } catch (NumberFormatException exx) {
           throw new ProlCustomErrorException(newStruct(newAtom("syntax_error"), new Term[] {newAtom(numberValue)}), predicate);
         }
@@ -1459,14 +1463,14 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     }
 
     final Var var = predicate.getElement(0);
-    final int start = predicate.getElement(1).findNonVarOrSame().toNumber().intValue();
-    final int limit = predicate.getElement(2).findNonVarOrSame().toNumber().intValue();
+    final long start = predicate.getElement(1).findNonVarOrSame().toNumber().longValue();
+    final long limit = predicate.getElement(2).findNonVarOrSame().toNumber().longValue();
 
-    Integer currentInt = goal.getPayload();
+    Long currentInt = goal.getPayload();
 
     if (currentInt == null) {
       // first call
-      var.changeValue(newInt(start));
+      var.changeValue(newLong(start));
       goal.setPayload(start);
     } else {
       // not first call
@@ -1475,7 +1479,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         goal.resetVariants();
         return false;
       } else {
-        var.changeValue(newInt(currentInt));
+        var.changeValue(newLong(currentInt));
         goal.setPayload(currentInt);
       }
     }
@@ -1500,13 +1504,12 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         final Term[] array = list.toArray();
         result = array[RANDOMIZEGEN.nextInt(array.length)];
       }
-
       return predicate.getElement(1).unifyTo(result);
 
     } else {
-      final int limit = predicate.getElement(0).findNonVarOrSame().toNumber().intValue();
+      final long limit = predicate.getElement(0).findNonVarOrSame().toNumber().longValue();
 
-      final TermInteger genVal = newInt(RANDOMIZEGEN.nextInt(limit));
+      final TermLong genVal = newLong(Math.round(RANDOMIZEGEN.nextDouble() * limit));
       return predicate.getElement(1).unifyTo(genVal);
     }
   }
@@ -1517,7 +1520,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     Term left = predicate.getElement(0).findNonVarOrSame();
     final Term right = predicate.getElement(1).findNonVarOrSame();
 
-    left = newInt(left.getTextLength());
+    left = newLong(left.getTextLength());
     return left.unifyTo(right);
   }
 
@@ -1555,11 +1558,11 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       while (!list.isNullList()) {
         final Term head = list.getHead();
 
-        if (!(head instanceof TermInteger)) {
+        if (!(head instanceof TermLong)) {
           throw new ProlRepresentationErrorException("character_code", predicate);
         }
 
-        builder.append((char) head.toNumber().intValue());
+        builder.append((char) head.toNumber().shortValue());
 
         final Term tail = list.getTail();
         if (tail.getTermType() == LIST) {
@@ -1576,16 +1579,16 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     return false;
   }
 
-  @Predicate(Signature = "halt/1", Template = {"+integer"}, Reference = " These predicate terminate a Prolog engine and you can send the status of a cause.")
-  @PredicateSynonyms(Signatures = {"halt/0"})
+  @Predicate(Signature = "dispose/1", Template = {"+integer"}, Reference = " These predicate terminate a Prolog engine and you can send the status of a cause.")
+  @PredicateSynonyms(Signatures = {"dispose/0"})
   @Determined
   public static void predicateHALT(final ChoicePoint goal, final TermStruct predicate) {
     if (predicate.getArity() == 0) {
-      goal.getContext().halt();
+      goal.getContext().dispose();
       throw new ProlHaltExecutionException();
     } else {
-      final int status = predicate.getElement(0).findNonVarOrSame().toNumber().intValue();
-      goal.getContext().halt();
+      final long status = predicate.getElement(0).findNonVarOrSame().toNumber().longValue();
+      goal.getContext().dispose();
       throw new ProlHaltExecutionException(status);
     }
   }
@@ -1929,7 +1932,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       atom = newStruct(atom);
     }
 
-    final String signature = ":-".equals(((TermStruct) atom).getFunctor().getText()) ? ((TermStruct) atom).getElement(0).getSignature() : atom.getSignature();
+    final String signature = ((TermStruct) atom).isClause() ? ((TermStruct) atom).getElement(0).getSignature() : atom.getSignature();
 
     // check that we doesn't overload any static system predicate
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
@@ -1951,7 +1954,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       atom = newStruct(atom);
     }
 
-    final String signature = ":-".equals(((TermStruct) atom).getFunctor().getText()) ? ((TermStruct) atom).getElement(0).getSignature() : atom.getSignature();
+    final String signature = ((TermStruct) atom).isClause() ? ((TermStruct) atom).getElement(0).getSignature() : atom.getSignature();
 
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
       throw new ProlPermissionErrorException("modify", "static_procedure", newAtom(signature));
@@ -1974,7 +1977,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       atom = newStruct(atom);
     }
 
-    final String signature = ":-".equals(((TermStruct) atom).getFunctor().getText()) ? ((TermStruct) atom).getElement(0).getSignature() : atom.getSignature();
+    final String signature = ((TermStruct) atom).isClause() ? ((TermStruct) atom).getElement(0).getSignature() : atom.getSignature();
 
     // check that we doesn't overload any static system predicate
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
@@ -1995,7 +1998,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       atom = newStruct(atom);
     }
 
-    final String signature = ":-".equals(((TermStruct) atom).getFunctor().getText()) ? ((TermStruct) atom).getElement(0).getSignature() : atom.getSignature();
+    final String signature = ((TermStruct) atom).isClause() ? ((TermStruct) atom).getElement(0).getSignature() : atom.getSignature();
 
     // check that we doesn't overload any static system predicate
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
@@ -2015,7 +2018,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       atom = newStruct(atom);
     }
 
-    final String signature = ":-".equals(((TermStruct) atom).getFunctor().getText()) ? ((TermStruct) atom).getElement(0).getSignature() : atom.getSignature();
+    final String signature = ((TermStruct) atom).isClause() ? ((TermStruct) atom).getElement(0).getSignature() : atom.getSignature();
 
     // check that we doesn't overload any static system predicate
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
@@ -2132,7 +2135,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   public static void predicatePAUSE(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
     final NumericTerm term = predicate.getElement(0);
 
-    final int milliseconds = term.toNumber().intValue();
+    final long milliseconds = term.toNumber().longValue();
     if (milliseconds > 0) {
       Thread.sleep(milliseconds);
     }
@@ -2163,7 +2166,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       }
 
       final KnowledgeBase base = goal.getContext().getKnowledgeBase();
-      factIterator = base.getFactIterator((TermStruct) term);
+      factIterator = base.getClauseIterator(ClauseIteratorType.FACTS, (TermStruct) term);
 
       if (factIterator == null) {
         goal.resetVariants();
@@ -2239,21 +2242,15 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       }
     }
 
-    context.solveAsynchronously(goalToSolve);
+    context.submitAsync(goalToSolve);
   }
 
-  @Predicate(Signature = "waitasync/0", Reference = "Blocking waiting until all daemon threads (started with either fork/1 or async/1) in the context will be completed and deactivated (it checks the queue of the threads and their activity). Always true.")
+  @Predicate(Signature = "waitasync/0", Reference = "Blocking waiting until all daemon threads (started with either fork/1 or async/1) of the context will be done.")
   @Determined
   public static void predicateWAITASYNC(final ChoicePoint goal, final TermStruct predicate) {
-    final ThreadPoolExecutor service = goal.getContext().getContextExecutorService();
+    final ExecutorService service = goal.getContext().getContextExecutorService();
 
-    while (!Thread.currentThread().isInterrupted() && (!service.getQueue().isEmpty() || service.getActiveCount() > 0)) {
-      try {
-        Thread.sleep(10);
-      } catch (InterruptedException ex) {
-        Thread.currentThread().interrupt();
-      }
-    }
+    goal.getContext().waitAllAsyncDone();
 
     if (Thread.currentThread().isInterrupted()) {
       service.shutdown();
@@ -2516,33 +2513,28 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "nl/0", Reference = "Out the next line char symbol into current output stream")
   @Determined
   public final void predicateNL(final ChoicePoint goal, final TermStruct predicate) {
-    final ProlTextWriter outStream = goal.getContext().getCurrentOutStream();
-    if (outStream == null) {
-      return;
-    }
-    try {
-      outStream.writeChar(NEXT_LINE);
-    } catch (IOException ex) {
-      throw new ProlPermissionErrorException("write", "text_output", predicate, ex);
-    }
+    goal.getContext().getOutWriter().ifPresent(outStream -> {
+      try {
+        outStream.writeChar(NEXT_LINE);
+      } catch (IOException ex) {
+        throw new ProlPermissionErrorException("write", "text_output", predicate, ex);
+      }
+    });
   }
 
   @Predicate(Signature = "tab/1", Template = {"+integer"}, Reference = "Out a number of space symbols into current output stream")
   @Determined
   public final void predicateTAB(final ChoicePoint goal, final TermStruct predicate) {
-    final ProlTextWriter outStream = goal.getContext().getCurrentOutStream();
-    final int spaces = predicate.getElement(0).toNumber().intValue();
-
-    if (outStream == null) {
-      return;
-    }
-    try {
-      for (int li = 0; li < spaces; li++) {
-        outStream.writeChar(SPACE);
+    goal.getContext().getOutWriter().ifPresent(outStream -> {
+      final long spaces = predicate.getElement(0).toNumber().longValue();
+      try {
+        for (long li = 0; li < spaces; li++) {
+          outStream.writeChar(SPACE);
+        }
+      } catch (IOException ex) {
+        throw new ProlPermissionErrorException("write", "text_output", predicate, ex);
       }
-    } catch (IOException ex) {
-      throw new ProlPermissionErrorException("write", "text_output", predicate, ex);
-    }
+    });
   }
 
   @Predicate(Signature = "copy_term/2", Template = {"?term,?term"}, Reference = "copy_term(X,Y) is true if and only if Y unifies with a term T which is a renamed copy of X.")
@@ -2555,20 +2547,18 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "time/1", Template = "+callable_term", Reference = "Execute  Goal just but  print used time, It supports choice point (!) for inside goal.")
   public final boolean predicateTime(final ChoicePoint goal, final TermStruct predicate) {
-    long time = System.nanoTime();
+    final long time = System.nanoTime();
     final boolean result = predicateCALL(goal, predicate);
+    final long timeInterval = ((System.nanoTime() - time) + 500L) / 1000L; //microseconds
 
-    time = ((System.nanoTime() - time) + 500L) / 1000L; //microseconds
-
-    final ProlTextWriter outStream = goal.getContext().getCurrentOutStream();
-
-    if (outStream != null) {
+    goal.getContext().getOutWriter().ifPresent(outStream -> {
       try {
-        outStream.writeTerm(newAtom(String.format("%% %d.%d ms", (time / 1000), (time % 1000))));
+        outStream.writeTerm(newAtom(String.format("%% %d.%d ms", (timeInterval / 1000), (timeInterval % 1000))));
       } catch (IOException ex) {
         throw new ProlPermissionErrorException("write", "text_output", predicate);
       }
-    }
+    });
+
     if (!result) {
       goal.resetVariants();
     }
@@ -2587,10 +2577,10 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Determined
   public final boolean predicateTIME(final ChoicePoint goal, final TermStruct predicate) {
     final Calendar date = Calendar.getInstance();
-    final TermInteger hours = newInt(date.get(Calendar.HOUR_OF_DAY));
-    final TermInteger minutes = newInt(date.get(Calendar.MINUTE));
-    final TermInteger seconds = newInt(date.get(Calendar.SECOND));
-    final TermInteger milliseconds = newInt(date.get(Calendar.MILLISECOND));
+    final TermLong hours = newLong(date.get(Calendar.HOUR_OF_DAY));
+    final TermLong minutes = newLong(date.get(Calendar.MINUTE));
+    final TermLong seconds = newLong(date.get(Calendar.SECOND));
+    final TermLong milliseconds = newLong(date.get(Calendar.MILLISECOND));
 
     return predicate.getElement(0).unifyTo(hours) && predicate.getElement(1).unifyTo(minutes) && predicate.getElement(2).unifyTo(seconds) && predicate.getElement(3).unifyTo(milliseconds);
   }
@@ -2599,9 +2589,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Determined
   public final boolean predicateDATE(final ChoicePoint goal, final TermStruct predicate) {
     final Calendar date = Calendar.getInstance();
-    final TermInteger year = newInt(date.get(Calendar.YEAR));
-    final TermInteger month = newInt(date.get(Calendar.MONTH) + 1);
-    final TermInteger day = newInt(date.get(Calendar.DAY_OF_MONTH));
+    final TermLong year = newLong(date.get(Calendar.YEAR));
+    final TermLong month = newLong(date.get(Calendar.MONTH) + 1);
+    final TermLong day = newLong(date.get(Calendar.DAY_OF_MONTH));
 
     return predicate.getElement(0).unifyTo(year) && predicate.getElement(1).unifyTo(month) && predicate.getElement(2).unifyTo(day);
   }
@@ -2609,40 +2599,37 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Predicate(Signature = "write/1", Reference = "Write a term into the current output stream.")
   @Determined
   public final void predicateWrite(final ChoicePoint goal, final TermStruct predicate) {
-    final ProlTextWriter outStream = goal.getContext().getCurrentOutStream();
-    if (outStream == null) {
-      return;
-    }
-    try {
-      outStream.writeTerm(predicate.getElement(0));
-    } catch (IOException ex) {
-      throw new ProlPermissionErrorException("write", "text_output", predicate, ex);
-    }
+    goal.getContext().getOutWriter().ifPresent(outStream -> {
+      try {
+        outStream.writeTerm(predicate.getElement(0));
+      } catch (IOException ex) {
+        throw new ProlPermissionErrorException("write", "text_output", predicate, ex);
+      }
+    });
   }
 
   @Predicate(Signature = "put/1", Template = "+number", Reference = "Write a char for its code into the current output stream.")
   @Determined
   public final void predicatePUT(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
-    final ProlTextWriter outStream = goal.getContext().getCurrentOutStream();
-    if (outStream == null) {
-      return;
-    }
-    try {
-      outStream.writeChar(arg);
-    } catch (IOException ex) {
-      throw new ProlPermissionErrorException("write", "text_output", predicate, ex);
-    }
+
+    goal.getContext().getOutWriter().ifPresent(outStream -> {
+      try {
+        outStream.writeChar(arg);
+      } catch (IOException ex) {
+        throw new ProlPermissionErrorException("write", "text_output", predicate, ex);
+      }
+    });
   }
 
   @Predicate(Signature = "get/1", Template = "?number", Reference = "Read next non-blank char code from the current input stream.")
   @Determined
   public final boolean predicateGET(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
-    final ProlTextReader inStream = goal.getContext().getCurrentInputStream();
-    if (inStream == null) {
-      throw new ProlPermissionErrorException("read", "text_input", predicate);
-    }
+    final Optional<ProlTextReader> getter = goal.getContext().getInReader();
+    getter.orElseThrow(() -> new ProlPermissionErrorException("read", "text_input", predicate));
+
+    final ProlTextReader inStream = getter.get();
     try {
       final Term nextchar = inStream.readChar();
       return arg.unifyTo(nextchar);
@@ -2655,13 +2642,14 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Determined
   public final boolean predicateGET0(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
-    final ProlTextReader inStream = goal.getContext().getCurrentInputStream();
-    if (inStream == null) {
-      throw new ProlPermissionErrorException("read", "text_input", predicate);
-    }
+
+    final Optional<ProlTextReader> getter = goal.getContext().getInReader();
+    getter.orElseThrow(() -> new ProlPermissionErrorException("read", "text_input", predicate));
+
+    final ProlTextReader inStream = getter.get();
     try {
       while (!Thread.currentThread().isInterrupted()) {
-        final TermInteger nextchar = inStream.readChar();
+        final TermLong nextchar = inStream.readChar();
         final int num = nextchar.toNumber().intValue();
         if (num >= 0 && Character.isSpaceChar((char) num)) {
           continue;
@@ -2671,7 +2659,6 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     } catch (IOException ex) {
       throw new ProlPermissionErrorException("write", "text_output", predicate, ex);
     }
-
     return false;
   }
 
@@ -2679,12 +2666,13 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Determined
   public final boolean predicateRead(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
-    final ProlTextReader outStream = goal.getContext().getCurrentInputStream();
-    if (outStream == null) {
-      throw new ProlPermissionErrorException("read", "text_input", predicate);
-    }
+
+    final Optional<ProlTextReader> reader = goal.getContext().getInReader();
+    reader.orElseThrow(() -> new ProlPermissionErrorException("read", "text_input", predicate));
+
+    final ProlTextReader inStream = reader.get();
     try {
-      Term term = outStream.readTerm();
+      Term term = inStream.readTerm();
       if (term == null) {
         term = ProlStream.END_OF_FILE;
       }
@@ -2694,67 +2682,61 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     }
   }
 
-  private TermInteger readChar(final ChoicePoint goal, final TermStruct predicate) {
-    final ProlTextReader outStream = goal.getContext().getCurrentInputStream();
-    if (outStream == null) {
-      throw new ProlPermissionErrorException("read", "text_input", predicate);
-    }
-
+  private TermLong readChar(final ChoicePoint goal, final TermStruct predicate) {
+    final Optional<ProlTextReader> outStream = goal.getContext().getInReader();
+    outStream.orElseThrow(() -> new ProlPermissionErrorException("read", "text_input", predicate));
     try {
-      return outStream.readChar();
+      return outStream.get().readChar();
     } catch (IOException ex) {
       throw new ProlPermissionErrorException("read", "text_input", predicate, ex);
     }
   }
 
   private String readFromCurrentInputStreamUntilNL(final ChoicePoint goal, final TermStruct predicate) {
-    final ProlTextReader outStream = goal.getContext().getCurrentInputStream();
-    if (outStream == null) {
-      throw new ProlPermissionErrorException("read", "text_input", predicate);
-    }
-
-    try {
+    final Optional<ProlTextReader> reader = goal.getContext().getInReader();
+    reader.orElseThrow(() -> new ProlPermissionErrorException("read", "text_input", predicate));
       final StringBuilder builder = new StringBuilder();
-      boolean working = true;
-      while (working) {
-        final TermInteger integer = outStream.readChar();
-        final int code = integer.toNumber().intValue();
-        switch (code) {
-          case -1: {
-            if (builder.length() <= 0) {
-              builder.setLength(0);
-              builder.append(ProlStream.END_OF_FILE_STR);
+    reader.ifPresent(outStream -> {
+      try {
+        boolean working = true;
+        while (working) {
+          final TermLong integer = outStream.readChar();
+          final int code = integer.toNumber().intValue();
+          switch (code) {
+            case -1: {
+              if (builder.length() <= 0) {
+                builder.setLength(0);
+                builder.append(ProlStream.END_OF_FILE_STR);
+              }
+              working = false;
             }
-            working = false;
-          }
-          break;
-          case '\r': {
-            // ignore
-          }
-          break;
-          case '\n': {
-            working = false;
-          }
-          break;
-          case 8: // backspace
-          {
-            if (builder.length() > 0) {
-              builder.setLength(builder.length() - 1);
+            break;
+            case '\r': {
+              // ignore
             }
+            break;
+            case '\n': {
+              working = false;
+            }
+            break;
+            case 8: // backspace
+            {
+              if (builder.length() > 0) {
+                builder.setLength(builder.length() - 1);
+              }
+            }
+            break;
+            default: {
+              builder.append((char) code);
+            }
+            break;
           }
-          break;
-          default: {
-            builder.append((char) code);
-          }
-          break;
         }
+      } catch (IOException ex) {
+        throw new ProlPermissionErrorException("read", "text_input", predicate, ex);
       }
-
-      return builder.toString();
-    } catch (IOException ex) {
-      throw new ProlPermissionErrorException("read", "text_input", predicate, ex);
-    }
-
+    });
+    return builder.toString();
   }
 
   @Predicate(Signature = "readln/1", Reference = " Read  the next line (until NL symbol) from the current input stream as an atom. It sypports backspace to remove last symbol from buffer.")
@@ -2774,7 +2756,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       term = ProlStream.END_OF_FILE;
     } else {
       try {
-        term = newInt(str);
+        term = newLong(str);
       } catch (NumberFormatException ex) {
         return false;
       }
@@ -2786,8 +2768,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Determined
   public final boolean predicateReadChar(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
-    final TermInteger value = readChar(goal, predicate);
-    Term term = value.toNumber().intValue() < 0 ? ProlStream.END_OF_FILE : value;
+    final TermLong value = readChar(goal, predicate);
+    Term term = value.toNumber().longValue() < 0L ? ProlStream.END_OF_FILE : value;
     return arg.unifyTo(term);
   }
 
@@ -2801,7 +2783,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       term = ProlStream.END_OF_FILE;
     } else {
       try {
-        term = newFloat(str);
+        term = newDouble(str);
       } catch (NumberFormatException ex) {
         return false;
       }
@@ -2816,7 +2798,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final String name = arg.getText();
     try {
       goal.getContext().see(name);
-    } catch (IOException ex) {
+    } catch (RuntimeException pex) {
+      final Throwable ex = pex.getCause() == null ? pex : pex.getCause();
       if (ex instanceof FileNotFoundException) {
         throw new ProlExistenceErrorException("source_sink", predicate, ex);
       } else {
@@ -2830,7 +2813,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   public final void predicateSEEN(final ChoicePoint goal, final TermStruct predicate) {
     try {
       goal.getContext().seen();
-    } catch (IOException ex) {
+    } catch (RuntimeException pex) {
+      final Throwable ex = pex.getCause() == null ? pex : pex.getCause();
       throw new ProlPermissionErrorException("close", "text_stream", predicate, ex);
     }
   }
@@ -2839,11 +2823,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Determined
   public final boolean predicateSEEING(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrDefault(null);
-    final ProlTextReader inStream = goal.getContext().getCurrentInputStream();
-    Term result = Terms.NULL_LIST;
-    if (inStream != null) {
-      result = newAtom(inStream.getResourceId());
-    }
+    final Optional<ProlTextReader> reader = goal.getContext().getInReader();
+    final Term result = reader.isPresent() ? newAtom(reader.get().getResourceId()) : NULL_LIST;
     return arg.unifyTo(result);
   }
 
@@ -2851,22 +2832,15 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   @Determined
   public final boolean predicateTELLING(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrDefault(null);
-    final ProlTextWriter outStream = goal.getContext().getCurrentOutStream();
-    Term result = NULL_LIST;
-    if (outStream != null) {
-      result = newAtom(outStream.getResourceId());
-    }
+    final Optional<ProlTextWriter> outStream = goal.getContext().getOutWriter();
+    final Term result = outStream.isPresent() ? newAtom(outStream.get().getResourceId()) : NULL_LIST;
     return arg.unifyTo(result);
   }
 
   @Predicate(Signature = "told/0", Reference = "Close the current output stream.")
   @Determined
   public final void predicateTOLD(final ChoicePoint goal, final TermStruct predicate) {
-    try {
       goal.getContext().told();
-    } catch (IOException ex) {
-      throw new ProlPermissionErrorException("close", "text_stream", predicate, ex);
-    }
   }
 
   @Predicate(Signature = "tell/1", Template = "+atom", Reference = "Open SrcDest for writing and make it the current output")
@@ -2876,11 +2850,12 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final String name = arg.getText();
     try {
       goal.getContext().tell(name, false);
-    } catch (IOException ex) {
-      if (ex instanceof FileNotFoundException) {
-        throw new ProlExistenceErrorException("source_sink", predicate, ex);
+    } catch (RuntimeException pex) {
+      final Throwable cause = pex.getCause() == null ? pex : pex.getCause();
+      if (cause instanceof FileNotFoundException) {
+        throw new ProlExistenceErrorException("source_sink", predicate, cause);
       } else {
-        throw new ProlPermissionErrorException("create", "text_stream", predicate, ex);
+        throw new ProlPermissionErrorException("create", "text_stream", predicate, cause);
       }
     }
   }
@@ -2892,27 +2867,13 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final String name = arg.getText();
     try {
       goal.getContext().tell(name, true);
-    } catch (IOException ex) {
+    } catch (RuntimeException pex) {
+      final Throwable ex = pex.getCause() == null ? pex : pex.getCause();
       if (ex instanceof FileNotFoundException) {
         throw new ProlExistenceErrorException("source_sink", predicate, ex);
       } else {
         throw new ProlPermissionErrorException("create", "text_stream", predicate, ex);
       }
-    }
-  }
-
-  /**
-   * Inside auxiliary object-helper for facts/1 and rules/1 predicates, it saves
-   * intermediate data
-   */
-  private static class RuleAuxObject {
-
-    private final ClauseIterator iterator;
-    private ChoicePoint currentActiveGoal;
-    private TermStruct rule;
-
-    RuleAuxObject(final ClauseIterator iterator) {
-      this.iterator = iterator;
     }
   }
 

@@ -23,6 +23,7 @@ import com.igormaznitsa.prol.data.OperatorContainer;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.exceptions.ProlException;
+import com.igormaznitsa.prol.exceptions.ProlForkExecutionException;
 import com.igormaznitsa.prol.io.*;
 import com.igormaznitsa.prol.libraries.AbstractProlLibrary;
 import com.igormaznitsa.prol.libraries.PredicateProcessor;
@@ -31,89 +32,71 @@ import com.igormaznitsa.prol.logic.triggers.ProlTrigger;
 import com.igormaznitsa.prol.logic.triggers.ProlTriggerType;
 import com.igormaznitsa.prol.logic.triggers.TriggerEvent;
 import com.igormaznitsa.prol.parser.ProlConsult;
-import com.igormaznitsa.prol.parser.ProlTreeBuilder;
 import com.igormaznitsa.prol.trace.TraceEvent;
 import com.igormaznitsa.prol.trace.TracingChoicePointListener;
 import com.igormaznitsa.prol.utils.Utils;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static com.igormaznitsa.prol.libraries.PredicateProcessor.NULL_PROCESSOR;
 import static java.util.stream.Stream.concat;
 
 public final class ProlContext {
   public static final String ENGINE_VERSION = "2.0.0";
   public static final String ENGINE_NAME = "Prol";
-  private static final String CONTEXT_HALTED_MSG = "Context halted";
-  private static final String USER_STREAM = "user";
-  private final String contextName;
-  private final ReentrantLock knowledgeBaseLocker = new ReentrantLock();
-  private final List<AbstractProlLibrary> libraries;
-  private final ProlStreamManager streamManager;
-  private final Map<String, ProlTextInputStream> inputStreams;
-  private final Map<String, ProlTextOutputStream> outputStreams;
-  private final Map<String, ProlMemoryPipe> pipes;
-  private final Map<String, List<ProlTrigger>> triggersOnAssert;
-  private final Map<String, List<ProlTrigger>> triggersOnRetract;
-  private final ReentrantLock executorAndlockTableLocker = new ReentrantLock();
-  private final ReentrantLock mappedObjectLocker = new ReentrantLock();
-  private final ReentrantLock ioLocker = new ReentrantLock();
-  private final ReentrantLock libLocker = new ReentrantLock();
-  private final ReentrantLock triggerLocker = new ReentrantLock();
+
+  public static final String STREAM_USER = "user";
+
+  private final String contextId;
+
+  private final Map<String, ProlTextInputStream> inputStreams = new ConcurrentHashMap<>();
+  private final Map<String, ProlTextOutputStream> outputStreams = new ConcurrentHashMap<>();
+  private final Map<String, ProlMemoryPipe> memPipes = new ConcurrentHashMap<>();
+  private final Map<String, List<ProlTrigger>> triggersOnAssert = new ConcurrentHashMap<>();
+  private final Map<String, List<ProlTrigger>> triggersOnRetract = new ConcurrentHashMap<>();
+  private final Map<String, ReentrantLock> namedLockerObjects = new ConcurrentHashMap<>();
+  private final List<AbstractProlLibrary> libraries = new CopyOnWriteArrayList<>();
+  private final AtomicBoolean disposed = new AtomicBoolean(false);
   private final KnowledgeBase knowledgeBase;
-  private ProlTextReader currentInputStream;
-  private ProlTextWriter currentOutputStream;
-  private ProlTextWriter currentErrorStream;
-  private volatile boolean halted;
-  private ThreadPoolExecutor executorService;
-  private Map<String, ReentrantLock> lockerTable;
+  private final ExecutorService executorService;
+  private final ProlStreamManager streamManager;
+  private final AtomicInteger activeTaskCounter = new AtomicInteger();
   private final List<TracingChoicePointListener> traceListeners = new CopyOnWriteArrayList<>();
+  private volatile Optional<ProlTextReader> inReader = Optional.empty();
+  private volatile Optional<ProlTextWriter> outWriter = Optional.empty();
 
   public ProlContext(final String name) {
     this(name, DefaultProlStreamManagerImpl.getInstance());
   }
 
+  private volatile Optional<ProlTextWriter> errWriter = Optional.empty();
+
   public ProlContext(final String name, final ProlStreamManager streamManager) {
-    this(name, streamManager, new InMemoryKnowledgeBase(name + "_kbase"));
+    this(name, streamManager, new InMemoryKnowledgeBase(name + "_kbase"), null);
   }
 
-  private ProlContext(final String name, final ProlStreamManager streamManager, final KnowledgeBase base) {
-    if (name == null) {
-      throw new NullPointerException("The context name must not be null");
-    }
-    if (streamManager == null) {
-      throw new NullPointerException("The stream manager for a context must be defined");
-    }
-    if (base == null) {
-      throw new NullPointerException("The knowledge base factory is null");
-    }
+  public ProlContext(final String contextId, final ProlStreamManager streamManager, final KnowledgeBase base, final ExecutorService executorService) {
+    Utils.assertNotNull(contextId, "Contex Id must not be null");
+    Utils.assertNotNull(streamManager, "Stream manager must be provided");
+    Utils.assertNotNull(base, "Knowledge base must not be null");
 
-    this.contextName = name;
-
-    this.libraries = new ArrayList<>();
-    this.libraries.add(new ProlCoreLibrary());
-
+    this.contextId = contextId;
     this.streamManager = streamManager;
-
-    this.inputStreams = new HashMap<>();
-    this.outputStreams = new HashMap<>();
-    this.pipes = new HashMap<>();
-    this.triggersOnAssert = new HashMap<>();
-    this.triggersOnRetract = new HashMap<>();
-
     this.knowledgeBase = base;
 
-    try {
-      see(USER_STREAM);
-      tell(USER_STREAM, true);
-    } catch (IOException ex) {
-      throw new Error("Can't init user streams", ex);
-    }
+    this.executorService = executorService == null ? ForkJoinPool.commonPool() : executorService;
+
+    this.libraries.add(new ProlCoreLibrary());
+    see(STREAM_USER);
+    tell(STREAM_USER, true);
   }
 
   public void addTraceListener(final TracingChoicePointListener listener) {
@@ -125,15 +108,7 @@ public final class ProlContext {
   }
 
   public final String getName() {
-    return this.contextName;
-  }
-
-  public Future<?> solveAsynchronously(final String goal) throws IOException {
-    if (goal == null) {
-      throw new NullPointerException("The goal is null");
-    }
-    final Term term = new ProlTreeBuilder(this).readPhraseAndMakeTree(goal);
-    return this.solveAsynchronously(term);
+    return this.contextId;
   }
 
   void fireTraceEvent(final TraceEvent event, final ChoicePoint choicePoint) {
@@ -142,319 +117,217 @@ public final class ProlContext {
     }
   }
 
-  public Future<?> solveAsynchronously(final Term goal) {
-    if (isHalted()) {
-      throw new IllegalStateException("The context is halted");
+  public int getActiveAsyncTaskNumber() {
+    return this.activeTaskCounter.get();
+  }
+
+  public void waitAllAsyncDone() {
+    while (this.activeTaskCounter.get() > 0) {
+      synchronized (this) {
+        if (this.activeTaskCounter.get() > 0) {
+          try {
+            this.wait();
+          } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+          }
+        }
+      }
     }
+  }
+
+  public Future<?> submitAsync(final Term goal) {
+    this.assertNotDisposed();
 
     if (goal == null) {
       throw new NullPointerException("The term to prove is null");
     }
 
-    final ProlContext thisContext = this;
+    this.activeTaskCounter.incrementAndGet();
+    try {
+      return getContextExecutorService().submit(() -> {
+        try {
+          final ChoicePoint asyncGoal = new ChoicePoint(goal, ProlContext.this);
 
-    return getContextExecutorService().submit(() -> {
-      final ChoicePoint asyncGoal = new ChoicePoint(goal, thisContext);
-
-      while (!Thread.currentThread().isInterrupted()) {
-        final Term result = asyncGoal.next();
-        if (result == null) {
-          break;
+          while (!Thread.currentThread().isInterrupted()) {
+            final Term result = asyncGoal.next();
+            if (result == null) {
+              break;
+            }
+          }
+        } finally {
+          synchronized (ProlContext.this) {
+            this.activeTaskCounter.decrementAndGet();
+            ProlContext.this.notifyAll();
+          }
         }
+      });
+    } catch (Exception ex) {
+      synchronized (ProlContext.this) {
+        this.activeTaskCounter.decrementAndGet();
+        ProlContext.this.notifyAll();
       }
-    });
-  }
-
-  public ThreadPoolExecutor getContextExecutorService() {
-    if (executorService == null) {
-      executorAndlockTableLocker.lock();
-      try {
-        if (executorService == null) {
-          final ProlContextInsideThreadFactory threadFactory = new ProlContextInsideThreadFactory(this);
-          executorService = (ThreadPoolExecutor) Executors.newCachedThreadPool(threadFactory);
-          executorService.setRejectedExecutionHandler(threadFactory);
-        }
-      } finally {
-        executorAndlockTableLocker.unlock();
-      }
+      throw new ProlForkExecutionException("Can't submit term for async resolving", goal, new Throwable[] {ex});
     }
-    return executorService;
   }
 
-  private Map<String, ReentrantLock> getLockerMap() {
-    if (lockerTable == null) {
-      executorAndlockTableLocker.lock();
-      try {
-        if (lockerTable == null) {
-          lockerTable = new HashMap<>();
-        }
-      } finally {
-        executorAndlockTableLocker.unlock();
-      }
+  public ExecutorService getContextExecutorService() {
+    return this.executorService;
+  }
 
+  private Optional<ReentrantLock> findLockerForId(final String lockerId, final boolean createIfAbsent) {
+    if (createIfAbsent) {
+      return Optional.of(this.namedLockerObjects.computeIfAbsent(lockerId, s -> new ReentrantLock()));
+    } else {
+      return Optional.ofNullable(this.namedLockerObjects.get(lockerId));
     }
-    return lockerTable;
   }
 
-  public ReentrantLock getLockerForName(final String name) {
-    final Map<String, ReentrantLock> lockMap = getLockerMap();
-    ReentrantLock locker;
-    executorAndlockTableLocker.lock();
+  public void lockLockerForName(final String lockerId) {
     try {
-      locker = lockMap.get(name);
-      if (locker == null) {
-        locker = new ReentrantLock();
-        lockMap.put(name, locker);
-      }
-    } finally {
-      executorAndlockTableLocker.unlock();
-    }
-    return locker;
-  }
-
-  public void lockLockerForName(final String name) {
-    final Map<String, ReentrantLock> lockMap = getLockerMap();
-    ReentrantLock locker;
-
-    final ReentrantLock exeLocker = executorAndlockTableLocker;
-
-    exeLocker.lock();
-    try {
-      locker = lockMap.get(name);
-      if (locker == null) {
-        locker = new ReentrantLock();
-        lockMap.put(name, locker);
-      }
-    } finally {
-      exeLocker.unlock();
-    }
-    locker.lock();
-  }
-
-  public boolean trylockLockerForName(final String name) {
-    final Map<String, ReentrantLock> lockMap = getLockerMap();
-    ReentrantLock locker;
-
-    final ReentrantLock exeLocker = executorAndlockTableLocker;
-
-    exeLocker.lock();
-    try {
-      locker = lockMap.get(name);
-      if (locker == null) {
-        locker = new ReentrantLock();
-        lockMap.put(name, locker);
-      }
-    } finally {
-      exeLocker.unlock();
-    }
-    return locker.tryLock();
-  }
-
-  public void unlockLockerForName(final String name) {
-    final Map<String, ReentrantLock> lockMap = getLockerMap();
-    ReentrantLock locker;
-
-    final ReentrantLock exeLocker = executorAndlockTableLocker;
-
-    exeLocker.lock();
-    try {
-      locker = lockMap.get(name);
-      if (locker == null) {
-        throw new IllegalArgumentException("There is not any registered locker for name \'" + name + '\'');
-      }
-    } finally {
-      exeLocker.unlock();
-    }
-    locker.unlock();
-  }
-
-  public final ProlMemoryPipe getMemoryPipeForName(final String identifier) {
-    ioLocker.lock();
-    try {
-      return pipes.get(identifier);
-    } finally {
-      ioLocker.unlock();
+      this.findLockerForId(lockerId, true).get().lockInterruptibly();
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException("Locker wait has been interrupted: " + lockerId, ex);
     }
   }
 
-  public final ProlStreamManager getStreamManager() {
-    if (halted) {
-      throw new ProlException(CONTEXT_HALTED_MSG);
-    }
-    ioLocker.lock();
-    try {
-      return streamManager;
-    } finally {
-      ioLocker.unlock();
+  public boolean trylockLockerForName(final String lockerId) {
+    return this.findLockerForId(lockerId, true).get().tryLock();
+  }
+
+  public void unlockLockerForName(final String lockerId) {
+    this.findLockerForId(lockerId, false).ifPresent(ReentrantLock::unlock);
+  }
+
+  private void assertNotDisposed() {
+    if (this.disposed.get()) {
+      throw new ProlException("Context is disposed: " + this.contextId);
     }
   }
 
-  public final ProlTextWriter getCurrentOutStream() {
-    if (halted) {
-      throw new ProlException(CONTEXT_HALTED_MSG);
-    }
-    ioLocker.lock();
-    try {
-      return currentOutputStream;
-    } finally {
-      ioLocker.unlock();
-    }
+  public ProlMemoryPipe findMemPipe(final String pipeId) {
+    return this.memPipes.get(pipeId);
   }
 
-  public final ProlTextWriter getCurrentErrStream() {
-    if (halted) {
-      throw new ProlException(CONTEXT_HALTED_MSG);
-    }
-    ioLocker.lock();
-    try {
-      return currentErrorStream;
-    } finally {
-      ioLocker.unlock();
-    }
+  public ProlStreamManager getStreamManager() {
+    assertNotDisposed();
+    return this.streamManager;
   }
 
-  public ProlTextReader getCurrentInputStream() {
-    if (halted) {
-      throw new ProlException(CONTEXT_HALTED_MSG);
-    }
-    ioLocker.lock();
-    try {
-      return currentInputStream;
-    } finally {
-      ioLocker.unlock();
-    }
+  public Optional<ProlTextWriter> getOutWriter() {
+    assertNotDisposed();
+    return this.outWriter;
   }
 
-  public void tell(final String resourceId, final boolean append) throws IOException {
-    if (halted) {
-      throw new IllegalStateException(CONTEXT_HALTED_MSG);
-    }
+  public Optional<ProlTextWriter> getErrWriter() {
+    assertNotDisposed();
+    return this.errWriter;
+  }
 
-    ioLocker.lock();
+  public Optional<ProlTextReader> getInReader() {
+    assertNotDisposed();
+    return inReader;
+  }
+
+  public void tell(final String resourceId, final boolean append) {
+    assertNotDisposed();
     try {
       if (resourceId.length() > 0 && resourceId.charAt(0) == '+') {
         // it's pipe
-        ProlMemoryPipe out = pipes.get(resourceId);
+        ProlMemoryPipe out = memPipes.get(resourceId);
         if (out == null) {
           out = new ProlMemoryPipe(resourceId, this);
-          pipes.put(resourceId, out);
+          memPipes.put(resourceId, out);
         }
-        currentOutputStream = out;
+        outWriter = Optional.of(out);
       } else {
         ProlTextOutputStream out = outputStreams.get(resourceId);
         if (out == null) {
           out = new ProlTextOutputStream(resourceId, this, append);
           outputStreams.put(resourceId, out);
         }
-        currentOutputStream = out;
+        outWriter = Optional.of(out);
       }
-    } finally {
-      ioLocker.unlock();
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
     }
   }
 
-  public void see(final String resourceId) throws IOException {
-    if (halted) {
-      throw new IllegalStateException(CONTEXT_HALTED_MSG);
-    }
-
-    ioLocker.lock();
+  public void see(final String resourceId) {
+    assertNotDisposed();
     try {
       if (resourceId.length() > 0 && resourceId.charAt(0) == '+') {
-        // it's a pipe
-        ProlMemoryPipe in = pipes.get(resourceId);
+        ProlMemoryPipe in = memPipes.get(resourceId);
         if (in == null) {
           in = new ProlMemoryPipe(resourceId, this);
-          pipes.put(resourceId, in);
+          memPipes.put(resourceId, in);
         }
-        currentInputStream = in;
+        inReader = Optional.of(in);
       } else {
         ProlTextInputStream in = inputStreams.get(resourceId);
         if (in == null) {
           in = new ProlTextInputStream(resourceId, this);
           inputStreams.put(resourceId, in);
         }
-        currentInputStream = in;
+        inReader = Optional.of(in);
       }
-    } finally {
-      ioLocker.unlock();
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
     }
   }
 
-  public void seen() throws IOException {
-    if (halted) {
-      throw new IllegalStateException(CONTEXT_HALTED_MSG);
-    }
-    ioLocker.lock();
-    try {
+  public void seen() {
+    assertNotDisposed();
+    this.inReader.ifPresent(reader -> {
       try {
-        if (currentInputStream == null) {
-          return;
-        }
+        if (!reader.getResourceId().equals(STREAM_USER)) {
+          reader.close();
 
-        if (!currentInputStream.getResourceId().equals(USER_STREAM)) {
-          currentInputStream.close();
-
-          if (currentInputStream instanceof ProlMemoryPipe) {
-            // remove the pipe channel
-            pipes.remove(currentInputStream.getResourceId());
+          if (reader instanceof ProlMemoryPipe) {
+            memPipes.remove(reader.getResourceId());
           } else {
-            inputStreams.remove(currentInputStream.getResourceId());
+            inputStreams.remove(reader.getResourceId());
           }
         }
+      } catch (IOException ex) {
+        throw new RuntimeException(ex);
       } finally {
-        see(USER_STREAM);
+        see(STREAM_USER);
       }
-    } finally {
-      ioLocker.unlock();
-    }
+    });
   }
 
-  public void told() throws IOException {
-    if (halted) {
-      throw new IllegalStateException(CONTEXT_HALTED_MSG);
-    }
-
-    ioLocker.lock();
-    try {
+  public void told() {
+    assertNotDisposed();
+    this.outWriter.ifPresent(writer -> {
       try {
-        if (currentOutputStream == null) {
-          return;
-        }
-        if (!currentOutputStream.getResourceId().equals(USER_STREAM)) {
-          if (currentOutputStream instanceof ProlMemoryPipe) {
-            //pipes.remove(currentOutputStream.getResourceId());
-            ((ProlMemoryPipe) currentOutputStream).closeForWriteOnly();
+        if (!writer.getResourceId().equals(STREAM_USER)) {
+          if (writer instanceof ProlMemoryPipe) {
+            //memPipes.remove(outWriter.getResourceId());
+            ((ProlMemoryPipe) writer).closeForWriteOnly();
           } else {
-            currentOutputStream.close();
-            outputStreams.remove(currentOutputStream.getResourceId());
+            writer.close();
+            outputStreams.remove(writer.getResourceId());
           }
         }
+      } catch (IOException ex) {
+        throw new RuntimeException(ex);
       } finally {
-        tell(USER_STREAM, true);
+        tell(STREAM_USER, true);
       }
-    } finally {
-      ioLocker.unlock();
-    }
+    });
   }
 
   public boolean addLibrary(final AbstractProlLibrary library) throws IOException {
-    if (halted) {
-      throw new IllegalStateException(CONTEXT_HALTED_MSG);
-    }
-
+    assertNotDisposed();
     if (library == null) {
       throw new IllegalArgumentException("Library must not be null");
     }
-
-    final ReentrantLock locker = libLocker;
-
-    locker.lock();
-    try {
-      if (libraries.contains(library)) {
+    if (this.libraries.contains(library)) {
         return false;
       }
-      libraries.add(library);
+
+    libraries.add(0, library);
 
       final ConsultText consult = library.getClass().getAnnotation(ConsultText.class);
       if (consult != null) {
@@ -463,204 +336,67 @@ public final class ProlContext {
           new ProlConsult(text, this).consult();
         }
       }
-    } finally {
-      locker.unlock();
-    }
     return true;
   }
 
   public KnowledgeBase getKnowledgeBase() {
-    this.knowledgeBaseLocker.lock();
-    try {
       return this.knowledgeBase;
-    } finally {
-      this.knowledgeBaseLocker.unlock();
-    }
   }
 
   public boolean removeLibrary(final AbstractProlLibrary library) {
+    this.assertNotDisposed();
     if (library == null) {
       throw new IllegalArgumentException("Library must not be null");
     }
-    if (halted) {
-      throw new IllegalStateException(CONTEXT_HALTED_MSG);
-    }
-
-    final ReentrantLock locker = libLocker;
-
-    locker.lock();
-    try {
-      return libraries.remove(library);
-    } finally {
-      locker.unlock();
-    }
-  }
-
-  public void writeKnowledgeBase(final PrintWriter writer) {
-    if (writer == null) {
-      throw new IllegalArgumentException("Writer must not be null");
-    }
-    this.knowledgeBaseLocker.lock();
-    try {
-      this.knowledgeBase.write(writer);
-    } finally {
-      this.knowledgeBaseLocker.unlock();
-    }
+    return libraries.remove(library);
   }
 
   public PredicateProcessor findProcessor(final TermStruct predicate) {
-    final ReentrantLock locker = libLocker;
-
-    locker.lock();
-    try {
-      int li = libraries.size() - 1;
-      while (li >= 0) {
-        final AbstractProlLibrary lib = libraries.get(li);
-
-        final PredicateProcessor processor = lib.findProcessorForPredicate(predicate);
-        if (processor != null) {
-          return processor;
-        }
-
-        li--;
-      }
-      return PredicateProcessor.NULL_PROCESSOR;
-    } finally {
-      locker.unlock();
-    }
+    return this.libraries
+        .stream()
+        .map(lib -> lib.findProcessorForPredicate(predicate))
+        .filter(Objects::nonNull)
+        .findFirst()
+        .orElse(NULL_PROCESSOR);
   }
 
   public boolean hasZeroArityPredicateForName(final String name) {
-    final ReentrantLock locker = this.libLocker;
-
-    locker.lock();
-    try {
-      int li = this.libraries.size() - 1;
-      boolean result = false;
-      while (li >= 0) {
-        final AbstractProlLibrary lib = this.libraries.get(li);
-        if (lib.hasZeroArityPredicate(name)) {
-          result = true;
-          break;
-        }
-        li--;
-      }
-      return result;
-    } finally {
-      locker.unlock();
-    }
+    return this.libraries.stream()
+        .anyMatch(lib -> lib.hasZeroArityPredicate(name));
   }
 
   public List<TermStruct> findAllForPredicateIndicatorInLibs(final Term predicateIndicator) {
-    final ReentrantLock locker = this.libLocker;
-
-    locker.lock();
-    try {
       return this.libraries.stream()
           .flatMap(lib -> lib.findAllForPredicateIndicator(predicateIndicator).stream())
           .collect(Collectors.toList());
-    } finally {
-      locker.unlock();
-    }
   }
 
   public boolean hasPredicateAtLibraryForSignature(final String signature) {
-    final ReentrantLock locker = this.libLocker;
-
-    locker.lock();
-    try {
-      int li = this.libraries.size() - 1;
-      while (li >= 0) {
-        final AbstractProlLibrary lib = this.libraries.get(li);
-        if (lib.hasPredicateForSignature(signature)) {
-          return true;
-        }
-        li--;
-      }
-      return false;
-    } finally {
-      locker.unlock();
-    }
+    return this.libraries.stream()
+        .anyMatch(lib -> lib.hasPredicateForSignature(signature));
   }
 
   public boolean isSystemOperator(final String name) {
-    final ReentrantLock locker = this.libLocker;
-
-    locker.lock();
-    try {
-      int li = libraries.size() - 1;
-      while (li >= 0) {
-        final AbstractProlLibrary lib = libraries.get(li);
-        if (lib.isSystemOperator(name)) {
-          return true;
-        }
-        li--;
-      }
-      return false;
-    } finally {
-      locker.unlock();
-    }
+    return this.libraries.stream()
+        .anyMatch(lib -> lib.isSystemOperator(name));
   }
 
   public OperatorContainer getSystemOperatorForName(final String name) {
-    final ReentrantLock locker = libLocker;
-
-    locker.lock();
-    try {
-      int li = libraries.size() - 1;
-      while (li >= 0) {
-        final AbstractProlLibrary lib = libraries.get(li);
-        final OperatorContainer result = lib.findSystemOperatorForName(name);
-        if (result != null) {
-          return result;
-        }
-        li--;
-      }
-      return null;
-    } finally {
-      locker.unlock();
-    }
+    return this.libraries.stream()
+        .map(lib -> lib.findSystemOperatorForName(name))
+        .filter(Objects::nonNull)
+        .findFirst().orElse(null);
   }
 
   public boolean hasSystemOperatorStartsWith(final String str) {
-    final ReentrantLock locker = libLocker;
-
-    locker.lock();
-    try {
-      int li = libraries.size() - 1;
-      while (li >= 0) {
-        final AbstractProlLibrary lib = libraries.get(li);
-        if (lib.hasSyatemOperatorStartsWith(str)) {
-          return true;
-        }
-        li--;
-      }
-      return false;
-    } finally {
-      locker.unlock();
-    }
+    return this.libraries.stream()
+        .anyMatch(lib -> lib.hasSyatemOperatorStartsWith(str));
   }
 
-  public void halt() {
-    if (halted) {
-      throw new IllegalStateException("Context already halted");
-    } else {
-      halted = true;
-    }
+  public void dispose() {
+    if (this.disposed.compareAndSet(false, true)) {
+      executorService.shutdownNow();
 
-    // stop all async threads
-    executorAndlockTableLocker.lock();
-    try {
-      if (executorService != null) {
-        executorService.shutdownNow();
-      }
-    } finally {
-      executorAndlockTableLocker.unlock();
-    }
-
-    // notify all triggers that the context is halting
-    triggerLocker.lock();
-    try {
       final Set<ProlTrigger> notifiedTriggers = new HashSet<>();
       concat(triggersOnAssert.entrySet().stream(), triggersOnRetract.entrySet().stream())
           .forEachOrdered(mapentry -> mapentry.getValue().forEach((trigger) -> {
@@ -675,102 +411,54 @@ public final class ProlContext {
 
       triggersOnAssert.clear();
       triggersOnRetract.clear();
-    } finally {
-      triggerLocker.unlock();
-    }
 
-    ioLocker.lock();
-    libLocker.lock();
-    try {
       try {
-        currentInputStream = null;
-        currentOutputStream = null;
-        currentErrorStream = null;
+        inReader = Optional.empty();
+        outWriter = Optional.empty();
+        errWriter = Optional.empty();
 
-        concat(pipes.values().stream(), concat(inputStreams.values().stream(), outputStreams.values().stream()))
+        concat(memPipes.values().stream(), concat(inputStreams.values().stream(), outputStreams.values().stream()))
             .forEach(channel -> Utils.doSilently(channel::close));
 
-        this.pipes.clear();
+        this.memPipes.clear();
         this.inputStreams.clear();
         this.outputStreams.clear();
 
         getContextExecutorService().shutdownNow();
       } finally {
-        // notify all libraries that the context is halted
+        // notify all libraries that the context is disposed
         libraries.forEach((library) -> library.contextHasBeenHalted(this));
       }
-    } finally {
-      libLocker.unlock();
-      ioLocker.unlock();
     }
-
   }
 
-  public boolean isHalted() {
-    return halted;
+  public boolean isDisposed() {
+    return disposed.get();
   }
 
-  /**
-   * Register a notification trigger
-   *
-   * @param trigger the trigger to be registered, must not be null
-   */
   public void registerTrigger(final ProlTrigger trigger) {
-    if (halted) {
-      throw new IllegalStateException(CONTEXT_HALTED_MSG);
-    }
+    assertNotDisposed();
     final Map<String, ProlTriggerType> signatures = trigger.getSignatures();
 
-    triggerLocker.lock();
-    try {
-      for (Entry<String, ProlTriggerType> entry : signatures.entrySet()) {
-        String signature = Utils.validateSignature(entry.getKey());
-
-        if (signature == null) {
-          throw new IllegalArgumentException("unsupported signature format [" + entry.getKey() + ']');
-        }
-
-        signature = Utils.normalizeSignature(signature);
-
-        final ProlTriggerType triggerType = entry.getValue();
-
-        List<ProlTrigger> triggerListAssert = null;
-        List<ProlTrigger> triggerListRetract = null;
-
-        if (triggerType == ProlTriggerType.TRIGGER_ASSERT || triggerType == ProlTriggerType.TRIGGER_ASSERT_RETRACT) {
-          triggerListAssert = triggersOnAssert.computeIfAbsent(signature, k -> new ArrayList<>());
-        }
-
-        if (triggerType == ProlTriggerType.TRIGGER_RETRACT || triggerType == ProlTriggerType.TRIGGER_ASSERT_RETRACT) {
-          triggerListRetract = triggersOnRetract.computeIfAbsent(signature, k -> new ArrayList<>());
-        }
-
-        if (triggerListAssert != null) {
-          triggerListAssert.add(trigger);
-        }
-
-        if (triggerListRetract != null) {
-          triggerListRetract.add(trigger);
-        }
+    signatures.forEach((key, triggerType) -> {
+      String signature = Utils.validateSignature(key);
+      if (signature == null) {
+        throw new IllegalArgumentException("Unsupported signature: " + key);
       }
-    } finally {
-      triggerLocker.unlock();
-    }
+      signature = Utils.normalizeSignature(signature);
+
+      if (triggerType == ProlTriggerType.TRIGGER_ASSERT || triggerType == ProlTriggerType.TRIGGER_ASSERT_RETRACT) {
+        this.triggersOnAssert.computeIfAbsent(signature, k -> new CopyOnWriteArrayList<>()).add(trigger);
+      }
+
+      if (triggerType == ProlTriggerType.TRIGGER_RETRACT || triggerType == ProlTriggerType.TRIGGER_ASSERT_RETRACT) {
+        this.triggersOnRetract.computeIfAbsent(signature, k -> new CopyOnWriteArrayList<>()).add(trigger);
+      }
+    });
   }
 
-  /**
-   * Unregister a notification trigger
-   *
-   * @param trigger the trigger to be removed from the inside trigger list, must
-   *                not be null
-   */
   public void unregisterTrigger(final ProlTrigger trigger) {
-    triggerLocker.lock();
-    try {
-      // remove the trigger from both maps
-
-      //assert
-      Iterator<Entry<String, List<ProlTrigger>>> iterator = triggersOnAssert.entrySet().iterator();
+    Stream.of(triggersOnAssert.entrySet().iterator(), triggersOnRetract.entrySet().iterator()).forEach(iterator -> {
       while (iterator.hasNext()) {
         final Entry<String, List<ProlTrigger>> entry = iterator.next();
         final List<ProlTrigger> lst = entry.getValue();
@@ -780,34 +468,10 @@ public final class ProlContext {
           }
         }
       }
-      //retract
-      iterator = triggersOnRetract.entrySet().iterator();
-      while (iterator.hasNext()) {
-        final Entry<String, List<ProlTrigger>> entry = iterator.next();
-        final List<ProlTrigger> lst = entry.getValue();
-        if (lst.remove(trigger)) {
-          if (lst.isEmpty()) {
-            iterator.remove();
-          }
-        }
-      }
-    } finally {
-      triggerLocker.unlock();
-    }
+    });
   }
 
-  /**
-   * Check that there is any registered trigger for the event type+signature
-   * pair
-   *
-   * @param normalizedSignature the normalized signature to be checked, must not
-   *                            be null
-   * @param observedEvent       the event type to be checked, must not be null
-   * @return true if there is any registered trigger for the pair, else false
-   */
   public boolean hasRegisteredTriggersForSignature(final String normalizedSignature, final ProlTriggerType observedEvent) {
-    triggerLocker.lock();
-    try {
       boolean result;
       switch (observedEvent) {
         case TRIGGER_ASSERT: {
@@ -831,22 +495,10 @@ public final class ProlContext {
       }
 
       return result;
-    } finally {
-      triggerLocker.unlock();
-    }
   }
 
-  /**
-   * Notify all registered triggers which are registered for the signature+event
-   * type pair
-   *
-   * @param normalizedSignature the normalized signature, must not be null
-   * @param observedEvent       the detected trigger type, must not be null
-   */
   public void notifyTriggersForSignature(final String normalizedSignature, final ProlTriggerType observedEvent) {
     ProlTrigger[] triggersToProcess = null;
-    triggerLocker.lock();
-    try {
       List<ProlTrigger> listOfTriggers;
 
       switch (observedEvent) {
@@ -881,9 +533,6 @@ public final class ProlContext {
         triggersToProcess = listOfTriggers.toArray(new ProlTrigger[0]);
       }
 
-    } finally {
-      triggerLocker.unlock();
-    }
 
     if (triggersToProcess != null) {
       final TriggerEvent event = new TriggerEvent(this, normalizedSignature, observedEvent);
@@ -895,16 +544,11 @@ public final class ProlContext {
 
   @Override
   public String toString() {
-    return "ProlContext(" + contextName + ')' + '[' + super.toString() + ']';
+    return "ProlContext(" + contextId + ')' + '[' + super.toString() + ']';
   }
 
   public ProlContext makeCopy() {
-    knowledgeBaseLocker.lock();
-    try {
-      return new ProlContext(this.contextName + "_copy", this.streamManager, this.knowledgeBase.makeCopy());
-    } finally {
-      knowledgeBaseLocker.unlock();
-    }
+    return new ProlContext(this.contextId + "_copy", this.streamManager, this.knowledgeBase.makeCopy(), this.executorService);
   }
 
   public boolean hasOperatorStartsWith(String operator) {
@@ -913,33 +557,5 @@ public final class ProlContext {
 
   public OperatorContainer findOperatorForName(String operator) {
     return this.knowledgeBase.findOperatorForName(this, operator);
-  }
-
-  private static final class ProlContextInsideThreadFactory implements ThreadFactory, Thread.UncaughtExceptionHandler, RejectedExecutionHandler {
-
-    private final String ownercontextName;
-
-    ProlContextInsideThreadFactory(final ProlContext owner) {
-      this.ownercontextName = owner.contextName;
-    }
-
-    @Override
-    public Thread newThread(final Runnable runner) {
-      final Thread thread = new Thread(runner, "Prol_" + ownercontextName + '_' + runner.toString());
-      thread.setDaemon(true);
-      thread.setUncaughtExceptionHandler(this);
-      return thread;
-    }
-
-    @Override
-    public void uncaughtException(final Thread thread, final Throwable exception) {
-      System.err.println("Detected uncaught exception in " + thread.getName());
-      exception.printStackTrace();
-    }
-
-    @Override
-    public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-      throw new InternalError("A Prol thread was rejected. [" + ownercontextName + ']');
-    }
   }
 }

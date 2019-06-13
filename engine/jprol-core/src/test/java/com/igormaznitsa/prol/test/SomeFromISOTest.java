@@ -594,14 +594,14 @@ public class SomeFromISOTest extends AbstractProlTest {
 
     final ChoicePoint goal = prepareGoal("some(). some(huzzaa).", "current_predicate(some/X).");
     assertNotNull(goal.next());
-    assertEquals(0, goal.getVarAsNumber("X"));
+    assertEquals(0L, goal.getVarAsNumber("X"));
     assertNotNull(goal.next());
-    assertEquals(1, goal.getVarAsNumber("X"));
+    assertEquals(1L, goal.getVarAsNumber("X"));
     assertNull(goal.next());
 
     //[current_predicate(run_tests/1), success].
     checkOnce("current_predicate_all(atom/1).", true);
-    checkOnceVar("current_predicate_all(halt/X).", "X", "0", "1");
+    checkOnceVar("current_predicate_all(dispose/X).", "X", "0", "1");
 
     //[current_predicate(4), type_error(predicate_indicator, 4)].
     checkException("current_predicate(4).");
@@ -682,12 +682,12 @@ public class SomeFromISOTest extends AbstractProlTest {
 
   @Test
   public void testHalt() throws Exception {
-    //[halt, impl_defined].
-//    checkException("halt.");
-    //[halt(1), impl_defined].
-//    checkException("halt(1).");
-    //[halt(a), type_error(integer, a)].
-    checkException("halt(a).");
+    //[dispose, impl_defined].
+//    checkException("dispose.");
+    //[dispose(1), impl_defined].
+//    checkException("dispose(1).");
+    //[dispose(a), type_error(integer, a)].
+    checkException("dispose(a).");
   }
 
   @Test
@@ -728,7 +728,7 @@ public class SomeFromISOTest extends AbstractProlTest {
     //[char_code(Char,163),[[Char <-- '\xa3\']]].
 
     //[char_code(a,Code),[[Code <-- 0'a]]].
-    checkOnceVar("char_code(a,Code).", "Code", (int) 'a');
+    checkOnceVar("char_code(a,Code).", "Code", (long) 'a');
     //[char_code(Char,99),[[Char <-- c]]].
     checkOnceVar("char_code(Char,99).", "Char", "'c'");
     //[char_code(b,98),success].
@@ -788,8 +788,8 @@ public class SomeFromISOTest extends AbstractProlTest {
 
     //[functor(foo(a,b,c),X,Y),[[X <-- foo, Y <-- 3]]].
     final ChoicePoint goal = proveGoal("functor(foo(a,b,c),X,Y).");
-    assertEquals(goal.getVarAsText("X"), "'foo'");
-    assertEquals(goal.getVarAsNumber("Y"), 3);
+    assertEquals("'foo'", goal.getVarAsText("X"));
+    assertEquals(3L, goal.getVarAsNumber("Y"));
     assertNull(goal.next());
 
     //[functor(X,foo,3), [[X <-- foo(A,B,C)]]].
@@ -801,7 +801,7 @@ public class SomeFromISOTest extends AbstractProlTest {
     //[functor(mats(A,B),A,B), [[A <-- mats,B <-- 2]]].
     final ChoicePoint goal2 = proveGoal("functor(mats(A,B),A,B).");
     assertEquals("'mats'", goal2.getVarAsText("A"));
-    assertEquals(2, goal2.getVarAsNumber("B"));
+    assertEquals(2L, goal2.getVarAsNumber("B"));
     assertNull(goal2.next());
 
     //[functor(foo(a),foo,2), success]. % Must fail
@@ -813,12 +813,12 @@ public class SomeFromISOTest extends AbstractProlTest {
     //[functor(1,X,Y), [[X <-- 1,Y <-- 0]]].
     final ChoicePoint goal3 = proveGoal("functor(1,X,Y).");
     assertEquals("1", goal3.getVarAsText("X"), "1");
-    assertEquals(0, goal3.getVarAsNumber("Y"));
+    assertEquals(0L, goal3.getVarAsNumber("Y"));
     assertNull(goal3.next());
 
     //[functor(X,1.1,0), [[X <-- 1.1]]].
     final ChoicePoint goal4 = proveGoal("functor(X,1.1,0).");
-    assertEquals(1.1f, goal4.getVarAsNumber("X"));
+    assertEquals(1.1d, goal4.getVarAsNumber("X"));
     assertNull(goal4.next());
 
     //[functor([_|_],'.',2), failure]. % Must succeed
@@ -859,7 +859,7 @@ public class SomeFromISOTest extends AbstractProlTest {
     //[functor(foo(a,b,c),X,Y), [[X <-- foo, Y <-- 3]]].
     ChoicePoint goal = proveGoal("functor(foo(a,b,c),X,Y).");
     assertEquals(goal.getVarAsText("X"), "'foo'");
-    assertEquals(goal.getVarAsNumber("Y"), 3);
+    assertEquals(goal.getVarAsNumber("Y"), 3L);
     assertNull(goal.next());
 
     //[functor(X,foo,3), [[X <-- foo(A,B,C)]]].  % A, B and C are 3 new variables
@@ -870,7 +870,7 @@ public class SomeFromISOTest extends AbstractProlTest {
     //[functor(mats(A,B),A,B), [[A <-- mats,B <-- 2]]].
     goal = proveGoal("functor(mats(A,B),A,B).");
     assertEquals(goal.getVarAsText("A"), "'mats'");
-    assertEquals(goal.getVarAsNumber("B"), 2);
+    assertEquals(goal.getVarAsNumber("B"), 2L);
     assertNull(goal.next());
 
     //[functor(foo(a),foo,2), failure].
@@ -880,8 +880,8 @@ public class SomeFromISOTest extends AbstractProlTest {
 
     //[functor(1,X,Y), [[X <-- 1,Y <-- 0]]].
     goal = proveGoal("functor(1,X,Y).");
-    assertEquals(goal.getVarAsNumber("X"), 1);
-    assertEquals(goal.getVarAsNumber("Y"), 0);
+    assertEquals(goal.getVarAsNumber("X"), 1L);
+    assertEquals(goal.getVarAsNumber("Y"), 0L);
     assertNull(goal.next());
 
     //[functor(X,1.1,0), [[X <-- 1.1]]].
@@ -914,7 +914,7 @@ public class SomeFromISOTest extends AbstractProlTest {
     //[\+((!,fail)), success].
     checkOnce("\\+((!,fail)).", true);
     //[((X=1;X=2), \+((!,fail))), [[X <-- 1],[X <-- 2]]].
-    checkOnceVar("((X=1;X=2),\\+((!,fail))).", "X", 1, 2);
+    checkOnceVar("((X=1;X=2),\\+((!,fail))).", "X", 1L, 2L);
     //[\+(4 = 5), success].
     checkOnce("\\+(4=5).", true);
     //[\+(3), type_error(callable, 3)].
@@ -928,7 +928,7 @@ public class SomeFromISOTest extends AbstractProlTest {
     //[once(!), success].
     checkOnce("once(!).", true);
     //[(once(!), (X=1; X=2)), [[X <-- 1],[X <-- 2]]].
-    checkOnceVar("once(!),(X=1;X=2).", "X", 1, 2);
+    checkOnceVar("once(!),(X=1;X=2).", "X", 1L, 2L);
     //[once(repeat), success].
     checkOnce("once(repeat).", true);
     //[once(fail), failure].
@@ -984,12 +984,12 @@ public class SomeFromISOTest extends AbstractProlTest {
 //    checkException("'is'(X,float(3))."); //TODO strange
 
     //['is'(Result,3 + 11.0),[[Result <-- 14.0]]].
-    checkOnceVar("'is'(Result,3+11.0).", "Result", 14.0f);
+    checkOnceVar("'is'(Result,3+11.0).", "Result", 14.0d);
 
     //[(X = 1 + 2, 'is'(Y, X * 3)),[[X <-- (1 + 2), Y <-- 9]]]. % error? 1+2
     ChoicePoint goal = proveGoal("X=1+2,'is'(Y,X*3).");
     assertEquals(goal.getVarAsText("X"), "1 + 2");
-    assertEquals(goal.getVarAsNumber("Y"), 9);
+    assertEquals(goal.getVarAsNumber("Y"), 9L);
     assertNull(goal.next());
 
     //['is'(foo,77), failure]. % error? foo
@@ -1003,9 +1003,9 @@ public class SomeFromISOTest extends AbstractProlTest {
   @Test
   public void testAtomLength() throws Exception {
     //[atom_length('enchanted evening', N), [[N <-- 17]]].
-    checkOnceVar("atom_length('enchanted evening', N).", "N", 17);
+    checkOnceVar("atom_length('enchanted evening', N).", "N", 17L);
     //[atom_length('', N), [[N <-- 0]]].
-    checkOnceVar("atom_length('', N).", "N", 0);
+    checkOnceVar("atom_length('', N).", "N", 0L);
     //[atom_length(Atom, 4), instantiation_error]. % Culprit Atom
     checkException("atom_length(Atom, 4).");
     //[atom_length('scarlet', 5), failure].
@@ -1035,9 +1035,9 @@ public class SomeFromISOTest extends AbstractProlTest {
     //['='(1,1), success].
     checkOnce("'='(1,1).", true);
     //['='(X,1),[[X <-- 1]]].
-    checkOnceVar("'='(X,1).", "X", 1);
+    checkOnceVar("'='(X,1).", "X", 1L);
     //['='(X,Y),[[Y <-- X]]].
-    checkOnceVar("Y=3,'='(X,Y).", "X", 3);
+    checkOnceVar("Y=3,'='(X,Y).", "X", 3L);
 
     //[('='(X,Y),'='(X,abc)),[[X <-- abc, Y <-- abc]]].
     ChoicePoint goal = proveGoal("X=Y,'='(X,abc).");
@@ -1207,9 +1207,9 @@ public class SomeFromISOTest extends AbstractProlTest {
     //[';'(!, call(3)), success].
     checkOnce("';'(!, call(3)).", true);
     //[';'((X=1, !), X=2), [[X <-- 1]]].
-    checkOnceVar("';'((X=1, !), X=2).", "X", 1);
+    checkOnceVar("';'((X=1, !), X=2).", "X", 1L);
     //[';'(X=1, X=2), [[X <-- 1], [X <-- 2]]].
-    checkOnceVar("';'(X=1, X=2).", "X", 1, 2);
+    checkOnceVar("';'(X=1, X=2).", "X", 1L, 2L);
   }
 
   @Test
@@ -1217,7 +1217,7 @@ public class SomeFromISOTest extends AbstractProlTest {
     //[','(X=1, var(X)), failure].
     checkOnce("','(X=1,var(X)).", false);
     //[','(var(X), X=1), [[X <-- 1]]].
-    checkOnceVar("','(var(X),X=1).", "X", 1);
+    checkOnceVar("','(var(X),X=1).", "X", 1L);
     //[','(fail, call(3)), failure].
     checkOnce("','(fail,call(3)).", false);
     //[','(X = true, call(X)), [[X <-- true]]].
@@ -1237,13 +1237,13 @@ public class SomeFromISOTest extends AbstractProlTest {
     //[';'('->'(fail, true), fail), failure].
     checkOnce("';'('->'(fail, true), fail).", false);
     //[';'('->'(true, X=1), X=2), [[X <-- 1]]].
-    checkOnceVar("true->X=1;X=2.", "X", 1);
+    checkOnceVar("true->X=1;X=2.", "X", 1L);
     //[';'('->'(fail, X=1), X=2), [[X <-- 2]]].
-    checkOnceVar("';'('->'(fail, X=1), X=2).", "X", 2);
+    checkOnceVar("';'('->'(fail, X=1), X=2).", "X", 2L);
     //[';'('->'(true, ';'(X=1, X=2)), true), [[X <-- 1], [X <-- 2]]].
-    checkOnceVar("';'('->'(true, ';'(X=1, X=2)), true).", "X", 1, 2);
+    checkOnceVar("';'('->'(true, ';'(X=1, X=2)), true).", "X", 1L, 2L);
     //[';'('->'(';'(X=1, X=2), true), true), [[X <-- 1]]].
-    checkOnceVar("';'('->'(';'(X=1, X=2), true), true).", "X", 1);
+    checkOnceVar("';'('->'(';'(X=1, X=2), true), true).", "X", 1L);
   }
 
   @Test
@@ -1255,11 +1255,11 @@ public class SomeFromISOTest extends AbstractProlTest {
     //['->'(fail, true), failure].
     checkOnce("'->'(fail, true).", false);
     //['->'(true, X=1), [[X <-- 1]]].
-    checkOnceVar("true -> X=1.", "X", 1);
+    checkOnceVar("true -> X=1.", "X", 1L);
     //['->'(';'(X=1, X=2), true), [[X <-- 1]]].
-    checkOnceVar("'->'(';'(X=1, X=2), true).", "X", 1);
+    checkOnceVar("'->'(';'(X=1, X=2), true).", "X", 1L);
     //['->'(true, ';'(X=1, X=2)), [[X <-- 1], [X <-- 2]]].
-    checkOnceVar("'->'(true, ';'(X=1, X=2)).", "X", 1, 2);
+    checkOnceVar("'->'(true, ';'(X=1, X=2)).", "X", 1L, 2L);
   }
 
   @Test
@@ -1300,13 +1300,13 @@ public class SomeFromISOTest extends AbstractProlTest {
     //[number_chars(33.0,L), [[L <-- ['3','3','.','0']]]].
     checkOnceVar("number_chars(33.0,L).", "L", "['3','3','.','0']");
     //[number_chars(X,['3','.','3','E','+','0']), [[X <-- 3.3]]].
-    checkOnceVar("number_chars(X,['3','.','3','E','+','0']).", "X", 3.3f);
+    checkOnceVar("number_chars(X,['3','.','3','E','+','0']).", "X", 3.3d);
     //[number_chars(3.3,['3','.','3','E','+','0']), success].
     checkOnce("number_chars(3.3,['3','.','3','E','+','0']).", true);
     //[number_chars(A,['-','2','5']), [[A <-- (-25)]]].
-    checkOnceVar("number_chars(A,['-','2','5']).", "A", -25);
+    checkOnceVar("number_chars(A,['-','2','5']).", "A", -25L);
     //[number_chars(A,['\n',' ','3']), [[A <-- 3]]].
-    checkOnceVar("number_chars(A,['\n',' ','3']).", "A", 3);
+    checkOnceVar("number_chars(A,['\n',' ','3']).", "A", 3L);
 
     //[number_chars(A,['3',' ']), syntax_error(_)].
     checkException("number_chars(A,['3',' ']).");
@@ -1318,11 +1318,11 @@ public class SomeFromISOTest extends AbstractProlTest {
     //[number_chars(A,['4',2]), type_error(character, 2)].
 
     //[number_chars(A,['4','.','2']), [[A <-- 4.2]]].
-    checkOnceVar("number_chars(A,['4','.','2']).", "A", 4.2f);
+    checkOnceVar("number_chars(A,['4','.','2']).", "A", 4.2d);
     //[number_chars(A,['4','2','.','0','e','-','1']), [[A <-- 4.2]]].
-    checkOnceVar("number_chars(A,['4','2','.','0','e','-','1']).", "A", 4.2f);
+    checkOnceVar("number_chars(A,['4','2','.','0','e','-','1']).", "A", 4.2d);
     //[number_chars(A,['0',x,f]), [[A <-- 15]]].
-    checkOnceVar("number_chars(A,['0',x,f]).", "A", 15);
+    checkOnceVar("number_chars(A,['0',x,f]).", "A", 15L);
 
     //[number_chars(A,L), instantiation_error].
     checkException("number_chars(A,L).");
@@ -1383,8 +1383,8 @@ public class SomeFromISOTest extends AbstractProlTest {
     for (Object res : result) {
       assertNotNull(thisGoal.next());
       if (res instanceof Number) {
-        if (res instanceof Float) {
-          assertTrue(Float.compare(thisGoal.getVarAsNumber(var).floatValue(), (Float) res) == 0);
+        if (res instanceof Double) {
+          assertTrue(Double.compare(thisGoal.getVarAsNumber(var).doubleValue(), (Double) res) == 0);
         } else {
           assertEquals(res, thisGoal.getVarAsNumber(var));
         }

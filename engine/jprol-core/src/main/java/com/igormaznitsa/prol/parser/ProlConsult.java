@@ -104,7 +104,7 @@ public class ProlConsult {
                 final String text = op.getText();
                 final int type = op.getOperatorType();
 
-                if (":-".equals(struct.getFunctor().getText())) {
+                if (struct.isClause()) {
                   switch (type) {
                     case Operator.OPTYPE_XFX: {
                       // new rule
@@ -192,7 +192,7 @@ public class ProlConsult {
         if (ex instanceof ThreadDeath) {
           throw (ThreadDeath) ex;
         }
-        //context.halt();
+        //context.dispose();
 
         throw new ParserException(ex.getMessage(), line, strpos, ex);
       }

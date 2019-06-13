@@ -23,52 +23,99 @@ import java.util.NoSuchElementException;
 class MemoryClauseIterator implements ClauseIterator {
 
   protected final InternalKnowledgeBaseClauseList predicateList;
-  protected final TermStruct template;
-  protected InternalClauseListItem lastFound;
+  protected final TermStruct searchTemplate;
+  protected final ClauseIteratorType type;
+  protected InternalClauseListItem foundNext;
 
-  public MemoryClauseIterator(final InternalKnowledgeBaseClauseList list, final TermStruct template) {
-    predicateList = list;
-    this.template = (TermStruct) template.makeClone();
-    lastFound = findFirstElement();
+  public MemoryClauseIterator(
+      final ClauseIteratorType type,
+      final InternalKnowledgeBaseClauseList list,
+      final TermStruct searchTemplate
+  ) {
+    this.type = type;
+    this.predicateList = list;
+    this.searchTemplate = (TermStruct) searchTemplate.makeClone();
+    this.foundNext = lookForNext(null);
+  }
+
+  private static boolean isFact(final InternalClauseListItem item) {
+    return !item.isRightPartPresented() && item.getKeyTerm().isGround();
+  }
+
+  private static boolean isRule(final InternalClauseListItem item) {
+    return item.isRightPartPresented() || !item.getKeyTerm().isGround();
+  }
+
+  @Override
+  public ClauseIteratorType getType() {
+    return this.type;
   }
 
   @Override
   public boolean hasNext() {
-    return lastFound != null;
+    return this.foundNext != null;
   }
 
   public TermStruct getTemplate() {
-    return template;
+    return this.searchTemplate;
   }
 
-  protected InternalClauseListItem findFirstElement() {
-    return predicateList.findDirect(template, null);
+  protected InternalClauseListItem lookForNext(final InternalClauseListItem startPosition) {
+    InternalClauseListItem result = startPosition == null ? null : startPosition;
+
+    while (!Thread.currentThread().isInterrupted()) {
+      result = this.predicateList.searchForward(this.searchTemplate, result);
+      if (result == null) {
+        break;
+      } else {
+        switch (this.type) {
+          case ANY:
+            break;
+          case FACTS: {
+            if (!isFact(result)) {
+              result = null;
+            }
+          }
+          break;
+          case RULES: {
+            if (!isRule(result)) {
+              result = null;
+            }
+          }
+          break;
+          default:
+            throw new Error("Unexpected type: " + this.type);
+        }
+      }
+      if (result != null) {
+        break;
+      }
+    }
+    return result;
   }
 
   @Override
   public TermStruct next() {
-    if (lastFound == null) {
+    if (this.foundNext == null) {
       throw new NoSuchElementException();
     }
-
-    final TermStruct result = (TermStruct) lastFound.getClause().makeClone();
-    lastFound = predicateList.findDirect(template, lastFound);
-
+    final TermStruct result = (TermStruct) foundNext.getClause().makeClone();
+    this.foundNext = lookForNext(this.foundNext);
     return result;
   }
 
   @Override
   public void remove() {
-    throw new UnsupportedOperationException("Not supported.");
+    throw new UnsupportedOperationException("Removing not supported for clause iterator");
   }
 
   @Override
   public void cut() {
-    lastFound = null;
+    this.foundNext = null;
   }
 
   @Override
   public String toString() {
-    return "ClauseIterator{template=" + template + '}';
+    return "ClauseIterator{template=" + this.searchTemplate + '}';
   }
 }

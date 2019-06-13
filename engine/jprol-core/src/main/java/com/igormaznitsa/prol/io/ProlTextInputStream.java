@@ -17,7 +17,7 @@
 package com.igormaznitsa.prol.io;
 
 import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.data.TermInteger;
+import com.igormaznitsa.prol.data.TermLong;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlReader;
 import com.igormaznitsa.prol.parser.ProlTokenizer;
@@ -27,7 +27,7 @@ import com.igormaznitsa.prol.parser.ProlTreeBuilder;
 import java.io.IOException;
 import java.io.Reader;
 
-import static com.igormaznitsa.prol.data.Terms.newInt;
+import static com.igormaznitsa.prol.data.Terms.newLong;
 
 public class ProlTextInputStream implements ProlStream, ProlTextReader {
 
@@ -104,8 +104,8 @@ public class ProlTextInputStream implements ProlStream, ProlTextReader {
   }
 
   @Override
-  public synchronized TermInteger readChar() throws IOException {
+  public synchronized TermLong readChar() throws IOException {
     int chr = reader.read();
-    return newInt(chr);
+    return newLong(chr);
   }
 }

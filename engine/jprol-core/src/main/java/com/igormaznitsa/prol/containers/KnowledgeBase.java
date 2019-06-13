@@ -44,9 +44,7 @@ public interface KnowledgeBase {
 
   void write(PrintWriter writer);
 
-  ClauseIterator getFactIterator(TermStruct template);
-
-  ClauseIterator getClauseIterator(TermStruct template);
+  ClauseIterator getClauseIterator(ClauseIteratorType type, TermStruct template);
 
   List<TermStruct> findAllForPredicateIndicator(final Term predicateIndicator);
 

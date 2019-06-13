@@ -64,7 +64,7 @@ public abstract class AbstractProlLibrary {
           return newStruct(SIGNATURE_OPERATOR,
               new Term[] {
                   newAtom(key.substring(0, index)),
-                  newInt(parseInt(key.substring(index + 1)))
+                  newLong(parseInt(key.substring(index + 1)))
               });
         })
         .filter(predicateIndicator::dryUnifyTo)

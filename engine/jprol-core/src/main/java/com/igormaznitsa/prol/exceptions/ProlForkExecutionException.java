@@ -22,7 +22,7 @@ import com.igormaznitsa.prol.data.TermStruct;
 import java.util.Arrays;
 
 import static com.igormaznitsa.prol.data.Terms.newAtom;
-import static com.igormaznitsa.prol.data.Terms.newInt;
+import static com.igormaznitsa.prol.data.Terms.newLong;
 
 public class ProlForkExecutionException extends ProlAbstractCatcheableException {
 
@@ -47,7 +47,7 @@ public class ProlForkExecutionException extends ProlAbstractCatcheableException 
 
   @Override
   public TermStruct getAsStruct() {
-    return makeErrorStruct(ERROR_TERM, newInt(throwables.length));
+    return makeErrorStruct(ERROR_TERM, newLong(throwables.length));
   }
 
   @Override

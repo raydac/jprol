@@ -146,71 +146,6 @@ public class Term {
     throw new ProlTypeErrorException("numeric", "NonNumeric term", this);
   }
 
-  @Override
-  public boolean equals(final Object obj) {
-    if (obj == null) {
-      return false;
-    }
-
-    if (this == obj) {
-      return true;
-    }
-
-    final Class<?> objclass = obj.getClass();
-
-    if (objclass == TermInteger.class || obj.getClass() == Term.class) {
-
-      final Term other = (Term) obj;
-
-      if (hashCode() != other.hashCode()) {
-        return false;
-      }
-      return this.text.equals(other.text);
-    } else {
-      return false;
-    }
-  }
-
-  public String getSignature() {
-    return getText();
-  }
-
-  public String forWrite() {
-    return getText();
-  }
-
-  public boolean unifyTo(final Term other) {
-    if (this == other) {
-      return true;
-    }
-
-    boolean result = false;
-
-    switch (other.getTermType()) {
-      case VAR: {
-        final Var var = (Var) other;
-        final Term value = var.getValue();
-        if (value == null) {
-          result = ((Var) other).setValue(this);
-        } else {
-          result = unifyTo(value);
-        }
-      }
-      break;
-      case ATOM: {
-        result = getText().equals(other.getText());
-      }
-      break;
-      case STRUCT: {
-        final TermStruct thatStruct = (TermStruct) other;
-        result = thatStruct.getArity() == 0 && getText().equals(thatStruct.getFunctor().getText());
-      }
-      break;
-    }
-
-    return result;
-  }
-
   public static Term toTerm(final Object src) {
     Term result = null;
 
@@ -225,9 +160,11 @@ public class Term {
       result = new Term((String) src);
     } else if (src instanceof Number) {
       if (src instanceof Integer) {
-        result = newInt(((Integer) src));
+        result = newLong(((Integer) src));
+      } else if (src instanceof Double) {
+        result = newDouble(((Double) src));
       } else if (src instanceof Float) {
-        result = newFloat(((Float) src));
+        result = newDouble((((Float) src).doubleValue()));
       } else {
         throw new IllegalArgumentException("Unsupported number format.");
       }
@@ -273,6 +210,71 @@ public class Term {
     }
     return result;
 
+  }
+
+  public String getSignature() {
+    return getText();
+  }
+
+  public String forWrite() {
+    return getText();
+  }
+
+  public boolean unifyTo(final Term other) {
+    if (this == other) {
+      return true;
+    }
+
+    boolean result = false;
+
+    switch (other.getTermType()) {
+      case VAR: {
+        final Var var = (Var) other;
+        final Term value = var.getValue();
+        if (value == null) {
+          result = ((Var) other).setValue(this);
+        } else {
+          result = unifyTo(value);
+        }
+      }
+      break;
+      case ATOM: {
+        result = getText().equals(other.getText());
+      }
+      break;
+      case STRUCT: {
+        final TermStruct thatStruct = (TermStruct) other;
+        result = thatStruct.getArity() == 0 && getText().equals(thatStruct.getFunctor().getText());
+      }
+      break;
+    }
+
+    return result;
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+    if (obj == null) {
+      return false;
+    }
+
+    if (this == obj) {
+      return true;
+    }
+
+    final Class<?> objclass = obj.getClass();
+
+    if (objclass == TermLong.class || obj.getClass() == Term.class) {
+
+      final Term other = (Term) obj;
+
+      if (hashCode() != other.hashCode()) {
+        return false;
+      }
+      return this.text.equals(other.text);
+    } else {
+      return false;
+    }
   }
 
   public TermList toCharList() {
@@ -333,10 +335,10 @@ public class Term {
     if (text == null || text.isEmpty()) {
       return Terms.NULL_LIST;
     } else {
-      final TermList result = createOrAppendToList(null, newInt(text.charAt(0)));
+      final TermList result = createOrAppendToList(null, newLong(text.charAt(0)));
       TermList current = result;
       for (int i = 1; i < text.length(); i++) {
-        current = createOrAppendToList(current, newInt(text.charAt(i)));
+        current = createOrAppendToList(current, newLong(text.charAt(i)));
       }
       return result;
     }

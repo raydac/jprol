@@ -100,7 +100,7 @@ public enum TemplateValueType {
   }),
   BYTE(t -> {
     boolean error = true;
-    if (t instanceof TermInteger) {
+    if (t instanceof TermLong) {
       final int value = t.toNumber().intValue();
       if ((value & 0xFF) == 0) {
         error = false;
@@ -138,7 +138,7 @@ public enum TemplateValueType {
   }),
   CHARACTER_CODE(t -> {
     boolean error = true;
-    if (t instanceof TermInteger) {
+    if (t instanceof TermLong) {
       final int value = t.toNumber().intValue();
       if ((value & 0xFFFF0000) == 0) {
         error = false;
@@ -164,7 +164,7 @@ public enum TemplateValueType {
             }
           }
           if (head.getTermType() == TermType.ATOM) {
-            if (head instanceof TermInteger) {
+            if (head instanceof TermLong) {
               if ((head.toNumber().intValue() & 0xFFFF0000) != 0) {
                 error = true;
                 break;
@@ -255,11 +255,10 @@ public enum TemplateValueType {
         final TermStruct struct = (TermStruct) t;
         final Term functor = struct.getFunctor();
 
-        final boolean rule = ":-".equals(struct.getFunctor().getText());
         final TermType functorType = functor.getTermType();
 
         // check left part
-        if (rule) {
+        if (struct.isClause()) {
           final Term left = struct.getElement(0);
           switch (left.getTermType()) {
             case ATOM: {
@@ -350,7 +349,7 @@ public enum TemplateValueType {
   }),
   IN_BYTE(t -> {
     boolean error = false;
-    if (t instanceof TermInteger) {
+    if (t instanceof TermLong) {
       final int val = t.toNumber().intValue();
       if ((val & 0xFF) != 0 && val == -1) {
         error = true;
@@ -378,7 +377,7 @@ public enum TemplateValueType {
   }),
   IN_CHARACTER_CODE(t -> {
     boolean error = false;
-    if (t instanceof TermInteger) {
+    if (t instanceof TermLong) {
       final int val = t.toNumber().intValue();
       if ((val & 0xFFFF0000) != 0 && val != -1) {
         error = true;
@@ -391,7 +390,7 @@ public enum TemplateValueType {
     }
   }),
   INTEGER(t -> {
-    if (!(t instanceof TermInteger)) {
+    if (!(t instanceof TermLong)) {
       throw new ProlInstantiationErrorException("Should be integer \'" + t + '\'', t);
     }
   }),
@@ -446,7 +445,7 @@ public enum TemplateValueType {
             || (left.getTermType() == STRUCT && ((TermStruct) left).getArity() == 0)
             || (left.getTermType() == VAR && !left.isGround());
 
-        final boolean rightIsCorrect = (right.getTermType() == TermType.ATOM && right.getClass() == TermInteger.class)
+        final boolean rightIsCorrect = (right.getTermType() == TermType.ATOM && right.getClass() == TermLong.class)
             || (right.getTermType() == VAR && !right.isGround());
 
         error = !(leftIsCorrect && rightIsCorrect);

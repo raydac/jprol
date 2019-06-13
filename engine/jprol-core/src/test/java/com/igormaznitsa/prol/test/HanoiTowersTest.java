@@ -26,7 +26,7 @@ public class HanoiTowersTest extends AbstractProlTest {
             fail();
         }
 
-        final ProlMemoryPipe pipe = context.getMemoryPipeForName("+hanoi");
+      final ProlMemoryPipe pipe = context.findMemPipe("+hanoi");
         pipe.closeForWriteOnly();
         final String data = pipe.getAllDataAsString(Charset.defaultCharset());
 

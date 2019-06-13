@@ -494,14 +494,14 @@ public final class ProlTokenizer {
     switch (state) {
       case INSIDE_STATE_INTEGER: {
         try {
-          result = newInt(string);
+          result = newLong(string);
         } catch (NumberFormatException ex) {
         }
       }
       break;
       case INSIDE_STATE_FLOAT: {
         try {
-          result = newFloat(string);
+          result = newDouble(string);
         } catch (NumberFormatException ex) {
         }
       }

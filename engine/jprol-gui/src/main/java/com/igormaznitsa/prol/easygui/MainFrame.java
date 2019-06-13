@@ -1195,7 +1195,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       } finally {
         if (context != null) {
           try {
-            context.halt();
+            context.dispose();
           } catch (IllegalStateException ex) {
           }
         }

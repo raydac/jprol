@@ -20,24 +20,24 @@ public class ProlHaltExecutionException extends ProlException {
 
   private static final long serialVersionUID = -8265930292043474634L;
 
-  private final int status;
+  private final long status;
 
   public ProlHaltExecutionException() {
     super("The program is halted.");
-    this.status = 0;
+    this.status = 0L;
   }
 
-  public ProlHaltExecutionException(final int status) {
+  public ProlHaltExecutionException(final long status) {
     super("The program is halted.");
     this.status = status;
   }
 
-  public ProlHaltExecutionException(final String cause, final int status) {
+  public ProlHaltExecutionException(final String cause, final long status) {
     super(cause);
     this.status = status;
   }
 
-  public int getStatus() {
+  public long getStatus() {
     return this.status;
   }
 }

@@ -85,6 +85,11 @@ public class TermStruct extends Term {
     return terms.length;
   }
 
+  public boolean isClause() {
+    final int arity = this.getArity();
+    return (arity > 0 && arity < 3) && ":-".equals(this.functor.getText());
+  }
+
   @Override
   public int getPriority() {
     if (functor.getTermType() == OPERATOR) {

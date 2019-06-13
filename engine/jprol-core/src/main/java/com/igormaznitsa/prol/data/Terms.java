@@ -3,9 +3,9 @@ package com.igormaznitsa.prol.data;
 import com.igormaznitsa.prol.libraries.PredicateProcessor;
 
 public final class Terms {
-  public static final TermInteger INT_ONE = new TermInteger(1);
-  public static final TermInteger INT_ZERO = new TermInteger(0);
-  public static final TermInteger INT_MINUS_ONE = new TermInteger(-1);
+  public static final TermLong INT_ONE = new TermLong(1L);
+  public static final TermLong INT_ZERO = new TermLong(0L);
+  public static final TermLong INT_MINUS_ONE = new TermLong(-1L);
   public static final Term LIST_FUNCTOR = new Term(".");
   public static final TermList NULL_LIST = new TermList();
 
@@ -17,28 +17,27 @@ public final class Terms {
     }
   }
 
-  public static TermFloat newFloat(final String text) {
-    return new TermFloat(text);
+  public static TermDouble newDouble(final String text) {
+    return new TermDouble(text);
   }
 
-  public static TermFloat newFloat(final float value) {
-    return new TermFloat(value);
+  public static TermDouble newDouble(final double value) {
+    return new TermDouble(value);
   }
 
-  public static TermInteger newInt(final String text) {
-    return new TermInteger(text);
+  public static TermLong newLong(final String text) {
+    return new TermLong(text);
   }
 
-  public static TermInteger newInt(final int value) {
-    switch (value) {
-      case -1:
-        return INT_MINUS_ONE;
-      case 0:
-        return INT_ZERO;
-      case 1:
-        return INT_ONE;
-      default:
-        return new TermInteger(value);
+  public static TermLong newLong(final long value) {
+    if (value == 0L) {
+      return INT_ZERO;
+    } else if (value == 1L) {
+      return INT_ONE;
+    } else if (value == -1L) {
+      return INT_MINUS_ONE;
+    } else {
+      return new TermLong(value);
     }
   }
 

@@ -72,6 +72,12 @@ public final class Utils {
     return newList;
   }
 
+  public static void assertNotNull(final Object obj, final String msg) {
+    if (obj == null) {
+      throw new NullPointerException(msg);
+    }
+  }
+
   public static String escapeSrc(final String string) {
 
     if (string.length() == 0) {
@@ -129,7 +135,7 @@ public final class Utils {
     final Term left = struct.getElement(0).findNonVarOrDefault(null);
     final Term right = struct.getElement(1).findNonVarOrDefault(null);
 
-    if (right instanceof TermInteger && left.getTermType() == ATOM) {
+    if (right instanceof TermLong && left.getTermType() == ATOM) {
       return left.getText() + '/' + right.getText();
     }
     return null;

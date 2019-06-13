@@ -56,7 +56,7 @@ final class InternalKnowledgeBaseClauseList {
     boolean result = false;
 
     while (!Thread.currentThread().isInterrupted()) {
-      if ((container = findDirect(template, container)) == null) {
+      if ((container = searchForward(template, container)) == null) {
         break;
       }
       container.remove();
@@ -74,7 +74,7 @@ final class InternalKnowledgeBaseClauseList {
     InternalClauseListItem container = null;
 
     while (!Thread.currentThread().isInterrupted()) {
-      if ((container = findBack(template, container)) == null) {
+      if ((container = searchBackward(template, container)) == null) {
         break;
       }
       container.remove();
@@ -91,7 +91,7 @@ final class InternalKnowledgeBaseClauseList {
     InternalClauseListItem container = null;
     int result = 0;
 
-    while ((container = findDirect(template, container)) != null) {
+    while ((container = searchForward(template, container)) != null) {
       container.remove();
       if (first == container) {
         first = container.getNext();
@@ -131,7 +131,7 @@ final class InternalKnowledgeBaseClauseList {
     return result;
   }
 
-  InternalClauseListItem findDirect(final TermStruct template, InternalClauseListItem startClause) {
+  InternalClauseListItem searchForward(final TermStruct template, InternalClauseListItem startClause) {
 
     if (startClause == null) {
       startClause = this.first;
@@ -155,7 +155,7 @@ final class InternalKnowledgeBaseClauseList {
     return result;
   }
 
-  InternalClauseListItem findBack(final TermStruct template, InternalClauseListItem sinceContainer) {
+  InternalClauseListItem searchBackward(final TermStruct template, InternalClauseListItem sinceContainer) {
     if (sinceContainer == null) {
       sinceContainer = last;
     } else {

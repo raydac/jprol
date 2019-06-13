@@ -32,15 +32,18 @@ public final class InternalClauseListItem {
   protected InternalClauseListItem(final InternalClauseListItem prev, final InternalClauseListItem next, final TermStruct clause) {
     super();
     previous = prev;
+
     if (prev != null) {
       prev.setNext(this);
     }
     this.next = next;
+
     if (next != null) {
       next.setPrevious(this);
     }
     this.clause = clause;
-    if (":-".equals(clause.getFunctor().getText())) {
+
+    if (clause.isClause()) {
       this.rightPartPresented = true;
       this.keyTerm = clause.getElement(0);
     } else {
@@ -52,15 +55,15 @@ public final class InternalClauseListItem {
 
   public final void remove() {
     if (previous != null) {
-      previous.setNext(this.getNext());
+      this.previous.setNext(this.getNext());
     }
     if (next != null) {
-      next.setPrevious(this.getPrevious());
+      this.next.setPrevious(this.getPrevious());
     }
   }
 
   @Override
   public String toString() {
-    return keyTerm.toString();
+    return this.keyTerm.toString();
   }
 }

@@ -19,8 +19,8 @@ package com.igormaznitsa.prol.libraries;
 import com.igormaznitsa.prol.annotations.Determined;
 import com.igormaznitsa.prol.annotations.Predicate;
 import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.data.TermFloat;
-import com.igormaznitsa.prol.data.TermInteger;
+import com.igormaznitsa.prol.data.TermDouble;
+import com.igormaznitsa.prol.data.TermLong;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 
@@ -122,7 +122,7 @@ public class ProlStrLibrary extends AbstractProlLibrary {
     final Term argLeft = predicate.getElement(0).findNonVarOrSame();
     final Term argRight = predicate.getElement(1).findNonVarOrSame();
 
-    TermInteger result = newInt(argLeft.getText().length());
+    TermLong result = newLong(argLeft.getText().length());
 
     return argRight.unifyTo(result);
   }
@@ -135,9 +135,9 @@ public class ProlStrLibrary extends AbstractProlLibrary {
 
     if (argLeft.getTermType() == ATOM) {
       // the first case
-      final TermInteger result;
+      final TermLong result;
       try {
-        result = newInt(argLeft.getText().trim());
+        result = newLong(argLeft.getText().trim());
       } catch (NumberFormatException ex) {
         return false;
       }
@@ -157,9 +157,9 @@ public class ProlStrLibrary extends AbstractProlLibrary {
 
     if (argLeft.getTermType() == ATOM) {
       // the first case
-      final TermFloat result;
+      final TermDouble result;
       try {
-        result = newFloat(argLeft.getText().trim());
+        result = newDouble(argLeft.getText().trim());
       } catch (NumberFormatException ex) {
         return false;
       }

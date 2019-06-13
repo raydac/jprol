@@ -17,7 +17,7 @@
 package com.igormaznitsa.prol.io;
 
 import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.data.TermInteger;
+import com.igormaznitsa.prol.data.TermLong;
 import com.igormaznitsa.prol.logic.ProlContext;
 
 import java.io.ByteArrayOutputStream;
@@ -101,7 +101,7 @@ public class ProlMemoryPipe implements ProlStream, ProlTextReader, ProlTextWrite
   }
 
   @Override
-  public TermInteger readChar() throws IOException {
+  public TermLong readChar() throws IOException {
     synchronized (reader) {
       return reader.readChar();
     }

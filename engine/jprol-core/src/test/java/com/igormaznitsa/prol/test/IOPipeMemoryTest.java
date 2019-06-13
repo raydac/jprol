@@ -28,7 +28,7 @@ public class IOPipeMemoryTest extends AbstractProlTest {
           break;
         }
 
-        final ProlMemoryPipe pipe = context.getMemoryPipeForName("+buff2");
+        final ProlMemoryPipe pipe = context.findMemPipe("+buff2");
         int next = 1;
         while (true) {
           final Term term = pipe.readToken();

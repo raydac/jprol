@@ -17,7 +17,7 @@
 package com.igormaznitsa.prol.io;
 
 import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.data.TermInteger;
+import com.igormaznitsa.prol.data.TermLong;
 
 import java.io.IOException;
 
@@ -27,7 +27,7 @@ public interface ProlTextReader {
 
   Term readTerm() throws IOException;
 
-  TermInteger readChar() throws IOException;
+  TermLong readChar() throws IOException;
 
   String getResourceId();
 

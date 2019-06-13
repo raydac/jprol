@@ -18,51 +18,47 @@ package com.igormaznitsa.prol.data;
 
 import static com.igormaznitsa.prol.data.TermType.ATOM;
 import static com.igormaznitsa.prol.data.TermType.VAR;
-import static com.igormaznitsa.prol.data.Terms.newFloat;
-import static com.igormaznitsa.prol.data.Terms.newInt;
 
-public final class TermInteger extends NumericTerm {
+public final class TermDouble extends NumericTerm {
 
-  private final int intValue;
+  private final double value;
 
-  TermInteger(final String name) {
+  TermDouble(final String name) {
     super(name);
-    intValue = Integer.parseInt(name);
+
+    int len = name.length() - 1;
+    while (len >= 0) {
+      if (Character.isWhitespace(name.charAt(len--))) {
+        throw new NumberFormatException();
+      }
+    }
+
+    value = Double.parseDouble(name);
   }
 
-  TermInteger(final int value) {
+  TermDouble(final double value) {
     super("");
-    intValue = value;
+    this.value = value;
   }
 
   @Override
   public String toString() {
-    final String val = getText();
-    if (val.isEmpty()) {
-      return Integer.toString(intValue);
-    } else {
-      return val;
-    }
-  }
-
-  @Override
-  public String forWrite() {
-    return getText().isEmpty() ? Integer.toString(intValue) : getText();
+    return getText();
   }
 
   @Override
   public int hashCode() {
-    return intValue;
+    return (int) value;
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(final Object obj) {
     if (obj == null) {
       return false;
     }
 
-    if (obj.getClass() == TermInteger.class) {
-      return ((TermInteger) obj).intValue == intValue;
+    if (obj.getClass() == TermDouble.class) {
+      return ((TermDouble) obj).value == value;
     }
 
     return super.equals(obj);
@@ -70,7 +66,7 @@ public final class TermInteger extends NumericTerm {
 
   @Override
   public boolean stronglyEqualsTo(final Term term) {
-    return this == term || (term.getClass() == TermInteger.class && this.intValue == ((TermInteger) term).intValue);
+    return this == term || (term.getClass() == TermDouble.class && Double.compare(this.value, ((TermDouble) term).value) == 0);
   }
 
   @Override
@@ -88,7 +84,7 @@ public final class TermInteger extends NumericTerm {
     }
 
     if (atom.getTermType() == ATOM && atom instanceof NumericTerm) {
-        return compare((NumericTerm) atom) == 0;
+      return compare((NumericTerm) atom) == 0;
     }
     return false;
   }
@@ -122,19 +118,28 @@ public final class TermInteger extends NumericTerm {
 
   @Override
   public Number toNumber() {
-    return this.intValue;
+    return this.value;
+  }
+
+  @Override
+  public String forWrite() {
+    return getText().isEmpty() ? Double.toString(this.value) : getText();
   }
 
   @Override
   public String toSrcString() {
-    return Integer.toString(intValue);
+    String text = getText();
+    if (text.indexOf('.') < 0) {
+      text += ".0";
+    }
+    return text;
   }
 
   @Override
   public String getText() {
     final String value = super.getText();
-    if (value == null) {
-      return Integer.toString(intValue);
+    if (value.isEmpty()) {
+      return Double.toString(this.value);
     } else {
       return value;
     }
@@ -142,61 +147,42 @@ public final class TermInteger extends NumericTerm {
 
   @Override
   public int compare(final NumericTerm atom) {
-    if (atom.isFloat()) {
-      final float value = atom.toNumber().floatValue();
-      return Float.compare((float) intValue, value);
-    }
-    return Integer.compare(intValue, atom.toNumber().intValue());
+    final double value = atom.toNumber().doubleValue();
+    return Double.compare(this.value, value);
   }
 
   @Override
   public NumericTerm add(final NumericTerm atom) {
-    if (atom.isFloat()) {
-      final float value = atom.toNumber().floatValue();
-      return newFloat((float) intValue + value);
-    } else {
-      return newInt(intValue + atom.toNumber().intValue());
-    }
+    final double value = atom.toNumber().doubleValue();
+    return Terms.newDouble(this.value + value);
   }
 
   @Override
   public NumericTerm sub(final NumericTerm atom) {
-    if (atom.isFloat()) {
-      final float value = atom.toNumber().floatValue();
-      return newFloat((float) intValue - value);
-    } else {
-      return newInt(intValue - atom.toNumber().intValue());
-    }
+    final double value = atom.toNumber().doubleValue();
+    return Terms.newDouble(this.value - value);
   }
 
   @Override
   public NumericTerm div(final NumericTerm atom) {
-    if (atom.isFloat()) {
-      final float value = atom.toNumber().floatValue();
-      return newFloat((float) intValue / value);
-    } else {
-      return newInt(intValue / atom.toNumber().intValue());
-    }
+    final double value = atom.toNumber().doubleValue();
+    return Terms.newDouble(this.value / value);
   }
 
   @Override
   public NumericTerm mul(final NumericTerm atom) {
-    if (atom.isFloat()) {
-      final float value = atom.toNumber().floatValue();
-      return newFloat((float) intValue * value);
-    } else {
-      return newInt(intValue * atom.toNumber().intValue());
-    }
+    final double value = atom.toNumber().doubleValue();
+    return Terms.newDouble(this.value * value);
   }
 
   @Override
   public NumericTerm neg() {
-    return newInt(-intValue);
+    return Terms.newDouble(-this.value);
   }
 
   @Override
   public boolean isFloat() {
-    return false;
+    return true;
   }
 
   @Override
@@ -212,9 +198,9 @@ public final class TermInteger extends NumericTerm {
         return 1;
       case ATOM: {
         if (atom instanceof NumericTerm) {
-          final int value = ((NumericTerm) atom).isFloat() ? Math.round(atom.toNumber().floatValue()) :
-              atom.toNumber().intValue();
-          return Integer.compare(intValue, value);
+          NumericTerm num = (NumericTerm) atom;
+          double value = num.toNumber().doubleValue();
+          return Double.compare(this.value, value);
         } else {
           return -1;
         }
@@ -226,20 +212,14 @@ public final class TermInteger extends NumericTerm {
 
   @Override
   public NumericTerm abs() {
-    if (intValue >= 0) {
+    if (Double.compare(0.0d, this.value) >= 0) {
       return this;
     }
-    return newInt(Math.abs(intValue));
+    return Terms.newDouble(Math.abs(value));
   }
 
   @Override
   public NumericTerm sign() {
-    int sign = 0;
-    if (intValue < 0) {
-      sign = -1;
-    } else if (intValue > 0) {
-      sign = 1;
-    }
-    return newInt(sign);
+    return Terms.newDouble(Math.signum(this.value));
   }
 }

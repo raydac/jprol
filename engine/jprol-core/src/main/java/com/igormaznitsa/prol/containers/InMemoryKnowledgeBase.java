@@ -226,7 +226,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   private boolean assertClause(final ProlContext context, final TermStruct clause, final boolean asFirst) {
     try {
       final String uid;
-      if (":-".equals(clause.getFunctor().getText())) {
+      if (clause.isClause()) {
         Term leftPart = clause.getElement(0);
         if (leftPart.getTermType() == ATOM) {
           leftPart = newStruct(leftPart);
@@ -267,26 +267,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public ClauseIterator getFactIterator(final TermStruct template) {
-    final String uid = template.getSignature();
-
-    final ReentrantLock lockerPred = predicateLocker;
-
-    lockerPred.lock();
-    try {
-      final InternalKnowledgeBaseClauseList list = predicateTable.get(uid);
-      ClauseIterator result = null;
-      if (list != null) {
-        result = new MemoryFactIterator(list, template);
-      }
-      return result;
-    } finally {
-      lockerPred.unlock();
-    }
-  }
-
-  @Override
-  public ClauseIterator getClauseIterator(final TermStruct template) {
+  public ClauseIterator getClauseIterator(final ClauseIteratorType type, final TermStruct template) {
     final String uid = template.getSignature();
 
     final ReentrantLock lockerPred = this.predicateLocker;
@@ -298,7 +279,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
       ClauseIterator result = null;
 
       if (list != null) {
-        result = new MemoryClauseIterator(list, template);
+        result = new MemoryClauseIterator(type, list, template);
       }
       return result;
     } finally {
@@ -317,7 +298,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
             return newStruct(Utils.SIGNATURE_OPERATOR,
                 new Term[] {
                     Terms.newAtom(key.substring(0, index)),
-                    Terms.newInt(parseInt(key.substring(index + 1)))
+                    Terms.newLong(parseInt(key.substring(index + 1)))
                 });
           })
           .filter(predicateIndicator::dryUnifyTo)
@@ -357,7 +338,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   @Override
   public boolean retractAll(final ProlContext context, final TermStruct clause) {
     TermStruct struct = clause;
-    if (":-".equals(struct.getFunctor().getText())) {
+    if (struct.isClause()) {
       // it's a clause
       struct = struct.getElement(0);
     }
@@ -395,7 +376,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   @Override
   public boolean retractA(final ProlContext context, final TermStruct clause) {
     TermStruct struct = clause;
-    if (":-".equals(struct.getFunctor().getText())) {
+    if (struct.isClause()) {
       // it's a clause
       struct = struct.getElement(0);
     }
@@ -432,7 +413,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   @Override
   public boolean retractZ(final ProlContext context, final TermStruct clause) {
     TermStruct struct = clause;
-    if (":-".equals(struct.getFunctor().getText())) {
+    if (struct.isClause()) {
       // it's a clause
       struct = struct.getElement(0);
     }

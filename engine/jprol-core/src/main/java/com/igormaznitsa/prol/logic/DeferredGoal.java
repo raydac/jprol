@@ -120,7 +120,7 @@ public class DeferredGoal {
   public final ChoicePoint forIntegerParameters(final int... parameters) {
     final Term[] termarray = new Term[parameters.length];
     for (int li = 0; li < parameters.length; li++) {
-      termarray[li] = Terms.newInt(parameters[li]);
+      termarray[li] = Terms.newLong(parameters[li]);
     }
     return this.forParameters(termarray);
   }
@@ -136,7 +136,7 @@ public class DeferredGoal {
   public final ChoicePoint forFloatParameters(final float... parameters) {
     final Term[] termarray = new Term[parameters.length];
     for (int li = 0; li < parameters.length; li++) {
-      termarray[li] = Terms.newFloat(parameters[li]);
+      termarray[li] = Terms.newDouble(parameters[li]);
     }
     return this.forParameters(termarray);
   }

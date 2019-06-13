@@ -1,8 +1,8 @@
 package com.igormaznitsa.prol.test;
 
 import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.data.TermInteger;
 import com.igormaznitsa.prol.data.TermList;
+import com.igormaznitsa.prol.data.TermLong;
 import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
@@ -31,7 +31,7 @@ public class DeepStackTest extends AbstractProlTest {
     private boolean checkList(int depth, TermList list) {
         TermList cList = list;
         while (!cList.isNullList()) {
-          final TermInteger intterm = cList.getHead();
+          final TermLong intterm = cList.getHead();
           if (depth != intterm.toNumber().intValue()) {
                 return false;
             }

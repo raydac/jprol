@@ -17,6 +17,7 @@
 package com.igormaznitsa.prol.logic;
 
 import com.igormaznitsa.prol.containers.ClauseIterator;
+import com.igormaznitsa.prol.containers.ClauseIteratorType;
 import com.igormaznitsa.prol.data.NumericTerm;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
@@ -209,7 +210,7 @@ public final class ChoicePoint {
     final ProlContext localcontext = this.context;
 
     while (loop && !Thread.currentThread().isInterrupted()) {
-      if (localcontext.isHalted()) {
+      if (localcontext.isDisposed()) {
         throw new ProlHaltExecutionException();
       }
 
@@ -304,17 +305,17 @@ public final class ChoicePoint {
           final TermStruct structFromBase = this.clauseIterator.next();
 
           final Term goalTermForEqu;
-          if (":-".equals(((TermStruct) this.goalTerm).getFunctor().getText())) {
+          if (((TermStruct) this.goalTerm).isClause()) {
             goalTermForEqu = ((TermStruct) this.goalTerm).getElement(0).makeClone();
           } else {
             goalTermForEqu = this.goalTerm.makeClone();
           }
 
-          if (!goalTermForEqu.unifyTo(":-".equals(structFromBase.getFunctor().getText()) ? structFromBase.getElement(0) : structFromBase)) {
+          if (!goalTermForEqu.unifyTo(structFromBase.isClause() ? structFromBase.getElement(0) : structFromBase)) {
             throw new ProlCriticalError("impossible situation #2123123");
           }
 
-          if (":-".equals(structFromBase.getFunctor().getText())) {
+          if (structFromBase.isClause()) {
             this.thisConnector = goalTerm;
             this.subChoicePointConnector = structFromBase.getElement(0);
             this.subCp = new ChoicePoint(structFromBase.getElement(1), this.context);
@@ -345,7 +346,7 @@ public final class ChoicePoint {
           final TermStruct struct = (TermStruct) goalTerm;
           final int arity = struct.getArity();
 
-          if (":-".equals(struct.getFunctor().getText())) {
+          if (struct.isClause()) {
             final TermStruct structClone = (TermStruct) struct.makeClone();
 
             this.thisConnector = struct.getElement(0);
@@ -414,7 +415,7 @@ public final class ChoicePoint {
               if (processor == PredicateProcessor.NULL_PROCESSOR) {
                 // just a struct
                 // find it at knowledge base
-                this.clauseIterator = this.context.getKnowledgeBase().getClauseIterator(struct);
+                this.clauseIterator = this.context.getKnowledgeBase().getClauseIterator(ClauseIteratorType.ANY, struct);
                 if (this.clauseIterator == null || !this.clauseIterator.hasNext()) {
                   doLoop = false;
                   resetVariants();
