@@ -39,7 +39,7 @@ import static java.lang.Integer.parseInt;
 public abstract class AbstractProlLibrary {
 
   private final String libraryUid;
-  private final Map<String, OperatorContainer> libraryOperators;
+  private final Map<String, OperatorContainer> systemOperators;
   private final Map<String, PredicateProcessor> predicateMethodsMap;
   private final Set<String> zeroArityPredicateNames;
 
@@ -50,7 +50,7 @@ public abstract class AbstractProlLibrary {
 
     this.libraryUid = libraryUid;
 
-    this.libraryOperators = Collections.unmodifiableMap(loadStaticOperators(this.getClass()));
+    this.systemOperators = Collections.unmodifiableMap(loadStaticOperators(this.getClass()));
     final Set<String> zeroArityPredicates = new HashSet<>();
     this.predicateMethodsMap = Collections.unmodifiableMap(extractAnnotatedMethodsAsPredicates(libraryUid, zeroArityPredicates));
     this.zeroArityPredicateNames = Collections.unmodifiableSet(zeroArityPredicates);
@@ -75,7 +75,7 @@ public abstract class AbstractProlLibrary {
     Operator newOperator = new Operator(operator.Priority(), operator.Type(), operator.Name());
     OperatorContainer container = operatorMap.get(operator.Name());
     if (container == null) {
-      container = new OperatorContainer(newOperator, true);
+      container = new OperatorContainer(newOperator);
       operatorMap.put(operator.Name(), container);
     } else {
       container.setOperator(newOperator);
@@ -198,15 +198,15 @@ public abstract class AbstractProlLibrary {
   }
 
   public boolean isSystemOperator(final String nameToBeChecked) {
-    return this.libraryOperators.containsKey(nameToBeChecked);
+    return this.systemOperators.containsKey(nameToBeChecked);
   }
 
   public boolean hasSyatemOperatorStartsWith(final String startSubstring) {
-    return this.libraryOperators.keySet().stream().anyMatch((s) -> (s.startsWith(startSubstring)));
+    return this.systemOperators.keySet().stream().anyMatch((s) -> (s.startsWith(startSubstring)));
   }
 
   public OperatorContainer findSystemOperatorForName(final String operatorName) {
-    return this.libraryOperators.get(operatorName);
+    return this.systemOperators.get(operatorName);
   }
 
   public void contextHasBeenHalted(final ProlContext context) {

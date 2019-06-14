@@ -80,7 +80,7 @@ public class Term {
         return term == null;
       }
       case ATOM: {
-        return getText().equals(term.getText());
+        return term.getClass() == Term.class && getText().equals(term.getText());
       }
       case STRUCT: {
         final TermStruct thatStruct = (TermStruct) term;
@@ -239,7 +239,7 @@ public class Term {
       }
       break;
       case ATOM: {
-        result = getText().equals(other.getText());
+        result = other.getClass() == Term.class && getText().equals(other.getText());
       }
       break;
       case STRUCT: {

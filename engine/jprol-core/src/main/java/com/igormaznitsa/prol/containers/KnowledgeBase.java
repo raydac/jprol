@@ -21,6 +21,7 @@ import com.igormaznitsa.prol.data.OperatorContainer;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.logic.ProlContext;
+import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
 import java.io.PrintWriter;
 import java.util.Iterator;
@@ -30,11 +31,7 @@ public interface KnowledgeBase {
 
   String getId();
 
-  void addOperators(ProlContext context, Operator[] operators);
-
-  Operator getOperatorForTypeAndName(String name, int type);
-
-  boolean removeOperator(String name, int type);
+  boolean removeOperator(String name, OpAssoc type);
 
   void addOperator(ProlContext context, Operator operator);
 

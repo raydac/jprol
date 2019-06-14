@@ -150,7 +150,7 @@ public class TermStruct extends Term {
       final int priority = OperatorFunctor.getPriority();
 
       switch (OperatorFunctor.getOperatorType()) {
-        case Operator.OPTYPE_FX: {
+        case FX: {
           builder.append(opName);
           builder.append(' ');
 
@@ -163,7 +163,7 @@ public class TermStruct extends Term {
           }
         }
         break;
-        case Operator.OPTYPE_FY: {
+        case FY: {
           builder.append(opName);
           builder.append(' ');
 
@@ -176,7 +176,7 @@ public class TermStruct extends Term {
           }
         }
         break;
-        case Operator.OPTYPE_XF: {
+        case XF: {
           final String text = sourceLike ? getElement(0).toSrcString() : getElement(0).toString();
 
           if (getElement(0).getPriority() >= priority) {
@@ -189,7 +189,7 @@ public class TermStruct extends Term {
           builder.append(opName);
         }
         break;
-        case Operator.OPTYPE_YF: {
+        case YF: {
           final String text = sourceLike ? getElement(0).toSrcString() : getElement(0).toString();
 
           if (getElement(0).getPriority() > priority) {
@@ -202,7 +202,7 @@ public class TermStruct extends Term {
           builder.append(opName);
         }
         break;
-        case Operator.OPTYPE_XFX: {
+        case XFX: {
           final String text = sourceLike ? getElement(0).toSrcString() : getElement(0).toString();
           final String text2 = sourceLike ? getElement(1).toSrcString() : getElement(1).toString();
 
@@ -223,7 +223,7 @@ public class TermStruct extends Term {
           }
         }
         break;
-        case Operator.OPTYPE_YFX: {
+        case YFX: {
           final String text = sourceLike ? getElement(0).toSrcString() : getElement(0).toString();
           final String text2 = sourceLike ? getElement(1).toSrcString() : getElement(1).toString();
 
@@ -244,7 +244,7 @@ public class TermStruct extends Term {
           }
         }
         break;
-        case Operator.OPTYPE_XFY: {
+        case XFY: {
           final String text = sourceLike ? getElement(0).toSrcString() : getElement(0).toString();
           final String text2 = sourceLike ? getElement(1).toSrcString() : getElement(1).toString();
 
@@ -299,23 +299,23 @@ public class TermStruct extends Term {
       final Operator OperatorFunctor = (Operator) functor;
 
       switch (OperatorFunctor.getOperatorType()) {
-        case Operator.OPTYPE_FX:
-        case Operator.OPTYPE_FY: {
+        case FX:
+        case FY: {
           builder.append(opName);
           builder.append(' ');
           builder.append(getElement(0).forWrite());
         }
         break;
-        case Operator.OPTYPE_XF:
-        case Operator.OPTYPE_YF: {
+        case XF:
+        case YF: {
           builder.append(getElement(0).forWrite());
           builder.append(' ');
           builder.append(opName);
         }
         break;
-        case Operator.OPTYPE_XFX:
-        case Operator.OPTYPE_YFX:
-        case Operator.OPTYPE_XFY: {
+        case XFX:
+        case YFX:
+        case XFY: {
           builder.append(getElement(0).forWrite());
           builder.append(' ');
           builder.append(opName);

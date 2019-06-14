@@ -16,6 +16,8 @@
 
 package com.igormaznitsa.prol.data;
 
+import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
+
 import java.io.PrintWriter;
 
 import static com.igormaznitsa.prol.data.TermType.OPERATOR;
@@ -25,20 +27,12 @@ public final class Operator extends Term {
   public static final int PRIORITY_MAX = 0;
   public static final int PRIORITY_MIN = 1200;
 
-  public static final int OPTYPE_XF = 0;
-  public static final int OPTYPE_YF = 1;
-  public static final int OPTYPE_FX = 2;
-  public static final int OPTYPE_FY = 3;
-  public static final int OPTYPE_XFX = 4;
-  public static final int OPTYPE_XFY = 5;
-  public static final int OPTYPE_YFX = 6;
-
-  private final int opType;
+  private final OpAssoc opType;
   private final int opPriority;
   private final int precalculatedHashCode;
   private final String signature;
 
-  public Operator(final int priority, final int type, final String name) {
+  public Operator(final int priority, final OpAssoc type, final String name) {
     super(name);
 
     if (priority < PRIORITY_MAX || priority > PRIORITY_MIN) {
@@ -46,16 +40,16 @@ public final class Operator extends Term {
     }
 
     switch (type) {
-      case OPTYPE_FX:
-      case OPTYPE_FY:
-      case OPTYPE_XF:
-      case OPTYPE_YF: {
+      case FX:
+      case FY:
+      case XF:
+      case YF: {
         signature = name + "/1";
       }
       break;
-      case OPTYPE_YFX:
-      case OPTYPE_XFY:
-      case OPTYPE_XFX: {
+      case YFX:
+      case XFY:
+      case XFX: {
         signature = name + "/2";
       }
       break;
@@ -67,12 +61,12 @@ public final class Operator extends Term {
     opPriority = priority;
 
     int hash = name.hashCode();
-    hash = 89 * hash + this.opType;
+    hash = 89 * hash + this.opType.hashCode();
     hash = 89 * hash + this.opPriority;
     precalculatedHashCode = hash;
   }
 
-  public static Operator[] makeOperators(final int priority, final int type, final String[] names) {
+  public static Operator[] makeOperators(final int priority, final OpAssoc type, final String[] names) {
     final Operator[] result = new Operator[names.length];
     for (int li = 0; li < names.length; li++) {
       result[li] = new Operator(priority, type, names[li]);
@@ -80,67 +74,12 @@ public final class Operator extends Term {
     return result;
   }
 
-  public static String getTypeFromIndex(final int index) {
-    switch (index) {
-      case OPTYPE_FX:
-        return "fx";
-      case OPTYPE_FY:
-        return "fy";
-      case OPTYPE_XF:
-        return "xf";
-      case OPTYPE_YF:
-        return "yf";
-      case OPTYPE_XFX:
-        return "xfx";
-      case OPTYPE_XFY:
-        return "xfy";
-      case OPTYPE_YFX:
-        return "yfx";
-      default:
-        return "<UNKNOWN>";
-    }
-  }
-
-  public static int getTypeFromString(final String op_type) {
-    switch (op_type.length()) {
-      case 2: {
-        if ("xf".equals(op_type)) {
-          return OPTYPE_XF;
-        }
-        if ("fx".equals(op_type)) {
-          return OPTYPE_FX;
-        }
-        if ("fy".equals(op_type)) {
-          return OPTYPE_FY;
-        }
-        if ("yf".equals(op_type)) {
-          return OPTYPE_YF;
-        }
-        return -1;
-      }
-      case 3: {
-        if ("xfx".equals(op_type)) {
-          return OPTYPE_XFX;
-        }
-        if ("yfx".equals(op_type)) {
-          return OPTYPE_YFX;
-        }
-        if ("xfy".equals(op_type)) {
-          return OPTYPE_XFY;
-        }
-        return -1;
-      }
-      default:
-        return -1;
-    }
-  }
-
   @Override
   public TermType getTermType() {
     return OPERATOR;
   }
 
-  public int getOperatorType() {
+  public OpAssoc getOperatorType() {
     return opType;
   }
 
@@ -191,7 +130,7 @@ public final class Operator extends Term {
   }
 
   public String getTypeAsString() {
-    return Operator.getTypeFromIndex(opType);
+    return this.opType.getText();
   }
 
   public void write(final PrintWriter writer) {

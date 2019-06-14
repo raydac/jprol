@@ -3,6 +3,7 @@ package com.igormaznitsa.prol.libraries;
 import com.igormaznitsa.prol.data.*;
 import com.igormaznitsa.prol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.prol.exceptions.ProlInstantiationErrorException;
+import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -425,7 +426,7 @@ public enum TemplateValueType {
     boolean error;
     if (t.getTermType() == TermType.ATOM && !(t instanceof NumericTerm)) {
       final String text = t.getText();
-      error = Operator.getTypeFromString(text) < 0;
+      error = !OpAssoc.findForName(text).isPresent();
     } else {
       error = true;
     }

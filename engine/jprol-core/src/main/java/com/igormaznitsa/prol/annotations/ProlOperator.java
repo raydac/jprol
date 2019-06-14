@@ -16,6 +16,8 @@
 
 package com.igormaznitsa.prol.annotations;
 
+import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -26,7 +28,7 @@ import java.lang.annotation.Target;
 public @interface ProlOperator {
   int Priority();
 
-  int Type();
+  OpAssoc Type();
 
   String Name();
 }

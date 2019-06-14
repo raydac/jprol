@@ -23,6 +23,7 @@ import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlTokenizer.ProlTokenizerResult;
 import com.igormaznitsa.prol.utils.Utils;
+import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -360,16 +361,16 @@ public final class ProlTreeBuilder {
             } else {
               // equals priority
               switch (foundItem.getOperatorType()) {
-                case Operator.OPTYPE_XF:
-                case Operator.OPTYPE_YF:
-                case Operator.OPTYPE_FX:
-                case Operator.OPTYPE_XFX:
-                case Operator.OPTYPE_YFX: {
+                case XF:
+                case YF:
+                case FX:
+                case XFX:
+                case YFX: {
                   currentTreeItem = foundItem.makeAsOwnerWithLeftBranch(readAtomTreeItem);
                 }
                 break;
-                case Operator.OPTYPE_FY:
-                case Operator.OPTYPE_XFY: {
+                case FY:
+                case XFY: {
                   currentTreeItem = foundItem.makeAsRightBranch(readAtomTreeItem);
                 }
                 break;
@@ -506,7 +507,7 @@ public final class ProlTreeBuilder {
       }
     }
 
-    private int getOperatorType() {
+    private OpAssoc getOperatorType() {
       return ((Operator) savedTerm).getOperatorType();
     }
 
@@ -515,25 +516,25 @@ public final class ProlTreeBuilder {
         final int priority = getPriority();
 
         switch (((Operator) savedTerm).getOperatorType()) {
-          case Operator.OPTYPE_FX: {
+          case FX: {
             return leftBranch == null && (rightBranch != null && rightBranch.getPriority() < priority);
           }
-          case Operator.OPTYPE_FY: {
+          case FY: {
             return leftBranch == null && (rightBranch != null && rightBranch.getPriority() <= priority);
           }
-          case Operator.OPTYPE_YF: {
+          case YF: {
             return (leftBranch != null && leftBranch.getPriority() <= priority) && rightBranch == null;
           }
-          case Operator.OPTYPE_XF: {
+          case XF: {
             return (leftBranch != null && leftBranch.getPriority() < priority) && rightBranch == null;
           }
-          case Operator.OPTYPE_XFX: {
+          case XFX: {
             return (leftBranch != null && leftBranch.getPriority() < priority) && (rightBranch != null && rightBranch.getPriority() < priority);
           }
-          case Operator.OPTYPE_XFY: {
+          case XFY: {
             return (leftBranch != null && leftBranch.getPriority() < priority) && (rightBranch != null && rightBranch.getPriority() <= priority);
           }
-          case Operator.OPTYPE_YFX: {
+          case YFX: {
             return (leftBranch != null && leftBranch.getPriority() <= priority) && (rightBranch != null && rightBranch.getPriority() < priority);
           }
           default:

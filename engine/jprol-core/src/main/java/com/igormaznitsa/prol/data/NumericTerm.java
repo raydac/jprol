@@ -16,6 +16,8 @@
 
 package com.igormaznitsa.prol.data;
 
+import static com.igormaznitsa.prol.data.TermType.VAR;
+
 public abstract class NumericTerm extends Term {
 
   public NumericTerm(final String text) {
@@ -38,11 +40,64 @@ public abstract class NumericTerm extends Term {
 
   public abstract NumericTerm sign();
 
-  public abstract boolean isFloat();
+  public abstract boolean isDouble();
 
   @SuppressWarnings("unchecked")
   @Override
-  public <T> T toObject() {
+  public final <T> T toObject() {
     return (T) this.toNumber();
   }
+
+  @Override
+  public final String forWrite() {
+    return this.getText();
+  }
+
+  @Override
+  public final boolean dryUnifyTo(Term atom) {
+    if (this == atom) {
+      return true;
+    }
+
+    if (atom.getTermType() == VAR) {
+      atom = ((Var) atom).getValue();
+    }
+
+    if (atom == null) {
+      return true;
+    }
+
+    if (atom.getClass() == this.getClass()) {
+      return this.compare((NumericTerm) atom) == 0;
+    }
+    return false;
+  }
+
+  @Override
+  public final boolean unifyTo(Term atom) {
+    if (this == atom) {
+      return true;
+    }
+
+    switch (atom.getTermType()) {
+      case ATOM: {
+        if (atom.getClass() == this.getClass()) {
+          return this.compare((NumericTerm) atom) == 0;
+        } else {
+          return false;
+        }
+      }
+      case VAR: {
+        final Var var = (Var) atom;
+        final Term value = var.getValue();
+        if (value == null) {
+          return ((Var) atom).setValue(this);
+        } else {
+          return unifyTo(value);
+        }
+      }
+    }
+    return false;
+  }
+
 }

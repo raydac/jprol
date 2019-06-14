@@ -16,13 +16,14 @@
 
 package com.igormaznitsa.prol.data;
 
+import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
+
 import java.io.PrintWriter;
 
 import static com.igormaznitsa.prol.data.TermType.OPERATORS;
 
 public final class OperatorContainer extends Term {
 
-  private final boolean system;
   private Operator opFZ;
   private Operator opZF;
   private Operator opZFZ;
@@ -34,27 +35,17 @@ public final class OperatorContainer extends Term {
     opZF = etalon.opZF;
     opZFZ = etalon.opZFZ;
     numberAtContainer = etalon.numberAtContainer;
-    system = etalon.system;
   }
 
   public OperatorContainer(final Operator operator) {
-    this(operator, false);
-  }
-
-  public OperatorContainer(final Operator operator, final boolean systemOperator) {
     super(operator.getText());
     setOperator(operator);
-    this.system = systemOperator;
-  }
-
-  public boolean isSystem() {
-    return system;
   }
 
   public boolean setOperator(final Operator operator) {
     switch (operator.getOperatorType()) {
-      case Operator.OPTYPE_FX:
-      case Operator.OPTYPE_FY: {
+      case FX:
+      case FY: {
         if (opFZ != null) {
           return false;
         }
@@ -62,8 +53,8 @@ public final class OperatorContainer extends Term {
         numberAtContainer++;
       }
       break;
-      case Operator.OPTYPE_XF:
-      case Operator.OPTYPE_YF: {
+      case XF:
+      case YF: {
         if (opZF != null) {
           return false;
         }
@@ -71,9 +62,9 @@ public final class OperatorContainer extends Term {
         numberAtContainer++;
       }
       break;
-      case Operator.OPTYPE_XFX:
-      case Operator.OPTYPE_XFY:
-      case Operator.OPTYPE_YFX: {
+      case XFX:
+      case XFY:
+      case YFX: {
         if (opZFZ != null) {
           return false;
         }
@@ -148,26 +139,26 @@ public final class OperatorContainer extends Term {
     }
   }
 
-  public Operator getForTypePrecisely(final int type) {
+  public Operator getForTypePrecisely(final OpAssoc type) {
     Operator result = null;
     switch (type) {
-      case Operator.OPTYPE_FY:
-      case Operator.OPTYPE_FX: {
+      case FY:
+      case FX: {
         if (opFZ != null) {
           result = opFZ;
         }
       }
       break;
-      case Operator.OPTYPE_XF:
-      case Operator.OPTYPE_YF: {
+      case XF:
+      case YF: {
         if (opZF != null) {
           result = opZF;
         }
       }
       break;
-      case Operator.OPTYPE_XFX:
-      case Operator.OPTYPE_YFX:
-      case Operator.OPTYPE_XFY: {
+      case XFX:
+      case YFX:
+      case XFY: {
         if (opZFZ != null) {
           result = opZFZ;
         }
@@ -184,45 +175,28 @@ public final class OperatorContainer extends Term {
     return null;
   }
 
-  public Operator getOperatorForTypeFamily(final int type) {
-    switch (type) {
-      case Operator.OPTYPE_FX:
-      case Operator.OPTYPE_FY:
-        return opFZ;
-      case Operator.OPTYPE_XF:
-      case Operator.OPTYPE_YF:
-        return opZF;
-      case Operator.OPTYPE_XFX:
-      case Operator.OPTYPE_YFX:
-      case Operator.OPTYPE_XFY:
-        return opZFZ;
-      default:
-        return null;
-    }
-  }
-
-  public boolean removeOperatorForType(final int type) {
+  public boolean removeOperatorForType(final OpAssoc type) {
     boolean result = false;
     switch (type) {
-      case Operator.OPTYPE_FX:
-      case Operator.OPTYPE_FY: {
+      case FX:
+      case FY: {
         if (opFZ != null && opFZ.getOperatorType() == type) {
           opFZ = null;
           result = true;
         }
       }
       break;
-      case Operator.OPTYPE_XF:
-      case Operator.OPTYPE_YF: {
+      case XF:
+      case YF: {
         if (opZF != null && opZF.getOperatorType() == type) {
           opZF = null;
           result = true;
         }
       }
       break;
-      case Operator.OPTYPE_XFX:
-      case Operator.OPTYPE_YFX:
-      case Operator.OPTYPE_XFY: {
+      case XFX:
+      case YFX:
+      case XFY: {
         if (opZFZ != null && opZFZ.getOperatorType() == type) {
           opZFZ = null;
           result = true;

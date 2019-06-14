@@ -32,6 +32,7 @@ import com.igormaznitsa.prol.logic.triggers.ProlTriggerGoal;
 import com.igormaznitsa.prol.logic.triggers.ProlTriggerType;
 import com.igormaznitsa.prol.parser.ProlConsult;
 import com.igormaznitsa.prol.utils.Utils;
+import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -41,6 +42,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -48,56 +50,57 @@ import java.util.stream.Collectors;
 import static com.igormaznitsa.prol.data.TermType.*;
 import static com.igormaznitsa.prol.data.Terms.*;
 import static com.igormaznitsa.prol.utils.Utils.createOrAppendToList;
+import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.*;
 
 @ProlOperators(Operators = {
     //------------------------
-    @ProlOperator(Priority = 0, Type = Operator.OPTYPE_XFX, Name = "("),
-    @ProlOperator(Priority = 0, Type = Operator.OPTYPE_XFX, Name = ")"),
-    @ProlOperator(Priority = 0, Type = Operator.OPTYPE_XFX, Name = "["),
-    @ProlOperator(Priority = 0, Type = Operator.OPTYPE_XFX, Name = "]"),
-    @ProlOperator(Priority = 1200, Type = Operator.OPTYPE_XF, Name = "."),
-    @ProlOperator(Priority = 1200, Type = Operator.OPTYPE_XFX, Name = "|"),
+    @ProlOperator(Priority = 0, Type = XFX, Name = "("),
+    @ProlOperator(Priority = 0, Type = XFX, Name = ")"),
+    @ProlOperator(Priority = 0, Type = XFX, Name = "["),
+    @ProlOperator(Priority = 0, Type = XFX, Name = "]"),
+    @ProlOperator(Priority = 1200, Type = XF, Name = "."),
+    @ProlOperator(Priority = 1200, Type = XFX, Name = "|"),
     //------------------------
-    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "is"),
-    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "="),
-    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "\\="),
-    @ProlOperator(Priority = 1000, Type = Operator.OPTYPE_XFY, Name = ","),
-    @ProlOperator(Priority = 1050, Type = Operator.OPTYPE_XFY, Name = "->"),
-    @ProlOperator(Priority = 1100, Type = Operator.OPTYPE_XFY, Name = ";"),
-    @ProlOperator(Priority = 1200, Type = Operator.OPTYPE_FX, Name = "?-"),
-    @ProlOperator(Priority = 1200, Type = Operator.OPTYPE_FX, Name = ":-"),
-    @ProlOperator(Priority = 1200, Type = Operator.OPTYPE_XFX, Name = ":-"),
-    @ProlOperator(Priority = 900, Type = Operator.OPTYPE_FY, Name = "\\+"),
-    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = ">"),
-    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "<"),
-    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "=<"),
-    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = ">="),
-    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "=="),
-    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "=\\="),
-    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "\\=="),
-    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "@<"),
-    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "@>"),
-    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "@=<"),
-    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "@>="),
-    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "=:="),
-    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "=.."),
-    @ProlOperator(Priority = 500, Type = Operator.OPTYPE_YFX, Name = "/\\"),
-    @ProlOperator(Priority = 500, Type = Operator.OPTYPE_YFX, Name = "\\/"),
-    @ProlOperator(Priority = 500, Type = Operator.OPTYPE_YFX, Name = "+"),
-    @ProlOperator(Priority = 500, Type = Operator.OPTYPE_YFX, Name = "-"),
-    @ProlOperator(Priority = 500, Type = Operator.OPTYPE_FX, Name = "not"),
-    @ProlOperator(Priority = 500, Type = Operator.OPTYPE_FX, Name = "+"),
-    @ProlOperator(Priority = 500, Type = Operator.OPTYPE_FX, Name = "-"),
-    @ProlOperator(Priority = 400, Type = Operator.OPTYPE_YFX, Name = "*"),
-    @ProlOperator(Priority = 400, Type = Operator.OPTYPE_YFX, Name = "/"),
-    @ProlOperator(Priority = 400, Type = Operator.OPTYPE_YFX, Name = "//"),
-    @ProlOperator(Priority = 400, Type = Operator.OPTYPE_YFX, Name = "rem"),
-    @ProlOperator(Priority = 400, Type = Operator.OPTYPE_YFX, Name = "<<"),
-    @ProlOperator(Priority = 400, Type = Operator.OPTYPE_YFX, Name = ">>"),
-    @ProlOperator(Priority = 300, Type = Operator.OPTYPE_XFX, Name = "mod"),
-    @ProlOperator(Priority = 200, Type = Operator.OPTYPE_FY, Name = "\\"),
-    @ProlOperator(Priority = 200, Type = Operator.OPTYPE_XFX, Name = "**"),
-    @ProlOperator(Priority = 200, Type = Operator.OPTYPE_XFY, Name = "^")
+    @ProlOperator(Priority = 700, Type = XFX, Name = "is"),
+    @ProlOperator(Priority = 700, Type = XFX, Name = "="),
+    @ProlOperator(Priority = 700, Type = XFX, Name = "\\="),
+    @ProlOperator(Priority = 1000, Type = XFY, Name = ","),
+    @ProlOperator(Priority = 1050, Type = XFY, Name = "->"),
+    @ProlOperator(Priority = 1100, Type = XFY, Name = ";"),
+    @ProlOperator(Priority = 1200, Type = FX, Name = "?-"),
+    @ProlOperator(Priority = 1200, Type = FX, Name = ":-"),
+    @ProlOperator(Priority = 1200, Type = XFX, Name = ":-"),
+    @ProlOperator(Priority = 900, Type = FY, Name = "\\+"),
+    @ProlOperator(Priority = 700, Type = XFX, Name = ">"),
+    @ProlOperator(Priority = 700, Type = XFX, Name = "<"),
+    @ProlOperator(Priority = 700, Type = XFX, Name = "=<"),
+    @ProlOperator(Priority = 700, Type = XFX, Name = ">="),
+    @ProlOperator(Priority = 700, Type = XFX, Name = "=="),
+    @ProlOperator(Priority = 700, Type = XFX, Name = "=\\="),
+    @ProlOperator(Priority = 700, Type = XFX, Name = "\\=="),
+    @ProlOperator(Priority = 700, Type = XFX, Name = "@<"),
+    @ProlOperator(Priority = 700, Type = XFX, Name = "@>"),
+    @ProlOperator(Priority = 700, Type = XFX, Name = "@=<"),
+    @ProlOperator(Priority = 700, Type = XFX, Name = "@>="),
+    @ProlOperator(Priority = 700, Type = XFX, Name = "=:="),
+    @ProlOperator(Priority = 700, Type = XFX, Name = "=.."),
+    @ProlOperator(Priority = 500, Type = YFX, Name = "/\\"),
+    @ProlOperator(Priority = 500, Type = YFX, Name = "\\/"),
+    @ProlOperator(Priority = 500, Type = YFX, Name = "+"),
+    @ProlOperator(Priority = 500, Type = YFX, Name = "-"),
+    @ProlOperator(Priority = 500, Type = FX, Name = "not"),
+    @ProlOperator(Priority = 500, Type = FX, Name = "+"),
+    @ProlOperator(Priority = 500, Type = FX, Name = "-"),
+    @ProlOperator(Priority = 400, Type = YFX, Name = "*"),
+    @ProlOperator(Priority = 400, Type = YFX, Name = "/"),
+    @ProlOperator(Priority = 400, Type = YFX, Name = "//"),
+    @ProlOperator(Priority = 400, Type = YFX, Name = "rem"),
+    @ProlOperator(Priority = 400, Type = YFX, Name = "<<"),
+    @ProlOperator(Priority = 400, Type = YFX, Name = ">>"),
+    @ProlOperator(Priority = 300, Type = XFX, Name = "mod"),
+    @ProlOperator(Priority = 200, Type = FY, Name = "\\"),
+    @ProlOperator(Priority = 200, Type = XFX, Name = "**"),
+    @ProlOperator(Priority = 200, Type = XFY, Name = "^")
 })
 public final class ProlCoreLibrary extends AbstractProlLibrary {
 
@@ -613,106 +616,106 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     return false;
   }
 
-  @Predicate(Signature = "current_op/3", Template = "?integer,?operator_specifier,?atom", Reference = "current_op(Priority, Op_specifier, Operator) is true if and only if Operator is an operator with properties given by  Op_specifier and Priority")
-  @SuppressWarnings("unchecked")
-  public static boolean predicateCURRENTOP(final ChoicePoint goal, final TermStruct predicate) {
-    final Term priority = predicate.getElement(0).findNonVarOrSame();
-    final Term specifier = predicate.getElement(1).findNonVarOrSame();
-    final Term name = predicate.getElement(2).findNonVarOrSame();
-
-    Object[] auxObject = goal.getPayload();
-    if (auxObject == null) {
-      // the first call
-      final Iterator<OperatorContainer> operator_iterator = goal.getContext().getKnowledgeBase().getOperatorIterator();
-      auxObject = new Object[] {operator_iterator, null, null};
-      goal.setPayload(auxObject);
-    }
-
-    final Iterator<OperatorContainer> operator_iterator = (Iterator<OperatorContainer>) auxObject[0];
-    OperatorContainer last_container = (OperatorContainer) auxObject[1];
-    Operator last_operator = (Operator) auxObject[2];
-
-    final String opNameVal = name.getTermType() == ATOM ? name.getText() : null; // null = any
-    final int typeVal = specifier.getTermType() == ATOM ? Operator.getTypeFromString(specifier.getText()) : -1; // -1 = any
-    long priorityVal = 0; // 0 - any
-    if (priority.getTermType() == ATOM) {
-      priorityVal = priority.toNumber().longValue();
-      if (priorityVal < 1L || priorityVal > 1200L) {
-        throw new ProlDomainErrorException("Unsupported operator priority", predicate);
-      }
-    }
-
-    while (!Thread.currentThread().isInterrupted()) {
-      if (last_container == null) {
-        // find container
-        while (operator_iterator.hasNext()) {
-          last_container = operator_iterator.next();
-
-          if (opNameVal != null) {
-            if (last_container.getText().equals(opNameVal)) {
-              break;
-            }
-          } else {
-            break;
-          }
-        }
-
-        if (last_container == null) {
-          // there are not more variants
-          goal.resetVariants();
-          goal.setPayload(null);
-          return false;
-        }
-      }
-
-      // find operator
-      if (typeVal < 0) {
-        // find all
-        final int typestart = last_operator == null ? 0 : last_operator.getOperatorType() + 1;
-
-        for (int li = typestart; li < 7; li++) {
-          last_operator = last_container.getForTypePrecisely(li);
-          if (last_operator != null) {
-            break;
-          }
-        }
-      } else {
-        final Operator op = last_container.getForTypePrecisely(typeVal);
-        if (op == last_operator) {
-          last_operator = null;
-        }
-      }
-
-      if (last_operator != null) {
-        if (priorityVal > 0) {
-          if (last_operator.getPriority() != priorityVal) {
-            continue;
-          }
-        }
-      } else {
-        last_container = null;
-        continue;
-      }
-
-      // we have found an operator
-      auxObject[1] = last_container;
-      auxObject[2] = last_operator;
-
-      final Term priorityOfFound = newLong(last_operator.getPriority());
-      final Term specifierOfFound = newAtom(last_operator.getTypeAsString());
-      final Term nameOfFound = newAtom(last_operator.getText());
-
-      if (!(predicate.getElement(0).unifyTo(priorityOfFound) && predicate.getElement(1).unifyTo(specifierOfFound) && predicate.getElement(2).unifyTo(nameOfFound))) {
-        goal.resetVariants();
-        goal.setPayload(null);
-        return false;
-      } else {
-        return true;
-      }
-    }
-
-    return false;
-  }
+  //@Predicate(Signature = "current_op/3", Template = "?integer,?operator_specifier,?atom", Reference = "current_op(Priority, Op_specifier, Operator) is true if and only if Operator is an operator with properties given by  Op_specifier and Priority")
+  //@SuppressWarnings("unchecked")
+  //public static boolean predicateCURRENTOP(final ChoicePoint goal, final TermStruct predicate) {
+  //  final Term priority = predicate.getElement(0).findNonVarOrSame();
+  //  final Term specifier = predicate.getElement(1).findNonVarOrSame();
+  //  final Term name = predicate.getElement(2).findNonVarOrSame();
+  //
+  //  Object[] auxObject = goal.getPayload();
+  //  if (auxObject == null) {
+  //    // the first call
+  //    final Iterator<OperatorContainer> operator_iterator = goal.getContext().getKnowledgeBase().getOperatorIterator();
+  //    auxObject = new Object[] {operator_iterator, null, null};
+  //    goal.setPayload(auxObject);
+  //  }
+  //
+  //  final Iterator<OperatorContainer> operator_iterator = (Iterator<OperatorContainer>) auxObject[0];
+  //  OperatorContainer last_container = (OperatorContainer) auxObject[1];
+  //  Operator last_operator = (Operator) auxObject[2];
+  //
+  //  final String opNameVal = name.getTermType() == ATOM ? name.getText() : null; // null = any
+  //  final int typeVal = specifier.getTermType() == ATOM ? Operator.getTypeFromString(specifier.getText()) : -1; // -1 = any
+  //  long priorityVal = 0; // 0 - any
+  //  if (priority.getTermType() == ATOM) {
+  //    priorityVal = priority.toNumber().longValue();
+  //    if (priorityVal < 1L || priorityVal > 1200L) {
+  //      throw new ProlDomainErrorException("Unsupported operator priority", predicate);
+  //    }
+  //  }
+  //
+  //  while (!Thread.currentThread().isInterrupted()) {
+  //    if (last_container == null) {
+  //      // find container
+  //      while (operator_iterator.hasNext()) {
+  //        last_container = operator_iterator.next();
+  //
+  //        if (opNameVal != null) {
+  //          if (last_container.getText().equals(opNameVal)) {
+  //            break;
+  //          }
+  //        } else {
+  //          break;
+  //        }
+  //      }
+  //
+  //      if (last_container == null) {
+  //        // there are not more variants
+  //        goal.resetVariants();
+  //        goal.setPayload(null);
+  //        return false;
+  //      }
+  //    }
+  //
+  //    // find operator
+  //    if (typeVal < 0) {
+  //      // find all
+  //      final OpAssoc typestart = last_operator == null ? 0 : last_operator.getOperatorType() + 1;
+  //
+  //      for (int li = typestart; li < 7; li++) {
+  //        last_operator = last_container.getForTypePrecisely(li);
+  //        if (last_operator != null) {
+  //          break;
+  //        }
+  //      }
+  //    } else {
+  //      final Operator op = last_container.getForTypePrecisely(typeVal);
+  //      if (op == last_operator) {
+  //        last_operator = null;
+  //      }
+  //    }
+  //
+  //    if (last_operator != null) {
+  //      if (priorityVal > 0) {
+  //        if (last_operator.getPriority() != priorityVal) {
+  //          continue;
+  //        }
+  //      }
+  //    } else {
+  //      last_container = null;
+  //      continue;
+  //    }
+  //
+  //    // we have found an operator
+  //    auxObject[1] = last_container;
+  //    auxObject[2] = last_operator;
+  //
+  //    final Term priorityOfFound = newLong(last_operator.getPriority());
+  //    final Term specifierOfFound = newAtom(last_operator.getTypeAsString());
+  //    final Term nameOfFound = newAtom(last_operator.getText());
+  //
+  //    if (!(predicate.getElement(0).unifyTo(priorityOfFound) && predicate.getElement(1).unifyTo(specifierOfFound) && predicate.getElement(2).unifyTo(nameOfFound))) {
+  //      goal.resetVariants();
+  //      goal.setPayload(null);
+  //      return false;
+  //    } else {
+  //      return true;
+  //    }
+  //  }
+  //
+  //  return false;
+  //}
 
   @Predicate(Signature = "op/3", Template = "+integer,+operator_specifier,@atom_or_atom_list", Reference = "These predicates allow the operator table to be altered or inspected.\nop(Priority, Op_Specifier, Operator) is true, with the side effect that\n1. if Priority is 0 then Operator is removed from the operator table, else\n2. Operator is added to the Operator table, with priority (lower binds tighter) Priority and associativity determined by Op_Specifier")
   @Determined
@@ -724,10 +727,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     if (priority < 0L || priority > 1200L) {
       throw new ProlDomainErrorException("Priority must be between 0 and 1200 inclusive", predicate);
     }
-    final int opType = Operator.getTypeFromString(specifier);
-    if (opType < 0) {
-      throw new ProlDomainErrorException("Wrong operator specifier", predicate);
-    }
+
+    OpAssoc opType = OpAssoc.findForName(specifier)
+        .orElseThrow(() -> new ProlDomainErrorException("Wrong operator specifier", predicate));
 
     final ArrayList<String> names = new ArrayList<>();
     if (atomOrList.getTermType() == LIST) {
@@ -1466,25 +1468,21 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final long start = predicate.getElement(1).findNonVarOrSame().toNumber().longValue();
     final long limit = predicate.getElement(2).findNonVarOrSame().toNumber().longValue();
 
-    Long currentInt = goal.getPayload();
+    AtomicLong currentIndex = goal.getPayload();
 
-    if (currentInt == null) {
-      // first call
-      var.changeValue(newLong(start));
-      goal.setPayload(start);
+    boolean result = true;
+    if (currentIndex == null) {
+      currentIndex = new AtomicLong(start);
+      var.changeVarChainValue(newLong(start));
+      goal.setPayload(currentIndex);
     } else {
-      // not first call
-      currentInt++;
-      if (currentInt > limit) {
+      if (currentIndex.incrementAndGet() > limit) {
         goal.resetVariants();
-        return false;
-      } else {
-        var.changeValue(newLong(currentInt));
-        goal.setPayload(currentInt);
+        result = false;
       }
     }
 
-    return true;
+    return result;
   }
 
   @Predicate(Signature = "rnd/2", Template = {"+integer,?integer", "+list,?term"}, Reference = "Allows to generate a pseudo randomize integer (limit,value) between 0 (inclusive) and the limit (exclusive) or select random element from the list.")
@@ -2877,12 +2875,12 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     }
   }
 
-  private static class AuxForkTask implements Callable<Term> {
+  private static final class AuxForkTask implements Callable<Term> {
 
     private final Term term;
     private final ChoicePoint goal;
 
-    public AuxForkTask(final Term termToSolve, final ProlContext context) {
+    AuxForkTask(final Term termToSolve, final ProlContext context) {
       this.term = termToSolve.makeClone().findNonVarOrDefault(null);
 
       if (termToSolve.getTermType() == VAR) {
@@ -2892,12 +2890,12 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       }
     }
 
-    public ChoicePoint getGoal() {
-      return goal;
+    ChoicePoint getGoal() {
+      return this.goal;
     }
 
-    public Term getTerm() {
-      return term;
+    Term getTerm() {
+      return this.term;
     }
 
     @Override
@@ -2907,7 +2905,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     @Override
     public String toString() {
-      return term.toString();
+      return this.term.toString();
     }
   }
 }

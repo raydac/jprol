@@ -26,6 +26,7 @@ import com.igormaznitsa.prol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.prol.exceptions.ProlKnowledgeBaseException;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
+import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -102,16 +103,16 @@ public class ProlConsult {
               case OPERATOR: {
                 final Operator op = (Operator) functor;
                 final String text = op.getText();
-                final int type = op.getOperatorType();
+                final OpAssoc type = op.getOperatorType();
 
                 if (struct.isClause()) {
                   switch (type) {
-                    case Operator.OPTYPE_XFX: {
+                    case XFX: {
                       // new rule
                       base.assertZ(this.context, struct);
                     }
                     break;
-                    case Operator.OPTYPE_FX: {
+                    case FX: {
                       // directive
                       if (!processDirective(struct.getElement(0))) {
                         throw new ProlHaltExecutionException(2);

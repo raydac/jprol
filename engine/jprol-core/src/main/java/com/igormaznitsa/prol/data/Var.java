@@ -148,7 +148,7 @@ public final class Var extends Term {
   }
 
   public final Term getValue() {
-    Term result = value;
+    Term result = this.value;
     if (result != null && result.getTermType() == VAR) {
       final Var nextVar = (Var) result;
       result = nextVar.getValue();
@@ -263,22 +263,16 @@ public final class Var extends Term {
     this.value = value;
   }
 
-  public Var getDeepestVar() {
-    Var curVar = this;
-    while (!Thread.currentThread().isInterrupted()) {
-      final Term term = curVar.getThisValue();
-      if (term == null || term.getTermType() != VAR) {
-        break;
-      } else {
-        curVar = (Var) term;
-      }
+  private Var getDeepestVar() {
+    if (this.value == null) {
+      return this;
+    } else {
+      return this.value.getTermType() == VAR ? ((Var) this.value).getDeepestVar() : this;
     }
-    return curVar;
   }
 
-  public void changeValue(final Term value) {
-    Var deepestVar = getDeepestVar();
-    deepestVar.setThisValue(value);
+  public void changeVarChainValue(final Term value) {
+    this.getDeepestVar().setThisValue(value);
   }
 
   @Override

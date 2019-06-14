@@ -17,6 +17,7 @@
 package com.igormaznitsa.prol.utils;
 
 import com.igormaznitsa.prol.data.*;
+import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -28,7 +29,7 @@ public final class Utils {
 
   public static final Comparator<Term> TERM_COMPARATOR = Term::compareTermTo;
 
-  public static final Operator SIGNATURE_OPERATOR = new Operator(400, Operator.OPTYPE_YFX, "/");
+  public static final Operator SIGNATURE_OPERATOR = new Operator(400, OpAssoc.YFX, "/");
 
   private Utils() {
   }

@@ -16,9 +16,6 @@
 
 package com.igormaznitsa.prol.data;
 
-import static com.igormaznitsa.prol.data.TermType.ATOM;
-import static com.igormaznitsa.prol.data.TermType.VAR;
-
 public final class TermDouble extends NumericTerm {
 
   private final double value;
@@ -70,60 +67,8 @@ public final class TermDouble extends NumericTerm {
   }
 
   @Override
-  public boolean dryUnifyTo(Term atom) {
-    if (this == atom) {
-      return true;
-    }
-
-    if (atom.getTermType() == VAR) {
-      atom = ((Var) atom).getValue();
-    }
-
-    if (atom == null) {
-      return true;
-    }
-
-    if (atom.getTermType() == ATOM && atom instanceof NumericTerm) {
-      return compare((NumericTerm) atom) == 0;
-    }
-    return false;
-  }
-
-  @Override
-  public boolean unifyTo(Term atom) {
-    if (this == atom) {
-      return true;
-    }
-
-    switch (atom.getTermType()) {
-      case ATOM: {
-        if (atom instanceof NumericTerm) {
-          return compare((NumericTerm) atom) == 0;
-        } else {
-          return getText().equals(atom.getText());
-        }
-      }
-      case VAR: {
-        final Var var = (Var) atom;
-        final Term value = var.getValue();
-        if (value == null) {
-          return ((Var) atom).setValue(this);
-        } else {
-          return unifyTo(value);
-        }
-      }
-    }
-    return false;
-  }
-
-  @Override
   public Number toNumber() {
     return this.value;
-  }
-
-  @Override
-  public String forWrite() {
-    return getText().isEmpty() ? Double.toString(this.value) : getText();
   }
 
   @Override
@@ -137,12 +82,7 @@ public final class TermDouble extends NumericTerm {
 
   @Override
   public String getText() {
-    final String value = super.getText();
-    if (value.isEmpty()) {
-      return Double.toString(this.value);
-    } else {
-      return value;
-    }
+    return Double.toString(this.value);
   }
 
   @Override
@@ -181,7 +121,7 @@ public final class TermDouble extends NumericTerm {
   }
 
   @Override
-  public boolean isFloat() {
+  public boolean isDouble() {
     return true;
   }
 

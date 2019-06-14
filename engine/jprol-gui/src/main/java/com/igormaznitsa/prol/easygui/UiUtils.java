@@ -17,7 +17,6 @@
 package com.igormaznitsa.prol.easygui;
 
 import com.igormaznitsa.prol.annotations.*;
-import com.igormaznitsa.prol.data.Operator;
 import com.igormaznitsa.prol.libraries.AbstractProlLibrary;
 
 import javax.imageio.ImageIO;
@@ -71,7 +70,7 @@ public final class UiUtils {
         out.println("Operators\n-----------------------");
         for (final ProlOperator oper : ops) {
           if (oper.Priority() > 0) {
-            out.println(":-op(" + oper.Priority() + "," + Operator.getTypeFromIndex(oper.Type()) + ",\'" + oper.Name() + "\').");
+            out.println(":-op(" + oper.Priority() + "," + oper.Type().getText() + ",\'" + oper.Name() + "\').");
           }
         }
         out.println("-----------------------");

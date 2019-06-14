@@ -16,8 +16,6 @@
 
 package com.igormaznitsa.prol.data;
 
-import static com.igormaznitsa.prol.data.TermType.ATOM;
-import static com.igormaznitsa.prol.data.TermType.VAR;
 import static com.igormaznitsa.prol.data.Terms.newLong;
 
 public final class TermLong extends NumericTerm {
@@ -45,11 +43,6 @@ public final class TermLong extends NumericTerm {
   }
 
   @Override
-  public String forWrite() {
-    return getText().isEmpty() ? Long.toString(this.value) : getText();
-  }
-
-  @Override
   public int hashCode() {
     return (int) this.value ^ (int) (this.value >> 32);
   }
@@ -73,53 +66,6 @@ public final class TermLong extends NumericTerm {
   }
 
   @Override
-  public boolean dryUnifyTo(Term atom) {
-    if (this == atom) {
-      return true;
-    }
-
-    if (atom.getTermType() == VAR) {
-      atom = ((Var) atom).getValue();
-    }
-
-    if (atom == null) {
-      return true;
-    }
-
-    if (atom.getTermType() == ATOM && atom instanceof NumericTerm) {
-        return compare((NumericTerm) atom) == 0;
-    }
-    return false;
-  }
-
-  @Override
-  public boolean unifyTo(Term atom) {
-    if (this == atom) {
-      return true;
-    }
-
-    switch (atom.getTermType()) {
-      case ATOM: {
-        if (atom instanceof NumericTerm) {
-          return compare((NumericTerm) atom) == 0;
-        } else {
-          return getText().equals(atom.getText());
-        }
-      }
-      case VAR: {
-        final Var var = (Var) atom;
-        final Term value = var.getValue();
-        if (value == null) {
-          return ((Var) atom).setValue(this);
-        } else {
-          return unifyTo(value);
-        }
-      }
-    }
-    return false;
-  }
-
-  @Override
   public Number toNumber() {
     return this.value;
   }
@@ -131,26 +77,21 @@ public final class TermLong extends NumericTerm {
 
   @Override
   public String getText() {
-    final String value = super.getText();
-    if (value == null) {
-      return Long.toString(this.value);
-    } else {
-      return value;
-    }
+    return Long.toString(this.value);
   }
 
   @Override
   public int compare(final NumericTerm atom) {
-    if (atom.isFloat()) {
+    if (atom.isDouble()) {
       final double value = atom.toNumber().doubleValue();
       return Double.compare((double) this.value, value);
     }
-    return Long.compare(value, atom.toNumber().longValue());
+    return Long.compare(this.value, atom.toNumber().longValue());
   }
 
   @Override
   public NumericTerm add(final NumericTerm atom) {
-    if (atom.isFloat()) {
+    if (atom.isDouble()) {
       final double value = atom.toNumber().doubleValue();
       return Terms.newDouble((double) this.value + value);
     } else {
@@ -160,31 +101,31 @@ public final class TermLong extends NumericTerm {
 
   @Override
   public NumericTerm sub(final NumericTerm atom) {
-    if (atom.isFloat()) {
+    if (atom.isDouble()) {
       final double value = atom.toNumber().doubleValue();
       return Terms.newDouble((double) this.value - value);
     } else {
-      return newLong(value - atom.toNumber().longValue());
+      return newLong(this.value - atom.toNumber().longValue());
     }
   }
 
   @Override
   public NumericTerm div(final NumericTerm atom) {
-    if (atom.isFloat()) {
+    if (atom.isDouble()) {
       final double value = atom.toNumber().doubleValue();
       return Terms.newDouble((double) this.value / value);
     } else {
-      return newLong(value / atom.toNumber().longValue());
+      return newLong(this.value / atom.toNumber().longValue());
     }
   }
 
   @Override
   public NumericTerm mul(final NumericTerm atom) {
-    if (atom.isFloat()) {
+    if (atom.isDouble()) {
       final double value = atom.toNumber().doubleValue();
       return Terms.newDouble((double) this.value * value);
     } else {
-      return newLong(value * atom.toNumber().longValue());
+      return newLong(this.value * atom.toNumber().longValue());
     }
   }
 
@@ -194,7 +135,7 @@ public final class TermLong extends NumericTerm {
   }
 
   @Override
-  public boolean isFloat() {
+  public boolean isDouble() {
     return false;
   }
 
@@ -211,7 +152,7 @@ public final class TermLong extends NumericTerm {
         return 1;
       case ATOM: {
         if (atom instanceof NumericTerm) {
-          final long value = ((NumericTerm) atom).isFloat() ? Math.round(atom.toNumber().doubleValue()) :
+          final long value = ((NumericTerm) atom).isDouble() ? Math.round(atom.toNumber().doubleValue()) :
               atom.toNumber().longValue();
           return Long.compare(this.value, value);
         } else {
@@ -234,7 +175,7 @@ public final class TermLong extends NumericTerm {
   @Override
   public NumericTerm sign() {
     int sign = 0;
-    if (value < 0L) {
+    if (this.value < 0L) {
       sign = -1;
     } else if (this.value > 0L) {
       sign = 1;

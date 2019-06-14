@@ -21,6 +21,7 @@ import com.igormaznitsa.prol.exceptions.ProlKnowledgeBaseException;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.logic.triggers.ProlTriggerType;
 import com.igormaznitsa.prol.utils.Utils;
+import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
 import java.io.PrintWriter;
 import java.util.*;
@@ -73,35 +74,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public void addOperators(final ProlContext context, final Operator[] operators) {
-    operatorLocker.lock();
-    try {
-      for (Operator operator : operators) {
-        addOperator(context, operator);
-      }
-    } finally {
-      operatorLocker.unlock();
-    }
-  }
-
-  @Override
-  public Operator getOperatorForTypeAndName(final String name, final int type) {
-    OperatorContainer opContainer;
-    operatorLocker.lock();
-    try {
-      opContainer = operatorTable.get(name);
-    } finally {
-      operatorLocker.unlock();
-    }
-    Operator result = null;
-    if (opContainer != null) {
-      result = opContainer.getForTypePrecisely(type);
-    }
-    return result;
-  }
-
-  @Override
-  public boolean removeOperator(final String name, final int type) {
+  public boolean removeOperator(final String name, final OpAssoc type) {
     OperatorContainer opContainer;
     operatorLocker.lock();
     try {
@@ -113,11 +86,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     boolean result = false;
 
     if (opContainer != null) {
-      if (opContainer.isSystem()) {
-        throw new SecurityException("Attemption to remove a system operator");
-      } else {
         result = opContainer.removeOperatorForType(type);
-      }
     }
     return result;
   }

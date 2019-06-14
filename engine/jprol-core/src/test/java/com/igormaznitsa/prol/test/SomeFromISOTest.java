@@ -6,7 +6,7 @@ import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlConsult;
-import jdk.nashorn.internal.ir.annotations.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -546,14 +546,14 @@ class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   void testCurrentInput() throws Exception {
     //TODO current_input/1
     //[exists(current_input/1), success].
   }
 
   @Test
-  @Ignore
+  @Disabled
   void testSubAtom() throws Exception {
     //TODO
     //[sub_atom(abracadabra, 0, 5, _, S2), [[S2 <-- 'abrac']]].
@@ -572,7 +572,7 @@ class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   void testFileManip() throws Exception {
     //TODO
     //[(seek(my_file,3),at(my_file,X)),in(my_file),[[X <-- 3]]].
@@ -581,7 +581,7 @@ class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   void testCurrentOutput() throws Exception {
     //TODO current_output/1
     //[exists(current_output/1), success].
@@ -614,7 +614,7 @@ class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   void testCurrentPrologFlag() throws Exception {
     //TODO current_prolog_flag/2
     //[current_prolog_flag(debug, off), success].
@@ -626,7 +626,7 @@ class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  @Ignore
+  @Disabled
   void testAtomConcat() throws Exception {
     //[atom_concat('hello',' world',A), [[A <-- 'hello world']]].
     checkOnceVar("atom_concat('hello',' world',A).", "A", "'hello world'");
