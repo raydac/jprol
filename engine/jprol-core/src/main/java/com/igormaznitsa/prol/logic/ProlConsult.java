@@ -30,7 +30,6 @@ import com.igormaznitsa.prol.parser.ProlTreeBuilder;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.HashMap;
@@ -44,20 +43,13 @@ import static com.igormaznitsa.prol.data.Terms.newStruct;
 public class ProlConsult {
 
   private static final Logger LOG = Logger.getLogger(ProlConsult.class.getCanonicalName());
+
   private final ProlReader reader;
   private final ProlContext context;
   private final KnowledgeBase base;
 
   public ProlConsult(final ProlContext context) {
     this((ProlReader) null, context);
-  }
-
-  public ProlConsult(final String string, final ProlContext context) {
-    this(new ProlReader(string), context);
-  }
-
-  public ProlConsult(final InputStream in, final ProlContext context) {
-    this(new ProlReader(in), context);
   }
 
   public ProlConsult(final Reader reader, final ProlContext context) {

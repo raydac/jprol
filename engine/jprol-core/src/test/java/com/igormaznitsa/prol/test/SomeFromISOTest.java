@@ -9,6 +9,8 @@ import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import java.io.StringReader;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class SomeFromISOTest extends AbstractProlTest {
@@ -1388,7 +1390,7 @@ class SomeFromISOTest extends AbstractProlTest {
 
   private ProlContext makeContext(final String knowledgeBase) throws Exception {
     final ProlContext context = new ProlContext("PreparedGoal test", DefaultProlStreamManagerImpl.getInstance());
-    final ProlConsult consult = new ProlConsult(knowledgeBase, context);
+    final ProlConsult consult = new ProlConsult(new StringReader(knowledgeBase), context);
     consult.consult();
     return context;
   }

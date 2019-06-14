@@ -8,6 +8,8 @@ import com.igormaznitsa.prol.logic.ProlConsult;
 import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Test;
 
+import java.io.StringReader;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class PreparedGoalTest extends AbstractProlTest {
@@ -15,7 +17,7 @@ class PreparedGoalTest extends AbstractProlTest {
   @Test
   void testPreparedGoal() throws Exception {
     final ProlContext context = new ProlContext("PreparedGoal test", DefaultProlStreamManagerImpl.getInstance());
-    final ProlConsult consult = new ProlConsult("test(A,B,C,D,E):-E is A+B/C*D. randomval(A):-rnd([1,2,3,4,5],A).", context);
+    final ProlConsult consult = new ProlConsult(new StringReader("test(A,B,C,D,E):-E is A+B/C*D. randomval(A):-rnd([1,2,3,4,5],A)."), context);
     consult.consult();
 
     final DeferredGoal goal = new DeferredGoal("test({?},{?},{?},{?},Result).", context);

@@ -1124,7 +1124,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       }
 
       this.messageEditor.addInfoText("Consult with the script... ");
-      final ProlConsult consult = new ProlConsult(sourceEditor.getText(), context);
+      final ProlConsult consult = new ProlConsult(new StringReader(sourceEditor.getText()), context);
 
       startTime = System.currentTimeMillis();
 

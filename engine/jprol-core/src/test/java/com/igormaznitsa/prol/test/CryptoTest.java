@@ -6,9 +6,7 @@ import com.igormaznitsa.prol.logic.ProlConsult;
 import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Test;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintWriter;
+import java.io.StringReader;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,8 +18,8 @@ class CryptoTest extends AbstractProlTest {
 
     // check the knowledge base export data process
     //--
-    final ProlContext context0 = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
-    final ProlConsult consult0 = new ProlConsult("sum(N1,N2,N):-\n"
+    final ProlContext context = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
+    final ProlConsult consult = new ProlConsult(new StringReader("sum(N1,N2,N):-\n"
         + "     sum1(N1,N2,N,\n"
         + "     0,0,\n"
         + "     [0,1,2,3,4,5,6,7,8,9],_).\n"
@@ -43,18 +41,7 @@ class CryptoTest extends AbstractProlTest {
         + "del_var(A,[B|L],[B|L1]):-del_var(A,L,L1).\n"
         + "\n"
         + "puzzle1([D,O,N,A,L,D],[G,E,R,A,L,D],[R,O,B,E,R,T]).\n"
-        + "puzzle2([0,S,E,N,D],[0,M,O,R,E],[M,O,N,E,Y]).\n", context0);
-    consult0.consult();
-    ByteArrayOutputStream buffer = new ByteArrayOutputStream(1024);
-    PrintWriter src = new PrintWriter(buffer);
-    context0.getKnowledgeBase().write(src);
-    src.flush();
-    src.close();
-    //--
-
-    final ProlContext context = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
-    final ProlConsult consult = new ProlConsult(new ByteArrayInputStream(buffer.toByteArray()), context);
-
+        + "puzzle2([0,S,E,N,D],[0,M,O,R,E],[M,O,N,E,Y]).\n"), context);
     consult.consult();
 
     final ChoicePoint goal = new ChoicePoint("puzzle1(N1,N2,N), sum(N1,N2,N).", context);

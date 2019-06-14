@@ -25,6 +25,7 @@ import com.igormaznitsa.prol.logic.ProlConsult;
 import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Test;
 
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +37,7 @@ class MiscTest extends AbstractProlTest {
   @Test
   void testGetAllGoalsAndConvertThem() throws Exception {
     final ProlContext context = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
-    final ProlConsult consult = new ProlConsult("map(one,1,a). map(two,2,b). map(three,3,c).", context);
+    final ProlConsult consult = new ProlConsult(new StringReader("map(one,1,a). map(two,2,b). map(three,3,c)."), context);
     consult.consult();
 
     final ChoicePoint goal = new ChoicePoint("map(X,Y,_).", context);
@@ -76,7 +77,7 @@ class MiscTest extends AbstractProlTest {
   void findAllTest() throws Exception {
     ProlContext context;
     context = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
-    final ProlConsult consult = new ProlConsult("powerSet([],[]).powerSet([_|Xt],Y) :- powerSet(Xt,Y).powerSet([Xh|Xt],[Xh|Yt]) :- powerSet(Xt,Yt).", context);
+    final ProlConsult consult = new ProlConsult(new StringReader("powerSet([],[]).powerSet([_|Xt],Y) :- powerSet(Xt,Y).powerSet([Xh|Xt],[Xh|Yt]) :- powerSet(Xt,Yt)."), context);
     consult.consult();
     final ChoicePoint goal = new ChoicePoint("findall(X,powerSet([a,b],X),Y).", context);
 

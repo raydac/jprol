@@ -6,9 +6,7 @@ import com.igormaznitsa.prol.logic.ProlConsult;
 import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Test;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintWriter;
+import java.io.StringReader;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -49,19 +47,8 @@ class PuzzleTest extends AbstractProlTest {
 
   private ProlContext makeContext(final String knowledgeBase) throws Exception {
     final ProlContext context = new ProlContext("PreparedGoal test", DefaultProlStreamManagerImpl.getInstance());
-    final ProlConsult consult = new ProlConsult(knowledgeBase, context);
+    final ProlConsult consult = new ProlConsult(new StringReader(knowledgeBase), context);
     consult.consult();
-
-    final ByteArrayOutputStream baos = new ByteArrayOutputStream(1024);
-    final PrintWriter out = new PrintWriter(baos);
-    context.getKnowledgeBase().write(out);
-    out.flush();
-    out.close();
-
-    final ProlContext context1 = new ProlContext("PreparedGoal test", DefaultProlStreamManagerImpl.getInstance());
-    final ProlConsult consult1 = new ProlConsult(new ByteArrayInputStream(baos.toByteArray()), context1);
-    consult1.consult();
-
-    return context1;
+    return context;
   }
 }

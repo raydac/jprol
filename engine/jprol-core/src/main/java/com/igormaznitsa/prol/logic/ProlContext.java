@@ -36,6 +36,7 @@ import com.igormaznitsa.prol.trace.TracingChoicePointListener;
 import com.igormaznitsa.prol.utils.Utils;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
@@ -332,7 +333,7 @@ public final class ProlContext {
       if (consult != null) {
         final String text = consult.value();
         if (text.length() > 0) {
-          new ProlConsult(text, this).consult();
+          new ProlConsult(new StringReader(text), this).consult();
         }
       }
     return true;

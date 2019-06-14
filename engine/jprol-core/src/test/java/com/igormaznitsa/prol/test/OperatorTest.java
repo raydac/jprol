@@ -8,6 +8,8 @@ import com.igormaznitsa.prol.logic.ProlConsult;
 import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Test;
 
+import java.io.StringReader;
+
 import static com.igormaznitsa.prol.data.TermType.ATOM;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -16,7 +18,7 @@ class OperatorTest extends AbstractProlTest {
   @Test
   void testOperatorDefs() throws Exception {
     final ProlContext context = new ProlContext("Operator_test");
-    final ProlConsult consult = new ProlConsult(":-op(800,xfx,'<===>'). :-op(700,xfy,'v'). :-op(600,xfy,'&'). :-op(500,fy,'~'). moon <===> earth.", context);
+    final ProlConsult consult = new ProlConsult(new StringReader(":-op(800,xfx,'<===>'). :-op(700,xfy,'v'). :-op(600,xfy,'&'). :-op(500,fy,'~'). moon <===> earth."), context);
     consult.consult();
 
     final ChoicePoint prepGoal = new ChoicePoint("~(xxx & yyy) <===> ~xxx v ~yyy.", context);

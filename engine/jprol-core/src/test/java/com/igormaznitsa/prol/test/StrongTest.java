@@ -6,9 +6,7 @@ import com.igormaznitsa.prol.logic.ProlConsult;
 import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Test;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintWriter;
+import java.io.StringReader;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -130,22 +128,9 @@ class StrongTest extends AbstractProlTest {
 
   private ProlContext makeContext(final String knowledgeBase) throws Exception {
     final ProlContext context = new ProlContext("PreparedGoal test", DefaultProlStreamManagerImpl.getInstance());
-    final ProlConsult consult = new ProlConsult(knowledgeBase, context);
+    final ProlConsult consult = new ProlConsult(new StringReader(knowledgeBase), context);
     consult.consult();
-
-    // check that kb is right in its data export
-    final ByteArrayOutputStream baos = new ByteArrayOutputStream(1024);
-    final PrintWriter out = new PrintWriter(baos);
-    context.getKnowledgeBase().write(out);
-    out.flush();
-    out.close();
-
-    //System.out.println(new String(baos.toByteArray()));
-    final ProlContext context1 = new ProlContext("PreparedGoal test", DefaultProlStreamManagerImpl.getInstance());
-    final ProlConsult consult1 = new ProlConsult(new ByteArrayInputStream(baos.toByteArray()), context1);
-    consult1.consult();
-
-    return context1.makeCopy(); // and check makeCopy() for the context
+    return context.makeCopy();
 
   }
 }
