@@ -20,9 +20,7 @@ import com.igormaznitsa.prol.containers.KnowledgeBase;
 import com.igormaznitsa.prol.data.Operator;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.libraries.AbstractProlLibrary;
-import com.igormaznitsa.prol.logic.ProlConsult;
 import com.igormaznitsa.prol.logic.ProlContext;
-import com.igormaznitsa.prol.parser.ProlReader;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;
@@ -47,10 +45,6 @@ public final class JProlScriptContext implements ScriptContext {
     return this.context;
   }
 
-  private void consult(final ProlReader reader) throws IOException {
-    new ProlConsult(reader, this.context).consult();
-  }
-
   public void addOperators(final Operator... operators) {
     for (final Operator op : operators) {
       this.context.getKnowledgeBase().addOperator(this.context, op);
@@ -73,18 +67,6 @@ public final class JProlScriptContext implements ScriptContext {
 
   public KnowledgeBase getKnowledgeBase() {
     return this.context.getKnowledgeBase();
-  }
-
-  public void consult(final String text) {
-    try {
-      this.consult(new ProlReader(text));
-    } catch (IOException ex) {
-      throw new RuntimeException("Unexpected IO error", ex);
-    }
-  }
-
-  public void consult(final Reader reader) throws IOException {
-    this.consult(new ProlReader(reader));
   }
 
   @Override

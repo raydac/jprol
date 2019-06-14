@@ -48,16 +48,8 @@ public class ProlConsult {
   private final ProlContext context;
   private final KnowledgeBase base;
 
-  public ProlConsult(final ProlContext context) {
-    this((ProlReader) null, context);
-  }
-
   public ProlConsult(final Reader reader, final ProlContext context) {
-    this(new ProlReader(reader), context);
-  }
-
-  public ProlConsult(final ProlReader reader, final ProlContext context) {
-    this.reader = reader;
+    this.reader = new ProlReader(reader);
     this.context = context;
     this.base = context.getKnowledgeBase();
   }
