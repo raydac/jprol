@@ -67,7 +67,7 @@ public class TermStruct extends Term {
   }
 
   @Override
-  public Stream<Var> variables() {
+  public Stream<TermVar> variables() {
     return this.stream().flatMap(Term::variables);
   }
 
@@ -383,7 +383,7 @@ public class TermStruct extends Term {
       }
       break;
       case VAR: {
-        final Var var = (Var) atom;
+        final TermVar var = (TermVar) atom;
         final Term value = var.getValue();
 
         if (value == null) {
@@ -427,7 +427,7 @@ public class TermStruct extends Term {
     }
 
     if (atom.getTermType() == VAR) {
-      atom = ((Var) atom).getValue();
+      atom = ((TermVar) atom).getValue();
     }
 
     if (atom == null) {
@@ -509,7 +509,7 @@ public class TermStruct extends Term {
   }
 
   @Override
-  protected Term makeCloneAndVarBound(final Map<Integer, Var> vars) {
+  protected Term makeCloneAndVarBound(final Map<Integer, TermVar> vars) {
     final Term result;
     if (this.getArity() == 0) {
       result = this;
@@ -528,19 +528,19 @@ public class TermStruct extends Term {
   }
 
   @Override
-  protected void doArrabgeVars(final Map<String, Var> variables) {
+  protected void doArrabgeVars(final Map<String, TermVar> variables) {
     final TermStruct struct = this;
     final int arity = struct.getArity();
 
     for (int li = 0; li < arity; li++) {
       final Term element = struct.getElement(li);
       if (element.getTermType() == VAR) {
-        final Var thatVar = (Var) element;
+        final TermVar thatVar = (TermVar) element;
         final String varname = thatVar.getText();
         if (!thatVar.isAnonymous() && thatVar.isFree()) {
-          final Var var = variables.get(varname);
+          final TermVar var = variables.get(varname);
           if (var == null) {
-            variables.put(varname, (Var) element);
+            variables.put(varname, (TermVar) element);
           } else {
             struct.setElement(li, var);
           }
@@ -553,7 +553,7 @@ public class TermStruct extends Term {
 
 
   @Override
-  protected Term doMakeClone(Map<Integer, Var> vars) {
+  protected Term doMakeClone(Map<Integer, TermVar> vars) {
     final Term result;
     if (this.getArity() == 0) {
       result = this;

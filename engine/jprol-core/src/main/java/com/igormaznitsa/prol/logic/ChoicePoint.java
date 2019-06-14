@@ -21,7 +21,7 @@ import com.igormaznitsa.prol.containers.ClauseIteratorType;
 import com.igormaznitsa.prol.data.NumericTerm;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
-import com.igormaznitsa.prol.data.Var;
+import com.igormaznitsa.prol.data.TermVar;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 import com.igormaznitsa.prol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.prol.exceptions.ProlInstantiationErrorException;
@@ -41,7 +41,7 @@ import static java.util.stream.Collectors.toMap;
 
 public final class ChoicePoint {
 
-  private final Map<String, Var> variables;
+  private final Map<String, TermVar> variables;
   private final VariableStateSnapshot varSnapshot;
   private final ProlContext context;
   private final ChoicePoint rootCp;
@@ -146,7 +146,7 @@ public final class ChoicePoint {
   }
 
   public Number getVarAsNumber(final String varName) {
-    final Var var = getVarForName(varName);
+    final TermVar var = getVarForName(varName);
     if (var == null) {
       throw new IllegalArgumentException("Unknown variable for name \'" + varName + '\'');
     }
@@ -154,7 +154,7 @@ public final class ChoicePoint {
   }
 
   public String getVarAsText(final String varName) {
-    final Var var = getVarForName(varName);
+    final TermVar var = getVarForName(varName);
     if (var == null) {
       throw new IllegalArgumentException("Unknown variable for name \'" + varName + '\'');
     }
@@ -166,7 +166,7 @@ public final class ChoicePoint {
     }
   }
 
-  public Var getVarForName(final String name) {
+  public TermVar getVarForName(final String name) {
     if (name == null) {
       throw new NullPointerException("Variable name is null");
     }

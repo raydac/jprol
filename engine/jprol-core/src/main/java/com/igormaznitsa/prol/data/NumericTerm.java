@@ -60,7 +60,7 @@ public abstract class NumericTerm extends Term {
     }
 
     if (atom.getTermType() == VAR) {
-      atom = ((Var) atom).getValue();
+      atom = ((TermVar) atom).getValue();
     }
 
     if (atom == null) {
@@ -88,10 +88,10 @@ public abstract class NumericTerm extends Term {
         }
       }
       case VAR: {
-        final Var var = (Var) atom;
+        final TermVar var = (TermVar) atom;
         final Term value = var.getValue();
         if (value == null) {
-          return ((Var) atom).setValue(this);
+          return ((TermVar) atom).setValue(this);
         } else {
           return unifyTo(value);
         }

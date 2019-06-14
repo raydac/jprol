@@ -76,7 +76,7 @@ public class Term {
 
     switch (term.getTermType()) {
       case VAR: {
-        term = ((Var) term).getValue();
+        term = ((TermVar) term).getValue();
         return term == null;
       }
       case ATOM: {
@@ -91,15 +91,15 @@ public class Term {
     }
   }
 
-  public Map<String, Var> allNamedVarsAsMap() {
+  public Map<String, TermVar> allNamedVarsAsMap() {
     return this.variables()
-        .collect(toMap(Var::getText, e -> e, (v1, v2) -> v2));
+        .collect(toMap(TermVar::getText, e -> e, (v1, v2) -> v2));
   }
 
   public Map<String, Term> allNamedVarValuesAsMap() {
     return this.variables()
         .filter(v -> !v.isFree())
-        .collect(toMap(Var::getText, e -> e.<Term>findNonVarOrDefault(e), (v1, v2) -> v2));
+        .collect(toMap(TermVar::getText, e -> e.<Term>findNonVarOrDefault(e), (v1, v2) -> v2));
   }
 
   public boolean isGround() {
@@ -120,7 +120,7 @@ public class Term {
     return Stream.of(this);
   }
 
-  public Stream<Var> variables() {
+  public Stream<TermVar> variables() {
     return Stream.empty();
   }
 
@@ -229,10 +229,10 @@ public class Term {
 
     switch (other.getTermType()) {
       case VAR: {
-        final Var var = (Var) other;
+        final TermVar var = (TermVar) other;
         final Term value = var.getValue();
         if (value == null) {
-          result = ((Var) other).setValue(this);
+          result = ((TermVar) other).setValue(this);
         } else {
           result = unifyTo(value);
         }
@@ -344,11 +344,11 @@ public class Term {
     }
   }
 
-  protected void doArrabgeVars(final Map<String, Var> variables) {
+  protected void doArrabgeVars(final Map<String, TermVar> variables) {
   }
 
   public final void arrangeVariablesInsideTerms(final Term termTwo) {
-    final Map<String, Var> varMap = new HashMap<>();
+    final Map<String, TermVar> varMap = new HashMap<>();
     this.doArrabgeVars(varMap);
     termTwo.doArrabgeVars(varMap);
   }
@@ -370,7 +370,7 @@ public class Term {
     return this;
   }
 
-  protected Term doMakeClone(final Map<Integer, Var> vars) {
+  protected Term doMakeClone(final Map<Integer, TermVar> vars) {
     return this;
   }
 
@@ -378,7 +378,7 @@ public class Term {
     return this.makeCloneAndVarBound(new HashMap<>());
   }
 
-  protected Term makeCloneAndVarBound(final Map<Integer, Var> vars) {
+  protected Term makeCloneAndVarBound(final Map<Integer, TermVar> vars) {
     return this;
   }
 

@@ -17,8 +17,8 @@
 package com.igormaznitsa.prol.logic;
 
 import com.igormaznitsa.prol.data.Term;
+import com.igormaznitsa.prol.data.TermVar;
 import com.igormaznitsa.prol.data.Terms;
-import com.igormaznitsa.prol.data.Var;
 import com.igormaznitsa.prol.parser.ProlTreeBuilder;
 import com.igormaznitsa.prol.trace.TracingChoicePointListener;
 
@@ -157,7 +157,7 @@ public class DeferredGoal {
       if (parameter == null) {
         throw new NullPointerException();
       }
-      final Var varTerm = goalClone.variables().filter(x -> varName.equals(x.getText())).findFirst().orElse(null);
+      final TermVar varTerm = goalClone.variables().filter(x -> varName.equals(x.getText())).findFirst().orElse(null);
       if (varTerm == null) {
         throw new IllegalArgumentException("Can't find a variable for \'" + varName + "\' name");
       }
@@ -175,7 +175,7 @@ public class DeferredGoal {
     final Term goalClone = getParsedGoal().makeClone();
 
     vars.forEach((key, value) -> {
-      final Var foundVar = goalClone.variables().filter(x -> key.equals(x.getText())).findFirst().orElse(null);
+      final TermVar foundVar = goalClone.variables().filter(x -> key.equals(x.getText())).findFirst().orElse(null);
       if (foundVar == null) {
         throw new IllegalArgumentException("Can't find variable for \'" + key + "\' name");
       }

@@ -16,7 +16,6 @@
 
 package com.igormaznitsa.prol.parser;
 
-import com.igormaznitsa.prol.containers.KnowledgeBase;
 import com.igormaznitsa.prol.data.*;
 import com.igormaznitsa.prol.exceptions.ParserException;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
@@ -41,15 +40,13 @@ public final class ProlTreeBuilder {
   private final OperatorContainer[] OPERATORS_END_LIST;
   private final OperatorContainer[] OPERATORS_INSIDE_STRUCT;
   private final OperatorContainer[] OPERATORS_SUBBLOCK;
-  private final Map<String, Var> variableSet;
+  private final Map<String, TermVar> variableSet;
   private final ProlContext context;
-  private final KnowledgeBase knowledgeBase;
   private ProlTokenizer tokenizer;
 
   public ProlTreeBuilder(final ProlContext context) {
     variableSet = new HashMap<>();
     this.context = context;
-    knowledgeBase = context.getKnowledgeBase();
 
     OPERATORS_PHRASE = new OperatorContainer[] {context.getSystemOperatorForName(".")};
     OPERATORS_INSIDE_LIST = new OperatorContainer[] {context.getSystemOperatorForName(","), context.getSystemOperatorForName("]"), context.getSystemOperatorForName("|")};
@@ -323,10 +320,10 @@ public final class ProlTreeBuilder {
       // check for variable
       if (readAtom.getTermType() == VAR) {
         // it's a variable
-        final Var var = (Var) readAtom;
+        final TermVar var = (TermVar) readAtom;
         if (!var.isAnonymous()) {
           // it's not an anonymous variable so we need to process it and cache if it is not at the var table yet
-          final Var cachedVar = variableSet.get(var.getText());
+          final TermVar cachedVar = variableSet.get(var.getText());
           if (cachedVar == null) {
             // first meet variable
             // cache it

@@ -50,7 +50,7 @@ public enum TemplateValueType {
         while (!Thread.currentThread().isInterrupted()) {
           Term head = lst.getHead();
           if (head.getTermType() == VAR) {
-            head = ((Var) head).getValue();
+            head = ((TermVar) head).getValue();
             if (head == null) {
               error = true;
               break;
@@ -158,7 +158,7 @@ public enum TemplateValueType {
         while (!Thread.currentThread().isInterrupted()) {
           Term head = lst.getHead();
           if (head.getTermType() == TermType.VAR) {
-            head = ((Var) head).getValue();
+            head = ((TermVar) head).getValue();
             if (head == null) {
               error = true;
               break;
@@ -208,7 +208,7 @@ public enum TemplateValueType {
         while (!Thread.currentThread().isInterrupted()) {
           Term head = lst.getHead();
           if (head.getTermType() == TermType.VAR) {
-            head = ((Var) head).getValue();
+            head = ((TermVar) head).getValue();
             if (head == null) {
               error = true;
               break;

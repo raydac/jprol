@@ -19,7 +19,7 @@ package com.igormaznitsa.prol.logic;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermList;
 import com.igormaznitsa.prol.data.TermStruct;
-import com.igormaznitsa.prol.data.Var;
+import com.igormaznitsa.prol.data.TermVar;
 
 import java.util.*;
 
@@ -95,7 +95,7 @@ final class VariableStateSnapshot {
         if (this.processedVariables == null) {
           this.processedVariables = new HashSet<>();
         }
-        final Var var = (Var) src;
+        final TermVar var = (TermVar) src;
         final Integer uid = var.getVarUID();
         if (!this.processedVariables.contains(uid)) {
           this.processedVariables.add(uid);
@@ -135,7 +135,7 @@ final class VariableStateSnapshot {
       }
 
       final String valueTxt;
-      final Var value = varcont.variable;
+      final TermVar value = varcont.variable;
       if (value == null) {
         valueTxt = ".NULL";
       } else {
@@ -157,10 +157,10 @@ final class VariableStateSnapshot {
   }
 
   private final static class VariableContainer {
-    final Var variable;
+    final TermVar variable;
     final Term etalonValue;
 
-    public VariableContainer(final Var var, final Map<String, Term> predefinedValues) {
+    public VariableContainer(final TermVar var, final Map<String, Term> predefinedValues) {
       this.variable = var;
 
       if (predefinedValues == null) {

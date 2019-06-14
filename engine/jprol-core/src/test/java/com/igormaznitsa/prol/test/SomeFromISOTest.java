@@ -1157,8 +1157,8 @@ class SomeFromISOTest extends AbstractProlTest {
     checkOnce("atomic(atom).", true);
     //[atomic(a(b)), failure].
     checkOnce("atomic(a(b)).", false);
-    //[atomic(Var), failure].
-    checkOnce("atomic(Var).", false);
+    //[atomic(TermVar), failure].
+    checkOnce("atomic(TermVar).", false);
     //[atomic([]), success].
     checkOnce("atomic([]).", true);
     //[atomic(6), success].
@@ -1175,8 +1175,8 @@ class SomeFromISOTest extends AbstractProlTest {
     checkOnce("atom('string').", true);
     //[atom(a(b)), failure].
     checkOnce("atom(a(b)).", false);
-    //[atom(Var), failure].
-    checkOnce("atom(Var).", false);
+    //[atom(TermVar), failure].
+    checkOnce("atom(TermVar).", false);
     //[atom([]), success].
     checkOnce("atom([]).", true);
     //[atom(6), failure].

@@ -26,7 +26,7 @@ import java.util.stream.Stream;
 import static com.igormaznitsa.prol.data.TermType.VAR;
 import static com.igormaznitsa.prol.data.Terms.newVar;
 
-public final class Var extends Term {
+public final class TermVar extends Term {
 
   private static final AtomicInteger ANONYM_GENERATOR = new AtomicInteger(0);
   private static final AtomicInteger UID_GENERATOR = new AtomicInteger(0);
@@ -34,17 +34,17 @@ public final class Var extends Term {
   private final boolean anonymous;
   private volatile Term value;
 
-  private Var(final String name, final boolean anonymous) {
+  private TermVar(final String name, final boolean anonymous) {
     super(name);
     this.uid = UID_GENERATOR.incrementAndGet();
     this.anonymous = anonymous;
   }
 
-  Var(final String name) {
+  TermVar(final String name) {
     this(name, false);
   }
 
-  Var() {
+  TermVar() {
     this("_$" + Long.toHexString(ANONYM_GENERATOR.incrementAndGet()), true);
   }
 
@@ -60,9 +60,9 @@ public final class Var extends Term {
   @Override
   public Term makeClone() {
     final Term value = this.getThisValue();
-    Var result = this.isAnonymous() ? newVar() : newVar(this.getText());
+    TermVar result = this.isAnonymous() ? newVar() : newVar(this.getText());
     if (value != null) {
-      final Map<Integer, Var> vars = new HashMap<>();
+      final Map<Integer, TermVar> vars = new HashMap<>();
       vars.put(this.getVarUID(), result);
       result.setThisValue(doMakeClone(vars));
     }
@@ -79,10 +79,10 @@ public final class Var extends Term {
   }
 
   @Override
-  protected void doArrabgeVars(final Map<String, Var> variables) {
+  protected void doArrabgeVars(final Map<String, TermVar> variables) {
     final String name = this.getText();
     if (variables.containsKey(name)) {
-      final Var var = variables.get(name);
+      final TermVar var = variables.get(name);
       this.unifyTo(var);
     } else {
       variables.put(name, this);
@@ -91,7 +91,7 @@ public final class Var extends Term {
 
 
   @Override
-  protected Term makeCloneAndVarBound(final Map<Integer, Var> vars) {
+  protected Term makeCloneAndVarBound(final Map<Integer, TermVar> vars) {
     Term value = this.getValue();
     if (value == null) {
       final Term result;
@@ -99,7 +99,7 @@ public final class Var extends Term {
       if (val == null) {
         final String varName = this.getText();
         final int varId = this.getVarUID();
-        Var newVar = vars.get(varId);
+        TermVar newVar = vars.get(varId);
         if (newVar == null) {
           newVar = this.isAnonymous() ? newVar() : newVar(varName);
           vars.put(varId, newVar);
@@ -121,14 +121,14 @@ public final class Var extends Term {
   }
 
   @Override
-  protected Term doMakeClone(Map<Integer, Var> vars) {
+  protected Term doMakeClone(Map<Integer, TermVar> vars) {
     final Term result;
 
     final Term val = this.getThisValue();
     if (val == null) {
       final String varName = this.getText();
       final int varId = this.getVarUID();
-      Var newVar = vars.get(varId);
+      TermVar newVar = vars.get(varId);
       if (newVar == null) {
         newVar = this.isAnonymous() ? newVar() : newVar(varName);
         vars.put(varId, newVar);
@@ -150,7 +150,7 @@ public final class Var extends Term {
   public final Term getValue() {
     Term result = this.value;
     if (result != null && result.getTermType() == VAR) {
-      final Var nextVar = (Var) result;
+      final TermVar nextVar = (TermVar) result;
       result = nextVar.getValue();
       if (result == null) {
         result = nextVar;
@@ -166,7 +166,7 @@ public final class Var extends Term {
 
       if (value.getTermType() == VAR) {
         // check for loop
-        Var curVar = ((Var) value);
+        TermVar curVar = ((TermVar) value);
         while (!Thread.currentThread().isInterrupted()) {
           if (curVar == this) {
             // loop detected, just return
@@ -174,7 +174,7 @@ public final class Var extends Term {
           } else {
             final Term nextval = curVar.getThisValue();
             if (nextval != null && nextval.getTermType() == VAR) {
-              curVar = (Var) nextval;
+              curVar = (TermVar) nextval;
             } else {
               break;
             }
@@ -187,7 +187,7 @@ public final class Var extends Term {
       } else {
         final Term curValue = getValue();
         if (curValue == null) {
-          ((Var) this.value).setValue(value);
+          ((TermVar) this.value).setValue(value);
         } else {
           result = curValue.unifyTo(value);
         }
@@ -197,7 +197,7 @@ public final class Var extends Term {
   }
 
   @Override
-  public Stream<Var> variables() {
+  public Stream<TermVar> variables() {
     return this.isAnonymous() ? Stream.empty() : Stream.of(this);
   }
 
@@ -219,7 +219,7 @@ public final class Var extends Term {
   }
 
   public boolean isFree() {
-    return this.value == null || (this.value.getTermType() == VAR && ((Var) this.value).isFree());
+    return this.value == null || (this.value.getTermType() == VAR && ((TermVar) this.value).isFree());
   }
 
   @Override
@@ -263,11 +263,11 @@ public final class Var extends Term {
     this.value = value;
   }
 
-  private Var getDeepestVar() {
+  private TermVar getDeepestVar() {
     if (this.value == null) {
       return this;
     } else {
-      return this.value.getTermType() == VAR ? ((Var) this.value).getDeepestVar() : this;
+      return this.value.getTermType() == VAR ? ((TermVar) this.value).getDeepestVar() : this;
     }
   }
 
@@ -288,8 +288,8 @@ public final class Var extends Term {
     if (this == obj) {
       return true;
     }
-    if (obj.getClass() == Var.class) {
-      final Var that = (Var) obj;
+    if (obj.getClass() == TermVar.class) {
+      final TermVar that = (TermVar) obj;
       return (uid == that.uid && that.getText().hashCode() == getText().hashCode());
     }
     return false;
@@ -297,7 +297,7 @@ public final class Var extends Term {
 
   @Override
   public String getSignature() {
-    return ".Var." + getText();
+    return ".TermVar." + getText();
   }
 
   @Override
@@ -362,8 +362,8 @@ public final class Var extends Term {
   @Override
   public boolean stronglyEqualsTo(final Term term) {
     boolean result = false;
-    if (term.getClass() == Var.class) {
-      final Var thatVar = (Var) term;
+    if (term.getClass() == TermVar.class) {
+      final TermVar thatVar = (TermVar) term;
 
       if (this.uid == thatVar.uid) {
         final Term value = this.value;

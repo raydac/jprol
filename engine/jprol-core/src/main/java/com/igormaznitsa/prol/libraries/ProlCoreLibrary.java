@@ -836,7 +836,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   public static boolean predicateVAR(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0);
     if (arg.getTermType() == VAR) {
-      return ((Var) arg).isFree();
+      return ((TermVar) arg).isFree();
     } else {
       return false;
     }
@@ -847,7 +847,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   public static boolean predicateNONVAR(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0);
     if (arg.getTermType() == VAR) {
-      return !((Var) arg).isFree();
+      return !((TermVar) arg).isFree();
     } else {
       return true;
     }
@@ -858,7 +858,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   public static boolean predicateATOM(final ChoicePoint goal, final TermStruct predicate) {
     Term arg = predicate.getElement(0);
     if (arg.getTermType() == VAR) {
-      arg = ((Var) arg).getValue();
+      arg = ((TermVar) arg).getValue();
       if (arg == null) {
         return false;
       }
@@ -1117,8 +1117,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   private static NumericTerm calculatEvaluable(final ChoicePoint goal, Term term) {
     try {
       if (term.getTermType() == VAR) {
-        final Var varoriginal = (Var) term;
-        term = ((Var) term).getValue();
+        final TermVar varoriginal = (TermVar) term;
+        term = ((TermVar) term).getValue();
         if (term == null) {
           throw new ProlInstantiationErrorException("An empty variable [" + varoriginal + "] found at [" + goal + ']', varoriginal);
         }
@@ -1454,7 +1454,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     return false;
   }
 
-  @Predicate(Signature = "for/3", Template = {"?term,+integer,+integer"}, Reference = "Allows to make an integer counter from a variable, (Var, Start, End).")
+  @Predicate(Signature = "for/3", Template = {"?term,+integer,+integer"}, Reference = "Allows to make an integer counter from a variable, (TermVar, Start, End).")
   public static boolean predicateFOR(final ChoicePoint goal, final TermStruct predicate) {
     final Term term = predicate.getElement(0);
     if (term.getTermType() != VAR) {
@@ -1462,7 +1462,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       return false;
     }
 
-    final Var var = predicate.getElement(0);
+    final TermVar var = predicate.getElement(0);
     final long start = predicate.getElement(1).findNonVarOrSame().toNumber().longValue();
     final long limit = predicate.getElement(2).findNonVarOrSame().toNumber().longValue();
 
@@ -1661,7 +1661,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     return instances.unifyTo(result);
   }
 
-  @Predicate(Signature = "bagof/3", Template = {"?term,+callable_term,?list"}, Reference = "Unify Bag with the alternatives of Template. If Goal has free variables besides the one sharing with Template, bagof/3 will backtrack over the alternatives of these free variables, unifying Bag with the corresponding alternatives of Template. The construct +Var^Goal tells bagof/3 not to bind Var in Goal. bagof/3 fails if Goal has no solutions.")
+  @Predicate(Signature = "bagof/3", Template = {"?term,+callable_term,?list"}, Reference = "Unify Bag with the alternatives of Template. If Goal has free variables besides the one sharing with Template, bagof/3 will backtrack over the alternatives of these free variables, unifying Bag with the corresponding alternatives of Template. The construct +TermVar^Goal tells bagof/3 not to bind TermVar in Goal. bagof/3 fails if Goal has no solutions.")
   public static boolean predicateBAGOF(final ChoicePoint goal, final TermStruct predicate) {
 
     final class BofKey {
@@ -1680,7 +1680,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
       public void restoreVarValues(final ChoicePoint goal) {
         this.vars.keySet().forEach(name -> {
-          final Var thatvar = goal.getVarForName(name);
+          final TermVar thatvar = goal.getVarForName(name);
           if (thatvar != null) {
             thatvar.unifyTo(this.vars.get(name));
           }
@@ -1801,7 +1801,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
       public void restoreVarValues(final ChoicePoint goal) {
         this.vars.keySet().forEach(name -> {
-          final Var thatvar = goal.getVarForName(name);
+          final TermVar thatvar = goal.getVarForName(name);
           if (thatvar != null) {
             thatvar.unifyTo(this.vars.get(name));
           }
@@ -2231,8 +2231,8 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final ProlContext context = goal.getContext();
 
     // we have to check the goal because it must not have any noninstantiated variable!!!!
-    final Map<String, Var> vars = goalToSolve.allNamedVarsAsMap();
-    for (Var var : vars.values()) {
+    final Map<String, TermVar> vars = goalToSolve.allNamedVarsAsMap();
+    for (TermVar var : vars.values()) {
       if (!var.isGround()) {
         throw new ProlInstantiationErrorException("Variable \'" + var.getText() + "\' is not instantiated, you must have all variables instantiated for async/1 .", predicate);
       }
@@ -2270,13 +2270,13 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
         // ---- we have to check that user doesn't try share noninstantiated variables between parallel goals
         if (term.getTermType() != ATOM) {
           // find vars
-          final Map<String, Var> varTable = term.allNamedVarsAsMap();
+          final Map<String, TermVar> varTable = term.allNamedVarsAsMap();
           if (!varTable.isEmpty()) {
             if (varFlagTable == null) {
               varFlagTable = new HashSet<>();
             }
-            for (final Map.Entry<String, Var> pair : varTable.entrySet()) {
-              final Var variable = pair.getValue();
+            for (final Map.Entry<String, TermVar> pair : varTable.entrySet()) {
+              final TermVar variable = pair.getValue();
               if (!variable.isAnonymous() && !variable.isGround()) {
                 // we check only undefined vars
                 final Integer varUID = variable.getVarUID();

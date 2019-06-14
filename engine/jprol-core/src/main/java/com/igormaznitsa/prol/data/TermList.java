@@ -57,7 +57,7 @@ public final class TermList extends TermStruct {
     final Term tail = this.terms[INDEX_TAIL];
     switch (tail.getTermType()) {
       case VAR: {
-        final Var var = (Var) tail;
+        final TermVar var = (TermVar) tail;
         final Term val = var.getValue();
         return (T) (val == null ? var : val);
       }
@@ -126,7 +126,7 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public Stream<Var> variables() {
+  public Stream<TermVar> variables() {
     return this.isNullList() ? Stream.empty() : super.variables();
   }
 
@@ -140,7 +140,7 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  protected Term makeCloneAndVarBound(final Map<Integer, Var> vars) {
+  protected Term makeCloneAndVarBound(final Map<Integer, TermVar> vars) {
     return this.isNullList() ? Terms.NULL_LIST : newList(this.getHead().makeCloneAndVarBound(vars), this.getTail().makeCloneAndVarBound(vars));
   }
 
@@ -155,7 +155,7 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  protected Term doMakeClone(Map<Integer, Var> vars) {
+  protected Term doMakeClone(Map<Integer, TermVar> vars) {
     return this.isNullList() ? Terms.NULL_LIST : newList(this.getHead().doMakeClone(vars), this.getTail().doMakeClone(vars));
   }
 
@@ -261,10 +261,10 @@ public final class TermList extends TermStruct {
         return this.getHead().unifyTo(thatList.getHead()) && this.getTail().unifyTo(thatList.getTail());
       }
       case VAR: {
-        final Var var = (Var) atom;
+        final TermVar var = (TermVar) atom;
         final Term value = var.getValue();
         if (value == null) {
-          return ((Var) atom).setValue(this);
+          return ((TermVar) atom).setValue(this);
         } else {
           return unifyTo(value);
         }
@@ -295,7 +295,7 @@ public final class TermList extends TermStruct {
     }
 
     if (atom.getTermType() == VAR) {
-      atom = ((Var) atom).getValue();
+      atom = ((TermVar) atom).getValue();
     }
 
     if (atom == null) {
@@ -452,7 +452,7 @@ public final class TermList extends TermStruct {
     }
   }
 
-  protected void doArrabgeVars(final Map<String, Var> variables) {
+  protected void doArrabgeVars(final Map<String, TermVar> variables) {
     TermList list = this;
     while (!list.isNullList()) {
       list.getHead().doArrabgeVars(variables);

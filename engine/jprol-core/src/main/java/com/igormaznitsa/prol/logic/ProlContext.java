@@ -607,7 +607,7 @@ public final class ProlContext {
                   if (userwriter != null) {
                     userwriter.write(String.format("Goal: %s%n", termGoal.forWrite()));
                   }
-                  final Map<String, Var> varmap = new HashMap<>();
+                  final Map<String, TermVar> varmap = new HashMap<>();
                   int solutioncounter = 0;
 
                   final ChoicePoint thisGoal = new ChoicePoint(termGoal, this, null);
@@ -619,9 +619,9 @@ public final class ProlContext {
                       if (userwriter != null) {
                         userwriter.write(String.format("%nYES%n"));
                         if (!varmap.isEmpty()) {
-                          for (Entry<String, Var> avar : varmap.entrySet()) {
+                          for (Entry<String, TermVar> avar : varmap.entrySet()) {
                             final String name = avar.getKey();
-                            final Var value = avar.getValue();
+                            final TermVar value = avar.getValue();
                             userwriter.write(String.format("%s=%s%n", name, value.isFree() ? "???" : value.forWrite()));
                             userwriter.flush();
                           }
@@ -673,7 +673,7 @@ public final class ProlContext {
     }
   }
 
-  public boolean processGoal(final Term goalterm, final Map<String, Var> varTable) {
+  public boolean processGoal(final Term goalterm, final Map<String, TermVar> varTable) {
     final ChoicePoint goal = new ChoicePoint(goalterm, this, null);
 
     Term result = goal.next();
@@ -685,7 +685,7 @@ public final class ProlContext {
     return result != null;
   }
 
-  private boolean solveGoal(final ChoicePoint goal, final Map<String, Var> varTable) {
+  private boolean solveGoal(final ChoicePoint goal, final Map<String, TermVar> varTable) {
     final Term result = goal.next();
 
     if (result != null && varTable != null) {

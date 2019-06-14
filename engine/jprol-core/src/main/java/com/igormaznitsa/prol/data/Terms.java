@@ -49,12 +49,12 @@ public final class Terms {
     return new TermList(head, tail);
   }
 
-  public static Var newVar(final String name) {
-    return new Var(name);
+  public static TermVar newVar(final String name) {
+    return new TermVar(name);
   }
 
-  public static Var newVar() {
-    return new Var();
+  public static TermVar newVar() {
+    return new TermVar();
   }
 
   public static TermStruct newStruct(final Term functor) {

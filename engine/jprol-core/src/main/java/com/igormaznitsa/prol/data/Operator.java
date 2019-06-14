@@ -171,10 +171,10 @@ public final class Operator extends Term {
       }
       break;
       case VAR: {
-        final Var var = (Var) atom;
+        final TermVar var = (TermVar) atom;
         final Term value = var.getValue();
         if (value == null) {
-          result = ((Var) atom).setValue(this);
+          result = ((TermVar) atom).setValue(this);
         } else {
           result = unifyTo(value);
         }
@@ -202,7 +202,7 @@ public final class Operator extends Term {
       }
       break;
       case VAR: {
-        final Var var = (Var) atom;
+        final TermVar var = (TermVar) atom;
         final Term value = var.getValue();
         result = value == null || this.dryUnifyTo(value);
       }
