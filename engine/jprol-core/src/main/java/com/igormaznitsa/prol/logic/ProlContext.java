@@ -63,7 +63,6 @@ public final class ProlContext {
 
   private final Map<String, ProlTextInputStream> inputStreams = new ConcurrentHashMap<>();
   private final Map<String, ProlTextOutputStream> outputStreams = new ConcurrentHashMap<>();
-  private final Map<String, ProlMemoryPipe> memPipes = new ConcurrentHashMap<>();
   private final Map<String, List<ProlTrigger>> triggersOnAssert = new ConcurrentHashMap<>();
   private final Map<String, List<ProlTrigger>> triggersOnRetract = new ConcurrentHashMap<>();
   private final Map<String, ReentrantLock> namedLockerObjects = new ConcurrentHashMap<>();
@@ -209,10 +208,6 @@ public final class ProlContext {
     }
   }
 
-  public ProlMemoryPipe findMemPipe(final String pipeId) {
-    return this.memPipes.get(pipeId);
-  }
-
   public ProlStreamManager getStreamManager() {
     assertNotDisposed();
     return this.streamManager;
@@ -236,22 +231,12 @@ public final class ProlContext {
   public void tell(final String resourceId, final boolean append) {
     assertNotDisposed();
     try {
-      if (resourceId.length() > 0 && resourceId.charAt(0) == '+') {
-        // it's pipe
-        ProlMemoryPipe out = memPipes.get(resourceId);
-        if (out == null) {
-          out = new ProlMemoryPipe(resourceId, this);
-          memPipes.put(resourceId, out);
-        }
-        outWriter = Optional.of(out);
-      } else {
         ProlTextOutputStream out = outputStreams.get(resourceId);
         if (out == null) {
           out = new ProlTextOutputStream(resourceId, this, append);
           outputStreams.put(resourceId, out);
         }
         outWriter = Optional.of(out);
-      }
     } catch (IOException ex) {
       throw new RuntimeException(ex);
     }
@@ -260,21 +245,12 @@ public final class ProlContext {
   public void see(final String resourceId) {
     assertNotDisposed();
     try {
-      if (resourceId.length() > 0 && resourceId.charAt(0) == '+') {
-        ProlMemoryPipe in = memPipes.get(resourceId);
-        if (in == null) {
-          in = new ProlMemoryPipe(resourceId, this);
-          memPipes.put(resourceId, in);
-        }
-        inReader = Optional.of(in);
-      } else {
-        ProlTextInputStream in = inputStreams.get(resourceId);
+      ProlTextInputStream in = inputStreams.get(resourceId);
         if (in == null) {
           in = new ProlTextInputStream(resourceId, this);
           inputStreams.put(resourceId, in);
         }
         inReader = Optional.of(in);
-      }
     } catch (IOException ex) {
       throw new RuntimeException(ex);
     }
@@ -286,12 +262,7 @@ public final class ProlContext {
       try {
         if (!reader.getResourceId().equals(STREAM_USER)) {
           reader.close();
-
-          if (reader instanceof ProlMemoryPipe) {
-            memPipes.remove(reader.getResourceId());
-          } else {
             inputStreams.remove(reader.getResourceId());
-          }
         }
       } catch (IOException ex) {
         throw new RuntimeException(ex);
@@ -306,13 +277,8 @@ public final class ProlContext {
     this.outWriter.ifPresent(writer -> {
       try {
         if (!writer.getResourceId().equals(STREAM_USER)) {
-          if (writer instanceof ProlMemoryPipe) {
-            //memPipes.remove(outWriter.getResourceId());
-            ((ProlMemoryPipe) writer).closeForWriteOnly();
-          } else {
             writer.close();
             outputStreams.remove(writer.getResourceId());
-          }
         }
       } catch (IOException ex) {
         throw new RuntimeException(ex);
@@ -421,10 +387,9 @@ public final class ProlContext {
         outWriter = Optional.empty();
         errWriter = Optional.empty();
 
-        concat(memPipes.values().stream(), concat(inputStreams.values().stream(), outputStreams.values().stream()))
+        concat(inputStreams.values().stream(), outputStreams.values().stream())
             .forEach(channel -> Utils.doSilently(channel::close));
 
-        this.memPipes.clear();
         this.inputStreams.clear();
         this.outputStreams.clear();
 

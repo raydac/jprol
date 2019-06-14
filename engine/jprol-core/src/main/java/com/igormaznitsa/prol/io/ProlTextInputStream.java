@@ -21,7 +21,6 @@ import com.igormaznitsa.prol.data.TermLong;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.parser.ProlReader;
 import com.igormaznitsa.prol.parser.ProlTokenizer;
-import com.igormaznitsa.prol.parser.ProlTokenizer.ProlTokenizerResult;
 import com.igormaznitsa.prol.parser.ProlTreeBuilder;
 
 import java.io.IOException;
@@ -36,16 +35,6 @@ public class ProlTextInputStream implements ProlStream, ProlTextReader {
   private final ProlContext context;
   private final String resourceId;
   private ProlTreeBuilder treeBuilder;
-
-  protected ProlTextInputStream(final Reader reader, final ProlContext context) {
-    super();
-
-    this.resourceId = ".local";
-    this.context = context;
-
-    this.reader = new ProlReader(reader);
-    this.tokenizer = new ProlTokenizer();
-  }
 
   public ProlTextInputStream(final String resourceId, final ProlContext context) throws IOException {
     super();
@@ -79,15 +68,6 @@ public class ProlTextInputStream implements ProlStream, ProlTextReader {
   @Override
   public synchronized void close() throws IOException {
     reader.close();
-  }
-
-  @Override
-  public synchronized Term readToken() throws IOException {
-    ProlTokenizerResult result = tokenizer.nextToken(reader, context);
-    if (result == null) {
-      return END_OF_FILE;
-    }
-    return result.getTerm();
   }
 
   @Override

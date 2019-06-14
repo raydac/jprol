@@ -29,13 +29,6 @@ public class ProlTextOutputStream implements ProlStream, ProlTextWriter {
   private final Writer writer;
   private final ProlContext context;
 
-  protected ProlTextOutputStream(final Writer writer, final ProlContext context, final boolean forAppend) throws IOException {
-    super();
-    this.resourceId = ".local";
-    this.context = context;
-    this.writer = writer;
-  }
-
   public ProlTextOutputStream(final String resourceId, final ProlContext context, final boolean forAppend) throws IOException {
     super();
     if (resourceId == null) {

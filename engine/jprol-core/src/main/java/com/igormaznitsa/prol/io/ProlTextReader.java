@@ -23,8 +23,6 @@ import java.io.IOException;
 
 public interface ProlTextReader {
 
-  Term readToken() throws IOException;
-
   Term readTerm() throws IOException;
 
   TermLong readChar() throws IOException;
