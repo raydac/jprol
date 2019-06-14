@@ -25,7 +25,6 @@ import com.igormaznitsa.prol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.prol.io.ProlStreamManager;
 import com.igormaznitsa.prol.libraries.*;
 import com.igormaznitsa.prol.logic.ChoicePoint;
-import com.igormaznitsa.prol.logic.ProlConsult;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.trace.TraceEvent;
 import com.igormaznitsa.prol.trace.TracingChoicePointListener;
@@ -1124,12 +1123,11 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       }
 
       this.messageEditor.addInfoText("Consult with the script... ");
-      final ProlConsult consult = new ProlConsult(new StringReader(sourceEditor.getText()), context);
 
       startTime = System.currentTimeMillis();
 
       try {
-        consult.consult();
+        context.consult(new StringReader(sourceEditor.getText()));
         // wait for async threads
         context.getContextExecutorService().shutdown();
         context.getContextExecutorService().awaitTermination(60, TimeUnit.SECONDS);

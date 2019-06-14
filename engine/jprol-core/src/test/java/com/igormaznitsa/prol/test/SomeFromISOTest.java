@@ -4,7 +4,6 @@ import com.igormaznitsa.prol.exceptions.ProlCustomErrorException;
 import com.igormaznitsa.prol.exceptions.ProlException;
 import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
 import com.igormaznitsa.prol.logic.ChoicePoint;
-import com.igormaznitsa.prol.logic.ProlConsult;
 import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -1390,8 +1389,7 @@ class SomeFromISOTest extends AbstractProlTest {
 
   private ProlContext makeContext(final String knowledgeBase) throws Exception {
     final ProlContext context = new ProlContext("PreparedGoal test", DefaultProlStreamManagerImpl.getInstance());
-    final ProlConsult consult = new ProlConsult(new StringReader(knowledgeBase), context);
-    consult.consult();
+    context.consult(new StringReader(knowledgeBase));
     return context;
   }
 }

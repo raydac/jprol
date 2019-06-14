@@ -4,7 +4,6 @@ import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.DeferredGoal;
-import com.igormaznitsa.prol.logic.ProlConsult;
 import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Test;
 
@@ -18,8 +17,7 @@ class OperatorTest extends AbstractProlTest {
   @Test
   void testOperatorDefs() throws Exception {
     final ProlContext context = new ProlContext("Operator_test");
-    final ProlConsult consult = new ProlConsult(new StringReader(":-op(800,xfx,'<===>'). :-op(700,xfy,'v'). :-op(600,xfy,'&'). :-op(500,fy,'~'). moon <===> earth."), context);
-    consult.consult();
+    context.consult(new StringReader(":-op(800,xfx,'<===>'). :-op(700,xfy,'v'). :-op(600,xfy,'&'). :-op(500,fy,'~'). moon <===> earth."));
 
     final ChoicePoint prepGoal = new ChoicePoint("~(xxx & yyy) <===> ~xxx v ~yyy.", context);
     TermStruct root = (TermStruct) prepGoal.getGoalTerm();

@@ -19,11 +19,8 @@ package com.igormaznitsa.prol.logic;
 import com.igormaznitsa.prol.annotations.ConsultText;
 import com.igormaznitsa.prol.containers.InMemoryKnowledgeBase;
 import com.igormaznitsa.prol.containers.KnowledgeBase;
-import com.igormaznitsa.prol.data.OperatorContainer;
-import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.data.TermStruct;
-import com.igormaznitsa.prol.exceptions.ProlException;
-import com.igormaznitsa.prol.exceptions.ProlForkExecutionException;
+import com.igormaznitsa.prol.data.*;
+import com.igormaznitsa.prol.exceptions.*;
 import com.igormaznitsa.prol.io.*;
 import com.igormaznitsa.prol.libraries.AbstractProlLibrary;
 import com.igormaznitsa.prol.libraries.PredicateProcessor;
@@ -31,12 +28,18 @@ import com.igormaznitsa.prol.libraries.ProlCoreLibrary;
 import com.igormaznitsa.prol.logic.triggers.ProlTrigger;
 import com.igormaznitsa.prol.logic.triggers.ProlTriggerType;
 import com.igormaznitsa.prol.logic.triggers.TriggerEvent;
+import com.igormaznitsa.prol.parser.ProlReader;
+import com.igormaznitsa.prol.parser.ProlTokenizer;
+import com.igormaznitsa.prol.parser.ProlTreeBuilder;
 import com.igormaznitsa.prol.trace.TraceEvent;
 import com.igormaznitsa.prol.trace.TracingChoicePointListener;
 import com.igormaznitsa.prol.utils.Utils;
+import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.io.StringReader;
+import java.io.Writer;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
@@ -46,6 +49,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.igormaznitsa.prol.data.Terms.newStruct;
 import static com.igormaznitsa.prol.libraries.PredicateProcessor.NULL_PROCESSOR;
 import static java.util.stream.Stream.concat;
 
@@ -324,23 +328,23 @@ public final class ProlContext {
       throw new IllegalArgumentException("Library must not be null");
     }
     if (this.libraries.contains(library)) {
-        return false;
-      }
+      return false;
+    }
 
     libraries.add(0, library);
 
-      final ConsultText consult = library.getClass().getAnnotation(ConsultText.class);
-      if (consult != null) {
-        final String text = consult.value();
-        if (text.length() > 0) {
-          new ProlConsult(new StringReader(text), this).consult();
-        }
+    final ConsultText consult = library.getClass().getAnnotation(ConsultText.class);
+    if (consult != null) {
+      final String text = consult.value();
+      if (text.length() > 0) {
+        this.consult(new StringReader(text));
       }
+    }
     return true;
   }
 
   public KnowledgeBase getKnowledgeBase() {
-      return this.knowledgeBase;
+    return this.knowledgeBase;
   }
 
   public boolean removeLibrary(final AbstractProlLibrary library) {
@@ -366,9 +370,9 @@ public final class ProlContext {
   }
 
   public List<TermStruct> findAllForPredicateIndicatorInLibs(final Term predicateIndicator) {
-      return this.libraries.stream()
-          .flatMap(lib -> lib.findAllForPredicateIndicator(predicateIndicator).stream())
-          .collect(Collectors.toList());
+    return this.libraries.stream()
+        .flatMap(lib -> lib.findAllForPredicateIndicator(predicateIndicator).stream())
+        .collect(Collectors.toList());
   }
 
   public boolean hasPredicateAtLibraryForSignature(final String signature) {
@@ -472,66 +476,66 @@ public final class ProlContext {
   }
 
   public boolean hasRegisteredTriggersForSignature(final String normalizedSignature, final ProlTriggerType observedEvent) {
-      boolean result;
-      switch (observedEvent) {
-        case TRIGGER_ASSERT: {
-          result = triggersOnAssert.containsKey(normalizedSignature);
-        }
-        break;
-        case TRIGGER_RETRACT: {
+    boolean result;
+    switch (observedEvent) {
+      case TRIGGER_ASSERT: {
+        result = triggersOnAssert.containsKey(normalizedSignature);
+      }
+      break;
+      case TRIGGER_RETRACT: {
+        result = triggersOnRetract.containsKey(normalizedSignature);
+      }
+      break;
+      case TRIGGER_ASSERT_RETRACT: {
+        result = triggersOnAssert.containsKey(normalizedSignature);
+        if (!result) {
           result = triggersOnRetract.containsKey(normalizedSignature);
         }
-        break;
-        case TRIGGER_ASSERT_RETRACT: {
-          result = triggersOnAssert.containsKey(normalizedSignature);
-          if (!result) {
-            result = triggersOnRetract.containsKey(normalizedSignature);
-          }
-        }
-        break;
-        default: {
-          throw new IllegalArgumentException("Unsupported observed event [" + observedEvent.name() + ']');
-        }
       }
+      break;
+      default: {
+        throw new IllegalArgumentException("Unsupported observed event [" + observedEvent.name() + ']');
+      }
+    }
 
-      return result;
+    return result;
   }
 
   public void notifyTriggersForSignature(final String normalizedSignature, final ProlTriggerType observedEvent) {
     ProlTrigger[] triggersToProcess = null;
-      List<ProlTrigger> listOfTriggers;
+    List<ProlTrigger> listOfTriggers;
 
-      switch (observedEvent) {
-        case TRIGGER_ASSERT: {
-          listOfTriggers = triggersOnAssert.get(normalizedSignature);
-        }
-        break;
-        case TRIGGER_RETRACT: {
-          listOfTriggers = triggersOnRetract.get(normalizedSignature);
-        }
-        break;
-        case TRIGGER_ASSERT_RETRACT: {
-          final List<ProlTrigger> trigAssert = triggersOnAssert.get(normalizedSignature);
-          final List<ProlTrigger> trigRetract = triggersOnRetract.get(normalizedSignature);
+    switch (observedEvent) {
+      case TRIGGER_ASSERT: {
+        listOfTriggers = triggersOnAssert.get(normalizedSignature);
+      }
+      break;
+      case TRIGGER_RETRACT: {
+        listOfTriggers = triggersOnRetract.get(normalizedSignature);
+      }
+      break;
+      case TRIGGER_ASSERT_RETRACT: {
+        final List<ProlTrigger> trigAssert = triggersOnAssert.get(normalizedSignature);
+        final List<ProlTrigger> trigRetract = triggersOnRetract.get(normalizedSignature);
 
-          if (trigAssert != null && trigRetract == null) {
-            listOfTriggers = trigAssert;
-          } else if (trigAssert == null && trigRetract != null) {
-            listOfTriggers = trigRetract;
-          } else {
-            listOfTriggers = new ArrayList<>(trigAssert);
-            listOfTriggers.addAll(trigRetract);
-          }
-        }
-        break;
-        default: {
-          throw new IllegalArgumentException("Unsupported trigger event [" + observedEvent.name());
+        if (trigAssert != null && trigRetract == null) {
+          listOfTriggers = trigAssert;
+        } else if (trigAssert == null && trigRetract != null) {
+          listOfTriggers = trigRetract;
+        } else {
+          listOfTriggers = new ArrayList<>(trigAssert);
+          listOfTriggers.addAll(trigRetract);
         }
       }
-
-      if (listOfTriggers != null) {
-        triggersToProcess = listOfTriggers.toArray(new ProlTrigger[0]);
+      break;
+      default: {
+        throw new IllegalArgumentException("Unsupported trigger event [" + observedEvent.name());
       }
+    }
+
+    if (listOfTriggers != null) {
+      triggersToProcess = listOfTriggers.toArray(new ProlTrigger[0]);
+    }
 
 
     if (triggersToProcess != null) {
@@ -541,6 +545,161 @@ public final class ProlContext {
       }
     }
   }
+
+  public void consult(final Reader source) throws IOException {
+
+    final ProlReader reader = new ProlReader(source);
+
+    final ProlTreeBuilder treeBuilder = new ProlTreeBuilder(this);
+    final ProlTokenizer tokenizer = new ProlTokenizer();
+
+    final Thread thisthread = Thread.currentThread();
+
+    while (!thisthread.isInterrupted()) {
+
+      final Term nextItem = treeBuilder.readPhraseAndMakeTree(tokenizer, reader);
+      if (nextItem == null) {
+        break;
+      }
+
+      final int line = tokenizer.getLastTokenLineNum();
+      final int strpos = tokenizer.getLastTokenStrPos();
+
+      try {
+        switch (nextItem.getTermType()) {
+          case ATOM: {
+            this.knowledgeBase.assertZ(this, newStruct(nextItem));
+          }
+          break;
+          case STRUCT: {
+            final TermStruct struct = (TermStruct) nextItem;
+            final Term functor = struct.getFunctor();
+
+            switch (functor.getTermType()) {
+              case OPERATOR: {
+                final Operator op = (Operator) functor;
+                final String text = op.getText();
+                final OpAssoc type = op.getOperatorType();
+
+                if (struct.isClause()) {
+                  switch (type) {
+                    case XFX: {
+                      // new rule
+                      this.knowledgeBase.assertZ(this, struct);
+                    }
+                    break;
+                    case FX: {
+                      // directive
+                      if (!processDirective(struct.getElement(0))) {
+                        throw new ProlHaltExecutionException(2);
+                      }
+                    }
+                    break;
+                  }
+
+                } else if ("?-".equals(text)) {
+                  // goal
+                  final Reader userreader = this.getStreamManager().getReaderForResource("user");
+                  final Writer userwriter = this.getStreamManager().getWriterForResource("user", true);
+
+                  final Term termGoal = struct.getElement(0);
+
+                  if (userwriter != null) {
+                    userwriter.write(String.format("Goal: %s%n", termGoal.forWrite()));
+                  }
+                  final Map<String, Var> varmap = new HashMap<>();
+                  int solutioncounter = 0;
+
+                  final ChoicePoint thisGoal = new ChoicePoint(termGoal, this, null);
+
+                  while (!Thread.currentThread().isInterrupted()) {
+                    varmap.clear();
+                    if (solveGoal(thisGoal, varmap)) {
+                      solutioncounter++;
+                      if (userwriter != null) {
+                        userwriter.write(String.format("%nYES%n"));
+                        if (!varmap.isEmpty()) {
+                          for (Entry<String, Var> avar : varmap.entrySet()) {
+                            final String name = avar.getKey();
+                            final Var value = avar.getValue();
+                            userwriter.write(String.format("%s=%s%n", name, value.isFree() ? "???" : value.forWrite()));
+                            userwriter.flush();
+                          }
+                        }
+                      }
+                    } else {
+                      if (userwriter != null) {
+                        userwriter.write(String.format("%n%d %s%n%nNO%n", solutioncounter, (solutioncounter > 1 ? "solutions" : "solution")));
+                      }
+                      break;
+                    }
+                    if (userwriter != null && userreader != null) {
+                      userwriter.append("Next solution? ");
+                      final int chr = userreader.read();
+                      if (!(chr == ';' || chr == 'y' || chr == 'Y')) {
+                        break;
+                      } else {
+                        userwriter.write('\n');
+                      }
+                    }
+                  }
+                  if (userwriter != null) {
+                    userwriter.flush();
+                  }
+
+                  throw new ProlHaltExecutionException("Halted because goal failed.", 1);
+                } else {
+                  this.knowledgeBase.assertZ(this, struct);
+                }
+              }
+              break;
+              default: {
+                this.knowledgeBase.assertZ(this, struct);
+              }
+              break;
+            }
+          }
+          break;
+          default: {
+            throw new ProlKnowledgeBaseException("Such element can't be saved at knowledge base [" + nextItem + ']');
+          }
+        }
+      } catch (Throwable ex) {
+        if (ex instanceof ThreadDeath) {
+          throw (ThreadDeath) ex;
+        }
+        throw new ParserException(ex.getMessage(), line, strpos, ex);
+      }
+    }
+  }
+
+  public boolean processGoal(final Term goalterm, final Map<String, Var> varTable) {
+    final ChoicePoint goal = new ChoicePoint(goalterm, this, null);
+
+    Term result = goal.next();
+
+    if (result != null && varTable != null) {
+      result.variables().forEach(e -> varTable.put(e.getText(), e));
+    }
+
+    return result != null;
+  }
+
+  private boolean solveGoal(final ChoicePoint goal, final Map<String, Var> varTable) {
+    final Term result = goal.next();
+
+    if (result != null && varTable != null) {
+      result.variables().forEach(e -> varTable.put(e.getText(), e));
+    }
+
+    return result != null;
+  }
+
+  private boolean processDirective(final Term directive) {
+    final ChoicePoint goal = new ChoicePoint(directive, this, null);
+    return goal.next() != null;
+  }
+
 
   @Override
   public String toString() {

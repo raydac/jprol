@@ -27,7 +27,6 @@ import com.igormaznitsa.prol.io.ProlStreamManager;
 import com.igormaznitsa.prol.io.ProlTextReader;
 import com.igormaznitsa.prol.io.ProlTextWriter;
 import com.igormaznitsa.prol.logic.ChoicePoint;
-import com.igormaznitsa.prol.logic.ProlConsult;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.logic.triggers.ProlTriggerGoal;
 import com.igormaznitsa.prol.logic.triggers.ProlTriggerType;
@@ -1059,8 +1058,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     Reader reader = null;
     try {
       reader = streamManager.getReaderForResource(resource);
-      final ProlConsult consulter = new ProlConsult(reader, context);
-      consulter.consult();
+      context.consult(reader);
       return true;
     } catch (IOException ex) {
       LOG.log(Level.WARNING, "consultFromResource()", ex);

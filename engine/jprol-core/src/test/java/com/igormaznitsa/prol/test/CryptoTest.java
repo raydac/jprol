@@ -2,7 +2,6 @@ package com.igormaznitsa.prol.test;
 
 import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
 import com.igormaznitsa.prol.logic.ChoicePoint;
-import com.igormaznitsa.prol.logic.ProlConsult;
 import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Test;
 
@@ -19,7 +18,7 @@ class CryptoTest extends AbstractProlTest {
     // check the knowledge base export data process
     //--
     final ProlContext context = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
-    final ProlConsult consult = new ProlConsult(new StringReader("sum(N1,N2,N):-\n"
+    context.consult(new StringReader("sum(N1,N2,N):-\n"
         + "     sum1(N1,N2,N,\n"
         + "     0,0,\n"
         + "     [0,1,2,3,4,5,6,7,8,9],_).\n"
@@ -41,8 +40,8 @@ class CryptoTest extends AbstractProlTest {
         + "del_var(A,[B|L],[B|L1]):-del_var(A,L,L1).\n"
         + "\n"
         + "puzzle1([D,O,N,A,L,D],[G,E,R,A,L,D],[R,O,B,E,R,T]).\n"
-        + "puzzle2([0,S,E,N,D],[0,M,O,R,E],[M,O,N,E,Y]).\n"), context);
-    consult.consult();
+        + "puzzle2([0,S,E,N,D],[0,M,O,R,E],[M,O,N,E,Y]).\n"));
+
 
     final ChoicePoint goal = new ChoicePoint("puzzle1(N1,N2,N), sum(N1,N2,N).", context);
     assertNotNull(goal.next());

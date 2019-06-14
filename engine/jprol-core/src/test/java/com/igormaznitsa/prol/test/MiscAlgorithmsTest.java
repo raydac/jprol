@@ -3,7 +3,6 @@ package com.igormaznitsa.prol.test;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
 import com.igormaznitsa.prol.logic.ChoicePoint;
-import com.igormaznitsa.prol.logic.ProlConsult;
 import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Test;
 
@@ -15,8 +14,7 @@ class MiscAlgorithmsTest extends AbstractProlTest {
 
   private void calcAkkerman(int m, int n, int a) throws Exception {
     final ProlContext context = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
-    final ProlConsult consult = new ProlConsult(new StringReader("akkerman(0,N,X):- X is N+1,!. akkerman(M,0,X):- Mn is M-1, !, akkerman(Mn,1,X). akkerman(M,N,X):- Mn is M-1, Nn is N-1, !, akkerman(M,Nn,Y), !, akkerman(Mn,Y,X)."), context);
-    consult.consult();
+    context.consult(new StringReader("akkerman(0,N,X):- X is N+1,!. akkerman(M,0,X):- Mn is M-1, !, akkerman(Mn,1,X). akkerman(M,N,X):- Mn is M-1, Nn is N-1, !, akkerman(M,Nn,Y), !, akkerman(Mn,Y,X)."));
     final String goalText = "akkerman(" + m + ',' + n + ",A).";
     final ChoicePoint goal = new ChoicePoint(goalText, context);
     final Term resultterm = goal.next();
@@ -76,8 +74,7 @@ class MiscAlgorithmsTest extends AbstractProlTest {
 
   private ProlContext makeContext(final String knowledgeBase) throws Exception {
     final ProlContext context = new ProlContext("PreparedGoal test", DefaultProlStreamManagerImpl.getInstance());
-    final ProlConsult consult = new ProlConsult(new StringReader(knowledgeBase), context);
-    consult.consult();
+    context.consult(new StringReader(knowledgeBase));
     return context;
   }
 }
