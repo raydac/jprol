@@ -145,7 +145,7 @@ public class TermStruct extends Term {
       final String opName = sourceLike ? functor.toSrcString() : functor.toString();
       final StringBuilder builder = new StringBuilder();
 
-      final Operator OperatorFunctor = (Operator) functor;
+      final TermOperator OperatorFunctor = (TermOperator) functor;
 
       final int priority = OperatorFunctor.getPriority();
 
@@ -296,7 +296,7 @@ public class TermStruct extends Term {
       final String opName = functor.forWrite();
       final StringBuilder builder = new StringBuilder();
 
-      final Operator OperatorFunctor = (Operator) functor;
+      final TermOperator OperatorFunctor = (TermOperator) functor;
 
       switch (OperatorFunctor.getOperatorType()) {
         case FX:

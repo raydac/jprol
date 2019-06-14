@@ -36,7 +36,7 @@ import static java.lang.Integer.parseInt;
 public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
   private final String knowledgeBaseId;
-  private final Map<String, OperatorContainer> operatorTable = new HashMap<>();
+  private final Map<String, TermOperatorContainer> operatorTable = new HashMap<>();
   private final Map<String, InternalKnowledgeBaseClauseList> predicateTable = new HashMap<>();
   private final ReentrantLock operatorLocker = new ReentrantLock();
   private final ReentrantLock predicateLocker = new ReentrantLock();
@@ -54,7 +54,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     try {
       etalon.predicateLocker.lock();
       try {
-        for (final Entry<String, OperatorContainer> item : etalon.operatorTable.entrySet()) {
+        for (final Entry<String, TermOperatorContainer> item : etalon.operatorTable.entrySet()) {
           operatorTable.put(item.getKey(), item.getValue().makeCopy());
         }
         for (final Entry<String, InternalKnowledgeBaseClauseList> item : etalon.predicateTable.entrySet()) {
@@ -75,7 +75,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
   @Override
   public boolean removeOperator(final String name, final OpAssoc type) {
-    OperatorContainer opContainer;
+    TermOperatorContainer opContainer;
     operatorLocker.lock();
     try {
       opContainer = operatorTable.get(name);
@@ -92,7 +92,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public void addOperator(final ProlContext context, final Operator operator) {
+  public void addOperator(final ProlContext context, final TermOperator operator) {
     final String operatorName = operator.getText();
 
     final ReentrantLock lockerOp = operatorLocker;
@@ -103,9 +103,9 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
         throw new SecurityException("Attemption to override a system operator [" + operator.getText() + ']');
       }
 
-      OperatorContainer list = operatorTable.get(operatorName);
+      TermOperatorContainer list = operatorTable.get(operatorName);
       if (list == null) {
-        list = new OperatorContainer(operator);
+        list = new TermOperatorContainer(operator);
         operatorTable.put(operatorName, list);
       } else {
         if (!list.setOperator(operator)) {
@@ -118,9 +118,9 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public OperatorContainer findOperatorForName(final ProlContext context, final String name) {
-    final OperatorContainer systemOperator = context.getSystemOperatorForName(name);
-    OperatorContainer result;
+  public TermOperatorContainer findOperatorForName(final ProlContext context, final String name) {
+    final TermOperatorContainer systemOperator = context.getSystemOperatorForName(name);
+    TermOperatorContainer result;
 
     if (systemOperator == null) {
 
@@ -173,7 +173,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     lockerOp.lock();
     try {
       // write operators
-      for (OperatorContainer container : operatorTable.values()) {
+      for (TermOperatorContainer container : operatorTable.values()) {
         container.write(writer);
       }
       writer.println();
@@ -440,7 +440,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public Iterator<OperatorContainer> getOperatorIterator() {
+  public Iterator<TermOperatorContainer> getOperatorIterator() {
     final ReentrantLock lockerOp = operatorLocker;
 
     lockerOp.lock();

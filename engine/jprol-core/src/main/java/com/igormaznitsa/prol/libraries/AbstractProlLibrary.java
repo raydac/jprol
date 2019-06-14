@@ -20,9 +20,9 @@ import com.igormaznitsa.prol.annotations.Predicate;
 import com.igormaznitsa.prol.annotations.PredicateSynonyms;
 import com.igormaznitsa.prol.annotations.ProlOperator;
 import com.igormaznitsa.prol.annotations.ProlOperators;
-import com.igormaznitsa.prol.data.Operator;
-import com.igormaznitsa.prol.data.OperatorContainer;
 import com.igormaznitsa.prol.data.Term;
+import com.igormaznitsa.prol.data.TermOperator;
+import com.igormaznitsa.prol.data.TermOperatorContainer;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 import com.igormaznitsa.prol.logic.ProlContext;
@@ -39,7 +39,7 @@ import static java.lang.Integer.parseInt;
 public abstract class AbstractProlLibrary {
 
   private final String libraryUid;
-  private final Map<String, OperatorContainer> systemOperators;
+  private final Map<String, TermOperatorContainer> systemOperators;
   private final Map<String, PredicateProcessor> predicateMethodsMap;
   private final Set<String> zeroArityPredicateNames;
 
@@ -71,19 +71,19 @@ public abstract class AbstractProlLibrary {
         .collect(Collectors.toList());
   }
 
-  private static void registerStaticOperator(final Map<String, OperatorContainer> operatorMap, final ProlOperator operator) {
-    Operator newOperator = new Operator(operator.Priority(), operator.Type(), operator.Name());
-    OperatorContainer container = operatorMap.get(operator.Name());
+  private static void registerStaticOperator(final Map<String, TermOperatorContainer> operatorMap, final ProlOperator operator) {
+    TermOperator newOperator = new TermOperator(operator.Priority(), operator.Type(), operator.Name());
+    TermOperatorContainer container = operatorMap.get(operator.Name());
     if (container == null) {
-      container = new OperatorContainer(newOperator);
+      container = new TermOperatorContainer(newOperator);
       operatorMap.put(operator.Name(), container);
     } else {
       container.setOperator(newOperator);
     }
   }
 
-  private static Map<String, OperatorContainer> loadStaticOperators(final Class<?> klazz) {
-    final Map<String, OperatorContainer> result = new HashMap<>();
+  private static Map<String, TermOperatorContainer> loadStaticOperators(final Class<?> klazz) {
+    final Map<String, TermOperatorContainer> result = new HashMap<>();
     final ProlOperators operators = klazz.getAnnotation(ProlOperators.class);
     if (operators != null) {
       ProlOperator[] operatorList = operators.Operators();
@@ -205,7 +205,7 @@ public abstract class AbstractProlLibrary {
     return this.systemOperators.keySet().stream().anyMatch((s) -> (s.startsWith(startSubstring)));
   }
 
-  public OperatorContainer findSystemOperatorForName(final String operatorName) {
+  public TermOperatorContainer findSystemOperatorForName(final String operatorName) {
     return this.systemOperators.get(operatorName);
   }
 

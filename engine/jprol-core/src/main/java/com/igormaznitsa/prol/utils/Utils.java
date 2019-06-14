@@ -29,7 +29,7 @@ public final class Utils {
 
   public static final Comparator<Term> TERM_COMPARATOR = Term::compareTermTo;
 
-  public static final Operator SIGNATURE_OPERATOR = new Operator(400, OpAssoc.YFX, "/");
+  public static final TermOperator SIGNATURE_OPERATOR = new TermOperator(400, OpAssoc.YFX, "/");
 
   private Utils() {
   }

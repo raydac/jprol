@@ -16,9 +16,9 @@
 
 package com.igormaznitsa.prol.containers;
 
-import com.igormaznitsa.prol.data.Operator;
-import com.igormaznitsa.prol.data.OperatorContainer;
 import com.igormaznitsa.prol.data.Term;
+import com.igormaznitsa.prol.data.TermOperator;
+import com.igormaznitsa.prol.data.TermOperatorContainer;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
@@ -33,9 +33,9 @@ public interface KnowledgeBase {
 
   boolean removeOperator(String name, OpAssoc type);
 
-  void addOperator(ProlContext context, Operator operator);
+  void addOperator(ProlContext context, TermOperator operator);
 
-  OperatorContainer findOperatorForName(ProlContext context, String name);
+  TermOperatorContainer findOperatorForName(ProlContext context, String name);
 
   boolean hasOperatorStartsWith(ProlContext context, String str);
 
@@ -59,7 +59,7 @@ public interface KnowledgeBase {
 
   void abolish(ProlContext context, String signature);
 
-  Iterator<OperatorContainer> getOperatorIterator();
+  Iterator<TermOperatorContainer> getOperatorIterator();
 
   KnowledgeBase makeCopy();
 }

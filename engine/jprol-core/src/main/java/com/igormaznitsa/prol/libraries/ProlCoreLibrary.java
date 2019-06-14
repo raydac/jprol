@@ -615,7 +615,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     return false;
   }
 
-  //@Predicate(Signature = "current_op/3", Template = "?integer,?operator_specifier,?atom", Reference = "current_op(Priority, Op_specifier, Operator) is true if and only if Operator is an operator with properties given by  Op_specifier and Priority")
+  //@Predicate(Signature = "current_op/3", Template = "?integer,?operator_specifier,?atom", Reference = "current_op(Priority, Op_specifier, TermOperator) is true if and only if TermOperator is an operator with properties given by  Op_specifier and Priority")
   //@SuppressWarnings("unchecked")
   //public static boolean predicateCURRENTOP(final ChoicePoint goal, final TermStruct predicate) {
   //  final Term priority = predicate.getElement(0).findNonVarOrSame();
@@ -625,17 +625,17 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   //  Object[] auxObject = goal.getPayload();
   //  if (auxObject == null) {
   //    // the first call
-  //    final Iterator<OperatorContainer> operator_iterator = goal.getContext().getKnowledgeBase().getOperatorIterator();
+  //    final Iterator<TermOperatorContainer> operator_iterator = goal.getContext().getKnowledgeBase().getOperatorIterator();
   //    auxObject = new Object[] {operator_iterator, null, null};
   //    goal.setPayload(auxObject);
   //  }
   //
-  //  final Iterator<OperatorContainer> operator_iterator = (Iterator<OperatorContainer>) auxObject[0];
-  //  OperatorContainer last_container = (OperatorContainer) auxObject[1];
-  //  Operator last_operator = (Operator) auxObject[2];
+  //  final Iterator<TermOperatorContainer> operator_iterator = (Iterator<TermOperatorContainer>) auxObject[0];
+  //  TermOperatorContainer last_container = (TermOperatorContainer) auxObject[1];
+  //  TermOperator last_operator = (TermOperator) auxObject[2];
   //
   //  final String opNameVal = name.getTermType() == ATOM ? name.getText() : null; // null = any
-  //  final int typeVal = specifier.getTermType() == ATOM ? Operator.getTypeFromString(specifier.getText()) : -1; // -1 = any
+  //  final int typeVal = specifier.getTermType() == ATOM ? TermOperator.getTypeFromString(specifier.getText()) : -1; // -1 = any
   //  long priorityVal = 0; // 0 - any
   //  if (priority.getTermType() == ATOM) {
   //    priorityVal = priority.toNumber().longValue();
@@ -679,7 +679,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   //        }
   //      }
   //    } else {
-  //      final Operator op = last_container.getForTypePrecisely(typeVal);
+  //      final TermOperator op = last_container.getForTypePrecisely(typeVal);
   //      if (op == last_operator) {
   //        last_operator = null;
   //      }
@@ -716,7 +716,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   //  return false;
   //}
 
-  @Predicate(Signature = "op/3", Template = "+integer,+operator_specifier,@atom_or_atom_list", Reference = "These predicates allow the operator table to be altered or inspected.\nop(Priority, Op_Specifier, Operator) is true, with the side effect that\n1. if Priority is 0 then Operator is removed from the operator table, else\n2. Operator is added to the Operator table, with priority (lower binds tighter) Priority and associativity determined by Op_Specifier")
+  @Predicate(Signature = "op/3", Template = "+integer,+operator_specifier,@atom_or_atom_list", Reference = "These predicates allow the operator table to be altered or inspected.\nop(Priority, Op_Specifier, TermOperator) is true, with the side effect that\n1. if Priority is 0 then TermOperator is removed from the operator table, else\n2. TermOperator is added to the TermOperator table, with priority (lower binds tighter) Priority and associativity determined by Op_Specifier")
   @Determined
   public static boolean predicateOP(final ChoicePoint goal, final TermStruct predicate) {
     final int priority = predicate.getElement(0).findNonVarOrSame().toNumber().intValue();
@@ -756,7 +756,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       if (priority == 0) {
         names.forEach((name) -> base.removeOperator(name, opType));
       } else {
-        names.forEach((name) -> base.addOperator(goal.getContext(), new Operator(priority, opType, name)));
+        names.forEach((name) -> base.addOperator(goal.getContext(), new TermOperator(priority, opType, name)));
       }
     } catch (SecurityException ex) {
       throw new ProlPermissionErrorException("create", "operator", "Attemption to override or remove a system operator", predicate);

@@ -385,7 +385,7 @@ public final class ProlContext {
         .anyMatch(lib -> lib.isSystemOperator(name));
   }
 
-  public OperatorContainer getSystemOperatorForName(final String name) {
+  public TermOperatorContainer getSystemOperatorForName(final String name) {
     return this.libraries.stream()
         .map(lib -> lib.findSystemOperatorForName(name))
         .filter(Objects::nonNull)
@@ -577,7 +577,7 @@ public final class ProlContext {
 
             switch (functor.getTermType()) {
               case OPERATOR: {
-                final Operator op = (Operator) functor;
+                final TermOperator op = (TermOperator) functor;
                 final String text = op.getText();
                 final OpAssoc type = op.getOperatorType();
 
@@ -714,7 +714,7 @@ public final class ProlContext {
     return this.knowledgeBase.hasOperatorStartsWith(this, operator);
   }
 
-  public OperatorContainer findOperatorForName(String operator) {
+  public TermOperatorContainer findOperatorForName(String operator) {
     return this.knowledgeBase.findOperatorForName(this, operator);
   }
 }

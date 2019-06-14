@@ -16,8 +16,8 @@
 
 package com.igormaznitsa.prol.parser;
 
-import com.igormaznitsa.prol.data.OperatorContainer;
 import com.igormaznitsa.prol.data.Term;
+import com.igormaznitsa.prol.data.TermOperatorContainer;
 import com.igormaznitsa.prol.data.TermType;
 import com.igormaznitsa.prol.exceptions.ParserException;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
@@ -196,7 +196,7 @@ public final class ProlTokenizer {
 
     final StringBuilder strbuffer = new StringBuilder();
 
-    OperatorContainer lastFoundFullOperator = null;
+    TermOperatorContainer lastFoundFullOperator = null;
 
     boolean letterOrDigitOnly = false;
 
@@ -369,7 +369,7 @@ public final class ProlTokenizer {
               return new ProlTokenizerResult(makeTermFromString(strbuffer.toString(), state), state);
             }
           } else {
-            final OperatorContainer prevoperators = lastFoundFullOperator;
+            final TermOperatorContainer prevoperators = lastFoundFullOperator;
             strbuffer.append(chr);
             final String operator = strbuffer.toString();
             lastFoundFullOperator = voc.findOperatorForName(operator);

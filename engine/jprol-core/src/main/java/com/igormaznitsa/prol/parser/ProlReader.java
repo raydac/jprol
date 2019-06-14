@@ -16,7 +16,9 @@
 
 package com.igormaznitsa.prol.parser;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 
 public class ProlReader {
 
@@ -31,10 +33,6 @@ public class ProlReader {
 
   public ProlReader(final String string) {
     this(new StringReader(string));
-  }
-
-  public ProlReader(final InputStream inStream) {
-    this(new InputStreamReader(inStream));
   }
 
   public ProlReader(final Reader reader) {

@@ -22,14 +22,14 @@ import java.io.PrintWriter;
 
 import static com.igormaznitsa.prol.data.TermType.OPERATORS;
 
-public final class OperatorContainer extends Term {
+public final class TermOperatorContainer extends Term {
 
-  private Operator opFZ;
-  private Operator opZF;
-  private Operator opZFZ;
+  private TermOperator opFZ;
+  private TermOperator opZF;
+  private TermOperator opZFZ;
   private int numberAtContainer;
 
-  private OperatorContainer(final OperatorContainer etalon) {
+  private TermOperatorContainer(final TermOperatorContainer etalon) {
     super(etalon.getText());
     opFZ = etalon.opFZ;
     opZF = etalon.opZF;
@@ -37,12 +37,12 @@ public final class OperatorContainer extends Term {
     numberAtContainer = etalon.numberAtContainer;
   }
 
-  public OperatorContainer(final Operator operator) {
+  public TermOperatorContainer(final TermOperator operator) {
     super(operator.getText());
     setOperator(operator);
   }
 
-  public boolean setOperator(final Operator operator) {
+  public boolean setOperator(final TermOperator operator) {
     switch (operator.getOperatorType()) {
       case FX:
       case FY: {
@@ -88,7 +88,7 @@ public final class OperatorContainer extends Term {
     return numberAtContainer;
   }
 
-  public Operator getOperatorIfSingle() {
+  public TermOperator getOperatorIfSingle() {
     if (numberAtContainer == 1) {
       if (opZFZ != null) {
         return opZFZ;
@@ -102,7 +102,7 @@ public final class OperatorContainer extends Term {
     return null;
   }
 
-  public Operator getCompatibleOperator(final boolean leftPresented, final boolean rightPresented) {
+  public TermOperator getCompatibleOperator(final boolean leftPresented, final boolean rightPresented) {
     if (leftPresented && rightPresented) {
       if (opZFZ != null) {
         return opZFZ;
@@ -139,8 +139,8 @@ public final class OperatorContainer extends Term {
     }
   }
 
-  public Operator getForTypePrecisely(final OpAssoc type) {
-    Operator result = null;
+  public TermOperator getForTypePrecisely(final OpAssoc type) {
+    TermOperator result = null;
     switch (type) {
       case FY:
       case FX: {
@@ -209,7 +209,7 @@ public final class OperatorContainer extends Term {
     return result;
   }
 
-  public OperatorContainer makeCopy() {
-    return new OperatorContainer(this);
+  public TermOperatorContainer makeCopy() {
+    return new TermOperatorContainer(this);
   }
 }

@@ -35,11 +35,11 @@ import static com.igormaznitsa.prol.utils.Utils.createOrAppendToList;
 
 public final class ProlTreeBuilder {
 
-  private final OperatorContainer[] OPERATORS_PHRASE;
-  private final OperatorContainer[] OPERATORS_INSIDE_LIST;
-  private final OperatorContainer[] OPERATORS_END_LIST;
-  private final OperatorContainer[] OPERATORS_INSIDE_STRUCT;
-  private final OperatorContainer[] OPERATORS_SUBBLOCK;
+  private final TermOperatorContainer[] OPERATORS_PHRASE;
+  private final TermOperatorContainer[] OPERATORS_INSIDE_LIST;
+  private final TermOperatorContainer[] OPERATORS_END_LIST;
+  private final TermOperatorContainer[] OPERATORS_INSIDE_STRUCT;
+  private final TermOperatorContainer[] OPERATORS_SUBBLOCK;
   private final Map<String, TermVar> variableSet;
   private final ProlContext context;
   private ProlTokenizer tokenizer;
@@ -48,14 +48,14 @@ public final class ProlTreeBuilder {
     variableSet = new HashMap<>();
     this.context = context;
 
-    OPERATORS_PHRASE = new OperatorContainer[] {context.getSystemOperatorForName(".")};
-    OPERATORS_INSIDE_LIST = new OperatorContainer[] {context.getSystemOperatorForName(","), context.getSystemOperatorForName("]"), context.getSystemOperatorForName("|")};
-    OPERATORS_END_LIST = new OperatorContainer[] {context.getSystemOperatorForName("]")};
-    OPERATORS_INSIDE_STRUCT = new OperatorContainer[] {context.getSystemOperatorForName(","), context.getSystemOperatorForName(")")};
-    OPERATORS_SUBBLOCK = new OperatorContainer[] {context.getSystemOperatorForName(")")};
+    OPERATORS_PHRASE = new TermOperatorContainer[] {context.getSystemOperatorForName(".")};
+    OPERATORS_INSIDE_LIST = new TermOperatorContainer[] {context.getSystemOperatorForName(","), context.getSystemOperatorForName("]"), context.getSystemOperatorForName("|")};
+    OPERATORS_END_LIST = new TermOperatorContainer[] {context.getSystemOperatorForName("]")};
+    OPERATORS_INSIDE_STRUCT = new TermOperatorContainer[] {context.getSystemOperatorForName(","), context.getSystemOperatorForName(")")};
+    OPERATORS_SUBBLOCK = new TermOperatorContainer[] {context.getSystemOperatorForName(")")};
   }
 
-  private static boolean isEndOperator(final Term operator, final OperatorContainer[] endOperators) {
+  private static boolean isEndOperator(final Term operator, final TermOperatorContainer[] endOperators) {
     if (operator == null) {
       return true;
     }
@@ -66,7 +66,7 @@ public final class ProlTreeBuilder {
 
     if (operator.getTermType() == OPERATORS) {
       final String operatorName = operator.getText();
-      for (OperatorContainer endOperator : endOperators) {
+      for (TermOperatorContainer endOperator : endOperators) {
         if (endOperator.getText().equals(operatorName)) {
           return true;
         }
@@ -202,7 +202,7 @@ public final class ProlTreeBuilder {
     return leftPartFirst;
   }
 
-  private Term readBlock(final ProlReader reader, final OperatorContainer[] endOperators) throws IOException {
+  private Term readBlock(final ProlReader reader, final TermOperatorContainer[] endOperators) throws IOException {
     // the variable will contain last processed tree item contains either atom or operator
     TreeItem currentTreeItem = null;
 
@@ -237,13 +237,13 @@ public final class ProlTreeBuilder {
       if (readAtom.getTermType() == OPERATORS) {
         // it is operator list
         // try to get the single operator from the list if the linst contains only one
-        final Operator readOperator = ((OperatorContainer) readAtom).getOperatorIfSingle();
+        final TermOperator readOperator = ((TermOperatorContainer) readAtom).getOperatorIfSingle();
 
         // check that the operator is single
         if (readOperator == null) {
 
           //there are a few operators in the list so we need to select one
-          final OperatorContainer readOperators = (OperatorContainer) readAtom;
+          final TermOperatorContainer readOperators = (TermOperatorContainer) readAtom;
 
           boolean leftPresented = false;
 
@@ -505,14 +505,14 @@ public final class ProlTreeBuilder {
     }
 
     private OpAssoc getOperatorType() {
-      return ((Operator) savedTerm).getOperatorType();
+      return ((TermOperator) savedTerm).getOperatorType();
     }
 
     private boolean validate() {
       if (savedTerm.getTermType() == OPERATOR) {
         final int priority = getPriority();
 
-        switch (((Operator) savedTerm).getOperatorType()) {
+        switch (((TermOperator) savedTerm).getOperatorType()) {
           case FX: {
             return leftBranch == null && (rightBranch != null && rightBranch.getPriority() < priority);
           }
@@ -559,7 +559,7 @@ public final class ProlTreeBuilder {
           final Term left = leftBranch != null ? leftBranch.convertTreeItemIntoTerm() : null;
           final Term right = rightBranch != null ? rightBranch.convertTreeItemIntoTerm() : null;
           if (left == null && right == null) {
-            throw new ProlCriticalError("Operator without operands");
+            throw new ProlCriticalError("TermOperator without operands");
           }
 
           // this code replaces '-'(number) to '-number'

@@ -17,7 +17,7 @@
 package com.igormaznitsa.prol.script;
 
 import com.igormaznitsa.prol.containers.KnowledgeBase;
-import com.igormaznitsa.prol.data.Operator;
+import com.igormaznitsa.prol.data.TermOperator;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.libraries.AbstractProlLibrary;
 import com.igormaznitsa.prol.logic.ProlContext;
@@ -45,8 +45,8 @@ public final class JProlScriptContext implements ScriptContext {
     return this.context;
   }
 
-  public void addOperators(final Operator... operators) {
-    for (final Operator op : operators) {
+  public void addOperators(final TermOperator... operators) {
+    for (final TermOperator op : operators) {
       this.context.getKnowledgeBase().addOperator(this.context, op);
     }
   }

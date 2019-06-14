@@ -22,7 +22,7 @@ import java.io.PrintWriter;
 
 import static com.igormaznitsa.prol.data.TermType.OPERATOR;
 
-public final class Operator extends Term {
+public final class TermOperator extends Term {
 
   public static final int PRIORITY_MAX = 0;
   public static final int PRIORITY_MIN = 1200;
@@ -32,7 +32,7 @@ public final class Operator extends Term {
   private final int precalculatedHashCode;
   private final String signature;
 
-  public Operator(final int priority, final OpAssoc type, final String name) {
+  public TermOperator(final int priority, final OpAssoc type, final String name) {
     super(name);
 
     if (priority < PRIORITY_MAX || priority > PRIORITY_MIN) {
@@ -66,10 +66,10 @@ public final class Operator extends Term {
     precalculatedHashCode = hash;
   }
 
-  public static Operator[] makeOperators(final int priority, final OpAssoc type, final String[] names) {
-    final Operator[] result = new Operator[names.length];
+  public static TermOperator[] makeOperators(final int priority, final OpAssoc type, final String[] names) {
+    final TermOperator[] result = new TermOperator[names.length];
     for (int li = 0; li < names.length; li++) {
-      result[li] = new Operator(priority, type, names[li]);
+      result[li] = new TermOperator(priority, type, names[li]);
     }
     return result;
   }
@@ -102,7 +102,7 @@ public final class Operator extends Term {
       return false;
     }
 
-    final Operator other = (Operator) obj;
+    final TermOperator other = (TermOperator) obj;
 
     if (this.precalculatedHashCode != other.precalculatedHashCode) {
       return false;
