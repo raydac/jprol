@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.igormaznitsa.prol.parser;
+package com.igormaznitsa.prol.logic;
 
 import com.igormaznitsa.prol.containers.KnowledgeBase;
 import com.igormaznitsa.prol.data.Operator;
@@ -24,8 +24,9 @@ import com.igormaznitsa.prol.data.Var;
 import com.igormaznitsa.prol.exceptions.ParserException;
 import com.igormaznitsa.prol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.prol.exceptions.ProlKnowledgeBaseException;
-import com.igormaznitsa.prol.logic.ChoicePoint;
-import com.igormaznitsa.prol.logic.ProlContext;
+import com.igormaznitsa.prol.parser.ProlReader;
+import com.igormaznitsa.prol.parser.ProlTokenizer;
+import com.igormaznitsa.prol.parser.ProlTreeBuilder;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
 import java.io.IOException;

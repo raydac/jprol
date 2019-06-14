@@ -4,8 +4,8 @@ import com.igormaznitsa.prol.exceptions.ProlCustomErrorException;
 import com.igormaznitsa.prol.exceptions.ProlException;
 import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
 import com.igormaznitsa.prol.logic.ChoicePoint;
+import com.igormaznitsa.prol.logic.ProlConsult;
 import com.igormaznitsa.prol.logic.ProlContext;
-import com.igormaznitsa.prol.parser.ProlConsult;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 

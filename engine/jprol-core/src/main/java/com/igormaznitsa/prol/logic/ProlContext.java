@@ -31,7 +31,6 @@ import com.igormaznitsa.prol.libraries.ProlCoreLibrary;
 import com.igormaznitsa.prol.logic.triggers.ProlTrigger;
 import com.igormaznitsa.prol.logic.triggers.ProlTriggerType;
 import com.igormaznitsa.prol.logic.triggers.TriggerEvent;
-import com.igormaznitsa.prol.parser.ProlConsult;
 import com.igormaznitsa.prol.trace.TraceEvent;
 import com.igormaznitsa.prol.trace.TracingChoicePointListener;
 import com.igormaznitsa.prol.utils.Utils;

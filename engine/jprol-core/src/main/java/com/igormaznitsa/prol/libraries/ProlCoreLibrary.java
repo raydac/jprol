@@ -27,10 +27,10 @@ import com.igormaznitsa.prol.io.ProlStreamManager;
 import com.igormaznitsa.prol.io.ProlTextReader;
 import com.igormaznitsa.prol.io.ProlTextWriter;
 import com.igormaznitsa.prol.logic.ChoicePoint;
+import com.igormaznitsa.prol.logic.ProlConsult;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.logic.triggers.ProlTriggerGoal;
 import com.igormaznitsa.prol.logic.triggers.ProlTriggerType;
-import com.igormaznitsa.prol.parser.ProlConsult;
 import com.igormaznitsa.prol.utils.Utils;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 

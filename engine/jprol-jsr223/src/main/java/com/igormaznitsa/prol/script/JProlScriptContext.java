@@ -20,8 +20,8 @@ import com.igormaznitsa.prol.containers.KnowledgeBase;
 import com.igormaznitsa.prol.data.Operator;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.libraries.AbstractProlLibrary;
+import com.igormaznitsa.prol.logic.ProlConsult;
 import com.igormaznitsa.prol.logic.ProlContext;
-import com.igormaznitsa.prol.parser.ProlConsult;
 import com.igormaznitsa.prol.parser.ProlReader;
 
 import javax.script.Bindings;
