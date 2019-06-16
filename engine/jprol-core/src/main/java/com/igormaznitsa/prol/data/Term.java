@@ -344,13 +344,13 @@ public class Term {
     }
   }
 
-  protected void doArrabgeVars(final Map<String, TermVar> variables) {
+  protected void doArrangeVars(final Map<String, TermVar> variables) {
   }
 
   public final void arrangeVariablesInsideTerms(final Term termTwo) {
     final Map<String, TermVar> varMap = new HashMap<>();
-    this.doArrabgeVars(varMap);
-    termTwo.doArrabgeVars(varMap);
+    this.doArrangeVars(varMap);
+    termTwo.doArrangeVars(varMap);
   }
 
   @SuppressWarnings("unchecked")

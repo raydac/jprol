@@ -16,6 +16,7 @@
 
 package com.igormaznitsa.prol.data;
 
+import com.igormaznitsa.prologparser.tokenizer.Op;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
 import java.io.PrintWriter;
@@ -27,9 +28,7 @@ public final class TermOperator extends Term {
   public static final int PRIORITY_MAX = 0;
   public static final int PRIORITY_MIN = 1200;
 
-  private final OpAssoc opType;
-  private final int opPriority;
-  private final int precalculatedHashCode;
+  private final Op op;
   private final String signature;
 
   public TermOperator(final int priority, final OpAssoc type, final String name) {
@@ -57,13 +56,11 @@ public final class TermOperator extends Term {
         throw new IllegalArgumentException("Wrong operator type");
     }
 
-    opType = type;
-    opPriority = priority;
+    this.op = Op.make(priority, type, name);
+  }
 
-    int hash = name.hashCode();
-    hash = 89 * hash + this.opType.hashCode();
-    hash = 89 * hash + this.opPriority;
-    precalculatedHashCode = hash;
+  public Op asOp() {
+    return this.op;
   }
 
   public static TermOperator[] makeOperators(final int priority, final OpAssoc type, final String[] names) {
@@ -80,17 +77,17 @@ public final class TermOperator extends Term {
   }
 
   public OpAssoc getOperatorType() {
-    return opType;
+    return this.op.getAssoc();
   }
 
   @Override
   public int getPriority() {
-    return opPriority;
+    return op.getPrecedence();
   }
 
   @Override
   public int hashCode() {
-    return precalculatedHashCode;
+    return this.op.hashCode();
   }
 
   @Override
@@ -104,18 +101,9 @@ public final class TermOperator extends Term {
 
     final TermOperator other = (TermOperator) obj;
 
-    if (this.precalculatedHashCode != other.precalculatedHashCode) {
+    if (!this.op.equals(other.op)) {
       return false;
     }
-
-    if (this.opType != other.opType) {
-      return false;
-    }
-
-    if (this.opPriority != other.opPriority) {
-      return false;
-    }
-
     return this.getText().equals(other.getText());
   }
 
@@ -130,7 +118,7 @@ public final class TermOperator extends Term {
   }
 
   public String getTypeAsString() {
-    return this.opType.getText();
+    return this.op.getAssoc().getText();
   }
 
   public void write(final PrintWriter writer) {
@@ -138,7 +126,7 @@ public final class TermOperator extends Term {
       throw new NullPointerException("Writer is null");
     }
     writer.print(":- op(");
-    writer.print(opPriority);
+    writer.print(this.op.getPrecedence());
     writer.print(',');
     writer.print(getTypeAsString());
     writer.print(",\'");

@@ -1,7 +1,6 @@
 package com.igormaznitsa.prol.test;
 
 import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Test;
@@ -203,12 +202,12 @@ class ListTest extends AbstractProlTest {
     final ChoicePoint testgoal = new ChoicePoint("test(X).", context);
 
     assertNotNull(testgoal.next());
-    assertEquals(testgoal.getVarAsText("X"), "[1,'b','c',4]");
+    assertEquals("[1,'b','c',4]", testgoal.getVarAsText("X"));
     assertNull(testgoal.next());
   }
 
   private ProlContext makeContext(final String knowledgeBase) throws Exception {
-    final ProlContext context = new ProlContext("PreparedGoal test", DefaultProlStreamManagerImpl.getInstance());
+    final ProlContext context = new ProlContext("PreparedGoal test");
     context.consult(new StringReader(knowledgeBase));
     return context;
   }

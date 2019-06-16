@@ -452,15 +452,15 @@ public final class TermList extends TermStruct {
     }
   }
 
-  protected void doArrabgeVars(final Map<String, TermVar> variables) {
+  protected void doArrangeVars(final Map<String, TermVar> variables) {
     TermList list = this;
     while (!list.isNullList()) {
-      list.getHead().doArrabgeVars(variables);
+      list.getHead().doArrangeVars(variables);
       final Term tail = list.getTail();
       if (tail.getTermType() == LIST) {
         list = (TermList) tail;
       } else {
-        tail.doArrabgeVars(variables);
+        tail.doArrangeVars(variables);
         break;
       }
     }

@@ -1,6 +1,5 @@
 package com.igormaznitsa.prol.test;
 
-import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Test;
@@ -17,7 +16,7 @@ class CryptoTest extends AbstractProlTest {
 
     // check the knowledge base export data process
     //--
-    final ProlContext context = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
+    final ProlContext context = new ProlContext("test");
     context.consult(new StringReader("sum(N1,N2,N):-\n"
         + "     sum1(N1,N2,N,\n"
         + "     0,0,\n"

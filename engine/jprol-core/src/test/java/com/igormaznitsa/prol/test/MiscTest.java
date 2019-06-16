@@ -19,7 +19,6 @@ package com.igormaznitsa.prol.test;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermList;
 import com.igormaznitsa.prol.data.TermVar;
-import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Test;
@@ -35,7 +34,7 @@ class MiscTest extends AbstractProlTest {
 
   @Test
   void testGetAllGoalsAndConvertThem() throws Exception {
-    final ProlContext context = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
+    final ProlContext context = new ProlContext("test");
     context.consult(new StringReader("map(one,1,a). map(two,2,b). map(three,3,c)."));
 
     final ChoicePoint goal = new ChoicePoint("map(X,Y,_).", context);
@@ -56,7 +55,7 @@ class MiscTest extends AbstractProlTest {
       }
     }
 
-    final List<Result> result = new ArrayList<Result>();
+    final List<Result> result = new ArrayList<>();
     Term t;
     while ((t = goal.next()) != null) {
       result.add(new Result(t.allNamedVarValuesAsMap()));
@@ -74,7 +73,7 @@ class MiscTest extends AbstractProlTest {
   @Test
   void findAllTest() throws Exception {
     ProlContext context;
-    context = new ProlContext("test", DefaultProlStreamManagerImpl.getInstance());
+    context = new ProlContext("test");
     context.consult(new StringReader("powerSet([],[]).powerSet([_|Xt],Y) :- powerSet(Xt,Y).powerSet([Xh|Xt],[Xh|Yt]) :- powerSet(Xt,Yt)."));
     final ChoicePoint goal = new ChoicePoint("findall(X,powerSet([a,b],X),Y).", context);
 

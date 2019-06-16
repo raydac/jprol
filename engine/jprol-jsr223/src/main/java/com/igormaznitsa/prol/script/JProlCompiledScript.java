@@ -2,10 +2,9 @@ package com.igormaznitsa.prol.script;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.exceptions.ParserException;
+import com.igormaznitsa.prol.io.ProlReader;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
-import com.igormaznitsa.prol.parser.ProlReader;
-import com.igormaznitsa.prol.parser.ProlTreeBuilder;
 
 import javax.script.CompiledScript;
 import javax.script.ScriptContext;
@@ -13,6 +12,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,18 +24,18 @@ final class JProlCompiledScript extends CompiledScript {
   JProlCompiledScript(final String script, final JProlScriptEngine engine) throws ScriptException {
     super();
     this.engine = engine;
-    this.compiled = parseScript(new ProlReader(script), ((JProlScriptContext) engine.getContext()).getProlContext());
+    this.compiled = parseScript(new ProlReader("...", new StringReader(script)), engine.getProlContext());
   }
 
   JProlCompiledScript(final Reader script, final JProlScriptEngine engine) throws ScriptException {
     super();
     this.engine = engine;
-    this.compiled = parseScript(new ProlReader(script), ((JProlScriptContext) engine.getContext()).getProlContext());
+    this.compiled = parseScript(new ProlReader("...", script), ((JProlScriptContext) engine.getContext()).getProlContext());
   }
 
   private static Term parseScript(final ProlReader reader, final ProlContext context) throws ScriptException {
     try {
-      return new ProlTreeBuilder(context).readPhraseAndMakeTree(reader);
+      return reader.read(context);
     } catch (ParserException ex) {
       throw new ScriptException(ex.getMessage(), "script", ex.getLine(), ex.getPos());
     } catch (IOException ex) {

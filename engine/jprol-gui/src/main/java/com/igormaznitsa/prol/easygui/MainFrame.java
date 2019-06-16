@@ -1028,16 +1028,16 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   }
 
   @Override
-  public Reader getReaderForResource(String resourceName) throws IOException {
+  public Reader findReaderForId(String id) throws IOException {
     boolean successful = false;
     boolean notTraceable = false;
     try {
-      if (resourceName.equals("user")) {
+      if (id.equals("user")) {
         successful = true;
         notTraceable = true;
         return this.dialogEditor.getInputReader();
       } else {
-        final FileReader reader = new FileReader(resourceName);
+        final FileReader reader = new FileReader(id);
         successful = true;
         notTraceable = false;
         return reader;
@@ -1045,26 +1045,26 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     } finally {
       if (!notTraceable) {
         if (successful) {
-          this.messageEditor.addInfoText(String.format("Reader for \'%s\' has been opened.", resourceName));
+          this.messageEditor.addInfoText(String.format("Reader for \'%s\' has been opened.", id));
         } else {
-          this.messageEditor.addWarningText(String.format("Reader for \'%s\' can't be opened.", resourceName));
+          this.messageEditor.addWarningText(String.format("Reader for \'%s\' can't be opened.", id));
         }
       }
     }
   }
 
   @Override
-  public Writer getWriterForResource(String resourceName, boolean append) throws IOException {
+  public Writer findWriterForId(String id, boolean append) throws IOException {
     boolean successful = false;
     boolean notTraceable = false;
 
     try {
-      if (resourceName.equals("user")) {
+      if (id.equals("user")) {
         successful = true;
         notTraceable = true;
         return this.dialogEditor.getOutputWriter();
       } else {
-        final Writer writer = new FileWriter(resourceName);
+        final Writer writer = new FileWriter(id);
         successful = true;
         notTraceable = false;
 
@@ -1073,9 +1073,9 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
     } finally {
       if (!notTraceable) {
         if (successful) {
-          this.messageEditor.addInfoText(String.format("Writer for \'%s\' has been opened.", resourceName));
+          this.messageEditor.addInfoText(String.format("Writer for \'%s\' has been opened.", id));
         } else {
-          this.messageEditor.addWarningText(String.format("Writer for \'%s\' can't be opened.", resourceName));
+          this.messageEditor.addWarningText(String.format("Writer for \'%s\' can't be opened.", id));
         }
       }
     }

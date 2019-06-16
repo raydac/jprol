@@ -1,6 +1,12 @@
 package com.igormaznitsa.prol.data;
 
 import com.igormaznitsa.prol.libraries.PredicateProcessor;
+import com.igormaznitsa.prol.logic.ProlContext;
+import com.igormaznitsa.prologparser.terms.*;
+import com.igormaznitsa.prologparser.tokenizer.Op;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public final class Terms {
   public static final TermLong INT_ONE = new TermLong(1L);
@@ -73,5 +79,76 @@ public final class Terms {
     return new TermStruct(functor, elements, processor);
   }
 
+  private static Term convert(final ProlContext context, final PrologTerm term, final Map<String, TermVar> vars) {
+    switch (term.getType()) {
+      case ATOM: {
+        if (term instanceof PrologNumeric) {
+          if (term instanceof PrologFloat) {
+            return newDouble(((PrologFloat) term).getFloatValue().doubleValue());
+          } else {
+            return newLong(((PrologInt) term).getIntValue().longValue());
+          }
+        } else {
+          final String text = term.getText();
+          if (context.hasZeroArityPredicateForName(text)) {
+            final TermStruct result = newStruct(text, new Term[0]);
+            result.setPredicateProcessor(context.findProcessor(result));
+            return result;
+          } else {
+            return newAtom(text);
+          }
+        }
+      }
+      case OPERATOR: {
+        return context.findOperatorForName(term.getText()).getForTypePrecisely(((Op) term).getAssoc());
+      }
+      case LIST: {
+        final PrologList list = (PrologList) term;
+        return list.isEmpty() ? NULL_LIST : newList(convert(context, list.getHead(), vars), convert(context, list.getTail(), vars));
+      }
+      case STRUCT: {
+        final PrologStruct struct = (PrologStruct) term;
+
+        if (struct.isBlock()) {
+          return convert(context, struct.getTermAt(0), vars);
+        } else {
+          final TermStruct result;
+          final int arity = struct.getArity();
+          if (arity == 0) {
+            result = newStruct(convert(context, struct.getFunctor(), vars));
+          } else {
+            final Term[] terms = new Term[arity];
+            for (int i = 0; i < arity; i++) {
+              terms[i] = convert(context, struct.getTermAt(i), vars);
+            }
+            result = newStruct(convert(context, struct.getFunctor(), vars), terms);
+          }
+          result.setPredicateProcessor(context.findProcessor(result));
+          return result;
+        }
+      }
+      case VAR: {
+        if (((PrologVar) term).isAnonymous()) {
+          return newVar();
+        } else {
+          return vars.computeIfAbsent(term.getText(), Terms::newVar);
+        }
+      }
+      default:
+        throw new IllegalArgumentException("Unexpected parsed prolog term: " + term);
+    }
+  }
+
+  public static Term fromParsed(final ProlContext context, final PrologTerm term) {
+    if (term instanceof PrologAtom || term instanceof SpecServiceCompound) {
+      return convert(context, term, null);
+    } else {
+      try {
+        return convert(context, term, new HashMap<>());
+      } catch (RuntimeException ex) {
+        throw ex;
+      }
+    }
+  }
 
 }

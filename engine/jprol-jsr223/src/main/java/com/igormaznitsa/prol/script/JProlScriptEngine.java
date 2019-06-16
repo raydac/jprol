@@ -18,12 +18,14 @@ package com.igormaznitsa.prol.script;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.exceptions.ParserException;
+import com.igormaznitsa.prol.io.ProlReader;
 import com.igormaznitsa.prol.logic.ChoicePoint;
-import com.igormaznitsa.prol.parser.ProlReader;
+import com.igormaznitsa.prol.logic.ProlContext;
 
 import javax.script.*;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,6 +37,10 @@ final class JProlScriptEngine extends AbstractScriptEngine implements Compilable
     super();
     this.factory = factory;
     this.context = new JProlScriptContext("prol-script-context");
+  }
+
+  public ProlContext getProlContext() {
+    return ((JProlScriptContext) this.context).getProlContext();
   }
 
   static void fillGoalByBindings(final JProlBindings bindings, final Map<String, Term> map) {
@@ -50,7 +56,7 @@ final class JProlScriptEngine extends AbstractScriptEngine implements Compilable
       fillGoalByBindings(context.getJProlBindings(ScriptContext.GLOBAL_SCOPE), varValues);
       fillGoalByBindings(context.getJProlBindings(ScriptContext.ENGINE_SCOPE), varValues);
 
-      final ChoicePoint goal = new ChoicePoint(reader, context.getProlContext(), varValues.isEmpty() ? null : varValues);
+      final ChoicePoint goal = new ChoicePoint(reader.read(context.getProlContext()), context.getProlContext(), varValues.isEmpty() ? null : varValues);
       final Object result = goal.next();
 
       if (result != null) {
@@ -67,12 +73,12 @@ final class JProlScriptEngine extends AbstractScriptEngine implements Compilable
 
   @Override
   public Object eval(final String script, final ScriptContext context) throws ScriptException {
-    return solveGoal(new ProlReader(script), (JProlScriptContext) context);
+    return solveGoal(new ProlReader("...", new StringReader(script)), (JProlScriptContext) context);
   }
 
   @Override
   public Object eval(final Reader reader, final ScriptContext context) throws ScriptException {
-    return solveGoal(new ProlReader(reader), (JProlScriptContext) context);
+    return solveGoal(new ProlReader("...", reader), (JProlScriptContext) context);
   }
 
   @Override

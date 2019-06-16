@@ -19,10 +19,10 @@ package com.igormaznitsa.prol.logic;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermVar;
 import com.igormaznitsa.prol.data.Terms;
-import com.igormaznitsa.prol.parser.ProlTreeBuilder;
 import com.igormaznitsa.prol.trace.TracingChoicePointListener;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -75,8 +75,8 @@ public class DeferredGoal {
     setGoalAsText(builder.toString());
     setOrderedVars(parametrizedNames);
 
-    final ProlTreeBuilder treebuilder = new ProlTreeBuilder(getContext());
-    setParsedGoal(treebuilder.readPhraseAndMakeTree(getGoalAsText()));
+    final ProlTreeBuilder treebuilder = new ProlTreeBuilder(this.context);
+    setParsedGoal(treebuilder.readPhraseAndMakeTree(new StringReader(getGoalAsText())).term);
   }
 
   protected final List<String> getOrderedVars() {

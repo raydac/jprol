@@ -27,11 +27,9 @@ import com.igormaznitsa.prol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.prol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.prol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.prol.libraries.PredicateProcessor;
-import com.igormaznitsa.prol.parser.ProlReader;
-import com.igormaznitsa.prol.parser.ProlTreeBuilder;
 import com.igormaznitsa.prol.trace.TraceEvent;
 
-import java.io.IOException;
+import java.io.StringReader;
 import java.util.Map;
 
 import static com.igormaznitsa.prol.data.TermType.ATOM;
@@ -94,12 +92,8 @@ public final class ChoicePoint {
     }
   }
 
-  public ChoicePoint(final String goal, final ProlContext context) throws IOException {
-    this(new ProlTreeBuilder(context).readPhraseAndMakeTree(goal), context, null);
-  }
-
-  public ChoicePoint(final ProlReader reader, final ProlContext context, final Map<String, Term> predefVarValues) throws IOException {
-    this(new ProlTreeBuilder(context).readPhraseAndMakeTree(reader), context, predefVarValues);
+  public ChoicePoint(final String goal, final ProlContext context) {
+    this(new ProlTreeBuilder(context).readPhraseAndMakeTree(new StringReader(goal)).term, context, null);
   }
 
   public ChoicePoint(final Term goal, final ProlContext context) {
@@ -162,7 +156,7 @@ public final class ChoicePoint {
     if (value == null) {
       return null;
     } else {
-      return value.toString();
+      return value.toSrcString();
     }
   }
 

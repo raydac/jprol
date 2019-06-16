@@ -1,7 +1,5 @@
 package com.igormaznitsa.prol.test;
 
-import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Test;
@@ -146,20 +144,33 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testOr2() throws Exception {
-    final ProlContext context = makeContext("testor(X,Y):-X='a1',write('x'),Y='b1',write('y');X='a2',write('x'),Y='b2',write('y');X='a3',write('x'),Y='b3',write('y');X='a4',write('x'),Y='b4',write('y');X='a5',write('x'),Y='b5',write('y').");
+    final ProlContext context = makeContext(
+        "testor(X,Y):-" +
+            "X='a1'," +
+            "write('x')," +
+            "Y='b1'," +
+            "write('y');X='a2'," +
+            "write('x'),Y='b2'," +
+            "write('y');X='a3'," +
+            "write('x'),Y='b3'," +
+            "write('y');X='a4'," +
+            "write('x'),Y='b4'," +
+            "write('y');X='a5'," +
+            "write('x'),Y='b5'," +
+            "write('y')."
+    );
 
     final ChoicePoint goal = new ChoicePoint("testor(X,Y).", context);
 
     final String[] results = new String[] {"a1", "b1", "a2", "b2", "a3", "b3", "a4", "b4", "a5", "b5"};
 
     int index = 0;
-    Term result;
-    while ((result = goal.next()) != null) {
+    while (goal.next() != null) {
       assertEquals(results[index++], goal.getVarForName("X").getValue().getText());
       assertEquals(results[index++], goal.getVarForName("Y").getValue().getText());
     }
 
-    assertEquals(index, results.length);
+    assertEquals(results.length, index);
   }
 
   @Test
@@ -376,7 +387,7 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   private ProlContext makeContext(final String knowledgeBase) throws Exception {
-    final ProlContext context = new ProlContext("PreparedGoal test", DefaultProlStreamManagerImpl.getInstance());
+    final ProlContext context = new ProlContext("PreparedGoal test");
     context.consult(new StringReader(knowledgeBase));
     return context;
   }

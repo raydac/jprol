@@ -46,14 +46,14 @@ final class VariableStateSnapshot {
         }
         changed.add(container);
       } else {
-        this.processedVariables.add(container.variable.getVarUID());
+        this.processedVariables.add(container.variable.getVarUid());
         this.containers.add(container);
       }
     }
 
     if (changed != null) {
       for (VariableContainer container : changed) {
-        final int uid = container.variable.getVarUID();
+        final int uid = container.variable.getVarUid();
         if (!this.processedVariables.contains(uid)) {
           this.processedVariables.add(uid);
           this.containers.add(new VariableContainer(container.variable, null));
@@ -96,7 +96,7 @@ final class VariableStateSnapshot {
           this.processedVariables = new HashSet<>();
         }
         final TermVar var = (TermVar) src;
-        final Integer uid = var.getVarUID();
+        final Integer uid = var.getVarUid();
         if (!this.processedVariables.contains(uid)) {
           this.processedVariables.add(uid);
           this.containers.add(new VariableContainer(var, predefValues));
@@ -141,16 +141,16 @@ final class VariableStateSnapshot {
       } else {
         if (value.getTermType() == VAR) {
           if (value.isGround()) {
-            valueTxt = value.toSrcString() + '{' + value.getVarUID() + '}' + '[' + value.getValue().toString() + ']';
+            valueTxt = value.toSrcString() + '{' + value.getVarUid() + '}' + '[' + value.getValue().toString() + ']';
           } else {
-            valueTxt = value.toSrcString() + '{' + value.getVarUID() + '}';
+            valueTxt = value.toSrcString() + '{' + value.getVarUid() + '}';
           }
         } else {
           valueTxt = value.forWrite();
         }
       }
 
-      buffer.append(value == null ? valueTxt : value.toSrcString()).append('{').append(value == null ? "<NULL>" : value.getVarUID()).append('}').append('=').append(valueTxt);
+      buffer.append(value == null ? valueTxt : value.toSrcString()).append('{').append(value == null ? "<NULL>" : value.getVarUid()).append('}').append('=').append(valueTxt);
     }
     buffer.append(']');
     return buffer.toString();

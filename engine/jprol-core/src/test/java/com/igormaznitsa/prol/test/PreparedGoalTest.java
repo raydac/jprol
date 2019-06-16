@@ -1,7 +1,6 @@
 package com.igormaznitsa.prol.test;
 
 import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.DeferredGoal;
 import com.igormaznitsa.prol.logic.ProlContext;
@@ -15,7 +14,7 @@ class PreparedGoalTest extends AbstractProlTest {
 
   @Test
   void testPreparedGoal() throws Exception {
-    final ProlContext context = new ProlContext("PreparedGoal test", DefaultProlStreamManagerImpl.getInstance());
+    final ProlContext context = new ProlContext("PreparedGoal test");
     context.consult(new StringReader("test(A,B,C,D,E):-E is A+B/C*D. randomval(A):-rnd([1,2,3,4,5],A)."));
 
     final DeferredGoal goal = new DeferredGoal("test({?},{?},{?},{?},Result).", context);

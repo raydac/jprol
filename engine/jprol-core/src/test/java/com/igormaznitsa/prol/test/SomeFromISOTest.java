@@ -2,7 +2,6 @@ package com.igormaznitsa.prol.test;
 
 import com.igormaznitsa.prol.exceptions.ProlCustomErrorException;
 import com.igormaznitsa.prol.exceptions.ProlException;
-import com.igormaznitsa.prol.io.DefaultProlStreamManagerImpl;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Disabled;
@@ -526,10 +525,16 @@ class SomeFromISOTest extends AbstractProlTest {
     checkOnce("call((fail,X)).", false);
     //[call((fail, call(1))), failure].
     checkOnce("call((fail,call(1))).", false);
+
     //[call((write(3), X)), instantiation_error].
     checkException("call((write(3),X)).");
     //[call((write(3), call(1))), type_error(callable,1)].
     checkException("call((write(3),call(1))).");
+    //[call((write(3), 1)), type_error(callable,(write(3), 1))].
+    checkException("call((write(3),1)).");
+    //[call((1; true)), type_error(callable,(1; true))].
+    checkException("call((1;true)).");
+
     //[call(X), instantiation_error].
     checkException("call(X).");
     //[call(1), type_error(callable,1)].
@@ -537,11 +542,6 @@ class SomeFromISOTest extends AbstractProlTest {
 
     //[call((fail, 1)), type_error(callable,(fail,1))].
     //checkException("call((fail,1))."); // it is not working at proll because prol checks sequentially and fail will be the first one
-
-    //[call((write(3), 1)), type_error(callable,(write(3), 1))].
-    checkException("call((write(3),1)).");
-    //[call((1; true)), type_error(callable,(1; true))].
-    checkException("call((1;true)).");
 
     checkException("call([fail]).");
   }
@@ -907,6 +907,11 @@ class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
+  void test() throws Exception {
+    checkOnce("\\+((!,fail)).", true);
+  }
+
+  @Test
   void testNotProvable() throws Exception {
     //[\+(true), failure].
     checkOnce("\\+(true).", false);
@@ -1070,9 +1075,9 @@ class SomeFromISOTest extends AbstractProlTest {
 
     //['='(f(A,B,C),f(g(B,B),g(C,C),g(D,D))),[[A <-- g(g(g(D,D),g(D,D)),g(g(D,D),g(D,D))),B <-- g(g(D,D),g(D,D)),C <-- g(D,D)]]].
     goal = proveGoal("'='(f(A,B,C),f(g(B,B),g(C,C),g(D,D))).");
-    assertEquals(goal.getVarAsText("A"), "g(g(g(D,D),g(D,D)),g(g(D,D),g(D,D)))");
-    assertEquals(goal.getVarAsText("B"), "g(g(D,D),g(D,D))");
-    assertEquals(goal.getVarAsText("C"), "g(D,D)");
+    assertEquals("g(D,D)", goal.getVarAsText("C"));
+    assertEquals("g(g(D,D),g(D,D))", goal.getVarAsText("B"));
+    assertEquals("g(g(g(D,D),g(D,D)),g(g(D,D),g(D,D)))", goal.getVarAsText("A"));
     assertNull(goal.next());
   }
 
@@ -1307,7 +1312,7 @@ class SomeFromISOTest extends AbstractProlTest {
     //[number_chars(A,['-','2','5']), [[A <-- (-25)]]].
     checkOnceVar("number_chars(A,['-','2','5']).", "A", -25L);
     //[number_chars(A,['\n',' ','3']), [[A <-- 3]]].
-    checkOnceVar("number_chars(A,['\n',' ','3']).", "A", 3L);
+    checkOnceVar("number_chars(A,['\\n',' ','3']).", "A", 3L);
 
     //[number_chars(A,['3',' ']), syntax_error(_)].
     checkException("number_chars(A,['3',' ']).");
@@ -1388,7 +1393,7 @@ class SomeFromISOTest extends AbstractProlTest {
   }
 
   private ProlContext makeContext(final String knowledgeBase) throws Exception {
-    final ProlContext context = new ProlContext("PreparedGoal test", DefaultProlStreamManagerImpl.getInstance());
+    final ProlContext context = new ProlContext("PreparedGoal test");
     context.consult(new StringReader(knowledgeBase));
     return context;
   }

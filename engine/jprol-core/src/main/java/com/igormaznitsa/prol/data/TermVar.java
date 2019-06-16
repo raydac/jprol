@@ -48,8 +48,8 @@ public final class TermVar extends Term {
     this("_$" + Long.toHexString(ANONYM_GENERATOR.incrementAndGet()), true);
   }
 
-  public final int getVarUID() {
-    return uid;
+  public final int getVarUid() {
+    return this.uid;
   }
 
   @Override
@@ -63,7 +63,7 @@ public final class TermVar extends Term {
     TermVar result = this.isAnonymous() ? newVar() : newVar(this.getText());
     if (value != null) {
       final Map<Integer, TermVar> vars = new HashMap<>();
-      vars.put(this.getVarUID(), result);
+      vars.put(this.getVarUid(), result);
       result.setThisValue(doMakeClone(vars));
     }
     return result;
@@ -79,7 +79,7 @@ public final class TermVar extends Term {
   }
 
   @Override
-  protected void doArrabgeVars(final Map<String, TermVar> variables) {
+  protected void doArrangeVars(final Map<String, TermVar> variables) {
     final String name = this.getText();
     if (variables.containsKey(name)) {
       final TermVar var = variables.get(name);
@@ -98,7 +98,7 @@ public final class TermVar extends Term {
       final Term val = this.getThisValue();
       if (val == null) {
         final String varName = this.getText();
-        final int varId = this.getVarUID();
+        final int varId = this.getVarUid();
         TermVar newVar = vars.get(varId);
         if (newVar == null) {
           newVar = this.isAnonymous() ? newVar() : newVar(varName);
@@ -127,7 +127,7 @@ public final class TermVar extends Term {
     final Term val = this.getThisValue();
     if (val == null) {
       final String varName = this.getText();
-      final int varId = this.getVarUID();
+      final int varId = this.getVarUid();
       TermVar newVar = vars.get(varId);
       if (newVar == null) {
         newVar = this.isAnonymous() ? newVar() : newVar(varName);
@@ -207,11 +207,7 @@ public final class TermVar extends Term {
 
   @Override
   public String toSrcString() {
-    String result = "_";
-    if (!isAnonymous()) {
-      result = getText();
-    }
-    return result;
+    return this.getValue() == null ? (this.isAnonymous() ? "_" : this.getText()) : this.getValue().toSrcString();
   }
 
   public boolean isGround() {

@@ -16,6 +16,7 @@
 
 package com.igormaznitsa.prol.data;
 
+import com.igormaznitsa.prologparser.terms.OpContainer;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
 import java.io.PrintWriter;
@@ -24,22 +25,44 @@ import static com.igormaznitsa.prol.data.TermType.OPERATORS;
 
 public final class TermOperatorContainer extends Term {
 
-  private TermOperator opFZ;
-  private TermOperator opZF;
-  private TermOperator opZFZ;
-  private int numberAtContainer;
+  private final OpContainer opContainer;
+  private volatile TermOperator opFZ;
+  private volatile TermOperator opZF;
+  private volatile TermOperator opZFZ;
 
   private TermOperatorContainer(final TermOperatorContainer etalon) {
     super(etalon.getText());
+    this.opContainer = OpContainer.make(etalon.getText(),
+        etalon.opFZ == null ? null : etalon.opFZ.asOp(),
+        etalon.opZF == null ? null : etalon.opZF.asOp(),
+        etalon.opZFZ == null ? null : etalon.opZFZ.asOp());
     opFZ = etalon.opFZ;
     opZF = etalon.opZF;
     opZFZ = etalon.opZFZ;
-    numberAtContainer = etalon.numberAtContainer;
   }
 
   public TermOperatorContainer(final TermOperator operator) {
     super(operator.getText());
+    this.opContainer = OpContainer.make(operator.asOp());
     setOperator(operator);
+  }
+
+  public OpContainer asOpContainer() {
+    return this.opContainer;
+  }
+
+  public TermOperator findOnly() {
+    if (opContainer.size() == 1) {
+      if (this.opFZ != null) {
+        return this.opFZ;
+      }
+      if (this.opZF != null) {
+        return this.opZF;
+      }
+      return this.opZFZ;
+    } else {
+      return null;
+    }
   }
 
   public boolean setOperator(final TermOperator operator) {
@@ -50,7 +73,7 @@ public final class TermOperatorContainer extends Term {
           return false;
         }
         opFZ = operator;
-        numberAtContainer++;
+        this.opContainer.add(operator.asOp());
       }
       break;
       case XF:
@@ -59,7 +82,7 @@ public final class TermOperatorContainer extends Term {
           return false;
         }
         opZF = operator;
-        numberAtContainer++;
+        this.opContainer.add(operator.asOp());
       }
       break;
       case XFX:
@@ -69,7 +92,7 @@ public final class TermOperatorContainer extends Term {
           return false;
         }
         opZFZ = operator;
-        numberAtContainer++;
+        this.opContainer.add(operator.asOp());
       }
       break;
       default: {
@@ -82,49 +105,6 @@ public final class TermOperatorContainer extends Term {
   @Override
   public TermType getTermType() {
     return OPERATORS;
-  }
-
-  public int size() {
-    return numberAtContainer;
-  }
-
-  public TermOperator getOperatorIfSingle() {
-    if (numberAtContainer == 1) {
-      if (opZFZ != null) {
-        return opZFZ;
-      }
-      if (opFZ != null) {
-        return opFZ;
-      }
-      return opZF;
-    }
-
-    return null;
-  }
-
-  public TermOperator getCompatibleOperator(final boolean leftPresented, final boolean rightPresented) {
-    if (leftPresented && rightPresented) {
-      if (opZFZ != null) {
-        return opZFZ;
-      }
-      if (opFZ != null) {
-        return opFZ;
-      }
-      return opZF;
-    }
-    if (leftPresented && !rightPresented) {
-      if (opZF != null) {
-        return opZF;
-      }
-      return opFZ;
-    }
-    if (!leftPresented && rightPresented) {
-      if (opFZ != null) {
-        return opFZ;
-      }
-      return opZF;
-    }
-    return null;
   }
 
   public void write(final PrintWriter writer) {
@@ -182,6 +162,7 @@ public final class TermOperatorContainer extends Term {
       case FY: {
         if (opFZ != null && opFZ.getOperatorType() == type) {
           opFZ = null;
+          this.opContainer.removeForType(type);
           result = true;
         }
       }
@@ -190,6 +171,7 @@ public final class TermOperatorContainer extends Term {
       case YF: {
         if (opZF != null && opZF.getOperatorType() == type) {
           opZF = null;
+          this.opContainer.removeForType(type);
           result = true;
         }
       }
@@ -199,6 +181,7 @@ public final class TermOperatorContainer extends Term {
       case XFY: {
         if (opZFZ != null && opZFZ.getOperatorType() == type) {
           opZFZ = null;
+          this.opContainer.removeForType(type);
           result = true;
         }
       }

@@ -16,13 +16,19 @@
 
 package com.igormaznitsa.prol.io;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import com.igormaznitsa.prol.data.Term;
+import com.igormaznitsa.prol.data.Terms;
+import com.igormaznitsa.prol.logic.ProlContext;
+
+import java.util.Optional;
 
 public interface ProlStreamManager {
 
-  Reader getReaderForResource(final String resourceName) throws IOException;
+  public static final Term END_OF_FILE = Terms.newAtom("end of file");
 
-  Writer getWriterForResource(final String resourceName, final boolean append) throws IOException;
+  Optional<ProlReader> findReaderForId(ProlContext context, String id);
+
+  Optional<ProlWriter> findWriterForId(ProlContext context, String id, boolean append);
+
+  void dispose();
 }

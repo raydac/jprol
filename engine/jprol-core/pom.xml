@@ -27,8 +27,8 @@
     <dependencies>
         <dependency>
             <groupId>com.igormaznitsa</groupId>
-            <artifactId>prologparser</artifactId>
-            <version>2.0.0</version>
+            <artifactId>java-prolog-parser</artifactId>
+            <version>2.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

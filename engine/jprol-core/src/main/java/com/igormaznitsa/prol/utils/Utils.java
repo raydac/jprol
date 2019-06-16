@@ -73,10 +73,11 @@ public final class Utils {
     return newList;
   }
 
-  public static void assertNotNull(final Object obj, final String msg) {
+  public static <T> T assertNotNull(final T obj, final String msg) {
     if (obj == null) {
       throw new NullPointerException(msg);
     }
+    return obj;
   }
 
   public static String escapeSrc(final String string) {

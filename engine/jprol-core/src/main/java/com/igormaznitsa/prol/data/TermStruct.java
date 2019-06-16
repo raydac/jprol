@@ -528,7 +528,7 @@ public class TermStruct extends Term {
   }
 
   @Override
-  protected void doArrabgeVars(final Map<String, TermVar> variables) {
+  protected void doArrangeVars(final Map<String, TermVar> variables) {
     final TermStruct struct = this;
     final int arity = struct.getArity();
 
@@ -546,7 +546,7 @@ public class TermStruct extends Term {
           }
         }
       } else {
-        element.doArrabgeVars(variables);
+        element.doArrangeVars(variables);
       }
     }
   }
