@@ -140,7 +140,8 @@ public final class Terms {
   }
 
   public static Term fromParsed(final ProlContext context, final PrologTerm term) {
-    if (term instanceof PrologAtom || term instanceof SpecServiceCompound) {
+    if (term.getType() == com.igormaznitsa.prologparser.terms.TermType.ATOM
+        || term.getType() == com.igormaznitsa.prologparser.terms.TermType.OPERATOR) {
       return convert(context, term, null);
     } else {
       try {

@@ -149,14 +149,17 @@ public class TermStruct extends Term {
 
       final int priority = OperatorFunctor.getPriority();
 
+      final Term arg1 = this.getElement(0);
+      final Term arg2 = getArity() > 1 ? this.getElement(1) : null;
+
       switch (OperatorFunctor.getOperatorType()) {
         case FX: {
           builder.append(opName);
           builder.append(' ');
 
-          final String text = sourceLike ? getElement(0).toSrcString() : getElement(0).toString();
+          final String text = sourceLike ? arg1.toSrcString() : arg1.toString();
 
-          if (getElement(0).getPriority() >= priority) {
+          if (arg1.getPriority() >= priority) {
             builder.append('(').append(text).append(')');
           } else {
             builder.append(text);
@@ -167,9 +170,9 @@ public class TermStruct extends Term {
           builder.append(opName);
           builder.append(' ');
 
-          final String text = sourceLike ? getElement(0).toSrcString() : getElement(0).toString();
+          final String text = sourceLike ? arg1.toSrcString() : arg1.toString();
 
-          if (getElement(0).getPriority() > priority) {
+          if (arg1.getPriority() > priority) {
             builder.append('(').append(text).append(')');
           } else {
             builder.append(text);
@@ -177,9 +180,9 @@ public class TermStruct extends Term {
         }
         break;
         case XF: {
-          final String text = sourceLike ? getElement(0).toSrcString() : getElement(0).toString();
+          final String text = sourceLike ? arg1.toSrcString() : arg1.toString();
 
-          if (getElement(0).getPriority() >= priority) {
+          if (arg1.getPriority() >= priority) {
             builder.append('(').append(text).append(')');
           } else {
             builder.append(text);
@@ -190,9 +193,9 @@ public class TermStruct extends Term {
         }
         break;
         case YF: {
-          final String text = sourceLike ? getElement(0).toSrcString() : getElement(0).toString();
+          final String text = sourceLike ? arg1.toSrcString() : arg1.toString();
 
-          if (getElement(0).getPriority() > priority) {
+          if (arg1.getPriority() > priority) {
             builder.append('(').append(text).append(')');
           } else {
             builder.append(text);
@@ -203,10 +206,10 @@ public class TermStruct extends Term {
         }
         break;
         case XFX: {
-          final String text = sourceLike ? getElement(0).toSrcString() : getElement(0).toString();
-          final String text2 = sourceLike ? getElement(1).toSrcString() : getElement(1).toString();
+          final String text = sourceLike ? arg1.toSrcString() : arg1.toString();
+          final String text2 = sourceLike ? arg2.toSrcString() : arg2.toString();
 
-          if (getElement(0).getPriority() >= priority) {
+          if (arg1.getPriority() >= priority) {
             builder.append('(').append(text).append(')');
           } else {
             builder.append(text);
@@ -216,7 +219,7 @@ public class TermStruct extends Term {
           builder.append(opName);
           builder.append(' ');
 
-          if (getElement(1).getPriority() >= priority) {
+          if (arg2.getPriority() >= priority) {
             builder.append('(').append(text2).append(')');
           } else {
             builder.append(text2);
@@ -224,10 +227,10 @@ public class TermStruct extends Term {
         }
         break;
         case YFX: {
-          final String text = sourceLike ? getElement(0).toSrcString() : getElement(0).toString();
-          final String text2 = sourceLike ? getElement(1).toSrcString() : getElement(1).toString();
+          final String text = sourceLike ? arg1.toSrcString() : arg1.toString();
+          final String text2 = sourceLike ? arg2.toSrcString() : arg2.toString();
 
-          if (getElement(0).getPriority() > priority) {
+          if (arg1.getPriority() > priority) {
             builder.append('(').append(text).append(')');
           } else {
             builder.append(text);
@@ -237,7 +240,7 @@ public class TermStruct extends Term {
           builder.append(opName);
           builder.append(' ');
 
-          if (getElement(1).getPriority() >= priority) {
+          if (arg2.getPriority() >= priority) {
             builder.append('(').append(text2).append(')');
           } else {
             builder.append(text2);
@@ -245,10 +248,10 @@ public class TermStruct extends Term {
         }
         break;
         case XFY: {
-          final String text = sourceLike ? getElement(0).toSrcString() : getElement(0).toString();
-          final String text2 = sourceLike ? getElement(1).toSrcString() : getElement(1).toString();
+          final String text = sourceLike ? arg1.toSrcString() : arg1.toString();
+          final String text2 = sourceLike ? arg2.toSrcString() : arg2.toString();
 
-          if (getElement(0).getPriority() >= priority) {
+          if (arg1.getPriority() >= priority) {
             builder.append('(').append(text).append(')');
           } else {
             builder.append(text);
@@ -258,7 +261,7 @@ public class TermStruct extends Term {
           builder.append(opName);
           builder.append(' ');
 
-          if (getElement(1).getPriority() > priority) {
+          if (arg2.getPriority() > priority) {
             builder.append('(').append(text2).append(')');
           } else {
             builder.append(text2);
