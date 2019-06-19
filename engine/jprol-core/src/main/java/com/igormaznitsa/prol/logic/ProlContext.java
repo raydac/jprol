@@ -533,7 +533,8 @@ public final class ProlContext implements ParserContext {
                     userwriter.ifPresent(writer -> {
                       try {
                         writer.write("Next solution? ");
-                        final int chr = userreader.isPresent() ? userreader.get().readChar() : 'n';
+
+                        final int chr = 'n'; // TODO userreader.isPresent() ? userreader.get().readChar() : 'n';
                         if (!(chr == ';' || chr == 'y' || chr == 'Y')) {
                           result[0] = true;
                         } else {

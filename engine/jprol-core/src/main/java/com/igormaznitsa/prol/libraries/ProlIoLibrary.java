@@ -10,8 +10,6 @@ import com.igormaznitsa.prol.io.ProlWriter;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 
-import java.io.IOException;
-import java.io.Reader;
 import java.util.Optional;
 
 import static com.igormaznitsa.prol.data.Terms.NULL_LIST;
@@ -180,34 +178,34 @@ public class ProlIoLibrary extends AbstractProlLibrary {
 //    return arg.unifyTo(term);
 //  }
 
-  private static boolean consultFromProlStream(final ProlContext context, final ProlReader reader) {
-    try {
-      context.consult(new Reader() {
-        @Override
-        public int read(char[] cbuf, int off, int len) throws IOException {
-          int counter = 0;
-          int ccc;
-          while (len > 0 && (ccc = reader.readChar()) >= 0) {
-            cbuf[off++] = (char) ccc;
-            counter++;
-            len--;
-          }
-          return counter;
-        }
-
-        @Override
-        public void close() throws IOException {
-
-        }
-      });
-      return true;
-    } finally {
-      try {
-        reader.close();
-      } catch (IOException ex) {
-      }
-    }
-  }
+//  private static boolean consultFromProlStream(final ProlContext context, final ProlReader reader) {
+//    try {
+//      context.consult(new Reader() {
+//        @Override
+//        public int read(char[] cbuf, int off, int len) throws IOException {
+//          int counter = 0;
+//          int ccc;
+//          while (len > 0 && (ccc = reader.readChar()) >= 0) {
+//            cbuf[off++] = (char) ccc;
+//            counter++;
+//            len--;
+//          }
+//          return counter;
+//        }
+//
+//        @Override
+//        public void close() throws IOException {
+//
+//        }
+//      });
+//      return true;
+//    } finally {
+//      try {
+//        reader.close();
+//      } catch (IOException ex) {
+//      }
+//    }
+//  }
 //
 //  @Predicate(Signature = "seen/0", Reference = "Close the current input stream.")
 //  @Determined
