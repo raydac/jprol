@@ -59,7 +59,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
   private final WeakHashMap<JMenuItem, RegisteredAction> registeredActions = new WeakHashMap<>();
   private final JFrame graphicFrame;
   private final JLabel label;
-  private final ReentrantLock insideLocker = new ReentrantLock();
+  private final ReentrantLock internalLocker = new ReentrantLock();
   private final JMenu bindedMenu = new JMenu("Actions");
   private final JMenuBar menuBar = new JMenuBar();
   private File lastSavedImage = null;
@@ -257,7 +257,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
     // make snapshot of current buffer
     BufferedImage bufferCopy = null;
-    insideLocker.lock();
+    internalLocker.lock();
     try {
       if (bufferedImage == null) {
         return;
@@ -272,7 +272,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
       bufferCopy = new BufferedImage(imgw, imgh, BufferedImage.TYPE_INT_RGB);
       bufferCopy.getGraphics().drawImage(bufferedImage, 0, 0, null);
     } finally {
-      insideLocker.unlock();
+      internalLocker.unlock();
     }
     final String command = e.getActionCommand();
     if ("DISK".equals(command)) {
@@ -296,7 +296,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
     final int argx = predicate.getElement(0).findNonVarOrSame().toNumber().intValue();
     final int argy = predicate.getElement(1).findNonVarOrSame().toNumber().intValue();
 
-    final ReentrantLock locker = insideLocker;
+    final ReentrantLock locker = internalLocker;
 
     locker.lock();
     try {
@@ -433,7 +433,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
     final int argw = predicate.getElement(2).findNonVarOrSame().toNumber().intValue();
     final int argh = predicate.getElement(3).findNonVarOrSame().toNumber().intValue();
 
-    final ReentrantLock locker = insideLocker;
+    final ReentrantLock locker = internalLocker;
 
     locker.lock();
     try {
@@ -458,7 +458,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
     final int argw = predicate.getElement(2).toNumber().intValue();
     final int argh = predicate.getElement(3).toNumber().intValue();
 
-    final ReentrantLock locker = insideLocker;
+    final ReentrantLock locker = internalLocker;
 
     locker.lock();
     try {
@@ -483,7 +483,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
     final int argxx = predicate.getElement(2).findNonVarOrSame().toNumber().intValue();
     final int argyy = predicate.getElement(3).findNonVarOrSame().toNumber().intValue();
 
-    final ReentrantLock locker = insideLocker;
+    final ReentrantLock locker = internalLocker;
 
     locker.lock();
     try {
@@ -506,7 +506,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
     final int argx = predicate.getElement(0).findNonVarOrSame().toNumber().intValue();
     final int argy = predicate.getElement(1).findNonVarOrSame().toNumber().intValue();
 
-    final ReentrantLock locker = insideLocker;
+    final ReentrantLock locker = internalLocker;
     locker.lock();
     try {
       if (bufferedImage != null) {
@@ -530,7 +530,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
     final int argw = predicate.getElement(2).findNonVarOrSame().toNumber().intValue();
     final int argh = predicate.getElement(3).findNonVarOrSame().toNumber().intValue();
 
-    final ReentrantLock locker = insideLocker;
+    final ReentrantLock locker = internalLocker;
     locker.lock();
     try {
       if (bufferedImage != null) {
@@ -554,7 +554,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
     final int argw = predicate.getElement(2).findNonVarOrSame().toNumber().intValue();
     final int argh = predicate.getElement(3).findNonVarOrSame().toNumber().intValue();
 
-    final ReentrantLock locker = insideLocker;
+    final ReentrantLock locker = internalLocker;
     locker.lock();
     try {
       if (bufferedImage != null) {
@@ -573,7 +573,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
   @Predicate(Signature = "fillscreen/0", Reference = "Fill all screen by the brush color.")
   @Determined
   public void predicateFILLSCREEN(final ChoicePoint goal, final TermStruct predicate) {
-    final ReentrantLock locker = insideLocker;
+    final ReentrantLock locker = internalLocker;
     locker.lock();
     try {
       if (bufferedImage != null) {
@@ -590,7 +590,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
   @Determined
   public boolean predicateBRUSHCOLOR(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
-    final ReentrantLock locker = insideLocker;
+    final ReentrantLock locker = internalLocker;
 
     if (arg.getTermType() == VAR) {
       locker.lock();
@@ -633,7 +633,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
   @Determined
   public boolean predicatePENCOLOR(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
-    final ReentrantLock locker = insideLocker;
+    final ReentrantLock locker = internalLocker;
 
     if (arg.getTermType() == VAR) {
       locker.lock();
@@ -671,7 +671,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
     final Term elemX = predicate.getElement(0).findNonVarOrSame();
     final Term elemY = predicate.getElement(1).findNonVarOrSame();
 
-    final ReentrantLock locker = insideLocker;
+    final ReentrantLock locker = internalLocker;
 
     locker.lock();
     try {
@@ -706,7 +706,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
     final Term elem = predicate.getElement(0).findNonVarOrSame();
 
     final String text = elem.forWrite();
-    final ReentrantLock locker = insideLocker;
+    final ReentrantLock locker = internalLocker;
 
     locker.lock();
     try {
@@ -733,11 +733,11 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
       final File file = new File(name);
       outStream = new FileOutputStream(file);
 
-      insideLocker.lock();
+      internalLocker.lock();
       try {
         ImageIO.write(bufferedImage, type, outStream);
       } finally {
-        insideLocker.unlock();
+        internalLocker.unlock();
       }
       outStream.flush();
       outStream.close();
@@ -770,7 +770,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
     final Term width = predicate.getElement(0).findNonVarOrSame();
     final Term height = predicate.getElement(1).findNonVarOrSame();
 
-    insideLocker.lock();
+    internalLocker.lock();
     try {
       final int widthOrig = bufferedImage.getWidth();
       final int heightOrig = bufferedImage.getHeight();
@@ -802,24 +802,24 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
 
       activateFrame();
     } finally {
-      insideLocker.unlock();
+      internalLocker.unlock();
     }
 
     return true;
   }
 
   @Override
-  public void contextHasBeenHalted(final ProlContext context) {
-    super.contextHasBeenHalted(context);
-    insideLocker.lock();
-    try {
-      if (graphicFrame != null) {
-        SwingUtilities.invokeLater(graphicFrame::dispose);
+  public void onContextDispose(final ProlContext context) {
+    super.onContextDispose(context);
 
-        bufferedImage = null;
+    internalLocker.lock();
+    try {
+      if (this.graphicFrame != null) {
+        SwingUtilities.invokeLater(graphicFrame::dispose);
+        this.bufferedImage = null;
       }
     } finally {
-      insideLocker.unlock();
+      internalLocker.unlock();
     }
   }
 
@@ -840,7 +840,7 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
     final BufferedImage newImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     final Graphics gfx = newImage.getGraphics();
 
-    final ReentrantLock locker = this.insideLocker;
+    final ReentrantLock locker = this.internalLocker;
 
     locker.lock();
     try {

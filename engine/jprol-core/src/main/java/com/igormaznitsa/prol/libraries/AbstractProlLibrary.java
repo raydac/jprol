@@ -30,6 +30,7 @@ import com.igormaznitsa.prol.utils.Utils;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static com.igormaznitsa.prol.data.Terms.*;
@@ -43,6 +44,8 @@ public abstract class AbstractProlLibrary {
   private final Map<String, PredicateProcessor> predicateMethodsMap;
   private final Set<String> zeroArityPredicateNames;
 
+  private final Map<ProlContext, Map<String, Object>> contextMaps = new ConcurrentHashMap<>();
+
   public AbstractProlLibrary(final String libraryUid) {
     if (libraryUid == null) {
       throw new IllegalArgumentException("Library UID must not be null!");
@@ -54,6 +57,10 @@ public abstract class AbstractProlLibrary {
     final Set<String> zeroArityPredicates = new HashSet<>();
     this.predicateMethodsMap = Collections.unmodifiableMap(extractAnnotatedMethodsAsPredicates(libraryUid, zeroArityPredicates));
     this.zeroArityPredicateNames = Collections.unmodifiableSet(zeroArityPredicates);
+  }
+
+  protected Map<String, Object> getContextMappedObjects(final ProlContext context) {
+    return this.contextMaps.computeIfAbsent(context, ctx -> new ConcurrentHashMap<>());
   }
 
   private static void registerStaticOperator(final Map<String, TermOperatorContainer> operatorMap, final ProlOperator operator) {
@@ -209,6 +216,7 @@ public abstract class AbstractProlLibrary {
     return this.systemOperators.get(operatorName);
   }
 
-  public void contextHasBeenHalted(final ProlContext context) {
+  public void onContextDispose(final ProlContext context) {
+    this.contextMaps.remove(context);
   }
 }

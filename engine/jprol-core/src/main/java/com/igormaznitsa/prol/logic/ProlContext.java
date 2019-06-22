@@ -21,10 +21,6 @@ import com.igormaznitsa.prol.containers.InMemoryKnowledgeBase;
 import com.igormaznitsa.prol.containers.KnowledgeBase;
 import com.igormaznitsa.prol.data.*;
 import com.igormaznitsa.prol.exceptions.*;
-import com.igormaznitsa.prol.io.DefaultProlStreamManager;
-import com.igormaznitsa.prol.io.ProlReader;
-import com.igormaznitsa.prol.io.ProlStreamManager;
-import com.igormaznitsa.prol.io.ProlWriter;
 import com.igormaznitsa.prol.libraries.AbstractProlLibrary;
 import com.igormaznitsa.prol.libraries.PredicateProcessor;
 import com.igormaznitsa.prol.libraries.ProlCoreLibrary;
@@ -60,8 +56,6 @@ public final class ProlContext implements ParserContext {
   public static final String ENGINE_VERSION = "2.0.0";
   public static final String ENGINE_NAME = "Prol";
 
-  public static final String STREAM_USER = "user";
-
   private final String contextId;
 
   private final Map<String, List<ProlTrigger>> triggersOnAssert = new ConcurrentHashMap<>();
@@ -71,36 +65,28 @@ public final class ProlContext implements ParserContext {
   private final AtomicBoolean disposed = new AtomicBoolean(false);
   private final KnowledgeBase knowledgeBase;
   private final ExecutorService executorService;
-  private final ProlStreamManager streamManager;
   private final AtomicInteger activeTaskCounter = new AtomicInteger();
   private final List<TracingChoicePointListener> traceListeners = new CopyOnWriteArrayList<>();
-  private volatile Optional<ProlReader> inReader = Optional.empty();
-  private volatile Optional<ProlWriter> outWriter = Optional.empty();
 
   public ProlContext(final String name) {
-    this(name, new DefaultProlStreamManager());
+    this(name, new InMemoryKnowledgeBase(name + "_kbase"), null);
   }
 
-  public ProlContext(final String name, final ProlStreamManager streamManager) {
-    this(name, streamManager, new InMemoryKnowledgeBase(name + "_kbase"), null);
-  }
-
-  public ProlContext(final String contextId, final ProlStreamManager streamManager, final KnowledgeBase base, final ExecutorService executorService) {
+  public ProlContext(
+      final String contextId,
+      final KnowledgeBase base,
+      final ExecutorService executorService
+  ) {
     requireNonNull(contextId, "Contex Id must not be null");
-    requireNonNull(streamManager, "Stream manager must be provided");
     requireNonNull(base, "Knowledge base must not be null");
 
     this.contextId = contextId;
-    this.streamManager = streamManager;
     this.knowledgeBase = base;
 
     this.executorService = executorService == null ? ForkJoinPool.commonPool() : executorService;
 
     this.libraries.add(new ProlCoreLibrary());
     this.libraries.add(new ProlIoLibrary());
-
-    this.outWriter = streamManager.findWriterForId(this, STREAM_USER, true);
-    this.inReader = streamManager.findReaderForId(this, STREAM_USER);
   }
 
   public void addTraceListener(final TracingChoicePointListener listener) {
@@ -209,21 +195,6 @@ public final class ProlContext implements ParserContext {
     }
   }
 
-  public ProlStreamManager getStreamManager() {
-    assertNotDisposed();
-    return this.streamManager;
-  }
-
-  public Optional<ProlWriter> getOutWriter() {
-    assertNotDisposed();
-    return this.outWriter;
-  }
-
-  public Optional<ProlReader> getInReader() {
-    assertNotDisposed();
-    return inReader;
-  }
-
   public boolean addLibrary(final AbstractProlLibrary library) {
     assertNotDisposed();
     if (library == null) {
@@ -315,11 +286,10 @@ public final class ProlContext implements ParserContext {
             }
           }));
 
-      triggersOnAssert.clear();
-      triggersOnRetract.clear();
+      this.triggersOnAssert.clear();
+      this.triggersOnRetract.clear();
 
-      this.streamManager.dispose();
-      libraries.forEach((library) -> library.contextHasBeenHalted(this));
+      this.libraries.forEach((library) -> library.onContextDispose(this));
     }
   }
 
@@ -552,7 +522,7 @@ public final class ProlContext implements ParserContext {
   }
 
   public ProlContext makeCopy() {
-    return new ProlContext(this.contextId + "_copy", this.streamManager, this.knowledgeBase.makeCopy(), this.executorService);
+    return new ProlContext(this.contextId + "_copy", this.knowledgeBase.makeCopy(), this.executorService);
   }
 
   public boolean hasOperatorStartsWith(String operator) {

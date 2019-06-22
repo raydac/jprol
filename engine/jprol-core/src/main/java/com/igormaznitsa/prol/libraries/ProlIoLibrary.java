@@ -1,39 +1,21 @@
 package com.igormaznitsa.prol.libraries;
 
-import com.igormaznitsa.prol.annotations.Determined;
-import com.igormaznitsa.prol.annotations.Predicate;
-import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.data.TermStruct;
-import com.igormaznitsa.prol.io.ProlReader;
-import com.igormaznitsa.prol.io.ProlStreamManager;
-import com.igormaznitsa.prol.io.ProlWriter;
-import com.igormaznitsa.prol.logic.ChoicePoint;
-import com.igormaznitsa.prol.logic.ProlContext;
-
-import java.util.Optional;
-
-import static com.igormaznitsa.prol.data.Terms.NULL_LIST;
-import static com.igormaznitsa.prol.data.Terms.newAtom;
-
 public class ProlIoLibrary extends AbstractProlLibrary {
 
   public ProlIoLibrary() {
     super("prol-io-lib");
   }
 
-  @Predicate(Signature = "consult/1", Template = {"+atom", "+list"}, Reference = "Take an atom as the file name of the resource to be used for consultation, or a list contains a resource name chain. The resource will be getted through the current ProlStreamManager.")
-  @Determined
-  @SuppressWarnings("fallthrough")
-  public static boolean predicateCONSULT(final ChoicePoint goal, final TermStruct predicate) {
-    final Term term = predicate.getElement(0).findNonVarOrSame();
-
-    final ProlContext ctxt = goal.getContext();
-    final ProlStreamManager streamManager = ctxt.getStreamManager();
-
-    return false;
-
-    //TODO implement consult/1 for new api
-
+//  @Predicate(Signature = "consult/1", Template = {"+atom", "+list"}, Reference = "Take an atom as the file name of the resource to be used for consultation, or a list contains a resource name chain. The resource will be getted through the current ProlStreamManager.")
+//  @Determined
+//  @SuppressWarnings("fallthrough")
+//  public static boolean predicateCONSULT(final ChoicePoint goal, final TermStruct predicate) {
+//    final Term term = predicate.getElement(0).findNonVarOrSame();
+//
+//    final ProlContext ctxt = goal.getContext();
+//    final ProlStreamManager streamManager = ctxt.getStreamManager();
+//
+//
 //    switch (term.getTermType()) {
 //      case ATOM: {
 //        String name = term.getText();
@@ -44,8 +26,6 @@ public class ProlIoLibrary extends AbstractProlLibrary {
 //        } else {
 //          return false;
 //        }
-//
-//
 //        return consultFromResource(name, ctxt, streamManager);
 //      }
 //      case LIST: {
@@ -72,7 +52,7 @@ public class ProlIoLibrary extends AbstractProlLibrary {
 //      default:
 //        return false;
 //    }
-  }
+//  }
 //
 //  @Predicate(Signature = "put/1", Template = "+number", Reference = "Write a char for its code into the current output stream.")
 //  @Determined
@@ -87,7 +67,7 @@ public class ProlIoLibrary extends AbstractProlLibrary {
 //      }
 //    });
 //  }
-
+//
 //  @Predicate(Signature = "get/1", Template = "?number", Reference = "Read next non-blank char code from the current input stream.")
 //  @Determined
 //  public final boolean predicateGET(final ChoicePoint goal, final TermStruct predicate) {
@@ -131,7 +111,7 @@ public class ProlIoLibrary extends AbstractProlLibrary {
 //      throw new ProlPermissionErrorException("write", "text_output", predicate, ex);
 //    }
 //  }
-
+//
 //  @Predicate(Signature = "read/1", Reference = " Read  the next Prolog term from the current input stream.")
 //  @Determined
 //  public final boolean predicateRead(final ChoicePoint goal, final TermStruct predicate) {
@@ -152,14 +132,14 @@ public class ProlIoLibrary extends AbstractProlLibrary {
 //    }
 //  }
 //
-
+//
 //  @Predicate(Signature = "readln/1", Reference = " Read  the next line (until NL symbol) from the current input stream as an atom. It sypports backspace to remove last symbol from buffer.")
 //  @Determined
 //  public final boolean predicateReadLn(final ChoicePoint goal, final TermStruct predicate) {
 //    final Term arg = predicate.getElement(0).findNonVarOrSame();
 //    return arg.unifyTo(newAtom(readFromCurrentInputStreamUntilNL(goal, predicate)));
 //  }
-
+//
 //  @Predicate(Signature = "readint/1", Reference = " Read  an integer number (and ignore white space) until NL symbol from the current input stream as an integer atom or the end_of_file atom. It sypports backspace to remove last symbol from buffer. If the input string can't be converted to an integer atom, the predicate will return false.")
 //  @Determined
 //  public final boolean predicateReadInt(final ChoicePoint goal, final TermStruct predicate) {
@@ -177,7 +157,7 @@ public class ProlIoLibrary extends AbstractProlLibrary {
 //    }
 //    return arg.unifyTo(term);
 //  }
-
+//
 //  private static boolean consultFromProlStream(final ProlContext context, final ProlReader reader) {
 //    try {
 //      context.consult(new Reader() {
@@ -217,10 +197,10 @@ public class ProlIoLibrary extends AbstractProlLibrary {
 //      throw new ProlPermissionErrorException("close", "text_stream", predicate, ex);
 //    }
 //  }
-
-  @Predicate(Signature = "write/1", Reference = "Write a term into the current output stream.")
-  @Determined
-  public final void predicateWrite(final ChoicePoint goal, final TermStruct predicate) {
+//
+//  @Predicate(Signature = "write/1", Reference = "Write a term into the current output stream.")
+//  @Determined
+//  public final void predicateWrite(final ChoicePoint goal, final TermStruct predicate) {
 //    goal.getContext().getOutWriter().ifPresent(outStream -> {
 //      try {
 //        outStream.writeTerm(predicate.getElement(0));
@@ -228,9 +208,9 @@ public class ProlIoLibrary extends AbstractProlLibrary {
 //        throw new ProlPermissionErrorException("write", "text_output", predicate, ex);
 //      }
 //    });
-  }
-
-  //  @Predicate(Signature = "readchar/1", Reference = " Read  char from the current input stream as an integer atom or the end_of_file atom")
+//  }
+//
+//    @Predicate(Signature = "readchar/1", Reference = " Read  char from the current input stream as an integer atom or the end_of_file atom")
 //  @Determined
 //  public final boolean predicateReadChar(final ChoicePoint goal, final TermStruct predicate) {
 //    final Term arg = predicate.getElement(0).findNonVarOrSame();
@@ -257,9 +237,9 @@ public class ProlIoLibrary extends AbstractProlLibrary {
 //    return arg.unifyTo(term);
 //  }
 //
-  @Predicate(Signature = "see/1", Template = "+atom", Reference = "Open SrcDest for reading and make it the current input")
-  @Determined
-  public final void predicateSEE(final ChoicePoint goal, final TermStruct predicate) {
+//  @Predicate(Signature = "see/1", Template = "+atom", Reference = "Open SrcDest for reading and make it the current input")
+//  @Determined
+//  public final void predicateSEE(final ChoicePoint goal, final TermStruct predicate) {
 //    final Term arg = predicate.getElement(0).findNonVarOrDefault(null);
 //    final String name = arg.getText();
 //    try {
@@ -272,35 +252,35 @@ public class ProlIoLibrary extends AbstractProlLibrary {
 //        throw new ProlPermissionErrorException("create", "text_stream", predicate, ex);
 //      }
 //    }
-  }
-
-  @Predicate(Signature = "seeing/1", Template = "?term", Reference = "Return the current input stream name.")
-  @Determined
-  public final boolean predicateSEEING(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = predicate.getElement(0).findNonVarOrDefault(null);
-    final Optional<ProlReader> reader = goal.getContext().getInReader();
-    final Term result = reader.isPresent() ? newAtom(reader.get().getId()) : NULL_LIST;
-    return arg.unifyTo(result);
-  }
-
-  @Predicate(Signature = "telling/1", Template = "?term", Reference = "Return the current output stream name.")
-  @Determined
-  public final boolean predicateTELLING(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = predicate.getElement(0).findNonVarOrDefault(null);
-    final Optional<ProlWriter> outStream = goal.getContext().getOutWriter();
-    final Term result = outStream.isPresent() ? newAtom(outStream.get().getId()) : NULL_LIST;
-    return arg.unifyTo(result);
-  }
-
-  @Predicate(Signature = "told/0", Reference = "Close the current output stream.")
-  @Determined
-  public final void predicateTOLD(final ChoicePoint goal, final TermStruct predicate) {
+//  }
+//
+//  @Predicate(Signature = "seeing/1", Template = "?term", Reference = "Return the current input stream name.")
+//  @Determined
+//  public final boolean predicateSEEING(final ChoicePoint goal, final TermStruct predicate) {
+//    final Term arg = predicate.getElement(0).findNonVarOrDefault(null);
+//    final Optional<ProlReader> reader = goal.getContext().getInReader();
+//    final Term result = reader.isPresent() ? newAtom(reader.get().getId()) : NULL_LIST;
+//    return arg.unifyTo(result);
+//  }
+//
+//  @Predicate(Signature = "telling/1", Template = "?term", Reference = "Return the current output stream name.")
+//  @Determined
+//  public final boolean predicateTELLING(final ChoicePoint goal, final TermStruct predicate) {
+//    final Term arg = predicate.getElement(0).findNonVarOrDefault(null);
+//    final Optional<ProlWriter> outStream = goal.getContext().getOutWriter();
+//    final Term result = outStream.isPresent() ? newAtom(outStream.get().getId()) : NULL_LIST;
+//    return arg.unifyTo(result);
+//  }
+//
+//  @Predicate(Signature = "told/0", Reference = "Close the current output stream.")
+//  @Determined
+//  public final void predicateTOLD(final ChoicePoint goal, final TermStruct predicate) {
 //    goal.getContext().told();
-  }
-
-  @Predicate(Signature = "tell/1", Template = "+atom", Reference = "Open SrcDest for writing and make it the current output")
-  @Determined
-  public final void predicateTELL(final ChoicePoint goal, final TermStruct predicate) {
+//  }
+//
+//  @Predicate(Signature = "tell/1", Template = "+atom", Reference = "Open SrcDest for writing and make it the current output")
+//  @Determined
+//  public final void predicateTELL(final ChoicePoint goal, final TermStruct predicate) {
 //    final Term arg = predicate.getElement(0).findNonVarOrDefault(null);
 //    final String name = arg.getText();
 //    try {
@@ -313,8 +293,8 @@ public class ProlIoLibrary extends AbstractProlLibrary {
 //        throw new ProlPermissionErrorException("create", "text_stream", predicate, cause);
 //      }
 //    }
-  }
-
+//  }
+//
 //  @Predicate(Signature = "append/1", Template = "+atom", Reference = "Open SrcDest to append new data and make it the current input")
 //  @Determined
 //  public final void predicateAPPEND(final ChoicePoint goal, final TermStruct predicate) {
@@ -331,5 +311,54 @@ public class ProlIoLibrary extends AbstractProlLibrary {
 //      }
 //    }
 //  }
+//
+
+//  @Predicate(Signature = "nl/0", Reference = "Out the next line char symbol into current output stream")
+//  @Determined
+//  public final void predicateNL(final ChoicePoint goal, final TermStruct predicate) {
+//    goal.getContext().getOutWriter().ifPresent(outStream -> {
+//      try {
+//        outStream.write("\n");
+//      } catch (IOException ex) {
+//
+//      }
+//    });
+//  }
+
+//  @Predicate(Signature = "time/1", Template = "+callable_term", Reference = "Execute  Goal just but  print used time, It supports choice point (!) for inside goal.")
+//  public final boolean predicateTime(final ChoicePoint goal, final TermStruct predicate) {
+//    final long time = System.nanoTime();
+//    final boolean result = predicateCALL(goal, predicate);
+//    final long timeInterval = ((System.nanoTime() - time) + 500L) / 1000L; //microseconds
+//
+//    goal.getContext().getOutWriter().ifPresent(outStream -> {
+//      try {
+//        outStream.write(newAtom(String.format("%% %d.%d ms", (timeInterval / 1000), (timeInterval % 1000))));
+//      } catch (IOException ex) {
+//
+//      }
+//    });
+//
+//    if (!result) {
+//      goal.resetVariants();
+//    }
+//    return result;
+//  }
+
+//  @Predicate(Signature = "tab/1", Template = {"+integer"}, Reference = "Out a number of space symbols into current output stream")
+//  @Determined
+//  public final void predicateTAB(final ChoicePoint goal, final TermStruct predicate) {
+//    goal.getContext().getOutWriter().ifPresent(outStream -> {
+//      final long spaces = predicate.getElement(0).toNumber().longValue();
+//      try {
+//        for (long li = 0; li < spaces; li++) {
+//          outStream.write(" ");
+//        }
+//      } catch (IOException ex) {
+//
+//      }
+//    });
+//  }
+
 
 }

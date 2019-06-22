@@ -29,7 +29,6 @@ import com.igormaznitsa.prol.logic.triggers.ProlTriggerType;
 import com.igormaznitsa.prol.utils.Utils;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -2417,59 +2416,12 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     return true;
   }
 
-  @Predicate(Signature = "nl/0", Reference = "Out the next line char symbol into current output stream")
-  @Determined
-  public final void predicateNL(final ChoicePoint goal, final TermStruct predicate) {
-    goal.getContext().getOutWriter().ifPresent(outStream -> {
-      try {
-        outStream.write("\n");
-      } catch (IOException ex) {
-
-      }
-    });
-  }
-
-  @Predicate(Signature = "tab/1", Template = {"+integer"}, Reference = "Out a number of space symbols into current output stream")
-  @Determined
-  public final void predicateTAB(final ChoicePoint goal, final TermStruct predicate) {
-    goal.getContext().getOutWriter().ifPresent(outStream -> {
-      final long spaces = predicate.getElement(0).toNumber().longValue();
-      try {
-        for (long li = 0; li < spaces; li++) {
-          outStream.write(" ");
-        }
-      } catch (IOException ex) {
-
-      }
-    });
-  }
-
   @Predicate(Signature = "copy_term/2", Template = {"?term,?term"}, Reference = "copy_term(X,Y) is true if and only if Y unifies with a term T which is a renamed copy of X.")
   @Determined
   public final boolean predicateCOPYTERM(final ChoicePoint goal, final TermStruct predicate) {
     final Term left = predicate.getElement(0).findNonVarOrSame().makeClone();
     final Term right = predicate.getElement(1).findNonVarOrSame();
     return right.unifyTo(left);
-  }
-
-  @Predicate(Signature = "time/1", Template = "+callable_term", Reference = "Execute  Goal just but  print used time, It supports choice point (!) for inside goal.")
-  public final boolean predicateTime(final ChoicePoint goal, final TermStruct predicate) {
-    final long time = System.nanoTime();
-    final boolean result = predicateCALL(goal, predicate);
-    final long timeInterval = ((System.nanoTime() - time) + 500L) / 1000L; //microseconds
-
-    goal.getContext().getOutWriter().ifPresent(outStream -> {
-      try {
-        outStream.write(newAtom(String.format("%% %d.%d ms", (timeInterval / 1000), (timeInterval % 1000))));
-      } catch (IOException ex) {
-
-      }
-    });
-
-    if (!result) {
-      goal.resetVariants();
-    }
-    return result;
   }
 
   @Predicate(Signature = "\\+/1", Template = "+callable_term", Reference = "\\+(Term) is true if and only if call(Term) is false.")
