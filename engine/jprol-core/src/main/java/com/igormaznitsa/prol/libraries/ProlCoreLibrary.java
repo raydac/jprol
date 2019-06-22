@@ -575,29 +575,23 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       goal.setPayload(clIterator);
     }
 
-    if (clIterator.hasNext()) {
-      //TODO to check
+    TermStruct nxtStruct;
+    while (clIterator.hasNext() && (nxtStruct = clIterator.next()) != null) {
+      Term headClause;
+      Term bodyClause;
+      if (nxtStruct.isClause()) {
+        headClause = nxtStruct.getElement(0);
+        bodyClause = nxtStruct.getElement(1);
+      } else {
+        headClause = nxtStruct;
+        bodyClause = TRUE;
+      }
 
-      while (clIterator.hasNext()) {
-        final TermStruct nxtStruct = clIterator.next();
-        if (nxtStruct != null) {
-          Term headClause;
-          Term bodyClause;
-          if (nxtStruct.isClause()) {
-            headClause = nxtStruct.getElement(0);
-            bodyClause = nxtStruct.getElement(1);
-          } else {
-            headClause = nxtStruct;
-            bodyClause = TRUE;
-          }
-
-          if (headClause.dryUnifyTo(head) && bodyClause.dryUnifyTo(body)) {
-            if (!(headClause.unifyTo(head) && bodyClause.unifyTo(body))) {
-              throw new ProlCriticalError("Impossible state at clause/2 #982342");
-            }
-            return true;
-          }
+      if (headClause.dryUnifyTo(head) && bodyClause.dryUnifyTo(body)) {
+        if (!(headClause.unifyTo(head) && bodyClause.unifyTo(body))) {
+          throw new ProlCriticalError("Impossible state at clause/2 #982342");
         }
+        return true;
       }
     }
     goal.resetVariants();
