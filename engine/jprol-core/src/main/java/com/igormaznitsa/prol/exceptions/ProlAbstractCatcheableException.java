@@ -24,10 +24,10 @@ import static com.igormaznitsa.prol.data.Terms.newStruct;
 
 public abstract class ProlAbstractCatcheableException extends ProlException {
 
-  private static final String ERROR_FUNCTOR = "error";
-  private final Term culprit;
   static final Term UNDEFINED = newAtom("<undefined>");
+  private static final String ERROR_FUNCTOR = "error";
   private static final long serialVersionUID = 6911111912695145529L;
+  private final Term culprit;
 
   public ProlAbstractCatcheableException(final Term culprit) {
     this.culprit = culprit;

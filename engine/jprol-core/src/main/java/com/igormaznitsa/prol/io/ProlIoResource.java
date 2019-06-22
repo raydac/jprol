@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static com.igormaznitsa.prol.utils.Utils.assertNotNull;
+import static java.util.Objects.requireNonNull;
 
 public abstract class ProlIoResource<T extends Closeable> {
 
@@ -14,8 +14,8 @@ public abstract class ProlIoResource<T extends Closeable> {
   protected final List<ProlResourceCloseListener> closeListeners = new CopyOnWriteArrayList<>();
 
   protected ProlIoResource(String id, T resource) {
-    this.id = assertNotNull(id, "Resource Id can't be null");
-    this.resource = assertNotNull(resource, "Resource must not be null");
+    this.id = requireNonNull(id, "Resource Id can't be null");
+    this.resource = requireNonNull(resource, "Resource must not be null");
   }
 
   public void addProlResourceCloseListener(final ProlResourceCloseListener l) {

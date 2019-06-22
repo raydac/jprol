@@ -53,6 +53,72 @@ public class Term {
     this.text = text;
   }
 
+  public static Term toTerm(final Object src) {
+    Term result = null;
+
+    if (src == null) {
+      result = Terms.NULL_LIST;
+    } else if (src instanceof Term) {
+      result = (Term) src;
+    } else if (src instanceof ConvertableToTerm) {
+      result = ((ConvertableToTerm) src).asProlTerm().orElse(NULL_LIST);
+    } else if (src instanceof String) {
+      // atom or mapped object
+      result = new Term((String) src);
+    } else if (src instanceof Number) {
+      if (src instanceof Integer) {
+        result = newLong(((Integer) src));
+      } else if (src instanceof Double) {
+        result = newDouble(((Double) src));
+      } else if (src instanceof Float) {
+        result = newDouble((((Float) src).doubleValue()));
+      } else {
+        throw new IllegalArgumentException("Unsupported number format.");
+      }
+    } else if (src instanceof Collection) {
+      // list
+      final Collection<?> lst = (Collection) src;
+
+      if (lst.isEmpty()) {
+        result = NULL_LIST;
+      } else {
+        TermList accumulator = null;
+        // fill the list
+        for (Object item : lst) {
+          if (accumulator == null) {
+            accumulator = newList(toTerm(item));
+            result = accumulator; // the first list
+          } else {
+            accumulator = createOrAppendToList(accumulator, toTerm(item));
+          }
+        }
+      }
+    } else if (src instanceof Object[]) {
+      // struct
+      final Object[] array = (Object[]) src;
+      final int arrlen = array.length;
+      if (arrlen == 0) {
+        // as null list
+        result = Terms.NULL_LIST;
+      } else {
+        final Term functor = new Term(array[0].toString());
+        if (arrlen == 1) {
+          result = newStruct(functor);
+        } else {
+          final Term[] terms = new Term[arrlen - 1];
+          for (int li = 1; li < arrlen; li++) {
+            terms[li - 1] = toTerm(array[li]);
+          }
+          result = newStruct(functor, terms);
+        }
+      }
+    } else {
+      throw new IllegalArgumentException("Unsupported object to be represented as a Term");
+    }
+    return result;
+
+  }
+
   public int getPriority() {
     return 0;
   }
@@ -144,72 +210,6 @@ public class Term {
 
   public Number toNumber() {
     throw new ProlTypeErrorException("numeric", "NonNumeric term", this);
-  }
-
-  public static Term toTerm(final Object src) {
-    Term result = null;
-
-    if (src == null) {
-      result = Terms.NULL_LIST;
-    } else if (src instanceof Term) {
-      result = (Term) src;
-    } else if (src instanceof ConvertableToTerm) {
-      result = ((ConvertableToTerm) src).asProlTerm().orElse(NULL_LIST);
-    } else if (src instanceof String) {
-      // atom or mapped object
-      result = new Term((String) src);
-    } else if (src instanceof Number) {
-      if (src instanceof Integer) {
-        result = newLong(((Integer) src));
-      } else if (src instanceof Double) {
-        result = newDouble(((Double) src));
-      } else if (src instanceof Float) {
-        result = newDouble((((Float) src).doubleValue()));
-      } else {
-        throw new IllegalArgumentException("Unsupported number format.");
-      }
-    } else if (src instanceof Collection) {
-      // list
-      final Collection<?> lst = (Collection) src;
-
-      if (lst.isEmpty()) {
-        result = NULL_LIST;
-      } else {
-        TermList accumulator = null;
-        // fill the list
-        for (Object item : lst) {
-          if (accumulator == null) {
-            accumulator = newList(toTerm(item));
-            result = accumulator; // the first list
-          } else {
-            accumulator = createOrAppendToList(accumulator, toTerm(item));
-          }
-        }
-      }
-    } else if (src instanceof Object[]) {
-      // struct
-      final Object[] array = (Object[]) src;
-      final int arrlen = array.length;
-      if (arrlen == 0) {
-        // as null list
-        result = Terms.NULL_LIST;
-      } else {
-        final Term functor = new Term(array[0].toString());
-        if (arrlen == 1) {
-          result = newStruct(functor);
-        } else {
-          final Term[] terms = new Term[arrlen - 1];
-          for (int li = 1; li < arrlen; li++) {
-            terms[li - 1] = toTerm(array[li]);
-          }
-          result = newStruct(functor, terms);
-        }
-      }
-    } else {
-      throw new IllegalArgumentException("Unsupported object to be represented as a Term");
-    }
-    return result;
-
   }
 
   public String getSignature() {

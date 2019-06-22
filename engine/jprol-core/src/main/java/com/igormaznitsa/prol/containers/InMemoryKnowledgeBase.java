@@ -86,7 +86,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     boolean result = false;
 
     if (opContainer != null) {
-        result = opContainer.removeOperatorForType(type);
+      result = opContainer.removeOperatorForType(type);
     }
     return result;
   }

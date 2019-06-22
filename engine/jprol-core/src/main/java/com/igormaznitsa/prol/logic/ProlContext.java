@@ -54,6 +54,7 @@ import java.util.stream.Stream;
 
 import static com.igormaznitsa.prol.data.Terms.newStruct;
 import static com.igormaznitsa.prol.libraries.PredicateProcessor.NULL_PROCESSOR;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Stream.concat;
 
 public final class ProlContext implements ParserContext {
@@ -86,9 +87,9 @@ public final class ProlContext implements ParserContext {
   }
 
   public ProlContext(final String contextId, final ProlStreamManager streamManager, final KnowledgeBase base, final ExecutorService executorService) {
-    Utils.assertNotNull(contextId, "Contex Id must not be null");
-    Utils.assertNotNull(streamManager, "Stream manager must be provided");
-    Utils.assertNotNull(base, "Knowledge base must not be null");
+    requireNonNull(contextId, "Contex Id must not be null");
+    requireNonNull(streamManager, "Stream manager must be provided");
+    requireNonNull(base, "Knowledge base must not be null");
 
     this.contextId = contextId;
     this.streamManager = streamManager;

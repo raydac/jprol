@@ -253,12 +253,12 @@ public final class ChoicePoint {
     if (Thread.currentThread().isInterrupted()) {
       return ChoicePointResult.FAIL;
     }
-      if (this.notFirstProve) {
-        this.context.fireTraceEvent(TraceEvent.REDO, this);
-      } else {
-        this.notFirstProve = true;
-        this.context.fireTraceEvent(TraceEvent.CALL, this);
-      }
+    if (this.notFirstProve) {
+      this.context.fireTraceEvent(TraceEvent.REDO, this);
+    } else {
+      this.notFirstProve = true;
+      this.context.fireTraceEvent(TraceEvent.CALL, this);
+    }
 
     ChoicePointResult result = ChoicePointResult.FAIL;
 

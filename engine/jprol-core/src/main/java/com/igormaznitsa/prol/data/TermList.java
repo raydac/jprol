@@ -47,33 +47,6 @@ public final class TermList extends TermStruct {
     super(Terms.LIST_FUNCTOR, new Term[] {head, tail});
   }
 
-  @SuppressWarnings("unchecked")
-  public <T extends Term> T getHead() {
-    return (T) this.terms[INDEX_HEAD];
-  }
-
-  @SuppressWarnings("unchecked")
-  public <T extends Term> T getTail() {
-    final Term tail = this.terms[INDEX_TAIL];
-    switch (tail.getTermType()) {
-      case VAR: {
-        final TermVar var = (TermVar) tail;
-        final Term val = var.getValue();
-        return (T) (val == null ? var : val);
-      }
-      case LIST:
-      default:
-        return (T) tail;
-    }
-  }
-
-  public void setTail(final Term newTail) {
-    if (newTail == null) {
-      throw new NullPointerException("NULL as Tail in list");
-    }
-    this.terms[INDEX_TAIL] = newTail;
-  }
-
   public static TermList asTermList(final Term... elements) {
     if (elements.length == 0) {
       return Terms.NULL_LIST;
@@ -104,6 +77,33 @@ public final class TermList extends TermStruct {
       }
       return result;
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  public <T extends Term> T getHead() {
+    return (T) this.terms[INDEX_HEAD];
+  }
+
+  @SuppressWarnings("unchecked")
+  public <T extends Term> T getTail() {
+    final Term tail = this.terms[INDEX_TAIL];
+    switch (tail.getTermType()) {
+      case VAR: {
+        final TermVar var = (TermVar) tail;
+        final Term val = var.getValue();
+        return (T) (val == null ? var : val);
+      }
+      case LIST:
+      default:
+        return (T) tail;
+    }
+  }
+
+  public void setTail(final Term newTail) {
+    if (newTail == null) {
+      throw new NullPointerException("NULL as Tail in list");
+    }
+    this.terms[INDEX_TAIL] = newTail;
   }
 
   public int calculateLength() {

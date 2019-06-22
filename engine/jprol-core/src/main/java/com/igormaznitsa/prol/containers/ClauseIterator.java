@@ -22,5 +22,6 @@ import java.util.Iterator;
 
 public interface ClauseIterator extends Iterator<TermStruct> {
   ClauseIteratorType getType();
+
   void cut();
 }

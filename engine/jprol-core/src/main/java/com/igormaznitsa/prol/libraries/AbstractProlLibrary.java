@@ -56,21 +56,6 @@ public abstract class AbstractProlLibrary {
     this.zeroArityPredicateNames = Collections.unmodifiableSet(zeroArityPredicates);
   }
 
-  public List<TermStruct> findAllForPredicateIndicator(final Term predicateIndicator) {
-    return this.predicateMethodsMap.keySet()
-        .stream()
-        .map(key -> {
-          final int index = key.lastIndexOf('/');
-          return newStruct(SIGNATURE_OPERATOR,
-              new Term[] {
-                  newAtom(key.substring(0, index)),
-                  newLong(parseInt(key.substring(index + 1)))
-              });
-        })
-        .filter(predicateIndicator::dryUnifyTo)
-        .collect(Collectors.toList());
-  }
-
   private static void registerStaticOperator(final Map<String, TermOperatorContainer> operatorMap, final ProlOperator operator) {
     TermOperator newOperator = new TermOperator(operator.Priority(), operator.Type(), operator.Name());
     TermOperatorContainer container = operatorMap.get(operator.Name());
@@ -97,6 +82,21 @@ public abstract class AbstractProlLibrary {
       registerStaticOperator(result, operator);
     }
     return result;
+  }
+
+  public List<TermStruct> findAllForPredicateIndicator(final Term predicateIndicator) {
+    return this.predicateMethodsMap.keySet()
+        .stream()
+        .map(key -> {
+          final int index = key.lastIndexOf('/');
+          return newStruct(SIGNATURE_OPERATOR,
+              new Term[] {
+                  newAtom(key.substring(0, index)),
+                  newLong(parseInt(key.substring(index + 1)))
+              });
+        })
+        .filter(predicateIndicator::dryUnifyTo)
+        .collect(Collectors.toList());
   }
 
   public boolean hasPredicateForSignature(final String signature) {

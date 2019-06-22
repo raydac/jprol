@@ -17,7 +17,6 @@
 package com.igormaznitsa.prol.io;
 
 import com.igormaznitsa.prol.logic.ProlContext;
-import com.igormaznitsa.prol.utils.Utils;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -28,6 +27,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static java.util.Objects.requireNonNull;
 
 public class DefaultProlStreamManager implements ProlStreamManager, ProlIoResource.ProlResourceCloseListener {
 
@@ -70,7 +71,7 @@ public class DefaultProlStreamManager implements ProlStreamManager, ProlIoResour
 
   @Override
   public Optional<ProlReader> findReaderForId(final ProlContext context, final String id) {
-    Utils.assertNotNull(id, "Stream Id must not be null");
+    requireNonNull(id, "Stream Id must not be null");
     assertNonDisposed();
 
     final Map<String, ProlReader> readers = this.readers.computeIfAbsent(context, x -> new ConcurrentHashMap<>());
@@ -93,7 +94,7 @@ public class DefaultProlStreamManager implements ProlStreamManager, ProlIoResour
 
   @Override
   public Optional<ProlWriter> findWriterForId(final ProlContext context, final String id, boolean append) {
-    Utils.assertNotNull(id, "Stream Id must not be null");
+    requireNonNull(id, "Stream Id must not be null");
     assertNonDisposed();
 
     final Map<String, ProlWriter> writers = this.writers.computeIfAbsent(context, x -> new ConcurrentHashMap<>());
