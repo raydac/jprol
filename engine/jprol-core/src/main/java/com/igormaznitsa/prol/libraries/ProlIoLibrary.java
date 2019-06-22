@@ -32,7 +32,7 @@ public class ProlIoLibrary extends AbstractProlLibrary {
 
     return false;
 
-    //TODO
+    //TODO implement consult/1 for new api
 
 //    switch (term.getTermType()) {
 //      case ATOM: {

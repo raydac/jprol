@@ -556,7 +556,7 @@ class SomeFromISOTest extends AbstractProlTest {
   @Test
   @Disabled
   void testSubAtom() throws Exception {
-    //TODO
+    //TODO implement subAtom
     //[sub_atom(abracadabra, 0, 5, _, S2), [[S2 <-- 'abrac']]].
     //[sub_atom(abracadabra, _, 5, 0, S2), [[S2 <-- 'dabra']]].
     //[sub_atom(abracadabra, 3, Length, 3, S2), [[Length <-- 5, S2 <-- 'acada']]].
@@ -575,7 +575,7 @@ class SomeFromISOTest extends AbstractProlTest {
   @Test
   @Disabled
   void testFileManip() throws Exception {
-    //TODO
+    //TODO seek/2
     //[(seek(my_file,3),at(my_file,X)),in(my_file),[[X <-- 3]]].
     //[(seek(my_file,eof),at(my_file,X)),in(my_file),[[X <-- eof]]].
     //[(seek(my_file,3),get_char(X,my_file)),in(my_file),[[X <-- e]]].
@@ -987,7 +987,7 @@ class SomeFromISOTest extends AbstractProlTest {
   @Test
   void testIs() throws Exception {
     //['is'(X,float(3)),[[X <-- 3.0]]].
-//    checkException("'is'(X,float(3))."); //TODO strange
+    checkException("'is'(X,float(3)).");
 
     //['is'(Result,3 + 11.0),[[Result <-- 14.0]]].
     checkOnceVar("'is'(Result,3+11.0).", "Result", 14.0d);
