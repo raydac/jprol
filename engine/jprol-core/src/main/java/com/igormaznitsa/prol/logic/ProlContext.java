@@ -40,7 +40,6 @@ import com.igormaznitsa.prologparser.PrologParser;
 import com.igormaznitsa.prologparser.terms.OpContainer;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
-import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.*;
@@ -225,7 +224,7 @@ public final class ProlContext implements ParserContext {
     return inReader;
   }
 
-  public boolean addLibrary(final AbstractProlLibrary library) throws IOException {
+  public boolean addLibrary(final AbstractProlLibrary library) {
     assertNotDisposed();
     if (library == null) {
       throw new IllegalArgumentException("Library must not be null");
@@ -240,7 +239,7 @@ public final class ProlContext implements ParserContext {
     if (consult != null) {
       final String text = consult.value();
       if (text.length() > 0) {
-        this.consult(new StringReader(text));
+        this.consult(new StringReader(text), Optional.empty());
       }
     }
     return true;
@@ -435,12 +434,12 @@ public final class ProlContext implements ParserContext {
   }
 
   public void consult(final Reader source) {
+    this.consult(source, Optional.empty());
+  }
 
+  public void consult(final Reader source, final Optional<ConsultInteractor> interactor) {
     final ProlTreeBuilder treeBuilder = new ProlTreeBuilder(this);
-
-    final Thread thisthread = Thread.currentThread();
-
-    while (!thisthread.isInterrupted()) {
+    do {
       final ProlTreeBuilder.Result parseResult = treeBuilder.readPhraseAndMakeTree(source);
       if (parseResult == null) {
         break;
@@ -484,73 +483,29 @@ public final class ProlContext implements ParserContext {
                   }
 
                 } else if ("?-".equals(text)) {
-                  final Optional<ProlReader> userreader = this.streamManager.findReaderForId(this, DefaultProlStreamManager.USER_STREAM);
-                  final Optional<ProlWriter> userwriter = this.streamManager.findWriterForId(this, DefaultProlStreamManager.USER_STREAM, true);
-
                   final Term termGoal = struct.getElement(0);
 
-                  userwriter.ifPresent(writer -> {
-                        try {
-                          writer.write(String.format("Goal: %s%n", termGoal.forWrite()));
-                        } catch (IOException ex) {
+                  if (interactor.map(x -> x.onFoundGoal(termGoal)).orElse(true)) {
+
+                    final Map<String, TermVar> varmap = new HashMap<>();
+                    final AtomicInteger solutioncounter = new AtomicInteger();
+
+                    final ChoicePoint thisGoal = new ChoicePoint(termGoal, this, null);
+
+                    boolean doFindNextSolution;
+                    do {
+                      varmap.clear();
+                      if (solveGoal(thisGoal, varmap)) {
+                        doFindNextSolution = interactor.map(consultInteractor -> consultInteractor.onSolution(termGoal, varmap, solutioncounter.incrementAndGet())).orElse(true);
+                        if (!doFindNextSolution) {
+                          throw new ProlHaltExecutionException(String.format("Solution search halted: %s", termGoal), 1);
                         }
+                      } else {
+                        interactor.ifPresent(x -> x.onFail(termGoal, solutioncounter.get()));
+                        doFindNextSolution = false;
                       }
-                  );
-
-                  final Map<String, TermVar> varmap = new HashMap<>();
-                  final AtomicInteger solutioncounter = new AtomicInteger();
-
-                  final ChoicePoint thisGoal = new ChoicePoint(termGoal, this, null);
-
-                  while (!Thread.currentThread().isInterrupted()) {
-                    varmap.clear();
-                    if (solveGoal(thisGoal, varmap)) {
-                      solutioncounter.incrementAndGet();
-                      userwriter.ifPresent(writer -> {
-                        try {
-                          writer.write(String.format("%nYES%n"));
-                          if (!varmap.isEmpty()) {
-                            for (Entry<String, TermVar> avar : varmap.entrySet()) {
-                              final String name = avar.getKey();
-                              final TermVar value = avar.getValue();
-                              writer.write(String.format("%s=%s%n", name, value.isFree() ? "???" : value.forWrite()));
-                            }
-                          }
-                        } catch (IOException ex) {
-
-                        }
-                      });
-                    } else {
-                      userwriter.ifPresent(writer -> {
-                        try {
-                          writer.write(String.format("%n%d %s%n%nNO%n", solutioncounter.get(), (solutioncounter.get() > 1 ? "solutions" : "solution")));
-                        } catch (IOException ex) {
-                        }
-                      });
-                      break;
-                    }
-
-                    final boolean[] result = new boolean[1];
-                    userwriter.ifPresent(writer -> {
-                      try {
-                        writer.write("Next solution? ");
-
-                        final int chr = 'n'; // TODO userreader.isPresent() ? userreader.get().readChar() : 'n';
-                        if (!(chr == ';' || chr == 'y' || chr == 'Y')) {
-                          result[0] = true;
-                        } else {
-                          writer.write("\n");
-                        }
-                      } catch (IOException ex) {
-                        result[0] = true;
-                      }
-                    });
-
-                    if (result[0]) {
-                      break;
-                    }
+                    } while (doFindNextSolution && !Thread.currentThread().isInterrupted());
                   }
-                  throw new ProlHaltExecutionException("Halted because goal failed.", 1);
                 } else {
                   this.knowledgeBase.assertZ(this, struct);
                 }
@@ -567,13 +522,12 @@ public final class ProlContext implements ParserContext {
             throw new ProlKnowledgeBaseException("Such element can't be saved at knowledge base [" + nextItem + ']');
           }
         }
-      } catch (Throwable ex) {
-        if (ex instanceof ThreadDeath) {
-          throw (ThreadDeath) ex;
-        }
+      } catch (ThreadDeath ex) {
+        throw ex;
+      } catch (Exception ex) {
         throw new ParserException(ex.getMessage(), line, strpos, ex);
       }
-    }
+    } while (!Thread.currentThread().isInterrupted());
   }
 
   private boolean solveGoal(final ChoicePoint goal, final Map<String, TermVar> varTable) {
