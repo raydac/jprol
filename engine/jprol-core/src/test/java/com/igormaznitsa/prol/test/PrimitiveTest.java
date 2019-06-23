@@ -2,9 +2,12 @@ package com.igormaznitsa.prol.test;
 
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
+import com.igormaznitsa.prol.logic.io.IoResourceProvider;
 import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.Writer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -158,7 +161,12 @@ class PrimitiveTest extends AbstractProlTest {
             "write('y');X='a5'," +
             "write('x'),Y='b5'," +
             "write('y')."
-    );
+    ).addIoResourceProvider(new IoResourceProvider() {
+      @Override
+      public Writer findWriter(ProlContext context, String writerId, boolean append) {
+        return new StringWriter();
+      }
+    });
 
     final ChoicePoint goal = new ChoicePoint("testor(X,Y).", context);
 

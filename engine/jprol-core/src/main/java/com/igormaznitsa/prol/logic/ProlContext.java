@@ -479,7 +479,7 @@ public final class ProlContext implements ParserContext {
                 } else if ("?-".equals(text)) {
                   final Term termGoal = struct.getElement(0);
 
-                  if (interactor.map(x -> x.onFoundGoal(termGoal)).orElse(true)) {
+                  if (interactor.map(x -> x.onFoundInteractiveGoal(this, termGoal)).orElse(true)) {
 
                     final Map<String, TermVar> varmap = new HashMap<>();
                     final AtomicInteger solutioncounter = new AtomicInteger();
@@ -490,12 +490,12 @@ public final class ProlContext implements ParserContext {
                     do {
                       varmap.clear();
                       if (solveGoal(thisGoal, varmap)) {
-                        doFindNextSolution = interactor.map(consultInteractor -> consultInteractor.onSolution(termGoal, varmap, solutioncounter.incrementAndGet())).orElse(true);
+                        doFindNextSolution = interactor.map(consultInteractor -> consultInteractor.onSolution(this, termGoal, varmap, solutioncounter.incrementAndGet())).orElse(true);
                         if (!doFindNextSolution) {
                           throw new ProlHaltExecutionException(String.format("Solution search halted: %s", termGoal), 1);
                         }
                       } else {
-                        interactor.ifPresent(x -> x.onFail(termGoal, solutioncounter.get()));
+                        interactor.ifPresent(x -> x.onFail(this, termGoal, solutioncounter.get()));
                         doFindNextSolution = false;
                       }
                     } while (doFindNextSolution && !Thread.currentThread().isInterrupted());

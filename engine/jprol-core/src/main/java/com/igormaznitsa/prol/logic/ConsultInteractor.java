@@ -6,9 +6,9 @@ import com.igormaznitsa.prol.data.TermVar;
 import java.util.Map;
 
 public interface ConsultInteractor {
-  boolean onFoundGoal(Term goal);
+  boolean onFoundInteractiveGoal(ProlContext context, Term goal);
 
-  boolean onSolution(Term goal, Map<String, TermVar> varValues, int solutionCounter);
+  boolean onSolution(ProlContext context, Term goal, Map<String, TermVar> varValues, int solutionCounter);
 
-  void onFail(Term goal, int foundSolutionCounter);
+  void onFail(ProlContext context, Term goal, int foundSolutionCounter);
 }

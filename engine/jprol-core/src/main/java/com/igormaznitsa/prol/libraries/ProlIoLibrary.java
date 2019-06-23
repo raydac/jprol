@@ -18,6 +18,7 @@ import com.igormaznitsa.prologparser.utils.StringBuilderEx;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.igormaznitsa.prol.data.TermType.LIST;
@@ -29,6 +30,10 @@ public class ProlIoLibrary extends AbstractProlLibrary {
   private static final Term END_OF_FILE = Terms.newAtom("end_of_file");
   private static final String WRITERS_MAP = "_io_writers_map_";
   private static final String READERS_MAP = "_io_readers_map_";
+
+  public ProlIoLibrary() {
+    super("prol-io-lib");
+  }
 
   @Predicate(Signature = "consult/1", Template = {"+atom", "+list"}, Reference = "Take an atom as the file name of the resource to be used for consultation, or a list contains resource name chain.")
   @Determined
@@ -79,10 +84,6 @@ public class ProlIoLibrary extends AbstractProlLibrary {
     return true;
   }
 
-  public ProlIoLibrary() {
-    super("prol-io-lib");
-  }
-
   private InternalReader makeResourceReader(final ProlContext context, final String resourceId) throws IOException {
     final Reader reader = context.findResourceReader(resourceId).orElseThrow(() -> new FileNotFoundException(resourceId));
 
@@ -112,20 +113,40 @@ public class ProlIoLibrary extends AbstractProlLibrary {
     }
   }
 
-  private InternalReader findCurrentInput(final ProlContext context, final Term goal) {
-    final InternalReader current = getIoReaders(context).get(CURRENT_STREAM_ID);
-    if (current == null) {
-      return getIoReaders(context).computeIfAbsent("user", key -> new InternalReader(Terms.newAtom("user"), new InputStreamReader(System.in, Charset.defaultCharset()), false));
+  private Optional<InternalWriter> makeUserAsCurrentOut(final ProlContext context, final boolean append) {
+    if (getIoWriters(context).containsKey("user")) {
+      return Optional.ofNullable(getIoWriters(context).get("user"));
+    } else {
+      final Optional<Writer> userWriter = context.findResourceWriter("user", append);
+      return userWriter.map(writer -> {
+        final InternalWriter result = new InternalWriter(Terms.newAtom("user"), writer, false);
+        getIoWriters(context).put("user", result);
+        return Optional.of(result);
+      }).orElse(Optional.empty());
     }
-    return current;
   }
 
-  private InternalWriter findCurrentOutput(final ProlContext context, final Term goal) {
-    final InternalWriter current = getIoWriters(context).get(CURRENT_STREAM_ID);
-    if (current == null) {
-      return getIoWriters(context).computeIfAbsent("user", key -> new InternalWriter(Terms.newAtom("user"), new OutputStreamWriter(System.out, Charset.defaultCharset()), false));
+  private Optional<InternalReader> makeUserAsCurrentIn(final ProlContext context) {
+    if (getIoWriters(context).containsKey("user")) {
+      return Optional.ofNullable(getIoReaders(context).get("user"));
+    } else {
+      final Optional<Reader> userReader = context.findResourceReader("user");
+      return userReader.map(reader -> {
+        final InternalReader result = new InternalReader(Terms.newAtom("user"), reader, false);
+        getIoReaders(context).put("user", result);
+        return Optional.of(result);
+      }).orElse(Optional.empty());
     }
-    return current;
+  }
+
+  private Optional<InternalReader> findCurrentInput(final ProlContext context, final Term goal) {
+    final InternalReader current = getIoReaders(context).get(CURRENT_STREAM_ID);
+    return current == null ? makeUserAsCurrentIn(context) : Optional.of(current);
+  }
+
+  private Optional<InternalWriter> findCurrentOutput(final ProlContext context, final Term goal) {
+    final InternalWriter current = getIoWriters(context).get(CURRENT_STREAM_ID);
+    return current == null ? makeUserAsCurrentOut(context, true) : Optional.of(current);
   }
 
   private Map<String, InternalWriter> getIoWriters(final ProlContext context) {
@@ -155,48 +176,48 @@ public class ProlIoLibrary extends AbstractProlLibrary {
   @Determined
   public final boolean predicateGET(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
-    final Reader current = findCurrentInput(goal.getContext(), predicate);
-
-    try {
-      int code = -1;
-      do {
-        final int nextCode = current.read();
-        if (nextCode < 0) {
-          break;
-        } else {
-          if (!(Character.isWhitespace(nextCode) || Character.isISOControl(nextCode))) {
-            code = nextCode;
+    return findCurrentInput(goal.getContext(), predicate).map(reader -> {
+      try {
+        int code = -1;
+        do {
+          final int nextCode = reader.read();
+          if (nextCode < 0) {
             break;
+          } else {
+            if (!(Character.isWhitespace(nextCode) || Character.isISOControl(nextCode))) {
+              code = nextCode;
+              break;
+            }
           }
-        }
-      } while (!Thread.currentThread().isInterrupted());
-      return arg.unifyTo(Terms.newLong(code));
-    } catch (IOException ex) {
-      throw new ProlPermissionErrorException("read", "text_input", predicate);
-    }
+        } while (!Thread.currentThread().isInterrupted());
+        return arg.unifyTo(Terms.newLong(code));
+      } catch (IOException ex) {
+        throw new ProlPermissionErrorException("read", "text_input", predicate);
+      }
+    }).orElseThrow(() -> new ProlPermissionErrorException("read", "text_input", predicate));
   }
 
   @Predicate(Signature = "get0/1", Template = "?number", Reference = "Read next char code from the current input stream.")
   @Determined
   public final boolean predicateGET0(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
-    final Reader current = findCurrentInput(goal.getContext(), predicate);
-
-    try {
-      int code = -1;
-      do {
-        final int nextCode = current.read();
-        if (nextCode < 0) {
-          break;
-        } else {
-          code = nextCode;
-          break;
-        }
-      } while (!Thread.currentThread().isInterrupted());
-      return arg.unifyTo(Terms.newLong(code));
-    } catch (IOException ex) {
-      throw new ProlPermissionErrorException("read", "text_input", predicate);
-    }
+    return findCurrentInput(goal.getContext(), predicate).map(reader -> {
+      try {
+        int code = -1;
+        do {
+          final int nextCode = reader.read();
+          if (nextCode < 0) {
+            break;
+          } else {
+            code = nextCode;
+            break;
+          }
+        } while (!Thread.currentThread().isInterrupted());
+        return arg.unifyTo(Terms.newLong(code));
+      } catch (IOException ex) {
+        throw new ProlPermissionErrorException("read", "text_input", predicate);
+      }
+    }).orElseThrow(() -> new ProlPermissionErrorException("read", "text_input", predicate));
   }
 
   @Predicate(Signature = "read/1", Reference = " Read  the next Prolog term from the current input stream.")
@@ -223,43 +244,46 @@ public class ProlIoLibrary extends AbstractProlLibrary {
   }
 
   private String readCurrentUntilNl(final ProlContext context, final Term goal) {
-    final Reader current = findCurrentInput(context, goal);
-    final StringBuilderEx result = new StringBuilderEx("");
-    try {
-      while (Thread.currentThread().isInterrupted()) {
-        final int nextChr = current.read();
-        if (nextChr < 0 || nextChr == '\n') {
-          break;
-        }
-        if (nextChr == '\b') {
-          if (!result.isEmpty()) {
-            result.pop();
+    return findCurrentInput(context, goal).map(reader -> {
+      final StringBuilderEx result = new StringBuilderEx("");
+      try {
+        while (Thread.currentThread().isInterrupted()) {
+          final int nextChr = reader.read();
+          if (nextChr < 0 || nextChr == '\n') {
+            break;
           }
-        } else {
-          result.append((char) nextChr);
+          if (nextChr == '\b') {
+            if (!result.isEmpty()) {
+              result.pop();
+            }
+          } else {
+            result.append((char) nextChr);
+          }
         }
+      } catch (IOException ex) {
+        throw new ProlPermissionErrorException("read", "text_input", goal);
       }
-    } catch (IOException ex) {
-      throw new ProlPermissionErrorException("read", "text_input", goal);
-    }
-    return result.toString();
+      return result.toString();
+    }).orElseThrow(() -> new ProlPermissionErrorException("read", "text_input", goal));
   }
 
   @Predicate(Signature = "seen/0", Reference = "Close the current input stream.")
   @Determined
-  public final void predicateSEEN(final ChoicePoint goal, final TermStruct predicate) {
-    final Reader current = findCurrentInput(goal.getContext(), predicate);
-    try {
-      current.close();
-    } catch (IOException ex) {
-      throw new ProlPermissionErrorException("close", "text_stream", predicate, ex);
-    }
+  public final boolean predicateSEEN(final ChoicePoint goal, final TermStruct predicate) {
+    return findCurrentInput(goal.getContext(), predicate).map(reader -> {
+      try {
+        reader.close();
+        return true;
+      } catch (IOException ex) {
+        throw new ProlPermissionErrorException("close", "text_stream", predicate, ex);
+      }
+    }).orElseThrow(() -> new ProlPermissionErrorException("close", "text_stream", predicate));
   }
 
-  @Predicate(Signature = "see/1", Template = "+atom", Reference = "Open SrcDest for reading and make it the current input")
+  @Predicate(Signature = "see/1", Template = "+atom", Reference = "Open source for reading and make it the current input")
   @Determined
   public final void predicateSEE(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = predicate.getElement(0).findNonVarOrDefault(null);
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
     final String name = arg.getText();
 
     try {
@@ -302,13 +326,15 @@ public class ProlIoLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "write/1", Reference = "Write a term into the current output stream.")
   @Determined
-  public final void predicateWrite(final ChoicePoint goal, final TermStruct predicate) {
-    final Writer writer = findCurrentOutput(goal.getContext(), predicate);
-    try {
-      writer.write(predicate.getElement(0).forWrite());
-    } catch (IOException ex) {
-      throw new ProlPermissionErrorException("write", "text_output", predicate, ex);
-    }
+  public final boolean predicateWrite(final ChoicePoint goal, final TermStruct predicate) {
+    return findCurrentOutput(goal.getContext(), predicate).map(writer -> {
+      try {
+        writer.write(predicate.getElement(0).forWrite());
+        return true;
+      } catch (IOException ex) {
+        throw new ProlPermissionErrorException("write", "text_output", predicate, ex);
+      }
+    }).orElseThrow(() -> new ProlPermissionErrorException("write", "text_output", predicate));
   }
 
   @Predicate(Signature = "seeing/1", Template = "?term", Reference = "Return the current input stream name.")
@@ -331,57 +357,65 @@ public class ProlIoLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "told/0", Reference = "Close the current output stream.")
   @Determined
-  public final void predicateTOLD(final ChoicePoint goal, final TermStruct predicate) {
-    final InternalWriter current = this.findCurrentOutput(goal.getContext(), predicate);
-    try {
-      current.close();
-    } catch (IOException ex) {
-      throw new ProlPermissionErrorException("close", "text_stream", predicate, ex);
-    }
+  public final boolean predicateTOLD(final ChoicePoint goal, final TermStruct predicate) {
+    return this.findCurrentOutput(goal.getContext(), predicate).map(writer -> {
+      try {
+        writer.close();
+        return true;
+      } catch (IOException ex) {
+        throw new ProlPermissionErrorException("close", "text_stream", predicate, ex);
+      }
+    }).orElseThrow(() -> new ProlPermissionErrorException("close", "text_stream", predicate));
   }
 
   @Predicate(Signature = "nl/0", Reference = "Out the next line char symbol into current output stream")
   @Determined
-  public final void predicateNL(final ChoicePoint goal, final TermStruct predicate) {
-    try {
-      this.findCurrentOutput(goal.getContext(), predicate).write('\n');
-    } catch (IOException ex) {
-
-    }
+  public final boolean predicateNL(final ChoicePoint goal, final TermStruct predicate) {
+    return this.findCurrentOutput(goal.getContext(), predicate).map(writer -> {
+      try {
+        writer.write('\n');
+        return true;
+      } catch (IOException ex) {
+        throw new ProlPermissionErrorException("write", "text_stream", predicate, ex);
+      }
+    }).orElseThrow(() -> new ProlPermissionErrorException("write", "text_stream", predicate));
   }
 
   @Predicate(Signature = "time/1", Template = "+callable_term", Reference = "Execute  Goal just but  print used time, It supports choice point (!) for inside goal.")
-  public final boolean predicateTime(final ChoicePoint goal, final TermStruct predicate) {
+  public boolean predicateTime(final ChoicePoint goal, final TermStruct predicate) {
     final long time = System.nanoTime();
     final boolean result = predicateCALL(goal, predicate);
-    final long timeInterval = ((System.nanoTime() - time) + 500L) / 1000L; //microseconds
-
-    final InternalWriter writer = findCurrentOutput(goal.getContext(), predicate);
-    try {
-      writer.write(String.format("%% %d.%d ms", (timeInterval / 1000), (timeInterval % 1000)));
-    } catch (IOException ex) {
-
-    }
 
     if (!result) {
       goal.resetVariants();
     }
-    return result;
+
+    final long timeInterval = ((System.nanoTime() - time) + 500L) / 1000L; //microseconds
+
+    return findCurrentOutput(goal.getContext(), predicate).map(writer -> {
+      try {
+        writer.write(String.format("%% %d.%d ms", (timeInterval / 1000), (timeInterval % 1000)));
+        writer.flush();
+      } catch (IOException ex) {
+        new ProlPermissionErrorException("write", "text_stream", predicate, ex);
+      }
+      return result;
+    }).orElseThrow(() -> new ProlPermissionErrorException("write", "text_stream", predicate));
   }
 
   @Predicate(Signature = "tab/1", Template = {"+integer"}, Reference = "Out a number of space symbols into current output stream")
   @Determined
-  public final void predicateTAB(final ChoicePoint goal, final TermStruct predicate) {
-    final InternalWriter writer = findCurrentOutput(goal.getContext(), predicate);
-
+  public final boolean predicateTAB(final ChoicePoint goal, final TermStruct predicate) {
     final long spaces = predicate.getElement(0).toNumber().longValue();
-    try {
-      for (long li = 0; li < spaces; li++) {
-        writer.write(" ");
+    return findCurrentOutput(goal.getContext(), predicate).map(writer -> {
+      try {
+        for (long li = 0; li < spaces; li++) {
+          writer.write(" ");
+        }
+      } catch (IOException ex) {
       }
-    } catch (IOException ex) {
-
-    }
+      return true;
+    }).orElseThrow(() -> new ProlPermissionErrorException("write", "text_stream", predicate));
   }
 
   private static class InternalReader extends PushbackReader {

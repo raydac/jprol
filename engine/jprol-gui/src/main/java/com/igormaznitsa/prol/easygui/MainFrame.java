@@ -20,12 +20,15 @@ import com.igormaznitsa.prol.annotations.Determined;
 import com.igormaznitsa.prol.annotations.Predicate;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
+import com.igormaznitsa.prol.data.TermVar;
 import com.igormaznitsa.prol.exceptions.ParserException;
+import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 import com.igormaznitsa.prol.exceptions.ProlHaltExecutionException;
-import com.igormaznitsa.prol.io.ProlStreamManager;
 import com.igormaznitsa.prol.libraries.*;
 import com.igormaznitsa.prol.logic.ChoicePoint;
+import com.igormaznitsa.prol.logic.ConsultInteractor;
 import com.igormaznitsa.prol.logic.ProlContext;
+import com.igormaznitsa.prol.logic.io.IoResourceProvider;
 import com.igormaznitsa.prol.trace.TraceEvent;
 import com.igormaznitsa.prol.trace.TracingChoicePointListener;
 import com.igormaznitsa.prol.utils.Utils;
@@ -52,8 +55,9 @@ import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
-public final class MainFrame extends javax.swing.JFrame implements ProlStreamManager, Runnable, UndoableEditListener, WindowListener, DocumentListener, HyperlinkListener, TracingChoicePointListener {
+public final class MainFrame extends javax.swing.JFrame implements ConsultInteractor, IoResourceProvider, Runnable, UndoableEditListener, WindowListener, DocumentListener, HyperlinkListener, TracingChoicePointListener {
 
   protected static final String PROL_EXTENSION = ".prl";
   private static final long serialVersionUID = 72348723421332L;
@@ -151,6 +155,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   private javax.swing.JSplitPane splitPanelDown;
   private javax.swing.JTextField textFind;
   private com.igormaznitsa.prol.easygui.TraceDialog traceEditor;
+
   /**
    * Creates new form MainFrame
    */
@@ -1028,7 +1033,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   }
 
   @Override
-  public Reader findReaderForId(String id) throws IOException {
+  public Reader findReader(final ProlContext context, final String id) {
     boolean successful = false;
     boolean notTraceable = false;
     try {
@@ -1039,9 +1044,10 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       } else {
         final FileReader reader = new FileReader(id);
         successful = true;
-        notTraceable = false;
         return reader;
       }
+    } catch (IOException ex) {
+      throw new ProlCriticalError("Can't provide reader", ex);
     } finally {
       if (!notTraceable) {
         if (successful) {
@@ -1054,7 +1060,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
   }
 
   @Override
-  public Writer findWriterForId(String id, boolean append) throws IOException {
+  public Writer findWriter(ProlContext context, String id, boolean append) {
     boolean successful = false;
     boolean notTraceable = false;
 
@@ -1064,12 +1070,14 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
         notTraceable = true;
         return this.dialogEditor.getOutputWriter();
       } else {
-        final Writer writer = new FileWriter(id);
+        final Writer writer = new FileWriter(id, append);
         successful = true;
         notTraceable = false;
 
         return writer;
       }
+    } catch (IOException ex) {
+      throw new ProlCriticalError("IOException", ex);
     } finally {
       if (!notTraceable) {
         if (successful) {
@@ -1100,7 +1108,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       this.messageEditor.addInfoText("Creating Context...");
 
       try {
-        context = new ProlContext("ProlScript", this);
+        context = new ProlContext("ProlScript").addIoResourceProvider(this);
         if (this.startedInTracing.get()) {
           context.addTraceListener(this);
         }
@@ -1127,7 +1135,7 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       startTime = System.currentTimeMillis();
 
       try {
-        context.consult(new StringReader(sourceEditor.getText()));
+        context.consult(new StringReader(sourceEditor.getText()), Optional.of(this));
         // wait for async threads
         context.getContextExecutorService().shutdown();
         context.getContextExecutorService().awaitTermination(60, TimeUnit.SECONDS);
@@ -1593,5 +1601,59 @@ public final class MainFrame extends javax.swing.JFrame implements ProlStreamMan
       LOG.log(Level.INFO, "msginfo/1 : {0}", text);
       messageEditor.addInfoText(text);
     }
+  }
+
+  @Override
+  public boolean onFoundInteractiveGoal(final ProlContext context, final Term goal) {
+    return context.findResourceWriter("user", true).map(writer -> {
+      try {
+        writer.write(String.format("Goal: '%s'%n", goal.forWrite()));
+        return true;
+      } catch (IOException ex) {
+        ex.printStackTrace();
+        return false;
+      }
+    }).orElse(false);
+  }
+
+  @Override
+  public boolean onSolution(final ProlContext context, final Term goal, final Map<String, TermVar> varValues, final int solutionCounter) {
+    final String varText = varValues.entrySet().stream()
+        .map(e -> e.getValue().getText() + '=' + e.getValue().getValue().forWrite())
+        .collect(Collectors.joining("\n"));
+
+    context.findResourceWriter("user", true)
+        .ifPresent(writer -> {
+          try {
+            writer.write(String.format("%nYES%n%s%nNext solution?:", varText));
+          } catch (IOException ex) {
+            ex.printStackTrace();
+          }
+        });
+
+    return context.findResourceReader("user").map(reader -> {
+      try {
+        final int chr = reader.read();
+        final Optional<Writer> out = context.findResourceWriter("user", true);
+        if (out.isPresent()) {
+          out.get().write("\n");
+        }
+        return chr == 'y' || chr == 'Y' || chr == ';';
+      } catch (IOException ex) {
+        ex.printStackTrace();
+        return false;
+      }
+    }).orElse(false);
+  }
+
+  @Override
+  public void onFail(final ProlContext context, final Term goal, final int foundSolutionCounter) {
+    context.findResourceWriter("user", true).ifPresent(writer -> {
+      try {
+        writer.write(String.format("%nNO%n"));
+      } catch (IOException ex) {
+        ex.printStackTrace();
+      }
+    });
   }
 }
