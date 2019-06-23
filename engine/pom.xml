@@ -12,7 +12,6 @@
 
     <modules>
         <module>jprol-core</module>
-        <module>jprol-jsr223</module>
         <module>jprol-gui</module>
     </modules>
 
