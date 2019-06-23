@@ -1,6 +1,8 @@
 nb-configuration.xml
+/jprol-core/jprol-core.iml
+/jprol-gui/jprol-gui.iml
+/jprol-jsr223/jprol-jsr223.iml
 /engine/target/
 /examples/java/elife/target/
 /engine/.idea/
-/engine/jprol.iml
 /engine/jprol-jsr223/target/

@@ -25,6 +25,7 @@ import com.igormaznitsa.prol.libraries.AbstractProlLibrary;
 import com.igormaznitsa.prol.libraries.PredicateProcessor;
 import com.igormaznitsa.prol.libraries.ProlCoreLibrary;
 import com.igormaznitsa.prol.libraries.ProlIoLibrary;
+import com.igormaznitsa.prol.logic.io.IoResourceProvider;
 import com.igormaznitsa.prol.logic.triggers.ProlTrigger;
 import com.igormaznitsa.prol.logic.triggers.ProlTriggerType;
 import com.igormaznitsa.prol.logic.triggers.TriggerEvent;
@@ -38,6 +39,7 @@ import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.Writer;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
@@ -68,6 +70,8 @@ public final class ProlContext implements ParserContext {
   private final AtomicInteger activeTaskCounter = new AtomicInteger();
   private final List<TracingChoicePointListener> traceListeners = new CopyOnWriteArrayList<>();
 
+  private final List<IoResourceProvider> ioProviders = new CopyOnWriteArrayList<>();
+
   public ProlContext(final String name) {
     this(name, new InMemoryKnowledgeBase(name + "_kbase"), null);
   }
@@ -89,12 +93,32 @@ public final class ProlContext implements ParserContext {
     this.libraries.add(new ProlIoLibrary());
   }
 
-  public void addTraceListener(final TracingChoicePointListener listener) {
+  public ProlContext addTraceListener(final TracingChoicePointListener listener) {
     this.traceListeners.add(listener);
+    return this;
   }
 
-  public void removeTraceListener(final TracingChoicePointListener listener) {
+  public ProlContext removeTraceListener(final TracingChoicePointListener listener) {
     this.traceListeners.remove(listener);
+    return this;
+  }
+
+  public ProlContext addIoResourceProvider(final IoResourceProvider provider) {
+    this.ioProviders.add(provider);
+    return this;
+  }
+
+  public ProlContext removeIoResourceProvider(final IoResourceProvider provider) {
+    this.ioProviders.remove(provider);
+    return this;
+  }
+
+  public Optional<Reader> findResourceReader(final String readerId) {
+    return this.ioProviders.stream().map(x -> x.findReader(this, readerId)).filter(Objects::nonNull).findFirst();
+  }
+
+  public Optional<Writer> findResourceWriter(final String writerId, final boolean append) {
+    return this.ioProviders.stream().map(x -> x.findWriter(this, writerId, append)).filter(Objects::nonNull).findFirst();
   }
 
   public final String getName() {

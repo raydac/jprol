@@ -31,6 +31,7 @@ import com.igormaznitsa.prol.utils.Utils;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.igormaznitsa.prol.data.Terms.*;
@@ -44,7 +45,7 @@ public abstract class AbstractProlLibrary {
   private final Map<String, PredicateProcessor> predicateMethodsMap;
   private final Set<String> zeroArityPredicateNames;
 
-  private final Map<ProlContext, Map<String, Object>> contextMaps = new ConcurrentHashMap<>();
+  private final Map<ProlContext, Map<String, Object>> contextNamedObjects = new ConcurrentHashMap<>();
 
   public AbstractProlLibrary(final String libraryUid) {
     if (libraryUid == null) {
@@ -59,8 +60,26 @@ public abstract class AbstractProlLibrary {
     this.zeroArityPredicateNames = Collections.unmodifiableSet(zeroArityPredicates);
   }
 
-  protected Map<String, Object> getContextMappedObjects(final ProlContext context) {
-    return this.contextMaps.computeIfAbsent(context, ctx -> new ConcurrentHashMap<>());
+  @SuppressWarnings("unchecked")
+  protected <T> T findContextObject(final ProlContext context, final String objectId, final Function<String, T> defaultSupplier) {
+    return (T) this.contextNamedObjects
+        .computeIfAbsent(context, ctx -> new ConcurrentHashMap<>())
+        .computeIfAbsent(objectId, defaultSupplier);
+  }
+
+  protected void putContextObject(final ProlContext context, final String objectId, final Optional<?> obj) {
+    final Map<String, Object> contextMap = this.contextNamedObjects
+        .computeIfAbsent(context, ctx -> new ConcurrentHashMap<>());
+
+    if (obj.isPresent()) {
+      contextMap.put(objectId, obj.get());
+    } else {
+      contextMap.remove(objectId);
+    }
+  }
+
+  protected Map<String, Object> getContextNamedObjects(final ProlContext context) {
+    return this.contextNamedObjects.computeIfAbsent(context, ctx -> new ConcurrentHashMap<>());
   }
 
   private static void registerStaticOperator(final Map<String, TermOperatorContainer> operatorMap, final ProlOperator operator) {
@@ -133,6 +152,7 @@ public abstract class AbstractProlLibrary {
   }
 
   public void release() {
+    this.contextNamedObjects.clear();
   }
 
   @Override
@@ -217,6 +237,6 @@ public abstract class AbstractProlLibrary {
   }
 
   public void onContextDispose(final ProlContext context) {
-    this.contextMaps.remove(context);
+    this.contextNamedObjects.remove(context);
   }
 }

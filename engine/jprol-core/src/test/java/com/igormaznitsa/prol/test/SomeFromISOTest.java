@@ -627,7 +627,6 @@ class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  @Disabled
   void testAtomConcat() throws Exception {
     //[atom_concat('hello',' world',A), [[A <-- 'hello world']]].
     checkOnceVar("atom_concat('hello',' world',A).", "A", "'hello world'");
