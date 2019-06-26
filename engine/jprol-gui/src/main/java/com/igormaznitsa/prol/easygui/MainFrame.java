@@ -21,7 +21,6 @@ import com.igormaznitsa.prol.annotations.Predicate;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.data.TermVar;
-import com.igormaznitsa.prol.exceptions.ParserException;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 import com.igormaznitsa.prol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.prol.libraries.*;
@@ -32,6 +31,7 @@ import com.igormaznitsa.prol.logic.io.IoResourceProvider;
 import com.igormaznitsa.prol.trace.TraceEvent;
 import com.igormaznitsa.prol.trace.TracingChoicePointListener;
 import com.igormaznitsa.prol.utils.Utils;
+import com.igormaznitsa.prologparser.exceptions.PrologParserException;
 
 import javax.swing.*;
 import javax.swing.UIManager.LookAndFeelInfo;
@@ -1095,7 +1095,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     boolean successfully = false;
     boolean canceled = false;
     ProlHaltExecutionException halted = null;
-    ParserException parserException = null;
+    PrologParserException parserException = null;
 
     long startTime = 0;
 
@@ -1139,7 +1139,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
         // wait for async threads
         context.getContextExecutorService().shutdown();
         context.getContextExecutorService().awaitTermination(60, TimeUnit.SECONDS);
-      } catch (ParserException ex) {
+      } catch (PrologParserException ex) {
         LOG.log(Level.WARNING, "ExecutionThread.run()", ex);
         parserException = ex;
 

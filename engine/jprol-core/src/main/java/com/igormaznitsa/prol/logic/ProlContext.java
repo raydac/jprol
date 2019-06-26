@@ -20,7 +20,10 @@ import com.igormaznitsa.prol.annotations.ConsultText;
 import com.igormaznitsa.prol.containers.InMemoryKnowledgeBase;
 import com.igormaznitsa.prol.containers.KnowledgeBase;
 import com.igormaznitsa.prol.data.*;
-import com.igormaznitsa.prol.exceptions.*;
+import com.igormaznitsa.prol.exceptions.ProlException;
+import com.igormaznitsa.prol.exceptions.ProlForkExecutionException;
+import com.igormaznitsa.prol.exceptions.ProlHaltExecutionException;
+import com.igormaznitsa.prol.exceptions.ProlKnowledgeBaseException;
 import com.igormaznitsa.prol.libraries.AbstractProlLibrary;
 import com.igormaznitsa.prol.libraries.PredicateProcessor;
 import com.igormaznitsa.prol.libraries.ProlCoreLibrary;
@@ -34,6 +37,7 @@ import com.igormaznitsa.prol.trace.TracingChoicePointListener;
 import com.igormaznitsa.prol.utils.Utils;
 import com.igormaznitsa.prologparser.ParserContext;
 import com.igormaznitsa.prologparser.PrologParser;
+import com.igormaznitsa.prologparser.exceptions.PrologParserException;
 import com.igormaznitsa.prologparser.terms.OpContainer;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
@@ -519,7 +523,7 @@ public final class ProlContext implements ParserContext {
       } catch (ThreadDeath ex) {
         throw ex;
       } catch (Exception ex) {
-        throw new ParserException(ex.getMessage(), line, strpos, ex);
+        throw new PrologParserException(ex.getMessage(), line, strpos, ex);
       }
     } while (!Thread.currentThread().isInterrupted());
   }
