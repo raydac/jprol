@@ -22,6 +22,8 @@ import lombok.Data;
 
 import java.io.PrintWriter;
 
+import static java.util.Objects.requireNonNull;
+
 @Data
 public final class KnowledgeBaseItem {
   private final TermStruct clause;
@@ -61,9 +63,7 @@ public final class KnowledgeBaseItem {
   }
 
   void write(final PrintWriter writer) {
-    if (writer == null) {
-      throw new NullPointerException("Writer is null");
-    }
-    writer.write(String.format("%s.%n", this.clause.toSrcString()));
+    requireNonNull(writer, "Writer must not be null")
+        .write(String.format("%s.%n", this.clause.toSrcString()));
   }
 }

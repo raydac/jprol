@@ -22,6 +22,7 @@ import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
+import java.util.Objects;
 
 import static com.igormaznitsa.prol.data.TermType.ATOM;
 
@@ -162,10 +163,7 @@ public final class Utils {
   }
 
   public static String validateSignature(final String signature) {
-    if (signature == null) {
-      throw new NullPointerException("Null signature detected");
-    }
-    final String[] parsed = signature.split("/");
+    final String[] parsed = Objects.requireNonNull(signature, "Null signature not allowed").split("/");
     if (parsed.length == 2) {
       String str = parsed[0].trim();
       boolean quoted = false;

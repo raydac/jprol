@@ -16,11 +16,13 @@
 
 package com.igormaznitsa.prol.logic.triggers;
 
-import com.igormaznitsa.prol.utils.Utils;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.igormaznitsa.prol.utils.Utils.normalizeSignature;
+import static com.igormaznitsa.prol.utils.Utils.validateSignature;
+import static java.util.Objects.requireNonNull;
 
 public abstract class AbstractProlTrigger implements ProlTrigger {
 
@@ -31,34 +33,26 @@ public abstract class AbstractProlTrigger implements ProlTrigger {
   }
 
   public AbstractProlTrigger addSignature(final String signature, final ProlTriggerType observedEvent) {
-    if (signature == null || observedEvent == null) {
-      throw new NullPointerException("Both arguments must not be null");
-    }
-
-    String processedsignature = Utils.validateSignature(signature);
+    String processedsignature = validateSignature(requireNonNull(signature));
 
     if (processedsignature == null) {
       throw new IllegalArgumentException("Wrong signature format [" + signature + ']');
     } else {
-      processedsignature = Utils.normalizeSignature(processedsignature);
+      processedsignature = normalizeSignature(processedsignature);
     }
 
-    signatureMap.put(processedsignature, observedEvent);
+    signatureMap.put(processedsignature, requireNonNull(observedEvent));
 
     return this;
   }
 
   public AbstractProlTrigger removeSignature(final String signature) {
-    if (signature == null) {
-      throw new NullPointerException("Signature is null");
-    }
-
-    String processedsignature = Utils.validateSignature(signature);
+    String processedsignature = validateSignature(requireNonNull(signature, "Signature is null"));
 
     if (processedsignature == null) {
       throw new IllegalArgumentException("Wrong signature format [" + signature + ']');
     } else {
-      processedsignature = Utils.normalizeSignature(processedsignature);
+      processedsignature = normalizeSignature(processedsignature);
     }
 
     signatureMap.remove(processedsignature);

@@ -52,6 +52,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.igormaznitsa.prol.data.TermType.VAR;
+import static java.util.Objects.requireNonNull;
 
 public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowListener, ActionListener {
 
@@ -126,11 +127,6 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
   }
 
   private static Color getColorForName(final String color) {
-
-    if (color == null) {
-      throw new NullPointerException("Color name is null");
-    }
-
     final Color result;
     if (color.charAt(0) == '#') {
       final int hex = Integer.parseInt(color.substring(1), 16);
@@ -937,13 +933,9 @@ public final class ProlGfxLibrary extends AbstractProlLibrary implements WindowL
     private final ProlContext contextForTheAction;
 
     public RegisteredAction(final String menuText, final Term action, final ProlContext context) {
-      if (menuText == null || action == null || context == null) {
-        throw new NullPointerException("An argument is null");
-      }
-
-      this.menuText = menuText;
-      this.action = action;
-      this.contextForTheAction = context;
+      this.menuText = requireNonNull(menuText);
+      this.action = requireNonNull(action);
+      this.contextForTheAction = requireNonNull(context);
     }
 
     public boolean execute() {

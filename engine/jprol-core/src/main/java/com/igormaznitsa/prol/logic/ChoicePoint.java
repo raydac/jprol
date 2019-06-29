@@ -35,6 +35,7 @@ import java.util.Map;
 import static com.igormaznitsa.prol.data.TermType.ATOM;
 import static com.igormaznitsa.prol.data.Terms.newStruct;
 import static com.igormaznitsa.prol.trace.TraceEvent.EXIT;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
 
 public final class ChoicePoint {
@@ -161,10 +162,7 @@ public final class ChoicePoint {
   }
 
   public TermVar getVarForName(final String name) {
-    if (name == null) {
-      throw new NullPointerException("Variable name is null");
-    }
-    return this.variables == null ? null : this.variables.get(name);
+    return this.variables == null ? null : this.variables.get(requireNonNull(name));
   }
 
   public ChoicePoint replaceLastGoalAtChain(final Term goal) {

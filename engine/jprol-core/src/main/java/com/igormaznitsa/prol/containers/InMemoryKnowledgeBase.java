@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 import static com.igormaznitsa.prol.data.TermType.ATOM;
 import static com.igormaznitsa.prol.data.Terms.newStruct;
 import static java.lang.Integer.parseInt;
+import static java.util.Objects.requireNonNull;
 
 public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
@@ -43,10 +44,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   private final ReentrantLock predicateLocker = new ReentrantLock();
 
   public InMemoryKnowledgeBase(final String id) {
-    if (id == null) {
-      throw new NullPointerException("Id must not be null");
-    }
-    this.knowledgeBaseId = id;
+    this.knowledgeBaseId = requireNonNull(id, "Id must not be null");
   }
 
   private InMemoryKnowledgeBase(final String baseId, final InMemoryKnowledgeBase etalon) {

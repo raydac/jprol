@@ -18,10 +18,7 @@ package com.igormaznitsa.prol.data;
 
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static com.igormaznitsa.prol.data.TermType.LIST;
@@ -100,10 +97,7 @@ public final class TermList extends TermStruct {
   }
 
   public void setTail(final Term newTail) {
-    if (newTail == null) {
-      throw new NullPointerException("NULL as Tail in list");
-    }
-    this.terms[INDEX_TAIL] = newTail;
+    this.terms[INDEX_TAIL] = Objects.requireNonNull(newTail, "Null is not allowed as list tail");
   }
 
   public int calculateLength() {

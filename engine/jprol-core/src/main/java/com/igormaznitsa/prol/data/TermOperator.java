@@ -122,9 +122,6 @@ public final class TermOperator extends Term {
   }
 
   public void write(final PrintWriter writer) {
-    if (writer == null) {
-      throw new NullPointerException("Writer is null");
-    }
     writer.print(":- op(");
     writer.print(this.op.getPrecedence());
     writer.print(',');

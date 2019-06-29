@@ -28,6 +28,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Objects.requireNonNull;
+
 public class DeferredGoal {
 
   private String goalAsText;
@@ -36,11 +38,8 @@ public class DeferredGoal {
   private List<String> orderedVars;
 
   public DeferredGoal(final Term goal, final ProlContext workContext) {
-    if (goal == null || workContext == null) {
-      throw new NullPointerException("Null argument detected");
-    }
-    setContext(workContext);
-    setParsedGoal(goal);
+    setContext(requireNonNull(workContext));
+    setParsedGoal(requireNonNull(goal));
     setOrderedVars(Collections.emptyList());
   }
 
@@ -49,15 +48,12 @@ public class DeferredGoal {
   }
 
   public DeferredGoal(final String goal, final ProlContext workContext, final TracingChoicePointListener tracer) throws IOException {
-    if (goal == null || workContext == null) {
-      throw new NullPointerException("Needed argument is null");
-    }
-    setContext(workContext);
+    setContext(requireNonNull(workContext));
 
     // find ordered vars
     final List<String> parametrizedNames = new ArrayList<>();
 
-    final StringBuilder builder = new StringBuilder(goal);
+    final StringBuilder builder = new StringBuilder(requireNonNull(goal));
 
     int varIndex = 1000;
     while (!Thread.currentThread().isInterrupted()) {
@@ -153,10 +149,7 @@ public class DeferredGoal {
     final int len = parameters.length;
     for (int li = 0; li < len; li++) {
       final String varName = varNames.get(li);
-      final Term parameter = parameters[li];
-      if (parameter == null) {
-        throw new NullPointerException();
-      }
+      final Term parameter = requireNonNull(parameters[li]);
       final TermVar varTerm = goalClone.variables().filter(x -> varName.equals(x.getText())).findFirst().orElse(null);
       if (varTerm == null) {
         throw new IllegalArgumentException("Can't find a variable for \'" + varName + "\' name");
@@ -168,12 +161,7 @@ public class DeferredGoal {
   }
 
   public final ChoicePoint forParameters(final Map<String, Term> vars) {
-    if (vars == null) {
-      throw new NullPointerException();
-    }
-
     final Term goalClone = getParsedGoal().makeClone();
-
     vars.forEach((key, value) -> {
       final TermVar foundVar = goalClone.variables().filter(x -> key.equals(x.getText())).findFirst().orElse(null);
       if (foundVar == null) {

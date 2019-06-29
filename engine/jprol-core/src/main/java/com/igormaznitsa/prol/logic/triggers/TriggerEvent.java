@@ -18,6 +18,8 @@ package com.igormaznitsa.prol.logic.triggers;
 
 import com.igormaznitsa.prol.logic.ProlContext;
 
+import static java.util.Objects.requireNonNull;
+
 public class TriggerEvent {
 
   private final ProlContext context;
@@ -25,12 +27,9 @@ public class TriggerEvent {
   private final ProlTriggerType eventType;
 
   public TriggerEvent(final ProlContext context, final String normalizedSignature, final ProlTriggerType eventType) {
-    if (context == null || normalizedSignature == null || eventType == null) {
-      throw new NullPointerException();
-    }
-    this.context = context;
-    this.normalizedSignature = normalizedSignature;
-    this.eventType = eventType;
+    this.context = requireNonNull(context);
+    this.normalizedSignature = requireNonNull(normalizedSignature);
+    this.eventType = requireNonNull(eventType);
   }
 
   public ProlContext getContext() {

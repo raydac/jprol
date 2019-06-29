@@ -21,6 +21,8 @@ import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.DeferredGoal;
 import com.igormaznitsa.prol.logic.ProlContext;
 
+import static java.util.Objects.requireNonNull;
+
 public class ProlTriggerGoal extends AbstractProlTrigger {
 
   protected final DeferredGoal goal;
@@ -28,10 +30,7 @@ public class ProlTriggerGoal extends AbstractProlTrigger {
 
   public ProlTriggerGoal(final Term goal, final ProlContext context) {
     super();
-    if (context == null) {
-      throw new NullPointerException("Context is null");
-    }
-    this.goal = new DeferredGoal(goal, context);
+    this.goal = new DeferredGoal(goal, requireNonNull(context));
     this.context = context;
   }
 
