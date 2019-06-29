@@ -29,8 +29,8 @@ import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import static com.igormaznitsa.prol.data.TermType.ATOM;
@@ -41,10 +41,8 @@ import static java.util.Objects.requireNonNull;
 public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
   private final String knowledgeBaseId;
-  private final Map<String, TermOperatorContainer> operatorTable = new HashMap<>();
-  private final Map<String, List<InMemoryItem>> predicateTable = new HashMap<>();
-  private final ReentrantLock operatorLocker = new ReentrantLock();
-  private final ReentrantLock predicateLocker = new ReentrantLock();
+  private final Map<String, TermOperatorContainer> operatorTable = new ConcurrentHashMap<>();
+  private final Map<String, List<InMemoryItem>> predicateTable = new ConcurrentHashMap<>();
 
   public InMemoryKnowledgeBase(final String id) {
     this.knowledgeBaseId = requireNonNull(id, "Id must not be null");
@@ -52,22 +50,10 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
   private InMemoryKnowledgeBase(final String baseId, final InMemoryKnowledgeBase etalon) {
     this.knowledgeBaseId = baseId;
-    etalon.operatorLocker.lock();
-    try {
-      etalon.predicateLocker.lock();
-      try {
-        for (final Entry<String, TermOperatorContainer> item : etalon.operatorTable.entrySet()) {
-          operatorTable.put(item.getKey(), item.getValue().makeCopy());
-        }
-
-        etalon.predicateTable.forEach((key, value) -> this.predicateTable.put(key, makeClone(value)));
-
-      } finally {
-        etalon.predicateLocker.unlock();
-      }
-    } finally {
-      etalon.operatorLocker.unlock();
+    for (final Entry<String, TermOperatorContainer> item : etalon.operatorTable.entrySet()) {
+      operatorTable.put(item.getKey(), item.getValue().makeCopy());
     }
+    etalon.predicateTable.forEach((key, value) -> this.predicateTable.put(key, makeClone(value)));
   }
 
   private static List<InMemoryItem> makeClone(final List<InMemoryItem> src) {
@@ -84,12 +70,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   @Override
   public boolean removeOperator(final String name, final OpAssoc type) {
     TermOperatorContainer opContainer;
-    operatorLocker.lock();
-    try {
-      opContainer = operatorTable.get(name);
-    } finally {
-      operatorLocker.unlock();
-    }
+    opContainer = this.operatorTable.get(name);
 
     boolean result = false;
 
@@ -102,26 +83,18 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   @Override
   public void addOperator(final ProlContext context, final TermOperator operator) {
     final String operatorName = operator.getText();
+    if (context.isSystemOperator(operator.getText())) {
+      throw new SecurityException("Attemption to override a system operator [" + operator.getText() + ']');
+    }
 
-    final ReentrantLock lockerOp = operatorLocker;
-
-    lockerOp.lock();
-    try {
-      if (context.isSystemOperator(operator.getText())) {
-        throw new SecurityException("Attemption to override a system operator [" + operator.getText() + ']');
+    TermOperatorContainer list = operatorTable.get(operatorName);
+    if (list == null) {
+      list = new TermOperatorContainer(operator);
+      operatorTable.put(operatorName, list);
+    } else {
+      if (!list.setOperator(operator)) {
+        throw new SecurityException("Such or a compatible operator is already presented [" + operatorName + ']');
       }
-
-      TermOperatorContainer list = operatorTable.get(operatorName);
-      if (list == null) {
-        list = new TermOperatorContainer(operator);
-        operatorTable.put(operatorName, list);
-      } else {
-        if (!list.setOperator(operator)) {
-          throw new SecurityException("Such or a compatible operator is already presented [" + operatorName + ']');
-        }
-      }
-    } finally {
-      lockerOp.unlock();
     }
   }
 
@@ -131,15 +104,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     TermOperatorContainer result;
 
     if (systemOperator == null) {
-
-      final ReentrantLock lockerOp = operatorLocker;
-
-      lockerOp.lock();
-      try {
-        result = operatorTable.get(name);
-      } finally {
-        lockerOp.unlock();
-      }
+      result = operatorTable.get(name);
     } else {
       result = systemOperator;
     }
@@ -152,18 +117,11 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     if (context.hasSystemOperatorStartsWith(str)) {
       result = true;
     } else {
-      final ReentrantLock lockerOp = operatorLocker;
-
-      lockerOp.lock();
-      try {
-        for (String s : operatorTable.keySet()) {
-          if (s.startsWith(str)) {
-            result = true;
-            break;
-          }
+      for (String s : operatorTable.keySet()) {
+        if (s.startsWith(str)) {
+          result = true;
+          break;
         }
-      } finally {
-        lockerOp.unlock();
       }
     }
     return result;
@@ -175,27 +133,15 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
       throw new IllegalArgumentException("Writer must not be null");
     }
 
-    final ReentrantLock lockerOp = operatorLocker;
-    final ReentrantLock lockerPred = predicateLocker;
-
-    lockerOp.lock();
-    try {
-      // write operators
-      for (TermOperatorContainer container : operatorTable.values()) {
-        container.write(writer);
-      }
-      writer.println();
-    } finally {
-      lockerOp.unlock();
+    // write operators
+    final Iterator<TermOperatorContainer> operators = this.getOperatorIterator();
+    while (operators.hasNext()) {
+      operators.next().write(writer);
     }
+    writer.println();
 
     // write predicates
-    lockerPred.lock();
-    try {
-      predicateTable.values().stream().peek(x -> writer.println()).flatMap(Collection::stream).forEach(x -> x.write(writer));
-    } finally {
-      lockerPred.unlock();
-    }
+    this.predicateTable.values().stream().peek(x -> writer.println()).flatMap(Collection::stream).forEach(x -> x.write(writer));
   }
 
   private boolean assertClause(final ProlContext context, final TermStruct clause, final boolean asFirst) {
@@ -214,19 +160,13 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
       boolean result;
 
-      final ReentrantLock lockerPred = predicateLocker;
-      lockerPred.lock();
-      try {
-        final List<InMemoryItem> list = predicateTable.computeIfAbsent(uid, x -> new CopyOnWriteArrayList<>());
-        if (asFirst) {
-          list.add(0, new InMemoryItem(clause));
-        } else {
-          list.add(new InMemoryItem(clause));
-        }
-        result = true;
-      } finally {
-        lockerPred.unlock();
+      final List<InMemoryItem> list = predicateTable.computeIfAbsent(uid, x -> new CopyOnWriteArrayList<>());
+      if (asFirst) {
+        list.add(0, new InMemoryItem(clause));
+      } else {
+        list.add(new InMemoryItem(clause));
       }
+      result = true;
 
       // notify triggers if they are presented
       if (result && context.hasRegisteredTriggersForSignature(uid, ProlTriggerType.TRIGGER_ASSERT)) {
@@ -244,57 +184,40 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   public ClauseIterator getClauseIterator(final ClauseIteratorType type, final TermStruct template) {
     final String uid = template.getSignature();
 
-    final ReentrantLock lockerPred = this.predicateLocker;
+    final List<InMemoryItem> list = this.predicateTable.get(uid);
 
-    lockerPred.lock();
-    try {
-      final List<InMemoryItem> list = this.predicateTable.get(uid);
+    ClauseIterator result = null;
 
-      ClauseIterator result = null;
-
-      if (list != null) {
-        result = new InMemoryClauseIterator(type, list, template);
-      }
-      return result;
-    } finally {
-      lockerPred.unlock();
+    if (list != null) {
+      result = new InMemoryClauseIterator(type, list, template);
     }
+    return result;
   }
 
   @Override
   public List<TermStruct> findAllForPredicateIndicator(final Term predicateIndicator) {
-    this.predicateLocker.lock();
-    try {
-      return this.predicateTable.keySet()
-          .stream()
-          .map(key -> {
-            final int index = key.lastIndexOf('/');
-            return newStruct(Utils.SIGNATURE_OPERATOR,
-                new Term[] {
-                    Terms.newAtom(key.substring(0, index)),
-                    Terms.newLong(parseInt(key.substring(index + 1)))
-                });
-          })
-          .filter(predicateIndicator::dryUnifyTo)
-          .collect(Collectors.toList());
-    } finally {
-      this.predicateLocker.unlock();
-    }
+    return this.predicateTable.keySet()
+        .stream()
+        .map(key -> {
+          final int index = key.lastIndexOf('/');
+          return newStruct(Utils.SIGNATURE_OPERATOR,
+              new Term[] {
+                  Terms.newAtom(key.substring(0, index)),
+                  Terms.newLong(parseInt(key.substring(index + 1)))
+              });
+        })
+        .filter(predicateIndicator::dryUnifyTo)
+        .collect(Collectors.toList());
   }
 
   @Override
   public List<TermStruct> findAllForSignature(final String signature) {
-    this.predicateLocker.lock();
-    try {
-      final List<InMemoryItem> list = this.predicateTable.get(signature);
+    final List<InMemoryItem> list = this.predicateTable.get(signature);
 
-      if (list == null) {
-        return Collections.emptyList();
-      } else {
-        return list.stream().map(InMemoryItem::getClause).collect(Collectors.toList());
-      }
-    } finally {
-      this.predicateLocker.unlock();
+    if (list == null) {
+      return Collections.emptyList();
+    } else {
+      return list.stream().map(InMemoryItem::getClause).collect(Collectors.toList());
     }
   }
 
@@ -317,31 +240,22 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
       struct = struct.getElement(0);
     }
 
-    final ReentrantLock lockerPred = predicateLocker;
-
     boolean result = false;
-    String uid;
 
-    lockerPred.lock();
-    try {
-      uid = struct.getSignature();
-      final List<InMemoryItem> list = predicateTable.get(uid);
+    final String signature = struct.getSignature();
+    final List<InMemoryItem> list = this.predicateTable.get(signature);
 
-      if (list != null) {
-        result = internalRetractAll(list, struct);
-        if (result && list.isEmpty()) {
-          // delete from base
-          predicateTable.remove(uid);
-        }
+    if (list != null) {
+      result = internalRetractAll(list, struct);
+      if (result && list.isEmpty()) {
+        // delete from base
+        this.predicateTable.remove(signature);
       }
-
-    } finally {
-      lockerPred.unlock();
     }
 
     // notify triggers if they are presented
-    if (result && context.hasRegisteredTriggersForSignature(uid, ProlTriggerType.TRIGGER_RETRACT)) {
-      context.notifyTriggersForSignature(uid, ProlTriggerType.TRIGGER_RETRACT);
+    if (result && context.hasRegisteredTriggersForSignature(signature, ProlTriggerType.TRIGGER_RETRACT)) {
+      context.notifyTriggersForSignature(signature, ProlTriggerType.TRIGGER_RETRACT);
     }
 
     return result;
@@ -383,30 +297,21 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
       struct = struct.getElement(0);
     }
 
-    final ReentrantLock lockerPred = predicateLocker;
     boolean result = false;
-    String uid;
+    final String signature = struct.getSignature();
+    final List<InMemoryItem> list = predicateTable.get(signature);
 
-    lockerPred.lock();
-    try {
-      uid = struct.getSignature();
-      final List<InMemoryItem> list = predicateTable.get(uid);
-
-      if (list != null) {
-        result = internalRetractA(list, struct);
-        if (result && list.isEmpty()) {
-          // delete from base
-          predicateTable.remove(uid);
-        }
+    if (list != null) {
+      result = internalRetractA(list, struct);
+      if (result && list.isEmpty()) {
+        // delete from base
+        predicateTable.remove(signature);
       }
-
-    } finally {
-      lockerPred.unlock();
     }
 
     // notify triggers if they are presented
-    if (result && context.hasRegisteredTriggersForSignature(uid, ProlTriggerType.TRIGGER_RETRACT)) {
-      context.notifyTriggersForSignature(uid, ProlTriggerType.TRIGGER_RETRACT);
+    if (result && context.hasRegisteredTriggersForSignature(signature, ProlTriggerType.TRIGGER_RETRACT)) {
+      context.notifyTriggersForSignature(signature, ProlTriggerType.TRIGGER_RETRACT);
     }
 
     return result;
@@ -422,22 +327,15 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
     boolean result = false;
     String signature;
+    signature = struct.getSignature();
+    final List<InMemoryItem> list = this.predicateTable.get(signature);
 
-    final ReentrantLock lockerPred = predicateLocker;
-    lockerPred.lock();
-    try {
-      signature = struct.getSignature();
-      final List<InMemoryItem> list = this.predicateTable.get(signature);
-
-      if (list != null) {
-        result = internalRetractZ(list, struct);
-        if (result && list.isEmpty()) {
-          // delete from base
-          this.predicateTable.remove(signature);
-        }
+    if (list != null) {
+      result = internalRetractZ(list, struct);
+      if (result && list.isEmpty()) {
+        // delete from base
+        this.predicateTable.remove(signature);
       }
-    } finally {
-      lockerPred.unlock();
     }
 
     // notify triggers if they are presented
@@ -450,8 +348,6 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
   @Override
   public void abolish(final ProlContext context, final String signature) {
-    final ReentrantLock lockerPred = predicateLocker;
-
     boolean result;
 
     final String normalSignature = Utils.normalizeSignature(signature);
@@ -459,12 +355,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
       throw new IllegalArgumentException("Wrong signature format \'" + signature + '\'');
     }
 
-    lockerPred.lock();
-    try {
-      result = predicateTable.remove(normalSignature) != null;
-    } finally {
-      lockerPred.unlock();
-    }
+    result = predicateTable.remove(normalSignature) != null;
 
     // notify triggers if they are presented
     if (result && context.hasRegisteredTriggersForSignature(normalSignature, ProlTriggerType.TRIGGER_RETRACT)) {
@@ -474,14 +365,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
   @Override
   public Iterator<TermOperatorContainer> getOperatorIterator() {
-    final ReentrantLock lockerOp = operatorLocker;
-
-    lockerOp.lock();
-    try {
-      return operatorTable.values().iterator();
-    } finally {
-      lockerOp.unlock();
-    }
+    return this.operatorTable.values().iterator();
   }
 
   @Override
