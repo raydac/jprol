@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.igormaznitsa.prol.containers;
+package com.igormaznitsa.prol.kbase.inmemory;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
@@ -25,12 +25,12 @@ import java.io.PrintWriter;
 import static java.util.Objects.requireNonNull;
 
 @Data
-public final class KnowledgeBaseItem {
+public final class InMemoryItem {
   private final TermStruct clause;
   private final Term keyTerm;
   private final boolean rightPartPresented;
 
-  KnowledgeBaseItem(final TermStruct clause) {
+  InMemoryItem(final TermStruct clause) {
     super();
     this.clause = clause;
 
@@ -43,8 +43,8 @@ public final class KnowledgeBaseItem {
     }
   }
 
-  KnowledgeBaseItem makeClone() {
-    return new KnowledgeBaseItem((TermStruct) this.clause.makeClone());
+  InMemoryItem makeClone() {
+    return new InMemoryItem((TermStruct) this.clause.makeClone());
   }
 
   @Override

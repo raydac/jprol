@@ -1,4 +1,4 @@
-package com.igormaznitsa.prol.containers;
+package com.igormaznitsa.prol.kbase;
 
 public enum ClauseIteratorType {
   FACTS,

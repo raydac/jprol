@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.igormaznitsa.prol.containers;
+package com.igormaznitsa.prol.kbase;
 
 import com.igormaznitsa.prol.data.TermStruct;
 
@@ -22,9 +22,7 @@ import java.util.Iterator;
 
 public interface ClauseIterator extends Iterator<TermStruct> {
   ClauseIteratorType getType();
-
   boolean hasNext();
-
   TermStruct next();
   void cut();
 }

@@ -17,13 +17,13 @@
 package com.igormaznitsa.prol.logic;
 
 import com.igormaznitsa.prol.annotations.ConsultText;
-import com.igormaznitsa.prol.containers.InMemoryKnowledgeBase;
-import com.igormaznitsa.prol.containers.KnowledgeBase;
 import com.igormaznitsa.prol.data.*;
 import com.igormaznitsa.prol.exceptions.ProlException;
 import com.igormaznitsa.prol.exceptions.ProlForkExecutionException;
 import com.igormaznitsa.prol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.prol.exceptions.ProlKnowledgeBaseException;
+import com.igormaznitsa.prol.kbase.KnowledgeBase;
+import com.igormaznitsa.prol.kbase.inmemory.InMemoryKnowledgeBase;
 import com.igormaznitsa.prol.libraries.AbstractProlLibrary;
 import com.igormaznitsa.prol.libraries.PredicateProcessor;
 import com.igormaznitsa.prol.libraries.ProlCoreLibrary;

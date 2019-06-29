@@ -14,24 +14,26 @@
  * limitations under the License.
  */
 
-package com.igormaznitsa.prol.containers;
+package com.igormaznitsa.prol.kbase.inmemory;
 
 import com.igormaznitsa.prol.data.TermStruct;
+import com.igormaznitsa.prol.kbase.ClauseIterator;
+import com.igormaznitsa.prol.kbase.ClauseIteratorType;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-class MemoryClauseIterator implements ClauseIterator {
+class InMemoryClauseIterator implements ClauseIterator {
 
-  private final Iterator<KnowledgeBaseItem> iterator;
+  private final Iterator<InMemoryItem> iterator;
   private final TermStruct search;
   private final ClauseIteratorType type;
-  private KnowledgeBaseItem next;
+  private InMemoryItem next;
 
-  MemoryClauseIterator(
+  InMemoryClauseIterator(
       final ClauseIteratorType type,
-      final List<KnowledgeBaseItem> list,
+      final List<InMemoryItem> list,
       final TermStruct search
   ) {
     this.type = type;
@@ -40,11 +42,11 @@ class MemoryClauseIterator implements ClauseIterator {
     this.next = findNext();
   }
 
-  private static boolean isFact(final KnowledgeBaseItem item) {
+  private static boolean isFact(final InMemoryItem item) {
     return !item.isRightPartPresented() && item.getKeyTerm().isGround();
   }
 
-  private static boolean isRule(final KnowledgeBaseItem item) {
+  private static boolean isRule(final InMemoryItem item) {
     return item.isRightPartPresented() || !item.getKeyTerm().isGround();
   }
 
@@ -62,14 +64,14 @@ class MemoryClauseIterator implements ClauseIterator {
     return this.search;
   }
 
-  private KnowledgeBaseItem findNext() {
+  private InMemoryItem findNext() {
 
-    KnowledgeBaseItem nextItem = null;
+    InMemoryItem nextItem = null;
 
     while (this.iterator.hasNext() && nextItem == null) {
       switch (this.type) {
         case ANY: {
-          final KnowledgeBaseItem nextKb = this.iterator.next();
+          final InMemoryItem nextKb = this.iterator.next();
           if (nextKb.getKeyTerm().dryUnifyTo(this.search)) {
             if (this.search.makeClone().unifyTo(nextKb.getKeyTerm().makeClone())) {
               nextItem = nextKb;
@@ -78,7 +80,7 @@ class MemoryClauseIterator implements ClauseIterator {
         }
         break;
         case FACTS: {
-          final KnowledgeBaseItem nextKb = this.iterator.next();
+          final InMemoryItem nextKb = this.iterator.next();
           if (isFact(nextKb) && nextKb.getKeyTerm().dryUnifyTo(this.search)) {
             if (this.search.makeClone().unifyTo(nextKb.getKeyTerm().makeClone())) {
               nextItem = nextKb;
@@ -87,7 +89,7 @@ class MemoryClauseIterator implements ClauseIterator {
         }
         break;
         case RULES: {
-          final KnowledgeBaseItem nextKb = this.iterator.next();
+          final InMemoryItem nextKb = this.iterator.next();
           if (isRule(nextKb) && nextKb.getKeyTerm().dryUnifyTo(this.search)) {
             if (this.search.makeClone().unifyTo(nextKb.getKeyTerm().makeClone())) {
               nextItem = nextKb;
@@ -102,18 +104,18 @@ class MemoryClauseIterator implements ClauseIterator {
     return nextItem;
   }
 
-  public KnowledgeBaseItem nextItem() {
+  public InMemoryItem nextItem() {
     if (this.next == null) {
       throw new NoSuchElementException();
     }
-    final KnowledgeBaseItem result = this.next;
+    final InMemoryItem result = this.next;
     this.next = findNext();
     return result;
   }
 
   @Override
   public TermStruct next() {
-    final KnowledgeBaseItem item = this.nextItem();
+    final InMemoryItem item = this.nextItem();
     return (TermStruct) item.getClause().makeClone();
   }
 

@@ -16,8 +16,6 @@
 
 package com.igormaznitsa.prol.logic;
 
-import com.igormaznitsa.prol.containers.ClauseIterator;
-import com.igormaznitsa.prol.containers.ClauseIteratorType;
 import com.igormaznitsa.prol.data.NumericTerm;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
@@ -26,6 +24,8 @@ import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 import com.igormaznitsa.prol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.prol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.prol.exceptions.ProlTypeErrorException;
+import com.igormaznitsa.prol.kbase.ClauseIterator;
+import com.igormaznitsa.prol.kbase.ClauseIteratorType;
 import com.igormaznitsa.prol.libraries.PredicateProcessor;
 import com.igormaznitsa.prol.trace.TraceEvent;
 

@@ -17,11 +17,11 @@
 package com.igormaznitsa.prol.libraries;
 
 import com.igormaznitsa.prol.annotations.*;
-import com.igormaznitsa.prol.containers.ClauseIterator;
-import com.igormaznitsa.prol.containers.ClauseIteratorType;
-import com.igormaznitsa.prol.containers.KnowledgeBase;
 import com.igormaznitsa.prol.data.*;
 import com.igormaznitsa.prol.exceptions.*;
+import com.igormaznitsa.prol.kbase.ClauseIterator;
+import com.igormaznitsa.prol.kbase.ClauseIteratorType;
+import com.igormaznitsa.prol.kbase.KnowledgeBase;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.logic.triggers.ProlTriggerGoal;

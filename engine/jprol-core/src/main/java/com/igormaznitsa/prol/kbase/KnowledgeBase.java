@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.igormaznitsa.prol.containers;
+package com.igormaznitsa.prol.kbase;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermOperator;

@@ -18,12 +18,12 @@ package com.igormaznitsa.prol.libraries;
 
 import com.igormaznitsa.prol.annotations.Determined;
 import com.igormaznitsa.prol.annotations.Predicate;
-import com.igormaznitsa.prol.containers.KnowledgeBase;
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.data.Terms;
 import com.igormaznitsa.prol.easygui.MainFrame;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
+import com.igormaznitsa.prol.kbase.KnowledgeBase;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.utils.Utils;
 

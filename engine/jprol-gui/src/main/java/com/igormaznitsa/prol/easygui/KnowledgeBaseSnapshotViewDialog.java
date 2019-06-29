@@ -16,7 +16,7 @@
 
 package com.igormaznitsa.prol.easygui;
 
-import com.igormaznitsa.prol.containers.KnowledgeBase;
+import com.igormaznitsa.prol.kbase.KnowledgeBase;
 import com.igormaznitsa.prol.logic.ProlContext;
 
 import java.io.CharArrayWriter;
