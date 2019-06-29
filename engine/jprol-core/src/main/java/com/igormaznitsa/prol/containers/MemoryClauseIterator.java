@@ -18,31 +18,33 @@ package com.igormaznitsa.prol.containers;
 
 import com.igormaznitsa.prol.data.TermStruct;
 
+import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 class MemoryClauseIterator implements ClauseIterator {
 
-  protected final InternalKnowledgeBaseClauseList predicateList;
-  protected final TermStruct searchTemplate;
-  protected final ClauseIteratorType type;
-  protected InternalClauseListItem foundNext;
+  private final Iterator<KnowledgeBaseItem> iterator;
+  private final TermStruct search;
+  private final ClauseIteratorType type;
+  private KnowledgeBaseItem next;
 
-  public MemoryClauseIterator(
+  MemoryClauseIterator(
       final ClauseIteratorType type,
-      final InternalKnowledgeBaseClauseList list,
-      final TermStruct searchTemplate
+      final List<KnowledgeBaseItem> list,
+      final TermStruct search
   ) {
     this.type = type;
-    this.predicateList = list;
-    this.searchTemplate = (TermStruct) searchTemplate.makeClone();
-    this.foundNext = lookForNext(null);
+    this.iterator = list.iterator();
+    this.search = (TermStruct) search.makeClone();
+    this.next = findNext();
   }
 
-  private static boolean isFact(final InternalClauseListItem item) {
+  private static boolean isFact(final KnowledgeBaseItem item) {
     return !item.isRightPartPresented() && item.getKeyTerm().isGround();
   }
 
-  private static boolean isRule(final InternalClauseListItem item) {
+  private static boolean isRule(final KnowledgeBaseItem item) {
     return item.isRightPartPresented() || !item.getKeyTerm().isGround();
   }
 
@@ -53,55 +55,66 @@ class MemoryClauseIterator implements ClauseIterator {
 
   @Override
   public boolean hasNext() {
-    return this.foundNext != null;
+    return this.next != null;
   }
 
   public TermStruct getTemplate() {
-    return this.searchTemplate;
+    return this.search;
   }
 
-  protected InternalClauseListItem lookForNext(final InternalClauseListItem startPosition) {
-    InternalClauseListItem result = startPosition == null ? null : startPosition;
+  private KnowledgeBaseItem findNext() {
 
-    while (!Thread.currentThread().isInterrupted()) {
-      result = this.predicateList.searchForward(this.searchTemplate, result);
-      if (result == null) {
-        break;
-      } else {
-        switch (this.type) {
-          case ANY:
-            break;
-          case FACTS: {
-            if (!isFact(result)) {
-              result = null;
+    KnowledgeBaseItem nextItem = null;
+
+    while (this.iterator.hasNext() && nextItem == null) {
+      switch (this.type) {
+        case ANY: {
+          final KnowledgeBaseItem nextKb = this.iterator.next();
+          if (nextKb.getKeyTerm().dryUnifyTo(this.search)) {
+            if (this.search.makeClone().unifyTo(nextKb.getKeyTerm().makeClone())) {
+              nextItem = nextKb;
             }
           }
-          break;
-          case RULES: {
-            if (!isRule(result)) {
-              result = null;
-            }
-          }
-          break;
-          default:
-            throw new Error("Unexpected type: " + this.type);
         }
-      }
-      if (result != null) {
         break;
+        case FACTS: {
+          final KnowledgeBaseItem nextKb = this.iterator.next();
+          if (isFact(nextKb) && nextKb.getKeyTerm().dryUnifyTo(this.search)) {
+            if (this.search.makeClone().unifyTo(nextKb.getKeyTerm().makeClone())) {
+              nextItem = nextKb;
+            }
+          }
+        }
+        break;
+        case RULES: {
+          final KnowledgeBaseItem nextKb = this.iterator.next();
+          if (isRule(nextKb) && nextKb.getKeyTerm().dryUnifyTo(this.search)) {
+            if (this.search.makeClone().unifyTo(nextKb.getKeyTerm().makeClone())) {
+              nextItem = nextKb;
+            }
+          }
+        }
+        break;
+        default:
+          throw new Error("Unexpected type: " + this.type);
       }
     }
+    return nextItem;
+  }
+
+  public KnowledgeBaseItem nextItem() {
+    if (this.next == null) {
+      throw new NoSuchElementException();
+    }
+    final KnowledgeBaseItem result = this.next;
+    this.next = findNext();
     return result;
   }
 
   @Override
   public TermStruct next() {
-    if (this.foundNext == null) {
-      throw new NoSuchElementException();
-    }
-    final TermStruct result = (TermStruct) foundNext.getClause().makeClone();
-    this.foundNext = lookForNext(this.foundNext);
-    return result;
+    final KnowledgeBaseItem item = this.nextItem();
+    return (TermStruct) item.getClause().makeClone();
   }
 
   @Override
@@ -111,11 +124,11 @@ class MemoryClauseIterator implements ClauseIterator {
 
   @Override
   public void cut() {
-    this.foundNext = null;
+    this.next = null;
   }
 
   @Override
   public String toString() {
-    return "ClauseIterator{template=" + this.searchTemplate + '}';
+    return "ClauseIterator{template=" + this.search + '}';
   }
 }

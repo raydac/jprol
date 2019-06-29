@@ -20,27 +20,16 @@ import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
 import lombok.Data;
 
-@Data
-public final class InternalClauseListItem {
+import java.io.PrintWriter;
 
+@Data
+public final class KnowledgeBaseItem {
   private final TermStruct clause;
   private final Term keyTerm;
   private final boolean rightPartPresented;
-  private InternalClauseListItem previous;
-  private InternalClauseListItem next;
 
-  protected InternalClauseListItem(final InternalClauseListItem prev, final InternalClauseListItem next, final TermStruct clause) {
+  KnowledgeBaseItem(final TermStruct clause) {
     super();
-    previous = prev;
-
-    if (prev != null) {
-      prev.setNext(this);
-    }
-    this.next = next;
-
-    if (next != null) {
-      next.setPrevious(this);
-    }
     this.clause = clause;
 
     if (clause.isClause()) {
@@ -52,18 +41,29 @@ public final class InternalClauseListItem {
     }
   }
 
+  KnowledgeBaseItem makeClone() {
+    return new KnowledgeBaseItem((TermStruct) this.clause.makeClone());
+  }
 
-  public final void remove() {
-    if (previous != null) {
-      this.previous.setNext(this.getNext());
-    }
-    if (next != null) {
-      this.next.setPrevious(this.getPrevious());
-    }
+  @Override
+  public int hashCode() {
+    return System.identityHashCode(this);
+  }
+
+  @Override
+  public boolean equals(final Object that) {
+    return this == that;
   }
 
   @Override
   public String toString() {
     return this.keyTerm.toString();
+  }
+
+  void write(final PrintWriter writer) {
+    if (writer == null) {
+      throw new NullPointerException("Writer is null");
+    }
+    writer.write(String.format("%s.%n", this.clause.toSrcString()));
   }
 }

@@ -26,6 +26,7 @@ import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
@@ -37,7 +38,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
   private final String knowledgeBaseId;
   private final Map<String, TermOperatorContainer> operatorTable = new HashMap<>();
-  private final Map<String, InternalKnowledgeBaseClauseList> predicateTable = new HashMap<>();
+  private final Map<String, List<KnowledgeBaseItem>> predicateTable = new HashMap<>();
   private final ReentrantLock operatorLocker = new ReentrantLock();
   private final ReentrantLock predicateLocker = new ReentrantLock();
 
@@ -57,15 +58,21 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
         for (final Entry<String, TermOperatorContainer> item : etalon.operatorTable.entrySet()) {
           operatorTable.put(item.getKey(), item.getValue().makeCopy());
         }
-        for (final Entry<String, InternalKnowledgeBaseClauseList> item : etalon.predicateTable.entrySet()) {
-          predicateTable.put(item.getKey(), item.getValue().makeCopy());
-        }
+
+        etalon.predicateTable.forEach((key, value) -> this.predicateTable.put(key, makeClone(value)));
+
       } finally {
         etalon.predicateLocker.unlock();
       }
     } finally {
       etalon.operatorLocker.unlock();
     }
+  }
+
+  private static List<KnowledgeBaseItem> makeClone(final List<KnowledgeBaseItem> src) {
+    final List<KnowledgeBaseItem> result = new CopyOnWriteArrayList<>();
+    src.stream().map(KnowledgeBaseItem::makeClone).forEach(result::add);
+    return result;
   }
 
   @Override
@@ -184,9 +191,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     // write predicates
     lockerPred.lock();
     try {
-      for (InternalKnowledgeBaseClauseList list : predicateTable.values()) {
-        list.write(writer);
-      }
+      predicateTable.values().stream().peek(x -> writer.println()).flatMap(Collection::stream).forEach(x -> x.write(writer));
     } finally {
       lockerPred.unlock();
     }
@@ -211,14 +216,13 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
       final ReentrantLock lockerPred = predicateLocker;
       lockerPred.lock();
       try {
-        InternalKnowledgeBaseClauseList list = predicateTable.get(uid);
-        if (list == null) {
-          // it's new
-          list = new InternalKnowledgeBaseClauseList();
-          predicateTable.put(uid, list);
+        final List<KnowledgeBaseItem> list = predicateTable.computeIfAbsent(uid, x -> new CopyOnWriteArrayList<>());
+        if (asFirst) {
+          list.add(0, new KnowledgeBaseItem(clause));
+        } else {
+          list.add(new KnowledgeBaseItem(clause));
         }
-
-        result = asFirst ? list.asserta(clause) : list.assertz(clause);
+        result = true;
       } finally {
         lockerPred.unlock();
       }
@@ -243,7 +247,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
     lockerPred.lock();
     try {
-      final InternalKnowledgeBaseClauseList list = this.predicateTable.get(uid);
+      final List<KnowledgeBaseItem> list = this.predicateTable.get(uid);
 
       ClauseIterator result = null;
 
@@ -281,12 +285,12 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   public List<TermStruct> findAllForSignature(final String signature) {
     this.predicateLocker.lock();
     try {
-      final InternalKnowledgeBaseClauseList list = this.predicateTable.get(signature);
+      final List<KnowledgeBaseItem> list = this.predicateTable.get(signature);
 
       if (list == null) {
         return Collections.emptyList();
       } else {
-        return list.asList();
+        return list.stream().map(KnowledgeBaseItem::getClause).collect(Collectors.toList());
       }
     } finally {
       this.predicateLocker.unlock();
@@ -320,11 +324,11 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     lockerPred.lock();
     try {
       uid = struct.getSignature();
-      final InternalKnowledgeBaseClauseList list = predicateTable.get(uid);
+      final List<KnowledgeBaseItem> list = predicateTable.get(uid);
 
       if (list != null) {
-        result = list.retractall(struct) != 0;
-        if (result && list.size() == 0) {
+        result = internalRetractAll(list, struct);
+        if (result && list.isEmpty()) {
           // delete from base
           predicateTable.remove(uid);
         }
@@ -342,6 +346,34 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     return result;
   }
 
+  private boolean internalRetractAll(final List<KnowledgeBaseItem> list, final TermStruct clause) {
+    final MemoryClauseIterator iterator = new MemoryClauseIterator(ClauseIteratorType.ANY, list, clause);
+    final List<KnowledgeBaseItem> toRemove = new ArrayList<>();
+    while (iterator.hasNext()) {
+      toRemove.add(iterator.nextItem());
+    }
+    return list.removeAll(toRemove);
+  }
+
+  private boolean internalRetractA(final List<KnowledgeBaseItem> list, final TermStruct clause) {
+    final MemoryClauseIterator iterator = new MemoryClauseIterator(ClauseIteratorType.ANY, list, clause);
+    if (iterator.hasNext()) {
+      final KnowledgeBaseItem item = iterator.nextItem();
+      return list.remove(item);
+    } else {
+      return false;
+    }
+  }
+
+  private boolean internalRetractZ(final List<KnowledgeBaseItem> list, final TermStruct clause) {
+    final MemoryClauseIterator iterator = new MemoryClauseIterator(ClauseIteratorType.ANY, list, clause);
+    KnowledgeBaseItem toRemove = null;
+    while (iterator.hasNext()) {
+      toRemove = iterator.nextItem();
+    }
+    return toRemove != null && list.remove(toRemove);
+  }
+
   @Override
   public boolean retractA(final ProlContext context, final TermStruct clause) {
     TermStruct struct = clause;
@@ -357,11 +389,11 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     lockerPred.lock();
     try {
       uid = struct.getSignature();
-      final InternalKnowledgeBaseClauseList list = predicateTable.get(uid);
+      final List<KnowledgeBaseItem> list = predicateTable.get(uid);
 
       if (list != null) {
-        result = list.retracta(struct);
-        if (result && list.size() == 0) {
+        result = internalRetractA(list, struct);
+        if (result && list.isEmpty()) {
           // delete from base
           predicateTable.remove(uid);
         }
@@ -388,19 +420,19 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     }
 
     boolean result = false;
-    String uid;
+    String signature;
 
     final ReentrantLock lockerPred = predicateLocker;
     lockerPred.lock();
     try {
-      uid = struct.getSignature();
-      final InternalKnowledgeBaseClauseList list = predicateTable.get(uid);
+      signature = struct.getSignature();
+      final List<KnowledgeBaseItem> list = this.predicateTable.get(signature);
 
       if (list != null) {
-        result = list.retractz(struct);
-        if (result && list.size() == 0) {
+        result = internalRetractZ(list, struct);
+        if (result && list.isEmpty()) {
           // delete from base
-          predicateTable.remove(uid);
+          this.predicateTable.remove(signature);
         }
       }
     } finally {
@@ -408,8 +440,8 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     }
 
     // notify triggers if they are presented
-    if (result && context.hasRegisteredTriggersForSignature(uid, ProlTriggerType.TRIGGER_RETRACT)) {
-      context.notifyTriggersForSignature(uid, ProlTriggerType.TRIGGER_RETRACT);
+    if (result && context.hasRegisteredTriggersForSignature(signature, ProlTriggerType.TRIGGER_RETRACT)) {
+      context.notifyTriggersForSignature(signature, ProlTriggerType.TRIGGER_RETRACT);
     }
 
     return result;
