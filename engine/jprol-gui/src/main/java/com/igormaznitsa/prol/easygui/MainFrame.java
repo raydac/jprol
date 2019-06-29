@@ -310,19 +310,23 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
         break;
       }
     }
-    try {
-      UIManager.setLookAndFeel(feelInfo.getClassName());
-      UIManager.put("TextPane[Enabled].backgroundPainter", (Painter<JComponent>) (Graphics2D g, JComponent comp, int width1, int height1) -> {
-        g.setColor(comp.getBackground());
-        g.fillRect(0, 0, width1, height1);
-      });
-    } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException ex) {
-      LOG.throwing(thisFrame.getClass().getCanonicalName(), "L&F", ex);
-    }
 
-    for (final Window window : JFrame.getWindows()) {
-      SwingUtilities.updateComponentTreeUI(window);
-    }
+    final Runnable runnable = () -> {
+      try {
+        UIManager.setLookAndFeel(feelInfo.getClassName());
+        UIManager.put("TextPane[Enabled].backgroundPainter", (Painter<JComponent>) (Graphics2D g, JComponent comp, int width1, int height1) -> {
+          g.setColor(comp.getBackground());
+          g.fillRect(0, 0, width1, height1);
+        });
+      } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException ex) {
+        LOG.throwing(thisFrame.getClass().getCanonicalName(), "L&F", ex);
+      }
+
+      SwingUtilities.updateComponentTreeUI(this);
+      this.repaint();
+    };
+
+    UiUtils.doInSwingThread(runnable);
   }
 
   /**
