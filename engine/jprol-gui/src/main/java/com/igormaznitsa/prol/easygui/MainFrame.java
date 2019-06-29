@@ -1199,13 +1199,13 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
         this.dialogEditor.setEnabled(false);
         this.currentExecutedScriptThread.compareAndSet(executing, null);
       } finally {
-        if (context != null) {
-          try {
+        try {
+          if (context != null) {
             context.dispose();
-          } catch (IllegalStateException ex) {
           }
+        } finally {
+          hideTaskControlPanel();
         }
-        hideTaskControlPanel();
       }
     }
   }
@@ -1216,7 +1216,6 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     undo.addEdit(e.getEdit());
     this.menuUndo.setEnabled(undo.canUndo());
     this.menuRedo.setEnabled(undo.canRedo());
-
   }
 
   @Override
