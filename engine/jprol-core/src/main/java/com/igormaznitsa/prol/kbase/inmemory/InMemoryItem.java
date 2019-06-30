@@ -18,9 +18,14 @@ package com.igormaznitsa.prol.kbase.inmemory;
 
 import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermStruct;
+import com.igormaznitsa.prol.data.TermType;
+import com.igormaznitsa.prol.data.TermVar;
 import lombok.Data;
 
 import java.io.PrintWriter;
+import java.util.HashSet;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
@@ -29,6 +34,7 @@ public final class InMemoryItem {
   private final TermStruct clause;
   private final Term keyTerm;
   private final boolean rightPartPresented;
+  private final boolean keyContainsLinkedVars;
 
   InMemoryItem(final TermStruct clause) {
     super();
@@ -41,6 +47,21 @@ public final class InMemoryItem {
       this.rightPartPresented = false;
       this.keyTerm = clause;
     }
+
+    final List<String> foundKeyVars = this.keyTerm.stream()
+        .filter(x -> x.getTermType() == TermType.VAR && !((TermVar) x).isAnonymous())
+        .map(Term::getText)
+        .collect(Collectors.toList());
+
+    if (foundKeyVars.size() > 1) {
+      this.keyContainsLinkedVars = foundKeyVars.size() != new HashSet<String>(foundKeyVars).size();
+    } else {
+      this.keyContainsLinkedVars = false;
+    }
+  }
+
+  boolean isKeyContainsLinkedVars() {
+    return this.keyContainsLinkedVars;
   }
 
   InMemoryItem makeClone() {

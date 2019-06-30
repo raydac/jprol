@@ -64,29 +64,35 @@ public class InMemoryClauseIterator implements ClauseIterator {
     return this.search;
   }
 
+  private boolean canBeUnifiedWithPattern(final InMemoryItem item) {
+    if (item.isKeyContainsLinkedVars()) {
+      return this.search.makeClone().unifyTo(item.getKeyTerm().makeClone());
+    } else {
+      return this.search.dryUnifyTo(item.getKeyTerm());
+    }
+  }
+
   private InMemoryItem findNext() {
 
     InMemoryItem nextItem = null;
 
     while (this.iterator.hasNext() && nextItem == null) {
+      final InMemoryItem nextKb = this.iterator.next();
       switch (this.type) {
         case ANY: {
-          final InMemoryItem nextKb = this.iterator.next();
-          if (this.search.makeClone().unifyTo(nextKb.getKeyTerm().makeClone())) {
+          if (canBeUnifiedWithPattern(nextKb)) {
             nextItem = nextKb;
           }
         }
         break;
         case FACTS: {
-          final InMemoryItem nextKb = this.iterator.next();
-          if (isFact(nextKb) && this.search.makeClone().unifyTo(nextKb.getKeyTerm().makeClone())) {
+          if (isFact(nextKb) && this.canBeUnifiedWithPattern(nextKb)) {
             nextItem = nextKb;
           }
         }
         break;
         case RULES: {
-          final InMemoryItem nextKb = this.iterator.next();
-          if (isRule(nextKb) && this.search.makeClone().unifyTo(nextKb.getKeyTerm().makeClone())) {
+          if (isRule(nextKb) && this.canBeUnifiedWithPattern(nextKb)) {
             nextItem = nextKb;
           }
         }

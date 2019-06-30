@@ -294,7 +294,7 @@ public final class ChoicePoint {
       if (this.clauseIterator != null) {
         // next clause
         if (this.clauseIterator.hasNext()) {
-          final TermStruct structFromBase = this.clauseIterator.next();
+          final TermStruct nextClause = this.clauseIterator.next();
 
           final Term goalTermForEqu;
           if (((TermStruct) this.goalTerm).isClause()) {
@@ -303,17 +303,17 @@ public final class ChoicePoint {
             goalTermForEqu = this.goalTerm.makeClone();
           }
 
-          if (!goalTermForEqu.unifyTo(structFromBase.isClause() ? structFromBase.getElement(0) : structFromBase)) {
+          if (!goalTermForEqu.unifyTo(nextClause.isClause() ? nextClause.getElement(0) : nextClause)) {
             throw new ProlCriticalError("Unexpectedly can't unify term with prvided by knowledge base!");
           }
 
-          if (structFromBase.isClause()) {
+          if (nextClause.isClause()) {
             this.thisConnector = goalTerm;
-            this.subChoicePointConnector = structFromBase.getElement(0);
-            this.subCp = new ChoicePoint(structFromBase.getElement(1), this.context);
+            this.subChoicePointConnector = nextClause.getElement(0);
+            this.subCp = new ChoicePoint(nextClause.getElement(1), this.context);
             continue;
           } else {
-            if (!this.goalTerm.unifyTo(structFromBase)) {
+            if (!this.goalTerm.unifyTo(nextClause)) {
               throw new ProlCriticalError("Impossible situation #0009824");
             }
             result = ChoicePointResult.SUCCESS;
