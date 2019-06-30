@@ -24,7 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-class InMemoryClauseIterator implements ClauseIterator {
+public class InMemoryClauseIterator implements ClauseIterator {
 
   private final Iterator<InMemoryItem> iterator;
   private final TermStruct search;
@@ -72,28 +72,22 @@ class InMemoryClauseIterator implements ClauseIterator {
       switch (this.type) {
         case ANY: {
           final InMemoryItem nextKb = this.iterator.next();
-          if (nextKb.getKeyTerm().dryUnifyTo(this.search)) {
-            if (this.search.makeClone().unifyTo(nextKb.getKeyTerm().makeClone())) {
-              nextItem = nextKb;
-            }
+          if (this.search.makeClone().unifyTo(nextKb.getKeyTerm().makeClone())) {
+            nextItem = nextKb;
           }
         }
         break;
         case FACTS: {
           final InMemoryItem nextKb = this.iterator.next();
-          if (isFact(nextKb) && nextKb.getKeyTerm().dryUnifyTo(this.search)) {
-            if (this.search.makeClone().unifyTo(nextKb.getKeyTerm().makeClone())) {
-              nextItem = nextKb;
-            }
+          if (isFact(nextKb) && this.search.makeClone().unifyTo(nextKb.getKeyTerm().makeClone())) {
+            nextItem = nextKb;
           }
         }
         break;
         case RULES: {
           final InMemoryItem nextKb = this.iterator.next();
-          if (isRule(nextKb) && nextKb.getKeyTerm().dryUnifyTo(this.search)) {
-            if (this.search.makeClone().unifyTo(nextKb.getKeyTerm().makeClone())) {
-              nextItem = nextKb;
-            }
+          if (isRule(nextKb) && this.search.makeClone().unifyTo(nextKb.getKeyTerm().makeClone())) {
+            nextItem = nextKb;
           }
         }
         break;

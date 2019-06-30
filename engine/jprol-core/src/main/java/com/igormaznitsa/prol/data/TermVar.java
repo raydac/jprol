@@ -326,14 +326,12 @@ public final class TermVar extends Term {
 
   @Override
   public boolean dryUnifyTo(final Term atom) {
-    boolean result = true;
-    if (this != atom) {
-      final Term val = getValue();
-      if (val != null) {
-        result = val.dryUnifyTo(atom);
-      }
+    if (this == atom) {
+      return true;
+    } else {
+      final Term varValue = this.getValue();
+      return varValue == null || varValue.dryUnifyTo(atom);
     }
-    return result;
   }
 
   @Override

@@ -304,7 +304,7 @@ public final class ChoicePoint {
           }
 
           if (!goalTermForEqu.unifyTo(structFromBase.isClause() ? structFromBase.getElement(0) : structFromBase)) {
-            throw new ProlCriticalError("impossible situation #2123123");
+            throw new ProlCriticalError("Unexpectedly can't unify term with prvided by knowledge base!");
           }
 
           if (structFromBase.isClause()) {

@@ -1,5 +1,6 @@
 package com.igormaznitsa.prol.test;
 
+import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.logic.io.IoResourceProvider;
@@ -224,6 +225,20 @@ class PrimitiveTest extends AbstractProlTest {
     assertNotNull(goal.next());
     assertEquals("'b3'", goal.getVarAsText("X"));
     assertNull(goal.next());
+  }
+
+  @Test
+  void testDryUnify() throws Exception {
+    final ProlContext context = makeContext("a(a1,b1).a(a2,b2).a(a3,b3).");
+
+    final Term term1 = new ChoicePoint("replace(['a','b','c','d','e','f','g'],'e',1,X).", context).getGoalTerm();
+    final Term term2 = new ChoicePoint("replace(['a','b','c','d','e','f','g'],'a',N,[N|Lt]).", context).getGoalTerm();
+    final Term term3 = new ChoicePoint("replace(['a','b','c','d','e','f','g'],'e',N,[N|Lt]).", context).getGoalTerm();
+
+    assertFalse(term1.dryUnifyTo(term2));
+    assertFalse(term2.dryUnifyTo(term1));
+    assertTrue(term1.dryUnifyTo(term3));
+    assertTrue(term3.dryUnifyTo(term1));
   }
 
   @Test

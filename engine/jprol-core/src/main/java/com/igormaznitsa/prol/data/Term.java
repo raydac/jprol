@@ -143,7 +143,7 @@ public class Term {
     switch (term.getTermType()) {
       case VAR: {
         term = ((TermVar) term).getValue();
-        return term == null;
+        return term == null || this.dryUnifyTo(term);
       }
       case ATOM: {
         return term.getClass() == Term.class && getText().equals(term.getText());

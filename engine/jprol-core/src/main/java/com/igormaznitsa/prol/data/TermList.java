@@ -311,7 +311,9 @@ public final class TermList extends TermStruct {
         }
       }
 
-      return thisList.getHead().dryUnifyTo(thatList.getHead()) && thisList.getTail().dryUnifyTo(thatList.getTail());
+      return thisList
+          .getHead().dryUnifyTo(thatList.getHead())
+          && thisList.getTail().dryUnifyTo(thatList.getTail());
     }
     return false;
   }
