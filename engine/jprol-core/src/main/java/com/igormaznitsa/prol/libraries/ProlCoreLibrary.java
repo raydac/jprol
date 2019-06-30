@@ -2125,11 +2125,9 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     try {
       goal.getContext().unlockLockerForName(atomName);
     } catch (IllegalArgumentException ex) {
-      final ProlExistenceErrorException exx = new ProlExistenceErrorException("locker", "unlock", predicate, ex);
-      throw exx;
+      throw new ProlExistenceErrorException("locker", "unlock", predicate, ex);
     } catch (IllegalMonitorStateException ex) {
-      final ProlPermissionErrorException exx = new ProlPermissionErrorException("locker", "unlock", predicate, ex);
-      throw exx;
+      throw new ProlPermissionErrorException("locker", "unlock", predicate, ex);
     }
   }
 
@@ -2255,8 +2253,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
           break;
         } else {
           if (!head.unifyTo(resultOfTask)) {
-            final ProlCriticalError err = new ProlCriticalError("Impossible situation, the proven fork task goal is not equal the etalon task goal.");
-            throw err;
+            throw new ProlCriticalError("Impossible situation, the proven fork task goal is not equal the etalon task goal.");
           }
         }
       } catch (ExecutionException ex) {
@@ -2279,8 +2276,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     if (forkExceptions != null) {
 
-      final ProlForkExecutionException ex = new ProlForkExecutionException(predicate, forkExceptions.toArray(new Throwable[0]));
-      throw ex;
+      throw new ProlForkExecutionException(predicate, forkExceptions.toArray(new Throwable[0]));
     }
 
     if (!result) {
@@ -2345,8 +2341,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
               final int threadindex = completedIndex;
               final Term originalGoal = parsedgoal[threadindex];
               if (!originalGoal.unifyTo(resultterm)) {
-                final ProlCriticalError err = new ProlCriticalError("Impossible situation, the proven fork task goal is not equal the etalon task goal. [index=" + threadindex + ']');
-                throw err;
+                throw new ProlCriticalError("Impossible situation, the proven fork task goal is not equal the etalon task goal. [index=" + threadindex + ']');
               }
             }
           } catch (final Exception ex) {
@@ -2372,8 +2367,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     if (forkException != null) {
 
-      final ProlForkExecutionException ex = new ProlForkExecutionException(termThrowsException, new Throwable[] {forkException});
-      throw ex;
+      throw new ProlForkExecutionException(termThrowsException, new Throwable[] {forkException});
     }
 
     if (!result) {
@@ -2393,9 +2387,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
     final ProlTriggerGoal triggergoal = new ProlTriggerGoal(callableTerm, context);
 
-    if (null == triggerevent) {
-      throw new ProlCriticalError("Unsupported trigger event detected [" + triggerevent + ']');
-    } else {
+    if (triggerevent != null) {
       switch (triggerevent) {
         case "onassert":
           triggergoal.addSignature(signature, ProlTriggerType.TRIGGER_ASSERT);

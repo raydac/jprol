@@ -158,22 +158,18 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
         uid = clause.getSignature();
       }
 
-      boolean result;
-
       final List<InMemoryItem> list = predicateTable.computeIfAbsent(uid, x -> new CopyOnWriteArrayList<>());
       if (asFirst) {
         list.add(0, new InMemoryItem(clause));
       } else {
         list.add(new InMemoryItem(clause));
       }
-      result = true;
-
       // notify triggers if they are presented
-      if (result && context.hasRegisteredTriggersForSignature(uid, ProlTriggerType.TRIGGER_ASSERT)) {
+      if (context.hasRegisteredTriggersForSignature(uid, ProlTriggerType.TRIGGER_ASSERT)) {
         context.notifyTriggersForSignature(uid, ProlTriggerType.TRIGGER_ASSERT);
       }
 
-      return result;
+      return true;
 
     } catch (IllegalArgumentException ex) {
       throw new ProlKnowledgeBaseException("You can't add such atom into the base [" + clause.toSrcString() + ']', ex);

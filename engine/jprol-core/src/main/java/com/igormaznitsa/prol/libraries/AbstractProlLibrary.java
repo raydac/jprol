@@ -67,14 +67,14 @@ public abstract class AbstractProlLibrary {
         .computeIfAbsent(objectId, defaultSupplier);
   }
 
-  protected void putContextObject(final ProlContext context, final String objectId, final Optional<?> obj) {
+  protected void putContextObject(final ProlContext context, final String objectId, final Object obj) {
     final Map<String, Object> contextMap = this.contextNamedObjects
         .computeIfAbsent(context, ctx -> new ConcurrentHashMap<>());
 
-    if (obj.isPresent()) {
-      contextMap.put(objectId, obj.get());
-    } else {
+    if (obj == null) {
       contextMap.remove(objectId);
+    } else {
+      contextMap.put(objectId, obj);
     }
   }
 
@@ -190,7 +190,7 @@ public abstract class AbstractProlLibrary {
 
         CheckingTemplate[][] templates = null;
         final String[] templateStrings = predicateAnnotation.Template();
-        if (templateStrings != null && templateStrings.length > 0) {
+        if (templateStrings.length > 0) {
           templates = new CheckingTemplate[templateStrings.length][];
           for (int lt = 0; lt < templateStrings.length; lt++) {
             final String[] str = templateStrings[lt].split(",");

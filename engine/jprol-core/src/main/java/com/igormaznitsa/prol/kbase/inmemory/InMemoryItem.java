@@ -54,7 +54,7 @@ public final class InMemoryItem {
         .collect(Collectors.toList());
 
     if (foundKeyVars.size() > 1) {
-      this.keyContainsLinkedVars = foundKeyVars.size() != new HashSet<String>(foundKeyVars).size();
+      this.keyContainsLinkedVars = foundKeyVars.size() != new HashSet<>(foundKeyVars).size();
     } else {
       this.keyContainsLinkedVars = false;
     }

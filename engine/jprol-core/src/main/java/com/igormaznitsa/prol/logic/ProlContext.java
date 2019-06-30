@@ -238,7 +238,7 @@ public final class ProlContext implements ParserContext {
     if (consult != null) {
       final String text = consult.value();
       if (text.length() > 0) {
-        this.consult(new StringReader(text), Optional.empty());
+        this.consult(new StringReader(text), null);
       }
     }
     return true;
@@ -392,16 +392,16 @@ public final class ProlContext implements ParserContext {
 
     switch (observedEvent) {
       case TRIGGER_ASSERT: {
-        listOfTriggers = triggersOnAssert.get(normalizedSignature);
+        listOfTriggers = this.triggersOnAssert.get(normalizedSignature);
       }
       break;
       case TRIGGER_RETRACT: {
-        listOfTriggers = triggersOnRetract.get(normalizedSignature);
+        listOfTriggers = this.triggersOnRetract.get(normalizedSignature);
       }
       break;
       case TRIGGER_ASSERT_RETRACT: {
-        final List<ProlTrigger> trigAssert = triggersOnAssert.get(normalizedSignature);
-        final List<ProlTrigger> trigRetract = triggersOnRetract.get(normalizedSignature);
+        final List<ProlTrigger> trigAssert = this.triggersOnAssert.get(normalizedSignature);
+        final List<ProlTrigger> trigRetract = this.triggersOnRetract.get(normalizedSignature);
 
         if (trigAssert != null && trigRetract == null) {
           listOfTriggers = trigAssert;
@@ -432,10 +432,10 @@ public final class ProlContext implements ParserContext {
   }
 
   public void consult(final Reader source) {
-    this.consult(source, Optional.empty());
+    this.consult(source, null);
   }
 
-  public void consult(final Reader source, final Optional<ConsultInteractor> interactor) {
+  public void consult(final Reader source, final ConsultInteractor interactor) {
     final ProlTreeBuilder treeBuilder = new ProlTreeBuilder(this);
     do {
       final ProlTreeBuilder.Result parseResult = treeBuilder.readPhraseAndMakeTree(source);
@@ -458,61 +458,56 @@ public final class ProlContext implements ParserContext {
             final TermStruct struct = (TermStruct) nextItem;
             final Term functor = struct.getFunctor();
 
-            switch (functor.getTermType()) {
-              case OPERATOR: {
-                final TermOperator op = (TermOperator) functor;
-                final String text = op.getText();
-                final OpAssoc type = op.getOperatorType();
+            if (functor.getTermType() == TermType.OPERATOR) {
+              final TermOperator op = (TermOperator) functor;
+              final String text = op.getText();
+              final OpAssoc type = op.getOperatorType();
 
-                if (struct.isClause()) {
-                  switch (type) {
-                    case XFX: {
-                      // new rule
-                      this.knowledgeBase.assertZ(this, struct);
-                    }
-                    break;
-                    case FX: {
-                      // directive
-                      if (!processDirective(struct.getElement(0))) {
-                        throw new ProlHaltExecutionException(2);
-                      }
-                    }
-                    break;
+              if (struct.isClause()) {
+                switch (type) {
+                  case XFX: {
+                    // new rule
+                    this.knowledgeBase.assertZ(this, struct);
                   }
-
-                } else if ("?-".equals(text)) {
-                  final Term termGoal = struct.getElement(0);
-
-                  if (interactor.map(x -> x.onFoundInteractiveGoal(this, termGoal)).orElse(true)) {
-
-                    final Map<String, TermVar> varmap = new HashMap<>();
-                    final AtomicInteger solutioncounter = new AtomicInteger();
-
-                    final ChoicePoint thisGoal = new ChoicePoint(termGoal, this, null);
-
-                    boolean doFindNextSolution;
-                    do {
-                      varmap.clear();
-                      if (solveGoal(thisGoal, varmap)) {
-                        doFindNextSolution = interactor.map(consultInteractor -> consultInteractor.onSolution(this, termGoal, varmap, solutioncounter.incrementAndGet())).orElse(true);
-                        if (!doFindNextSolution) {
-                          throw new ProlHaltExecutionException(String.format("Solution search halted: %s", termGoal), 1);
-                        }
-                      } else {
-                        interactor.ifPresent(x -> x.onFail(this, termGoal, solutioncounter.get()));
-                        doFindNextSolution = false;
-                      }
-                    } while (doFindNextSolution && !Thread.currentThread().isInterrupted());
+                  break;
+                  case FX: {
+                    // directive
+                    if (!processDirective(struct.getElement(0))) {
+                      throw new ProlHaltExecutionException(2);
+                    }
                   }
-                } else {
-                  this.knowledgeBase.assertZ(this, struct);
+                  break;
                 }
-              }
-              break;
-              default: {
+
+              } else if ("?-".equals(text)) {
+                final Term termGoal = struct.getElement(0);
+
+                if (interactor != null && interactor.onFoundInteractiveGoal(this, termGoal)) {
+
+                  final Map<String, TermVar> varmap = new HashMap<>();
+                  final AtomicInteger solutioncounter = new AtomicInteger();
+
+                  final ChoicePoint thisGoal = new ChoicePoint(termGoal, this, null);
+
+                  boolean doFindNextSolution;
+                  do {
+                    varmap.clear();
+                    if (solveGoal(thisGoal, varmap)) {
+                      doFindNextSolution = interactor.onSolution(this, termGoal, varmap, solutioncounter.incrementAndGet());
+                      if (!doFindNextSolution) {
+                        throw new ProlHaltExecutionException(String.format("Solution search halted: %s", termGoal), 1);
+                      }
+                    } else {
+                      interactor.onFail(this, termGoal, solutioncounter.get());
+                      doFindNextSolution = false;
+                    }
+                  } while (doFindNextSolution && !Thread.currentThread().isInterrupted());
+                }
+              } else {
                 this.knowledgeBase.assertZ(this, struct);
               }
-              break;
+            } else {
+              this.knowledgeBase.assertZ(this, struct);
             }
           }
           break;

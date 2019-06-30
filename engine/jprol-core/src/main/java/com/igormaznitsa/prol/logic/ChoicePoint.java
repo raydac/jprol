@@ -279,7 +279,6 @@ public final class ChoicePoint {
         if (solvedTerm == null) {
           this.subCp = null;
           if (this.clauseIterator == null) {
-            result = ChoicePointResult.FAIL;
             break;
           }
         } else {

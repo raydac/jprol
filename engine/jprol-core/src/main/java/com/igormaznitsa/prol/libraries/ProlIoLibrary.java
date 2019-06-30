@@ -37,7 +37,6 @@ public class ProlIoLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "consult/1", Template = {"+atom", "+list"}, Reference = "Take an atom as the file name of the resource to be used for consultation, or a list contains resource name chain.")
   @Determined
-  @SuppressWarnings("fallthrough")
   public boolean predicateCONSULT(final ChoicePoint goal, final TermStruct predicate) {
     final Term term = predicate.getElement(0).findNonVarOrSame();
     final ProlContext context = goal.getContext();
@@ -97,7 +96,7 @@ public class ProlIoLibrary extends AbstractProlLibrary {
   }
 
   private InternalWriter makeResourceWriter(final ProlContext context, final String resourceId, final boolean append) throws IOException {
-    final Writer writer = context.findResourceWriter(resourceId, append).get();
+    final Writer writer = context.findResourceWriter(resourceId, append).orElse(null);
 
     if (writer != null) {
       return new InternalWriter(Terms.newAtom(resourceId), writer, true);
@@ -204,15 +203,10 @@ public class ProlIoLibrary extends AbstractProlLibrary {
     return findCurrentInput(goal.getContext(), predicate).map(reader -> {
       try {
         int code = -1;
-        do {
-          final int nextCode = reader.read();
-          if (nextCode < 0) {
-            break;
-          } else {
-            code = nextCode;
-            break;
-          }
-        } while (!Thread.currentThread().isInterrupted());
+        final int nextCode = reader.read();
+        if (nextCode >= 0) {
+          code = nextCode;
+        }
         return arg.unifyTo(Terms.newLong(code));
       } catch (IOException ex) {
         throw new ProlPermissionErrorException("read", "text_input", predicate);
@@ -397,7 +391,7 @@ public class ProlIoLibrary extends AbstractProlLibrary {
         writer.write(String.format("%% %d.%d ms", (timeInterval / 1000), (timeInterval % 1000)));
         writer.flush();
       } catch (IOException ex) {
-        new ProlPermissionErrorException("write", "text_stream", predicate, ex);
+        throw new ProlPermissionErrorException("write", "text_stream", predicate, ex);
       }
       return result;
     }).orElseThrow(() -> new ProlPermissionErrorException("write", "text_stream", predicate));

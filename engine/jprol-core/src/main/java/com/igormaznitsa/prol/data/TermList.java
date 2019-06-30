@@ -105,13 +105,10 @@ public final class TermList extends TermStruct {
       return 0;
     }
     final Term tail = this.terms[INDEX_TAIL];
-    switch (tail.getTermType()) {
-      case LIST: {
-        return ((TermList) tail).calculateLength() + 1;
-      }
-      default:
-        return 2;
+    if (tail.getTermType() == LIST) {
+      return ((TermList) tail).calculateLength() + 1;
     }
+    return 2;
   }
 
   @Override
@@ -326,35 +323,32 @@ public final class TermList extends TermStruct {
 
     atom = atom.findNonVarOrSame();
 
-    switch (atom.getTermType()) {
-      case LIST: {
-        final TermList thatList = (TermList) atom;
-        if (isNullList() && thatList.isNullList()) {
-          return 0;
-        }
-
-        final TermList thisList = this;
-
-        if (thisList.isNullList() && !thatList.isNullList()) {
-          return -1;
-        }
-        if (!thisList.isNullList() && thatList.isNullList()) {
-          return 1;
-        }
-
-        final Term thisHead = thisList.getHead();
-        final Term thatHead = thatList.getHead();
-
-        int result = thisHead.compareTermTo(thatHead);
-        if (result != 0) {
-          return result;
-        }
-
-        return thisList.getTail().compareTermTo(thatList.getTail());
+    if (atom.getTermType() == LIST) {
+      final TermList thatList = (TermList) atom;
+      if (isNullList() && thatList.isNullList()) {
+        return 0;
       }
-      default:
+
+      final TermList thisList = this;
+
+      if (thisList.isNullList() && !thatList.isNullList()) {
+        return -1;
+      }
+      if (!thisList.isNullList() && thatList.isNullList()) {
         return 1;
+      }
+
+      final Term thisHead = thisList.getHead();
+      final Term thatHead = thatList.getHead();
+
+      int result = thisHead.compareTermTo(thatHead);
+      if (result != 0) {
+        return result;
+      }
+
+      return thisList.getTail().compareTermTo(thatList.getTail());
     }
+    return 1;
   }
 
   @Override

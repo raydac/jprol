@@ -24,7 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-public class InMemoryClauseIterator implements ClauseIterator {
+public final class InMemoryClauseIterator implements ClauseIterator {
 
   private final Iterator<InMemoryItem> iterator;
   private final TermStruct search;
@@ -104,7 +104,7 @@ public class InMemoryClauseIterator implements ClauseIterator {
     return nextItem;
   }
 
-  public InMemoryItem nextItem() {
+  InMemoryItem nextItem() {
     if (this.next == null) {
       throw new NoSuchElementException();
     }

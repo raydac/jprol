@@ -1139,7 +1139,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
       startTime = System.currentTimeMillis();
 
       try {
-        context.consult(new StringReader(sourceEditor.getText()), Optional.of(this));
+        context.consult(new StringReader(sourceEditor.getText()), this);
         // wait for async threads
         context.getContextExecutorService().shutdown();
         context.getContextExecutorService().awaitTermination(60, TimeUnit.SECONDS);

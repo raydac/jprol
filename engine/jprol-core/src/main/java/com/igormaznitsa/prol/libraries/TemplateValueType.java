@@ -357,7 +357,7 @@ public enum TemplateValueType {
     boolean error = false;
     if (t instanceof TermLong) {
       final int val = t.toNumber().intValue();
-      if ((val & 0xFF) != 0 && val == -1) {
+      if (val == -1) {
         error = true;
       }
     } else {
