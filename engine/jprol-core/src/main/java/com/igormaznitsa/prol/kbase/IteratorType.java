@@ -1,6 +1,6 @@
 package com.igormaznitsa.prol.kbase;
 
-public enum ClauseIteratorType {
+public enum IteratorType {
   FACTS,
   RULES,
   ANY

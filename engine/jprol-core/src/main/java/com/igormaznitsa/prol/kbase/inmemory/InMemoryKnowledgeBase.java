@@ -18,11 +18,11 @@ package com.igormaznitsa.prol.kbase.inmemory;
 
 import com.igormaznitsa.prol.data.*;
 import com.igormaznitsa.prol.exceptions.ProlKnowledgeBaseException;
-import com.igormaznitsa.prol.kbase.ClauseIterator;
-import com.igormaznitsa.prol.kbase.ClauseIteratorType;
+import com.igormaznitsa.prol.kbase.IteratorType;
 import com.igormaznitsa.prol.kbase.KnowledgeBase;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.logic.triggers.ProlTriggerType;
+import com.igormaznitsa.prol.utils.CloseableIterator;
 import com.igormaznitsa.prol.utils.Utils;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 
 import static com.igormaznitsa.prol.data.TermType.ATOM;
 import static com.igormaznitsa.prol.data.Terms.newStruct;
+import static com.igormaznitsa.prol.utils.Utils.makeCloseableIterator;
 import static java.lang.Integer.parseInt;
 import static java.util.Objects.requireNonNull;
 
@@ -134,7 +135,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     }
 
     // write operators
-    final Iterator<TermOperatorContainer> operators = this.getOperatorIterator();
+    final Iterator<TermOperatorContainer> operators = this.makeOperatorIterator();
     while (operators.hasNext()) {
       operators.next().write(writer);
     }
@@ -177,12 +178,12 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public ClauseIterator getClauseIterator(final ClauseIteratorType type, final TermStruct template) {
+  public CloseableIterator<TermStruct> iterate(final IteratorType type, final TermStruct template) {
     final String uid = template.getSignature();
 
     final List<InMemoryItem> list = this.predicateTable.get(uid);
 
-    ClauseIterator result = null;
+    CloseableIterator<TermStruct> result = null;
 
     if (list != null) {
       result = new InMemoryClauseIterator(type, list, template);
@@ -191,8 +192,8 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public List<TermStruct> findAllForPredicateIndicator(final Term predicateIndicator) {
-    return this.predicateTable.keySet()
+  public CloseableIterator<TermStruct> iterateSignatures(final TermStruct indicator) {
+    return makeCloseableIterator(this.predicateTable.keySet()
         .stream()
         .map(key -> {
           final int index = key.lastIndexOf('/');
@@ -202,18 +203,36 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
                   Terms.newLong(parseInt(key.substring(index + 1)))
               });
         })
-        .filter(predicateIndicator::dryUnifyTo)
-        .collect(Collectors.toList());
+        .filter(indicator::dryUnifyTo)
+        .collect(Collectors.toList()).iterator(), () -> {
+    });
   }
 
   @Override
-  public List<TermStruct> findAllForSignature(final String signature) {
+  public CloseableIterator<TermStruct> iterate(final String signature) {
     final List<InMemoryItem> list = this.predicateTable.get(signature);
 
     if (list == null) {
-      return Collections.emptyList();
+      return makeCloseableIterator(Collections.emptyIterator(), () -> {
+      });
     } else {
-      return list.stream().map(InMemoryItem::getClause).collect(Collectors.toList());
+      final Iterator<InMemoryItem> items = list.iterator();
+      return new CloseableIterator<TermStruct>() {
+        @Override
+        public void close() {
+
+        }
+
+        @Override
+        public boolean hasNext() {
+          return items.hasNext();
+        }
+
+        @Override
+        public TermStruct next() {
+          return items.next().getClause();
+        }
+      };
     }
   }
 
@@ -258,7 +277,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   private boolean internalRetractAll(final List<InMemoryItem> list, final TermStruct clause) {
-    final InMemoryClauseIterator iterator = new InMemoryClauseIterator(ClauseIteratorType.ANY, list, clause);
+    final InMemoryClauseIterator iterator = new InMemoryClauseIterator(IteratorType.ANY, list, clause);
     final List<InMemoryItem> toRemove = new ArrayList<>();
     while (iterator.hasNext()) {
       toRemove.add(iterator.nextItem());
@@ -267,7 +286,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   private boolean internalRetractA(final List<InMemoryItem> list, final TermStruct clause) {
-    final InMemoryClauseIterator iterator = new InMemoryClauseIterator(ClauseIteratorType.ANY, list, clause);
+    final InMemoryClauseIterator iterator = new InMemoryClauseIterator(IteratorType.ANY, list, clause);
     if (iterator.hasNext()) {
       final InMemoryItem item = iterator.nextItem();
       return list.remove(item);
@@ -277,7 +296,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   private boolean internalRetractZ(final List<InMemoryItem> list, final TermStruct clause) {
-    final InMemoryClauseIterator iterator = new InMemoryClauseIterator(ClauseIteratorType.ANY, list, clause);
+    final InMemoryClauseIterator iterator = new InMemoryClauseIterator(IteratorType.ANY, list, clause);
     InMemoryItem toRemove = null;
     while (iterator.hasNext()) {
       toRemove = iterator.nextItem();
@@ -360,8 +379,25 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public Iterator<TermOperatorContainer> getOperatorIterator() {
-    return this.operatorTable.values().iterator();
+  public CloseableIterator<TermOperatorContainer> makeOperatorIterator() {
+    return new CloseableIterator<TermOperatorContainer>() {
+      final Iterator<TermOperatorContainer> wrapped = operatorTable.values().iterator();
+
+      @Override
+      public void close() {
+
+      }
+
+      @Override
+      public boolean hasNext() {
+        return this.wrapped.hasNext();
+      }
+
+      @Override
+      public TermOperatorContainer next() {
+        return this.wrapped.next();
+      }
+    };
   }
 
   @Override

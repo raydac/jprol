@@ -24,12 +24,12 @@ import com.igormaznitsa.prol.exceptions.ProlCriticalError;
 import com.igormaznitsa.prol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.prol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.prol.exceptions.ProlTypeErrorException;
-import com.igormaznitsa.prol.kbase.ClauseIterator;
-import com.igormaznitsa.prol.kbase.ClauseIteratorType;
+import com.igormaznitsa.prol.kbase.IteratorType;
 import com.igormaznitsa.prol.libraries.PredicateProcessor;
 import com.igormaznitsa.prol.trace.TraceEvent;
 
 import java.io.StringReader;
+import java.util.Iterator;
 import java.util.Map;
 
 import static com.igormaznitsa.prol.data.TermType.ATOM;
@@ -45,7 +45,7 @@ public final class ChoicePoint {
   private final ProlContext context;
   private final ChoicePoint rootCp;
   private boolean noVariants;
-  private Term goalTerm;
+  private final Term goalTerm;
   private Object payload;
   private ChoicePoint prevCp;
   private ChoicePoint rootLastGoalAtChain;
@@ -55,7 +55,7 @@ public final class ChoicePoint {
   private Term thisConnector;
   private Term nextAndTerm;
   private Term nextAndTermForNextGoal;
-  private ClauseIterator clauseIterator;
+  private Iterator<TermStruct> clauseIterator;
   private boolean cutMeet;
   private boolean notFirstProve;
 
@@ -406,7 +406,7 @@ public final class ChoicePoint {
               if (processor == PredicateProcessor.NULL_PROCESSOR) {
                 // just a struct
                 // find it at knowledge base
-                this.clauseIterator = this.context.getKnowledgeBase().getClauseIterator(ClauseIteratorType.ANY, struct);
+                this.clauseIterator = this.context.getKnowledgeBase().iterate(IteratorType.ANY, struct);
                 if (this.clauseIterator == null || !this.clauseIterator.hasNext()) {
                   doLoop = false;
                   resetVariants();

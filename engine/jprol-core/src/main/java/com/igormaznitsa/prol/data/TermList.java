@@ -246,7 +246,7 @@ public final class TermList extends TermStruct {
         if (this.isNullList()) {
           return thatList.isNullList();
         } else if (thatList.isNullList()) {
-          return this.isNullList();
+          return false;
         }
 
         return this.getHead().unifyTo(thatList.getHead()) && this.getTail().unifyTo(thatList.getTail());

@@ -16,16 +16,14 @@
 
 package com.igormaznitsa.prol.kbase;
 
-import com.igormaznitsa.prol.data.Term;
 import com.igormaznitsa.prol.data.TermOperator;
 import com.igormaznitsa.prol.data.TermOperatorContainer;
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.logic.ProlContext;
+import com.igormaznitsa.prol.utils.CloseableIterator;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
 import java.io.PrintWriter;
-import java.util.Iterator;
-import java.util.List;
 
 public interface KnowledgeBase {
 
@@ -41,11 +39,13 @@ public interface KnowledgeBase {
 
   void write(PrintWriter writer);
 
-  ClauseIterator getClauseIterator(ClauseIteratorType type, TermStruct template);
+  CloseableIterator<TermStruct> iterate(IteratorType type, TermStruct template);
 
-  List<TermStruct> findAllForPredicateIndicator(final Term predicateIndicator);
+  CloseableIterator<TermStruct> iterate(String signature);
 
-  List<TermStruct> findAllForSignature(final String signature);
+  CloseableIterator<TermStruct> iterateSignatures(TermStruct indicator);
+
+  CloseableIterator<TermOperatorContainer> makeOperatorIterator();
 
   boolean assertZ(ProlContext context, TermStruct clause);
 
@@ -58,8 +58,6 @@ public interface KnowledgeBase {
   boolean retractZ(ProlContext context, TermStruct clause);
 
   void abolish(ProlContext context, String signature);
-
-  Iterator<TermOperatorContainer> getOperatorIterator();
 
   KnowledgeBase makeCopy();
 }

@@ -17,22 +17,22 @@
 package com.igormaznitsa.prol.kbase.inmemory;
 
 import com.igormaznitsa.prol.data.TermStruct;
-import com.igormaznitsa.prol.kbase.ClauseIterator;
-import com.igormaznitsa.prol.kbase.ClauseIteratorType;
+import com.igormaznitsa.prol.kbase.IteratorType;
+import com.igormaznitsa.prol.utils.CloseableIterator;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-public final class InMemoryClauseIterator implements ClauseIterator {
+public final class InMemoryClauseIterator implements CloseableIterator<TermStruct> {
 
   private final Iterator<InMemoryItem> iterator;
   private final TermStruct search;
-  private final ClauseIteratorType type;
+  private final IteratorType type;
   private InMemoryItem next;
 
   InMemoryClauseIterator(
-      final ClauseIteratorType type,
+      final IteratorType type,
       final List<InMemoryItem> list,
       final TermStruct search
   ) {
@@ -51,11 +51,6 @@ public final class InMemoryClauseIterator implements ClauseIterator {
   }
 
   @Override
-  public ClauseIteratorType getType() {
-    return this.type;
-  }
-
-  @Override
   public boolean hasNext() {
     return this.next != null;
   }
@@ -70,6 +65,11 @@ public final class InMemoryClauseIterator implements ClauseIterator {
     } else {
       return this.search.dryUnifyTo(item.getKeyTerm());
     }
+  }
+
+  @Override
+  public void close() {
+
   }
 
   private InMemoryItem findNext() {
@@ -122,11 +122,6 @@ public final class InMemoryClauseIterator implements ClauseIterator {
   @Override
   public void remove() {
     throw new UnsupportedOperationException("Removing not supported for clause iterator");
-  }
-
-  @Override
-  public void cut() {
-    this.next = null;
   }
 
   @Override

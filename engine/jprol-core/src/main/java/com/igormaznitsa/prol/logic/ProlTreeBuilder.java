@@ -12,7 +12,7 @@ import java.util.NoSuchElementException;
 public class ProlTreeBuilder {
 
   private final ProlContext context;
-  private ThreadLocal<PrologParser> parsers = new ThreadLocal<>();
+  private final ThreadLocal<PrologParser> parsers = new ThreadLocal<>();
 
   public ProlTreeBuilder(final ProlContext context) {
     this.context = context;

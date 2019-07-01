@@ -22,6 +22,7 @@ import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.Objects;
 
 import static com.igormaznitsa.prol.data.TermType.ATOM;
@@ -41,6 +42,31 @@ public final class Utils {
     } catch (Throwable e) {
     }
   }
+
+  public static <T> CloseableIterator<T> makeCloseableIterator(final Iterator<T> iterator, final Runnable onClose) {
+    return new CloseableIterator<T>() {
+      private final Iterator<T> wrapped = iterator;
+
+      @Override
+      public void close() {
+        if (onClose != null) {
+          onClose.run();
+        }
+      }
+
+      @Override
+      public boolean hasNext() {
+        return this.wrapped.hasNext();
+      }
+
+      @Override
+      public T next() {
+        return this.wrapped.next();
+      }
+    };
+  }
+
+
 
   public static void writeAsUtf8(final File file, final CharSequence seq) throws IOException {
     try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false), StandardCharsets.UTF_8))) {

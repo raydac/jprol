@@ -19,8 +19,7 @@ package com.igormaznitsa.prol.libraries;
 import com.igormaznitsa.prol.annotations.*;
 import com.igormaznitsa.prol.data.*;
 import com.igormaznitsa.prol.exceptions.*;
-import com.igormaznitsa.prol.kbase.ClauseIterator;
-import com.igormaznitsa.prol.kbase.ClauseIteratorType;
+import com.igormaznitsa.prol.kbase.IteratorType;
 import com.igormaznitsa.prol.kbase.KnowledgeBase;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
@@ -562,10 +561,10 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       throw new ProlPermissionErrorException("access", "private_procedure", predicate);
     }
 
-    ClauseIterator clIterator = goal.getPayload();
+    Iterator<TermStruct> clIterator = goal.getPayload();
 
     if (clIterator == null) {
-      clIterator = goal.getContext().getKnowledgeBase().getClauseIterator(ClauseIteratorType.ANY, head.getTermType() == STRUCT ? (TermStruct) head : newStruct(head));
+      clIterator = goal.getContext().getKnowledgeBase().iterate(IteratorType.ANY, head.getTermType() == STRUCT ? (TermStruct) head : newStruct(head));
       if (clIterator == null || !clIterator.hasNext()) {
         goal.resetVariants();
         return false;
@@ -1193,11 +1192,11 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     List<TermStruct> list = goal.getPayload();
     if (list == null) {
       list = new ArrayList<>(goal.getContext().findAllForPredicateIndicatorInLibs(predicateIndicator));
-      list.addAll(goal.getContext()
-          .getKnowledgeBase()
-          .findAllForPredicateIndicator(
-              predicateIndicator.getTermType() == VAR ? null : (TermStruct) predicateIndicator
-          ));
+
+      final Iterator<TermStruct> iter = goal.getContext().getKnowledgeBase().iterateSignatures(predicateIndicator.getTermType() == VAR ? Terms.newStruct("/", new Term[] {Terms.newVar(), Terms.newVar()}) : (TermStruct) predicateIndicator);
+      while (iter.hasNext()) {
+        list.add(iter.next());
+      }
       list.sort(TermStruct::compareTermTo);
       goal.setPayload(list);
     }
@@ -1217,11 +1216,11 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     final Term predicateIndicator = predicate.getElement(0).findNonVarOrSame();
     List<TermStruct> list = goal.getPayload();
     if (list == null) {
-      list = goal.getContext()
-          .getKnowledgeBase()
-          .findAllForPredicateIndicator(
-              predicateIndicator.getTermType() == VAR ? null : (TermStruct) predicateIndicator
-          );
+      list = new ArrayList<>();
+      final Iterator<TermStruct> iter = goal.getContext().getKnowledgeBase().iterateSignatures(predicateIndicator.getTermType() == VAR ? Terms.newStruct("/", new Term[] {Terms.newVar(), Terms.newVar()}) : (TermStruct) predicateIndicator);
+      while (iter.hasNext()) {
+        list.add(iter.next());
+      }
       list.sort(TermStruct::compareTermTo);
       goal.setPayload(list);
     }
@@ -2058,7 +2057,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
   }
 
   // inside function used by facts/1 and rules/1 predicates
-  private static TermStruct processIterator(final ChoicePoint goal, final ClauseIterator iterator) {
+  private static TermStruct processIterator(final ChoicePoint goal, final Iterator<TermStruct> iterator) {
     TermStruct result = null;
 
     if (iterator.hasNext()) {
@@ -2072,7 +2071,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
 
   @Predicate(Signature = "facts/1", Template = {"+callable_term"}, Reference = "Finds only facts at the knowledge base.")
   public static boolean predicateFACTS(final ChoicePoint goal, final TermStruct predicate) {
-    ClauseIterator factIterator = goal.getPayload();
+    Iterator<TermStruct> factIterator = goal.getPayload();
     final Term origterm = predicate.getElement(0).findNonVarOrSame();
 
     if (factIterator == null) {
@@ -2082,7 +2081,7 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
       }
 
       final KnowledgeBase base = goal.getContext().getKnowledgeBase();
-      factIterator = base.getClauseIterator(ClauseIteratorType.FACTS, (TermStruct) term);
+      factIterator = base.iterate(IteratorType.FACTS, (TermStruct) term);
 
       if (factIterator == null) {
         goal.resetVariants();
