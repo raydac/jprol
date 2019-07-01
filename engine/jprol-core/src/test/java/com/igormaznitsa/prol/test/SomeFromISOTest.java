@@ -2,6 +2,8 @@ package com.igormaznitsa.prol.test;
 
 import com.igormaznitsa.prol.exceptions.ProlCustomErrorException;
 import com.igormaznitsa.prol.exceptions.ProlException;
+import com.igormaznitsa.prol.libraries.ProlCoreLibrary;
+import com.igormaznitsa.prol.libraries.ProlIoLibrary;
 import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Disabled;
@@ -1392,7 +1394,7 @@ class SomeFromISOTest extends AbstractProlTest {
   }
 
   private ProlContext makeContext(final String knowledgeBase) throws Exception {
-    final ProlContext context = new ProlContext("PreparedGoal test");
+    final ProlContext context = new ProlContext("PreparedGoal test", new ProlCoreLibrary(), new ProlIoLibrary());
     context.consult(new StringReader(knowledgeBase));
     return context;
   }

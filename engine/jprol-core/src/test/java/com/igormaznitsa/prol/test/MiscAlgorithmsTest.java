@@ -5,15 +5,12 @@ import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Test;
 
-import java.io.StringReader;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class MiscAlgorithmsTest extends AbstractProlTest {
 
-  private void calcAkkerman(int m, int n, int a) throws Exception {
-    final ProlContext context = new ProlContext("test");
-    context.consult(new StringReader("akkerman(0,N,X):- X is N+1,!. akkerman(M,0,X):- Mn is M-1, !, akkerman(Mn,1,X). akkerman(M,N,X):- Mn is M-1, Nn is N-1, !, akkerman(M,Nn,Y), !, akkerman(Mn,Y,X)."));
+  private void calcAkkerman(int m, int n, int a) {
+    final ProlContext context = makeContextAndConsult("akkerman(0,N,X):- X is N+1,!. akkerman(M,0,X):- Mn is M-1, !, akkerman(Mn,1,X). akkerman(M,N,X):- Mn is M-1, Nn is N-1, !, akkerman(M,Nn,Y), !, akkerman(Mn,Y,X).");
     final String goalText = "akkerman(" + m + ',' + n + ",A).";
     final ChoicePoint goal = new ChoicePoint(goalText, context);
     final Term resultterm = goal.next();
@@ -25,7 +22,7 @@ class MiscAlgorithmsTest extends AbstractProlTest {
   }
 
   @Test
-  void testAkkerman() throws Exception {
+  void testAkkerman() {
     calcAkkerman(0, 0, 1);
     calcAkkerman(1, 0, 2);
     calcAkkerman(2, 0, 3);
@@ -46,8 +43,8 @@ class MiscAlgorithmsTest extends AbstractProlTest {
   }
 
   @Test
-  void testFibbonachi() throws Exception {
-    final ProlContext context = makeContext("fib(1,1):-!. fib(0,0):-!. fib(N,Result):-Npp is N-2, Np is N-1, fib(Npp,Resultpp), fib(Np,Resultp), Result is Resultpp+Resultp.");
+  void testFibbonachi() {
+    final ProlContext context = makeContextAndConsult("fib(1,1):-!. fib(0,0):-!. fib(N,Result):-Npp is N-2, Np is N-1, fib(Npp,Resultpp), fib(Np,Resultp), Result is Resultpp+Resultp.");
 
     final ChoicePoint goal = new ChoicePoint("fib(22,Result).", context);
 
@@ -57,8 +54,8 @@ class MiscAlgorithmsTest extends AbstractProlTest {
   }
 
   @Test
-  void testObject() throws Exception {
-    final ProlContext context = makeContext("object(rectangle(Length,Width),[(area(A):-A is Length * Width),(describe :- write('Rectangle of size'), write(Length * Width))]).send(Object,Message):-get_methods(Object,Methods),process(Message,Methods)."
+  void testObject() {
+    final ProlContext context = makeContextAndConsult("object(rectangle(Length,Width),[(area(A):-A is Length * Width),(describe :- write('Rectangle of size'), write(Length * Width))]).send(Object,Message):-get_methods(Object,Methods),process(Message,Methods)."
         + "get_methods(Object,Methods):-object(Object,Methods)."
         + "process(Message,[Message|_])."
         + "process(Message,[(Message :- Body)|_]):-call(Body)."
@@ -69,11 +66,5 @@ class MiscAlgorithmsTest extends AbstractProlTest {
     assertNotNull(goal.next());
     assertEquals(12L, goal.getVarAsNumber("Area").longValue());
     assertNull(goal.next());
-  }
-
-  private ProlContext makeContext(final String knowledgeBase) throws Exception {
-    final ProlContext context = new ProlContext("PreparedGoal test");
-    context.consult(new StringReader(knowledgeBase));
-    return context;
   }
 }

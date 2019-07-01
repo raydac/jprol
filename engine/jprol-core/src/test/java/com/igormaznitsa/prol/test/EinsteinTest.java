@@ -4,15 +4,13 @@ import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Test;
 
-import java.io.StringReader;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class EinsteinTest extends AbstractProlTest {
 
   @Test
-  void testEinstein() throws Exception {
-    final ProlContext context = makeContext("next_to(X,Y,List) :- iright(X,Y,List)."
+  void testEinstein() {
+    final ProlContext context = makeContextAndConsult("next_to(X,Y,List) :- iright(X,Y,List)."
         + "next_to(X,Y,List) :- iright(Y,X,List)."
         + "einstein(Houses,Fish_Owner) :-"
         + "Houses=[ [house,norwegian,_,_,_,_] , _ , [house,_,_,_,milk,_] , _ , _ ],"
@@ -40,9 +38,4 @@ class EinsteinTest extends AbstractProlTest {
     assertNull(goal.next());
   }
 
-  private ProlContext makeContext(final String knowledgeBase) throws Exception {
-    final ProlContext context = new ProlContext("PreparedGoal test");
-    context.consult(new StringReader(knowledgeBase));
-    return context;
-  }
 }

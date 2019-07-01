@@ -17,7 +17,7 @@ class HanoiTowersTest extends AbstractProlTest {
   void testHanoiTowers() {
     final StringWriter data = new StringWriter();
 
-    final ProlContext context = new ProlContext("test").addIoResourceProvider(new IoResourceProvider() {
+    final ProlContext context = makeTestContext().addIoResourceProvider(new IoResourceProvider() {
       @Override
       public Writer findWriter(ProlContext context, String writerId, boolean append) {
         if ("+hanoi".equals(writerId)) {

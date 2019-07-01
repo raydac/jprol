@@ -63,8 +63,10 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
   private static final long serialVersionUID = 72348723421332L;
 
   private static final String[] PROL_LIBRARIES = new String[] {
-      ProlGfxLibrary.class.getCanonicalName(),
+      ProlCoreLibrary.class.getCanonicalName(),
+      ProlIoLibrary.class.getCanonicalName(),
       ProlStrLibrary.class.getCanonicalName(),
+      ProlGfxLibrary.class.getCanonicalName(),
       TPrologPredicateLibrary.class.getCanonicalName()
   };
 
@@ -846,7 +848,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
   }
 
   private void menuItemLibraryInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItemLibraryInfoActionPerformed
-    final java.util.List<String> list = new ArrayList<>(PROL_LIBRARIES.length + 2);
+    final java.util.List<String> list = new ArrayList<>();
     list.add(ProlCoreLibrary.class.getCanonicalName());
     list.addAll(Arrays.asList(PROL_LIBRARIES));
     list.add(MainFrame.class.getCanonicalName() + "$LogLibrary");
@@ -1112,7 +1114,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
       this.messageEditor.addInfoText("Creating Context...");
 
       try {
-        context = new ProlContext("ProlScript").addIoResourceProvider(this);
+        context = new ProlContext("prol-script").addIoResourceProvider(this);
         if (this.startedInTracing.get()) {
           context.addTraceListener(this);
         }

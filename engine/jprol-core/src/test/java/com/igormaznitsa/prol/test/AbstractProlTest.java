@@ -16,6 +16,26 @@
 
 package com.igormaznitsa.prol.test;
 
+import com.igormaznitsa.prol.libraries.ProlCoreLibrary;
+import com.igormaznitsa.prol.libraries.ProlIoLibrary;
+import com.igormaznitsa.prol.libraries.ProlStrLibrary;
+import com.igormaznitsa.prol.logic.ProlContext;
+
+import java.io.StringReader;
+
 public abstract class AbstractProlTest {
+  public ProlContext makeTestContext() {
+    return new ProlContext("test-context",
+        new ProlCoreLibrary(),
+        new ProlIoLibrary(),
+        new ProlStrLibrary()
+    );
+  }
+
+  public ProlContext makeContextAndConsult(final String knowledgeBase) {
+    final ProlContext context = this.makeTestContext();
+    context.consult(new StringReader(knowledgeBase));
+    return context;
+  }
 
 }

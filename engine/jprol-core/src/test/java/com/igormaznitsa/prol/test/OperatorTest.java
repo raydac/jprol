@@ -7,8 +7,6 @@ import com.igormaznitsa.prol.logic.DeferredGoal;
 import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Test;
 
-import java.io.StringReader;
-
 import static com.igormaznitsa.prol.data.TermType.ATOM;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -16,8 +14,7 @@ class OperatorTest extends AbstractProlTest {
 
   @Test
   void testOperatorDefs() throws Exception {
-    final ProlContext context = new ProlContext("Operator_test");
-    context.consult(new StringReader(":-op(800,xfx,'<===>'). :-op(700,xfy,'v'). :-op(600,xfy,'&'). :-op(500,fy,'~'). moon <===> earth."));
+    final ProlContext context = makeContextAndConsult(":-op(800,xfx,'<===>'). :-op(700,xfy,'v'). :-op(600,xfy,'&'). :-op(500,fy,'~'). moon <===> earth.");
 
     final ChoicePoint prepGoal = new ChoicePoint("~(xxx & yyy) <===> ~xxx v ~yyy.", context);
     TermStruct root = (TermStruct) prepGoal.getGoalTerm();

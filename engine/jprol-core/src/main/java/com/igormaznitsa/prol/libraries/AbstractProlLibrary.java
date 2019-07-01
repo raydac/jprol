@@ -20,11 +20,12 @@ import com.igormaznitsa.prol.annotations.Predicate;
 import com.igormaznitsa.prol.annotations.PredicateSynonyms;
 import com.igormaznitsa.prol.annotations.ProlOperator;
 import com.igormaznitsa.prol.annotations.ProlOperators;
-import com.igormaznitsa.prol.data.Term;
-import com.igormaznitsa.prol.data.TermOperator;
-import com.igormaznitsa.prol.data.TermOperatorContainer;
-import com.igormaznitsa.prol.data.TermStruct;
+import com.igormaznitsa.prol.data.*;
 import com.igormaznitsa.prol.exceptions.ProlCriticalError;
+import com.igormaznitsa.prol.exceptions.ProlEvaluationErrorException;
+import com.igormaznitsa.prol.exceptions.ProlInstantiationErrorException;
+import com.igormaznitsa.prol.exceptions.ProlTypeErrorException;
+import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.utils.Utils;
 
@@ -34,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.igormaznitsa.prol.data.TermType.VAR;
 import static com.igormaznitsa.prol.data.Terms.*;
 import static com.igormaznitsa.prol.utils.Utils.SIGNATURE_OPERATOR;
 import static java.lang.Integer.parseInt;
@@ -238,5 +240,39 @@ public abstract class AbstractProlLibrary {
 
   public void onContextDispose(final ProlContext context) {
     this.contextNamedObjects.remove(context);
+  }
+
+  protected static NumericTerm calculatEvaluable(final ChoicePoint goal, Term term) {
+    try {
+      if (term.getTermType() == VAR) {
+        final TermVar varoriginal = (TermVar) term;
+        term = ((TermVar) term).getValue();
+        if (term == null) {
+          throw new ProlInstantiationErrorException("An empty variable [" + varoriginal + "] found at [" + goal + ']', varoriginal);
+        }
+      }
+
+      switch (term.getTermType()) {
+        case ATOM: {
+          if (term instanceof NumericTerm) {
+            return (NumericTerm) term;
+          } else {
+            throw new ProlTypeErrorException("number", "Not a numeric atom +[" + term + "] found at goal [" + goal + ']', term);
+          }
+        }
+        case STRUCT: {
+          final PredicateProcessor processor = ((TermStruct) term).getPredicateProcessor();
+          if (processor.isEvaluable()) {
+            return (NumericTerm) processor.executeEvaluable(goal, (TermStruct) term);
+          } else {
+            throw new ProlTypeErrorException("evaluable", "Not an arithmetic operator found [" + goal.toString() + ']', term);
+          }
+        }
+        default:
+          throw new ProlTypeErrorException("evaluable", "Unsupported atom at an arithmetic expression [" + goal.toString() + ']', term);
+      }
+    } catch (ArithmeticException ex) {
+      throw new ProlEvaluationErrorException(ex.getMessage(), "Arithmetic exception", term, ex);
+    }
   }
 }

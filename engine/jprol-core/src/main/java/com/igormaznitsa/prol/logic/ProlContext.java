@@ -26,8 +26,7 @@ import com.igormaznitsa.prol.kbase.KnowledgeBase;
 import com.igormaznitsa.prol.kbase.inmemory.InMemoryKnowledgeBase;
 import com.igormaznitsa.prol.libraries.AbstractProlLibrary;
 import com.igormaznitsa.prol.libraries.PredicateProcessor;
-import com.igormaznitsa.prol.libraries.ProlCoreLibrary;
-import com.igormaznitsa.prol.libraries.ProlIoLibrary;
+import com.igormaznitsa.prol.libraries.ProlBootstrapLibrary;
 import com.igormaznitsa.prol.logic.io.IoResourceProvider;
 import com.igormaznitsa.prol.logic.triggers.ProlTrigger;
 import com.igormaznitsa.prol.logic.triggers.ProlTriggerType;
@@ -55,6 +54,7 @@ import java.util.stream.Stream;
 
 import static com.igormaznitsa.prol.data.Terms.newStruct;
 import static com.igormaznitsa.prol.libraries.PredicateProcessor.NULL_PROCESSOR;
+import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Stream.concat;
 
@@ -76,14 +76,19 @@ public final class ProlContext implements ParserContext {
 
   private final List<IoResourceProvider> ioProviders = new CopyOnWriteArrayList<>();
 
-  public ProlContext(final String name) {
-    this(name, new InMemoryKnowledgeBase(name + "_kbase"), null);
+  public ProlContext(final String name, final AbstractProlLibrary... libs) {
+    this(name,
+        new InMemoryKnowledgeBase(name + "_kbase"),
+        null,
+        libs
+    );
   }
 
   public ProlContext(
       final String contextId,
       final KnowledgeBase base,
-      final ExecutorService executorService
+      final ExecutorService executorService,
+      final AbstractProlLibrary... additionalLibraries
   ) {
     requireNonNull(contextId, "Contex Id must not be null");
     requireNonNull(base, "Knowledge base must not be null");
@@ -93,8 +98,8 @@ public final class ProlContext implements ParserContext {
 
     this.executorService = executorService == null ? ForkJoinPool.commonPool() : executorService;
 
-    this.libraries.add(new ProlCoreLibrary());
-    this.libraries.add(new ProlIoLibrary());
+    this.libraries.add(new ProlBootstrapLibrary());
+    this.libraries.addAll(asList(additionalLibraries));
   }
 
   public ProlContext addTraceListener(final TracingChoicePointListener listener) {

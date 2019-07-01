@@ -6,7 +6,6 @@ import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.logic.io.IoResourceProvider;
 import org.junit.jupiter.api.Test;
 
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 
@@ -15,8 +14,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class PrimitiveTest extends AbstractProlTest {
 
   @Test
-  void testAccList() throws Exception {
-    final ProlContext context = makeContext("list(X):-X=A,A=B,B=C,C=D,D=E,A=[_,_,_,_],B=[a,_,_,_],C=[_,b,_,_],D=[_,_,c,_],E=[_,_,_,e].");
+  void testAccList() {
+    final ProlContext context = makeContextAndConsult("list(X):-X=A,A=B,B=C,C=D,D=E,A=[_,_,_,_],B=[a,_,_,_],C=[_,b,_,_],D=[_,_,c,_],E=[_,_,_,e].");
     final ChoicePoint goal = new ChoicePoint("list(F).", context);
 
     assertNotNull(goal.next());
@@ -25,8 +24,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testPermutation() throws Exception {
-    final ProlContext context = makeContext("del(X,[X|Tail],Tail).del(X,[Y|Tail],[Y|Tail1]):-del(X,Tail,Tail1).insert(X,List,BiggerList):-del(X,BiggerList,List).permutation([],[]).permutation([X|L],P):-permutation(L,L1),insert(X,L1,P).");
+  void testPermutation() {
+    final ProlContext context = makeContextAndConsult("del(X,[X|Tail],Tail).del(X,[Y|Tail],[Y|Tail1]):-del(X,Tail,Tail1).insert(X,List,BiggerList):-del(X,BiggerList,List).permutation([],[]).permutation([X|L],P):-permutation(L,L1),insert(X,L1,P).");
     final ChoicePoint goal = new ChoicePoint("permutation([red,blue,green],X).", context);
 
     final String[] etalon = new String[] {
@@ -46,8 +45,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testVarLoop() throws Exception {
-    final ProlContext context = makeContext("a(a1).a(X):-X=100. a(2).");
+  void testVarLoop() {
+    final ProlContext context = makeContextAndConsult("a(a1).a(X):-X=100. a(2).");
     final ChoicePoint goal = new ChoicePoint("X=Y,Y=X,Y=2.", context);
 
     assertNotNull(goal.next());
@@ -56,8 +55,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testClause() throws Exception {
-    final ProlContext context = makeContext("a(a1).a(X):-X=100. a(2).");
+  void testClause() {
+    final ProlContext context = makeContextAndConsult("a(a1).a(X):-X=100. a(2).");
     final ChoicePoint goal = new ChoicePoint("clause(a(X),Y).", context);
 
     assertNotNull(goal.next());
@@ -77,8 +76,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testThrowCatch() throws Exception {
-    final ProlContext context = makeContext("a(X):-X=999;throw(some_exception).");
+  void testThrowCatch() {
+    final ProlContext context = makeContextAndConsult("a(X):-X=999;throw(some_exception).");
     final ChoicePoint goal = new ChoicePoint("catch(a(X),error(Err,_),Y='exc').", context);
 
     assertNotNull(goal.next());
@@ -95,8 +94,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testIfThen() throws Exception {
-    final ProlContext context = makeContext("b(b1).b(b2).a(a1).a(a2).");
+  void testIfThen() {
+    final ProlContext context = makeContextAndConsult("b(b1).b(b2).a(a1).a(a2).");
 
     final ChoicePoint goal = new ChoicePoint("b(B)->a(A);b(C).", context);
 
@@ -114,8 +113,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testTrue() throws Exception {
-    final ProlContext context = makeContext("a(a1).a(a2).a(a3).a(a4).");
+  void testTrue() {
+    final ProlContext context = makeContextAndConsult("a(a1).a(a2).a(a3).a(a4).");
 
     final ChoicePoint goal = new ChoicePoint("(true,true;fail),a(X).", context);
 
@@ -131,8 +130,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testOr1() throws Exception {
-    final ProlContext context = makeContext("a([]).");
+  void testOr1() {
+    final ProlContext context = makeContextAndConsult("a([]).");
 
     final ChoicePoint goal = new ChoicePoint("X=a;X=b;X=c;X=d.", context);
 
@@ -147,8 +146,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testOr2() throws Exception {
-    final ProlContext context = makeContext(
+  void testOr2() {
+    final ProlContext context = makeContextAndConsult(
         "testor(X,Y):-" +
             "X='a1'," +
             "write('x')," +
@@ -183,8 +182,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testAnonimousVar() throws Exception {
-    final ProlContext context = makeContext("a(a1,b1).a(a2,b2).a(a3,b3).a(a4,b4).");
+  void testAnonimousVar() {
+    final ProlContext context = makeContextAndConsult("a(a1,b1).a(a2,b2).a(a3,b3).a(a4,b4).");
 
     final ChoicePoint goal = new ChoicePoint("a(X,_).", context);
 
@@ -199,8 +198,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testAtom() throws Exception {
-    final ProlContext context = makeContext("a(a1).a(a2).a(a3).a(a4).");
+  void testAtom() {
+    final ProlContext context = makeContextAndConsult("a(a1).a(a2).a(a3).a(a4).");
 
     final ChoicePoint goal = new ChoicePoint("a(X).", context);
 
@@ -217,8 +216,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testAtom2() throws Exception {
-    final ProlContext context = makeContext("a(a1,b1).a(a2,b2).a(a3,b3).");
+  void testAtom2() {
+    final ProlContext context = makeContextAndConsult("a(a1,b1).a(a2,b2).a(a3,b3).");
 
     final ChoicePoint goal = new ChoicePoint("a(a3,X).", context);
 
@@ -228,8 +227,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testDryUnify() throws Exception {
-    final ProlContext context = makeContext("a(a1,b1).a(a2,b2).a(a3,b3).");
+  void testDryUnify() {
+    final ProlContext context = makeContextAndConsult("a(a1,b1).a(a2,b2).a(a3,b3).");
 
     final Term term1 = new ChoicePoint("replace(['a','b','c','d','e','f','g'],'e',1,X).", context).getGoalTerm();
     final Term term2 = new ChoicePoint("replace(['a','b','c','d','e','f','g'],'a',N,[N|Lt]).", context).getGoalTerm();
@@ -242,8 +241,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testSingleRule() throws Exception {
-    final ProlContext context = makeContext("a(a1).a(a2).a(a3).a(a4).");
+  void testSingleRule() {
+    final ProlContext context = makeContextAndConsult("a(a1).a(a2).a(a3).a(a4).");
 
     final ChoicePoint goal = new ChoicePoint("b(X):-a(X).", context);
 
@@ -257,8 +256,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testSingleInsideRule() throws Exception {
-    final ProlContext context = makeContext("a(a1).a(a2).a(a3).a(a4).b(X):-a(X).");
+  void testSingleInsideRule() {
+    final ProlContext context = makeContextAndConsult("a(a1).a(a2).a(a3).a(a4).b(X):-a(X).");
 
     final ChoicePoint goal = new ChoicePoint("b(X).", context);
 
@@ -272,8 +271,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testSingleInsideRule2() throws Exception {
-    final ProlContext context = makeContext("c(c1).c(c2).a(X):-c(X).a(a2).a(a3).a(a4).b(X):-a(X).");
+  void testSingleInsideRule2() {
+    final ProlContext context = makeContextAndConsult("c(c1).c(c2).a(X):-c(X).a(a2).a(a3).a(a4).b(X):-a(X).");
 
     final ChoicePoint goal = new ChoicePoint("b(X).", context);
 
@@ -287,8 +286,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testANDGoal() throws Exception {
-    final ProlContext context = makeContext("a(a1).a(a2).b(b1).b(b2).");
+  void testANDGoal() {
+    final ProlContext context = makeContextAndConsult("a(a1).a(a2).b(b1).b(b2).");
 
     final ChoicePoint goal = new ChoicePoint("a(A),b(B).", context);
 
@@ -306,8 +305,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testORGoal() throws Exception {
-    final ProlContext context = makeContext("a(a1).a(a2).b(b1).b(b2).");
+  void testORGoal() {
+    final ProlContext context = makeContextAndConsult("a(a1).a(a2).b(b1).b(b2).");
 
     final ChoicePoint goal = new ChoicePoint("a(A);b(A).", context);
     final String[] results = new String[] {"'a1'", "'a2'", "'b1'", "'b2'"};
@@ -320,8 +319,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testCutAnd() throws Exception {
-    final ProlContext context = makeContext("a(a1).a(a2).b(b1).b(b2).");
+  void testCutAnd() {
+    final ProlContext context = makeContextAndConsult("a(a1).a(a2).b(b1).b(b2).");
 
     final ChoicePoint goal = new ChoicePoint("a(A),!,b(B).", context);
 
@@ -340,8 +339,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testCut1() throws Exception {
-    final ProlContext context = makeContext("a(a1):-!.a(a2).a(a3).a(a4).");
+  void testCut1() {
+    final ProlContext context = makeContextAndConsult("a(a1):-!.a(a2).a(a3).a(a4).");
 
     final ChoicePoint goal = new ChoicePoint("a(X).", context);
     assertNotNull(goal.next());
@@ -350,8 +349,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testCut2() throws Exception {
-    final ProlContext context = makeContext("c(c1).c(c2).a(X):-c(X).a(a2):-!.a(a3).a(a4).b(X):-a(X).");
+  void testCut2() {
+    final ProlContext context = makeContextAndConsult("c(c1).c(c2).a(X):-c(X).a(a2):-!.a(a3).a(a4).b(X):-a(X).");
 
     final ChoicePoint goal = new ChoicePoint("b(X).", context);
 
@@ -365,8 +364,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testCut3() throws Exception {
-    final ProlContext context = makeContext("c(c1).c(c2).a(X):-!,c(X).a(a2).a(a3).a(a4).b(X):-a(X).");
+  void testCut3() {
+    final ProlContext context = makeContextAndConsult("c(c1).c(c2).a(X):-!,c(X).a(a2).a(a3).a(a4).b(X):-a(X).");
 
     final ChoicePoint goal = new ChoicePoint("b(X).", context);
 
@@ -380,8 +379,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testCut4() throws Exception {
-    final ProlContext context = makeContext("f(f1).f(f2).c(c1).c(c2).c(c3).a(X):-c(X);!,f(X).a(a2).a(a3).a(a4).b(X):-a(X).");
+  void testCut4() {
+    final ProlContext context = makeContextAndConsult("f(f1).f(f2).c(c1).c(c2).c(c3).a(X):-c(X);!,f(X).a(a2).a(a3).a(a4).b(X):-a(X).");
 
     final ChoicePoint goal = new ChoicePoint("b(X).", context);
 
@@ -395,8 +394,8 @@ class PrimitiveTest extends AbstractProlTest {
   }
 
   @Test
-  void testLocalCut() throws Exception {
-    final ProlContext context = makeContext("f(f1).f(f2).c(c1).c(c2).c(c3).a(X):-c(X),!!.a(a2).a(a3).a(a4).b(X):-a(X).");
+  void testLocalCut() {
+    final ProlContext context = makeContextAndConsult("f(f1).f(f2).c(c1).c(c2).c(c3).a(X):-c(X),!!.a(a2).a(a3).a(a4).b(X):-a(X).");
 
     final ChoicePoint goal = new ChoicePoint("b(X).", context);
     final String[] results = new String[] {"'c1'", "'a2'", "'a3'", "'a4'"};
@@ -409,9 +408,4 @@ class PrimitiveTest extends AbstractProlTest {
 
   }
 
-  private ProlContext makeContext(final String knowledgeBase) throws Exception {
-    final ProlContext context = new ProlContext("PreparedGoal test");
-    context.consult(new StringReader(knowledgeBase));
-    return context;
-  }
 }

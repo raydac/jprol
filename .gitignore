@@ -1,6 +1,4 @@
 nb-configuration.xml
-/jprol-core/jprol-core.iml
-/jprol-gui/jprol-gui.iml
-/jprol-jsr223/jprol-jsr223.iml
-/engine/.idea/
+*.iml
+/**/.idea/
 /**/target/

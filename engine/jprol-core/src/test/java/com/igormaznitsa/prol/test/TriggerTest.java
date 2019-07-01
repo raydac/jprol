@@ -15,13 +15,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class TriggerTest extends AbstractProlTest {
 
   @Test
-  void testTrigger() throws Exception {
+  void testTrigger() {
     final InternaltestTrigger trigger = new InternaltestTrigger();
     trigger.addSignature("testassert/1", ProlTriggerType.TRIGGER_ASSERT);
     trigger.addSignature("testretract/1", ProlTriggerType.TRIGGER_RETRACT);
     trigger.addSignature("testboth/1", ProlTriggerType.TRIGGER_ASSERT_RETRACT);
 
-    ProlContext context = new ProlContext("TestContext");
+    ProlContext context = makeTestContext();
 
     context.registerTrigger(trigger);
 

@@ -6,16 +6,13 @@ import com.igormaznitsa.prol.logic.DeferredGoal;
 import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Test;
 
-import java.io.StringReader;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class PreparedGoalTest extends AbstractProlTest {
 
   @Test
   void testPreparedGoal() throws Exception {
-    final ProlContext context = new ProlContext("PreparedGoal test");
-    context.consult(new StringReader("test(A,B,C,D,E):-E is A+B/C*D. randomval(A):-rnd([1,2,3,4,5],A)."));
+    final ProlContext context = makeContextAndConsult("test(A,B,C,D,E):-E is A+B/C*D. randomval(A):-rnd([1,2,3,4,5],A).");
 
     final DeferredGoal goal = new DeferredGoal("test({?},{?},{?},{?},Result).", context);
 

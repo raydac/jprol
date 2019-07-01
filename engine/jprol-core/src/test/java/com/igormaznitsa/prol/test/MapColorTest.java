@@ -5,15 +5,13 @@ import com.igormaznitsa.prol.logic.ChoicePoint;
 import com.igormaznitsa.prol.logic.ProlContext;
 import org.junit.jupiter.api.Test;
 
-import java.io.StringReader;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class MapColorTest extends AbstractProlTest {
 
   @Test
-  void testMapColor() throws Exception {
-    final ProlContext context = makeContext("colour_countries(Colours):-\n"
+  void testMapColor() {
+    final ProlContext context = makeContextAndConsult("colour_countries(Colours):-\n"
         + "        setof(Country/_, X^ngb(Country,X), Colours),\n"
         + "        colours(Colours).\n"
         + "colours([]).\n"
@@ -53,11 +51,5 @@ class MapColorTest extends AbstractProlTest {
     assertEquals(7776, counter);
     assertEquals("[austria / red,belgium / green,denmark / blue,france / red,italy / yellow,netherlands / blue,portugal / blue,spain / yellow,switzerland / blue,w_germany / yellow]", result0.forWrite());
     assertEquals("[austria / blue,belgium / yellow,denmark / red,france / blue,italy / green,netherlands / red,portugal / red,spain / green,switzerland / red,w_germany / green]", result7775.forWrite());
-  }
-
-  private ProlContext makeContext(final String knowledgeBase) throws Exception {
-    final ProlContext context = new ProlContext("PreparedGoal test");
-    context.consult(new StringReader(knowledgeBase));
-    return context;
   }
 }
