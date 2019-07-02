@@ -99,7 +99,7 @@ public class OptionsDialog extends javax.swing.JDialog implements TreeSelectionL
     });
     jScrollPane1.setViewportView(optionsTree);
 
-    buttonEditOption.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/cog_edit.png"))); // NOI18N
+    buttonEditOption.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cog_edit.png"))); // NOI18N
     buttonEditOption.setText("Edit");
     buttonEditOption.setToolTipText("Edit or change the selected option");
     buttonEditOption.setEnabled(false);
@@ -107,7 +107,7 @@ public class OptionsDialog extends javax.swing.JDialog implements TreeSelectionL
       buttonEditOptionActionPerformed(evt);
     });
 
-    buttonCloseDialog.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/cross.png"))); // NOI18N
+    buttonCloseDialog.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cross.png"))); // NOI18N
     buttonCloseDialog.setText("Close");
     buttonCloseDialog.setToolTipText("Close the dialog");
     buttonCloseDialog.addActionListener((java.awt.event.ActionEvent evt) -> {

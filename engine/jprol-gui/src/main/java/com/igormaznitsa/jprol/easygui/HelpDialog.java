@@ -74,13 +74,9 @@ public class HelpDialog extends javax.swing.JDialog {
     gridBagConstraints.weighty = 1000.0;
     getContentPane().add(scrollTextHelp, gridBagConstraints);
 
-    buttonClose.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/cross.png"))); // NOI18N
+    buttonClose.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cross.png"))); // NOI18N
     buttonClose.setText("Close");
-    buttonClose.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        buttonCloseActionPerformed(evt);
-      }
-    });
+    buttonClose.addActionListener(evt -> buttonCloseActionPerformed(evt));
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 0;
     gridBagConstraints.gridy = 1;

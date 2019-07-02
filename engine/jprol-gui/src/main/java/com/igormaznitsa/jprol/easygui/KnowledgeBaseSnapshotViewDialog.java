@@ -81,7 +81,7 @@ public class KnowledgeBaseSnapshotViewDialog extends javax.swing.JDialog {
     gridBagConstraints.weighty = 1000.0;
     getContentPane().add(SnapshotViewer, gridBagConstraints);
 
-    ButtonClose.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/cross.png"))); // NOI18N
+    ButtonClose.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cross.png"))); // NOI18N
     ButtonClose.setText("Close");
     ButtonClose.addActionListener((java.awt.event.ActionEvent evt) -> {
       ButtonCloseActionPerformed(evt);

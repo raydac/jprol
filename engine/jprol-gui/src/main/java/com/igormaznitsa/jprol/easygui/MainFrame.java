@@ -178,7 +178,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
       logLibrary = new LogLibrary();
 
       try {
-        setIconImage(new ImageIcon(this.getClass().getResource("/com/igormaznitsa/prol/easygui/icons/appico.png")).getImage());
+        setIconImage(new ImageIcon(this.getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/appico.png")).getImage());
       } catch (Exception ex) {
         LOG.throwing(this.getClass().getCanonicalName(), "<init>()", ex);
       }
@@ -438,7 +438,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     gridBagConstraints.ipadx = 300;
     panelFindText.add(textFind, gridBagConstraints);
 
-    buttonCloseFind.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/cross.png"))); // NOI18N
+    buttonCloseFind.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cross.png"))); // NOI18N
     buttonCloseFind.setToolTipText("Hide the find text panel (ESC)");
     buttonCloseFind.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
     buttonCloseFind.setIconTextGap(0);
@@ -484,7 +484,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
 
     buttonStopExecuting.setBackground(new java.awt.Color(255, 156, 156));
     buttonStopExecuting.setFont(new java.awt.Font("DejaVu Sans", Font.BOLD, 13)); // NOI18N
-    buttonStopExecuting.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/flag_red.png"))); // NOI18N
+    buttonStopExecuting.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/flag_red.png"))); // NOI18N
     buttonStopExecuting.setText("STOP");
     buttonStopExecuting.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
     buttonStopExecuting.setMaximumSize(new java.awt.Dimension(100, 23));
@@ -498,7 +498,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
 
     menuFile.setText("File");
 
-    menuFileNew.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/page.png"))); // NOI18N
+    menuFileNew.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/page.png"))); // NOI18N
     menuFileNew.setText("New");
     menuFileNew.setToolTipText("Create new document");
     menuFileNew.addActionListener((java.awt.event.ActionEvent evt) -> {
@@ -507,7 +507,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuFile.add(menuFileNew);
 
     menuFileOpen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK));
-    menuFileOpen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/page_edit.png"))); // NOI18N
+    menuFileOpen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/page_edit.png"))); // NOI18N
     menuFileOpen.setText("Open");
     menuFileOpen.setToolTipText("Open a saved document");
     menuFileOpen.addActionListener((java.awt.event.ActionEvent evt) -> {
@@ -515,7 +515,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     });
     menuFile.add(menuFileOpen);
 
-    menuFileSaveAs.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/page_save.png"))); // NOI18N
+    menuFileSaveAs.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/page_save.png"))); // NOI18N
     menuFileSaveAs.setText("Save As..");
     menuFileSaveAs.setToolTipText("Save the current document as a file");
     menuFileSaveAs.addActionListener((java.awt.event.ActionEvent evt) -> {
@@ -524,7 +524,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuFile.add(menuFileSaveAs);
 
     menuFileSave.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
-    menuFileSave.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/page_go.png"))); // NOI18N
+    menuFileSave.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/page_go.png"))); // NOI18N
     menuFileSave.setText("Save");
     menuFileSave.setToolTipText("Save the current document");
     menuFileSave.addActionListener((java.awt.event.ActionEvent evt) -> {
@@ -533,7 +533,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuFile.add(menuFileSave);
     menuFile.add(jSeparator1);
 
-    menuFileRecentFiles.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/folder.png"))); // NOI18N
+    menuFileRecentFiles.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/folder.png"))); // NOI18N
     menuFileRecentFiles.setText("Recent files...");
     menuFileRecentFiles.setToolTipText("List of files opened early");
     menuFileRecentFiles.addMenuListener(new javax.swing.event.MenuListener() {
@@ -554,7 +554,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuFile.add(jSeparator4);
 
     menuExit.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F4, InputEvent.ALT_DOWN_MASK));
-    menuExit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/door_in.png"))); // NOI18N
+    menuExit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/door_in.png"))); // NOI18N
     menuExit.setText("Exit");
     menuExit.setToolTipText("Close the editor");
     menuExit.addActionListener((java.awt.event.ActionEvent evt) -> {
@@ -567,7 +567,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuEdit.setText("Edit");
 
     menuUndo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK));
-    menuUndo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/book_previous.png"))); // NOI18N
+    menuUndo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/book_previous.png"))); // NOI18N
     menuUndo.setText("Undo");
     menuUndo.setToolTipText("Undo last changes in the document");
     menuUndo.setEnabled(false);
@@ -577,7 +577,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuEdit.add(menuUndo);
 
     menuRedo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Y, InputEvent.CTRL_DOWN_MASK));
-    menuRedo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/book_next.png"))); // NOI18N
+    menuRedo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/book_next.png"))); // NOI18N
     menuRedo.setText("Redo");
     menuRedo.setToolTipText("Redo canceled changes in the document");
     menuRedo.setEnabled(false);
@@ -588,7 +588,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuEdit.add(jSeparator2);
 
     menuClearText.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, InputEvent.CTRL_DOWN_MASK));
-    menuClearText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/page_white.png"))); // NOI18N
+    menuClearText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/page_white.png"))); // NOI18N
     menuClearText.setText("Clear");
     menuClearText.setToolTipText("Just clear text in the current document");
     menuClearText.addActionListener((java.awt.event.ActionEvent evt) -> {
@@ -597,7 +597,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuEdit.add(menuClearText);
 
     menuEditCommentSelected.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_5, InputEvent.CTRL_DOWN_MASK));
-    menuEditCommentSelected.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/comment_add.png"))); // NOI18N
+    menuEditCommentSelected.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/comment_add.png"))); // NOI18N
     menuEditCommentSelected.setText("Comment selection");
     menuEditCommentSelected.setToolTipText("Place the commenting symbol as the first one into selected lines");
     menuEditCommentSelected.addActionListener((java.awt.event.ActionEvent evt) -> {
@@ -606,7 +606,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuEdit.add(menuEditCommentSelected);
 
     menuEditUncommentSelected.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_U, InputEvent.CTRL_DOWN_MASK));
-    menuEditUncommentSelected.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/comment_delete.png"))); // NOI18N
+    menuEditUncommentSelected.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/comment_delete.png"))); // NOI18N
     menuEditUncommentSelected.setText("Uncomment selection");
     menuEditUncommentSelected.setToolTipText("Remove the first commenting symbol from selected lines");
     menuEditUncommentSelected.addActionListener((java.awt.event.ActionEvent evt) -> {
@@ -616,7 +616,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuEdit.add(jSeparator3);
 
     menuitemFindText.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK));
-    menuitemFindText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/zoom.png"))); // NOI18N
+    menuitemFindText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/zoom.png"))); // NOI18N
     menuitemFindText.setText("Find text");
     menuitemFindText.addActionListener((java.awt.event.ActionEvent evt) -> {
       menuitemFindTextActionPerformed(evt);
@@ -627,14 +627,14 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuItemWordWrapSources.setSelected(true);
     menuItemWordWrapSources.setText("Word wrap (editor)");
     menuItemWordWrapSources.setToolTipText("Word-wrap mode for the document editor");
-    menuItemWordWrapSources.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/text_align_justify.png"))); // NOI18N
+    menuItemWordWrapSources.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/text_align_justify.png"))); // NOI18N
     menuItemWordWrapSources.addActionListener((java.awt.event.ActionEvent evt) -> {
       menuItemWordWrapSourcesActionPerformed(evt);
     });
     menuEdit.add(menuItemWordWrapSources);
 
     menuItemFullScreen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
-    menuItemFullScreen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/shape_move_forwards.png"))); // NOI18N
+    menuItemFullScreen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/shape_move_forwards.png"))); // NOI18N
     menuItemFullScreen.setText("Full screen");
     menuItemFullScreen.setToolTipText("Turn on the full screen mode if it is supported by the device");
     menuItemFullScreen.addActionListener((java.awt.event.ActionEvent evt) -> {
@@ -643,7 +643,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuEdit.add(menuItemFullScreen);
     menuEdit.add(jSeparator5);
 
-    menuEditOptions.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/cog.png"))); // NOI18N
+    menuEditOptions.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cog.png"))); // NOI18N
     menuEditOptions.setText("Options");
     menuEditOptions.setToolTipText("Open editor options");
     menuEditOptions.addActionListener((java.awt.event.ActionEvent evt) -> {
@@ -656,7 +656,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuRun.setText("Run");
 
     menuRunScript.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F5, 0));
-    menuRunScript.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/flag_green.png"))); // NOI18N
+    menuRunScript.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/flag_green.png"))); // NOI18N
     menuRunScript.setText("Start");
     menuRunScript.setToolTipText("Execute the current document");
     menuRunScript.addActionListener((java.awt.event.ActionEvent evt) -> {
@@ -664,7 +664,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     });
     menuRun.add(menuRunScript);
 
-    menuTraceScript.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/flag_blue.png"))); // NOI18N
+    menuTraceScript.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/flag_blue.png"))); // NOI18N
     menuTraceScript.setText("Trace");
     menuTraceScript.setToolTipText("Execute the current document with tracing");
     menuTraceScript.addActionListener((java.awt.event.ActionEvent evt) -> {
@@ -672,7 +672,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     });
     menuRun.add(menuTraceScript);
 
-    menuRunStop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/flag_red.png"))); // NOI18N
+    menuRunStop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/flag_red.png"))); // NOI18N
     menuRunStop.setText("Stop");
     menuRunStop.setToolTipText("Stop the current execution");
     menuRunStop.setEnabled(false);
@@ -686,7 +686,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuView.setText("View");
 
     menuViewKnowledgeBase.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F12, 0));
-    menuViewKnowledgeBase.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/eye.png"))); // NOI18N
+    menuViewKnowledgeBase.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/eye.png"))); // NOI18N
     menuViewKnowledgeBase.setText("Show Knowledge base");
     menuViewKnowledgeBase.setToolTipText("Take and show the snapshot of the current knowledge base saved in the memory");
     menuViewKnowledgeBase.setEnabled(false);
@@ -696,7 +696,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuView.add(menuViewKnowledgeBase);
 
     menuItemLibraryInfo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F1, 0));
-    menuItemLibraryInfo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/table.png"))); // NOI18N
+    menuItemLibraryInfo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/table.png"))); // NOI18N
     menuItemLibraryInfo.setText("Library info");
     menuItemLibraryInfo.setToolTipText("Show all predicates found in embedded libraries");
     menuItemLibraryInfo.addActionListener((java.awt.event.ActionEvent evt) -> {
@@ -711,7 +711,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
 
     menuHelp.setText("Help");
 
-    menuHelpHelp.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/information.png"))); // NOI18N
+    menuHelpHelp.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/information.png"))); // NOI18N
     menuHelpHelp.setText("Help");
     menuHelpHelp.setToolTipText("Show information about usage of the utility");
     menuHelpHelp.addActionListener((java.awt.event.ActionEvent evt) -> {
@@ -719,7 +719,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     });
     menuHelp.add(menuHelpHelp);
 
-    menuAbout.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/emoticon_smile.png"))); // NOI18N
+    menuAbout.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/emoticon_smile.png"))); // NOI18N
     menuAbout.setText("About");
     menuAbout.setToolTipText("Show the information about the application and license");
     menuAbout.addActionListener((java.awt.event.ActionEvent evt) -> {

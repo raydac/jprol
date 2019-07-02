@@ -182,7 +182,7 @@ public final class UiUtils {
   public static ImageIcon loadIcon(final String name) {
     try {
       final Image img;
-      try (InputStream inStream = UiUtils.class.getClassLoader().getResourceAsStream("com/igormaznitsa/prol/easygui/icons/" + name + ".png")) {
+      try (InputStream inStream = UiUtils.class.getClassLoader().getResourceAsStream("com/igormaznitsa/jprol/easygui/icons/" + name + ".png")) {
         img = ImageIO.read(inStream);
       }
       return new ImageIcon(img);

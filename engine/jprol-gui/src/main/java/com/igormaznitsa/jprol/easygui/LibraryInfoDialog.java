@@ -132,7 +132,7 @@ public final class LibraryInfoDialog extends javax.swing.JDialog {
     gridBagConstraints.weighty = 1000.0;
     getContentPane().add(textPaneScroll, gridBagConstraints);
 
-    ButtonClose.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/prol/easygui/icons/cross.png"))); // NOI18N
+    ButtonClose.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cross.png"))); // NOI18N
     ButtonClose.setText("Close");
     ButtonClose.setToolTipText("Close the dialog");
     ButtonClose.addActionListener((java.awt.event.ActionEvent evt) -> {
