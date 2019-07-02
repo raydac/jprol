@@ -204,7 +204,7 @@ public final class PredicateProcessor {
             continue;
           }
           if (!termsToNotBeChanged[li].stronglyEqualsTo(elements[li])) {
-            throw new ProlInstantiationErrorException("Nonchangeable element was changed [" + termsToNotBeChanged[li] + "<>" + elements[li] + "]", predicate);
+            throw new ProlInstantiationErrorException("Non-changeable item is changed [" + termsToNotBeChanged[li] + "<>" + elements[li] + "]", predicate);
           }
         }
       }

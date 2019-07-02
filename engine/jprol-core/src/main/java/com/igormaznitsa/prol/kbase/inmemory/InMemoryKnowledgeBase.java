@@ -20,6 +20,7 @@ import com.igormaznitsa.prol.data.*;
 import com.igormaznitsa.prol.exceptions.ProlKnowledgeBaseException;
 import com.igormaznitsa.prol.kbase.IteratorType;
 import com.igormaznitsa.prol.kbase.KnowledgeBase;
+import com.igormaznitsa.prol.kbase.inmemory.items.InMemoryItem;
 import com.igormaznitsa.prol.logic.ProlContext;
 import com.igormaznitsa.prol.logic.triggers.ProlTriggerType;
 import com.igormaznitsa.prol.utils.CloseableIterator;
@@ -58,9 +59,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   private static List<InMemoryItem> makeClone(final List<InMemoryItem> src) {
-    final List<InMemoryItem> result = new CopyOnWriteArrayList<>();
-    src.stream().map(InMemoryItem::makeClone).forEach(result::add);
-    return result;
+    return new CopyOnWriteArrayList<>(src);
   }
 
   @Override
@@ -161,9 +160,9 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
       final List<InMemoryItem> list = predicateTable.computeIfAbsent(uid, x -> new CopyOnWriteArrayList<>());
       if (asFirst) {
-        list.add(0, new InMemoryItem(clause));
+        list.add(0, InMemoryItem.fromClause(clause));
       } else {
-        list.add(new InMemoryItem(clause));
+        list.add(InMemoryItem.fromClause(clause));
       }
       // notify triggers if they are presented
       if (context.hasRegisteredTriggersForSignature(uid, ProlTriggerType.TRIGGER_ASSERT)) {

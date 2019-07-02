@@ -519,106 +519,107 @@ public final class ProlCoreLibrary extends AbstractProlLibrary {
     return false;
   }
 
-  //@Predicate(Signature = "current_op/3", Template = "?integer,?operator_specifier,?atom", Reference = "current_op(Priority, Op_specifier, TermOperator) is true if and only if TermOperator is an operator with properties given by  Op_specifier and Priority")
-  //@SuppressWarnings("unchecked")
-  //public static boolean predicateCURRENTOP(final ChoicePoint goal, final TermStruct predicate) {
-  //  final Term priority = predicate.getElement(0).findNonVarOrSame();
-  //  final Term specifier = predicate.getElement(1).findNonVarOrSame();
-  //  final Term name = predicate.getElement(2).findNonVarOrSame();
-  //
-  //  Object[] auxObject = goal.getPayload();
-  //  if (auxObject == null) {
-  //    // the first call
-  //    final Iterator<TermOperatorContainer> operator_iterator = goal.getContext().getKnowledgeBase().getOperatorIterator();
-  //    auxObject = new Object[] {operator_iterator, null, null};
-  //    goal.setPayload(auxObject);
-  //  }
-  //
-  //  final Iterator<TermOperatorContainer> operator_iterator = (Iterator<TermOperatorContainer>) auxObject[0];
-  //  TermOperatorContainer last_container = (TermOperatorContainer) auxObject[1];
-  //  TermOperator last_operator = (TermOperator) auxObject[2];
-  //
-  //  final String opNameVal = name.getTermType() == ATOM ? name.getText() : null; // null = any
-  //  final int typeVal = specifier.getTermType() == ATOM ? TermOperator.getTypeFromString(specifier.getText()) : -1; // -1 = any
-  //  long priorityVal = 0; // 0 - any
-  //  if (priority.getTermType() == ATOM) {
-  //    priorityVal = priority.toNumber().longValue();
-  //    if (priorityVal < 1L || priorityVal > 1200L) {
-  //      throw new ProlDomainErrorException("Unsupported operator priority", predicate);
-  //    }
-  //  }
-  //
-  //  while (!Thread.currentThread().isInterrupted()) {
-  //    if (last_container == null) {
-  //      // find container
-  //      while (operator_iterator.hasNext()) {
-  //        last_container = operator_iterator.next();
-  //
-  //        if (opNameVal != null) {
-  //          if (last_container.getText().equals(opNameVal)) {
-  //            break;
-  //          }
-  //        } else {
-  //          break;
-  //        }
-  //      }
-  //
-  //      if (last_container == null) {
-  //        // there are not more variants
-  //        goal.resetVariants();
-  //        goal.setPayload(null);
-  //        return false;
-  //      }
-  //    }
-  //
-  //    // find operator
-  //    if (typeVal < 0) {
-  //      // find all
-  //      final OpAssoc typestart = last_operator == null ? 0 : last_operator.getOperatorType() + 1;
-  //
-  //      for (int li = typestart; li < 7; li++) {
-  //        last_operator = last_container.getForTypePrecisely(li);
-  //        if (last_operator != null) {
-  //          break;
-  //        }
-  //      }
-  //    } else {
-  //      final TermOperator op = last_container.getForTypePrecisely(typeVal);
-  //      if (op == last_operator) {
-  //        last_operator = null;
-  //      }
-  //    }
-  //
-  //    if (last_operator != null) {
-  //      if (priorityVal > 0) {
-  //        if (last_operator.getPriority() != priorityVal) {
-  //          continue;
-  //        }
-  //      }
-  //    } else {
-  //      last_container = null;
-  //      continue;
-  //    }
-  //
-  //    // we have found an operator
-  //    auxObject[1] = last_container;
-  //    auxObject[2] = last_operator;
-  //
-  //    final Term priorityOfFound = newLong(last_operator.getPriority());
-  //    final Term specifierOfFound = newAtom(last_operator.getTypeAsString());
-  //    final Term nameOfFound = newAtom(last_operator.getText());
-  //
-  //    if (!(predicate.getElement(0).unifyTo(priorityOfFound) && predicate.getElement(1).unifyTo(specifierOfFound) && predicate.getElement(2).unifyTo(nameOfFound))) {
-  //      goal.resetVariants();
-  //      goal.setPayload(null);
-  //      return false;
-  //    } else {
-  //      return true;
-  //    }
-  //  }
-  //
-  //  return false;
-  //}
+  @Predicate(Signature = "current_op/3", Template = "?integer,?operator_specifier,?atom", Reference = "current_op(Priority, Op_specifier, TermOperator) is true if and only if TermOperator is an operator with properties given by  Op_specifier and Priority")
+  @SuppressWarnings("unchecked")
+  public static boolean predicateCURRENTOP(final ChoicePoint goal, final TermStruct predicate) {
+    final Term priority = predicate.getElement(0).findNonVarOrSame();
+    final Term specifier = predicate.getElement(1).findNonVarOrSame();
+    final Term name = predicate.getElement(2).findNonVarOrSame();
+
+    Object[] auxObject = goal.getPayload();
+    if (auxObject == null) {
+      // the first call
+      final Iterator<TermOperatorContainer> operator_iterator = goal.getContext().getKnowledgeBase().makeOperatorIterator();
+      auxObject = new Object[] {operator_iterator, null, null};
+      goal.setPayload(auxObject);
+    }
+
+    final Iterator<TermOperatorContainer> operator_iterator = (Iterator<TermOperatorContainer>) auxObject[0];
+    TermOperatorContainer last_container = (TermOperatorContainer) auxObject[1];
+    TermOperator last_operator = (TermOperator) auxObject[2];
+
+    final String opNameVal = name.getTermType() == ATOM ? name.getText() : null; // null = any
+    final OpAssoc typeVal = specifier.getTermType() == ATOM ? OpAssoc.findForName(specifier.getText()).get() : null;
+    long priorityVal = 0; // 0 - any
+    if (priority.getTermType() == ATOM) {
+      priorityVal = priority.toNumber().longValue();
+      if (priorityVal < 1L || priorityVal > 1200L) {
+        throw new ProlDomainErrorException("Unsupported operator priority", predicate);
+      }
+    }
+
+    while (!Thread.currentThread().isInterrupted()) {
+      if (last_container == null) {
+        // find container
+        while (operator_iterator.hasNext()) {
+          last_container = operator_iterator.next();
+
+          if (opNameVal != null) {
+            if (last_container.getText().equals(opNameVal)) {
+              break;
+            }
+          } else {
+            break;
+          }
+        }
+
+        if (last_container == null) {
+          // there are not more variants
+          goal.resetVariants();
+          goal.setPayload(null);
+          return false;
+        }
+      }
+
+      // find operator
+      if (typeVal == null) {
+        // find all
+        final int startOrdinal = last_operator == null ? 0 : last_operator.getOperatorType().ordinal() + 1;
+        final OpAssoc[] assoc = OpAssoc.values();
+        for (int li = startOrdinal; li < assoc.length; li++) {
+
+          last_operator = last_container.getForTypePrecisely(assoc[li]);
+          if (last_operator != null) {
+            break;
+          }
+        }
+      } else {
+        final TermOperator op = last_container.getForTypePrecisely(typeVal);
+        if (op == last_operator) {
+          last_operator = null;
+        }
+      }
+
+      if (last_operator != null) {
+        if (priorityVal > 0) {
+          if (last_operator.getPriority() != priorityVal) {
+            continue;
+          }
+        }
+      } else {
+        last_container = null;
+        continue;
+      }
+
+      // we have found an operator
+      auxObject[1] = last_container;
+      auxObject[2] = last_operator;
+
+      final Term priorityOfFound = newLong(last_operator.getPriority());
+      final Term specifierOfFound = newAtom(last_operator.getTypeAsString());
+      final Term nameOfFound = newAtom(last_operator.getText());
+
+      if (!(predicate.getElement(0).unifyTo(priorityOfFound) && predicate.getElement(1).unifyTo(specifierOfFound) && predicate.getElement(2).unifyTo(nameOfFound))) {
+        goal.resetVariants();
+        goal.setPayload(null);
+        return false;
+      } else {
+        return true;
+      }
+    }
+
+    return false;
+  }
 
   @Predicate(Signature = "op/3", Template = "+integer,+operator_specifier,@atom_or_atom_list", Reference = "These predicates allow the operator table to be altered or inspected.\nop(Priority, Op_Specifier, TermOperator) is true, with the side effect that\n1. if Priority is 0 then TermOperator is removed from the operator table, else\n2. TermOperator is added to the TermOperator table, with priority (lower binds tighter) Priority and associativity determined by Op_Specifier")
   @Determined

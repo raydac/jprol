@@ -18,6 +18,7 @@ package com.igormaznitsa.prol.kbase.inmemory;
 
 import com.igormaznitsa.prol.data.TermStruct;
 import com.igormaznitsa.prol.kbase.IteratorType;
+import com.igormaznitsa.prol.kbase.inmemory.items.InMemoryItem;
 import com.igormaznitsa.prol.utils.CloseableIterator;
 
 import java.util.Iterator;
@@ -42,14 +43,6 @@ public final class InMemoryClauseIterator implements CloseableIterator<TermStruc
     this.next = findNext();
   }
 
-  private static boolean isFact(final InMemoryItem item) {
-    return !item.isRightPartPresented() && item.getKeyTerm().isGround();
-  }
-
-  private static boolean isRule(final InMemoryItem item) {
-    return item.isRightPartPresented() || !item.getKeyTerm().isGround();
-  }
-
   @Override
   public boolean hasNext() {
     return this.next != null;
@@ -59,14 +52,6 @@ public final class InMemoryClauseIterator implements CloseableIterator<TermStruc
     return this.search;
   }
 
-  private boolean canBeUnifiedWithPattern(final InMemoryItem item) {
-    if (item.isKeyContainsLinkedVars()) {
-      return this.search.makeClone().unifyTo(item.getKeyTerm().makeClone());
-    } else {
-      return this.search.dryUnifyTo(item.getKeyTerm());
-    }
-  }
-
   @Override
   public void close() {
 
@@ -74,26 +59,26 @@ public final class InMemoryClauseIterator implements CloseableIterator<TermStruc
 
   private InMemoryItem findNext() {
 
-    InMemoryItem nextItem = null;
+    InMemoryItem result = null;
 
-    while (this.iterator.hasNext() && nextItem == null) {
-      final InMemoryItem nextKb = this.iterator.next();
+    while (this.iterator.hasNext() && result == null) {
+      final InMemoryItem nextItem = this.iterator.next();
       switch (this.type) {
         case ANY: {
-          if (canBeUnifiedWithPattern(nextKb)) {
-            nextItem = nextKb;
+          if (nextItem.matches(this.search)) {
+            result = nextItem;
           }
         }
         break;
         case FACTS: {
-          if (isFact(nextKb) && this.canBeUnifiedWithPattern(nextKb)) {
-            nextItem = nextKb;
+          if (nextItem.isFact() && nextItem.matches(this.search)) {
+            result = nextItem;
           }
         }
         break;
         case RULES: {
-          if (isRule(nextKb) && this.canBeUnifiedWithPattern(nextKb)) {
-            nextItem = nextKb;
+          if (nextItem.isRule() && nextItem.matches(this.search)) {
+            result = nextItem;
           }
         }
         break;
@@ -101,7 +86,7 @@ public final class InMemoryClauseIterator implements CloseableIterator<TermStruc
           throw new Error("Unexpected type: " + this.type);
       }
     }
-    return nextItem;
+    return result;
   }
 
   InMemoryItem nextItem() {

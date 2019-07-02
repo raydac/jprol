@@ -30,7 +30,7 @@ import static com.igormaznitsa.prol.data.Terms.*;
 public class ProlStrLibrary extends AbstractProlLibrary {
 
   public ProlStrLibrary() {
-    super("ProlStrLib");
+    super("prol-str-lib");
   }
 
   @Predicate(Signature = "concat/3", Template = {"+atom,+atom,?atom", "+atom,?atom,+atom", "?atom,+atom,+atom"}, Reference = "Concat two strings.")
