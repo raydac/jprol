@@ -43,6 +43,7 @@ import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.data.Terms.*;
 import static com.igormaznitsa.jprol.utils.Utils.createOrAppendToList;
 import static com.igormaznitsa.jprol.utils.Utils.escapeSrc;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
 
 public class Term {
@@ -50,7 +51,7 @@ public class Term {
   private final String text;
 
   Term(final String text) {
-    this.text = text;
+    this.text = requireNonNull(text);
   }
 
   public static Term toTerm(final Object src) {

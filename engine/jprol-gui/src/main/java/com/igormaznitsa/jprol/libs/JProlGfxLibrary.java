@@ -939,14 +939,14 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     }
 
     public boolean execute() {
-      if (contextForTheAction.isDisposed()) {
+      if (this.contextForTheAction.isDisposed()) {
         return false;
       }
       try {
-        contextForTheAction.submitAsync(action);
+        this.contextForTheAction.submitAsync(action);
         return true;
       } catch (Throwable thr) {
-        LOG.log(Level.SEVERE, "Can't execute registered action " + menuText, thr);
+        LOG.log(Level.SEVERE, "Can't execute registered action " + this.menuText, thr);
       }
       return false;
     }

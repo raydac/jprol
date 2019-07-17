@@ -26,14 +26,15 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static com.igormaznitsa.jprol.data.TermType.*;
+import static java.util.Objects.requireNonNull;
 
 public class TermStruct extends Term {
 
   protected static final Term[] EMPTY_ARRAY = new Term[0];
   protected final Term[] terms;
   protected final Term functor;
-  protected PredicateInvoker predicateProcessor;
-  private String structureSignature;
+  private final String structureSignature;
+  protected volatile PredicateInvoker predicateProcessor;
 
   TermStruct(final Term functor) {
     this(functor, EMPTY_ARRAY);
@@ -47,11 +48,13 @@ public class TermStruct extends Term {
     super(functor.getText());
     this.functor = functor;
     this.terms = elements == null ? EMPTY_ARRAY : elements;
+    this.structureSignature = functor.getText() + '/' + getArity();
+    this.predicateProcessor = PredicateInvoker.NULL_PROCESSOR;
   }
 
   TermStruct(final Term functor, final Term[] elements, final PredicateInvoker processor) {
     this(functor, elements);
-    predicateProcessor = processor;
+    this.predicateProcessor = requireNonNull(processor);
   }
 
   public final Term getFunctor() {
@@ -335,11 +338,11 @@ public class TermStruct extends Term {
   }
 
   public final PredicateInvoker getPredicateProcessor() {
-    return predicateProcessor;
+    return this.predicateProcessor;
   }
 
   public void setPredicateProcessor(final PredicateInvoker processor) {
-    predicateProcessor = processor;
+    this.predicateProcessor = requireNonNull(processor);
   }
 
   @Override
@@ -354,10 +357,7 @@ public class TermStruct extends Term {
 
   @Override
   public String getSignature() {
-    if (structureSignature == null) {
-      structureSignature = functor.getText() + '/' + getArity();
-    }
-    return structureSignature;
+    return this.structureSignature;
   }
 
   @Override

@@ -144,11 +144,7 @@ public final class Terms {
         || term.getType() == com.igormaznitsa.prologparser.terms.TermType.OPERATOR) {
       return convert(context, term, null);
     } else {
-      try {
-        return convert(context, term, new HashMap<>());
-      } catch (RuntimeException ex) {
-        throw ex;
-      }
+      return convert(context, term, new HashMap<>());
     }
   }
 

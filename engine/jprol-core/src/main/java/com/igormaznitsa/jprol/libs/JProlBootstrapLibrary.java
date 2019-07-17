@@ -11,6 +11,7 @@ import com.igormaznitsa.jprol.logic.ChoicePoint;
 
 import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.*;
 
+@SuppressWarnings("EmptyMethod")
 @ProlOperators(Operators = {
     @ProlOperator(Priority = 700, Type = XFX, Name = "is"),
     @ProlOperator(Priority = 700, Type = XFX, Name = "="),

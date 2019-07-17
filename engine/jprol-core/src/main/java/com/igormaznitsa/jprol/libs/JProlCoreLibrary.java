@@ -42,6 +42,7 @@ import static com.igormaznitsa.jprol.data.Terms.*;
 import static com.igormaznitsa.jprol.utils.Utils.createOrAppendToList;
 import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.*;
 
+@SuppressWarnings("EmptyMethod")
 @ProlOperators(Operators = {
     @ProlOperator(Priority = 1050, Type = XFY, Name = "->"),
     @ProlOperator(Priority = 900, Type = FY, Name = "\\+"),
@@ -2040,7 +2041,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static void predicateWAITASYNC(final ChoicePoint goal, final TermStruct predicate) {
     final ExecutorService service = goal.getContext().getContextExecutorService();
 
-    goal.getContext().waitAllAsyncDone();
+    goal.getContext().waitForAllAsyncDone();
 
     if (Thread.currentThread().isInterrupted()) {
       service.shutdown();

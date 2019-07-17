@@ -48,13 +48,14 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.logic.PredicateInvoker.NULL_PROCESSOR;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.concat;
 
 public final class ProlContext implements ParserContext {
@@ -70,8 +71,9 @@ public final class ProlContext implements ParserContext {
   private final AtomicBoolean disposed = new AtomicBoolean(false);
   private final KnowledgeBase knowledgeBase;
   private final ExecutorService executorService;
-  private final AtomicInteger activeTaskCounter = new AtomicInteger();
   private final List<TracingChoicePointListener> traceListeners = new CopyOnWriteArrayList<>();
+
+  private final AtomicInteger activeAsyncTasks = new AtomicInteger();
 
   private final List<IoResourceProvider> ioProviders = new CopyOnWriteArrayList<>();
 
@@ -139,36 +141,38 @@ public final class ProlContext implements ParserContext {
     }
   }
 
-  public int getActiveAsyncTaskNumber() {
-    return this.activeTaskCounter.get();
+  public int getActiveAsyncNumber() {
+    return this.activeAsyncTasks.get();
   }
 
-  public void waitAllAsyncDone() {
-    while (this.activeTaskCounter.get() > 0) {
-      synchronized (this) {
-        if (this.activeTaskCounter.get() > 0) {
-          try {
-            this.wait();
-          } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-          }
+  public void waitForAllAsyncDone() {
+    while (this.activeAsyncTasks.get() > 0) {
+      synchronized (this.activeAsyncTasks) {
+        try {
+          this.activeAsyncTasks.wait();
+        } catch (InterruptedException ex) {
+          Thread.currentThread().interrupt();
+          return;
         }
       }
     }
   }
 
-  public Future<?> submitAsync(final Term goal) {
+  private void onAsyncGoalCompleted(final Term goal) {
+    this.activeAsyncTasks.decrementAndGet();
+    synchronized (this.activeAsyncTasks) {
+      this.activeAsyncTasks.notifyAll();
+    }
+  }
+
+  public void submitAsync(final Term goal) {
     this.assertNotDisposed();
 
-    if (goal == null) {
-      throw new NullPointerException("The term to prove is null");
-    }
-
-    this.activeTaskCounter.incrementAndGet();
+    this.activeAsyncTasks.incrementAndGet();
     try {
-      return getContextExecutorService().submit(() -> {
+      getContextExecutorService().submit(() -> {
         try {
-          final ChoicePoint asyncGoal = new ChoicePoint(goal, ProlContext.this);
+          final ChoicePoint asyncGoal = new ChoicePoint(requireNonNull(goal), ProlContext.this);
 
           while (!Thread.currentThread().isInterrupted()) {
             final Term result = asyncGoal.next();
@@ -177,16 +181,13 @@ public final class ProlContext implements ParserContext {
             }
           }
         } finally {
-          synchronized (ProlContext.this) {
-            this.activeTaskCounter.decrementAndGet();
-            ProlContext.this.notifyAll();
-          }
+          ProlContext.this.onAsyncGoalCompleted(goal);
         }
       });
-    } catch (Exception ex) {
-      synchronized (ProlContext.this) {
-        this.activeTaskCounter.decrementAndGet();
-        ProlContext.this.notifyAll();
+    } catch (RejectedExecutionException ex) {
+      this.activeAsyncTasks.decrementAndGet();
+      synchronized (this.activeAsyncTasks) {
+        this.activeAsyncTasks.notifyAll();
       }
       throw new ProlForkExecutionException("Can't submit term for async resolving", goal, new Throwable[] {ex});
     }
@@ -277,7 +278,7 @@ public final class ProlContext implements ParserContext {
   public List<TermStruct> findAllForPredicateIndicatorInLibs(final Term predicateIndicator) {
     return this.libraries.stream()
         .flatMap(lib -> lib.findAllForPredicateIndicator(predicateIndicator).stream())
-        .collect(Collectors.toList());
+        .collect(toList());
   }
 
   public boolean hasPredicateAtLibraryForSignature(final String signature) {
@@ -391,30 +392,21 @@ public final class ProlContext implements ParserContext {
   }
 
   public void notifyTriggersForSignature(final String normalizedSignature, final ProlTriggerType observedEvent) {
-    ProlTrigger[] triggersToProcess = null;
-    List<ProlTrigger> listOfTriggers;
+    final List<ProlTrigger> listOfTriggers;
 
     switch (observedEvent) {
       case TRIGGER_ASSERT: {
-        listOfTriggers = this.triggersOnAssert.get(normalizedSignature);
+        listOfTriggers = this.triggersOnAssert.getOrDefault(normalizedSignature, emptyList());
       }
       break;
       case TRIGGER_RETRACT: {
-        listOfTriggers = this.triggersOnRetract.get(normalizedSignature);
+        listOfTriggers = this.triggersOnRetract.getOrDefault(normalizedSignature, emptyList());
       }
       break;
       case TRIGGER_ASSERT_RETRACT: {
-        final List<ProlTrigger> trigAssert = this.triggersOnAssert.get(normalizedSignature);
-        final List<ProlTrigger> trigRetract = this.triggersOnRetract.get(normalizedSignature);
-
-        if (trigAssert != null && trigRetract == null) {
-          listOfTriggers = trigAssert;
-        } else if (trigAssert == null && trigRetract != null) {
-          listOfTriggers = trigRetract;
-        } else {
-          listOfTriggers = new ArrayList<>(trigAssert);
-          listOfTriggers.addAll(trigRetract);
-        }
+        final List<ProlTrigger> triggersAssert = this.triggersOnAssert.getOrDefault(normalizedSignature, emptyList());
+        final List<ProlTrigger> triggersRetract = this.triggersOnRetract.getOrDefault(normalizedSignature, emptyList());
+        listOfTriggers = triggersRetract.isEmpty() && triggersAssert.isEmpty() ? emptyList() : concat(triggersAssert.stream(), triggersRetract.stream()).collect(toList());
       }
       break;
       default: {
@@ -422,16 +414,9 @@ public final class ProlContext implements ParserContext {
       }
     }
 
-    if (listOfTriggers != null) {
-      triggersToProcess = listOfTriggers.toArray(new ProlTrigger[0]);
-    }
-
-
-    if (triggersToProcess != null) {
+    if (!listOfTriggers.isEmpty()) {
       final TriggerEvent event = new TriggerEvent(this, normalizedSignature, observedEvent);
-      for (final ProlTrigger trigger : triggersToProcess) {
-        trigger.onTriggerEvent(event);
-      }
+      listOfTriggers.forEach(x -> x.onTriggerEvent(event));
     }
   }
 

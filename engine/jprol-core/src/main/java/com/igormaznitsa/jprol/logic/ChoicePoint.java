@@ -30,6 +30,7 @@ import com.igormaznitsa.jprol.trace.TraceEvent;
 import java.io.StringReader;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
@@ -58,12 +59,17 @@ public final class ChoicePoint {
   private boolean cutMeet;
   private boolean notFirstProve;
 
+  private static final AtomicLong UID_GEN = new AtomicLong();
+  private final long uid;
+
   private ChoicePoint(
       final ChoicePoint rootCp,
       final Term goalToSolve,
       final ProlContext context,
       final Map<String, Term> predefinedVarValues
   ) {
+    this.uid = UID_GEN.incrementAndGet();
+
     this.rootCp = rootCp == null ? this : rootCp;
     this.goalTerm = goalToSolve.getTermType() == ATOM ? newStruct(goalToSolve) : goalToSolve;
     this.context = context;
@@ -102,6 +108,26 @@ public final class ChoicePoint {
 
   public ChoicePoint(final Term goal, final ProlContext context, final Map<String, Term> predefinedVarValues) {
     this(null, goal, context, predefinedVarValues);
+  }
+
+  public long getUid() {
+    return this.uid;
+  }
+
+  @Override
+  public boolean equals(final Object that) {
+    if (this == that) {
+      return true;
+    }
+    if (that instanceof ChoicePoint) {
+      return this.uid == ((ChoicePoint) that).uid;
+    }
+    return false;
+  }
+
+  @Override
+  public int hashCode() {
+    return (int) ((this.uid >>> 32) ^ this.uid);
   }
 
   private static Term assertCallable(final Term term) {
