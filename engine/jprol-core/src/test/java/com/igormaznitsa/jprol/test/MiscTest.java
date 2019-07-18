@@ -20,7 +20,7 @@ import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
-import com.igormaznitsa.jprol.logic.ProlContext;
+import com.igormaznitsa.jprol.logic.JProlContext;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -33,7 +33,7 @@ class MiscTest extends AbstractProlTest {
 
   @Test
   void testGetAllGoalsAndConvertThem() {
-    final ProlContext context = makeContextAndConsult("map(one,1,a). map(two,2,b). map(three,3,c).");
+    final JProlContext context = makeContextAndConsult("map(one,1,a). map(two,2,b). map(three,3,c).");
 
     final ChoicePoint goal = new ChoicePoint("map(X,Y,_).", context);
 
@@ -70,7 +70,7 @@ class MiscTest extends AbstractProlTest {
 
   @Test
   void findAllTest() {
-    ProlContext context;
+    JProlContext context;
     context = makeContextAndConsult("powerSet([],[]).powerSet([_|Xt],Y) :- powerSet(Xt,Y).powerSet([Xh|Xt],[Xh|Yt]) :- powerSet(Xt,Yt).");
     final ChoicePoint goal = new ChoicePoint("findall(X,powerSet([a,b],X),Y).", context);
 

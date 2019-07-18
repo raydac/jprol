@@ -1,7 +1,7 @@
 package com.igormaznitsa.jprol.test;
 
 import com.igormaznitsa.jprol.logic.ChoicePoint;
-import com.igormaznitsa.jprol.logic.ProlContext;
+import com.igormaznitsa.jprol.logic.JProlContext;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -10,7 +10,7 @@ class StrongTest extends AbstractProlTest {
 
   @Test
   void testFlightRoutePlanner() {
-    final ProlContext context = makeContextAndConsult(":-op(50,xfy,:)."
+    final JProlContext context = makeContextAndConsult(":-op(50,xfy,:)."
         + "route(P1,P2,Day,[P1/P2/Fnum/Deptime]):-flight(P1,P2,Day,Fnum,Deptime,_)."
         + "route(P1,P2,Day,[(P1/P3/Fnum1/Dep1)|RestRoute]):-route(P3,P2,Day,RestRoute),flight(P1,P3,Day,Fnum1,Dep1,Arr1),deptime(RestRoute,Dep2),transfer(Arr1,Dep2)."
         + "flight(Place1,Place2,Day,Fnum,Deptime,Arrtime):-timetable(Place1,Place2,Flightlist),member(Deptime/Arrtime/Fnum/Daylist,Flightlist),flyday(Day,Daylist)."
@@ -58,7 +58,7 @@ class StrongTest extends AbstractProlTest {
 
   @Test
   void testColoring() {
-    final ProlContext context = makeContextAndConsult("member(X,[X|L]).member(X,[Y|L]):-member(X,L).adjacent(X,Y,Map):-member([X,Y],Map);member([Y,X],Map)."
+    final JProlContext context = makeContextAndConsult("member(X,[X|L]).member(X,[Y|L]):-member(X,L).adjacent(X,Y,Map):-member([X,Y],Map);member([Y,X],Map)."
         + "find_regions([],R,R).find_regions([[X,Y]|S],R,A):-(member(X,R)->(member(Y,R)->find_regions(S,R,A);find_regions(S,[Y|R],A));(member(Y,R)->find_regions(S,[X|R],A);find_regions(S,[X,Y|R],A)))."
         + "color(Map,Colors,Coloring) :- find_regions(Map,[],Regions), color_all(Regions,Colors,Coloring), \\+ conflict(Map,Coloring)."
         + "color_all([R|Rs],Colors,[[R,C]|A]):-member(C,Colors),color_all(Rs,Colors,A).color_all([],_,[]).conflict(Map,Coloring):-member([R1,C],Coloring), member([R2,C],Coloring), adjacent(R1,R2,Map).");

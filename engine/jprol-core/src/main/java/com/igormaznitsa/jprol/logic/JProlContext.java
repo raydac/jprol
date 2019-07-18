@@ -27,8 +27,8 @@ import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.libs.JProlBootstrapLibrary;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
-import com.igormaznitsa.jprol.logic.triggers.ProlTrigger;
-import com.igormaznitsa.jprol.logic.triggers.ProlTriggerType;
+import com.igormaznitsa.jprol.logic.triggers.JProlTrigger;
+import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
 import com.igormaznitsa.jprol.logic.triggers.TriggerEvent;
 import com.igormaznitsa.jprol.trace.TraceEvent;
 import com.igormaznitsa.jprol.trace.TracingChoicePointListener;
@@ -58,14 +58,14 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.concat;
 
-public final class ProlContext implements ParserContext {
+public final class JProlContext implements ParserContext {
   public static final String ENGINE_VERSION = "2.0.0";
   public static final String ENGINE_NAME = "Prol";
 
   private final String contextId;
 
-  private final Map<String, List<ProlTrigger>> triggersOnAssert = new ConcurrentHashMap<>();
-  private final Map<String, List<ProlTrigger>> triggersOnRetract = new ConcurrentHashMap<>();
+  private final Map<String, List<JProlTrigger>> triggersOnAssert = new ConcurrentHashMap<>();
+  private final Map<String, List<JProlTrigger>> triggersOnRetract = new ConcurrentHashMap<>();
   private final Map<String, ReentrantLock> namedLockerObjects = new ConcurrentHashMap<>();
   private final List<AbstractJProlLibrary> libraries = new CopyOnWriteArrayList<>();
   private final AtomicBoolean disposed = new AtomicBoolean(false);
@@ -77,7 +77,7 @@ public final class ProlContext implements ParserContext {
 
   private final List<IoResourceProvider> ioProviders = new CopyOnWriteArrayList<>();
 
-  public ProlContext(final String name, final AbstractJProlLibrary... libs) {
+  public JProlContext(final String name, final AbstractJProlLibrary... libs) {
     this(name,
         new InMemoryKnowledgeBase(name + "_kbase"),
         null,
@@ -85,7 +85,7 @@ public final class ProlContext implements ParserContext {
     );
   }
 
-  public ProlContext(
+  public JProlContext(
       final String contextId,
       final KnowledgeBase base,
       final ExecutorService executorService,
@@ -103,22 +103,22 @@ public final class ProlContext implements ParserContext {
     this.libraries.addAll(asList(additionalLibraries));
   }
 
-  public ProlContext addTraceListener(final TracingChoicePointListener listener) {
+  public JProlContext addTraceListener(final TracingChoicePointListener listener) {
     this.traceListeners.add(listener);
     return this;
   }
 
-  public ProlContext removeTraceListener(final TracingChoicePointListener listener) {
+  public JProlContext removeTraceListener(final TracingChoicePointListener listener) {
     this.traceListeners.remove(listener);
     return this;
   }
 
-  public ProlContext addIoResourceProvider(final IoResourceProvider provider) {
+  public JProlContext addIoResourceProvider(final IoResourceProvider provider) {
     this.ioProviders.add(provider);
     return this;
   }
 
-  public ProlContext removeIoResourceProvider(final IoResourceProvider provider) {
+  public JProlContext removeIoResourceProvider(final IoResourceProvider provider) {
     this.ioProviders.remove(provider);
     return this;
   }
@@ -172,7 +172,7 @@ public final class ProlContext implements ParserContext {
     try {
       getContextExecutorService().submit(() -> {
         try {
-          final ChoicePoint asyncGoal = new ChoicePoint(requireNonNull(goal), ProlContext.this);
+          final ChoicePoint asyncGoal = new ChoicePoint(requireNonNull(goal), JProlContext.this);
 
           while (!Thread.currentThread().isInterrupted()) {
             final Term result = asyncGoal.next();
@@ -181,7 +181,7 @@ public final class ProlContext implements ParserContext {
             }
           }
         } finally {
-          ProlContext.this.onAsyncGoalCompleted(goal);
+          JProlContext.this.onAsyncGoalCompleted(goal);
         }
       });
     } catch (RejectedExecutionException ex) {
@@ -307,7 +307,7 @@ public final class ProlContext implements ParserContext {
     if (this.disposed.compareAndSet(false, true)) {
       executorService.shutdownNow();
 
-      final Set<ProlTrigger> notifiedTriggers = new HashSet<>();
+      final Set<JProlTrigger> notifiedTriggers = new HashSet<>();
       concat(triggersOnAssert.entrySet().stream(), triggersOnRetract.entrySet().stream())
           .forEachOrdered(mapentry -> mapentry.getValue().forEach((trigger) -> {
             try {
@@ -330,9 +330,9 @@ public final class ProlContext implements ParserContext {
     return disposed.get();
   }
 
-  public void registerTrigger(final ProlTrigger trigger) {
+  public void registerTrigger(final JProlTrigger trigger) {
     assertNotDisposed();
-    final Map<String, ProlTriggerType> signatures = trigger.getSignatures();
+    final Map<String, JProlTriggerType> signatures = trigger.getSignatures();
 
     signatures.forEach((key, triggerType) -> {
       String signature = Utils.validateSignature(key);
@@ -341,21 +341,21 @@ public final class ProlContext implements ParserContext {
       }
       signature = Utils.normalizeSignature(signature);
 
-      if (triggerType == ProlTriggerType.TRIGGER_ASSERT || triggerType == ProlTriggerType.TRIGGER_ASSERT_RETRACT) {
+      if (triggerType == JProlTriggerType.TRIGGER_ASSERT || triggerType == JProlTriggerType.TRIGGER_ASSERT_RETRACT) {
         this.triggersOnAssert.computeIfAbsent(signature, k -> new CopyOnWriteArrayList<>()).add(trigger);
       }
 
-      if (triggerType == ProlTriggerType.TRIGGER_RETRACT || triggerType == ProlTriggerType.TRIGGER_ASSERT_RETRACT) {
+      if (triggerType == JProlTriggerType.TRIGGER_RETRACT || triggerType == JProlTriggerType.TRIGGER_ASSERT_RETRACT) {
         this.triggersOnRetract.computeIfAbsent(signature, k -> new CopyOnWriteArrayList<>()).add(trigger);
       }
     });
   }
 
-  public void unregisterTrigger(final ProlTrigger trigger) {
+  public void unregisterTrigger(final JProlTrigger trigger) {
     Stream.of(triggersOnAssert.entrySet().iterator(), triggersOnRetract.entrySet().iterator()).forEach(iterator -> {
       while (iterator.hasNext()) {
-        final Entry<String, List<ProlTrigger>> entry = iterator.next();
-        final List<ProlTrigger> lst = entry.getValue();
+        final Entry<String, List<JProlTrigger>> entry = iterator.next();
+        final List<JProlTrigger> lst = entry.getValue();
         if (lst.remove(trigger)) {
           if (lst.isEmpty()) {
             iterator.remove();
@@ -365,7 +365,7 @@ public final class ProlContext implements ParserContext {
     });
   }
 
-  public boolean hasRegisteredTriggersForSignature(final String normalizedSignature, final ProlTriggerType observedEvent) {
+  public boolean hasRegisteredTriggersForSignature(final String normalizedSignature, final JProlTriggerType observedEvent) {
     boolean result;
     switch (observedEvent) {
       case TRIGGER_ASSERT: {
@@ -391,8 +391,8 @@ public final class ProlContext implements ParserContext {
     return result;
   }
 
-  public void notifyTriggersForSignature(final String normalizedSignature, final ProlTriggerType observedEvent) {
-    final List<ProlTrigger> listOfTriggers;
+  public void notifyTriggersForSignature(final String normalizedSignature, final JProlTriggerType observedEvent) {
+    final List<JProlTrigger> listOfTriggers;
 
     switch (observedEvent) {
       case TRIGGER_ASSERT: {
@@ -404,8 +404,8 @@ public final class ProlContext implements ParserContext {
       }
       break;
       case TRIGGER_ASSERT_RETRACT: {
-        final List<ProlTrigger> triggersAssert = this.triggersOnAssert.getOrDefault(normalizedSignature, emptyList());
-        final List<ProlTrigger> triggersRetract = this.triggersOnRetract.getOrDefault(normalizedSignature, emptyList());
+        final List<JProlTrigger> triggersAssert = this.triggersOnAssert.getOrDefault(normalizedSignature, emptyList());
+        final List<JProlTrigger> triggersRetract = this.triggersOnRetract.getOrDefault(normalizedSignature, emptyList());
         listOfTriggers = triggersRetract.isEmpty() && triggersAssert.isEmpty() ? emptyList() : concat(triggersAssert.stream(), triggersRetract.stream()).collect(toList());
       }
       break;
@@ -425,9 +425,9 @@ public final class ProlContext implements ParserContext {
   }
 
   public void consult(final Reader source, final ConsultInteractor interactor) {
-    final ProlTreeBuilder treeBuilder = new ProlTreeBuilder(this);
+    final JProlTreeBuilder treeBuilder = new JProlTreeBuilder(this);
     do {
-      final ProlTreeBuilder.Result parseResult = treeBuilder.readPhraseAndMakeTree(source);
+      final JProlTreeBuilder.Result parseResult = treeBuilder.readPhraseAndMakeTree(source);
       if (parseResult == null) {
         break;
       }
@@ -533,8 +533,8 @@ public final class ProlContext implements ParserContext {
     return "ProlContext(" + contextId + ')' + '[' + super.toString() + ']';
   }
 
-  public ProlContext makeCopy() {
-    return new ProlContext(this.contextId + "_copy", this.knowledgeBase.makeCopy(), this.executorService);
+  public JProlContext makeCopy() {
+    return new JProlContext(this.contextId + "_copy", this.knowledgeBase.makeCopy(), this.executorService);
   }
 
   public boolean hasOperatorStartsWith(String operator) {

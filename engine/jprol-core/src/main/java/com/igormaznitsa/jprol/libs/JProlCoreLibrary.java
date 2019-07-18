@@ -22,10 +22,10 @@ import com.igormaznitsa.jprol.exceptions.*;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
-import com.igormaznitsa.jprol.logic.ProlContext;
-import com.igormaznitsa.jprol.logic.triggers.ProlTriggerGoal;
-import com.igormaznitsa.jprol.logic.triggers.ProlTriggerType;
+import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
+import com.igormaznitsa.jprol.logic.triggers.JProlTriggeringEventObserver;
 import com.igormaznitsa.jprol.utils.Utils;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
@@ -2023,7 +2023,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   @Determined
   public static void predicateASYNC(final ChoicePoint goal, final TermStruct predicate) {
     final Term goalToSolve = predicate.getElement(0).findNonVarOrSame();
-    final ProlContext context = goal.getContext();
+    final JProlContext context = goal.getContext();
 
     // we have to check the goal because it must not have any noninstantiated variable!!!!
     final Map<String, TermVar> vars = goalToSolve.allNamedVarsAsMap();
@@ -2058,7 +2058,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       // the first call
       goalList = new ArrayList<>();
       TermList tlist = termlist;
-      final ProlContext context = goal.getContext();
+      final JProlContext context = goal.getContext();
       while (!tlist.isNullList()) {
         final Term term = tlist.getHead();
 
@@ -2264,20 +2264,20 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final String signature = Utils.extractPredicateSignatureFromStructure(predicate.getElement(0));
     final String triggerevent = predicate.getElement(1).findNonVarOrSame().getText();
     final Term callableTerm = predicate.getElement(2).findNonVarOrSame();
-    final ProlContext context = goal.getContext();
+    final JProlContext context = goal.getContext();
 
-    final ProlTriggerGoal triggergoal = new ProlTriggerGoal(callableTerm, context);
+    final JProlTriggeringEventObserver triggergoal = new JProlTriggeringEventObserver(callableTerm);
 
     if (triggerevent != null) {
       switch (triggerevent) {
         case "onassert":
-          triggergoal.addSignature(signature, ProlTriggerType.TRIGGER_ASSERT);
+          triggergoal.addSignature(signature, JProlTriggerType.TRIGGER_ASSERT);
           break;
         case "onretract":
-          triggergoal.addSignature(signature, ProlTriggerType.TRIGGER_RETRACT);
+          triggergoal.addSignature(signature, JProlTriggerType.TRIGGER_RETRACT);
           break;
         case "onassertretract":
-          triggergoal.addSignature(signature, ProlTriggerType.TRIGGER_ASSERT_RETRACT);
+          triggergoal.addSignature(signature, JProlTriggerType.TRIGGER_ASSERT_RETRACT);
           break;
         default:
           throw new ProlCriticalError("Unsupported trigger event detected [" + triggerevent + ']');
@@ -2334,7 +2334,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     private final Term term;
     private final ChoicePoint goal;
 
-    AuxForkTask(final Term termToSolve, final ProlContext context) {
+    AuxForkTask(final Term termToSolve, final JProlContext context) {
       this.term = termToSolve.makeClone().findNonVarOrDefault(null);
 
       if (termToSolve.getTermType() == VAR) {

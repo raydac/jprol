@@ -27,8 +27,8 @@ import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.logic.CheckingTemplate;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
-import com.igormaznitsa.jprol.logic.ProlContext;
 import com.igormaznitsa.jprol.utils.Utils;
 
 import java.lang.reflect.Method;
@@ -49,7 +49,7 @@ public abstract class AbstractJProlLibrary {
   private final Map<String, PredicateInvoker> predicateMethodsMap;
   private final Set<String> zeroArityPredicateNames;
 
-  private final Map<ProlContext, Map<String, Object>> contextNamedObjects = new ConcurrentHashMap<>();
+  private final Map<JProlContext, Map<String, Object>> contextNamedObjects = new ConcurrentHashMap<>();
 
   public AbstractJProlLibrary(final String libraryUid) {
     if (libraryUid == null) {
@@ -65,13 +65,13 @@ public abstract class AbstractJProlLibrary {
   }
 
   @SuppressWarnings("unchecked")
-  protected <T> T findContextObject(final ProlContext context, final String objectId, final Function<String, T> defaultSupplier) {
+  protected <T> T findContextObject(final JProlContext context, final String objectId, final Function<String, T> defaultSupplier) {
     return (T) this.contextNamedObjects
         .computeIfAbsent(context, ctx -> new ConcurrentHashMap<>())
         .computeIfAbsent(objectId, defaultSupplier);
   }
 
-  protected void putContextObject(final ProlContext context, final String objectId, final Object obj) {
+  protected void putContextObject(final JProlContext context, final String objectId, final Object obj) {
     final Map<String, Object> contextMap = this.contextNamedObjects
         .computeIfAbsent(context, ctx -> new ConcurrentHashMap<>());
 
@@ -82,7 +82,7 @@ public abstract class AbstractJProlLibrary {
     }
   }
 
-  protected Map<String, Object> getContextNamedObjects(final ProlContext context) {
+  protected Map<String, Object> getContextNamedObjects(final JProlContext context) {
     return this.contextNamedObjects.computeIfAbsent(context, ctx -> new ConcurrentHashMap<>());
   }
 
@@ -219,7 +219,7 @@ public abstract class AbstractJProlLibrary {
     return this.systemOperators.get(operatorName);
   }
 
-  public void onContextDispose(final ProlContext context) {
+  public void onContextDispose(final JProlContext context) {
     this.contextNamedObjects.remove(context);
   }
 

@@ -9,12 +9,12 @@ import com.igormaznitsa.prologparser.terms.PrologTerm;
 import java.io.Reader;
 import java.util.NoSuchElementException;
 
-public class ProlTreeBuilder {
+public class JProlTreeBuilder {
 
-  private final ProlContext context;
+  private final JProlContext context;
   private final ThreadLocal<PrologParser> parsers = new ThreadLocal<>();
 
-  public ProlTreeBuilder(final ProlContext context) {
+  public JProlTreeBuilder(final JProlContext context) {
     this.context = context;
   }
 

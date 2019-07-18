@@ -26,7 +26,7 @@ import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.jprol.libs.*;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
 import com.igormaznitsa.jprol.logic.ConsultInteractor;
-import com.igormaznitsa.jprol.logic.ProlContext;
+import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
 import com.igormaznitsa.jprol.trace.TraceEvent;
 import com.igormaznitsa.jprol.trace.TracingChoicePointListener;
@@ -64,7 +64,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
 
   private static final String[] PROL_LIBRARIES = new String[] {
       JProlCoreLibrary.class.getCanonicalName(),
-      JProlIOLibrary.class.getCanonicalName(),
+      JProlIoLibrary.class.getCanonicalName(),
       JProlStrLibrary.class.getCanonicalName(),
       JProlGfxLibrary.class.getCanonicalName(),
       TPrologPredicateLibrary.class.getCanonicalName()
@@ -105,7 +105,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
   protected File currentOpenedFile;
   protected File lastOpenedFile;
   protected boolean documentHasBeenChangedFlag;
-  protected volatile ProlContext lastContext;
+  protected volatile JProlContext lastContext;
   // Variables declaration - do not modify
   private javax.swing.JButton buttonCloseFind;
   private javax.swing.JButton buttonStopExecuting;
@@ -1033,13 +1033,13 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     }
   }
 
-  private void setLastContext(ProlContext context) {
+  private void setLastContext(JProlContext context) {
     this.lastContext = context;
     this.menuViewKnowledgeBase.setEnabled(lastContext != null);
   }
 
   @Override
-  public Reader findReader(final ProlContext context, final String id) {
+  public Reader findReader(final JProlContext context, final String id) {
     boolean successful = false;
     boolean notTraceable = false;
     try {
@@ -1066,7 +1066,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
   }
 
   @Override
-  public Writer findWriter(ProlContext context, String id, boolean append) {
+  public Writer findWriter(JProlContext context, String id, boolean append) {
     boolean successful = false;
     boolean notTraceable = false;
 
@@ -1097,7 +1097,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
 
   @Override
   public void run() {
-    ProlContext context = null;
+    JProlContext context = null;
     boolean successfully = false;
     boolean canceled = false;
     ProlHaltExecutionException halted = null;
@@ -1114,7 +1114,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
       this.messageEditor.addInfoText("Creating Context...");
 
       try {
-        context = new ProlContext("prol-script").addIoResourceProvider(this);
+        context = new JProlContext("prol-script").addIoResourceProvider(this);
         if (this.startedInTracing.get()) {
           context.addTraceListener(this);
         }
@@ -1609,7 +1609,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
   }
 
   @Override
-  public boolean onFoundInteractiveGoal(final ProlContext context, final Term goal) {
+  public boolean onFoundInteractiveGoal(final JProlContext context, final Term goal) {
     return context.findResourceWriter("user", true).map(writer -> {
       try {
         writer.write(String.format("Goal: '%s'%n", goal.forWrite()));
@@ -1622,7 +1622,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
   }
 
   @Override
-  public boolean onSolution(final ProlContext context, final Term goal, final Map<String, TermVar> varValues, final int solutionCounter) {
+  public boolean onSolution(final JProlContext context, final Term goal, final Map<String, TermVar> varValues, final int solutionCounter) {
     final String varText = varValues.entrySet().stream()
         .map(e -> e.getValue().getText() + '=' + e.getValue().getValue().forWrite())
         .collect(Collectors.joining("\n"));
@@ -1652,7 +1652,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
   }
 
   @Override
-  public void onFail(final ProlContext context, final Term goal, final int foundSolutionCounter) {
+  public void onFail(final JProlContext context, final Term goal, final int foundSolutionCounter) {
     context.findResourceWriter("user", true).ifPresent(writer -> {
       try {
         writer.write(String.format("%nNO%n"));

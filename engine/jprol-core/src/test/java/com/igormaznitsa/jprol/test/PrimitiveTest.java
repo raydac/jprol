@@ -2,7 +2,7 @@ package com.igormaznitsa.jprol.test;
 
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
-import com.igormaznitsa.jprol.logic.ProlContext;
+import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +15,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testAccList() {
-    final ProlContext context = makeContextAndConsult("list(X):-X=A,A=B,B=C,C=D,D=E,A=[_,_,_,_],B=[a,_,_,_],C=[_,b,_,_],D=[_,_,c,_],E=[_,_,_,e].");
+    final JProlContext context = makeContextAndConsult("list(X):-X=A,A=B,B=C,C=D,D=E,A=[_,_,_,_],B=[a,_,_,_],C=[_,b,_,_],D=[_,_,c,_],E=[_,_,_,e].");
     final ChoicePoint goal = new ChoicePoint("list(F).", context);
 
     assertNotNull(goal.next());
@@ -25,7 +25,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testPermutation() {
-    final ProlContext context = makeContextAndConsult("del(X,[X|Tail],Tail).del(X,[Y|Tail],[Y|Tail1]):-del(X,Tail,Tail1).insert(X,List,BiggerList):-del(X,BiggerList,List).permutation([],[]).permutation([X|L],P):-permutation(L,L1),insert(X,L1,P).");
+    final JProlContext context = makeContextAndConsult("del(X,[X|Tail],Tail).del(X,[Y|Tail],[Y|Tail1]):-del(X,Tail,Tail1).insert(X,List,BiggerList):-del(X,BiggerList,List).permutation([],[]).permutation([X|L],P):-permutation(L,L1),insert(X,L1,P).");
     final ChoicePoint goal = new ChoicePoint("permutation([red,blue,green],X).", context);
 
     final String[] etalon = new String[] {
@@ -46,7 +46,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testVarLoop() {
-    final ProlContext context = makeContextAndConsult("a(a1).a(X):-X=100. a(2).");
+    final JProlContext context = makeContextAndConsult("a(a1).a(X):-X=100. a(2).");
     final ChoicePoint goal = new ChoicePoint("X=Y,Y=X,Y=2.", context);
 
     assertNotNull(goal.next());
@@ -56,7 +56,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testClause() {
-    final ProlContext context = makeContextAndConsult("a(a1).a(X):-X=100. a(2).");
+    final JProlContext context = makeContextAndConsult("a(a1).a(X):-X=100. a(2).");
     final ChoicePoint goal = new ChoicePoint("clause(a(X),Y).", context);
 
     assertNotNull(goal.next());
@@ -77,7 +77,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testThrowCatch() {
-    final ProlContext context = makeContextAndConsult("a(X):-X=999;throw(some_exception).");
+    final JProlContext context = makeContextAndConsult("a(X):-X=999;throw(some_exception).");
     final ChoicePoint goal = new ChoicePoint("catch(a(X),error(Err,_),Y='exc').", context);
 
     assertNotNull(goal.next());
@@ -95,7 +95,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testIfThen() {
-    final ProlContext context = makeContextAndConsult("b(b1).b(b2).a(a1).a(a2).");
+    final JProlContext context = makeContextAndConsult("b(b1).b(b2).a(a1).a(a2).");
 
     final ChoicePoint goal = new ChoicePoint("b(B)->a(A);b(C).", context);
 
@@ -114,7 +114,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testTrue() {
-    final ProlContext context = makeContextAndConsult("a(a1).a(a2).a(a3).a(a4).");
+    final JProlContext context = makeContextAndConsult("a(a1).a(a2).a(a3).a(a4).");
 
     final ChoicePoint goal = new ChoicePoint("(true,true;fail),a(X).", context);
 
@@ -131,7 +131,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testOr1() {
-    final ProlContext context = makeContextAndConsult("a([]).");
+    final JProlContext context = makeContextAndConsult("a([]).");
 
     final ChoicePoint goal = new ChoicePoint("X=a;X=b;X=c;X=d.", context);
 
@@ -147,7 +147,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testOr2() {
-    final ProlContext context = makeContextAndConsult(
+    final JProlContext context = makeContextAndConsult(
         "testor(X,Y):-" +
             "X='a1'," +
             "write('x')," +
@@ -163,7 +163,7 @@ class PrimitiveTest extends AbstractProlTest {
             "write('y')."
     ).addIoResourceProvider(new IoResourceProvider() {
       @Override
-      public Writer findWriter(ProlContext context, String writerId, boolean append) {
+      public Writer findWriter(JProlContext context, String writerId, boolean append) {
         return new StringWriter();
       }
     });
@@ -183,7 +183,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testAnonimousVar() {
-    final ProlContext context = makeContextAndConsult("a(a1,b1).a(a2,b2).a(a3,b3).a(a4,b4).");
+    final JProlContext context = makeContextAndConsult("a(a1,b1).a(a2,b2).a(a3,b3).a(a4,b4).");
 
     final ChoicePoint goal = new ChoicePoint("a(X,_).", context);
 
@@ -199,7 +199,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testAtom() {
-    final ProlContext context = makeContextAndConsult("a(a1).a(a2).a(a3).a(a4).");
+    final JProlContext context = makeContextAndConsult("a(a1).a(a2).a(a3).a(a4).");
 
     final ChoicePoint goal = new ChoicePoint("a(X).", context);
 
@@ -217,7 +217,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testAtom2() {
-    final ProlContext context = makeContextAndConsult("a(a1,b1).a(a2,b2).a(a3,b3).");
+    final JProlContext context = makeContextAndConsult("a(a1,b1).a(a2,b2).a(a3,b3).");
 
     final ChoicePoint goal = new ChoicePoint("a(a3,X).", context);
 
@@ -228,7 +228,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testDryUnify() {
-    final ProlContext context = makeContextAndConsult("a(a1,b1).a(a2,b2).a(a3,b3).");
+    final JProlContext context = makeContextAndConsult("a(a1,b1).a(a2,b2).a(a3,b3).");
 
     final Term term1 = new ChoicePoint("replace(['a','b','c','d','e','f','g'],'e',1,X).", context).getGoalTerm();
     final Term term2 = new ChoicePoint("replace(['a','b','c','d','e','f','g'],'a',N,[N|Lt]).", context).getGoalTerm();
@@ -242,7 +242,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testSingleRule() {
-    final ProlContext context = makeContextAndConsult("a(a1).a(a2).a(a3).a(a4).");
+    final JProlContext context = makeContextAndConsult("a(a1).a(a2).a(a3).a(a4).");
 
     final ChoicePoint goal = new ChoicePoint("b(X):-a(X).", context);
 
@@ -257,7 +257,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testSingleInsideRule() {
-    final ProlContext context = makeContextAndConsult("a(a1).a(a2).a(a3).a(a4).b(X):-a(X).");
+    final JProlContext context = makeContextAndConsult("a(a1).a(a2).a(a3).a(a4).b(X):-a(X).");
 
     final ChoicePoint goal = new ChoicePoint("b(X).", context);
 
@@ -272,7 +272,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testSingleInsideRule2() {
-    final ProlContext context = makeContextAndConsult("c(c1).c(c2).a(X):-c(X).a(a2).a(a3).a(a4).b(X):-a(X).");
+    final JProlContext context = makeContextAndConsult("c(c1).c(c2).a(X):-c(X).a(a2).a(a3).a(a4).b(X):-a(X).");
 
     final ChoicePoint goal = new ChoicePoint("b(X).", context);
 
@@ -287,7 +287,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testANDGoal() {
-    final ProlContext context = makeContextAndConsult("a(a1).a(a2).b(b1).b(b2).");
+    final JProlContext context = makeContextAndConsult("a(a1).a(a2).b(b1).b(b2).");
 
     final ChoicePoint goal = new ChoicePoint("a(A),b(B).", context);
 
@@ -306,7 +306,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testORGoal() {
-    final ProlContext context = makeContextAndConsult("a(a1).a(a2).b(b1).b(b2).");
+    final JProlContext context = makeContextAndConsult("a(a1).a(a2).b(b1).b(b2).");
 
     final ChoicePoint goal = new ChoicePoint("a(A);b(A).", context);
     final String[] results = new String[] {"'a1'", "'a2'", "'b1'", "'b2'"};
@@ -320,7 +320,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testCutAnd() {
-    final ProlContext context = makeContextAndConsult("a(a1).a(a2).b(b1).b(b2).");
+    final JProlContext context = makeContextAndConsult("a(a1).a(a2).b(b1).b(b2).");
 
     final ChoicePoint goal = new ChoicePoint("a(A),!,b(B).", context);
 
@@ -340,7 +340,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testCut1() {
-    final ProlContext context = makeContextAndConsult("a(a1):-!.a(a2).a(a3).a(a4).");
+    final JProlContext context = makeContextAndConsult("a(a1):-!.a(a2).a(a3).a(a4).");
 
     final ChoicePoint goal = new ChoicePoint("a(X).", context);
     assertNotNull(goal.next());
@@ -350,7 +350,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testCut2() {
-    final ProlContext context = makeContextAndConsult("c(c1).c(c2).a(X):-c(X).a(a2):-!.a(a3).a(a4).b(X):-a(X).");
+    final JProlContext context = makeContextAndConsult("c(c1).c(c2).a(X):-c(X).a(a2):-!.a(a3).a(a4).b(X):-a(X).");
 
     final ChoicePoint goal = new ChoicePoint("b(X).", context);
 
@@ -365,7 +365,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testCut3() {
-    final ProlContext context = makeContextAndConsult("c(c1).c(c2).a(X):-!,c(X).a(a2).a(a3).a(a4).b(X):-a(X).");
+    final JProlContext context = makeContextAndConsult("c(c1).c(c2).a(X):-!,c(X).a(a2).a(a3).a(a4).b(X):-a(X).");
 
     final ChoicePoint goal = new ChoicePoint("b(X).", context);
 
@@ -380,7 +380,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testCut4() {
-    final ProlContext context = makeContextAndConsult("f(f1).f(f2).c(c1).c(c2).c(c3).a(X):-c(X);!,f(X).a(a2).a(a3).a(a4).b(X):-a(X).");
+    final JProlContext context = makeContextAndConsult("f(f1).f(f2).c(c1).c(c2).c(c3).a(X):-c(X);!,f(X).a(a2).a(a3).a(a4).b(X):-a(X).");
 
     final ChoicePoint goal = new ChoicePoint("b(X).", context);
 
@@ -395,7 +395,7 @@ class PrimitiveTest extends AbstractProlTest {
 
   @Test
   void testLocalCut() {
-    final ProlContext context = makeContextAndConsult("f(f1).f(f2).c(c1).c(c2).c(c3).a(X):-c(X),!!.a(a2).a(a3).a(a4).b(X):-a(X).");
+    final JProlContext context = makeContextAndConsult("f(f1).f(f2).c(c1).c(c2).c(c3).a(X):-c(X),!!.a(a2).a(a3).a(a4).b(X):-a(X).");
 
     final ChoicePoint goal = new ChoicePoint("b(X).", context);
     final String[] results = new String[] {"'c1'", "'a2'", "'a3'", "'a4'"};

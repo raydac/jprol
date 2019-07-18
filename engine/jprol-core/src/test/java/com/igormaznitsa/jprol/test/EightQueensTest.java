@@ -1,7 +1,7 @@
 package com.igormaznitsa.jprol.test;
 
 import com.igormaznitsa.jprol.logic.ChoicePoint;
-import com.igormaznitsa.jprol.logic.ProlContext;
+import com.igormaznitsa.jprol.logic.JProlContext;
 import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
@@ -108,7 +108,7 @@ class EightQueensTest extends AbstractProlTest {
 
     // check the knowledge base export data process
     //--
-    final ProlContext context = makeTestContext();
+    final JProlContext context = makeTestContext();
     context.consult(new StringReader("solution([]). solution([X/Y|Others]):-solution(Others),member(Y,[1,2,3,4,5,6,7,8]),notattack(X/Y,Others). notattack(_,[]). notattack(X/Y,[X1/Y1 | Others]):- Y=\\=Y1, Y1-Y=\\=X1-X, Y1-Y=\\=X-X1, notattack(X/Y,Others). member(Item,[Item|Rest]). member(Item,[First|Rest]):-member(Item,Rest). template([1/Y1,2/Y2,3/Y3,4/Y4,5/Y5,6/Y6,7/Y7,8/Y8])."));
 
     final ChoicePoint goal = new ChoicePoint("solution([1/Y1,2/Y2,3/Y3,4/Y4,5/Y5,6/Y6,7/Y7,8/Y8]),Res = [Y1,Y2,Y3,Y4,Y5,Y6,Y7,Y8].", context);

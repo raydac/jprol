@@ -17,7 +17,7 @@
 package com.igormaznitsa.jprol.easygui;
 
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
-import com.igormaznitsa.jprol.logic.ProlContext;
+import com.igormaznitsa.jprol.logic.JProlContext;
 
 import java.io.CharArrayWriter;
 import java.io.PrintWriter;
@@ -39,7 +39,7 @@ public class KnowledgeBaseSnapshotViewDialog extends javax.swing.JDialog {
   /**
    * Creates new form KnowledgeBaseSnapshotViewDialog
    */
-  public KnowledgeBaseSnapshotViewDialog(final java.awt.Frame parent, final ProlContext context) {
+  public KnowledgeBaseSnapshotViewDialog(final java.awt.Frame parent, final JProlContext context) {
     super(parent, true);
     initComponents();
     SnapshotViewer.getEditor().setEditable(false);

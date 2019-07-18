@@ -19,7 +19,7 @@ package com.igormaznitsa.jprol.kbase;
 import com.igormaznitsa.jprol.data.TermOperator;
 import com.igormaznitsa.jprol.data.TermOperatorContainer;
 import com.igormaznitsa.jprol.data.TermStruct;
-import com.igormaznitsa.jprol.logic.ProlContext;
+import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
@@ -31,11 +31,11 @@ public interface KnowledgeBase {
 
   boolean removeOperator(String name, OpAssoc type);
 
-  void addOperator(ProlContext context, TermOperator operator);
+  void addOperator(JProlContext context, TermOperator operator);
 
-  TermOperatorContainer findOperatorForName(ProlContext context, String name);
+  TermOperatorContainer findOperatorForName(JProlContext context, String name);
 
-  boolean hasOperatorStartsWith(ProlContext context, String str);
+  boolean hasOperatorStartsWith(JProlContext context, String str);
 
   void write(PrintWriter writer);
 
@@ -47,17 +47,17 @@ public interface KnowledgeBase {
 
   CloseableIterator<TermOperatorContainer> makeOperatorIterator();
 
-  boolean assertZ(ProlContext context, TermStruct clause);
+  boolean assertZ(JProlContext context, TermStruct clause);
 
-  boolean assertA(ProlContext context, TermStruct clause);
+  boolean assertA(JProlContext context, TermStruct clause);
 
-  boolean retractAll(ProlContext context, TermStruct clause);
+  boolean retractAll(JProlContext context, TermStruct clause);
 
-  boolean retractA(ProlContext context, TermStruct clause);
+  boolean retractA(JProlContext context, TermStruct clause);
 
-  boolean retractZ(ProlContext context, TermStruct clause);
+  boolean retractZ(JProlContext context, TermStruct clause);
 
-  void abolish(ProlContext context, String signature);
+  void abolish(JProlContext context, String signature);
 
   KnowledgeBase makeCopy();
 }

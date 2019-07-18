@@ -2,7 +2,7 @@ package com.igormaznitsa.jprol.test;
 
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
-import com.igormaznitsa.jprol.logic.ProlContext;
+import com.igormaznitsa.jprol.logic.JProlContext;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -11,7 +11,7 @@ class MapColorTest extends AbstractProlTest {
 
   @Test
   void testMapColor() {
-    final ProlContext context = makeContextAndConsult("colour_countries(Colours):-\n"
+    final JProlContext context = makeContextAndConsult("colour_countries(Colours):-\n"
         + "        setof(Country/_, X^ngb(Country,X), Colours),\n"
         + "        colours(Colours).\n"
         + "colours([]).\n"

@@ -1,7 +1,7 @@
 package com.igormaznitsa.jprol.data;
 
+import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
-import com.igormaznitsa.jprol.logic.ProlContext;
 import com.igormaznitsa.prologparser.terms.*;
 import com.igormaznitsa.prologparser.tokenizer.Op;
 
@@ -79,7 +79,7 @@ public final class Terms {
     return new TermStruct(functor, elements, processor);
   }
 
-  private static Term convert(final ProlContext context, final PrologTerm term, final Map<String, TermVar> vars) {
+  private static Term convert(final JProlContext context, final PrologTerm term, final Map<String, TermVar> vars) {
     switch (term.getType()) {
       case ATOM: {
         if (term instanceof PrologNumeric) {
@@ -139,7 +139,7 @@ public final class Terms {
     }
   }
 
-  public static Term fromParsed(final ProlContext context, final PrologTerm term) {
+  public static Term fromParsed(final JProlContext context, final PrologTerm term) {
     if (term.getType() == com.igormaznitsa.prologparser.terms.TermType.ATOM
         || term.getType() == com.igormaznitsa.prologparser.terms.TermType.OPERATOR) {
       return convert(context, term, null);

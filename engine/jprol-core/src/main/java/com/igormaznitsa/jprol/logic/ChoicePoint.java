@@ -42,7 +42,7 @@ public final class ChoicePoint {
 
   private final Map<String, TermVar> variables;
   private final VariableStateSnapshot varSnapshot;
-  private final ProlContext context;
+  private final JProlContext context;
   private final ChoicePoint rootCp;
   private boolean noVariants;
   private final Term goalTerm;
@@ -65,7 +65,7 @@ public final class ChoicePoint {
   private ChoicePoint(
       final ChoicePoint rootCp,
       final Term goalToSolve,
-      final ProlContext context,
+      final JProlContext context,
       final Map<String, Term> predefinedVarValues
   ) {
     this.uid = UID_GEN.incrementAndGet();
@@ -98,15 +98,15 @@ public final class ChoicePoint {
     }
   }
 
-  public ChoicePoint(final String goal, final ProlContext context) {
-    this(new ProlTreeBuilder(context).readPhraseAndMakeTree(new StringReader(goal)).term, context, null);
+  public ChoicePoint(final String goal, final JProlContext context) {
+    this(new JProlTreeBuilder(context).readPhraseAndMakeTree(new StringReader(goal)).term, context, null);
   }
 
-  public ChoicePoint(final Term goal, final ProlContext context) {
+  public ChoicePoint(final Term goal, final JProlContext context) {
     this(null, goal, context, null);
   }
 
-  public ChoicePoint(final Term goal, final ProlContext context, final Map<String, Term> predefinedVarValues) {
+  public ChoicePoint(final Term goal, final JProlContext context, final Map<String, Term> predefinedVarValues) {
     this(null, goal, context, predefinedVarValues);
   }
 
@@ -216,7 +216,7 @@ public final class ChoicePoint {
     return this.goalTerm;
   }
 
-  public ProlContext getContext() {
+  public JProlContext getContext() {
     return this.context;
   }
 
@@ -224,7 +224,7 @@ public final class ChoicePoint {
     Term result = null;
 
     boolean loop = true;
-    final ProlContext localcontext = this.context;
+    final JProlContext localcontext = this.context;
 
     while (loop && !Thread.currentThread().isInterrupted()) {
       if (localcontext.isDisposed()) {

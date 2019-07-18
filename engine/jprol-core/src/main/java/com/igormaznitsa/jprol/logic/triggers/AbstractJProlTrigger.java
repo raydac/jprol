@@ -24,15 +24,15 @@ import static com.igormaznitsa.jprol.utils.Utils.normalizeSignature;
 import static com.igormaznitsa.jprol.utils.Utils.validateSignature;
 import static java.util.Objects.requireNonNull;
 
-public abstract class AbstractProlTrigger implements ProlTrigger {
+public abstract class AbstractJProlTrigger implements JProlTrigger {
 
-  protected final Map<String, ProlTriggerType> signatureMap;
+  protected final Map<String, JProlTriggerType> signatureMap;
 
-  public AbstractProlTrigger() {
+  public AbstractJProlTrigger() {
     signatureMap = Collections.synchronizedMap(new HashMap<>());
   }
 
-  public AbstractProlTrigger addSignature(final String signature, final ProlTriggerType observedEvent) {
+  public AbstractJProlTrigger addSignature(final String signature, final JProlTriggerType observedEvent) {
     String processedsignature = validateSignature(requireNonNull(signature));
 
     if (processedsignature == null) {
@@ -46,7 +46,7 @@ public abstract class AbstractProlTrigger implements ProlTrigger {
     return this;
   }
 
-  public AbstractProlTrigger removeSignature(final String signature) {
+  public AbstractJProlTrigger removeSignature(final String signature) {
     String processedsignature = validateSignature(requireNonNull(signature, "Signature is null"));
 
     if (processedsignature == null) {
@@ -61,7 +61,7 @@ public abstract class AbstractProlTrigger implements ProlTrigger {
   }
 
   @Override
-  public Map<String, ProlTriggerType> getSignatures() {
+  public Map<String, JProlTriggerType> getSignatures() {
     return signatureMap;
   }
 }

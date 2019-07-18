@@ -16,23 +16,23 @@
 
 package com.igormaznitsa.jprol.logic.triggers;
 
-import com.igormaznitsa.jprol.logic.ProlContext;
+import com.igormaznitsa.jprol.logic.JProlContext;
 
 import static java.util.Objects.requireNonNull;
 
 public class TriggerEvent {
 
-  private final ProlContext context;
+  private final JProlContext context;
   private final String normalizedSignature;
-  private final ProlTriggerType eventType;
+  private final JProlTriggerType eventType;
 
-  public TriggerEvent(final ProlContext context, final String normalizedSignature, final ProlTriggerType eventType) {
+  public TriggerEvent(final JProlContext context, final String normalizedSignature, final JProlTriggerType eventType) {
     this.context = requireNonNull(context);
     this.normalizedSignature = requireNonNull(normalizedSignature);
     this.eventType = requireNonNull(eventType);
   }
 
-  public ProlContext getContext() {
+  public JProlContext getContext() {
     return this.context;
   }
 
@@ -40,7 +40,7 @@ public class TriggerEvent {
     return this.normalizedSignature;
   }
 
-  public ProlTriggerType getEventType() {
+  public JProlTriggerType getEventType() {
     return this.eventType;
   }
 

@@ -1,7 +1,7 @@
 package com.igormaznitsa.jprol.test;
 
 import com.igormaznitsa.jprol.logic.ChoicePoint;
-import com.igormaznitsa.jprol.logic.ProlContext;
+import com.igormaznitsa.jprol.logic.JProlContext;
 import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
@@ -16,7 +16,7 @@ class CryptoTest extends AbstractProlTest {
 
     // check the knowledge base export data process
     //--
-    final ProlContext context = makeTestContext();
+    final JProlContext context = makeTestContext();
     context.consult(new StringReader("sum(N1,N2,N):-\n"
         + "     sum1(N1,N2,N,\n"
         + "     0,0,\n"

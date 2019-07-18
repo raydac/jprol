@@ -6,9 +6,9 @@ import com.igormaznitsa.jprol.data.TermVar;
 import java.util.Map;
 
 public interface ConsultInteractor {
-  boolean onFoundInteractiveGoal(ProlContext context, Term goal);
+  boolean onFoundInteractiveGoal(JProlContext context, Term goal);
 
-  boolean onSolution(ProlContext context, Term goal, Map<String, TermVar> varValues, int solutionCounter);
+  boolean onSolution(JProlContext context, Term goal, Map<String, TermVar> varValues, int solutionCounter);
 
-  void onFail(ProlContext context, Term goal, int foundSolutionCounter);
+  void onFail(JProlContext context, Term goal, int foundSolutionCounter);
 }

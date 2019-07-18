@@ -17,21 +17,21 @@
 package com.igormaznitsa.jprol.test;
 
 import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
-import com.igormaznitsa.jprol.libs.JProlIOLibrary;
-import com.igormaznitsa.jprol.logic.ProlContext;
+import com.igormaznitsa.jprol.libs.JProlIoLibrary;
+import com.igormaznitsa.jprol.logic.JProlContext;
 
 import java.io.StringReader;
 
 public abstract class AbstractProlTest {
-  public ProlContext makeTestContext() {
-    return new ProlContext("test-context",
+  public JProlContext makeTestContext() {
+    return new JProlContext("test-context",
         new JProlCoreLibrary(),
-        new JProlIOLibrary()
+        new JProlIoLibrary()
     );
   }
 
-  public ProlContext makeContextAndConsult(final String knowledgeBase) {
-    final ProlContext context = this.makeTestContext();
+  public JProlContext makeContextAndConsult(final String knowledgeBase) {
+    final JProlContext context = this.makeTestContext();
     context.consult(new StringReader(knowledgeBase));
     return context;
   }

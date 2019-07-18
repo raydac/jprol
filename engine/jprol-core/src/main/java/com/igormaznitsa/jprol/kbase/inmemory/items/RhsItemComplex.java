@@ -3,9 +3,9 @@ package com.igormaznitsa.jprol.kbase.inmemory.items;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 
-final class ComplexRhsItem extends InMemoryItem {
+final class RhsItemComplex extends InMemoryItem {
 
-  ComplexRhsItem(final TermStruct clause) {
+  RhsItemComplex(final TermStruct clause) {
     super(clause);
   }
 

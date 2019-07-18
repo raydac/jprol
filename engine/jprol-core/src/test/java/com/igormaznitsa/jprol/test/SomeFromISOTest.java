@@ -3,7 +3,7 @@ package com.igormaznitsa.jprol.test;
 import com.igormaznitsa.jprol.exceptions.ProlCustomErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
-import com.igormaznitsa.jprol.logic.ProlContext;
+import com.igormaznitsa.jprol.logic.JProlContext;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -1339,7 +1339,7 @@ class SomeFromISOTest extends AbstractProlTest {
   }
 
   private void checkOnce(String consult, String goal, boolean expectedResult) {
-    final ProlContext context = makeContextAndConsult(consult);
+    final JProlContext context = makeContextAndConsult(consult);
     final ChoicePoint thisGoal = new ChoicePoint(goal, context);
     if (expectedResult) {
       assertNotNull(thisGoal.next());
@@ -1350,7 +1350,7 @@ class SomeFromISOTest extends AbstractProlTest {
   }
 
   private void checkException(final String goal) {
-    final ProlContext context = makeTestContext();
+    final JProlContext context = makeTestContext();
     final ChoicePoint thisGoal = new ChoicePoint(goal, context);
     assertThrows(ProlException.class, thisGoal::next);
   }
@@ -1370,7 +1370,7 @@ class SomeFromISOTest extends AbstractProlTest {
   }
 
   private void checkOnceVar(String goal, String var, Object... result) {
-    final ProlContext context = makeTestContext();
+    final JProlContext context = makeTestContext();
     final ChoicePoint thisGoal = new ChoicePoint(goal, context);
 
     for (final Object res : result) {

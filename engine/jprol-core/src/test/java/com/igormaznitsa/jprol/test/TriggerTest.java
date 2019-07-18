@@ -2,9 +2,9 @@ package com.igormaznitsa.jprol.test;
 
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
-import com.igormaznitsa.jprol.logic.ProlContext;
-import com.igormaznitsa.jprol.logic.triggers.AbstractProlTrigger;
-import com.igormaznitsa.jprol.logic.triggers.ProlTriggerType;
+import com.igormaznitsa.jprol.logic.JProlContext;
+import com.igormaznitsa.jprol.logic.triggers.AbstractJProlTrigger;
+import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
 import com.igormaznitsa.jprol.logic.triggers.TriggerEvent;
 import org.junit.jupiter.api.Test;
 
@@ -17,11 +17,11 @@ class TriggerTest extends AbstractProlTest {
   @Test
   void testTrigger() {
     final InternaltestTrigger trigger = new InternaltestTrigger();
-    trigger.addSignature("testassert/1", ProlTriggerType.TRIGGER_ASSERT);
-    trigger.addSignature("testretract/1", ProlTriggerType.TRIGGER_RETRACT);
-    trigger.addSignature("testboth/1", ProlTriggerType.TRIGGER_ASSERT_RETRACT);
+    trigger.addSignature("testassert/1", JProlTriggerType.TRIGGER_ASSERT);
+    trigger.addSignature("testretract/1", JProlTriggerType.TRIGGER_RETRACT);
+    trigger.addSignature("testboth/1", JProlTriggerType.TRIGGER_ASSERT_RETRACT);
 
-    ProlContext context = makeTestContext();
+    JProlContext context = makeTestContext();
 
     context.registerTrigger(trigger);
 
@@ -78,7 +78,7 @@ class TriggerTest extends AbstractProlTest {
     assertEquals(1, trigger.haltCounter.get());
   }
 
-  private static class InternaltestTrigger extends AbstractProlTrigger {
+  private static class InternaltestTrigger extends AbstractJProlTrigger {
 
     private final AtomicInteger haltCounter = new AtomicInteger();
     private final AtomicInteger assertevents = new AtomicInteger();
@@ -112,7 +112,7 @@ class TriggerTest extends AbstractProlTest {
     }
 
     @Override
-    public void onContextHalting(ProlContext context) {
+    public void onContextHalting(JProlContext context) {
       haltCounter.incrementAndGet();
     }
   }

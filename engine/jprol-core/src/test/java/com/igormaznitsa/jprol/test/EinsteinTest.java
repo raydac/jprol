@@ -1,7 +1,7 @@
 package com.igormaznitsa.jprol.test;
 
 import com.igormaznitsa.jprol.logic.ChoicePoint;
-import com.igormaznitsa.jprol.logic.ProlContext;
+import com.igormaznitsa.jprol.logic.JProlContext;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -10,7 +10,7 @@ class EinsteinTest extends AbstractProlTest {
 
   @Test
   void testEinstein() {
-    final ProlContext context = makeContextAndConsult("next_to(X,Y,List) :- iright(X,Y,List)."
+    final JProlContext context = makeContextAndConsult("next_to(X,Y,List) :- iright(X,Y,List)."
         + "next_to(X,Y,List) :- iright(Y,X,List)."
         + "einstein(Houses,Fish_Owner) :-"
         + "Houses=[ [house,norwegian,_,_,_,_] , _ , [house,_,_,_,milk,_] , _ , _ ],"

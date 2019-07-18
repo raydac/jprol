@@ -1,7 +1,7 @@
 package com.igormaznitsa.jprol.test;
 
 import com.igormaznitsa.jprol.logic.ChoicePoint;
-import com.igormaznitsa.jprol.logic.ProlContext;
+import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
 import org.junit.jupiter.api.Test;
 
@@ -17,9 +17,9 @@ class HanoiTowersTest extends AbstractProlTest {
   void testHanoiTowers() {
     final StringWriter data = new StringWriter();
 
-    final ProlContext context = makeTestContext().addIoResourceProvider(new IoResourceProvider() {
+    final JProlContext context = makeTestContext().addIoResourceProvider(new IoResourceProvider() {
       @Override
-      public Writer findWriter(ProlContext context, String writerId, boolean append) {
+      public Writer findWriter(JProlContext context, String writerId, boolean append) {
         if ("+hanoi".equals(writerId)) {
           return data;
         }

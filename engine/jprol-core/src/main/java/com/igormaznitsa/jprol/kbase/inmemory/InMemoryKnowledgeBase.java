@@ -21,8 +21,8 @@ import com.igormaznitsa.jprol.exceptions.ProlKnowledgeBaseException;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
 import com.igormaznitsa.jprol.kbase.inmemory.items.InMemoryItem;
-import com.igormaznitsa.jprol.logic.ProlContext;
-import com.igormaznitsa.jprol.logic.triggers.ProlTriggerType;
+import com.igormaznitsa.jprol.logic.JProlContext;
+import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
 import com.igormaznitsa.jprol.utils.Utils;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
@@ -81,7 +81,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public void addOperator(final ProlContext context, final TermOperator operator) {
+  public void addOperator(final JProlContext context, final TermOperator operator) {
     final String operatorName = operator.getText();
     if (context.isSystemOperator(operator.getText())) {
       throw new SecurityException("Attemption to override a system operator [" + operator.getText() + ']');
@@ -99,7 +99,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public TermOperatorContainer findOperatorForName(final ProlContext context, final String name) {
+  public TermOperatorContainer findOperatorForName(final JProlContext context, final String name) {
     final TermOperatorContainer systemOperator = context.getSystemOperatorForName(name);
     TermOperatorContainer result;
 
@@ -112,7 +112,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public boolean hasOperatorStartsWith(final ProlContext context, final String str) {
+  public boolean hasOperatorStartsWith(final JProlContext context, final String str) {
     boolean result = false;
     if (context.hasSystemOperatorStartsWith(str)) {
       result = true;
@@ -144,7 +144,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     this.predicateTable.values().stream().peek(x -> writer.println()).flatMap(Collection::stream).forEach(x -> x.write(writer));
   }
 
-  private boolean assertClause(final ProlContext context, final TermStruct clause, final boolean asFirst) {
+  private boolean assertClause(final JProlContext context, final TermStruct clause, final boolean asFirst) {
     try {
       final String uid;
       if (clause.isClause()) {
@@ -165,8 +165,8 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
         list.add(InMemoryItem.fromClause(clause));
       }
       // notify triggers if they are presented
-      if (context.hasRegisteredTriggersForSignature(uid, ProlTriggerType.TRIGGER_ASSERT)) {
-        context.notifyTriggersForSignature(uid, ProlTriggerType.TRIGGER_ASSERT);
+      if (context.hasRegisteredTriggersForSignature(uid, JProlTriggerType.TRIGGER_ASSERT)) {
+        context.notifyTriggersForSignature(uid, JProlTriggerType.TRIGGER_ASSERT);
       }
 
       return true;
@@ -237,17 +237,17 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
 
   @Override
-  public boolean assertZ(final ProlContext context, final TermStruct clause) {
+  public boolean assertZ(final JProlContext context, final TermStruct clause) {
     return assertClause(context, clause, false);
   }
 
   @Override
-  public boolean assertA(final ProlContext context, final TermStruct clause) {
+  public boolean assertA(final JProlContext context, final TermStruct clause) {
     return assertClause(context, clause, true);
   }
 
   @Override
-  public boolean retractAll(final ProlContext context, final TermStruct clause) {
+  public boolean retractAll(final JProlContext context, final TermStruct clause) {
     TermStruct struct = clause;
     if (struct.isClause()) {
       // it's a clause
@@ -268,8 +268,8 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     }
 
     // notify triggers if they are presented
-    if (result && context.hasRegisteredTriggersForSignature(signature, ProlTriggerType.TRIGGER_RETRACT)) {
-      context.notifyTriggersForSignature(signature, ProlTriggerType.TRIGGER_RETRACT);
+    if (result && context.hasRegisteredTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT)) {
+      context.notifyTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT);
     }
 
     return result;
@@ -304,7 +304,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public boolean retractA(final ProlContext context, final TermStruct clause) {
+  public boolean retractA(final JProlContext context, final TermStruct clause) {
     TermStruct struct = clause;
     if (struct.isClause()) {
       // it's a clause
@@ -324,15 +324,15 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     }
 
     // notify triggers if they are presented
-    if (result && context.hasRegisteredTriggersForSignature(signature, ProlTriggerType.TRIGGER_RETRACT)) {
-      context.notifyTriggersForSignature(signature, ProlTriggerType.TRIGGER_RETRACT);
+    if (result && context.hasRegisteredTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT)) {
+      context.notifyTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT);
     }
 
     return result;
   }
 
   @Override
-  public boolean retractZ(final ProlContext context, final TermStruct clause) {
+  public boolean retractZ(final JProlContext context, final TermStruct clause) {
     TermStruct struct = clause;
     if (struct.isClause()) {
       // it's a clause
@@ -353,15 +353,15 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     }
 
     // notify triggers if they are presented
-    if (result && context.hasRegisteredTriggersForSignature(signature, ProlTriggerType.TRIGGER_RETRACT)) {
-      context.notifyTriggersForSignature(signature, ProlTriggerType.TRIGGER_RETRACT);
+    if (result && context.hasRegisteredTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT)) {
+      context.notifyTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT);
     }
 
     return result;
   }
 
   @Override
-  public void abolish(final ProlContext context, final String signature) {
+  public void abolish(final JProlContext context, final String signature) {
     boolean result;
 
     final String normalSignature = Utils.normalizeSignature(signature);
@@ -372,8 +372,8 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     result = predicateTable.remove(normalSignature) != null;
 
     // notify triggers if they are presented
-    if (result && context.hasRegisteredTriggersForSignature(normalSignature, ProlTriggerType.TRIGGER_RETRACT)) {
-      context.notifyTriggersForSignature(normalSignature, ProlTriggerType.TRIGGER_RETRACT);
+    if (result && context.hasRegisteredTriggersForSignature(normalSignature, JProlTriggerType.TRIGGER_RETRACT)) {
+      context.notifyTriggersForSignature(normalSignature, JProlTriggerType.TRIGGER_RETRACT);
     }
   }
 

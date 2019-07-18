@@ -3,8 +3,8 @@ package com.igormaznitsa.jprol.test;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
-import com.igormaznitsa.jprol.logic.DeferredGoal;
-import com.igormaznitsa.jprol.logic.ProlContext;
+import com.igormaznitsa.jprol.logic.JProlContext;
+import com.igormaznitsa.jprol.logic.PreparedGoal;
 import org.junit.jupiter.api.Test;
 
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
@@ -14,7 +14,7 @@ class OperatorTest extends AbstractProlTest {
 
   @Test
   void testOperatorDefs() throws Exception {
-    final ProlContext context = makeContextAndConsult(":-op(800,xfx,'<===>'). :-op(700,xfy,'v'). :-op(600,xfy,'&'). :-op(500,fy,'~'). moon <===> earth.");
+    final JProlContext context = makeContextAndConsult(":-op(800,xfx,'<===>'). :-op(700,xfy,'v'). :-op(600,xfy,'&'). :-op(500,fy,'~'). moon <===> earth.");
 
     final ChoicePoint prepGoal = new ChoicePoint("~(xxx & yyy) <===> ~xxx v ~yyy.", context);
     TermStruct root = (TermStruct) prepGoal.getGoalTerm();
@@ -54,9 +54,9 @@ class OperatorTest extends AbstractProlTest {
     assertEquals(ATOM, righttree.getElement(0).getTermType());
     assertEquals("yyy", righttree.getElement(0).getText());
 
-    final DeferredGoal prepGoal2 = new DeferredGoal("moon <===> X.", context);
+    final PreparedGoal prepGoal2 = new PreparedGoal("moon <===> X.", context);
     int solvecounter = 0;
-    final ChoicePoint gl = prepGoal2.getNonparametrizedGoalInstance();
+    final ChoicePoint gl = prepGoal2.makeChoicePoint(context);
     String text = null;
     Term curresult;
     while ((curresult = gl.next()) != null) {

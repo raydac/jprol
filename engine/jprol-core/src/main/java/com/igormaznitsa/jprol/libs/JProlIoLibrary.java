@@ -9,7 +9,7 @@ import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
-import com.igormaznitsa.jprol.logic.ProlContext;
+import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.prologparser.GenericPrologParser;
 import com.igormaznitsa.prologparser.PrologParser;
 import com.igormaznitsa.prologparser.tokenizer.TokenizerResult;
@@ -24,14 +24,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.igormaznitsa.jprol.data.TermType.LIST;
 import static com.igormaznitsa.jprol.libs.JProlCoreLibrary.predicateCALL;
 
-public class JProlIOLibrary extends AbstractJProlLibrary {
+public class JProlIoLibrary extends AbstractJProlLibrary {
 
   private static final String CURRENT_STREAM_ID = "#current#";
   private static final Term END_OF_FILE = Terms.newAtom("end_of_file");
   private static final String WRITERS_MAP = "_io_writers_map_";
   private static final String READERS_MAP = "_io_readers_map_";
 
-  public JProlIOLibrary() {
+  public JProlIoLibrary() {
     super("jprol-io-lib");
   }
 
@@ -39,7 +39,7 @@ public class JProlIOLibrary extends AbstractJProlLibrary {
   @Determined
   public boolean predicateCONSULT(final ChoicePoint goal, final TermStruct predicate) {
     final Term term = predicate.getElement(0).findNonVarOrSame();
-    final ProlContext context = goal.getContext();
+    final JProlContext context = goal.getContext();
 
     switch (term.getTermType()) {
       case ATOM: {
@@ -74,7 +74,7 @@ public class JProlIOLibrary extends AbstractJProlLibrary {
     }
   }
 
-  private boolean consultFromResource(final ProlContext context, final String resourceId) {
+  private boolean consultFromResource(final JProlContext context, final String resourceId) {
     try (final Reader reader = makeResourceReader(context, resourceId)) {
       context.consult(reader);
     } catch (IOException ex) {
@@ -83,7 +83,7 @@ public class JProlIOLibrary extends AbstractJProlLibrary {
     return true;
   }
 
-  private InternalReader makeResourceReader(final ProlContext context, final String resourceId) throws IOException {
+  private InternalReader makeResourceReader(final JProlContext context, final String resourceId) throws IOException {
     final Reader reader = context.findResourceReader(resourceId).orElseThrow(() -> new FileNotFoundException(resourceId));
 
     if (reader != null) {
@@ -95,7 +95,7 @@ public class JProlIOLibrary extends AbstractJProlLibrary {
     }
   }
 
-  private InternalWriter makeResourceWriter(final ProlContext context, final String resourceId, final boolean append) throws IOException {
+  private InternalWriter makeResourceWriter(final JProlContext context, final String resourceId, final boolean append) throws IOException {
     final Writer writer = context.findResourceWriter(resourceId, append).orElse(null);
 
     if (writer != null) {
@@ -112,7 +112,7 @@ public class JProlIOLibrary extends AbstractJProlLibrary {
     }
   }
 
-  private Optional<InternalWriter> makeUserAsCurrentOut(final ProlContext context, final boolean append) {
+  private Optional<InternalWriter> makeUserAsCurrentOut(final JProlContext context, final boolean append) {
     if (getIoWriters(context).containsKey("user")) {
       return Optional.ofNullable(getIoWriters(context).get("user"));
     } else {
@@ -125,7 +125,7 @@ public class JProlIOLibrary extends AbstractJProlLibrary {
     }
   }
 
-  private Optional<InternalReader> makeUserAsCurrentIn(final ProlContext context) {
+  private Optional<InternalReader> makeUserAsCurrentIn(final JProlContext context) {
     if (getIoWriters(context).containsKey("user")) {
       return Optional.ofNullable(getIoReaders(context).get("user"));
     } else {
@@ -138,21 +138,21 @@ public class JProlIOLibrary extends AbstractJProlLibrary {
     }
   }
 
-  private Optional<InternalReader> findCurrentInput(final ProlContext context, final Term goal) {
+  private Optional<InternalReader> findCurrentInput(final JProlContext context, final Term goal) {
     final InternalReader current = getIoReaders(context).get(CURRENT_STREAM_ID);
     return current == null ? makeUserAsCurrentIn(context) : Optional.of(current);
   }
 
-  private Optional<InternalWriter> findCurrentOutput(final ProlContext context, final Term goal) {
+  private Optional<InternalWriter> findCurrentOutput(final JProlContext context, final Term goal) {
     final InternalWriter current = getIoWriters(context).get(CURRENT_STREAM_ID);
     return current == null ? makeUserAsCurrentOut(context, true) : Optional.of(current);
   }
 
-  private Map<String, InternalWriter> getIoWriters(final ProlContext context) {
+  private Map<String, InternalWriter> getIoWriters(final JProlContext context) {
     return this.findContextObject(context, WRITERS_MAP, id -> new ConcurrentHashMap<>());
   }
 
-  private Map<String, InternalReader> getIoReaders(final ProlContext context) {
+  private Map<String, InternalReader> getIoReaders(final JProlContext context) {
     return this.findContextObject(context, READERS_MAP, id -> new ConcurrentHashMap<>());
   }
 
@@ -237,7 +237,7 @@ public class JProlIOLibrary extends AbstractJProlLibrary {
     }
   }
 
-  private String readCurrentUntilNl(final ProlContext context, final Term goal) {
+  private String readCurrentUntilNl(final JProlContext context, final Term goal) {
     return findCurrentInput(context, goal).map(reader -> {
       final StringBuilderEx result = new StringBuilderEx("");
       try {

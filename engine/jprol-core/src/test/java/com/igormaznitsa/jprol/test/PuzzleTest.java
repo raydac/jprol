@@ -1,7 +1,7 @@
 package com.igormaznitsa.jprol.test;
 
 import com.igormaznitsa.jprol.logic.ChoicePoint;
-import com.igormaznitsa.jprol.logic.ProlContext;
+import com.igormaznitsa.jprol.logic.JProlContext;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -10,7 +10,7 @@ class PuzzleTest extends AbstractProlTest {
 
   @Test
   void testPuzzle() throws Exception {
-    final ProlContext context = makeContextAndConsult("sum(N1,N2,N):-sum1(N1,N2,N,0,0,[0,1,2,3,4,5,6,7,8,9],_)."
+    final JProlContext context = makeContextAndConsult("sum(N1,N2,N):-sum1(N1,N2,N,0,0,[0,1,2,3,4,5,6,7,8,9],_)."
         + "sum1([],[],[],C,C,Digits,Digits)."
         + "sum1([D1|N1],[D2|N2],[D|N],C1,C,Digs1,Digs):-sum1(N1,N2,N,C1,C2,Digs1,Digs2),digitsum(D1,D2,C2,D,C,Digs2,Digs)."
         + "digitsum(D1,D2,C1,D,C,Digs1,Digs):-del_var(D1,Digs1,Digs2),del_var(D2,Digs2,Digs3),del_var(D,Digs3,Digs),S is D1+D2+C1,D is S mod 10,C is S//10."

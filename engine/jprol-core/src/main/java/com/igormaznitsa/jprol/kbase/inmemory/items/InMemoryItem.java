@@ -43,7 +43,7 @@ public abstract class InMemoryItem {
       complex = foundKeyVars.size() != foundKeyVars.stream().distinct().count();
     }
 
-    return complex ? new ComplexRhsItem(clause) : new SimpleRhsItem(clause);
+    return complex ? new RhsItemComplex(clause) : new RhsItemSimple(clause);
   }
 
   public abstract boolean matches(final Term rightHandSide);

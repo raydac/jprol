@@ -26,7 +26,7 @@ import com.igormaznitsa.jprol.easygui.MainFrame;
 import com.igormaznitsa.jprol.easygui.UiUtils;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
-import com.igormaznitsa.jprol.logic.ProlContext;
+import com.igormaznitsa.jprol.logic.JProlContext;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -805,7 +805,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
   }
 
   @Override
-  public void onContextDispose(final ProlContext context) {
+  public void onContextDispose(final JProlContext context) {
     super.onContextDispose(context);
 
     internalLocker.lock();
@@ -930,9 +930,9 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
 
     private final String menuText;
     private final Term action;
-    private final ProlContext contextForTheAction;
+    private final JProlContext contextForTheAction;
 
-    public RegisteredAction(final String menuText, final Term action, final ProlContext context) {
+    public RegisteredAction(final String menuText, final Term action, final JProlContext context) {
       this.menuText = requireNonNull(menuText);
       this.action = requireNonNull(action);
       this.contextForTheAction = requireNonNull(context);

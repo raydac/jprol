@@ -18,29 +18,25 @@ package com.igormaznitsa.jprol.logic.triggers;
 
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
-import com.igormaznitsa.jprol.logic.DeferredGoal;
-import com.igormaznitsa.jprol.logic.ProlContext;
+import com.igormaznitsa.jprol.logic.JProlContext;
+import com.igormaznitsa.jprol.logic.PreparedGoal;
 
-import static java.util.Objects.requireNonNull;
+public class JProlTriggeringEventObserver extends AbstractJProlTrigger {
 
-public class ProlTriggerGoal extends AbstractProlTrigger {
+  protected final PreparedGoal goal;
 
-  protected final DeferredGoal goal;
-  protected final ProlContext context;
-
-  public ProlTriggerGoal(final Term goal, final ProlContext context) {
+  public JProlTriggeringEventObserver(final Term goal) {
     super();
-    this.goal = new DeferredGoal(goal, requireNonNull(context));
-    this.context = context;
+    this.goal = new PreparedGoal(goal);
   }
 
   @Override
   public void onTriggerEvent(final TriggerEvent event) {
-    if (goal != null) {
-      final ChoicePoint tobesolved = goal.getNonparametrizedGoalInstance();
+    if (this.goal != null) {
+      final ChoicePoint choicePoint = this.goal.makeChoicePoint(event.getContext());
 
       while (!Thread.currentThread().isInterrupted()) {
-        final Term result = tobesolved.next();
+        final Term result = choicePoint.next();
         if (result == null) {
           break;
         }
@@ -49,7 +45,7 @@ public class ProlTriggerGoal extends AbstractProlTrigger {
   }
 
   @Override
-  public void onContextHalting(final ProlContext context) {
+  public void onContextHalting(final JProlContext context) {
 
   }
 }

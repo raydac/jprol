@@ -16,14 +16,15 @@
 
 package com.igormaznitsa.jprol.logic.triggers;
 
-/**
- * This enum contains allowed event types which can be catched by triggers
- *
- * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
- */
-public enum ProlTriggerType {
+import com.igormaznitsa.jprol.logic.JProlContext;
 
-  TRIGGER_ASSERT,
-  TRIGGER_RETRACT,
-  TRIGGER_ASSERT_RETRACT
+import java.util.Map;
+
+public interface JProlTrigger {
+
+  Map<String, JProlTriggerType> getSignatures();
+
+  void onTriggerEvent(TriggerEvent event);
+
+  void onContextHalting(JProlContext context);
 }

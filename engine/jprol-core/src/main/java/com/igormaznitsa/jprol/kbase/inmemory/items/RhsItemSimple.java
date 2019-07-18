@@ -19,9 +19,9 @@ package com.igormaznitsa.jprol.kbase.inmemory.items;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 
-final class SimpleRhsItem extends InMemoryItem {
+final class RhsItemSimple extends InMemoryItem {
 
-  SimpleRhsItem(final TermStruct clause) {
+  RhsItemSimple(final TermStruct clause) {
     super(clause);
   }
 
