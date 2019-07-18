@@ -59,14 +59,6 @@ public final class TermOperator extends Term {
     this.op = Op.make(priority, type, name);
   }
 
-  public static TermOperator[] makeOperators(final int priority, final OpAssoc type, final String[] names) {
-    final TermOperator[] result = new TermOperator[names.length];
-    for (int li = 0; li < names.length; li++) {
-      result[li] = new TermOperator(priority, type, names[li]);
-    }
-    return result;
-  }
-
   public Op asOp() {
     return this.op;
   }

@@ -30,11 +30,11 @@ import static java.util.Objects.requireNonNull;
 
 public class TermStruct extends Term {
 
-  protected static final Term[] EMPTY_ARRAY = new Term[0];
-  protected final Term[] terms;
-  protected final Term functor;
+  static final Term[] EMPTY_ARRAY = new Term[0];
+  final Term[] terms;
+  final Term functor;
   private final String structureSignature;
-  protected volatile PredicateInvoker predicateProcessor;
+  private volatile PredicateInvoker predicateProcessor;
 
   TermStruct(final Term functor) {
     this(functor, EMPTY_ARRAY);

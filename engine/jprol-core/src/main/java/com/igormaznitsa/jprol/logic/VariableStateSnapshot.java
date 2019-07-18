@@ -160,7 +160,7 @@ final class VariableStateSnapshot {
     final TermVar variable;
     final Term etalonValue;
 
-    public VariableContainer(final TermVar var, final Map<String, Term> predefinedValues) {
+    VariableContainer(final TermVar var, final Map<String, Term> predefinedValues) {
       this.variable = var;
 
       if (predefinedValues == null) {
@@ -171,11 +171,11 @@ final class VariableStateSnapshot {
       }
     }
 
-    public void resetToEtalon() {
+    void resetToEtalon() {
       this.variable.setThisValue(this.etalonValue);
     }
 
-    public boolean isChanged() {
+    boolean isChanged() {
       return this.variable.getThisValue() != this.etalonValue;
     }
   }

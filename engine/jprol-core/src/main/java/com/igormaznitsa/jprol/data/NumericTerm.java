@@ -20,7 +20,7 @@ import static com.igormaznitsa.jprol.data.TermType.VAR;
 
 public abstract class NumericTerm extends Term {
 
-  public NumericTerm(final String text) {
+  NumericTerm(final String text) {
     super(text);
   }
 

@@ -112,13 +112,11 @@ public final class PreparedGoal {
 
   public ChoicePoint makeChoicePoint(final JProlContext context, final Map<String, Term> vars) {
     final Term clonedGoal = this.preparedGoalTerm.makeClone();
-    vars.forEach((key, value) -> {
-      clonedGoal.variables()
-          .filter(x -> key.equals(x.getText()))
-          .findFirst()
-          .orElseThrow(() -> new IllegalArgumentException(String.format("Can't find variable \'%s\'", key)))
-          .setValue(value);
-    });
+    vars.forEach((key, value) -> clonedGoal.variables()
+        .filter(x -> key.equals(x.getText()))
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException(String.format("Can't find variable \'%s\'", key)))
+        .setValue(value));
 
     return new ChoicePoint(clonedGoal, context);
   }

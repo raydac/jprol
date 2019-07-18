@@ -51,20 +51,6 @@ public final class TermOperatorContainer extends Term {
     return this.opContainer;
   }
 
-  public TermOperator findOnly() {
-    if (opContainer.size() == 1) {
-      if (this.opFZ != null) {
-        return this.opFZ;
-      }
-      if (this.opZF != null) {
-        return this.opZF;
-      }
-      return this.opZFZ;
-    } else {
-      return null;
-    }
-  }
-
   public boolean setOperator(final TermOperator operator) {
     switch (operator.getOperatorType()) {
       case FX:

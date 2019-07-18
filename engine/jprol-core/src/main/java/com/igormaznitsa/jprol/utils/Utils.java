@@ -36,13 +36,6 @@ public final class Utils {
   private Utils() {
   }
 
-  public static void doSilently(final RunnableWithException runnable) {
-    try {
-      runnable.run();
-    } catch (Throwable e) {
-    }
-  }
-
   public static <T> CloseableIterator<T> makeCloseableIterator(final Iterator<T> iterator, final Runnable onClose) {
     return new CloseableIterator<T>() {
       private final Iterator<T> wrapped = iterator;
@@ -235,11 +228,5 @@ public final class Utils {
       }
     }
     return null;
-  }
-
-  @FunctionalInterface
-  public interface RunnableWithException {
-
-    void run() throws Throwable;
   }
 }

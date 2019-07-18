@@ -32,7 +32,7 @@ import java.lang.reflect.Modifier;
 public final class PredicateInvoker {
 
   public static final PredicateInvoker NULL_PROCESSOR = new PredicateInvoker(null, null, null, null);
-  protected static final MethodHandles.Lookup METHOD_LOOKUP = MethodHandles.lookup();
+  private static final MethodHandles.Lookup METHOD_LOOKUP = MethodHandles.lookup();
   private static final Class<?> CLASS_RESULT_VOID = void.class;
   private final String predicateSignature;
   private final MethodHandle methodHandle;
@@ -216,13 +216,11 @@ public final class PredicateInvoker {
       } else {
         return result != null;
       }
+    } catch (ProlException ex) {
+      throw ex;
     } catch (IllegalAccessException ex) {
       throw new ProlException("Illegal access exception at " + predicate, ex);
     } catch (Throwable thr) {
-      if (thr instanceof ProlException) {
-        throw (ProlException) thr;
-      }
-
       final Throwable cause = thr.getCause();
 
       if (cause instanceof ThreadDeath) {

@@ -26,10 +26,10 @@ import static java.util.Objects.requireNonNull;
 
 public abstract class AbstractJProlTrigger implements JProlTrigger {
 
-  protected final Map<String, JProlTriggerType> signatureMap;
+  private final Map<String, JProlTriggerType> signatureMap;
 
   public AbstractJProlTrigger() {
-    signatureMap = Collections.synchronizedMap(new HashMap<>());
+    this.signatureMap = Collections.synchronizedMap(new HashMap<>());
   }
 
   public AbstractJProlTrigger addSignature(final String signature, final JProlTriggerType observedEvent) {
@@ -41,7 +41,7 @@ public abstract class AbstractJProlTrigger implements JProlTrigger {
       processedsignature = normalizeSignature(processedsignature);
     }
 
-    signatureMap.put(processedsignature, requireNonNull(observedEvent));
+    this.signatureMap.put(processedsignature, requireNonNull(observedEvent));
 
     return this;
   }
@@ -55,13 +55,13 @@ public abstract class AbstractJProlTrigger implements JProlTrigger {
       processedsignature = normalizeSignature(processedsignature);
     }
 
-    signatureMap.remove(processedsignature);
+    this.signatureMap.remove(processedsignature);
 
     return this;
   }
 
   @Override
   public Map<String, JProlTriggerType> getSignatures() {
-    return signatureMap;
+    return this.signatureMap;
   }
 }

@@ -541,7 +541,9 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     TermOperator last_operator = (TermOperator) auxObject[2];
 
     final String opNameVal = name.getTermType() == ATOM ? name.getText() : null; // null = any
-    final OpAssoc typeVal = specifier.getTermType() == ATOM ? OpAssoc.findForName(specifier.getText()).get() : null;
+    final OpAssoc typeVal = specifier.getTermType() == ATOM ?
+        OpAssoc.findForName(specifier.getText()).orElseThrow(() -> new ProlDomainErrorException("Unknown operator type: " + specifier.getText(), predicate))
+        : null;
     long priorityVal = 0; // 0 - any
     if (priority.getTermType() == ATOM) {
       priorityVal = priority.toNumber().longValue();

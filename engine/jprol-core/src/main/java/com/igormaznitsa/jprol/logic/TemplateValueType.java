@@ -318,12 +318,7 @@ public enum TemplateValueType {
       if (t.getTermType() == STRUCT) {
         final TermStruct struct = (TermStruct) t;
         final PredicateInvoker processor = struct.getPredicateProcessor();
-
-        if (processor == null) {
-          System.out.println("STRUCT: " + struct);
-        }
-
-        if (processor.isEvaluable()) {
+        if (processor != null && processor.isEvaluable()) {
           error = false;
         }
       }

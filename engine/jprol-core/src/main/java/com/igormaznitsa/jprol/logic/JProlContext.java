@@ -207,7 +207,7 @@ public final class JProlContext implements ParserContext {
 
   public void lockLockerForName(final String lockerId) {
     try {
-      this.findLockerForId(lockerId, true).get().lockInterruptibly();
+      this.findLockerForId(lockerId, true).orElseThrow(() -> new Error("Locker must be presented: " + lockerId)).lockInterruptibly();
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
       throw new RuntimeException("Locker wait has been interrupted: " + lockerId, ex);
@@ -215,7 +215,7 @@ public final class JProlContext implements ParserContext {
   }
 
   public boolean trylockLockerForName(final String lockerId) {
-    return this.findLockerForId(lockerId, true).get().tryLock();
+    return this.findLockerForId(lockerId, true).orElseThrow(() -> new Error("Locker must be presented: " + lockerId)).tryLock();
   }
 
   public void unlockLockerForName(final String lockerId) {

@@ -23,7 +23,7 @@ import com.igormaznitsa.jprol.logic.PreparedGoal;
 
 public class JProlTriggeringEventObserver extends AbstractJProlTrigger {
 
-  protected final PreparedGoal goal;
+  private final PreparedGoal goal;
 
   public JProlTriggeringEventObserver(final Term goal) {
     super();
