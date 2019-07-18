@@ -399,17 +399,13 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
 
   @Predicate(Signature = "tab/1", Template = {"+integer"}, Reference = "Out a number of space symbols into current output stream")
   @Determined
-  public final boolean predicateTAB(final ChoicePoint goal, final TermStruct predicate) {
+  public final boolean predicateTAB(final ChoicePoint goal, final TermStruct predicate) throws IOException {
     final long spaces = predicate.getElement(0).toNumber().longValue();
-    return findCurrentOutput(goal.getContext(), predicate).map(writer -> {
-      try {
-        for (long li = 0; li < spaces; li++) {
-          writer.write(" ");
-        }
-      } catch (IOException ex) {
-      }
-      return true;
-    }).orElseThrow(() -> new ProlPermissionErrorException("write", "text_stream", predicate));
+    final InternalWriter writer = findCurrentOutput(goal.getContext(), predicate).orElseThrow(() -> new ProlPermissionErrorException("write", "text_stream", predicate));
+    for (long li = 0; li < spaces; li++) {
+      writer.write(" ");
+    }
+    return true;
   }
 
   private static class InternalReader extends PushbackReader {

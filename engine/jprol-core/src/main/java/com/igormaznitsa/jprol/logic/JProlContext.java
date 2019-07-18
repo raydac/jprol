@@ -504,8 +504,6 @@ public final class JProlContext implements ParserContext {
             throw new ProlKnowledgeBaseException("Such element can't be saved at knowledge base [" + nextItem + ']');
           }
         }
-      } catch (ThreadDeath ex) {
-        throw ex;
       } catch (Exception ex) {
         throw new PrologParserException(ex.getMessage(), line, strpos, ex);
       }
