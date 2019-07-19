@@ -21,7 +21,7 @@ public class JProlTreeBuilder {
   public Result readPhraseAndMakeTree(final Reader reader) {
     PrologParser parser = parsers.get();
     if (parser == null) {
-      parser = new GenericPrologParser(reader, this.context);
+      parser = new GenericPrologParser(reader, this.context.getParserContext());
       parsers.set(parser);
     }
 

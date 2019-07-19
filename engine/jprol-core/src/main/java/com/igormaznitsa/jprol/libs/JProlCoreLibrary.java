@@ -79,7 +79,6 @@ import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.*;
 public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   private static final Random RANDOMIZEGEN = new Random(System.nanoTime());
-  private static final Term TRUE = newAtom("true");
 
   public JProlCoreLibrary() {
     super("jprol-core-lib");
@@ -491,7 +490,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     if (clIterator == null) {
       clIterator = goal.getContext().getKnowledgeBase().iterate(IteratorType.ANY, head.getTermType() == STRUCT ? (TermStruct) head : newStruct(head));
       if (clIterator == null || !clIterator.hasNext()) {
-        goal.resetVariants();
+        goal.cutVariants();
         return false;
       }
 
@@ -507,7 +506,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         bodyClause = nxtStruct.getElement(1);
       } else {
         headClause = nxtStruct;
-        bodyClause = TRUE;
+        bodyClause = Terms.TRUE;
       }
 
       if (headClause.dryUnifyTo(head) && bodyClause.dryUnifyTo(body)) {
@@ -517,7 +516,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         return true;
       }
     }
-    goal.resetVariants();
+    goal.cutVariants();
     return false;
   }
 
@@ -569,7 +568,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
         if (last_container == null) {
           // there are not more variants
-          goal.resetVariants();
+          goal.cutVariants();
           goal.setPayload(null);
           return false;
         }
@@ -614,7 +613,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       final Term nameOfFound = newAtom(last_operator.getText());
 
       if (!(predicate.getElement(0).unifyTo(priorityOfFound) && predicate.getElement(1).unifyTo(specifierOfFound) && predicate.getElement(2).unifyTo(nameOfFound))) {
-        goal.resetVariants();
+        goal.cutVariants();
         goal.setPayload(null);
         return false;
       } else {
@@ -692,8 +691,9 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       if (!argument.unifyTo(nextResult)) {
         throw new ProlCriticalError("Can't make equ for result of CALL");
       }
-      if (currentgoal.hasVariants()) {
-        goal.resetVariants();
+
+      if (currentgoal.isCompleted()) {
+        goal.cutVariants();
       }
 
       result = true;
@@ -725,7 +725,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       thenPart.cutLocally(); // remove all previous choice points
       result = true;
     } else {
-      goal.resetVariants();
+      goal.cutVariants();
     }
     return result;
   }
@@ -1160,17 +1160,17 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       final AtomConcatState state = goal.getPayload();
       if (state == null) {
         if (atom1.isGround() && atom2.isGround()) {
-          goal.resetVariants();
+          goal.cutVariants();
           return atom3.unifyTo(newAtom(atom1.getText() + atom2.getText()));
         } else if (atom1.isGround()) {
-          goal.resetVariants();
+          goal.cutVariants();
           final String text1 = atom1.getText();
           final String text3 = atom3.getText();
           if (text3.startsWith(text1)) {
             return atom2.unifyTo(newAtom(text3.substring(text1.length())));
           }
         } else if (atom2.isGround()) {
-          goal.resetVariants();
+          goal.cutVariants();
           final String text2 = atom2.getText();
           final String text3 = atom3.getText();
           if (text3.endsWith(text2)) {
@@ -1187,7 +1187,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         if (result) {
           result = atom1.unifyTo(state.getSeq1AsTerm()) && atom2.unifyTo(state.getSeq2AsTerm());
         } else {
-          goal.resetVariants();
+          goal.cutVariants();
         }
         return result;
       }
@@ -1263,7 +1263,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static boolean predicateFOR(final ChoicePoint goal, final TermStruct predicate) {
     final Term term = predicate.getElement(0);
     if (term.getTermType() != VAR) {
-      goal.resetVariants();
+      goal.cutVariants();
       return false;
     }
 
@@ -1280,7 +1280,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       goal.setPayload(currentIndex);
     } else {
       if (currentIndex.incrementAndGet() > limit) {
-        goal.resetVariants();
+        goal.cutVariants();
         result = false;
       }
     }
@@ -1846,11 +1846,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       final Term result = catchGoal.next();
 
       if (result == null) {
-        goal.resetVariants();
+        goal.cutVariants();
         return false;
       } else {
-        if (catchGoal.hasVariants()) {
-          goal.resetVariants();
+        if (catchGoal.isCompleted()) {
+          goal.cutVariants();
         }
         return true;
       }
@@ -1859,11 +1859,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       try {
         final Term result = catchGoal.next();
         if (result == null) {
-          goal.resetVariants();
+          goal.cutVariants();
           return false;
         } else {
-          if (catchGoal.hasVariants()) {
-            goal.resetVariants();
+          if (catchGoal.isCompleted()) {
+            goal.cutVariants();
           }
           return true;
         }
@@ -1874,11 +1874,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
           goal.setPayload(catchGoal);
           final Term result = catchGoal.next();
           if (result == null) {
-            goal.resetVariants();
+            goal.cutVariants();
             return false;
           } else {
-            if (catchGoal.hasVariants()) {
-              goal.resetVariants();
+            if (catchGoal.isCompleted()) {
+              goal.cutVariants();
             }
             goal.setPayload(catchGoal);
             return true;
@@ -1947,7 +1947,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     if (iterator.hasNext()) {
       result = iterator.next();
     } else {
-      goal.resetVariants();
+      goal.cutVariants();
     }
 
     return result;
@@ -1968,7 +1968,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       factIterator = base.iterate(IteratorType.FACTS, (TermStruct) term);
 
       if (factIterator == null) {
-        goal.resetVariants();
+        goal.cutVariants();
         return false;
       } else {
         goal.setPayload(factIterator);
@@ -1980,7 +1980,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final TermStruct nextFact = processIterator(goal, factIterator);
     if (nextFact == null) {
       goal.setPayload(null);
-      goal.resetVariants();
+      goal.cutVariants();
     } else if (origterm.getTermType() == ATOM) {
       result = true;
     } else {
@@ -2055,7 +2055,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     List<AuxForkTask> goalList = goal.getPayload();
 
     if (goalList == null) {
-      Set<Integer> varFlagTable = null; // the lazy initing map allows us to find out that there are non instantiated shared variables
+      Set<Integer> varFlagTable = null;
 
       // the first call
       goalList = new ArrayList<>();
@@ -2064,7 +2064,6 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       while (!tlist.isNullList()) {
         final Term term = tlist.getHead();
 
-        // ---- we have to check that user doesn't try share noninstantiated variables between parallel goals
         if (term.getTermType() != ATOM) {
           // find vars
           final Map<String, TermVar> varTable = term.allNamedVarsAsMap();
@@ -2075,13 +2074,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
             for (final Map.Entry<String, TermVar> pair : varTable.entrySet()) {
               final TermVar variable = pair.getValue();
               if (!variable.isAnonymous() && !variable.isGround()) {
-                // we check only undefined vars
                 final Integer varUID = variable.getVarUid();
                 if (varFlagTable.contains(varUID)) {
-                  // we have such var in one from other terms, that is impossible for concurrent execution, all vars must be instantiated
                   throw new ProlInstantiationErrorException("Variable \'" + variable.getText() + "\' is being shared between one or more parallel solving goals but not instantiated.", predicate);
                 } else {
-                  varFlagTable.add(varUID); // add the variable UID into the set
+                  varFlagTable.add(varUID);
                 }
               }
             }
@@ -2163,7 +2160,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
 
     if (!result) {
-      goal.resetVariants();
+      goal.cutVariants();
     }
 
     return result;
@@ -2254,7 +2251,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
 
     if (!result) {
-      goal.resetVariants();
+      goal.cutVariants();
     }
 
     return result;

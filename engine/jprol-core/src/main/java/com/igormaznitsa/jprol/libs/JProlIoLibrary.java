@@ -223,7 +223,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     if (current == null) {
       throw new ProlPermissionErrorException("read", "text_input", predicate);
     } else {
-      final PrologParser parser = new GenericPrologParser(current, goal.getContext());
+      final PrologParser parser = new GenericPrologParser(current, goal.getContext().getParserContext());
       final TokenizerResult result = parser.getInternalTokenizer().readNextToken();
 
       final Term readTerm;
@@ -381,7 +381,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     final boolean result = predicateCALL(goal, predicate);
 
     if (!result) {
-      goal.resetVariants();
+      goal.cutVariants();
     }
 
     final long timeInterval = ((System.nanoTime() - time) + 500L) / 1000L; //microseconds

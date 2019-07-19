@@ -44,7 +44,7 @@ public final class ChoicePoint {
   private final VariableStateSnapshot varSnapshot;
   private final JProlContext context;
   private final ChoicePoint rootCp;
-  private boolean noVariants;
+  private boolean thereAreVariants;
   private final Term goalTerm;
   private Object payload;
   private ChoicePoint prevCp;
@@ -69,6 +69,8 @@ public final class ChoicePoint {
       final Map<String, Term> predefinedVarValues
   ) {
     this.uid = UID_GEN.incrementAndGet();
+
+    this.thereAreVariants = true;
 
     this.rootCp = rootCp == null ? this : rootCp;
     this.goalTerm = goalToSolve.getTermType() == ATOM ? newStruct(goalToSolve) : goalToSolve;
@@ -162,7 +164,7 @@ public final class ChoicePoint {
 
   @Override
   public String toString() {
-    return (this.hasVariants() ? "Completed " : "Active ") + "Goal(" + this.goalTerm.toString() + ')';
+    return (this.isCompleted() ? "Completed " : "Active ") + "Goal(" + this.goalTerm.toString() + ')';
   }
 
   public Number getVarAsNumber(final String varName) {
@@ -235,7 +237,7 @@ public final class ChoicePoint {
       if (goalToProcess == null) {
         break;
       } else {
-        if (!goalToProcess.noVariants) {
+        if (goalToProcess.thereAreVariants) {
           switch (goalToProcess.resolve()) {
             case FAIL: {
               this.context.fireTraceEvent(TraceEvent.FAIL, goalToProcess);
@@ -345,7 +347,7 @@ public final class ChoicePoint {
           }
         } else {
           this.clauseIterator = null;
-          resetVariants();
+          cutVariants();
           break;
         }
       }
@@ -354,7 +356,7 @@ public final class ChoicePoint {
         case ATOM: {
           final String text = this.goalTerm.getText();
           result = this.context.hasZeroArityPredicateForName(text) ? ChoicePointResult.SUCCESS : ChoicePointResult.FAIL;
-          resetVariants();
+          cutVariants();
           doLoop = false;
         }
         break;
@@ -388,13 +390,13 @@ public final class ChoicePoint {
                 nonConsumed = false;
                 doLoop = false;
                 result = ChoicePointResult.SUCCESS;
-                this.noVariants = true;
+                this.thereAreVariants = false;
               } else if (len == 2 && "!!".equals(functorText)) {
                 // cut local
-                cutLocally();
+                this.cutLocally();
                 nonConsumed = false;
                 doLoop = false;
-                this.noVariants = true;
+                this.thereAreVariants = false;
                 result = ChoicePointResult.SUCCESS;
               }
             } else if (arity == 2) {
@@ -430,12 +432,12 @@ public final class ChoicePoint {
                 this.clauseIterator = this.context.getKnowledgeBase().iterate(IteratorType.ANY, struct);
                 if (this.clauseIterator == null || !this.clauseIterator.hasNext()) {
                   doLoop = false;
-                  resetVariants();
+                  this.cutVariants();
                   result = ChoicePointResult.FAIL;
                 }
               } else {
                 if (processor.isEvaluable() || processor.isDetermined()) {
-                  resetVariants();
+                  this.cutVariants();
                 }
 
                 if (processor.execute(this, struct)) {
@@ -457,7 +459,7 @@ public final class ChoicePoint {
         default: {
           result = ChoicePointResult.FAIL;
           doLoop = false;
-          resetVariants();
+          this.cutVariants();
         }
         break;
       }
@@ -466,8 +468,8 @@ public final class ChoicePoint {
     return result;
   }
 
-  public void resetVariants() {
-    this.noVariants = true;
+  public void cutVariants() {
+    this.thereAreVariants = false;
   }
 
   public void cut() {
@@ -489,7 +491,7 @@ public final class ChoicePoint {
     return processor;
   }
 
-  public boolean hasVariants() {
-    return this.rootCp.rootLastGoalAtChain == null || this.noVariants;
+  public boolean isCompleted() {
+    return this.rootCp.rootLastGoalAtChain == null || !this.thereAreVariants;
   }
 }

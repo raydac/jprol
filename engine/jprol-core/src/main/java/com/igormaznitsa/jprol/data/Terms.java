@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class Terms {
+  public static final Term TRUE = new Term("true");
+  public static final Term FALSE = new Term("false");
   public static final TermLong INT_ONE = new TermLong(1L);
   public static final TermLong INT_ZERO = new TermLong(0L);
   public static final TermLong INT_MINUS_ONE = new TermLong(-1L);
@@ -100,7 +102,7 @@ public final class Terms {
         }
       }
       case OPERATOR: {
-        return context.findOperatorForName(term.getText()).getForTypePrecisely(((Op) term).getAssoc());
+        return context.getKnowledgeBase().findOperatorForName(context, term.getText()).getForTypePrecisely(((Op) term).getAssoc());
       }
       case LIST: {
         final PrologList list = (PrologList) term;

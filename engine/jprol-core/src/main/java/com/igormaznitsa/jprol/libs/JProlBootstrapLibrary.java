@@ -34,6 +34,16 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     super("jprol-bootstrap-lib");
   }
 
+  @Predicate(Signature = "current_prolog_flag/2", Template = {"?atom,?term"}, Reference = "'")
+  public static boolean predicateCURRENTPROLOGFLAG(final ChoicePoint goal, final TermStruct predicate) {
+    return false;
+  }
+
+  @Predicate(Signature = "set_prolog_flag/2", Template = {"+atom,+term"}, Reference = "'")
+  public static boolean predicateSETPROLOGFLAG(final ChoicePoint goal, final TermStruct predicate) {
+    return false;
+  }
+
   @Predicate(Signature = "is/2", Template = {"?evaluable,@evaluable"}, Reference = "'is'(Result, Expression) is true if and only if the value of evaluating Expression as an expression is Result")
   @Determined
   public static boolean predicateIS(final ChoicePoint goal, final TermStruct predicate) {

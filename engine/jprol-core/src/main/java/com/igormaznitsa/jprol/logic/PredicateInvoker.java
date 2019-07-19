@@ -147,7 +147,7 @@ public final class PredicateInvoker {
   public final Term executeEvaluable(final ChoicePoint goal, final TermStruct predicate) {
     try {
       Term[] termsToNotBeChanged = null;
-      if (templates != null) {
+      if (goal.getContext().isTemplateValidate() && this.templates != null) {
         termsToNotBeChanged = checkTemplates(predicate);
       }
 
@@ -189,12 +189,12 @@ public final class PredicateInvoker {
   public final boolean execute(final ChoicePoint goal, final TermStruct predicate) {
     try {
       Term[] termsToNotBeChanged = null;
-      if (templates != null) {
+      if (goal.getContext().isTemplateValidate() && this.templates != null) {
         termsToNotBeChanged = checkTemplates(predicate);
       }
 
       final Object result;
-      result = methodHandle.invoke(goal, predicate);
+      result = this.methodHandle.invoke(goal, predicate);
 
       if (termsToNotBeChanged != null) {
         final Term[] elements = predicate.getElementsAsArray();
@@ -209,7 +209,7 @@ public final class PredicateInvoker {
         }
       }
 
-      if (voidResult) {
+      if (this.voidResult) {
         return true;
       } else if (result instanceof Boolean) {
         return (Boolean) result;

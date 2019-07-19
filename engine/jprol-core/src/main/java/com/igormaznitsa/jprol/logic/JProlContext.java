@@ -17,6 +17,7 @@
 package com.igormaznitsa.jprol.logic;
 
 import com.igormaznitsa.jprol.annotations.ConsultText;
+import com.igormaznitsa.jprol.annotations.ConsultUri;
 import com.igormaznitsa.jprol.data.*;
 import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.exceptions.ProlForkExecutionException;
@@ -42,26 +43,26 @@ import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.Writer;
+import java.net.URI;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.logic.PredicateInvoker.NULL_PROCESSOR;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.concat;
 
-public final class JProlContext implements ParserContext {
-  public static final String ENGINE_VERSION = "2.0.0";
-  public static final String ENGINE_NAME = "Prol";
-
+public final class JProlContext {
   private final String contextId;
 
   private final Map<String, List<JProlTrigger>> triggersOnAssert = new ConcurrentHashMap<>();
@@ -72,35 +73,84 @@ public final class JProlContext implements ParserContext {
   private final KnowledgeBase knowledgeBase;
   private final ExecutorService executorService;
   private final List<TracingChoicePointListener> traceListeners = new CopyOnWriteArrayList<>();
+  private final Map<JProlSystemFlag, Term> systemFlags = new ConcurrentHashMap<>();
+  private final AtomicInteger currentAsyncTaskNumber = new AtomicInteger();
+  private final ParserContext parserContext = new ParserContext() {
+    @Override
+    public boolean hasOpStartsWith(final PrologParser prologParser, final String s) {
+      return JProlContext.this.knowledgeBase.hasOperatorStartsWith(JProlContext.this, s);
+    }
 
-  private final AtomicInteger activeAsyncTasks = new AtomicInteger();
+    @Override
+    public OpContainer findOpForName(final PrologParser prologParser, final String s) {
+      final TermOperatorContainer container = JProlContext.this.knowledgeBase.findOperatorForName(JProlContext.this, s);
+      return container == null ? null : container.asOpContainer();
+    }
+
+    @Override
+    public int getFlags() {
+      return ParserContext.FLAG_ZERO_STRUCT;
+    }
+  };
 
   private final List<IoResourceProvider> ioProviders = new CopyOnWriteArrayList<>();
+  private boolean templateValidate;
 
   public JProlContext(final String name, final AbstractJProlLibrary... libs) {
     this(name,
         new InMemoryKnowledgeBase(name + "_kbase"),
-        null,
+        ForkJoinPool.commonPool(),
+        emptyMap(),
+        emptyList(),
         libs
     );
   }
 
-  public JProlContext(
+  private JProlContext(
       final String contextId,
       final KnowledgeBase base,
       final ExecutorService executorService,
+      final Map<JProlSystemFlag, Term> systemFlags,
+      final List<IoResourceProvider> ioProviders,
       final AbstractJProlLibrary... additionalLibraries
   ) {
-    requireNonNull(contextId, "Contex Id must not be null");
-    requireNonNull(base, "Knowledge base must not be null");
+    this.contextId = requireNonNull(contextId, "Context Id is null");
+    this.knowledgeBase = requireNonNull(base, "Knowledge base is null");
+    this.executorService = requireNonNull(executorService);
 
-    this.contextId = contextId;
-    this.knowledgeBase = base;
+    Arrays.stream(JProlSystemFlag.values())
+        .filter(x -> !x.isReadOnly())
+        .forEach(x -> this.systemFlags.put(x, x.getDefaultValue()));
 
-    this.executorService = executorService == null ? ForkJoinPool.commonPool() : executorService;
+    this.systemFlags.putAll(systemFlags);
+    this.onSystemFlagsUpdated();
+
+    this.ioProviders.addAll(ioProviders);
 
     this.libraries.add(new JProlBootstrapLibrary());
     this.libraries.addAll(asList(additionalLibraries));
+  }
+
+  boolean isTemplateValidate() {
+    return this.templateValidate;
+  }
+
+  public Term getSystemFlag(final JProlSystemFlag flag) {
+    return this.systemFlags.getOrDefault(flag, flag.getDefaultValue());
+  }
+
+  public void setSystemFlag(final JProlSystemFlag flag, final Term term) {
+    if (flag.isReadOnly()) {
+      throw new IllegalStateException("Flag is marked as read-only: " + flag);
+    } else {
+      final Term value = Objects.requireNonNull(term.findNonVarOrDefault(null));
+      this.systemFlags.put(flag, value);
+      this.onSystemFlagsUpdated();
+    }
+  }
+
+  private void onSystemFlagsUpdated() {
+    this.templateValidate = Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.VERIFY).getText());
   }
 
   public JProlContext addTraceListener(final TracingChoicePointListener listener) {
@@ -141,15 +191,15 @@ public final class JProlContext implements ParserContext {
     }
   }
 
-  public int getActiveAsyncNumber() {
-    return this.activeAsyncTasks.get();
+  public int getCurrentAsyncTaskNumber() {
+    return this.currentAsyncTaskNumber.get();
   }
 
   public void waitForAllAsyncDone() {
-    while (this.activeAsyncTasks.get() > 0) {
-      synchronized (this.activeAsyncTasks) {
+    while (this.currentAsyncTaskNumber.get() > 0) {
+      synchronized (this.currentAsyncTaskNumber) {
         try {
-          this.activeAsyncTasks.wait();
+          this.currentAsyncTaskNumber.wait();
         } catch (InterruptedException ex) {
           Thread.currentThread().interrupt();
           return;
@@ -159,16 +209,16 @@ public final class JProlContext implements ParserContext {
   }
 
   private void onAsyncGoalCompleted(final Term goal) {
-    this.activeAsyncTasks.decrementAndGet();
-    synchronized (this.activeAsyncTasks) {
-      this.activeAsyncTasks.notifyAll();
+    this.currentAsyncTaskNumber.decrementAndGet();
+    synchronized (this.currentAsyncTaskNumber) {
+      this.currentAsyncTaskNumber.notifyAll();
     }
   }
 
   public void submitAsync(final Term goal) {
     this.assertNotDisposed();
 
-    this.activeAsyncTasks.incrementAndGet();
+    this.currentAsyncTaskNumber.incrementAndGet();
     try {
       getContextExecutorService().submit(() -> {
         try {
@@ -185,9 +235,9 @@ public final class JProlContext implements ParserContext {
         }
       });
     } catch (RejectedExecutionException ex) {
-      this.activeAsyncTasks.decrementAndGet();
-      synchronized (this.activeAsyncTasks) {
-        this.activeAsyncTasks.notifyAll();
+      this.currentAsyncTaskNumber.decrementAndGet();
+      synchronized (this.currentAsyncTaskNumber) {
+        this.currentAsyncTaskNumber.notifyAll();
       }
       throw new ProlForkExecutionException("Can't submit term for async resolving", goal, new Throwable[] {ex});
     }
@@ -239,13 +289,23 @@ public final class JProlContext implements ParserContext {
 
     libraries.add(0, library);
 
-    final ConsultText consult = library.getClass().getAnnotation(ConsultText.class);
-    if (consult != null) {
-      final String text = consult.value();
+    final ConsultText consultText = library.getClass().getAnnotation(ConsultText.class);
+    if (consultText != null) {
+      final String text = Arrays.stream(consultText.value()).collect(Collectors.joining("\n"));
       if (text.length() > 0) {
         this.consult(new StringReader(text), null);
       }
     }
+
+    final ConsultUri consultUri = library.getClass().getAnnotation(ConsultUri.class);
+    if (consultUri != null) {
+      final String resourceText = Arrays.stream(consultUri.value())
+          .filter(x -> !(x == null || x.trim().isEmpty()))
+          .map(x -> Utils.readTextForUri(URI.create(x)))
+          .collect(Collectors.joining("\n"));
+      this.consult(new StringReader(resourceText), null);
+    }
+
     return true;
   }
 
@@ -305,19 +365,12 @@ public final class JProlContext implements ParserContext {
 
   public void dispose() {
     if (this.disposed.compareAndSet(false, true)) {
-      executorService.shutdownNow();
+      this.executorService.shutdownNow();
 
-      final Set<JProlTrigger> notifiedTriggers = new HashSet<>();
-      concat(triggersOnAssert.entrySet().stream(), triggersOnRetract.entrySet().stream())
-          .forEachOrdered(mapentry -> mapentry.getValue().forEach((trigger) -> {
-            try {
-              if (!notifiedTriggers.contains(trigger)) {
-                trigger.onContextHalting(this);
-              }
-            } finally {
-              notifiedTriggers.add(trigger);
-            }
-          }));
+      concat(this.triggersOnAssert.entrySet().stream(), this.triggersOnRetract.entrySet().stream())
+          .flatMap(x -> x.getValue().stream())
+          .distinct()
+          .forEach(x -> x.onContextHalting(this));
 
       this.triggersOnAssert.clear();
       this.triggersOnRetract.clear();
@@ -352,7 +405,7 @@ public final class JProlContext implements ParserContext {
   }
 
   public void unregisterTrigger(final JProlTrigger trigger) {
-    Stream.of(triggersOnAssert.entrySet().iterator(), triggersOnRetract.entrySet().iterator()).forEach(iterator -> {
+    Stream.of(this.triggersOnAssert.entrySet().iterator(), this.triggersOnRetract.entrySet().iterator()).forEach(iterator -> {
       while (iterator.hasNext()) {
         final Entry<String, List<JProlTrigger>> entry = iterator.next();
         final List<JProlTrigger> lst = entry.getValue();
@@ -369,17 +422,17 @@ public final class JProlContext implements ParserContext {
     boolean result;
     switch (observedEvent) {
       case TRIGGER_ASSERT: {
-        result = triggersOnAssert.containsKey(normalizedSignature);
+        result = this.triggersOnAssert.containsKey(normalizedSignature);
       }
       break;
       case TRIGGER_RETRACT: {
-        result = triggersOnRetract.containsKey(normalizedSignature);
+        result = this.triggersOnRetract.containsKey(normalizedSignature);
       }
       break;
       case TRIGGER_ASSERT_RETRACT: {
-        result = triggersOnAssert.containsKey(normalizedSignature);
+        result = this.triggersOnAssert.containsKey(normalizedSignature);
         if (!result) {
-          result = triggersOnRetract.containsKey(normalizedSignature);
+          result = this.triggersOnRetract.containsKey(normalizedSignature);
         }
       }
       break;
@@ -532,30 +585,17 @@ public final class JProlContext implements ParserContext {
   }
 
   public JProlContext makeCopy() {
-    return new JProlContext(this.contextId + "_copy", this.knowledgeBase.makeCopy(), this.executorService);
+    return new JProlContext(
+        this.contextId + "_copy",
+        this.knowledgeBase.makeCopy(),
+        this.executorService,
+        this.systemFlags,
+        this.ioProviders
+    );
   }
 
-  public boolean hasOperatorStartsWith(String operator) {
-    return this.knowledgeBase.hasOperatorStartsWith(this, operator);
+  public ParserContext getParserContext() {
+    return this.parserContext;
   }
 
-  public TermOperatorContainer findOperatorForName(String operator) {
-    return this.knowledgeBase.findOperatorForName(this, operator);
-  }
-
-  @Override
-  public boolean hasOpStartsWith(PrologParser prologParser, String s) {
-    return this.knowledgeBase.hasOperatorStartsWith(this, s);
-  }
-
-  @Override
-  public OpContainer findOpForName(PrologParser prologParser, String s) {
-    final TermOperatorContainer container = this.findOperatorForName(s);
-    return container == null ? null : container.asOpContainer();
-  }
-
-  @Override
-  public int getFlags() {
-    return ParserContext.FLAG_ZERO_STRUCT;
-  }
 }
