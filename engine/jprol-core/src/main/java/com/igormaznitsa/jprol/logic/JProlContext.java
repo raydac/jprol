@@ -16,8 +16,9 @@
 
 package com.igormaznitsa.jprol.logic;
 
+import com.igormaznitsa.jprol.annotations.ConsultClasspath;
+import com.igormaznitsa.jprol.annotations.ConsultFile;
 import com.igormaznitsa.jprol.annotations.ConsultText;
-import com.igormaznitsa.jprol.annotations.ConsultUri;
 import com.igormaznitsa.jprol.data.*;
 import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.exceptions.ProlForkExecutionException;
@@ -40,10 +41,8 @@ import com.igormaznitsa.prologparser.exceptions.PrologParserException;
 import com.igormaznitsa.prologparser.terms.OpContainer;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.Writer;
-import java.net.URI;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
@@ -297,11 +296,48 @@ public final class JProlContext {
       }
     }
 
-    final ConsultUri consultUri = library.getClass().getAnnotation(ConsultUri.class);
-    if (consultUri != null) {
-      final String resourceText = Arrays.stream(consultUri.value())
+    final ConsultFile consultFile = library.getClass().getAnnotation(ConsultFile.class);
+    if (consultFile != null) {
+      final String resourceText = Arrays.stream(consultFile.value())
           .filter(x -> !(x == null || x.trim().isEmpty()))
-          .map(x -> Utils.readTextForUri(URI.create(x)))
+          .map(File::new)
+          .map(x -> {
+            try {
+              return Utils.readAsUtf8(x);
+            } catch (IOException ex) {
+              throw new Error("Can't read file: " + x);
+            }
+          })
+          .collect(Collectors.joining("\n"));
+      this.consult(new StringReader(resourceText), null);
+    }
+
+    final ConsultClasspath consultClasspath = library.getClass().getAnnotation(ConsultClasspath.class);
+    if (consultClasspath != null) {
+      final String resourceText = Arrays.stream(consultClasspath.value())
+          .filter(x -> !(x == null || x.trim().isEmpty()))
+          .map(x -> {
+            final InputStream inStream = ClassLoader.getSystemClassLoader().getResourceAsStream(x);
+            if (inStream == null) {
+              throw new Error("Can't find resource: " + x);
+            }
+            return inStream;
+          })
+          .map(x -> {
+            final StringBuilder buffer = new StringBuilder();
+            try (final Reader reader = new InputStreamReader(new BufferedInputStream(x), StandardCharsets.UTF_8)) {
+              while (!Thread.currentThread().isInterrupted()) {
+                final int value = reader.read();
+                if (value < 0) {
+                  break;
+                }
+                buffer.append((char) value);
+              }
+            } catch (IOException ex) {
+              throw new Error("Can't read resource", ex);
+            }
+            return buffer.toString();
+          })
           .collect(Collectors.joining("\n"));
       this.consult(new StringReader(resourceText), null);
     }
@@ -418,7 +454,8 @@ public final class JProlContext {
     });
   }
 
-  public boolean hasRegisteredTriggersForSignature(final String normalizedSignature, final JProlTriggerType observedEvent) {
+  public boolean hasRegisteredTriggersForSignature(final String normalizedSignature,
+                                                   final JProlTriggerType observedEvent) {
     boolean result;
     switch (observedEvent) {
       case TRIGGER_ASSERT: {
@@ -444,7 +481,8 @@ public final class JProlContext {
     return result;
   }
 
-  public void notifyTriggersForSignature(final String normalizedSignature, final JProlTriggerType observedEvent) {
+  public void notifyTriggersForSignature(final String normalizedSignature,
+                                         final JProlTriggerType observedEvent) {
     final List<JProlTrigger> listOfTriggers;
 
     switch (observedEvent) {

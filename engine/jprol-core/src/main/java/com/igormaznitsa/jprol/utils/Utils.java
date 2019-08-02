@@ -20,7 +20,6 @@ import com.igormaznitsa.jprol.data.*;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
 import java.io.*;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -58,11 +57,6 @@ public final class Utils {
         return this.wrapped.next();
       }
     };
-  }
-
-  public static String readTextForUri(final URI uri) {
-    //TODO
-    return null;
   }
 
   public static void writeAsUtf8(final File file, final CharSequence seq) throws IOException {
@@ -139,6 +133,7 @@ public final class Utils {
         default: {
           builder.append(curChar);
         }
+        break;
       }
     }
 

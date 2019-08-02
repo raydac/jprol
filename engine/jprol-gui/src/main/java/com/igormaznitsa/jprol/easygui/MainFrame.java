@@ -976,14 +976,12 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
   }
 
   private void menuEditCommentSelectedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuEditCommentSelectedActionPerformed
-    // TODO add your handling code here:
     if (this.sourceEditor.commentSelectedLines()) {
       documentChanged();
     }
   }
 
   private void menuEditUncommentSelectedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuEditUncommentSelectedActionPerformed
-    // TODO add your handling code here:
     if (this.sourceEditor.uncommentSelectedLines()) {
       documentChanged();
     }

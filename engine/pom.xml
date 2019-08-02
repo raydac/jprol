@@ -60,13 +60,13 @@
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-api</artifactId>
-                <version>5.4.2</version>
+                <version>5.5.1</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-engine</artifactId>
-                <version>5.4.2</version>
+                <version>5.5.1</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
@@ -82,7 +82,7 @@
                 <plugin>
                     <groupId>com.igormaznitsa</groupId>
                     <artifactId>uber-pom</artifactId>
-                    <version>1.0.2</version>
+                    <version>1.0.3</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>

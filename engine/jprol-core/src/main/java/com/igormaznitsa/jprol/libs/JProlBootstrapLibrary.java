@@ -7,7 +7,12 @@ import com.igormaznitsa.jprol.annotations.ProlOperators;
 import com.igormaznitsa.jprol.data.NumericTerm;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
+import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlSystemFlag;
+
+import java.util.Iterator;
+import java.util.stream.Stream;
 
 import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.*;
 
@@ -34,20 +39,60 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     super("jprol-bootstrap-lib");
   }
 
-  @Predicate(Signature = "current_prolog_flag/2", Template = {"?atom,?term"}, Reference = "'")
+  @Predicate(Signature = "current_prolog_flag/2", Template = {"?atom,?term"}, Reference = "Check prolog flag and flag values.")
   public static boolean predicateCURRENTPROLOGFLAG(final ChoicePoint goal, final TermStruct predicate) {
-    return false;
+    final Term atom = predicate.getElement(0).findNonVarOrSame();
+    final Term term = predicate.getElement(1).findNonVarOrSame();
+
+    final boolean only = atom.isGround();
+
+    boolean found = false;
+    Iterator<JProlSystemFlag> iterator = goal.getPayload();
+    if (iterator == null) {
+      iterator = Stream.of(JProlSystemFlag.values()).iterator();
+      goal.setPayload(iterator);
+    }
+    while (iterator.hasNext()) {
+      final JProlSystemFlag flag = iterator.next();
+      if (atom.dryUnifyTo(flag.getNameTerm())) {
+        final Term flagValue = goal.getContext().getSystemFlag(flag);
+        if (term.dryUnifyTo(flagValue)) {
+          if (!(atom.unifyTo(flag.getNameTerm()) && term.unifyTo(flagValue))) {
+            throw new ProlCriticalError("Unextected situation, can't unofy prolog flag");
+          } else {
+            found = true;
+            break;
+          }
+        }
+      }
+
+      if (only || !iterator.hasNext()) {
+        goal.setPayload(null);
+        goal.cutVariants();
+      } else if (iterator.hasNext()) {
+        goal.setPayload(iterator);
+      }
+    }
+
+    return found;
   }
 
-  @Predicate(Signature = "set_prolog_flag/2", Template = {"+atom,+term"}, Reference = "'")
+  @Predicate(Signature = "set_prolog_flag/2", Template = {"+atom,+term"}, Reference = "Set value of flag.")
+  @Determined
   public static boolean predicateSETPROLOGFLAG(final ChoicePoint goal, final TermStruct predicate) {
-    return false;
+    final Term atom = predicate.getElement(0).findNonVarOrSame();
+    final Term term = predicate.getElement(1).findNonVarOrSame();
+    return JProlSystemFlag.find(atom)
+        .filter(x -> !x.isReadOnly())
+        .map(x -> {
+          goal.getContext().setSystemFlag(x, term);
+          return true;
+        }).orElse(false);
   }
 
   @Predicate(Signature = "is/2", Template = {"?evaluable,@evaluable"}, Reference = "'is'(Result, Expression) is true if and only if the value of evaluating Expression as an expression is Result")
   @Determined
   public static boolean predicateIS(final ChoicePoint goal, final TermStruct predicate) {
-
     final Term leftPart = predicate.getElement(0);
 
     final NumericTerm rightPart = calculatEvaluable(goal, predicate.getElement(1));
