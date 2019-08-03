@@ -1,5 +1,6 @@
 package com.igormaznitsa.jprol.test;
 
+import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.exceptions.ProlCustomErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
@@ -554,20 +555,71 @@ class SomeFromISOTest extends AbstractProlTest {
   @Test
   @Disabled
   void testSubAtom() throws Exception {
-    //TODO implement subAtom
     //[sub_atom(abracadabra, 0, 5, _, S2), [[S2 <-- 'abrac']]].
+    checkVarsAfterCall("sub_atom(abracadabra, 0, 5, _, S2).", new String[][] {new String[] {"S2"}, new String[] {"abrac"}});
+
     //[sub_atom(abracadabra, _, 5, 0, S2), [[S2 <-- 'dabra']]].
+    checkVarsAfterCall("sub_atom(abracadabra, _, 5, 0, S2).", new String[][] {new String[] {"S2"}, new String[] {"dabra"}});
+
     //[sub_atom(abracadabra, 3, Length, 3, S2), [[Length <-- 5, S2 <-- 'acada']]].
+    checkVarsAfterCall("sub_atom(abracadabra, 3, Length, 3, S2).",
+        new String[][] {
+            new String[] {"Length", "S2"}, new String[] {"5", "acada"}
+        });
+
     //[sub_atom(abracadabra, Before, 2, After, ab),[[Before <-- 0, After <-- 9],[Before <-- 7, After <-- 2]]].
+    checkVarsAfterCall("sub_atom(abracadabra, Before, 2, After, ab).", new String[][] {
+        new String[] {"Before", "After"}, new String[] {"0", "9"},
+        new String[] {"Before", "After"}, new String[] {"7", "2"}
+    });
+
     //[sub_atom('Banana', 3, 2, _, S2), [[S2 <-- 'an']]].
+    checkVarsAfterCall("sub_atom('Banana', 3, 2, _, S2).", new String[][] {
+        new String[] {"S2"}, new String[] {"an"}
+    });
+
     //[sub_atom('charity', _, 3, _, S2), [[S2 <-- 'cha'],[S2 <-- 'har'],[S2 <-- 'ari'],[S2 <-- 'rit'],[S2 <-- 'ity']]].
-    //[sub_atom('ab', Before, Length, After, Sub_atom),[[Before <-- 1, Length <-- 0, Sub_atom <-- ''],[Before <-- 1, Length <-- 1, Sub_atom <-- 'a'],[Before <-- 1, Length <-- 2, Sub_atom <-- 'ab'],[Before <-- 2, Length <-- 0, Sub_atom <-- ''],[Before <-- 2, Length <-- 1, Sub_atom <-- 'b'],[Before <-- 3, Length <-- 0, Sub_atom <-- '']]].
+    checkVarsAfterCall("sub_atom('charity', _, 3, _, S2).", new String[][] {
+        new String[] {"S2"}, new String[] {"cha"},
+        new String[] {"S2"}, new String[] {"har"},
+        new String[] {"S2"}, new String[] {"ari"},
+        new String[] {"S2"}, new String[] {"rit"},
+        new String[] {"S2"}, new String[] {"ity"}
+    });
+
+    //[sub_atom('ab', Before, Length, After, Sub_atom),[
+    // [Before <-- 1, Length <-- 0, Sub_atom <-- ''],
+    // [Before <-- 1, Length <-- 1, Sub_atom <-- 'a'],
+    // [Before <-- 1, Length <-- 2, Sub_atom <-- 'ab'],
+    // [Before <-- 2, Length <-- 0, Sub_atom <-- ''],
+    // [Before <-- 2, Length <-- 1, Sub_atom <-- 'b'],
+    // [Before <-- 3, Length <-- 0, Sub_atom <-- '']]].
+    checkVarsAfterCall("sub_atom('ab', Before, Length, After, Sub_atom).", new String[][] {
+        new String[] {"Before", "Length", "After", "Sub_atom"}, new String[] {"0", "0", "2", ""},
+        new String[] {"Before", "Length", "After", "Sub_atom"}, new String[] {"0", "1", "1", "a"},
+        new String[] {"Before", "Length", "After", "Sub_atom"}, new String[] {"0", "2", "0", "ab"},
+        new String[] {"Before", "Length", "After", "Sub_atom"}, new String[] {"1", "0", "1", ""},
+        new String[] {"Before", "Length", "After", "Sub_atom"}, new String[] {"1", "1", "0", "b"},
+        new String[] {"Before", "Length", "After", "Sub_atom"}, new String[] {"2", "0", "0", ""},
+    });
+
     //[sub_atom(Banana, 3, 2, _, S2), instantiation_error].
+    checkException("sub_atom(Banana, 3, 2, _, S2).");
+
     //[sub_atom(f(a), 2, 2, _, S2), type_error(atom,f(a))].
+    checkException("sub_atom(f(a), 2, 2, _, S2).");
+
     //[sub_atom('Banana', 4, 2, _, 2), type_error(atom,2)].
+    checkException("sub_atom('Banana', 4, 2, _, 2).");
+
     //[sub_atom('Banana', a, 2, _, S2), type_error(integer,a)].
+    checkException("sub_atom('Banana', a, 2, _, S2).");
+
     //[sub_atom('Banana', 4, n, _, S2), type_error(integer,n)].
+    checkException("sub_atom('Banana', 4, n, _, S2).");
+
     //[sub_atom('Banana', 4, _, m, S2), type_error(integer,m)].
+    checkException("sub_atom('Banana', 4, _, m, S2).");
   }
 
   @Test
@@ -1384,6 +1436,27 @@ class SomeFromISOTest extends AbstractProlTest {
 
       } else {
         assertEquals(res.toString(), thisGoal.getVarAsText(var));
+      }
+    }
+    assertNull(thisGoal.next());
+  }
+
+  private void checkVarsAfterCall(String goal, String[][] varsAndValues) {
+    assertTrue((varsAndValues.length & 1) == 0);
+
+    final JProlContext context = makeTestContext();
+    final ChoicePoint thisGoal = new ChoicePoint(goal, context);
+
+    for (int i = 0; i < varsAndValues.length / 2; i++) {
+      assertNotNull(thisGoal.next(), "Index " + i);
+      final int index = i * 2;
+      final String[] names = varsAndValues[index];
+      final String[] values = varsAndValues[index + 1];
+      assertEquals(names.length, values.length);
+      for (int v = 0; v < names.length; v++) {
+        final TermVar thevar = thisGoal.getVarForName(names[v]);
+        assertNotNull(thevar, "Can't find var: " + names[v]);
+        assertEquals(values[v], thevar.getValue().getText(), i + ": Var=" + names[v]);
       }
     }
     assertNull(thisGoal.next());

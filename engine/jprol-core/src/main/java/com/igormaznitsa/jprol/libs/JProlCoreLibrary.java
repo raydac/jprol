@@ -392,6 +392,99 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return arg.sign();
   }
 
+  @Predicate(Signature = "sub_atom/5", Template = {"+atom,?integer,?integer,?integer,?atom"}, Reference = "Breaking atoms")
+  public static boolean predicateSUBATOM(final ChoicePoint goal, final TermStruct predicate) {
+    class SubAtomIterator {
+      final String atom;
+      final int theLen;
+      final String theSub;
+      int currentBefore;
+      int currentLength;
+      int currentAfter;
+
+      SubAtomIterator(final Term atom, final Term before, final Term length, final Term after, final Term sub) {
+        this.atom = atom.getText();
+        this.currentBefore = before.getTermType() == VAR ? 0 : before.toNumber().intValue();
+        this.currentLength = length.getTermType() == VAR ? 0 : length.toNumber().intValue();
+        this.currentAfter = after.getTermType() == VAR ? this.atom.length() : after.toNumber().intValue();
+        this.theSub = sub.getTermType() == VAR ? null : sub.getText();
+
+        if (length.getTermType() == VAR) {
+          this.theLen = -1;
+        } else {
+          this.theLen = this.currentLength;
+        }
+
+        if (before.getTermType() == VAR && after.getTermType() != VAR) {
+          this.currentBefore = this.atom.length() - this.currentAfter - this.currentLength;
+        }
+
+        if (before.getTermType() != VAR && after.getTermType() == VAR) {
+          this.currentAfter = this.atom.length() - this.currentBefore - this.currentLength;
+        }
+
+        if (length.getTermType() == VAR) {
+          this.currentLength = this.atom.length() - this.currentBefore - this.currentAfter;
+        } else if (after.getTermType() == VAR) {
+          this.currentAfter = this.atom.length() - this.currentBefore - this.currentLength;
+        }
+      }
+
+      boolean next(final Term before, final Term length, final Term after, final Term sub) {
+        if (this.currentBefore < 0 || this.currentAfter < 0 || this.currentLength < 0) {
+          return false;
+        }
+
+        final String currentSub = this.atom.substring(this.currentBefore, this.currentBefore + this.currentLength);
+
+        final boolean result = before.unifyTo(Terms.newLong(this.currentBefore))
+            && length.unifyTo(Terms.newLong(this.currentLength))
+            && after.unifyTo(Terms.newLong(this.currentAfter))
+            && sub.unifyTo(Terms.newAtom(currentSub));
+
+        if (this.theSub != null) {
+          this.currentBefore = this.atom.indexOf(this.theSub, this.currentBefore + 1);
+          this.currentLength = this.theSub.length();
+          this.currentAfter = this.atom.length() - this.currentBefore - this.currentLength;
+        } else {
+          if (this.theLen < 0) {
+            this.currentLength++;
+            this.currentAfter = Math.max(0, this.currentAfter - 1);
+            if (this.currentBefore + this.currentLength + this.currentAfter > this.atom.length()) {
+              this.currentBefore++;
+              this.currentLength = 0;
+              this.currentAfter = this.atom.length() - this.currentLength - this.currentBefore;
+            }
+          } else {
+            this.currentBefore++;
+            this.currentAfter = this.atom.length() - this.currentLength - this.currentBefore;
+          }
+        }
+
+        return result;
+      }
+    }
+
+    SubAtomIterator iterator = goal.getPayload();
+    if (iterator == null) {
+      iterator = new SubAtomIterator(
+          predicate.getElement(0).findNonVarOrSame(),
+          predicate.getElement(1).findNonVarOrSame(),
+          predicate.getElement(2).findNonVarOrSame(),
+          predicate.getElement(3).findNonVarOrSame(),
+          predicate.getElement(4).findNonVarOrSame()
+      );
+      goal.setPayload(iterator);
+    }
+
+    return iterator.next(
+        predicate.getElement(1),
+        predicate.getElement(2),
+        predicate.getElement(3),
+        predicate.getElement(4)
+    );
+  }
+
   @Predicate(Signature = "-/2", Template = {"+evaluable,+evaluable"}, Reference = "Subtraction")
   @Evaluable
   public static Term predicateSUBTWO(final ChoicePoint goal, final TermStruct predicate) {
