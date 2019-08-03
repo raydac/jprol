@@ -396,13 +396,13 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static boolean predicateSUBATOM(final ChoicePoint goal, final TermStruct predicate) {
     class SubAtomIterator {
       final String atom;
-      final int theLen;
+      final int initialLen;
       final String theSub;
       int currentBefore;
       int currentLength;
       int currentAfter;
 
-      SubAtomIterator(final Term atom, final Term before, final Term length, final Term after, final Term sub) {
+      private SubAtomIterator(final Term atom, final Term before, final Term length, final Term after, final Term sub) {
         this.atom = atom.getText();
         this.currentBefore = before.getTermType() == VAR ? 0 : before.toNumber().intValue();
         this.currentLength = length.getTermType() == VAR ? 0 : length.toNumber().intValue();
@@ -410,9 +410,9 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         this.theSub = sub.getTermType() == VAR ? null : sub.getText();
 
         if (length.getTermType() == VAR) {
-          this.theLen = -1;
+          this.initialLen = -1;
         } else {
-          this.theLen = this.currentLength;
+          this.initialLen = this.currentLength;
         }
 
         if (before.getTermType() == VAR && after.getTermType() != VAR) {
@@ -442,12 +442,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
             && after.unifyTo(Terms.newLong(this.currentAfter))
             && sub.unifyTo(Terms.newAtom(currentSub));
 
-        if (this.theSub != null) {
-          this.currentBefore = this.atom.indexOf(this.theSub, this.currentBefore + 1);
-          this.currentLength = this.theSub.length();
-          this.currentAfter = this.atom.length() - this.currentBefore - this.currentLength;
-        } else {
-          if (this.theLen < 0) {
+        if (this.theSub == null) {
+          if (this.initialLen < 0) {
             this.currentLength++;
             this.currentAfter = Math.max(0, this.currentAfter - 1);
             if (this.currentBefore + this.currentLength + this.currentAfter > this.atom.length()) {
@@ -459,6 +455,10 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
             this.currentBefore++;
             this.currentAfter = this.atom.length() - this.currentLength - this.currentBefore;
           }
+        } else {
+          this.currentBefore = this.atom.indexOf(this.theSub, this.currentBefore + 1);
+          this.currentLength = this.theSub.length();
+          this.currentAfter = this.atom.length() - this.currentBefore - this.currentLength;
         }
 
         return result;

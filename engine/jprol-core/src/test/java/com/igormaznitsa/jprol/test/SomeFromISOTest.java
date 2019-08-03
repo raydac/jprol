@@ -588,12 +588,12 @@ class SomeFromISOTest extends AbstractProlTest {
     });
 
     //[sub_atom('ab', Before, Length, After, Sub_atom),[
+    // [Before <-- 0, Length <-- 0, Sub_atom <-- ''],
+    // [Before <-- 0, Length <-- 1, Sub_atom <-- 'a'],
+    // [Before <-- 0, Length <-- 2, Sub_atom <-- 'ab'],
     // [Before <-- 1, Length <-- 0, Sub_atom <-- ''],
-    // [Before <-- 1, Length <-- 1, Sub_atom <-- 'a'],
-    // [Before <-- 1, Length <-- 2, Sub_atom <-- 'ab'],
-    // [Before <-- 2, Length <-- 0, Sub_atom <-- ''],
-    // [Before <-- 2, Length <-- 1, Sub_atom <-- 'b'],
-    // [Before <-- 3, Length <-- 0, Sub_atom <-- '']]].
+    // [Before <-- 1, Length <-- 1, Sub_atom <-- 'b'],
+    // [Before <-- 2, Length <-- 0, Sub_atom <-- '']]].
     checkVarsAfterCall("sub_atom('ab', Before, Length, After, Sub_atom).", new String[][] {
         new String[] {"Before", "Length", "After", "Sub_atom"}, new String[] {"0", "0", "2", ""},
         new String[] {"Before", "Length", "After", "Sub_atom"}, new String[] {"0", "1", "1", "a"},
