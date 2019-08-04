@@ -5,6 +5,7 @@ import com.igormaznitsa.jprol.exceptions.ProlCustomErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
+import com.igormaznitsa.jprol.logic.JProlSystemFlag;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -547,14 +548,14 @@ class SomeFromISOTest extends AbstractProlTest {
 
   @Test
   @Disabled
-  void testCurrentInput() throws Exception {
+  void testCurrentInput1() throws Exception {
     //TODO current_input/1
     //[exists(current_input/1), success].
   }
 
   @Test
   @Disabled
-  void testSubAtom() throws Exception {
+  void testSubAtom5() throws Exception {
     //[sub_atom(abracadabra, 0, 5, _, S2), [[S2 <-- 'abrac']]].
     checkVarsAfterCall("sub_atom(abracadabra, 0, 5, _, S2).", new String[][] {new String[] {"S2"}, new String[] {"abrac"}});
 
@@ -624,7 +625,7 @@ class SomeFromISOTest extends AbstractProlTest {
 
   @Test
   @Disabled
-  void testFileManip() throws Exception {
+  void testSeek1() throws Exception {
     //TODO seek/2
     //[(seek(my_file,3),at(my_file,X)),in(my_file),[[X <-- 3]]].
     //[(seek(my_file,eof),at(my_file,X)),in(my_file),[[X <-- eof]]].
@@ -633,7 +634,7 @@ class SomeFromISOTest extends AbstractProlTest {
 
   @Test
   @Disabled
-  void testCurrentOutput() throws Exception {
+  void testCurrentOutput1() throws Exception {
     //TODO current_output/1
     //[exists(current_output/1), success].
   }
@@ -665,15 +666,32 @@ class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  @Disabled
-  void testCurrentPrologFlag() throws Exception {
-    //TODO current_prolog_flag/2
-    //[current_prolog_flag(debug, off), success].
-    //[(set_prolog_flag(unknown, warning),current_prolog_flag(unknown, warning)), success].
-    //[(set_prolog_flag(unknown, warning),current_prolog_flag(unknown, error)), failure].
-    //[current_prolog_flag(debug, V), [[V <-- off]]].
-    //[current_prolog_flag(5, V), type_error(atom,5)].
-    //[current_prolog_flag(warning, V), domain_error(prolog_flag,warning)].
+  void testCurrentPrologFlag2() {
+    final ChoicePoint point = prepareGoal("current_prolog_flag(" + JProlSystemFlag.VERIFY.getNameTerm().getText() + ",X).");
+    assertNotNull(point.next());
+    assertTrue(JProlSystemFlag.VERIFY.getDefaultValue().unifyTo(point.getVarForName("X").getValue()));
+    assertNull(point.next());
+
+    final ChoicePoint all = prepareGoal("current_prolog_flag(A,B).");
+    for (final JProlSystemFlag f : JProlSystemFlag.values()) {
+      assertNotNull(all.next());
+      assertTrue(f.getNameTerm().dryUnifyTo(all.getVarForName("A")));
+      assertTrue(f.getDefaultValue().dryUnifyTo(all.getVarForName("B")));
+    }
+    assertNull(all.next());
+
+    checkException("current_prolog_flag(5, V).");
+    checkException("current_prolog_flag(some_unknown_flag_lalala, V).");
+  }
+
+  @Test
+  void testSetPrologFlag2() {
+    final ChoicePoint point = prepareGoal("current_prolog_flag(verify,true), set_prolog_flag(verify,false), current_prolog_flag(verify,false).");
+    assertNotNull(point.next());
+    assertNull(point.next());
+    assertEquals("false", point.getContext().getSystemFlag(JProlSystemFlag.VERIFY).getText());
+    checkException("set_prolog_flag(someunknownlalala, true).");
+    checkException("set_prolog_flag(" + JProlSystemFlag.VERSION_DATA.getNameTerm().getText() + ", true).");
   }
 
   @Test

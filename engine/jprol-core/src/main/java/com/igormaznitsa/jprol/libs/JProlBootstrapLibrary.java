@@ -8,6 +8,7 @@ import com.igormaznitsa.jprol.data.NumericTerm;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
+import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlSystemFlag;
 
@@ -48,10 +49,15 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
 
     boolean found = false;
     Iterator<JProlSystemFlag> iterator = goal.getPayload();
+    final boolean firstCall;
     if (iterator == null) {
+      firstCall = true;
       iterator = Stream.of(JProlSystemFlag.values()).iterator();
       goal.setPayload(iterator);
+    } else {
+      firstCall = false;
     }
+
     while (iterator.hasNext()) {
       final JProlSystemFlag flag = iterator.next();
       if (atom.dryUnifyTo(flag.getNameTerm())) {
@@ -74,6 +80,10 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
       }
     }
 
+    if (only && firstCall && !found) {
+      throw new ProlDomainErrorException("prolog_flag", atom);
+    }
+
     return found;
   }
 
@@ -87,7 +97,7 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
         .map(x -> {
           goal.getContext().setSystemFlag(x, term);
           return true;
-        }).orElse(false);
+        }).orElseThrow(() -> new ProlDomainErrorException("prolog_flag", atom));
   }
 
   @Predicate(Signature = "is/2", Template = {"?evaluable,@evaluable"}, Reference = "'is'(Result, Expression) is true if and only if the value of evaluating Expression as an expression is Result")
