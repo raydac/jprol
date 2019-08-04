@@ -554,7 +554,6 @@ class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  @Disabled
   void testSubAtom5() throws Exception {
     //[sub_atom(abracadabra, 0, 5, _, S2), [[S2 <-- 'abrac']]].
     checkVarsAfterCall("sub_atom(abracadabra, 0, 5, _, S2).", new String[][] {new String[] {"S2"}, new String[] {"abrac"}});
