@@ -6,8 +6,10 @@ import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.JProlSystemFlag;
+import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -547,14 +549,16 @@ class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  @Disabled
-  void testCurrentInput1() throws Exception {
-    //TODO current_input/1
-    //[exists(current_input/1), success].
+  void testSeeing1() {
+    final JProlContext context = makeTestContext();
+    context.addIoResourceProvider(Mockito.mock(IoResourceProvider.class));
+    final ChoicePoint point = prepareGoal("seeing(X).", context);
+    assertNotNull(point.next());
+    assertEquals("[]", point.getVarForName("X").getValue().toString());
   }
 
   @Test
-  void testSubAtom5() throws Exception {
+  void testSubAtom5() {
     //[sub_atom(abracadabra, 0, 5, _, S2), [[S2 <-- 'abrac']]].
     checkVarsAfterCall("sub_atom(abracadabra, 0, 5, _, S2).", new String[][] {new String[] {"S2"}, new String[] {"abrac"}});
 
@@ -1425,7 +1429,11 @@ class SomeFromISOTest extends AbstractProlTest {
   }
 
   private ChoicePoint prepareGoal(String goal) {
-    return new ChoicePoint(goal, makeTestContext());
+    return prepareGoal(goal, makeTestContext());
+  }
+
+  private ChoicePoint prepareGoal(String goal, final JProlContext context) {
+    return new ChoicePoint(goal, context);
   }
 
   private ChoicePoint prepareGoal(String consult, String goal) {

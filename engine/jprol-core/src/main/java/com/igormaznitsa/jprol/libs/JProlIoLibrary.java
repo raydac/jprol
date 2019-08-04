@@ -26,8 +26,9 @@ import static com.igormaznitsa.jprol.libs.JProlCoreLibrary.predicateCALL;
 
 public class JProlIoLibrary extends AbstractJProlLibrary {
 
-  private static final String CURRENT_STREAM_ID = "#current#";
-  private static final Term END_OF_FILE = Terms.newAtom("end_of_file");
+  public static final String CURRENT_STREAM_ID = "#current#";
+  public static final Term END_OF_FILE = Terms.newAtom("end_of_file");
+
   private static final String WRITERS_MAP = "_io_writers_map_";
   private static final String READERS_MAP = "_io_readers_map_";
 
@@ -334,7 +335,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
   @Predicate(Signature = "seeing/1", Template = "?term", Reference = "Return the current input stream name.")
   @Determined
   public final boolean predicateSEEING(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = predicate.getElement(0).findNonVarOrDefault(null);
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
     final InternalReader current = this.getIoReaders(goal.getContext()).get(CURRENT_STREAM_ID);
     final Term result = current == null ? Terms.NULL_LIST : current.getStreamId();
     return arg.unifyTo(result);
