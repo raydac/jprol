@@ -1,4 +1,4 @@
-package com.igormaznitsa.jprol.test;
+package com.igormaznitsa.jprol.it;
 
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class OperatorTest extends AbstractProlTest {
+class OperatorTest extends AbstractJProlTest {
 
   @Test
   void testOperatorDefs() throws Exception {

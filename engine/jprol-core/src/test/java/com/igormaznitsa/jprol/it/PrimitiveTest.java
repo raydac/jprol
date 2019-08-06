@@ -1,4 +1,4 @@
-package com.igormaznitsa.jprol.test;
+package com.igormaznitsa.jprol.it;
 
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
@@ -11,7 +11,7 @@ import java.io.Writer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class PrimitiveTest extends AbstractProlTest {
+class PrimitiveTest extends AbstractJProlTest {
 
   @Test
   void testAccList() {

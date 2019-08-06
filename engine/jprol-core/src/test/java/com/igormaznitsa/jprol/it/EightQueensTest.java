@@ -1,4 +1,4 @@
-package com.igormaznitsa.jprol.test;
+package com.igormaznitsa.jprol.it;
 
 import com.igormaznitsa.jprol.logic.ChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
@@ -8,7 +8,7 @@ import java.io.StringReader;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class EightQueensTest extends AbstractProlTest {
+class EightQueensTest extends AbstractJProlTest {
 
   @Test
   void testEightQueens() throws Exception {

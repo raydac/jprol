@@ -1,4 +1,4 @@
-package com.igormaznitsa.jprol.test;
+package com.igormaznitsa.jprol.it;
 
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class MiscAlgorithmsTest extends AbstractProlTest {
+class MiscAlgorithmsTest extends AbstractJProlTest {
 
   private void calcAkkerman(int m, int n, int a) {
     final JProlContext context = makeContextAndConsult("akkerman(0,N,X):- X is N+1,!. akkerman(M,0,X):- Mn is M-1, !, akkerman(Mn,1,X). akkerman(M,N,X):- Mn is M-1, Nn is N-1, !, akkerman(M,Nn,Y), !, akkerman(Mn,Y,X).");

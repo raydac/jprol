@@ -1,4 +1,4 @@
-package com.igormaznitsa.jprol.test;
+package com.igormaznitsa.jprol.it;
 
 import com.igormaznitsa.jprol.logic.ChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class PuzzleTest extends AbstractProlTest {
+class PuzzleTest extends AbstractJProlTest {
 
   @Test
   void testPuzzle() throws Exception {

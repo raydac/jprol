@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.igormaznitsa.jprol.test;
+package com.igormaznitsa.jprol.it;
 
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
@@ -29,7 +29,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class MiscTest extends AbstractProlTest {
+class MiscTest extends AbstractJProlTest {
 
   @Test
   void testGetAllGoalsAndConvertThem() {

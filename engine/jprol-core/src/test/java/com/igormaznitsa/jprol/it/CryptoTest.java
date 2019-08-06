@@ -1,4 +1,4 @@
-package com.igormaznitsa.jprol.test;
+package com.igormaznitsa.jprol.it;
 
 import com.igormaznitsa.jprol.logic.ChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
@@ -9,7 +9,7 @@ import java.io.StringReader;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-class CryptoTest extends AbstractProlTest {
+class CryptoTest extends AbstractJProlTest {
 
   @Test
   void testCrypto() throws Exception {

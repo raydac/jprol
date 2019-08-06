@@ -1,19 +1,17 @@
-package com.igormaznitsa.jprol.test;
+package com.igormaznitsa.jprol.libs;
 
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.exceptions.ProlCustomErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlException;
+import com.igormaznitsa.jprol.it.AbstractJProlTest;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.JProlSystemFlag;
-import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class SomeFromISOTest extends AbstractProlTest {
+class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testAbolish() throws Exception {
@@ -191,8 +189,6 @@ class SomeFromISOTest extends AbstractProlTest {
 
     //[bagof(X, 1, L), type_error(callable, 1)].
     checkException("bagof(X, 1, L).");
-
-    //[bagof([X,Y], t_foo(X,Y), S) , t_foo, success].//TODO check
   }
 
   @Test
@@ -549,15 +545,6 @@ class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  void testSeeing1() {
-    final JProlContext context = makeTestContext();
-    context.addIoResourceProvider(Mockito.mock(IoResourceProvider.class));
-    final ChoicePoint point = prepareGoal("seeing(X).", context);
-    assertNotNull(point.next());
-    assertEquals("[]", point.getVarForName("X").getValue().toString());
-  }
-
-  @Test
   void testSubAtom5() {
     //[sub_atom(abracadabra, 0, 5, _, S2), [[S2 <-- 'abrac']]].
     checkVarsAfterCall("sub_atom(abracadabra, 0, 5, _, S2).", new String[][] {new String[] {"S2"}, new String[] {"abrac"}});
@@ -624,22 +611,6 @@ class SomeFromISOTest extends AbstractProlTest {
 
     //[sub_atom('Banana', 4, _, m, S2), type_error(integer,m)].
     checkException("sub_atom('Banana', 4, _, m, S2).");
-  }
-
-  @Test
-  @Disabled
-  void testSeek1() throws Exception {
-    //TODO seek/2
-    //[(seek(my_file,3),at(my_file,X)),in(my_file),[[X <-- 3]]].
-    //[(seek(my_file,eof),at(my_file,X)),in(my_file),[[X <-- eof]]].
-    //[(seek(my_file,3),get_char(X,my_file)),in(my_file),[[X <-- e]]].
-  }
-
-  @Test
-  @Disabled
-  void testCurrentOutput1() throws Exception {
-    //TODO current_output/1
-    //[exists(current_output/1), success].
   }
 
   @Test
@@ -977,7 +948,7 @@ class SomeFromISOTest extends AbstractProlTest {
   }
 
   @Test
-  void test() throws Exception {
+  void testCautAndFail() throws Exception {
     checkOnce("\\+((!,fail)).", true);
   }
 
@@ -1428,18 +1399,6 @@ class SomeFromISOTest extends AbstractProlTest {
     assertThrows(ProlException.class, thisGoal::next);
   }
 
-  private ChoicePoint prepareGoal(String goal) {
-    return prepareGoal(goal, makeTestContext());
-  }
-
-  private ChoicePoint prepareGoal(String goal, final JProlContext context) {
-    return new ChoicePoint(goal, context);
-  }
-
-  private ChoicePoint prepareGoal(String consult, String goal) {
-    return new ChoicePoint(goal, makeContextAndConsult(consult));
-  }
-
   private ChoicePoint proveGoal(String goal) {
     final ChoicePoint thisGoal = this.prepareGoal(goal);
     assertNotNull(thisGoal.next());
@@ -1486,5 +1445,4 @@ class SomeFromISOTest extends AbstractProlTest {
     }
     assertNull(thisGoal.next());
   }
-
 }

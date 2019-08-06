@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package com.igormaznitsa.jprol.test;
+package com.igormaznitsa.jprol.it;
 
 import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
 import com.igormaznitsa.jprol.libs.JProlIoLibrary;
+import com.igormaznitsa.jprol.logic.ChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 
 import java.io.StringReader;
 
-public abstract class AbstractProlTest {
+public abstract class AbstractJProlTest {
   public JProlContext makeTestContext() {
     return new JProlContext("test-context",
         new JProlCoreLibrary(),
@@ -34,6 +35,18 @@ public abstract class AbstractProlTest {
     final JProlContext context = this.makeTestContext();
     context.consult(new StringReader(knowledgeBase));
     return context;
+  }
+
+  protected ChoicePoint prepareGoal(String goal) {
+    return prepareGoal(goal, makeTestContext());
+  }
+
+  protected ChoicePoint prepareGoal(String goal, final JProlContext context) {
+    return new ChoicePoint(goal, context);
+  }
+
+  protected ChoicePoint prepareGoal(String consult, String goal) {
+    return new ChoicePoint(goal, makeContextAndConsult(consult));
   }
 
 }

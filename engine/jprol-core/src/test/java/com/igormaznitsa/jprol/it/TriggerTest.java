@@ -1,4 +1,4 @@
-package com.igormaznitsa.jprol.test;
+package com.igormaznitsa.jprol.it;
 
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class TriggerTest extends AbstractProlTest {
+class TriggerTest extends AbstractJProlTest {
 
   @Test
   void testTrigger() {
@@ -25,8 +25,6 @@ class TriggerTest extends AbstractProlTest {
 
     context.registerTrigger(trigger);
 
-//            ProlConsult consult = new ProlConsult(testa, context);
-//            consult.consult();
     ChoicePoint goal = new ChoicePoint("assert(testassert(1000)),asserta(testassert(1)),assertz(testassert(2)).", context);
 
     int decisionnum = 0;
