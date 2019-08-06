@@ -76,7 +76,7 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testDiff() throws Exception {
+  void testDiff() {
     //['\\=='(1,1), failure].
     checkOnce("'\\\\=='(1,1).", false);
     //['\\=='(X,X), failure].
@@ -96,7 +96,7 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testEqu2() throws Exception {
+  void testEqu2() {
     //['=='(1,1), success].
     checkOnce("'=='(1,1).", true);
     //['=='(X,X), success].
@@ -116,7 +116,31 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testOr() throws Exception {
+  void testNotEqu2() {
+    //['\\='(1,1), failure].
+    checkOnce("'\\\\='(1,1).", false);
+    //['\\='(X,1), failure].
+    checkOnce("'\\\\='(X,1).", false);
+    //['\\='(X,Y), failure].
+    checkOnce("'\\\\='(X,Y).", false);
+    //[('\\='(X,Y),'\\='(X,abc)), failure].
+    checkOnce("'\\\\='(X,Y),'\\\\='(X,abc).", false);
+    //['\\='(f(X,def),f(def,Y)), failure].
+    checkOnce("'\\\\='(f(X,def),f(def,Y)).", false);
+    //['\\='(1,2), success].
+    checkOnce("'\\\\='(1,2).", true);
+    //['\\='(1,1.0), success].
+    checkOnce("'\\\\='(1,1.00001).", true);
+    //['\\='(g(X),f(f(X))), success].
+    checkOnce("'\\\\='(g(X),f(f(X))).", true);
+    //['\\='(f(X,1),f(a(X))), success].
+    checkOnce("'\\\\='(f(X,1),f(a(X))).", true);
+    //['\\='(f(X,Y,X),f(a(X),a(Y),Y,2)), success].
+    checkOnce("'\\\\='(f(X,Y,X),f(a(X),a(Y),Y,2)).", true);
+  }
+
+  @Test
+  void testOr() {
     //[';'(true, fail), success].
     checkOnce("';'(true, fail).", true);
     //[';'((!, fail), true), failure].
@@ -144,11 +168,11 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testIfThenElse() throws Exception {
+  void testIfThenElse() {
     //[';'('->'(true, true), fail), success].
-    checkOnce("';'('->'(true, true), fail).", true);
+    checkOnce(";('->'(true, true), fail).", true);
     //[';'('->'(fail, true), true), success].
-    checkOnce("';'('->'(fail, true), true).", true);
+    checkOnce(";('->'(fail, true), true).", true);
     //[';'('->'(true, fail), fail), failure].
     checkOnce("';'('->'(true, fail), fail).", false);
     //[';'('->'(fail, true), fail), failure].
@@ -164,23 +188,23 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testIfThen() throws Exception {
+  void testIfThen() {
     //['->'(true, true), success].
-    checkOnce("'->'(true, true).", true);
+    checkOnce("->(true, true).", true);
     //['->'(true, fail), failure].
-    checkOnce("'->'(true, fail).", false);
+    checkOnce("->(true, fail).", false);
     //['->'(fail, true), failure].
-    checkOnce("'->'(fail, true).", false);
+    checkOnce("->(fail, true).", false);
     //['->'(true, X=1), [[X <-- 1]]].
     checkOnceVar("true -> X=1.", "X", 1L);
     //['->'(';'(X=1, X=2), true), [[X <-- 1]]].
-    checkOnceVar("'->'(';'(X=1, X=2), true).", "X", 1L);
+    checkOnceVar("->(';'(X=1, X=2), true).", "X", 1L);
     //['->'(true, ';'(X=1, X=2)), [[X <-- 1], [X <-- 2]]].
-    checkOnceVar("'->'(true, ';'(X=1, X=2)).", "X", 1L, 2L);
+    checkOnceVar("->(true, ';'(X=1, X=2)).", "X", 1L, 2L);
   }
 
   @Test
-  void testCut() throws Exception {
+  void testCut0() {
     checkOnce("p1 :- \\+ q1. q1 :- fail. q1 :- true. p2:- \\+ q2. q2 :- !, fail. q2 :- true.", "p1.", false);
     checkOnce("p1 :- \\+ q1. q1 :- fail. q1 :- true. p2:- \\+ q2. q2 :- !, fail. q2 :- true.", "p2.", true);
 
@@ -190,6 +214,12 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
     checkOnce("(!,fail;true).", false);
     //[(call(!),fail;true), success].
     checkOnce("call(!),fail;true.", true);
+  }
+
+  @Test
+  void testNot1() {
+    checkOnce("not(2=4).", true);
+    checkOnce("not(2=2).", false);
   }
 
 }

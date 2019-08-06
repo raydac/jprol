@@ -1028,30 +1028,6 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testNotUnify() throws Exception {
-    //['\\='(1,1), failure].
-    checkOnce("'\\\\='(1,1).", false);
-    //['\\='(X,1), failure].
-    checkOnce("'\\\\='(X,1).", false);
-    //['\\='(X,Y), failure].
-    checkOnce("'\\\\='(X,Y).", false);
-    //[('\\='(X,Y),'\\='(X,abc)), failure].
-    checkOnce("'\\\\='(X,Y),'\\\\='(X,abc).", false);
-    //['\\='(f(X,def),f(def,Y)), failure].
-    checkOnce("'\\\\='(f(X,def),f(def,Y)).", false);
-    //['\\='(1,2), success].
-    checkOnce("'\\\\='(1,2).", true);
-    //['\\='(1,1.0), success].
-    checkOnce("'\\\\='(1,1.00001).", true);
-    //['\\='(g(X),f(f(X))), success].
-    checkOnce("'\\\\='(g(X),f(f(X))).", true);
-    //['\\='(f(X,1),f(a(X))), success].
-    checkOnce("'\\\\='(f(X,1),f(a(X))).", true);
-    //['\\='(f(X,Y,X),f(a(X),a(Y),Y,2)), success].
-    checkOnce("'\\\\='(f(X,Y,X),f(a(X),a(Y),Y,2)).", true);
-  }
-
-  @Test
   void testNonVar() throws Exception {
     //[nonvar(33.3), success].
     checkOnce("nonvar(33.3).", true);

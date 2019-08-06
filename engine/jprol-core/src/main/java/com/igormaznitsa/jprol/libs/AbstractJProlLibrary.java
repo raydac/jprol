@@ -136,10 +136,9 @@ public abstract class AbstractJProlLibrary {
   protected static NumericTerm calculatEvaluable(final ChoicePoint goal, Term term) {
     try {
       if (term.getTermType() == VAR) {
-        final TermVar varoriginal = (TermVar) term;
-        term = ((TermVar) term).getValue();
-        if (term == null) {
-          throw new ProlInstantiationErrorException("An empty variable [" + varoriginal + "] found at [" + goal + ']', varoriginal);
+        term = term.findNonVarOrSame();
+        if (term.getTermType() == VAR) {
+          throw new ProlInstantiationErrorException("Non-instantiated variable", term);
         }
       }
 
