@@ -16,12 +16,16 @@
 
 package com.igormaznitsa.jprol.it;
 
+import com.igormaznitsa.jprol.data.TermVar;
+import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
 import com.igormaznitsa.jprol.libs.JProlIoLibrary;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 
 import java.io.StringReader;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class AbstractJProlTest {
   public JProlContext makeTestContext() {
@@ -47,6 +51,74 @@ public abstract class AbstractJProlTest {
 
   protected ChoicePoint prepareGoal(String consult, String goal) {
     return new ChoicePoint(goal, makeContextAndConsult(consult));
+  }
+
+  protected void checkException(final String goal) {
+    final JProlContext context = makeTestContext();
+    final ChoicePoint thisGoal = new ChoicePoint(goal, context);
+    assertThrows(ProlException.class, thisGoal::next);
+  }
+
+  protected ChoicePoint proveGoal(String goal) {
+    final ChoicePoint thisGoal = this.prepareGoal(goal);
+    assertNotNull(thisGoal.next());
+    return thisGoal;
+  }
+
+  protected void checkOnceVar(String goal, String var, Object... result) {
+    final JProlContext context = makeTestContext();
+    final ChoicePoint thisGoal = new ChoicePoint(goal, context);
+
+    for (final Object res : result) {
+      assertNotNull(thisGoal.next());
+      if (res instanceof Number) {
+        if (res instanceof Double) {
+          assertEquals(0, Double.compare(thisGoal.getVarAsNumber(var).doubleValue(), (Double) res));
+        } else {
+          assertEquals(res, thisGoal.getVarAsNumber(var));
+        }
+
+      } else {
+        assertEquals(res.toString(), thisGoal.getVarAsText(var));
+      }
+    }
+    assertNull(thisGoal.next());
+  }
+
+  protected void checkVarsAfterCall(String goal, String[][] varsAndValues) {
+    assertTrue((varsAndValues.length & 1) == 0);
+
+    final JProlContext context = makeTestContext();
+    final ChoicePoint thisGoal = new ChoicePoint(goal, context);
+
+    for (int i = 0; i < varsAndValues.length / 2; i++) {
+      assertNotNull(thisGoal.next(), "Index " + i);
+      final int index = i * 2;
+      final String[] names = varsAndValues[index];
+      final String[] values = varsAndValues[index + 1];
+      assertEquals(names.length, values.length);
+      for (int v = 0; v < names.length; v++) {
+        final TermVar thevar = thisGoal.getVarForName(names[v]);
+        assertNotNull(thevar, "Can't find var: " + names[v]);
+        assertEquals(values[v], thevar.getValue().getText(), i + ": Var=" + names[v]);
+      }
+    }
+    assertNull(thisGoal.next());
+  }
+
+  protected void checkOnce(String goal, boolean expectedResult) {
+    this.checkOnce("", goal, expectedResult);
+  }
+
+  protected void checkOnce(String consult, String goal, boolean expectedResult) {
+    final JProlContext context = makeContextAndConsult(consult);
+    final ChoicePoint thisGoal = new ChoicePoint(goal, context);
+    if (expectedResult) {
+      assertNotNull(thisGoal.next());
+      assertNull(thisGoal.next());
+    } else {
+      assertNull(thisGoal.next());
+    }
   }
 
 }

@@ -1,12 +1,8 @@
 package com.igormaznitsa.jprol.libs;
 
-import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.exceptions.ProlCustomErrorException;
-import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.it.AbstractJProlTest;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
-import com.igormaznitsa.jprol.logic.JProlContext;
-import com.igormaznitsa.jprol.logic.JProlSystemFlag;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -331,46 +327,6 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testEqu() throws Exception {
-    //['=='(1,1), success].
-    checkOnce("'=='(1,1).", true);
-    //['=='(X,X), success].
-    checkOnce("'=='(X,X).", true);
-    //['=='(1,2), failure].
-    checkOnce("'=='(1,2).", false);
-    //['=='(X,1), failure].
-    checkOnce("'=='(X,1).", false);
-    //['=='(X,Y), failure].
-    checkOnce("'=='(X,Y).", false);
-    //['=='(_,_), failure].
-    checkOnce("'=='(_,_).", false);
-    //['=='(X,a(X)), failure].
-    checkOnce("'=='(X,a(X)).", false);
-    //['=='(f(a),f(a)), success].
-    checkOnce("'=='(f(a),f(a)).", true);
-  }
-
-  @Test
-  void testDiff() throws Exception {
-    //['\\=='(1,1), failure].
-    checkOnce("'\\\\=='(1,1).", false);
-    //['\\=='(X,X), failure].
-    checkOnce("'\\\\=='(X,X).", false);
-    //['\\=='(1,2), success].
-    checkOnce("'\\\\=='(1,2).", true);
-    //['\\=='(X,1), success].
-    checkOnce("'\\\\=='(X,1).", true);
-    //['\\=='(X,Y), success].
-    checkOnce("'\\\\=='(X,Y).", true);
-    //['\\=='(_,_), success].
-    checkOnce("'\\\\=='(_,_).", true);
-    //['\\=='(X,a(X)), success].
-    checkOnce("'\\\\=='(X,a(X)).", true);
-    //['\\=='(f(a),f(a)), failure].
-    checkOnce("'\\\\=='(f(a),f(a)).", false);
-  }
-
-  @Test
   void testLtEqu() throws Exception {
     //['=<'(0,1), success].
     checkOnce("'=<'(0,1).", true);
@@ -637,35 +593,6 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     checkException("current_predicate(0/dog).");
 
     checkOnce("current_predicate(current_predicate/3).", false);
-  }
-
-  @Test
-  void testCurrentPrologFlag2() {
-    final ChoicePoint point = prepareGoal("current_prolog_flag(" + JProlSystemFlag.VERIFY.getNameTerm().getText() + ",X).");
-    assertNotNull(point.next());
-    assertTrue(JProlSystemFlag.VERIFY.getDefaultValue().unifyTo(point.getVarForName("X").getValue()));
-    assertNull(point.next());
-
-    final ChoicePoint all = prepareGoal("current_prolog_flag(A,B).");
-    for (final JProlSystemFlag f : JProlSystemFlag.values()) {
-      assertNotNull(all.next());
-      assertTrue(f.getNameTerm().dryUnifyTo(all.getVarForName("A")));
-      assertTrue(f.getDefaultValue().dryUnifyTo(all.getVarForName("B")));
-    }
-    assertNull(all.next());
-
-    checkException("current_prolog_flag(5, V).");
-    checkException("current_prolog_flag(some_unknown_flag_lalala, V).");
-  }
-
-  @Test
-  void testSetPrologFlag2() {
-    final ChoicePoint point = prepareGoal("current_prolog_flag(verify,true), set_prolog_flag(verify,false), current_prolog_flag(verify,false).");
-    assertNotNull(point.next());
-    assertNull(point.next());
-    assertEquals("false", point.getContext().getSystemFlag(JProlSystemFlag.VERIFY).getText());
-    checkException("set_prolog_flag(someunknownlalala, true).");
-    checkException("set_prolog_flag(" + JProlSystemFlag.VERSION_DATA.getNameTerm().getText() + ", true).");
   }
 
   @Test
@@ -1026,28 +953,6 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testIs() throws Exception {
-    //['is'(X,float(3)),[[X <-- 3.0]]].
-    checkException("'is'(X,float(3)).");
-
-    //['is'(Result,3 + 11.0),[[Result <-- 14.0]]].
-    checkOnceVar("'is'(Result,3+11.0).", "Result", 14.0d);
-
-    //[(X = 1 + 2, 'is'(Y, X * 3)),[[X <-- (1 + 2), Y <-- 9]]]. % error? 1+2
-    ChoicePoint goal = proveGoal("X=1+2,'is'(Y,X*3).");
-    assertEquals(goal.getVarAsText("X"), "1 + 2");
-    assertEquals(goal.getVarAsNumber("Y"), 9L);
-    assertNull(goal.next());
-
-    //['is'(foo,77), failure]. % error? foo
-    checkException("'is'(foo,77).");
-    //['is'(77, N), instantiation_error].
-    checkException("'is'(77,N).");
-    //['is'(77, foo), type_error(evaluable, foo/0)].
-    checkException("'is'(77,foo).");
-  }
-
-  @Test
   void testAtomLength() throws Exception {
     //[atom_length('enchanted evening', N), [[N <-- 17]]].
     checkOnceVar("atom_length('enchanted evening', N).", "N", 17L);
@@ -1120,19 +1025,6 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     assertEquals("g(g(D,D),g(D,D))", goal.getVarAsText("B"));
     assertEquals("g(g(g(D,D),g(D,D)),g(g(D,D),g(D,D)))", goal.getVarAsText("A"));
     assertNull(goal.next());
-  }
-
-  @Test
-  void testTrueFail() throws Exception {
-    //[true, success].
-    checkOnce("true.", true);
-    checkOnce("fail.", false);
-  }
-
-  @Test
-  void testRepeat() throws Exception {
-    //[(repeat,!,fail), failure].
-    checkOnce("repeat,!,fail.", false);
   }
 
   @Test
@@ -1246,83 +1138,6 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testOr() throws Exception {
-    //[';'(true, fail), success].
-    checkOnce("';'(true, fail).", true);
-    //[';'((!, fail), true), failure].
-    checkOnce("';'((!, fail), true).", false);
-    //[';'(!, call(3)), success].
-    checkOnce("';'(!, call(3)).", true);
-    //[';'((X=1, !), X=2), [[X <-- 1]]].
-    checkOnceVar("';'((X=1, !), X=2).", "X", 1L);
-    //[';'(X=1, X=2), [[X <-- 1], [X <-- 2]]].
-    checkOnceVar("';'(X=1, X=2).", "X", 1L, 2L);
-  }
-
-  @Test
-  void testAnd() throws Exception {
-    //[','(X=1, var(X)), failure].
-    checkOnce("','(X=1,var(X)).", false);
-    //[','(var(X), X=1), [[X <-- 1]]].
-    checkOnceVar("','(var(X),X=1).", "X", 1L);
-    //[','(fail, call(3)), failure].
-    checkOnce("','(fail,call(3)).", false);
-    //[','(X = true, call(X)), [[X <-- true]]].
-    checkOnceVar("','(X=true,call(X)).", "X", "true");
-    //[','(nofoo(X), call(X)), existence_error(procedure, nofoo/1)].
-    checkOnce("','(nofoo(X), call(X)).", false);
-  }
-
-  @Test
-  void testIfThenElse() throws Exception {
-    //[';'('->'(true, true), fail), success].
-    checkOnce("';'('->'(true, true), fail).", true);
-    //[';'('->'(fail, true), true), success].
-    checkOnce("';'('->'(fail, true), true).", true);
-    //[';'('->'(true, fail), fail), failure].
-    checkOnce("';'('->'(true, fail), fail).", false);
-    //[';'('->'(fail, true), fail), failure].
-    checkOnce("';'('->'(fail, true), fail).", false);
-    //[';'('->'(true, X=1), X=2), [[X <-- 1]]].
-    checkOnceVar("true->X=1;X=2.", "X", 1L);
-    //[';'('->'(fail, X=1), X=2), [[X <-- 2]]].
-    checkOnceVar("';'('->'(fail, X=1), X=2).", "X", 2L);
-    //[';'('->'(true, ';'(X=1, X=2)), true), [[X <-- 1], [X <-- 2]]].
-    checkOnceVar("';'('->'(true, ';'(X=1, X=2)), true).", "X", 1L, 2L);
-    //[';'('->'(';'(X=1, X=2), true), true), [[X <-- 1]]].
-    checkOnceVar("';'('->'(';'(X=1, X=2), true), true).", "X", 1L);
-  }
-
-  @Test
-  void testIfThen() throws Exception {
-    //['->'(true, true), success].
-    checkOnce("'->'(true, true).", true);
-    //['->'(true, fail), failure].
-    checkOnce("'->'(true, fail).", false);
-    //['->'(fail, true), failure].
-    checkOnce("'->'(fail, true).", false);
-    //['->'(true, X=1), [[X <-- 1]]].
-    checkOnceVar("true -> X=1.", "X", 1L);
-    //['->'(';'(X=1, X=2), true), [[X <-- 1]]].
-    checkOnceVar("'->'(';'(X=1, X=2), true).", "X", 1L);
-    //['->'(true, ';'(X=1, X=2)), [[X <-- 1], [X <-- 2]]].
-    checkOnceVar("'->'(true, ';'(X=1, X=2)).", "X", 1L, 2L);
-  }
-
-  @Test
-  void testCut() throws Exception {
-    checkOnce("p1 :- \\+ q1. q1 :- fail. q1 :- true. p2:- \\+ q2. q2 :- !, fail. q2 :- true.", "p1.", false);
-    checkOnce("p1 :- \\+ q1. q1 :- fail. q1 :- true. p2:- \\+ q2. q2 :- !, fail. q2 :- true.", "p2.", true);
-
-    //[!, success].
-    checkOnce("!.", true);
-    //[(!,fail;true), failure].
-    checkOnce("(!,fail;true).", false);
-    //[(call(!),fail;true), success].
-    checkOnce("call(!),fail;true.", true);
-  }
-
-  @Test
   void testNumber() throws Exception {
     //[number(3), success].
     checkOnce("number(3).", true);
@@ -1378,71 +1193,4 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 //    checkOnceVar("number_chars(A,['0','\\'','A']).", "A", 65);
   }
 
-  private void checkOnce(String goal, boolean expectedResult) {
-    this.checkOnce("", goal, expectedResult);
-  }
-
-  private void checkOnce(String consult, String goal, boolean expectedResult) {
-    final JProlContext context = makeContextAndConsult(consult);
-    final ChoicePoint thisGoal = new ChoicePoint(goal, context);
-    if (expectedResult) {
-      assertNotNull(thisGoal.next());
-      assertNull(thisGoal.next());
-    } else {
-      assertNull(thisGoal.next());
-    }
-  }
-
-  private void checkException(final String goal) {
-    final JProlContext context = makeTestContext();
-    final ChoicePoint thisGoal = new ChoicePoint(goal, context);
-    assertThrows(ProlException.class, thisGoal::next);
-  }
-
-  private ChoicePoint proveGoal(String goal) {
-    final ChoicePoint thisGoal = this.prepareGoal(goal);
-    assertNotNull(thisGoal.next());
-    return thisGoal;
-  }
-
-  private void checkOnceVar(String goal, String var, Object... result) {
-    final JProlContext context = makeTestContext();
-    final ChoicePoint thisGoal = new ChoicePoint(goal, context);
-
-    for (final Object res : result) {
-      assertNotNull(thisGoal.next());
-      if (res instanceof Number) {
-        if (res instanceof Double) {
-          assertEquals(0, Double.compare(thisGoal.getVarAsNumber(var).doubleValue(), (Double) res));
-        } else {
-          assertEquals(res, thisGoal.getVarAsNumber(var));
-        }
-
-      } else {
-        assertEquals(res.toString(), thisGoal.getVarAsText(var));
-      }
-    }
-    assertNull(thisGoal.next());
-  }
-
-  private void checkVarsAfterCall(String goal, String[][] varsAndValues) {
-    assertTrue((varsAndValues.length & 1) == 0);
-
-    final JProlContext context = makeTestContext();
-    final ChoicePoint thisGoal = new ChoicePoint(goal, context);
-
-    for (int i = 0; i < varsAndValues.length / 2; i++) {
-      assertNotNull(thisGoal.next(), "Index " + i);
-      final int index = i * 2;
-      final String[] names = varsAndValues[index];
-      final String[] values = varsAndValues[index + 1];
-      assertEquals(names.length, values.length);
-      for (int v = 0; v < names.length; v++) {
-        final TermVar thevar = thisGoal.getVarForName(names[v]);
-        assertNotNull(thevar, "Can't find var: " + names[v]);
-        assertEquals(values[v], thevar.getValue().getText(), i + ": Var=" + names[v]);
-      }
-    }
-    assertNull(thisGoal.next());
-  }
 }
