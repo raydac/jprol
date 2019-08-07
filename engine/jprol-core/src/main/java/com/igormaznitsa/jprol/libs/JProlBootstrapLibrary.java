@@ -64,7 +64,7 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
         final Term flagValue = goal.getContext().getSystemFlag(flag);
         if (term.dryUnifyTo(flagValue)) {
           if (!(atom.unifyTo(flag.getNameTerm()) && term.unifyTo(flagValue))) {
-            throw new ProlCriticalError("Unextected situation, can't unofy prolog flag");
+            throw new ProlCriticalError("Unexpected situation, can't unify prolog flag");
           } else {
             found = true;
             break;

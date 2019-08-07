@@ -142,26 +142,31 @@ public abstract class AbstractJProlLibrary {
         }
       }
 
+      final NumericTerm result;
+
       switch (term.getTermType()) {
         case ATOM: {
           if (term instanceof NumericTerm) {
-            return (NumericTerm) term;
+            result = (NumericTerm) term;
           } else {
             throw new ProlTypeErrorException("number", "Not a numeric atom +[" + term + "] found at goal [" + goal + ']', term);
           }
         }
+        break;
         case STRUCT: {
           final PredicateInvoker processor = ((TermStruct) term).getPredicateProcessor();
           if (processor.isEvaluable()) {
-            return (NumericTerm) processor.executeEvaluable(goal, (TermStruct) term);
+            result = (NumericTerm) processor.executeEvaluable(goal, (TermStruct) term);
           } else {
             throw new ProlTypeErrorException("evaluable", "Not an arithmetic operator found [" + goal.toString() + ']', term);
           }
         }
+        break;
         default:
           throw new ProlTypeErrorException("evaluable", "Unsupported atom at an arithmetic expression [" + goal.toString() + ']', term);
       }
-    } catch (ArithmeticException ex) {
+      return result;
+    } catch (final ArithmeticException ex) {
       throw new ProlEvaluationErrorException(ex.getMessage(), "Arithmetic exception", term, ex);
     }
   }

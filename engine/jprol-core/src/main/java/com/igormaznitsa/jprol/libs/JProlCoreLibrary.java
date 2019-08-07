@@ -174,7 +174,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return left.compare(right) != 0;
   }
 
-  @Predicate(Signature = "xor/2", Template = {"+evaluable,+evaluable"}, Reference = "Bitwise `exclusive or'")
+  @Predicate(Signature = "xor/2", Template = {"+evaluable,+evaluable"}, Reference = "Bitwise exclusive or.")
   @Evaluable
   public static Term predicateXOR(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));

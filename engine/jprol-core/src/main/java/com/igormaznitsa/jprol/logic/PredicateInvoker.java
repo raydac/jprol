@@ -151,7 +151,7 @@ public final class PredicateInvoker {
         termsToNotBeChanged = checkTemplates(predicate);
       }
 
-      final Object result = methodHandle.invoke(goal, predicate);
+      final Object result = this.methodHandle.invoke(goal, predicate);
 
       if (termsToNotBeChanged != null) {
         final Term[] elements = predicate.getElementsAsArray();

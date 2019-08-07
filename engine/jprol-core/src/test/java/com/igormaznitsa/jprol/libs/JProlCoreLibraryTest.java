@@ -10,8 +10,13 @@ import static org.junit.jupiter.api.Assertions.*;
 class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
-  void testAbolish() throws Exception {
+  void testXor1() {
+    checkOnceVar("X is xor(123,334).", "X", String.valueOf(123 ^ 334));
+    checkOnceVar("X is xor(123,xor(334,4452234)).", "X", String.valueOf(123 ^ 334 ^ 4452234));
+  }
 
+  @Test
+  void testAbolish1() {
     checkOnce("assert(test(1)),test(X),X==1,abolish(test/1),\\+ test(_).", true);
 
     //[abolish(abolish/1), permission_error(modify,static_procedure,abolish/1)].
