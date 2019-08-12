@@ -3,6 +3,7 @@ package com.igormaznitsa.jprol.libs;
 import com.igormaznitsa.jprol.exceptions.ProlCustomErrorException;
 import com.igormaznitsa.jprol.it.AbstractJProlTest;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlContext;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -13,6 +14,24 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   void testXor1() {
     checkOnceVar("X is xor(123,334).", "X", String.valueOf(123 ^ 334));
     checkOnceVar("X is xor(123,xor(334,4452234)).", "X", String.valueOf(123 ^ 334 ^ 4452234));
+  }
+
+  @Test
+  void testCeiling1() {
+    checkOnceVar("X is ceiling(3.14).", "X", String.valueOf(4));
+    checkOnceVar("X is ceiling(-3.14).", "X", String.valueOf(-3));
+    checkOnceVar("X is ceiling(0).", "X", String.valueOf(0));
+    checkOnceVar("X is ceiling(1.9).", "X", String.valueOf(2));
+    checkOnceVar("X is ceiling(-1.9).", "X", String.valueOf(-1));
+  }
+
+  @Test
+  void testRound1() {
+    checkOnceVar("X is round(3.14).", "X", String.valueOf(3));
+    checkOnceVar("X is round(-3.14).", "X", String.valueOf(-3));
+    checkOnceVar("X is round(0).", "X", String.valueOf(0));
+    checkOnceVar("X is round(1.9).", "X", String.valueOf(2));
+    checkOnceVar("X is round(-1.9).", "X", String.valueOf(-2));
   }
 
   @Test

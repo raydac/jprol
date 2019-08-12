@@ -87,10 +87,10 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
       throw new SecurityException("Attemption to override a system operator [" + operator.getText() + ']');
     }
 
-    TermOperatorContainer list = operatorTable.get(operatorName);
+    TermOperatorContainer list = this.operatorTable.get(operatorName);
     if (list == null) {
       list = new TermOperatorContainer(operator);
-      operatorTable.put(operatorName, list);
+      this.operatorTable.put(operatorName, list);
     } else {
       if (!list.setOperator(operator)) {
         throw new SecurityException("Such or a compatible operator is already presented [" + operatorName + ']');

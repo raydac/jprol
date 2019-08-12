@@ -152,7 +152,7 @@ public final class TermDouble extends NumericTerm {
 
   @Override
   public NumericTerm abs() {
-    if (Double.compare(0.0d, this.value) >= 0) {
+    if (Double.compare(this.value, 0.0d) >= 0) {
       return this;
     }
     return Terms.newDouble(Math.abs(value));
@@ -160,6 +160,6 @@ public final class TermDouble extends NumericTerm {
 
   @Override
   public NumericTerm sign() {
-    return Terms.newDouble(Math.signum(this.value));
+    return Terms.newLong(Double.compare(this.value, 0.0d));
   }
 }

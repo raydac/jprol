@@ -66,7 +66,10 @@ public abstract class AbstractJProlTest {
   }
 
   protected void checkOnceVar(String goal, String var, Object... result) {
-    final JProlContext context = makeTestContext();
+    this.checkOnceVar(makeTestContext(), goal, var, result);
+  }
+
+  protected void checkOnceVar(JProlContext context, String goal, String var, Object... result) {
     final ChoicePoint thisGoal = new ChoicePoint(goal, context);
 
     for (final Object res : result) {
