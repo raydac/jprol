@@ -125,7 +125,7 @@ public class Term {
   }
 
   public String getText() {
-    return text;
+    return this.text;
   }
 
   public TermType getTermType() {

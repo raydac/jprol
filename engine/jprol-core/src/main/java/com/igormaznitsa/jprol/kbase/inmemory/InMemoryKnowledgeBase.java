@@ -27,6 +27,7 @@ import com.igormaznitsa.jprol.utils.CloseableIterator;
 import com.igormaznitsa.jprol.utils.Utils;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.Map.Entry;
@@ -45,6 +46,23 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   private final String knowledgeBaseId;
   private final Map<String, TermOperatorContainer> operatorTable = new ConcurrentHashMap<>();
   private final Map<String, List<InMemoryItem>> predicateTable = new ConcurrentHashMap<>();
+
+  @Override
+  public void write(final PrintWriter writer) {
+    if (writer == null) {
+      throw new IllegalArgumentException("Writer must not be null");
+    }
+
+    // write operators
+    final Iterator<TermOperatorContainer> operators = this.operatorTable.values().iterator();
+    while (operators.hasNext()) {
+      operators.next().write(writer);
+    }
+    writer.println();
+
+    // write predicates
+    this.predicateTable.values().stream().peek(x -> writer.println()).flatMap(Collection::stream).forEach(x -> x.write(writer));
+  }
 
   public InMemoryKnowledgeBase(final String id) {
     this.knowledgeBaseId = requireNonNull(id, "Id must not be null");
@@ -128,20 +146,8 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public void write(final PrintWriter writer) {
-    if (writer == null) {
-      throw new IllegalArgumentException("Writer must not be null");
-    }
-
-    // write operators
-    final Iterator<TermOperatorContainer> operators = this.makeOperatorIterator();
-    while (operators.hasNext()) {
-      operators.next().write(writer);
-    }
-    writer.println();
-
-    // write predicates
-    this.predicateTable.values().stream().peek(x -> writer.println()).flatMap(Collection::stream).forEach(x -> x.write(writer));
+  public CloseableIterator<TermOperator> makeOperatorIterator() {
+    return new OperatorIterator(this.operatorTable.values().iterator());
   }
 
   private boolean assertClause(final JProlContext context, final TermStruct clause, final boolean asFirst) {
@@ -377,26 +383,40 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     }
   }
 
-  @Override
-  public CloseableIterator<TermOperatorContainer> makeOperatorIterator() {
-    return new CloseableIterator<TermOperatorContainer>() {
-      final Iterator<TermOperatorContainer> wrapped = operatorTable.values().iterator();
+  private static final class OperatorIterator implements CloseableIterator<TermOperator> {
+    final Iterator<TermOperatorContainer> iterator;
+    Iterator<TermOperator> operatorIterator;
 
-      @Override
-      public void close() {
-
+    OperatorIterator(final Iterator<TermOperatorContainer> iterator) {
+      this.iterator = iterator;
+      if (this.iterator.hasNext()) {
+        this.operatorIterator = this.iterator.next().toList().iterator();
       }
+    }
 
-      @Override
-      public boolean hasNext() {
-        return this.wrapped.hasNext();
-      }
+    @Override
+    public boolean hasNext() {
+      return this.operatorIterator != null && this.operatorIterator.hasNext();
+    }
 
-      @Override
-      public TermOperatorContainer next() {
-        return this.wrapped.next();
+    @Override
+    public void close() throws IOException {
+
+    }
+
+    @Override
+    public TermOperator next() {
+      if (this.operatorIterator == null || !this.operatorIterator.hasNext()) {
+        throw new NoSuchElementException();
       }
-    };
+      final TermOperator result = this.operatorIterator.next();
+      if (!this.operatorIterator.hasNext()) {
+        if (this.iterator.hasNext()) {
+          this.operatorIterator = this.iterator.next().toList().iterator();
+        }
+      }
+      return result;
+    }
   }
 
   @Override

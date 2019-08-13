@@ -45,7 +45,7 @@ public interface KnowledgeBase {
 
   CloseableIterator<TermStruct> iterateSignatures(TermStruct indicator);
 
-  CloseableIterator<TermOperatorContainer> makeOperatorIterator();
+  CloseableIterator<TermOperator> makeOperatorIterator();
 
   boolean assertZ(JProlContext context, TermStruct clause);
 

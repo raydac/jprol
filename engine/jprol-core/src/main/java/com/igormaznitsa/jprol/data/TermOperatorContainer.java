@@ -20,6 +20,8 @@ import com.igormaznitsa.prologparser.terms.OpContainer;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.igormaznitsa.jprol.data.TermType.OPERATORS;
 
@@ -174,6 +176,23 @@ public final class TermOperatorContainer extends Term {
       break;
       default:
         return false;
+    }
+    return result;
+  }
+
+  public List<TermOperator> toList() {
+    final List<TermOperator> result = new ArrayList<>(3);
+    final TermOperator fz = this.opFZ;
+    final TermOperator zfz = this.opZFZ;
+    final TermOperator zf = this.opZF;
+    if (fz != null) {
+      result.add(fz);
+    }
+    if (zfz != null) {
+      result.add(zfz);
+    }
+    if (zf != null) {
+      result.add(zf);
     }
     return result;
   }
