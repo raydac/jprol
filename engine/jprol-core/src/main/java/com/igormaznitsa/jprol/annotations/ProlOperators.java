@@ -24,5 +24,5 @@ import java.lang.annotation.Target;
 @Target(value = ElementType.TYPE)
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface ProlOperators {
-  ProlOperator[] Operators();
+  ProlOperator[] operators();
 }

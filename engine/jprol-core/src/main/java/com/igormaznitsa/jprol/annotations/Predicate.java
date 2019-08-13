@@ -25,9 +25,9 @@ import java.lang.annotation.Target;
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface Predicate {
 
-  String Signature();
+  String signature();
 
-  String[] Template() default {};
+  String[] template() default {};
 
-  String Reference() default "";
+  String reference() default "";
 }

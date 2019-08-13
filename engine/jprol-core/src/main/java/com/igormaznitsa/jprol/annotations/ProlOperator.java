@@ -26,9 +26,9 @@ import java.lang.annotation.Target;
 @Target(value = ElementType.TYPE)
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface ProlOperator {
-  int Priority();
+  int priority();
 
-  OpAssoc Type();
+  OpAssoc type();
 
-  String Name();
+  String name();
 }

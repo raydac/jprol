@@ -87,11 +87,11 @@ public abstract class AbstractJProlLibrary {
   }
 
   private static void registerStaticOperator(final Map<String, TermOperatorContainer> operatorMap, final ProlOperator operator) {
-    TermOperator newOperator = new TermOperator(operator.Priority(), operator.Type(), operator.Name());
-    TermOperatorContainer container = operatorMap.get(operator.Name());
+    TermOperator newOperator = new TermOperator(operator.priority(), operator.type(), operator.name());
+    TermOperatorContainer container = operatorMap.get(operator.name());
     if (container == null) {
       container = new TermOperatorContainer(newOperator);
-      operatorMap.put(operator.Name(), container);
+      operatorMap.put(operator.name(), container);
     } else {
       container.setOperator(newOperator);
     }
@@ -101,7 +101,7 @@ public abstract class AbstractJProlLibrary {
     final Map<String, TermOperatorContainer> result = new HashMap<>();
     final ProlOperators operators = klazz.getAnnotation(ProlOperators.class);
     if (operators != null) {
-      ProlOperator[] operatorList = operators.Operators();
+      ProlOperator[] operatorList = operators.operators();
       for (final ProlOperator lst : operatorList) {
         registerStaticOperator(result, lst);
       }
@@ -236,7 +236,7 @@ public abstract class AbstractJProlLibrary {
       final PredicateSynonyms synonims = method.getAnnotation(PredicateSynonyms.class);
 
       if (predicateAnnotation != null) {
-        final String signature = Utils.normalizeSignature(predicateAnnotation.Signature());
+        final String signature = Utils.normalizeSignature(predicateAnnotation.signature());
 
         if (signature == null) {
           throw new ProlCriticalError("Wrong signature of a predicate method " + method.getName() + " at " + libraryUID);
@@ -247,7 +247,7 @@ public abstract class AbstractJProlLibrary {
         }
 
         CheckingTemplate[][] templates = null;
-        final String[] templateStrings = predicateAnnotation.Template();
+        final String[] templateStrings = predicateAnnotation.template();
         if (templateStrings.length > 0) {
           templates = new CheckingTemplate[templateStrings.length][];
           for (int lt = 0; lt < templateStrings.length; lt++) {
@@ -267,7 +267,7 @@ public abstract class AbstractJProlLibrary {
         }
 
         if (synonims != null) {
-          final String[] synonimSignatures = synonims.Signatures();
+          final String[] synonimSignatures = synonims.signatures();
           for (String synonimSignature : synonimSignatures) {
             final String sig = synonimSignature.trim();
             result.put(sig, invoker);
