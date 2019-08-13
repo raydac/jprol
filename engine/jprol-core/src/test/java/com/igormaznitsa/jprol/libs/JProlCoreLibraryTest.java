@@ -14,6 +14,164 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   void testXor1() {
     checkOnceVar("X is xor(123,334).", "X", String.valueOf(123 ^ 334));
     checkOnceVar("X is xor(123,xor(334,4452234)).", "X", String.valueOf(123 ^ 334 ^ 4452234));
+    checkException("X is xor(123,xor(334.24,4452234.21)).");
+  }
+
+  @Test
+  void testBitwiseNot1() {
+    checkOnceVar("X is \\ 1.", "X", String.valueOf(~1));
+    checkException("X is \\ 1.445.");
+  }
+
+  @Test
+  void testBitwiseOr2() {
+    checkOnceVar("X is 3434 \\/ 2234123.", "X", String.valueOf(3434 | 2234123));
+    checkException("X is 3434.3312 \\/ 2234123.");
+    checkException("X is 3434 \\/ 2234123.332.");
+    checkException("X is 3434.123 \\/ 2234123.332.");
+  }
+
+  @Test
+  void testBitwiseAnd2() {
+    checkOnceVar("X is 3434 /\\ 2234123.", "X", String.valueOf(3434 & 2234123));
+    checkException("X is 3434.3312 /\\ 2234123.");
+    checkException("X is 3434 /\\ 2234123.332.");
+    checkException("X is 3434.123 /\\ 2234123.332.");
+  }
+
+  @Test
+  void testMod2() {
+    checkOnceVar("X is mod(16,8).", "X", String.valueOf(0));
+    checkOnceVar("X is mod(344,123).", "X", String.valueOf(344 % 123));
+    checkException("X is mod(344.456,123.11).");
+    checkException("X is mod(344,0).");
+  }
+
+  @Test
+  void testRem2() {
+    checkOnceVar("X is rem(16,8).", "X", String.valueOf(0));
+    checkOnceVar("X is rem(344,123).", "X", String.valueOf(98));
+    checkException("X is rem(344.456,123.11).");
+    checkException("X is rem(344,0).");
+    checkException("X is rem('a',12).");
+    checkException("X is rem(A,12).");
+    checkException("X is rem(12,B).");
+    checkException("X is rem(0,'b').");
+  }
+
+  @Test
+  void testPow2() {
+    checkOnceVar("X is 16**8.", "X", String.valueOf(Math.pow(16, 8)));
+    checkOnceVar("X is 16**0.", "X", String.valueOf(1.0));
+    checkOnceVar("X is 16**-2.", "X", String.valueOf(Math.pow(16, -2)));
+    checkException("X is 'a'**-2.");
+    checkException("X is A**-2.");
+    checkException("X is 16**-'b'.");
+    checkException("X is 2**-'b'.");
+    checkException("X is A**-B.");
+  }
+
+  @Test
+  void testAdd2() {
+    checkOnceVar("X is 16+8.", "X", String.valueOf(24));
+    checkOnceVar("X is 16+0.", "X", String.valueOf(16));
+    checkOnceVar("X is 16+-2.", "X", String.valueOf(14));
+    checkOnceVar("X is 16+2.345.", "X", String.valueOf(18.345));
+    checkOnceVar("X is -16.223+2.345.", "X", String.valueOf(-13.877999999999998D));
+  }
+
+  @Test
+  void testSin1() {
+    checkOnceVar("X is sin(3.14).", "X", String.valueOf(Math.sin(3.14D)));
+    checkOnceVar("X is sin(0).", "X", String.valueOf(Math.sin(0)));
+  }
+
+  @Test
+  void testCos1() {
+    checkOnceVar("X is cos(3.14).", "X", String.valueOf(Math.cos(3.14D)));
+    checkOnceVar("X is cos(0).", "X", String.valueOf(Math.cos(0)));
+  }
+
+  @Test
+  void testAtan1() {
+    checkOnceVar("X is atan(3.14).", "X", String.valueOf(Math.atan(3.14D)));
+    checkOnceVar("X is atan(0).", "X", String.valueOf(Math.atan(0)));
+  }
+
+  @Test
+  void testExp1() {
+    checkOnceVar("X is exp(3.14).", "X", String.valueOf(Math.exp(3.14D)));
+    checkOnceVar("X is exp(0).", "X", String.valueOf(Math.exp(0)));
+  }
+
+  @Test
+  void testLog1() {
+    checkOnceVar("X is log(3.14).", "X", String.valueOf(Math.log(3.14D)));
+    checkOnceVar("X is log(345).", "X", String.valueOf(Math.log(345)));
+  }
+
+  @Test
+  void testSqrt1() {
+    checkOnceVar("X is sqrt(3.14).", "X", String.valueOf(Math.sqrt(3.14D)));
+    checkOnceVar("X is sqrt(0).", "X", String.valueOf(Math.sqrt(0)));
+  }
+
+  @Test
+  void testAbs1() {
+    checkOnceVar("X is abs(3.14).", "X", String.valueOf(Math.abs(3.14D)));
+    checkOnceVar("X is abs(0).", "X", String.valueOf(Math.abs(0)));
+    checkOnceVar("X is abs(-33.2).", "X", String.valueOf(Math.abs(-33.2D)));
+  }
+
+  @Test
+  void testOp3() {
+    checkOnce("op(334, xfx, some).", true);
+    checkOnce("op(444, xf, [one,two,three]).", true);
+    checkException("op(443, xfx, '(').");
+  }
+
+  @Test
+  void testCurrentOp3() {
+    final JProlContext context = makeContextAndConsult(":-op(1099, xf, some_op).");
+    checkOnceVar(context, "current_op(1099, xf, X).", "X", "some_op");
+  }
+
+  @Test
+  void testSign1() {
+    checkOnceVar("X is sign(3.14).", "X", String.valueOf(1));
+    checkOnceVar("X is sign(0).", "X", String.valueOf(0));
+    checkOnceVar("X is sign(-33.2).", "X", String.valueOf(-1));
+    checkOnceVar("X is sign(45).", "X", String.valueOf(1));
+    checkOnceVar("X is sign(0).", "X", String.valueOf(0));
+    checkOnceVar("X is sign(-32).", "X", String.valueOf(-1));
+  }
+
+  @Test
+  void testFloatIntegerPart1() {
+    checkOnceVar("X is float_integer_part(3.14).", "X", String.valueOf(3));
+    checkOnceVar("X is float_integer_part(4).", "X", String.valueOf(4));
+  }
+
+  @Test
+  void testFloatFractionalPart1() {
+    checkOnceVar("X is float_fractional_part(3.14).", "X", String.valueOf(3.14D - 3));
+    checkOnceVar("X is float_fractional_part(4).", "X", String.valueOf(0.0d));
+  }
+
+  @Test
+  void testFloor1() {
+    checkOnceVar("X is floor(3.14).", "X", String.valueOf((long) Math.floor(3.14D)));
+    checkOnceVar("X is floor(0.0).", "X", String.valueOf((long) Math.floor(0.0D)));
+    checkOnceVar("X is floor(14.9).", "X", String.valueOf((long) Math.floor(14.9D)));
+  }
+
+  @Test
+  void testTruncate1() {
+    checkOnceVar("X is truncate(3.14).", "X", String.valueOf(3));
+    checkOnceVar("X is truncate(-3.14).", "X", String.valueOf(-3));
+    checkOnceVar("X is truncate(0).", "X", String.valueOf(0));
+    checkOnceVar("X is truncate(1.9).", "X", String.valueOf(1));
+    checkOnceVar("X is truncate(-1.9).", "X", String.valueOf(-1));
   }
 
   @Test

@@ -186,7 +186,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
       return newLong(lft ^ rght);
     } else {
-      throw new ProlInstantiationErrorException("Both arguments must be integer", predicate);
+      throw new ProlTypeErrorException("integer expected", predicate);
     }
   }
 
@@ -200,7 +200,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
       return newLong(~lft);
     } else {
-      throw new ProlInstantiationErrorException("Argument must be integer", predicate);
+      throw new ProlTypeErrorException("integer expected", predicate);
     }
   }
 
@@ -216,7 +216,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
       return newLong(lft | rght);
     } else {
-      throw new ProlInstantiationErrorException("Both arguments must be integer", predicate);
+      throw new ProlTypeErrorException("integer expected", predicate);
     }
   }
 
@@ -232,7 +232,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
       return newLong(lft & rght);
     } else {
-      throw new ProlInstantiationErrorException("Both arguments must be integer", predicate);
+      throw new ProlTypeErrorException("integer expected", predicate);
     }
   }
 
@@ -242,10 +242,15 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
-    final long leftval = left.toNumber().longValue();
-    final long rightval = right.toNumber().longValue();
-
-    return newLong(leftval % rightval);
+    if (left instanceof TermLong && right instanceof TermLong) {
+      final long rightNum = right.toNumber().longValue();
+      if (rightNum == 0L) {
+        throw new ProlEvaluationErrorException("zero divisor", predicate);
+      }
+      return newLong(left.toNumber().longValue() % rightNum);
+    } else {
+      throw new ProlTypeErrorException("integer expected", predicate);
+    }
   }
 
   @Predicate(Signature = "rem/2", Template = {"+evaluable,+evaluable"}, Reference = "Remainder")
@@ -254,10 +259,16 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
 
-    final long leftval = left.toNumber().longValue();
-    final long rightval = right.toNumber().longValue();
-
-    return newLong(leftval - (leftval / rightval) * rightval);
+    if (left instanceof TermLong && right instanceof TermLong) {
+      final long leftNum = left.toNumber().longValue();
+      final long rightNum = right.toNumber().longValue();
+      if (rightNum == 0L) {
+        throw new ProlEvaluationErrorException("zero divisor", predicate);
+      }
+      return newLong(leftNum - (leftNum / rightNum) * rightNum);
+    } else {
+      throw new ProlTypeErrorException("integer expected", predicate);
+    }
   }
 
   @Predicate(Signature = "**/2", Template = {"+evaluable,+evaluable"}, Reference = "Power")
