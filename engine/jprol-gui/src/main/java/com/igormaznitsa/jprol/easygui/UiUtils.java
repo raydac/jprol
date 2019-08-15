@@ -65,12 +65,12 @@ public final class UiUtils {
     final ProlOperators operators = libraryClass.getAnnotation(ProlOperators.class);
     if (operators != null) {
       // there is defined operators
-      final ProlOperator[] ops = operators.Operators();
+      final ProlOperator[] ops = operators.operators();
       if (ops.length > 0) {
         out.println("Operators\n-----------------------");
         for (final ProlOperator oper : ops) {
-          if (oper.Priority() > 0) {
-            out.println(":-op(" + oper.Priority() + "," + oper.Type().getText() + ",\'" + oper.Name() + "\').");
+          if (oper.priority() > 0) {
+            out.println(":-op(" + oper.priority() + "," + oper.type().getText() + ",\'" + oper.name() + "\').");
           }
         }
         out.println("-----------------------");
@@ -82,10 +82,10 @@ public final class UiUtils {
       if (predicate != null) {
         final boolean determined = method.getAnnotation(Determined.class) != null;
         final PredicateSynonyms predicateSynonims = method.getAnnotation(PredicateSynonyms.class);
-        out.print(predicate.Signature());
+        out.print(predicate.signature());
         if (predicateSynonims != null) {
           out.print(" {");
-          final String[] signatures = predicateSynonims.Signatures();
+          final String[] signatures = predicateSynonims.signatures();
           for (int ls = 0; ls < signatures.length; ls++) {
             if (ls > 0) {
               out.print(", ");
@@ -99,12 +99,12 @@ public final class UiUtils {
         }
         out.println();
 
-        final String[] templates = predicate.Template();
+        final String[] templates = predicate.template();
         for (String template : templates) {
           out.println('[' + template + ']');
         }
 
-        final String reference = predicate.Reference();
+        final String reference = predicate.reference();
         if (reference != null && reference.length() > 0) {
           out.println();
           out.println(reference);

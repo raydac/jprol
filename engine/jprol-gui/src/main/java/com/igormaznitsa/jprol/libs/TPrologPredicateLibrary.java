@@ -54,7 +54,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
     super("TPrologPredicateLib");
   }
 
-  @Predicate(Signature = "renamefile/2", Template = {"+term,+term"}, Reference = "Rename file")
+  @Predicate(signature = "renamefile/2", template = {"+term,+term"}, reference = "Rename file")
   @Determined
   public static boolean predicateRenameFile(final ChoicePoint goal, final TermStruct predicate) {
     final Term oldpath = predicate.getElement(0).findNonVarOrSame();
@@ -66,7 +66,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
     return file.renameTo(newfile);
   }
 
-  @Predicate(Signature = "file_str/2", Template = {"+term,?term"}, Reference = "Reads string from a file and transfers it to a variable, or creates a file and writes the string into the file.")
+  @Predicate(signature = "file_str/2", template = {"+term,?term"}, reference = "Reads string from a file and transfers it to a variable, or creates a file and writes the string into the file.")
   @Determined
   public boolean predicateFileStr(final ChoicePoint goal, final TermStruct predicate) {
     final File file = new File(path, predicate.getElement(0).findNonVarOrSame().getText());
@@ -94,7 +94,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
     return result;
   }
 
-  @Predicate(Signature = "deletefile/1", Template = {"+term"}, Reference = "Delete file for name")
+  @Predicate(signature = "deletefile/1", template = {"+term"}, reference = "Delete file for name")
   @Determined
   public boolean predicateDeleteFile(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
@@ -105,7 +105,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
     return file.delete();
   }
 
-  @Predicate(Signature = "existfile/1", Template = {"+term"}, Reference = "Ceck that a file exists in current directory")
+  @Predicate(signature = "existfile/1", template = {"+term"}, reference = "Ceck that a file exists in current directory")
   @Determined
   public boolean predicateExistFile(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
@@ -116,7 +116,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
     return file.exists();
   }
 
-  @Predicate(Signature = "dir/3", Template = {"+term,+term,?term"}, Reference = "Open directory to select file")
+  @Predicate(signature = "dir/3", template = {"+term,+term,?term"}, reference = "Open directory to select file")
   @Determined
   public boolean predicateDir(final ChoicePoint goal, final TermStruct predicate) {
     final String thePath = predicate.getElement(0).findNonVarOrSame().getText();
@@ -148,7 +148,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
     return result;
   }
 
-  @Predicate(Signature = "disk/1", Template = {"?term"}, Reference = "Set or get current path")
+  @Predicate(signature = "disk/1", template = {"?term"}, reference = "Set or get current path")
   @Determined
   public boolean predicateDisk(final ChoicePoint goal, final TermStruct predicate) {
     Term thePath = predicate.getElement(0).findNonVarOrSame();
@@ -173,7 +173,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
     return result;
   }
 
-  @Predicate(Signature = "save/1", Template = {"+term"}, Reference = "Save current data base")
+  @Predicate(signature = "save/1", template = {"+term"}, reference = "Save current data base")
   @Determined
   public boolean predicateSave(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();

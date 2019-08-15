@@ -1578,7 +1578,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
       super("JProlGuiLogger");
     }
 
-    @Predicate(Signature = "msgerror/1", Reference = "The predicate allows to output information marked as error at the message window.")
+    @Predicate(signature = "msgerror/1", reference = "The predicate allows to output information marked as error at the message window.")
     @Determined
     public void predicateMSGERROR(final ChoicePoint goal, final TermStruct struct) {
       final Term term = struct.getElement(0).findNonVarOrSame();
@@ -1587,7 +1587,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
       messageEditor.addErrorText(text);
     }
 
-    @Predicate(Signature = "msgwarning/1", Reference = "The predicate allows to output information marked as warning at the message window.")
+    @Predicate(signature = "msgwarning/1", reference = "The predicate allows to output information marked as warning at the message window.")
     @Determined
     public void predicateMSGWARNING(final ChoicePoint goal, final TermStruct struct) {
       final Term term = struct.getElement(0).findNonVarOrSame();
@@ -1596,7 +1596,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
       messageEditor.addWarningText(text);
     }
 
-    @Predicate(Signature = "msginfo/1", Reference = "The predicate allows to output information marked as info at the message window.")
+    @Predicate(signature = "msginfo/1", reference = "The predicate allows to output information marked as info at the message window.")
     @Determined
     public void predicateMSGINFO(final ChoicePoint goal, final TermStruct struct) {
       final Term term = struct.getElement(0).findNonVarOrSame();
