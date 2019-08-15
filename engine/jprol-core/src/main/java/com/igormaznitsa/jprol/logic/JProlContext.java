@@ -286,7 +286,7 @@ public final class JProlContext {
       return false;
     }
 
-    libraries.add(0, library);
+    this.libraries.add(0, library);
 
     final ConsultText consultText = library.getClass().getAnnotation(ConsultText.class);
     if (consultText != null) {
@@ -392,6 +392,10 @@ public final class JProlContext {
         .map(lib -> lib.findSystemOperatorForName(name))
         .filter(Objects::nonNull)
         .findFirst().orElse(null);
+  }
+
+  public Iterator<AbstractJProlLibrary> makeLibraryIterator() {
+    return this.libraries.iterator();
   }
 
   public boolean hasSystemOperatorStartsWith(final String str) {

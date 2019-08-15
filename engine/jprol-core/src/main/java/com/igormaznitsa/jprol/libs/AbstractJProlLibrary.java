@@ -29,6 +29,8 @@ import com.igormaznitsa.jprol.logic.CheckingTemplate;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
+import com.igormaznitsa.jprol.utils.CloseableIterator;
+import com.igormaznitsa.jprol.utils.OperatorIterator;
 import com.igormaznitsa.jprol.utils.Utils;
 
 import java.lang.reflect.Method;
@@ -62,6 +64,10 @@ public abstract class AbstractJProlLibrary {
     final Set<String> zeroArityPredicates = new HashSet<>();
     this.predicateMethodsMap = Collections.unmodifiableMap(extractAnnotatedMethodsAsPredicates(libraryUid, zeroArityPredicates));
     this.zeroArityPredicateNames = Collections.unmodifiableSet(zeroArityPredicates);
+  }
+
+  public CloseableIterator<TermOperator> makeOperatorIterator() {
+    return new OperatorIterator(this.systemOperators.values().iterator());
   }
 
   @SuppressWarnings("unchecked")

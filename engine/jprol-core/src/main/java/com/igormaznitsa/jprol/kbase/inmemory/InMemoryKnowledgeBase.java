@@ -24,10 +24,10 @@ import com.igormaznitsa.jprol.kbase.inmemory.items.InMemoryItem;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
+import com.igormaznitsa.jprol.utils.OperatorIterator;
 import com.igormaznitsa.jprol.utils.Utils;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.Map.Entry;
@@ -380,42 +380,6 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     // notify triggers if they are presented
     if (result && context.hasRegisteredTriggersForSignature(normalSignature, JProlTriggerType.TRIGGER_RETRACT)) {
       context.notifyTriggersForSignature(normalSignature, JProlTriggerType.TRIGGER_RETRACT);
-    }
-  }
-
-  private static final class OperatorIterator implements CloseableIterator<TermOperator> {
-    final Iterator<TermOperatorContainer> iterator;
-    Iterator<TermOperator> operatorIterator;
-
-    OperatorIterator(final Iterator<TermOperatorContainer> iterator) {
-      this.iterator = iterator;
-      if (this.iterator.hasNext()) {
-        this.operatorIterator = this.iterator.next().toList().iterator();
-      }
-    }
-
-    @Override
-    public boolean hasNext() {
-      return this.operatorIterator != null && this.operatorIterator.hasNext();
-    }
-
-    @Override
-    public void close() throws IOException {
-
-    }
-
-    @Override
-    public TermOperator next() {
-      if (this.operatorIterator == null || !this.operatorIterator.hasNext()) {
-        throw new NoSuchElementException();
-      }
-      final TermOperator result = this.operatorIterator.next();
-      if (!this.operatorIterator.hasNext()) {
-        if (this.iterator.hasNext()) {
-          this.operatorIterator = this.iterator.next().toList().iterator();
-        }
-      }
-      return result;
     }
   }
 

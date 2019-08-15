@@ -632,15 +632,21 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final Term specifier = predicate.getElement(1).findNonVarOrSame();
     final Term name = predicate.getElement(2).findNonVarOrSame();
 
-    Iterator<TermOperator> iterator = goal.getPayload();
-    if (iterator == null) {
-      iterator = goal.getContext().getKnowledgeBase().makeOperatorIterator();
-      goal.setPayload(iterator);
+    List<Iterator<TermOperator>> list = goal.getPayload();
+    if (list == null) {
+      list = new ArrayList<>();
+      list.add(goal.getContext().getKnowledgeBase().makeOperatorIterator());
+      final Iterator<AbstractJProlLibrary> libraries = goal.getContext().makeLibraryIterator();
+      while (libraries.hasNext()) {
+        list.add(libraries.next().makeOperatorIterator());
+      }
+      goal.setPayload(list);
     }
 
-    if (iterator.hasNext()) {
-      while (iterator.hasNext()) {
-        final TermOperator found = iterator.next();
+    while (!list.isEmpty()) {
+      final Iterator<TermOperator> activeIterator = list.get(0);
+      while (activeIterator.hasNext()) {
+        final TermOperator found = activeIterator.next();
         final Term opPriority = Terms.newLong(found.getPriority());
         final Term opType = Terms.newAtom(found.getTypeAsString());
         final Term opName = Terms.newAtom(found.getText());
@@ -653,12 +659,10 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
           }
         }
       }
-      goal.cutVariants();
-      return false;
-    } else {
-      goal.cutVariants();
-      return false;
+      list.remove(0);
     }
+    goal.cutVariants();
+    return false;
   }
 
   @Predicate(signature = "op/3", template = "+integer,+operator_specifier,@atom_or_atom_list", reference = "These predicates allow the operator table to be altered or inspected.\nop(Priority, Op_Specifier, TermOperator) is true, with the side effect that\n1. if Priority is 0 then TermOperator is removed from the operator table, else\n2. TermOperator is added to the TermOperator table, with priority (lower binds tighter) Priority and associativity determined by Op_Specifier")
@@ -681,13 +685,13 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       while (!list.isNullList()) {
         Term atom = list.getHead();
         if ((atom instanceof NumericTerm) || atom.getTermType() != ATOM) {
-          throw new ProlDomainErrorException("Impossible operator name", predicate);
+          throw new ProlDomainErrorException("Atom expected", predicate);
         }
         names.add(atom.getText());
 
         atom = list.getTail();
         if (atom.getTermType() != LIST) {
-          throw new ProlDomainErrorException("Unsuppoerted atom list format", predicate);
+          throw new ProlDomainErrorException("List expected", predicate);
         }
         list = (TermList) atom;
       }

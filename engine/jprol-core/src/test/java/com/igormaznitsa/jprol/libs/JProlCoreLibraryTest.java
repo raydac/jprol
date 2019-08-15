@@ -134,6 +134,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   void testCurrentOp3() {
     final JProlContext context = makeContextAndConsult(":-op(1099, xf, some_op).");
     checkOnceVar(context, "current_op(1099, xf, X).", "X", "'some_op'");
+    checkOnceVar(context, "current_op(X, xf, some_op).", "X", "1099");
+    checkOnceVar(context, "current_op(1099, X, some_op).", "X", "'xf'");
   }
 
   @Test
