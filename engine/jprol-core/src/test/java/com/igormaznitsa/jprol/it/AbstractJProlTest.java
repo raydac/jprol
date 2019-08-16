@@ -18,6 +18,7 @@ package com.igormaznitsa.jprol.it;
 
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.exceptions.ProlException;
+import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeContextFactory;
 import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
 import com.igormaznitsa.jprol.libs.JProlIoLibrary;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
@@ -28,8 +29,11 @@ import java.io.StringReader;
 import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class AbstractJProlTest {
+
   public JProlContext makeTestContext() {
-    return new JProlContext("test-context",
+    return new JProlContext(
+        new InMemoryKnowledgeContextFactory(),
+        "test-context",
         new JProlCoreLibrary(),
         new JProlIoLibrary()
     );

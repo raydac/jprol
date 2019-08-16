@@ -429,7 +429,7 @@ public final class ChoicePoint {
             if (nonConsumed) {
               final PredicateInvoker processor = ensureProcessor(struct);
               if (processor == PredicateInvoker.NULL_PROCESSOR) {
-                this.clauseIterator = this.context.getKnowledgeBase().iterate(IteratorType.ANY, struct);
+                this.clauseIterator = this.context.getKnowledgeBase().iterate(this.context.getKnowledgeContext(), IteratorType.ANY, struct);
                 if (this.clauseIterator == null || !this.clauseIterator.hasNext()) {
                   doLoop = false;
                   this.cutVariants();

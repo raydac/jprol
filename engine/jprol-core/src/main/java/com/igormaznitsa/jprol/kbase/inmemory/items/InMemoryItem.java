@@ -4,10 +4,12 @@ import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.data.TermVar;
+import com.igormaznitsa.jprol.kbase.KnowledgeContext;
 import lombok.Data;
 
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
@@ -17,8 +19,10 @@ public abstract class InMemoryItem {
   protected final TermStruct clause;
   protected final Term rightHandSide;
   protected final boolean leftHandSidePresented;
+  protected final KnowledgeContext knowledgeContext;
 
-  InMemoryItem(final TermStruct clause) {
+  InMemoryItem(final KnowledgeContext knowledgeContext, final TermStruct clause) {
+    this.knowledgeContext = Objects.requireNonNull(knowledgeContext);
     this.clause = clause;
 
     if (clause.isClause()) {
@@ -30,7 +34,7 @@ public abstract class InMemoryItem {
     }
   }
 
-  public static InMemoryItem fromClause(final TermStruct clause) {
+  public static InMemoryItem fromClause(final KnowledgeContext knowledgeContext, final TermStruct clause) {
     final Term rhs = clause.isClause() ? clause.getElement(0) : clause;
 
     final List<String> foundKeyVars = rhs.stream()
@@ -43,7 +47,11 @@ public abstract class InMemoryItem {
       complex = foundKeyVars.size() != foundKeyVars.stream().distinct().count();
     }
 
-    return complex ? new RhsItemComplex(clause) : new RhsItemSimple(clause);
+    return complex ? new RhsItemComplex(knowledgeContext, clause) : new RhsItemSimple(knowledgeContext, clause);
+  }
+
+  public KnowledgeContext getKnowledgeContext() {
+    return this.knowledgeContext;
   }
 
   public abstract boolean matches(final Term rightHandSide);

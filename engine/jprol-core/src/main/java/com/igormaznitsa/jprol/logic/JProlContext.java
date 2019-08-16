@@ -25,6 +25,8 @@ import com.igormaznitsa.jprol.exceptions.ProlForkExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlKnowledgeBaseException;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
+import com.igormaznitsa.jprol.kbase.KnowledgeContext;
+import com.igormaznitsa.jprol.kbase.KnowledgeContextFactory;
 import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.libs.JProlBootstrapLibrary;
@@ -74,6 +76,9 @@ public final class JProlContext {
   private final List<TracingChoicePointListener> traceListeners = new CopyOnWriteArrayList<>();
   private final Map<JProlSystemFlag, Term> systemFlags = new ConcurrentHashMap<>();
   private final AtomicInteger currentAsyncTaskNumber = new AtomicInteger();
+  private final KnowledgeContextFactory knowledgeContextFactory;
+  private final ThreadLocal<KnowledgeContext> knowledgeContext;
+
   private final ParserContext parserContext = new ParserContext() {
     @Override
     public boolean hasOpStartsWith(final PrologParser prologParser, final String s) {
@@ -95,8 +100,10 @@ public final class JProlContext {
   private final List<IoResourceProvider> ioProviders = new CopyOnWriteArrayList<>();
   private boolean templateValidate;
 
-  public JProlContext(final String name, final AbstractJProlLibrary... libs) {
-    this(name,
+  public JProlContext(final KnowledgeContextFactory knowledgeContextFactory, final String name, final AbstractJProlLibrary... libs) {
+    this(
+        knowledgeContextFactory,
+        name,
         new InMemoryKnowledgeBase(name + "_kbase"),
         ForkJoinPool.commonPool(),
         emptyMap(),
@@ -106,6 +113,7 @@ public final class JProlContext {
   }
 
   private JProlContext(
+      final KnowledgeContextFactory knowledgeContextFactory,
       final String contextId,
       final KnowledgeBase base,
       final ExecutorService executorService,
@@ -113,6 +121,8 @@ public final class JProlContext {
       final List<IoResourceProvider> ioProviders,
       final AbstractJProlLibrary... additionalLibraries
   ) {
+    this.knowledgeContextFactory = Objects.requireNonNull(knowledgeContextFactory);
+    this.knowledgeContext = ThreadLocal.withInitial(() -> this.knowledgeContextFactory.makeDefaultKnowledgeContext());
     this.contextId = requireNonNull(contextId, "Context Id is null");
     this.knowledgeBase = requireNonNull(base, "Knowledge base is null");
     this.executorService = requireNonNull(executorService);
@@ -136,6 +146,18 @@ public final class JProlContext {
 
   public Term getSystemFlag(final JProlSystemFlag flag) {
     return this.systemFlags.getOrDefault(flag, flag.getDefaultValue());
+  }
+
+  public KnowledgeContextFactory getKnowledgeContextFactory() {
+    return this.knowledgeContextFactory;
+  }
+
+  public KnowledgeContext getKnowledgeContext() {
+    return this.knowledgeContext.get();
+  }
+
+  public void setKnowledgeContext(final KnowledgeContext context) {
+    this.knowledgeContext.set(Objects.requireNonNull(context));
   }
 
   public void setSystemFlag(final JProlSystemFlag flag, final Term term) {
@@ -628,6 +650,7 @@ public final class JProlContext {
 
   public JProlContext makeCopy() {
     return new JProlContext(
+        this.knowledgeContextFactory,
         this.contextId + "_copy",
         this.knowledgeBase.makeCopy(),
         this.executorService,

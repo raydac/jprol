@@ -7,6 +7,7 @@ import com.igormaznitsa.jprol.annotations.ProlOperators;
 import com.igormaznitsa.jprol.data.NumericTerm;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
+import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
@@ -85,6 +86,18 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     }
 
     return found;
+  }
+
+  @Predicate(signature = "kcontext/1", template = {"?atom"}, reference = "Set or get current knowledge context parameter.")
+  @Determined
+  public static boolean predicateKCONTEXT1(final ChoicePoint goal, final TermStruct predicate) {
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
+    if (arg.getTermType() == TermType.VAR) {
+      return arg.unifyTo(goal.getContext().getKnowledgeContext().asTerm());
+    } else {
+      goal.getContext().setKnowledgeContext(goal.getContext().getKnowledgeContextFactory().makeKnowledgeContext(arg.getText()));
+      return true;
+    }
   }
 
   @Predicate(signature = "set_prolog_flag/2", template = {"+atom,+term"}, reference = "Set value of flag.")

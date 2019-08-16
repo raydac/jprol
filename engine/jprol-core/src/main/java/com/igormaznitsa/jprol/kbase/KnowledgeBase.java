@@ -23,8 +23,6 @@ import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
-import java.io.PrintWriter;
-
 public interface KnowledgeBase {
 
   String getId();
@@ -37,13 +35,11 @@ public interface KnowledgeBase {
 
   boolean hasOperatorStartsWith(JProlContext context, String str);
 
-  void write(PrintWriter writer);
+  CloseableIterator<TermStruct> iterate(KnowledgeContext knowledgeContext, IteratorType type, TermStruct template);
 
-  CloseableIterator<TermStruct> iterate(IteratorType type, TermStruct template);
+  CloseableIterator<TermStruct> iterate(KnowledgeContext knowledgeContext, String signature);
 
-  CloseableIterator<TermStruct> iterate(String signature);
-
-  CloseableIterator<TermStruct> iterateSignatures(TermStruct indicator);
+  CloseableIterator<TermStruct> iterateSignatures(KnowledgeContext knowledgeContext, TermStruct indicator);
 
   CloseableIterator<TermOperator> makeOperatorIterator();
 

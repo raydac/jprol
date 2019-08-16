@@ -16,7 +16,7 @@
 
 package com.igormaznitsa.jprol.easygui;
 
-import com.igormaznitsa.jprol.kbase.KnowledgeBase;
+import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.logic.JProlContext;
 
 import java.io.CharArrayWriter;
@@ -46,10 +46,10 @@ public class KnowledgeBaseSnapshotViewDialog extends javax.swing.JDialog {
     SnapshotViewer.setTitle("Knowledge base");
 
     if (context != null) {
-      KnowledgeBase base = context.getKnowledgeBase();
-      CharArrayWriter charArray = new CharArrayWriter(8096);
+      final InMemoryKnowledgeBase inMemoryBase = (InMemoryKnowledgeBase) context.getKnowledgeBase();
+      final CharArrayWriter charArray = new CharArrayWriter(8096);
       try (PrintWriter writer = new PrintWriter(charArray, true)) {
-        base.write(writer);
+        inMemoryBase.printStateAsSrc(writer);
       }
       SnapshotViewer.getEditor().setText(charArray.toString());
     }

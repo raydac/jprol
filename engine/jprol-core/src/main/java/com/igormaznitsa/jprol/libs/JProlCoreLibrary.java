@@ -592,7 +592,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     Iterator<TermStruct> clIterator = goal.getPayload();
 
     if (clIterator == null) {
-      clIterator = goal.getContext().getKnowledgeBase().iterate(IteratorType.ANY, head.getTermType() == STRUCT ? (TermStruct) head : newStruct(head));
+      clIterator = goal.getContext().getKnowledgeBase().iterate(goal.getContext().getKnowledgeContext(), IteratorType.ANY, head.getTermType() == STRUCT ? (TermStruct) head : newStruct(head));
       if (clIterator == null || !clIterator.hasNext()) {
         goal.cutVariants();
         return false;
@@ -1118,7 +1118,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     if (list == null) {
       list = new ArrayList<>(goal.getContext().findAllForPredicateIndicatorInLibs(predicateIndicator));
 
-      final Iterator<TermStruct> iter = goal.getContext().getKnowledgeBase().iterateSignatures(predicateIndicator.getTermType() == VAR ? Terms.newStruct("/", new Term[] {Terms.newVar(), Terms.newVar()}) : (TermStruct) predicateIndicator);
+      final Iterator<TermStruct> iter = goal.getContext().getKnowledgeBase().iterateSignatures(goal.getContext().getKnowledgeContext(), predicateIndicator.getTermType() == VAR ? Terms.newStruct("/", new Term[] {Terms.newVar(), Terms.newVar()}) : (TermStruct) predicateIndicator);
       while (iter.hasNext()) {
         list.add(iter.next());
       }
@@ -1142,7 +1142,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     List<TermStruct> list = goal.getPayload();
     if (list == null) {
       list = new ArrayList<>();
-      final Iterator<TermStruct> iter = goal.getContext().getKnowledgeBase().iterateSignatures(predicateIndicator.getTermType() == VAR ? Terms.newStruct("/", new Term[] {Terms.newVar(), Terms.newVar()}) : (TermStruct) predicateIndicator);
+      final Iterator<TermStruct> iter = goal.getContext().getKnowledgeBase().iterateSignatures(goal.getContext().getKnowledgeContext(), predicateIndicator.getTermType() == VAR ? Terms.newStruct("/", new Term[] {Terms.newVar(), Terms.newVar()}) : (TermStruct) predicateIndicator);
       while (iter.hasNext()) {
         list.add(iter.next());
       }
@@ -2006,7 +2006,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
 
       final KnowledgeBase base = goal.getContext().getKnowledgeBase();
-      factIterator = base.iterate(IteratorType.FACTS, (TermStruct) term);
+      factIterator = base.iterate(goal.getContext().getKnowledgeContext(), IteratorType.FACTS, (TermStruct) term);
 
       if (factIterator == null) {
         goal.cutVariants();

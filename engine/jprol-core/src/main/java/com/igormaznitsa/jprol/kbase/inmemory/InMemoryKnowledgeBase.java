@@ -20,6 +20,7 @@ import com.igormaznitsa.jprol.data.*;
 import com.igormaznitsa.jprol.exceptions.ProlKnowledgeBaseException;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
+import com.igormaznitsa.jprol.kbase.KnowledgeContext;
 import com.igormaznitsa.jprol.kbase.inmemory.items.InMemoryItem;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
@@ -47,23 +48,6 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   private final Map<String, TermOperatorContainer> operatorTable = new ConcurrentHashMap<>();
   private final Map<String, List<InMemoryItem>> predicateTable = new ConcurrentHashMap<>();
 
-  @Override
-  public void write(final PrintWriter writer) {
-    if (writer == null) {
-      throw new IllegalArgumentException("Writer must not be null");
-    }
-
-    // write operators
-    final Iterator<TermOperatorContainer> operators = this.operatorTable.values().iterator();
-    while (operators.hasNext()) {
-      operators.next().write(writer);
-    }
-    writer.println();
-
-    // write predicates
-    this.predicateTable.values().stream().peek(x -> writer.println()).flatMap(Collection::stream).forEach(x -> x.write(writer));
-  }
-
   public InMemoryKnowledgeBase(final String id) {
     this.knowledgeBaseId = requireNonNull(id, "Id must not be null");
   }
@@ -78,6 +62,19 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
   private static List<InMemoryItem> makeClone(final List<InMemoryItem> src) {
     return new CopyOnWriteArrayList<>(src);
+  }
+
+  public long printStateAsSrc(final PrintWriter writer) {
+    return this.predicateTable.entrySet().stream()
+        .peek(e -> writer.println(String.format("%n%% signature '%s'", e.getKey())))
+        .flatMap(e -> e.getValue().stream())
+        .peek(i -> writer.println(String.format("%% context '%s'", i.getKnowledgeContext().asTerm().getText())))
+        .peek(i -> writer.println(String.format("%s.", i.getClause().toSrcString())))
+        .count();
+  }
+
+  public Map<String, List<InMemoryItem>> getStorage() {
+    return Collections.unmodifiableMap(this.predicateTable);
   }
 
   @Override
@@ -166,9 +163,9 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
       final List<InMemoryItem> list = predicateTable.computeIfAbsent(uid, x -> new CopyOnWriteArrayList<>());
       if (asFirst) {
-        list.add(0, InMemoryItem.fromClause(clause));
+        list.add(0, InMemoryItem.fromClause(context.getKnowledgeContext(), clause));
       } else {
-        list.add(InMemoryItem.fromClause(clause));
+        list.add(InMemoryItem.fromClause(context.getKnowledgeContext(), clause));
       }
       // notify triggers if they are presented
       if (context.hasRegisteredTriggersForSignature(uid, JProlTriggerType.TRIGGER_ASSERT)) {
@@ -183,7 +180,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public CloseableIterator<TermStruct> iterate(final IteratorType type, final TermStruct template) {
+  public CloseableIterator<TermStruct> iterate(final KnowledgeContext knowledgeContext, final IteratorType type, final TermStruct template) {
     final String uid = template.getSignature();
 
     final List<InMemoryItem> list = this.predicateTable.get(uid);
@@ -191,13 +188,13 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     CloseableIterator<TermStruct> result = null;
 
     if (list != null) {
-      result = new InMemoryClauseIterator(type, list, template);
+      result = new InMemoryClauseIterator(knowledgeContext, type, list, template);
     }
     return result;
   }
 
   @Override
-  public CloseableIterator<TermStruct> iterateSignatures(final TermStruct indicator) {
+  public CloseableIterator<TermStruct> iterateSignatures(final KnowledgeContext knowledgeContext, final TermStruct indicator) {
     return makeCloseableIterator(this.predicateTable.keySet()
         .stream()
         .map(key -> {
@@ -214,7 +211,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public CloseableIterator<TermStruct> iterate(final String signature) {
+  public CloseableIterator<TermStruct> iterate(final KnowledgeContext knowledgeContext, final String signature) {
     final List<InMemoryItem> list = this.predicateTable.get(signature);
 
     if (list == null) {
@@ -266,7 +263,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     final List<InMemoryItem> list = this.predicateTable.get(signature);
 
     if (list != null) {
-      result = internalRetractAll(list, struct);
+      result = internalRetractAll(context.getKnowledgeContext(), list, struct);
       if (result && list.isEmpty()) {
         // delete from base
         this.predicateTable.remove(signature);
@@ -281,8 +278,8 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     return result;
   }
 
-  private boolean internalRetractAll(final List<InMemoryItem> list, final TermStruct clause) {
-    final InMemoryClauseIterator iterator = new InMemoryClauseIterator(IteratorType.ANY, list, clause);
+  private boolean internalRetractAll(final KnowledgeContext knowledgeContext, final List<InMemoryItem> list, final TermStruct clause) {
+    final InMemoryClauseIterator iterator = new InMemoryClauseIterator(knowledgeContext, IteratorType.ANY, list, clause);
     final List<InMemoryItem> toRemove = new ArrayList<>();
     while (iterator.hasNext()) {
       toRemove.add(iterator.nextItem());
@@ -290,8 +287,8 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     return list.removeAll(toRemove);
   }
 
-  private boolean internalRetractA(final List<InMemoryItem> list, final TermStruct clause) {
-    final InMemoryClauseIterator iterator = new InMemoryClauseIterator(IteratorType.ANY, list, clause);
+  private boolean internalRetractA(final KnowledgeContext knowledgeContext, final List<InMemoryItem> list, final TermStruct clause) {
+    final InMemoryClauseIterator iterator = new InMemoryClauseIterator(knowledgeContext, IteratorType.ANY, list, clause);
     if (iterator.hasNext()) {
       final InMemoryItem item = iterator.nextItem();
       return list.remove(item);
@@ -300,8 +297,8 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     }
   }
 
-  private boolean internalRetractZ(final List<InMemoryItem> list, final TermStruct clause) {
-    final InMemoryClauseIterator iterator = new InMemoryClauseIterator(IteratorType.ANY, list, clause);
+  private boolean internalRetractZ(final KnowledgeContext knowledgeContext, final List<InMemoryItem> list, final TermStruct clause) {
+    final InMemoryClauseIterator iterator = new InMemoryClauseIterator(knowledgeContext, IteratorType.ANY, list, clause);
     InMemoryItem toRemove = null;
     while (iterator.hasNext()) {
       toRemove = iterator.nextItem();
@@ -322,7 +319,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     final List<InMemoryItem> list = predicateTable.get(signature);
 
     if (list != null) {
-      result = internalRetractA(list, struct);
+      result = internalRetractA(context.getKnowledgeContext(), list, struct);
       if (result && list.isEmpty()) {
         // delete from base
         predicateTable.remove(signature);
@@ -351,7 +348,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     final List<InMemoryItem> list = this.predicateTable.get(signature);
 
     if (list != null) {
-      result = internalRetractZ(list, struct);
+      result = internalRetractZ(context.getKnowledgeContext(), list, struct);
       if (result && list.isEmpty()) {
         // delete from base
         this.predicateTable.remove(signature);

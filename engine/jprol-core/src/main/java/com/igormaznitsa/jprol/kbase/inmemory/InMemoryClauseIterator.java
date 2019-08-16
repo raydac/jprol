@@ -16,30 +16,54 @@
 
 package com.igormaznitsa.jprol.kbase.inmemory;
 
+import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
+import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.kbase.IteratorType;
+import com.igormaznitsa.jprol.kbase.KnowledgeContext;
 import com.igormaznitsa.jprol.kbase.inmemory.items.InMemoryItem;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 public final class InMemoryClauseIterator implements CloseableIterator<TermStruct> {
 
   private final Iterator<InMemoryItem> iterator;
-  private final TermStruct search;
+  private final Term search;
   private final IteratorType type;
+  private final KnowledgeContext knowledgeContext;
   private InMemoryItem next;
 
   InMemoryClauseIterator(
+      final KnowledgeContext knowledgeContext,
       final IteratorType type,
       final List<InMemoryItem> list,
       final TermStruct search
   ) {
+    this(knowledgeContext, type, list, search.makeClone());
+  }
+
+  InMemoryClauseIterator(
+      final KnowledgeContext knowledgeContext,
+      final IteratorType type,
+      final List<InMemoryItem> list
+  ) {
+    this(knowledgeContext, type, list, Terms.newVar());
+  }
+
+  private InMemoryClauseIterator(
+      final KnowledgeContext knowledgeContext,
+      final IteratorType type,
+      final List<InMemoryItem> list,
+      final Term search
+  ) {
+    this.search = search;
+    this.knowledgeContext = Objects.requireNonNull(knowledgeContext);
     this.type = type;
     this.iterator = list.iterator();
-    this.search = (TermStruct) search.makeClone();
     this.next = findNext();
   }
 
@@ -48,7 +72,7 @@ public final class InMemoryClauseIterator implements CloseableIterator<TermStruc
     return this.next != null;
   }
 
-  public TermStruct getTemplate() {
+  public Term getTemplate() {
     return this.search;
   }
 
@@ -63,27 +87,29 @@ public final class InMemoryClauseIterator implements CloseableIterator<TermStruc
 
     while (this.iterator.hasNext() && result == null) {
       final InMemoryItem nextItem = this.iterator.next();
-      switch (this.type) {
-        case ANY: {
-          if (nextItem.matches(this.search)) {
-            result = nextItem;
+      if (this.knowledgeContext.doesInclude(nextItem.getKnowledgeContext())) {
+        switch (this.type) {
+          case ANY: {
+            if (nextItem.matches(this.search)) {
+              result = nextItem;
+            }
           }
-        }
-        break;
-        case FACTS: {
-          if (nextItem.isFact() && nextItem.matches(this.search)) {
-            result = nextItem;
+          break;
+          case FACTS: {
+            if (nextItem.isFact() && nextItem.matches(this.search)) {
+              result = nextItem;
+            }
           }
-        }
-        break;
-        case RULES: {
-          if (nextItem.isRule() && nextItem.matches(this.search)) {
-            result = nextItem;
+          break;
+          case RULES: {
+            if (nextItem.isRule() && nextItem.matches(this.search)) {
+              result = nextItem;
+            }
           }
+          break;
+          default:
+            throw new Error("Unexpected type: " + this.type);
         }
-        break;
-        default:
-          throw new Error("Unexpected type: " + this.type);
       }
     }
     return result;
