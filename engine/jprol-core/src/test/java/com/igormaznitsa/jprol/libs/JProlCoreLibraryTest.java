@@ -12,20 +12,20 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testXor1() {
-    checkOnceVar("X is xor(123,334).", "X", String.valueOf(123 ^ 334));
-    checkOnceVar("X is xor(123,xor(334,4452234)).", "X", String.valueOf(123 ^ 334 ^ 4452234));
+    checkVar("X is xor(123,334).", "X", String.valueOf(123 ^ 334));
+    checkVar("X is xor(123,xor(334,4452234)).", "X", String.valueOf(123 ^ 334 ^ 4452234));
     checkException("X is xor(123,xor(334.24,4452234.21)).");
   }
 
   @Test
   void testBitwiseNot1() {
-    checkOnceVar("X is \\ 1.", "X", String.valueOf(~1));
+    checkVar("X is \\ 1.", "X", String.valueOf(~1));
     checkException("X is \\ 1.445.");
   }
 
   @Test
   void testBitwiseOr2() {
-    checkOnceVar("X is 3434 \\/ 2234123.", "X", String.valueOf(3434 | 2234123));
+    checkVar("X is 3434 \\/ 2234123.", "X", String.valueOf(3434 | 2234123));
     checkException("X is 3434.3312 \\/ 2234123.");
     checkException("X is 3434 \\/ 2234123.332.");
     checkException("X is 3434.123 \\/ 2234123.332.");
@@ -33,7 +33,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testBitwiseAnd2() {
-    checkOnceVar("X is 3434 /\\ 2234123.", "X", String.valueOf(3434 & 2234123));
+    checkVar("X is 3434 /\\ 2234123.", "X", String.valueOf(3434 & 2234123));
     checkException("X is 3434.3312 /\\ 2234123.");
     checkException("X is 3434 /\\ 2234123.332.");
     checkException("X is 3434.123 /\\ 2234123.332.");
@@ -41,16 +41,16 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testMod2() {
-    checkOnceVar("X is mod(16,8).", "X", String.valueOf(0));
-    checkOnceVar("X is mod(344,123).", "X", String.valueOf(344 % 123));
+    checkVar("X is mod(16,8).", "X", String.valueOf(0));
+    checkVar("X is mod(344,123).", "X", String.valueOf(344 % 123));
     checkException("X is mod(344.456,123.11).");
     checkException("X is mod(344,0).");
   }
 
   @Test
   void testRem2() {
-    checkOnceVar("X is rem(16,8).", "X", String.valueOf(0));
-    checkOnceVar("X is rem(344,123).", "X", String.valueOf(98));
+    checkVar("X is rem(16,8).", "X", String.valueOf(0));
+    checkVar("X is rem(344,123).", "X", String.valueOf(98));
     checkException("X is rem(344.456,123.11).");
     checkException("X is rem(344,0).");
     checkException("X is rem('a',12).");
@@ -61,9 +61,9 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testPow2() {
-    checkOnceVar("X is 16**8.", "X", String.valueOf(Math.pow(16, 8)));
-    checkOnceVar("X is 16**0.", "X", String.valueOf(1.0));
-    checkOnceVar("X is 16**-2.", "X", String.valueOf(Math.pow(16, -2)));
+    checkVar("X is 16**8.", "X", String.valueOf(Math.pow(16, 8)));
+    checkVar("X is 16**0.", "X", String.valueOf(1.0));
+    checkVar("X is 16**-2.", "X", String.valueOf(Math.pow(16, -2)));
     checkException("X is 'a'**-2.");
     checkException("X is A**-2.");
     checkException("X is 16**-'b'.");
@@ -73,54 +73,54 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testAdd2() {
-    checkOnceVar("X is 16+8.", "X", String.valueOf(24));
-    checkOnceVar("X is 16+0.", "X", String.valueOf(16));
-    checkOnceVar("X is 16+-2.", "X", String.valueOf(14));
-    checkOnceVar("X is 16+2.345.", "X", String.valueOf(18.345));
-    checkOnceVar("X is -16.223+2.345.", "X", String.valueOf(-13.877999999999998D));
+    checkVar("X is 16+8.", "X", String.valueOf(24));
+    checkVar("X is 16+0.", "X", String.valueOf(16));
+    checkVar("X is 16+-2.", "X", String.valueOf(14));
+    checkVar("X is 16+2.345.", "X", String.valueOf(18.345));
+    checkVar("X is -16.223+2.345.", "X", String.valueOf(-13.877999999999998D));
   }
 
   @Test
   void testSin1() {
-    checkOnceVar("X is sin(3.14).", "X", String.valueOf(Math.sin(3.14D)));
-    checkOnceVar("X is sin(0).", "X", String.valueOf(Math.sin(0)));
+    checkVar("X is sin(3.14).", "X", String.valueOf(Math.sin(3.14D)));
+    checkVar("X is sin(0).", "X", String.valueOf(Math.sin(0)));
   }
 
   @Test
   void testCos1() {
-    checkOnceVar("X is cos(3.14).", "X", String.valueOf(Math.cos(3.14D)));
-    checkOnceVar("X is cos(0).", "X", String.valueOf(Math.cos(0)));
+    checkVar("X is cos(3.14).", "X", String.valueOf(Math.cos(3.14D)));
+    checkVar("X is cos(0).", "X", String.valueOf(Math.cos(0)));
   }
 
   @Test
   void testAtan1() {
-    checkOnceVar("X is atan(3.14).", "X", String.valueOf(Math.atan(3.14D)));
-    checkOnceVar("X is atan(0).", "X", String.valueOf(Math.atan(0)));
+    checkVar("X is atan(3.14).", "X", String.valueOf(Math.atan(3.14D)));
+    checkVar("X is atan(0).", "X", String.valueOf(Math.atan(0)));
   }
 
   @Test
   void testExp1() {
-    checkOnceVar("X is exp(3.14).", "X", String.valueOf(Math.exp(3.14D)));
-    checkOnceVar("X is exp(0).", "X", String.valueOf(Math.exp(0)));
+    checkVar("X is exp(3.14).", "X", String.valueOf(Math.exp(3.14D)));
+    checkVar("X is exp(0).", "X", String.valueOf(Math.exp(0)));
   }
 
   @Test
   void testLog1() {
-    checkOnceVar("X is log(3.14).", "X", String.valueOf(Math.log(3.14D)));
-    checkOnceVar("X is log(345).", "X", String.valueOf(Math.log(345)));
+    checkVar("X is log(3.14).", "X", String.valueOf(Math.log(3.14D)));
+    checkVar("X is log(345).", "X", String.valueOf(Math.log(345)));
   }
 
   @Test
   void testSqrt1() {
-    checkOnceVar("X is sqrt(3.14).", "X", String.valueOf(Math.sqrt(3.14D)));
-    checkOnceVar("X is sqrt(0).", "X", String.valueOf(Math.sqrt(0)));
+    checkVar("X is sqrt(3.14).", "X", String.valueOf(Math.sqrt(3.14D)));
+    checkVar("X is sqrt(0).", "X", String.valueOf(Math.sqrt(0)));
   }
 
   @Test
   void testAbs1() {
-    checkOnceVar("X is abs(3.14).", "X", String.valueOf(Math.abs(3.14D)));
-    checkOnceVar("X is abs(0).", "X", String.valueOf(Math.abs(0)));
-    checkOnceVar("X is abs(-33.2).", "X", String.valueOf(Math.abs(-33.2D)));
+    checkVar("X is abs(3.14).", "X", String.valueOf(Math.abs(3.14D)));
+    checkVar("X is abs(0).", "X", String.valueOf(Math.abs(0)));
+    checkVar("X is abs(-33.2).", "X", String.valueOf(Math.abs(-33.2D)));
   }
 
   @Test
@@ -133,65 +133,65 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   @Test
   void testCurrentOp3() {
     final JProlContext context = makeContextAndConsult(":-op(1099, xf, some_op).");
-    checkOnceVar(context, "current_op(1099, xf, X).", "X", "'some_op'");
-    checkOnceVar(context, "current_op(X, xf, some_op).", "X", "1099");
-    checkOnceVar(context, "current_op(1099, X, some_op).", "X", "'xf'");
+    checkVar(context, "current_op(1099, xf, X).", "X", "'some_op'");
+    checkVar(context, "current_op(X, xf, some_op).", "X", "1099");
+    checkVar(context, "current_op(1099, X, some_op).", "X", "'xf'");
   }
 
   @Test
   void testSign1() {
-    checkOnceVar("X is sign(3.14).", "X", String.valueOf(1));
-    checkOnceVar("X is sign(0).", "X", String.valueOf(0));
-    checkOnceVar("X is sign(-33.2).", "X", String.valueOf(-1));
-    checkOnceVar("X is sign(45).", "X", String.valueOf(1));
-    checkOnceVar("X is sign(0).", "X", String.valueOf(0));
-    checkOnceVar("X is sign(-32).", "X", String.valueOf(-1));
+    checkVar("X is sign(3.14).", "X", String.valueOf(1));
+    checkVar("X is sign(0).", "X", String.valueOf(0));
+    checkVar("X is sign(-33.2).", "X", String.valueOf(-1));
+    checkVar("X is sign(45).", "X", String.valueOf(1));
+    checkVar("X is sign(0).", "X", String.valueOf(0));
+    checkVar("X is sign(-32).", "X", String.valueOf(-1));
   }
 
   @Test
   void testFloatIntegerPart1() {
-    checkOnceVar("X is float_integer_part(3.14).", "X", String.valueOf(3));
-    checkOnceVar("X is float_integer_part(4).", "X", String.valueOf(4));
+    checkVar("X is float_integer_part(3.14).", "X", String.valueOf(3));
+    checkVar("X is float_integer_part(4).", "X", String.valueOf(4));
   }
 
   @Test
   void testFloatFractionalPart1() {
-    checkOnceVar("X is float_fractional_part(3.14).", "X", String.valueOf(3.14D - 3));
-    checkOnceVar("X is float_fractional_part(4).", "X", String.valueOf(0.0d));
+    checkVar("X is float_fractional_part(3.14).", "X", String.valueOf(3.14D - 3));
+    checkVar("X is float_fractional_part(4).", "X", String.valueOf(0.0d));
   }
 
   @Test
   void testFloor1() {
-    checkOnceVar("X is floor(3.14).", "X", String.valueOf((long) Math.floor(3.14D)));
-    checkOnceVar("X is floor(0.0).", "X", String.valueOf((long) Math.floor(0.0D)));
-    checkOnceVar("X is floor(14.9).", "X", String.valueOf((long) Math.floor(14.9D)));
+    checkVar("X is floor(3.14).", "X", String.valueOf((long) Math.floor(3.14D)));
+    checkVar("X is floor(0.0).", "X", String.valueOf((long) Math.floor(0.0D)));
+    checkVar("X is floor(14.9).", "X", String.valueOf((long) Math.floor(14.9D)));
   }
 
   @Test
   void testTruncate1() {
-    checkOnceVar("X is truncate(3.14).", "X", String.valueOf(3));
-    checkOnceVar("X is truncate(-3.14).", "X", String.valueOf(-3));
-    checkOnceVar("X is truncate(0).", "X", String.valueOf(0));
-    checkOnceVar("X is truncate(1.9).", "X", String.valueOf(1));
-    checkOnceVar("X is truncate(-1.9).", "X", String.valueOf(-1));
+    checkVar("X is truncate(3.14).", "X", String.valueOf(3));
+    checkVar("X is truncate(-3.14).", "X", String.valueOf(-3));
+    checkVar("X is truncate(0).", "X", String.valueOf(0));
+    checkVar("X is truncate(1.9).", "X", String.valueOf(1));
+    checkVar("X is truncate(-1.9).", "X", String.valueOf(-1));
   }
 
   @Test
   void testCeiling1() {
-    checkOnceVar("X is ceiling(3.14).", "X", String.valueOf(4));
-    checkOnceVar("X is ceiling(-3.14).", "X", String.valueOf(-3));
-    checkOnceVar("X is ceiling(0).", "X", String.valueOf(0));
-    checkOnceVar("X is ceiling(1.9).", "X", String.valueOf(2));
-    checkOnceVar("X is ceiling(-1.9).", "X", String.valueOf(-1));
+    checkVar("X is ceiling(3.14).", "X", String.valueOf(4));
+    checkVar("X is ceiling(-3.14).", "X", String.valueOf(-3));
+    checkVar("X is ceiling(0).", "X", String.valueOf(0));
+    checkVar("X is ceiling(1.9).", "X", String.valueOf(2));
+    checkVar("X is ceiling(-1.9).", "X", String.valueOf(-1));
   }
 
   @Test
   void testRound1() {
-    checkOnceVar("X is round(3.14).", "X", String.valueOf(3));
-    checkOnceVar("X is round(-3.14).", "X", String.valueOf(-3));
-    checkOnceVar("X is round(0).", "X", String.valueOf(0));
-    checkOnceVar("X is round(1.9).", "X", String.valueOf(2));
-    checkOnceVar("X is round(-1.9).", "X", String.valueOf(-2));
+    checkVar("X is round(3.14).", "X", String.valueOf(3));
+    checkVar("X is round(-3.14).", "X", String.valueOf(-3));
+    checkVar("X is round(0).", "X", String.valueOf(0));
+    checkVar("X is round(1.9).", "X", String.valueOf(2));
+    checkVar("X is round(-1.9).", "X", String.valueOf(-2));
   }
 
   @Test
@@ -232,17 +232,17 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   @Test
   void testFindAll() throws Exception {
 
-    checkOnceVar("findall(X,(X=1;X=2),X).", "X", "[1,2]");
+    checkVar("findall(X,(X=1;X=2),X).", "X", "[1,2]");
     //[findall(X,(X=1 ; X=2),S),[[S <-- [1,2]]]].
-    checkOnceVar("findall(X,(X=1;X=2),S).", "S", "[1,2]");
+    checkVar("findall(X,(X=1;X=2),S).", "S", "[1,2]");
     //[findall(X+Y,(X=1),S),[[S <-- [1+_]]]].
-    checkOnceVar("findall(X+Y,(X=1),S).", "S", "[1 + Y]"); // changes
+    checkVar("findall(X+Y,(X=1),S).", "S", "[1 + Y]"); // changes
     //[findall(X,fail,L),[[L <-- []]]].
-    checkOnceVar("findall(X,fail,L).", "L", "[]");
+    checkVar("findall(X,fail,L).", "L", "[]");
     //[findall(X,(X=1 ; X=1),S),[[S <-- [1,1]]]].
-    checkOnceVar("findall(X,(X=1;X=1),S).", "S", "[1,1]");
-    checkOnceVar("findall(1, (Y = 1; Y = 2),L).", "L", "[1,1]");
-    checkOnceVar("findall(X,(X=Y;X=Z),L).", "L", "[Y,Z]");
+    checkVar("findall(X,(X=1;X=1),S).", "S", "[1,1]");
+    checkVar("findall(1, (Y = 1; Y = 2),L).", "L", "[1,1]");
+    checkVar("findall(X,(X=Y;X=Z),L).", "L", "[Y,Z]");
     //[findall(X,(X=2 ; X=1),[1,2]), failure].
     checkOnce("findall(X,(X=2;X=1),[1,2]).", false);
 
@@ -263,13 +263,13 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   @Test
   void testSetOf() throws Exception {
     //[setof(X,(X=1;X=2),L), [[L <-- [1, 2]]]].
-    checkOnceVar("setof(X,(X=1;X=2),L).", "L", "[1,2]");
+    checkVar("setof(X,(X=1;X=2),L).", "L", "[1,2]");
     //[setof(X,(X=1;X=2),X), [[X <-- [1, 2]]]].
-    checkOnceVar("setof(X,(X=1;X=2),X).", "X", "[1,2]");
+    checkVar("setof(X,(X=1;X=2),X).", "X", "[1,2]");
     //[setof(X,(X=2;X=1),L), [[L <-- [1, 2]]]].
-    checkOnceVar("setof(X,(X=2;X=1),L).", "L", "[1,2]");
+    checkVar("setof(X,(X=2;X=1),L).", "L", "[1,2]");
     //[setof(X,(X=2;X=2),L), [[L <-- [2]]]].
-    checkOnceVar("setof(X,(X=2;X=2),L).", "L", "[2]");
+    checkVar("setof(X,(X=2;X=2),L).", "L", "[2]");
     //[setof(X,fail,L), failure].
     checkOnce("setof(X,fail,L).", false);
 
@@ -284,15 +284,15 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     assertNull(goal1.next());
 
     //[setof(f(X,Y),(X=a;Y=b),L), [[L <-- [f(_, b), f(a, _)]]]].
-    checkOnceVar("setof(f(X,Y),(X=a;Y=b),L).", "L", "[f(X,'b'),f('a',Y)]");
+    checkVar("setof(f(X,Y),(X=a;Y=b),L).", "L", "[f(X,'b'),f('a',Y)]");
     //[setof(X,Y^((X=1,Y=1);(X=2,Y=2)),S), [[S <-- [1, 2]]]].
-    checkOnceVar("setof(X,Y^((X=1,Y=1);(X=2,Y=2)),S).", "S", "[1,2]");
+    checkVar("setof(X,Y^((X=1,Y=1);(X=2,Y=2)),S).", "S", "[1,2]");
     //[setof(X,Y^((X=1;Y=1);(X=2,Y=2)),S), [[S <-- [_, 1, 2]]]].
-    checkOnceVar("setof(X,Y^((X=1;Y=1);(X=2,Y=2)),S).", "S", "[X,1,2]");
+    checkVar("setof(X,Y^((X=1;Y=1);(X=2,Y=2)),S).", "S", "[X,1,2]");
     //[(set_prolog_flag(unknown, warning), setof(X,(Y^(X=1;Y=1);X=3),S)), [[S <-- [3]]]].
-    checkOnceVar("setof(X,(Y^(X=1;Y=1);X=3),S).", "S", "[3]");
+    checkVar("setof(X,(Y^(X=1;Y=1);X=3),S).", "S", "[3]");
     //[(set_prolog_flag(unknown, warning), setof(X,Y^(X=1;Y=1;X=3),S)), [[S <-- [_, 1,3]]]].
-    checkOnceVar("setof(X,Y^(X=1;Y=1;X=3),S).", "S", "[X,1,3]");
+    checkVar("setof(X,Y^(X=1;Y=1;X=3),S).", "S", "[X,1,3]");
     //[setof(X,(X=Y;X=Z;Y=1),L), [[L <-- [Y, Z]], [L <-- [_], Y <-- 1]]].
     final ChoicePoint goal2 = prepareGoal("setof(X,(X=Y;X=Z;Y=1),L).");
     assertNotNull(goal2.next());
@@ -311,12 +311,12 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   @Test
   void testBagOf() throws Exception {
     //[bagof(X, (X = 1; X = 2),L), [[L<-- [1, 2]]]].
-    checkOnceVar("bagof(X,(X=1;X=2),L).", "L", "[1,2]");
+    checkVar("bagof(X,(X=1;X=2),L).", "L", "[1,2]");
     //[bagof(X, (X = 1; X = 2),X), [[X<-- [1, 2]]]].
-    checkOnceVar("bagof(X,(X=1;X=2),X).", "X", "[1,2]");
+    checkVar("bagof(X,(X=1;X=2),X).", "X", "[1,2]");
 
     //[bagof(X, (X = Y; X = Z),L), [[L<-- [Y, Z]]]].
-    checkOnceVar("bagof(X,(X=Y;X=Z),L).", "L", "[Y,Z]");
+    checkVar("bagof(X,(X=Y;X=Z),L).", "L", "[Y,Z]");
 
     //[bagof(1, (Y = 1; Y = 2),L), [[L<-- [1], Y<-- 1], [L<-- [1], Y<-- 2]]].
     final ChoicePoint goal = prepareGoal("bagof(1,(Y = 1; Y = 2),L).");
@@ -390,7 +390,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   @Test
   void testAssertA() throws Exception {
     //[(asserta((bar(X) :- X)), clause(bar(X), B)), [[B <-- call(X)]]].
-    checkOnceVar("asserta(bar(X):-call(X)),clause(bar(X),B).", "B", "call(X)");
+    checkVar("asserta(bar(X):-call(X)),clause(bar(X),B).", "B", "call(X)");
 
     //[asserta(_), instantiation_error].
     checkException("asserta(_).");
@@ -425,16 +425,16 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     checkException("number_codes(A,4).");
 
     //[number_codes(33,L), [[L <-- [0'3,0'3]]]].
-    checkOnceVar("number_codes(33,L).", "L", "[" + (int) '3' + "," + (int) '3' + "]");
+    checkVar("number_codes(33,L).", "L", "[" + (int) '3' + "," + (int) '3' + "]");
     //[number_codes(33,[0'3,0'3]), success].
     checkOnce("number_codes(33,[51,51]).", true);
     //[number_codes(33.0,L), [[L <-- [51,51,46,48]]]].
-    checkOnceVar("number_codes(33.0,L).", "L", "[51,51,46,48]");
+    checkVar("number_codes(33.0,L).", "L", "[51,51,46,48]");
     checkOnce("number_codes(33.0,[" + (int) '3' + ',' + (int) '.' + ',' + (int) '3' + ',' + (int) 'E' + ',' + (int) '0' + ',' + (int) '1' + "]).", true);
-    checkOnceVar("number_codes(A,[" + (int) '-' + ',' + (int) '2' + ',' + (int) '5' + "]).", "A", "-25");
-    checkOnceVar("number_codes(A,[" + (int) ' ' + ',' + (int) '3' + "]).", "A", "' 3'");
-    checkOnceVar("number_codes(A,[" + (int) '0' + ',' + (int) 'x' + ',' + (int) 'f' + "]).", "A", "15");
-    checkOnceVar("number_codes(A,[" + (int) '4' + ',' + (int) '.' + ',' + (int) '2' + "]).", "A", "4.2");
+    checkVar("number_codes(A,[" + (int) '-' + ',' + (int) '2' + ',' + (int) '5' + "]).", "A", "-25");
+    checkVar("number_codes(A,[" + (int) ' ' + ',' + (int) '3' + "]).", "A", "' 3'");
+    checkVar("number_codes(A,[" + (int) '0' + ',' + (int) 'x' + ',' + (int) 'f' + "]).", "A", "15");
+    checkVar("number_codes(A,[" + (int) '4' + ',' + (int) '.' + ',' + (int) '2' + "]).", "A", "4.2");
     //       checkOnceVar("number_codes(A,["+(int)'4'+','+(int)'2'+','+(int)'.'+','+(int)'0'+','+(int)'e'+','+(int)'-'+','+(int)'1'+"]).","A","4.2"); // prol returns 42.0e-1 because it is based on Java number output
   }
 
@@ -605,7 +605,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     //[copy_term(_,a), success].
     checkOnce("copy_term(_,a).", true);
     //[copy_term(a+X,X+b),[[X <-- a]]].
-    checkOnceVar("copy_term(a+X,X+b).", "X", "'a'");
+    checkVar("copy_term(a+X,X+b).", "X", "'a'");
     //[copy_term(_,_), success].
     checkOnce("copy_term(_,_).", true);
 
@@ -616,7 +616,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     checkOnce("copy_term(a,b).", false);
 
     //[copy_term(f(a),f(X)),[[X <-- a]]].
-    checkOnceVar("copy_term(f(a),f(X)).", "X", "'a'");
+    checkVar("copy_term(f(a),f(X)).", "X", "'a'");
 
     //[(copy_term(a+X,X+b),copy_term(a+X,X+b)), failure].
     checkOnce("copy_term(a+X,X+b),copy_term(a+X,X+b).", false);
@@ -767,7 +767,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
     //[current_predicate(run_tests/1), success].
     checkOnce("current_predicate_all(atom/1).", true);
-    checkOnceVar("current_predicate_all(dispose/X).", "X", "0", "1");
+    checkVar("current_predicate_all(dispose/X).", "X", "0", "1");
 
     //[current_predicate(4), type_error(predicate_indicator, 4)].
     checkException("current_predicate(4).");
@@ -782,9 +782,9 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   @Test
   void testAtomConcat() throws Exception {
     //[atom_concat('hello',' world',A), [[A <-- 'hello world']]].
-    checkOnceVar("atom_concat('hello',' world',A).", "A", "'hello world'");
+    checkVar("atom_concat('hello',' world',A).", "A", "'hello world'");
     //[atom_concat(T,' world','small world'), [[T <-- 'small']]].
-    checkOnceVar("atom_concat(T,' world','small world').", "T", "'small'");
+    checkVar("atom_concat(T,' world','small world').", "T", "'small'");
     //[atom_concat('hello',' world','small world'), failure].
     checkOnce("atom_concat('hello',' world','small world').", false);
     checkOnce("atom_concat('small',' world','small world').", true);
@@ -847,20 +847,20 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   void testAtomCodes() throws Exception {
 
     //[atom_codes('',L), [[L <-- []]]].
-    checkOnceVar("atom_codes('',L).", "L", "[]");
+    checkVar("atom_codes('',L).", "L", "[]");
     //[atom_codes([],L), [[L <-- [ 0'[, 0'] ]]]].
-    checkOnceVar("atom_codes([],L).", "L", "[" + (int) '[' + ',' + (int) ']' + "]");
+    checkVar("atom_codes([],L).", "L", "[" + (int) '[' + ',' + (int) ']' + "]");
 
     //[atom_codes('''',L), [[L <-- [ 39 ]]]].
-    checkOnceVar("atom_codes('\\'',L).", "L", "[39]");
+    checkVar("atom_codes('\\'',L).", "L", "[39]");
 
     //[atom_codes('iso',L), [[L <-- [ 0'i, 0's, 0'o ]]]].
-    checkOnceVar("atom_codes('iso',L).", "L", "[" + (int) 'i' + ',' + (int) 's' + ',' + (int) 'o' + ']');
+    checkVar("atom_codes('iso',L).", "L", "[" + (int) 'i' + ',' + (int) 's' + ',' + (int) 'o' + ']');
 
     //[atom_codes(A,[ 0'p, 0'r, 0'o, 0'l, 0'o, 0'g]), [[A <-- 'prolog']]].
-    checkOnceVar("atom_codes(A,[" + (int) 'p' + ',' + (int) 'r' + ',' + (int) 'o' + ',' + (int) 'l' + ',' + (int) 'o' + ',' + (int) 'g' + "]).", "A", "'prolog'");
+    checkVar("atom_codes(A,[" + (int) 'p' + ',' + (int) 'r' + ',' + (int) 'o' + ',' + (int) 'l' + ',' + (int) 'o' + ',' + (int) 'g' + "]).", "A", "'prolog'");
     //[atom_codes('North',[0'N | L]), [[L <-- [0'o, 0'r, 0't, 0'h]]]].
-    checkOnceVar("atom_codes('North',[" + (int) 'N' + '|' + "L]).", "L", "[" + (int) 'o' + ',' + (int) 'r' + ',' + (int) 't' + ',' + (int) 'h' + ']');
+    checkVar("atom_codes('North',[" + (int) 'N' + '|' + "L]).", "L", "[" + (int) 'o' + ',' + (int) 'r' + ',' + (int) 't' + ',' + (int) 'h' + ']');
     //[atom_codes('iso',[0'i, 0's]), failure].
     checkOnce("atom_codes('iso',[" + (int) 's' + ',' + (int) 'o' + "]).", false);
 
@@ -881,9 +881,9 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     //[char_code(Char,163),[[Char <-- '\xa3\']]].
 
     //[char_code(a,Code),[[Code <-- 0'a]]].
-    checkOnceVar("char_code(a,Code).", "Code", (long) 'a');
+    checkVar("char_code(a,Code).", "Code", (long) 'a');
     //[char_code(Char,99),[[Char <-- c]]].
-    checkOnceVar("char_code(Char,99).", "Char", "'c'");
+    checkVar("char_code(Char,99).", "Char", "'c'");
     //[char_code(b,98),success].
     checkOnce("char_code(b,98).", true);
     //[char_code(b,4),failure].
@@ -902,18 +902,18 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   void testAtomChars() throws Exception {
 
     //[atom_chars('''',L), [[L <-- ['''']]]].
-    checkOnceVar("atom_chars('\\'',L).", "L", "['\\'']");
+    checkVar("atom_chars('\\'',L).", "L", "['\\'']");
 
     //[atom_chars('',L), [[L <-- []]]].
-    checkOnceVar("atom_chars('',L).", "L", "[]");
+    checkVar("atom_chars('',L).", "L", "[]");
     //[atom_chars([],L), [[L <-- ['[',']']]]].
-    checkOnceVar("atom_chars([],L).", "L", "['[',']']");
+    checkVar("atom_chars([],L).", "L", "['[',']']");
     //[atom_chars('iso',L), [[L <-- ['i','s','o']]]].
-    checkOnceVar("atom_chars('iso',L).", "L", "['i','s','o']");
+    checkVar("atom_chars('iso',L).", "L", "['i','s','o']");
     //[atom_chars(A,['p','r','o','l','o','g']), [[A <-- 'prolog']]].
-    checkOnceVar("atom_chars(A,['p','r','o','l','o','g']).", "A", "'prolog'");
+    checkVar("atom_chars(A,['p','r','o','l','o','g']).", "A", "'prolog'");
     //[atom_chars('North',['N'|X]), [[X <-- ['o','r','t','h']]]].
-    checkOnceVar("atom_chars('North',['N'|X]).", "X", "['o','r','t','h']");
+    checkVar("atom_chars('North',['N'|X]).", "X", "['o','r','t','h']");
 
     //[atom_chars('iso',['i','s']), failure].
     checkOnce("atom_chars('iso',['i','s']).", false);
@@ -946,10 +946,10 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     assertNull(goal.next());
 
     //[functor(X,foo,3), [[X <-- foo(A,B,C)]]].
-    checkOnceVar("functor(X,foo,3).", "X", "foo(_,_,_)");
+    checkVar("functor(X,foo,3).", "X", "foo(_,_,_)");
 
     //[functor(X,foo,0), [[X <-- foo]]].
-    checkOnceVar("functor(X,foo,0).", "X", "foo");
+    checkVar("functor(X,foo,0).", "X", "foo");
 
     //[functor(mats(A,B),A,B), [[A <-- mats,B <-- 2]]].
     final ChoicePoint goal2 = proveGoal("functor(mats(A,B),A,B).");
@@ -1016,9 +1016,9 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     assertNull(goal.next());
 
     //[functor(X,foo,3), [[X <-- foo(A,B,C)]]].  % A, B and C are 3 new variables
-    checkOnceVar("functor(X,foo,3).", "X", "foo(_,_,_)");
+    checkVar("functor(X,foo,3).", "X", "foo(_,_,_)");
     //[functor(X,foo,0), [[X <-- foo]]].
-    checkOnceVar("functor(X,foo,0).", "X", "foo");
+    checkVar("functor(X,foo,0).", "X", "foo");
 
     //[functor(mats(A,B),A,B), [[A <-- mats,B <-- 2]]].
     goal = proveGoal("functor(mats(A,B),A,B).");
@@ -1038,7 +1038,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     assertNull(goal.next());
 
     //[functor(X,1.1,0), [[X <-- 1.1]]].
-    checkOnceVar("functor(X,1.1,0).", "X", "1.1");
+    checkVar("functor(X,1.1,0).", "X", "1.1");
     //[functor([_|_],'.',2), success].
     checkOnce("functor([_|_],'.',2).", true);
     //[functor([],[],0), success].
@@ -1072,7 +1072,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     //[\+((!,fail)), success].
     checkOnce("\\+((!,fail)).", true);
     //[((X=1;X=2), \+((!,fail))), [[X <-- 1],[X <-- 2]]].
-    checkOnceVar("((X=1;X=2),\\+((!,fail))).", "X", 1L, 2L);
+    checkVar("((X=1;X=2),\\+((!,fail))).", "X", 1L, 2L);
     //[\+(4 = 5), success].
     checkOnce("\\+(4=5).", true);
     //[\+(3), type_error(callable, 3)].
@@ -1086,7 +1086,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     //[once(!), success].
     checkOnce("once(!).", true);
     //[(once(!), (X=1; X=2)), [[X <-- 1],[X <-- 2]]].
-    checkOnceVar("once(!),(X=1;X=2).", "X", 1L, 2L);
+    checkVar("once(!),(X=1;X=2).", "X", 1L, 2L);
     //[once(repeat), success].
     checkOnce("once(repeat).", true);
     //[once(fail), failure].
@@ -1102,9 +1102,9 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     //[arg(1,foo(a,b),a), success].
     checkOnce("arg(1,foo(a,b),a).", true);
     //[arg(1,foo(X,b),a), [[X <-- a]]].
-    checkOnceVar("arg(1,foo(X,b),a).", "X", "'a'");
+    checkVar("arg(1,foo(X,b),a).", "X", "'a'");
     //[arg(1,foo(a,b),X), [[X <-- a]]].
-    checkOnceVar("arg(1,foo(a,b),X).", "X", "'a'");
+    checkVar("arg(1,foo(a,b),X).", "X", "'a'");
 
     //[arg(2,foo(a, f(X,b), c), f(a, Y)), [[X <-- a, Y <-- b]]].
     final ChoicePoint goal = proveGoal("arg(2,foo(a, f(X,b), c), f(a, Y)).");
@@ -1113,7 +1113,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     assertNull(goal.next());
 
     //[arg(1,foo(X,b),Y), [[Y <-- X]]].
-    checkOnceVar("arg(1,foo(X,b),Y).", "Y", "X");
+    checkVar("arg(1,foo(X,b),Y).", "Y", "X");
 
     //[arg(1,foo(a,b),b), failure].
     checkOnce("arg(1,foo(a,b),b).", false);
@@ -1139,9 +1139,9 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   @Test
   void testAtomLength() throws Exception {
     //[atom_length('enchanted evening', N), [[N <-- 17]]].
-    checkOnceVar("atom_length('enchanted evening', N).", "N", 17L);
+    checkVar("atom_length('enchanted evening', N).", "N", 17L);
     //[atom_length('', N), [[N <-- 0]]].
-    checkOnceVar("atom_length('', N).", "N", 0L);
+    checkVar("atom_length('', N).", "N", 0L);
     //[atom_length(Atom, 4), instantiation_error]. % Culprit Atom
     checkException("atom_length(Atom, 4).");
     //[atom_length('scarlet', 5), failure].
@@ -1171,9 +1171,9 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     //['='(1,1), success].
     checkOnce("'='(1,1).", true);
     //['='(X,1),[[X <-- 1]]].
-    checkOnceVar("'='(X,1).", "X", 1L);
+    checkVar("'='(X,1).", "X", 1L);
     //['='(X,Y),[[Y <-- X]]].
-    checkOnceVar("Y=3,'='(X,Y).", "X", 3L);
+    checkVar("Y=3,'='(X,Y).", "X", 3L);
 
     //[('='(X,Y),'='(X,abc)),[[X <-- abc, Y <-- abc]]].
     ChoicePoint goal = proveGoal("X=Y,'='(X,abc).");
@@ -1181,7 +1181,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     assertEquals(goal.getVarAsText("Y"), "'abc'");
     assertNull(goal.next());
 
-    checkOnceVar("X=Y,'='(X,abc).", "Y", "'abc'");
+    checkVar("X=Y,'='(X,abc).", "Y", "'abc'");
 
     //['='(f(X,def),f(def,Y)), [[X <-- def, Y <-- def]]].
     goal = proveGoal("'='(f(X,def),f(def,Y)).");
@@ -1220,7 +1220,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     //[nonvar(Foo), failure].
     checkOnce("nonvar(Foo).", false);
     //[(foo=Foo,nonvar(Foo)),[[Foo <-- foo]]].
-    checkOnceVar("foo=Foo,nonvar(Foo).", "Foo", "'foo'");
+    checkVar("foo=Foo,nonvar(Foo).", "Foo", "'foo'");
     //[nonvar(_), failure].
     checkOnce("nonvar(_).", false);
     //[nonvar(a(b)), success].
@@ -1317,18 +1317,18 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     checkOnce("number_chars(33,['3','3']).", true);
 
     //[number_chars(33,L), [[L <-- ['3','3']]]].
-    checkOnceVar("number_chars(33,L).", "L", "['3','3']");
+    checkVar("number_chars(33,L).", "L", "['3','3']");
 
     //[number_chars(33.0,L), [[L <-- ['3','3','.','0']]]].
-    checkOnceVar("number_chars(33.0,L).", "L", "['3','3','.','0']");
+    checkVar("number_chars(33.0,L).", "L", "['3','3','.','0']");
     //[number_chars(X,['3','.','3','E','+','0']), [[X <-- 3.3]]].
-    checkOnceVar("number_chars(X,['3','.','3','E','+','0']).", "X", 3.3d);
+    checkVar("number_chars(X,['3','.','3','E','+','0']).", "X", 3.3d);
     //[number_chars(3.3,['3','.','3','E','+','0']), success].
     checkOnce("number_chars(3.3,['3','.','3','E','+','0']).", true);
     //[number_chars(A,['-','2','5']), [[A <-- (-25)]]].
-    checkOnceVar("number_chars(A,['-','2','5']).", "A", -25L);
+    checkVar("number_chars(A,['-','2','5']).", "A", -25L);
     //[number_chars(A,['\n',' ','3']), [[A <-- 3]]].
-    checkOnceVar("number_chars(A,['\\n',' ','3']).", "A", 3L);
+    checkVar("number_chars(A,['\\n',' ','3']).", "A", 3L);
 
     //[number_chars(A,['3',' ']), syntax_error(_)].
     checkException("number_chars(A,['3',' ']).");
@@ -1340,11 +1340,11 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     //[number_chars(A,['4',2]), type_error(character, 2)].
 
     //[number_chars(A,['4','.','2']), [[A <-- 4.2]]].
-    checkOnceVar("number_chars(A,['4','.','2']).", "A", 4.2d);
+    checkVar("number_chars(A,['4','.','2']).", "A", 4.2d);
     //[number_chars(A,['4','2','.','0','e','-','1']), [[A <-- 4.2]]].
-    checkOnceVar("number_chars(A,['4','2','.','0','e','-','1']).", "A", 4.2d);
+    checkVar("number_chars(A,['4','2','.','0','e','-','1']).", "A", 4.2d);
     //[number_chars(A,['0',x,f]), [[A <-- 15]]].
-    checkOnceVar("number_chars(A,['0',x,f]).", "A", 15L);
+    checkVar("number_chars(A,['0',x,f]).", "A", 15L);
 
     //[number_chars(A,L), instantiation_error].
     checkException("number_chars(A,L).");

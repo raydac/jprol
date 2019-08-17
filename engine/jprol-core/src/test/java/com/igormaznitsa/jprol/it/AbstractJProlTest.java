@@ -69,24 +69,30 @@ public abstract class AbstractJProlTest {
     return thisGoal;
   }
 
-  protected void checkOnceVar(String goal, String var, Object... result) {
-    this.checkOnceVar(makeTestContext(), goal, var, result);
+  protected void checkVar(final String consult, final String goal, final String varName, final Object... results) {
+    final JProlContext context = makeTestContext();
+    context.consult(new StringReader(consult));
+    this.checkVar(context, goal, varName, results);
   }
 
-  protected void checkOnceVar(JProlContext context, String goal, String var, Object... result) {
+  protected void checkVar(final String goal, final String var, final Object... result) {
+    this.checkVar(makeTestContext(), goal, var, result);
+  }
+
+  protected void checkVar(JProlContext context, String goal, String varName, Object... results) {
     final ChoicePoint thisGoal = new ChoicePoint(goal, context);
 
-    for (final Object res : result) {
+    for (final Object res : results) {
       assertNotNull(thisGoal.next());
       if (res instanceof Number) {
         if (res instanceof Double) {
-          assertEquals(0, Double.compare(thisGoal.getVarAsNumber(var).doubleValue(), (Double) res));
+          assertEquals(0, Double.compare(thisGoal.getVarAsNumber(varName).doubleValue(), (Double) res));
         } else {
-          assertEquals(res, thisGoal.getVarAsNumber(var));
+          assertEquals(res, thisGoal.getVarAsNumber(varName));
         }
 
       } else {
-        assertEquals(res.toString(), thisGoal.getVarAsText(var));
+        assertEquals(res.toString(), thisGoal.getVarAsText(varName));
       }
     }
     assertNull(thisGoal.next());
