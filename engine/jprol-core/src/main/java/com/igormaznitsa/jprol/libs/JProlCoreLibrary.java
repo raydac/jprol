@@ -30,10 +30,7 @@ import com.igormaznitsa.jprol.utils.Utils;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -77,8 +74,6 @@ import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.*;
     @ProlOperator(priority = 200, type = XFY, name = "^")
 })
 public final class JProlCoreLibrary extends AbstractJProlLibrary {
-
-  private static final Random RANDOMIZEGEN = new Random(System.nanoTime());
 
   public JProlCoreLibrary() {
     super("jprol-core-lib");
@@ -1327,31 +1322,25 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return term.unifyTo(Terms.newLong(value));
   }
 
-  @Predicate(signature = "rnd/2", template = {"+integer,?integer", "+list,?term"}, reference = "Allows to generate a pseudo randomize integer (limit,value) between 0 (inclusive) and the limit (exclusive) or select random element from the list.")
+  @Predicate(signature = "rnd/2", template = {"+integer,?integer", "+list,?term"}, reference = "Generate pseudo random in 0(included)...limit(excluded) or select random element from the list.")
   @Determined
   public static boolean predicateRND(final ChoicePoint goal, final TermStruct predicate) {
-    final Term term = predicate.getElement(0).findNonVarOrSame();
+    final Term first = predicate.getElement(0).findNonVarOrSame();
+    final Term second = predicate.getElement(1).findNonVarOrSame();
 
-    if (term.getTermType() == LIST) {
-
-      final TermList list = (TermList) term;
-
-      final Term result;
+    final Term result;
+    if (first.getTermType() == LIST) {
+      final TermList list = (TermList) first;
       if (list.isNullList()) {
         result = Terms.NULL_LIST;
       } else {
-        // calculate length of the list
         final Term[] array = list.toArray();
-        result = array[RANDOMIZEGEN.nextInt(array.length)];
+        result = array[ThreadLocalRandom.current().nextInt(array.length)];
       }
-      return predicate.getElement(1).unifyTo(result);
-
     } else {
-      final long limit = predicate.getElement(0).findNonVarOrSame().toNumber().longValue();
-
-      final TermLong genVal = newLong(Math.round(RANDOMIZEGEN.nextDouble() * limit));
-      return predicate.getElement(1).unifyTo(genVal);
+      result = Terms.newLong(ThreadLocalRandom.current().nextLong(first.toNumber().longValue()));
     }
+    return second.unifyTo(result);
   }
 
   @Predicate(signature = "atom_length/2", template = {"+atom,?integer"}, reference = "atom_length(Atom, Length) is true if and only if the integer Length equals the number of characters in the name of the atom Atom.")

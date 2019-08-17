@@ -11,6 +11,13 @@ import static org.junit.jupiter.api.Assertions.*;
 class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
+  void testRnd2() {
+    checkOnce("rnd(5,X).", true);
+    checkOnce("rnd([1,2,3],X).", true);
+    checkVarValues("rnd([],X).", "X", "[]");
+  }
+
+  @Test
   void testFor3() {
     checkVarValues("for(X,0,1).", "X", "0", "1");
     checkOnce("for(100,100,101).", true);
