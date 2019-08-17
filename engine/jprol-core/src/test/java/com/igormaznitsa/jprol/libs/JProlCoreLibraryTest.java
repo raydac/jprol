@@ -11,6 +11,43 @@ import static org.junit.jupiter.api.Assertions.*;
 class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
+  void testFor3() {
+    checkVarValues("for(X,0,1).", "X", "0", "1");
+    checkOnce("for(100,100,101).", true);
+    checkOnce("for(X,4,1).", false);
+    checkOnce("for(5,1,4).", false);
+    checkException("for(5,X,4).");
+    checkException("for(5,1,X).");
+    checkException("for(5,A,X).");
+  }
+
+  @Test
+  void testIfThen() {
+    //['->'(true, true), success].
+    checkOnce("->(true, true).", true);
+    //['->'(true, fail), failure].
+    checkOnce("->(true, fail).", false);
+    //['->'(fail, true), failure].
+    checkOnce("->(fail, true).", false);
+    //['->'(true, X=1), [[X <-- 1]]].
+    checkVarValues("true -> X=1.", "X", 1L);
+    //['->'(';'(X=1, X=2), true), [[X <-- 1]]].
+    checkVarValues("->(';'(X=1, X=2), true).", "X", 1L);
+    //['->'(true, ';'(X=1, X=2)), [[X <-- 1], [X <-- 2]]].
+    checkVarValues("->(true, ';'(X=1, X=2)).", "X", 1L, 2L);
+
+    consultAndCheckVar("max(X,Y,Z):-(X=<Y->Z=Y;Z=X).", "max(1,2,Z).", "Z", "2");
+    consultAndCheckVar("max(X,Y,Z):-(X=<Y->Z=Y;Z=X).", "max(2,1,Z).", "Z", "2");
+  }
+
+  @Test
+  void testTermAsList3() {
+    checkVarValues("foo(hello, X)=..List.", "List", "['foo','hello',X]");
+    checkVarValues("Term=..[baz, foo(1)].", "Term", "baz(foo(1))");
+    checkException("a()=..L.");
+  }
+
+  @Test
   void testXor1() {
     checkVarValues("X is xor(123,334).", "X", String.valueOf(123 ^ 334));
     checkVarValues("X is xor(123,xor(334,4452234)).", "X", String.valueOf(123 ^ 334 ^ 4452234));

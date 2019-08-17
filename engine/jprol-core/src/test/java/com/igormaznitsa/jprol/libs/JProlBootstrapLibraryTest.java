@@ -188,25 +188,6 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testIfThen() {
-    //['->'(true, true), success].
-    checkOnce("->(true, true).", true);
-    //['->'(true, fail), failure].
-    checkOnce("->(true, fail).", false);
-    //['->'(fail, true), failure].
-    checkOnce("->(fail, true).", false);
-    //['->'(true, X=1), [[X <-- 1]]].
-    checkVarValues("true -> X=1.", "X", 1L);
-    //['->'(';'(X=1, X=2), true), [[X <-- 1]]].
-    checkVarValues("->(';'(X=1, X=2), true).", "X", 1L);
-    //['->'(true, ';'(X=1, X=2)), [[X <-- 1], [X <-- 2]]].
-    checkVarValues("->(true, ';'(X=1, X=2)).", "X", 1L, 2L);
-
-    consultAndCheckVar("max(X,Y,Z):-(X=<Y->Z=Y;Z=X).", "max(1,2,Z).", "Z", "2");
-    consultAndCheckVar("max(X,Y,Z):-(X=<Y->Z=Y;Z=X).", "max(2,1,Z).", "Z", "2");
-  }
-
-  @Test
   void testCut0() {
     checkOnce("p1 :- \\+ q1. q1 :- fail. q1 :- true. p2:- \\+ q2. q2 :- !, fail. q2 :- true.", "p1.", false);
     checkOnce("p1 :- \\+ q1. q1 :- fail. q1 :- true. p2:- \\+ q2. q2 :- !, fail. q2 :- true.", "p2.", true);

@@ -982,15 +982,22 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final Term argLeft = predicate.getElement(0).findNonVarOrSame();
     final Term argRight = predicate.getElement(1).findNonVarOrSame();
 
-    if (argRight.getTermType() != VAR) {
+    if (argLeft.getTermType() == STRUCT) {
+      if (((TermStruct) argLeft).getArity() == 0) {
+        throw new ProlDomainErrorException("compound_non_zero_arity", predicate);
+      }
+    }
+
+    if (argRight.getTermType() == VAR) {
+      TermList list = TermList.asTermList(argLeft);
+      return argRight.unifyTo(list);
+    } else {
       final Term atom = ((TermList) argRight).toAtom();
       if (atom.getTermType() == STRUCT) {
-        ((TermStruct) atom).setPredicateProcessor(goal.getContext().findProcessor((TermStruct) atom));
+        final TermStruct atomAsStruct = (TermStruct) atom;
+        atomAsStruct.setPredicateProcessor(goal.getContext().findProcessor(atomAsStruct));
       }
       return argLeft.unifyTo(atom);
-    } else {
-      TermList lst = TermList.asTermList(argLeft);
-      return argRight.unifyTo(lst);
     }
   }
 
@@ -1300,33 +1307,24 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return false;
   }
 
-  @Predicate(signature = "for/3", template = {"?term,+integer,+integer"}, reference = "Allows to make an integer counter from a variable, (TermVar, Start, End).")
+  @Predicate(signature = "for/3", template = {"?term,+integer,+integer"}, reference = "Allows to make integer counter from a variable, (TermVar, Low, High).")
   public static boolean predicateFOR(final ChoicePoint goal, final TermStruct predicate) {
-    final Term term = predicate.getElement(0);
-    if (term.getTermType() != VAR) {
+    final Term term = predicate.getElement(0).findNonVarOrSame();
+    final long low = predicate.getElement(1).findNonVarOrSame().toNumber().longValue();
+    final long high = predicate.getElement(2).findNonVarOrSame().toNumber().longValue();
+    AtomicLong counter = goal.getPayload();
+    if (counter == null) {
+      counter = new AtomicLong(low);
+      goal.setPayload(counter);
+    } else {
+      counter.incrementAndGet();
+    }
+    final long value = counter.longValue();
+    if (value > high) {
       goal.cutVariants();
       return false;
     }
-
-    final TermVar var = predicate.getElement(0);
-    final long start = predicate.getElement(1).findNonVarOrSame().toNumber().longValue();
-    final long limit = predicate.getElement(2).findNonVarOrSame().toNumber().longValue();
-
-    AtomicLong currentIndex = goal.getPayload();
-
-    boolean result = true;
-    if (currentIndex == null) {
-      currentIndex = new AtomicLong(start);
-      var.changeVarChainValue(newLong(start));
-      goal.setPayload(currentIndex);
-    } else {
-      if (currentIndex.incrementAndGet() > limit) {
-        goal.cutVariants();
-        result = false;
-      }
-    }
-
-    return result;
+    return term.unifyTo(Terms.newLong(value));
   }
 
   @Predicate(signature = "rnd/2", template = {"+integer,?integer", "+list,?term"}, reference = "Allows to generate a pseudo randomize integer (limit,value) between 0 (inclusive) and the limit (exclusive) or select random element from the list.")
