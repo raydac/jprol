@@ -1,4 +1,5 @@
 nb-configuration.xml
+dependency-reduced-pom.xml
 *.iml
-/**/.idea/
-/**/target/
+.idea/
+target/

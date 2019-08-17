@@ -69,17 +69,17 @@ public abstract class AbstractJProlTest {
     return thisGoal;
   }
 
-  protected void checkVar(final String consult, final String goal, final String varName, final Object... results) {
+  protected void consultAndCheckVar(final String consult, final String goal, final String varName, final Object... results) {
     final JProlContext context = makeTestContext();
     context.consult(new StringReader(consult));
-    this.checkVar(context, goal, varName, results);
+    this.checkVarValues(context, goal, varName, results);
   }
 
-  protected void checkVar(final String goal, final String var, final Object... result) {
-    this.checkVar(makeTestContext(), goal, var, result);
+  protected void checkVarValues(final String goal, final String var, final Object... result) {
+    this.checkVarValues(makeTestContext(), goal, var, result);
   }
 
-  protected void checkVar(JProlContext context, String goal, String varName, Object... results) {
+  protected void checkVarValues(JProlContext context, String goal, String varName, Object... results) {
     final ChoicePoint thisGoal = new ChoicePoint(goal, context);
 
     for (final Object res : results) {

@@ -43,7 +43,7 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
     checkException("is(X,float(3)).");
 
     //['is'(Result,3 + 11.0),[[Result <-- 14.0]]].
-    checkVar("is(Result,3+11.0).", "Result", 14.0d);
+    checkVarValues("is(Result,3+11.0).", "Result", 14.0d);
 
     //[(X = 1 + 2, 'is'(Y, X * 3)),[[X <-- (1 + 2), Y <-- 9]]]. % error? 1+2
     ChoicePoint goal = proveGoal("X=1+2,is(Y,X*3).");
@@ -148,9 +148,9 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
     //[';'(!, call(3)), success].
     checkOnce("';'(!, call(3)).", true);
     //[';'((X=1, !), X=2), [[X <-- 1]]].
-    checkVar("';'((X=1, !), X=2).", "X", 1L);
+    checkVarValues("';'((X=1, !), X=2).", "X", 1L);
     //[';'(X=1, X=2), [[X <-- 1], [X <-- 2]]].
-    checkVar("';'(X=1, X=2).", "X", 1L, 2L);
+    checkVarValues("';'(X=1, X=2).", "X", 1L, 2L);
   }
 
   @Test
@@ -158,11 +158,11 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
     //[','(X=1, var(X)), failure].
     checkOnce("','(X=1,var(X)).", false);
     //[','(var(X), X=1), [[X <-- 1]]].
-    checkVar("','(var(X),X=1).", "X", 1L);
+    checkVarValues("','(var(X),X=1).", "X", 1L);
     //[','(fail, call(3)), failure].
     checkOnce("','(fail,call(3)).", false);
     //[','(X = true, call(X)), [[X <-- true]]].
-    checkVar("','(X=true,call(X)).", "X", "true");
+    checkVarValues("','(X=true,call(X)).", "X", "true");
     //[','(nofoo(X), call(X)), existence_error(procedure, nofoo/1)].
     checkOnce("','(nofoo(X), call(X)).", false);
   }
@@ -178,13 +178,13 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
     //[';'('->'(fail, true), fail), failure].
     checkOnce("';'('->'(fail, true), fail).", false);
     //[';'('->'(true, X=1), X=2), [[X <-- 1]]].
-    checkVar("true->X=1;X=2.", "X", 1L);
+    checkVarValues("true->X=1;X=2.", "X", 1L);
     //[';'('->'(fail, X=1), X=2), [[X <-- 2]]].
-    checkVar("';'('->'(fail, X=1), X=2).", "X", 2L);
+    checkVarValues("';'('->'(fail, X=1), X=2).", "X", 2L);
     //[';'('->'(true, ';'(X=1, X=2)), true), [[X <-- 1], [X <-- 2]]].
-    checkVar("';'('->'(true, ';'(X=1, X=2)), true).", "X", 1L, 2L);
+    checkVarValues("';'('->'(true, ';'(X=1, X=2)), true).", "X", 1L, 2L);
     //[';'('->'(';'(X=1, X=2), true), true), [[X <-- 1]]].
-    checkVar("';'('->'(';'(X=1, X=2), true), true).", "X", 1L);
+    checkVarValues("';'('->'(';'(X=1, X=2), true), true).", "X", 1L);
   }
 
   @Test
@@ -196,14 +196,14 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
     //['->'(fail, true), failure].
     checkOnce("->(fail, true).", false);
     //['->'(true, X=1), [[X <-- 1]]].
-    checkVar("true -> X=1.", "X", 1L);
+    checkVarValues("true -> X=1.", "X", 1L);
     //['->'(';'(X=1, X=2), true), [[X <-- 1]]].
-    checkVar("->(';'(X=1, X=2), true).", "X", 1L);
+    checkVarValues("->(';'(X=1, X=2), true).", "X", 1L);
     //['->'(true, ';'(X=1, X=2)), [[X <-- 1], [X <-- 2]]].
-    checkVar("->(true, ';'(X=1, X=2)).", "X", 1L, 2L);
+    checkVarValues("->(true, ';'(X=1, X=2)).", "X", 1L, 2L);
 
-    checkVar("max(X,Y,Z):-(X=<Y->Z=Y;Z=X).", "max(1,2,Z).", "Z", "2");
-    checkVar("max(X,Y,Z):-(X=<Y->Z=Y;Z=X).", "max(2,1,Z).", "Z", "2");
+    consultAndCheckVar("max(X,Y,Z):-(X=<Y->Z=Y;Z=X).", "max(1,2,Z).", "Z", "2");
+    consultAndCheckVar("max(X,Y,Z):-(X=<Y->Z=Y;Z=X).", "max(2,1,Z).", "Z", "2");
   }
 
   @Test
