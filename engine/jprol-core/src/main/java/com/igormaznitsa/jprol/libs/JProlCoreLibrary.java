@@ -769,12 +769,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   @Predicate(signature = "var/1", reference = "var(X) is true if and only if X is a variable.")
   @Determined
   public static boolean predicateVAR(final ChoicePoint goal, final TermStruct predicate) {
-    final Term arg = predicate.getElement(0);
-    if (arg.getTermType() == VAR) {
-      return ((TermVar) arg).isFree();
-    } else {
-      return false;
-    }
+    return predicate.getElement(0).findNonVarOrSame().getTermType() == VAR;
   }
 
   @Predicate(signature = "nonvar/1", reference = "nonvar(X) is true if and only if X is not a variable.")

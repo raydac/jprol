@@ -11,6 +11,16 @@ import static org.junit.jupiter.api.Assertions.*;
 class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
+  void testVar1() {
+    checkOnce("var(C).", true);
+    checkOnce("var(1).", false);
+    checkOnce("C=A,var(C).", true);
+    checkOnce("C=A,A=3,var(C).", false);
+    checkOnce("var([]).", false);
+    checkOnce("var(a(1,2)).s", false);
+  }
+
+  @Test
   void testRnd2() {
     checkOnce("rnd(5,X).", true);
     checkOnce("rnd([1,2,3],X).", true);
