@@ -64,7 +64,7 @@ class PrimitiveTest extends AbstractJProlTest {
     assertEquals("'true'", goal.getVarAsText("Y"));
 
     assertNotNull(goal.next());
-    assertNull(goal.getVarAsText("X"));
+    assertEquals("X", goal.getVarAsText("X"));
     assertEquals("X = 100", goal.getVarAsText("Y"));
 
     assertNotNull(goal.next());

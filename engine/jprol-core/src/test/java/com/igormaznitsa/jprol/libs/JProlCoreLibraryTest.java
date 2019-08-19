@@ -14,6 +14,9 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testAsserta1() {
+    //[asserta((foo :- 4)), type_error(callable, 4)].
+    //checkException("asserta((foo :- 4)).");
+
     checkVarValues("asserta(some1(a)), asserta(some1(b)), some1(X).", "X", "'b'", "'a'");
 
     checkVarValues("asserta((bar(X):-X is 3)), clause(bar(X),Y).", "Y", "X is 3");
@@ -23,9 +26,6 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
     //[asserta(4), type_error(callable, 4)].
     checkException("asserta(4).");
-
-    //[asserta((foo :- 4)), type_error(callable, 4)].
-    checkException("asserta((foo :- 4)).");
 
     //[asserta((atom(_) :- true)), permission_error(modify,static_procedure,atom/1)].
     checkException("asserta((atom(_) :- true)).");
@@ -111,7 +111,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   void testPause1() {
     final long start = System.currentTimeMillis();
     checkVarValues("X=100,pause(X).", "X", "100");
-    assertTrue(System.currentTimeMillis() - start > 100);
+    assertTrue(System.currentTimeMillis() - start >= 100L);
     checkException("pause(X).");
     checkException("pause(a(1)).");
   }

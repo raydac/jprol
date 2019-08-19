@@ -622,7 +622,9 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
 
       if (head.dryUnifyTo(headClause) && body.dryUnifyTo(bodyClause)) {
-        return assertUnify(head, headClause) && assertUnify(body, bodyClause);
+        final boolean result = assertUnify(head, headClause) && assertUnify(body, bodyClause);
+        head.arrangeVariablesInsideTerms(body);
+        return result;
       }
     }
     goal.cutVariants();
