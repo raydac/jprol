@@ -1963,32 +1963,31 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
   }
 
-  // inside function used by facts/1 and rules/1 predicates
+  // internal auxiliary function for facts/1 and rules/1 predicates
   private static TermStruct processIterator(final ChoicePoint goal, final Iterator<TermStruct> iterator) {
     TermStruct result = null;
-
     if (iterator.hasNext()) {
       result = iterator.next();
     } else {
       goal.cutVariants();
     }
-
     return result;
   }
 
   @Predicate(signature = "facts/1", template = {"+callable_term"}, reference = "Finds only facts at the knowledge base.")
   public static boolean predicateFACTS(final ChoicePoint goal, final TermStruct predicate) {
-    Iterator<TermStruct> factIterator = goal.getPayload();
-    final Term origterm = predicate.getElement(0).findNonVarOrSame();
+    final Term callableTerm = predicate.getElement(0).findNonVarOrSame();
 
+    Iterator<TermStruct> factIterator = goal.getPayload();
     if (factIterator == null) {
-      Term term = origterm;
+      Term term = callableTerm;
       if (term.getTermType() == ATOM) {
         term = newStruct(term);
       }
 
-      final KnowledgeBase base = goal.getContext().getKnowledgeBase();
-      factIterator = base.iterate(goal.getContext().getKnowledgeContext(), IteratorType.FACTS, (TermStruct) term);
+      factIterator = goal.getContext()
+          .getKnowledgeBase()
+          .iterate(goal.getContext().getKnowledgeContext(), IteratorType.FACTS, (TermStruct) term);
 
       if (factIterator == null) {
         goal.cutVariants();
@@ -1999,16 +1998,12 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
 
     boolean result = false;
-
     final TermStruct nextFact = processIterator(goal, factIterator);
     if (nextFact == null) {
-      goal.setPayload(null);
       goal.cutVariants();
-    } else if (origterm.getTermType() == ATOM) {
-      result = true;
     } else {
-      if (!origterm.unifyTo(nextFact)) {
-        throw new ProlCriticalError("Critical error, not unifyTo!");
+      if (!callableTerm.unifyTo(nextFact)) {
+        throw new ProlCriticalError("Critical error in facts/1!");
       }
       result = true;
     }
