@@ -8,7 +8,6 @@ import com.igormaznitsa.jprol.data.NumericTerm;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermType;
-import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlSystemFlag;
@@ -64,12 +63,8 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
       if (atom.dryUnifyTo(flag.getNameTerm())) {
         final Term flagValue = goal.getContext().getSystemFlag(flag);
         if (term.dryUnifyTo(flagValue)) {
-          if (!(atom.unifyTo(flag.getNameTerm()) && term.unifyTo(flagValue))) {
-            throw new ProlCriticalError("Unexpected situation, can't unify prolog flag");
-          } else {
-            found = true;
-            break;
-          }
+          found = assertUnify(atom, flag.getNameTerm()) && assertUnify(term, flagValue);
+          break;
         }
       }
 

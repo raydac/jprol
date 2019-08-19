@@ -66,6 +66,13 @@ public abstract class AbstractJProlLibrary {
     this.zeroArityPredicateNames = Collections.unmodifiableSet(zeroArityPredicates);
   }
 
+  protected static boolean assertUnify(final Term a, final Term b) {
+    if (!a.unifyTo(b)) {
+      throw new ProlCriticalError("Can't unify terms, it's critical unexpected error, contact developer!");
+    }
+    return true;
+  }
+
   public CloseableIterator<TermOperator> makeOperatorIterator() {
     return new OperatorIterator(this.systemOperators.values().iterator());
   }

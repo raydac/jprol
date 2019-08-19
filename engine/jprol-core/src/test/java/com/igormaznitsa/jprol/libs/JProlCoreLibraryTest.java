@@ -1,5 +1,7 @@
 package com.igormaznitsa.jprol.libs;
 
+import com.igormaznitsa.jprol.data.TermType;
+import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.exceptions.ProlCustomErrorException;
 import com.igormaznitsa.jprol.it.AbstractJProlTest;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
@@ -9,6 +11,128 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class JProlCoreLibraryTest extends AbstractJProlTest {
+
+  @Test
+  void testAsserta1() {
+    checkVarValues("asserta(some1(a)), asserta(some1(b)), some1(X).", "X", "'b'", "'a'");
+
+    checkVarValues("asserta((bar(X):-X is 3)), clause(bar(X),Y).", "Y", "X is 3");
+
+    //[asserta(_), instantiation_error].
+    checkException("asserta(_).");
+
+    //[asserta(4), type_error(callable, 4)].
+    checkException("asserta(4).");
+
+    //[asserta((foo :- 4)), type_error(callable, 4)].
+    checkException("asserta((foo :- 4)).");
+
+    //[asserta((atom(_) :- true)), permission_error(modify,static_procedure,atom/1)].
+    checkException("asserta((atom(_) :- true)).");
+
+    //[(asserta((bar(X) :- X)), clause(bar(X), B)), [[B <-- call(X)]]].
+    final ChoicePoint testCp = new ChoicePoint("asserta((bar(X):-X)), clause(bar(X),Y).", makeTestContext());
+    assertNotNull(testCp.next());
+    final TermVar yVar = testCp.getVarForName("Y");
+    assertTrue(yVar.getThisValue().getTermType() == TermType.VAR);
+    assertTrue("X".equals(yVar.getThisValue().getText()));
+  }
+
+  @Test
+  void testAssertz1() {
+    checkVarValues("assertz(some1(a)), assertz(some1(b)), some1(X).", "X", "'a'", "'b'");
+  }
+
+  @Test
+  void testRetracta1() {
+    checkVarValues("asserta(some1(a)), asserta(some1(b)), retracta(some1(_)), some1(X).", "X", "'a'");
+  }
+
+  @Test
+  void testRetractz1() {
+    checkVarValues("asserta(some1(a)), asserta(some1(b)), retractz(some1(_)), some1(X).", "X", "'b'");
+  }
+
+  @Test
+  void testShiftL2() {
+    checkVarValues("X is 1346 >> 3.", "X", "168");
+    checkVarValues("X is 1346.423 >> 3.", "X", "168");
+    checkVarValues("X is 1346 >> 0.", "X", "1346");
+    checkException("X is 1346 >> a.");
+    checkException("X is a >> 3.");
+  }
+
+  @Test
+  void testShiftR2() {
+    checkVarValues("X is 1346 << 3.", "X", "10768");
+    checkVarValues("X is 1346.423 << 3.", "X", "10768");
+    checkVarValues("X is 1346 << 0.", "X", "1346");
+    checkVarValues("X is 1346 << 3.4.", "X", "10768");
+    checkException("X is 1346 << a.");
+  }
+
+  @Test
+  void testIDiv2() {
+    checkVarValues("X is 10 // 3.", "X", "3");
+    checkVarValues("X is 10 // 2.", "X", "5");
+    checkVarValues("X is -11 // 4.", "X", "-2");
+
+    checkException("X is 10 // 0.");
+    checkException("X is 10 // 0.3.");
+    checkException("X is 10.5 // 3.");
+  }
+
+  @Test
+  void testDiv2() {
+    checkVarValues("X is 10 / 3.", "X", "3");
+    checkVarValues("X is 10 / 2.", "X", "5");
+    checkVarValues("X is -11 / 4.", "X", "-2");
+    checkVarValues("X is -10 / 2.5.", "X", "-4.0");
+    checkVarValues("X is 2.5 / 2.5.", "X", "1.0");
+
+    checkException("X is 10.3 / 0.");
+    checkException("X is 10 / 0.0.");
+  }
+
+  @Test
+  void testFacts1() {
+    consultAndCheckVar("some1(a). some1(b). some1(X):-number(X). some1(c). some1(X).", "facts(some1(X)).", "X", "'a'", "'b'", "'c'");
+    consultAndCheckVar("some1(a,b). some1(c,d). some1(a,X):-number(X). some1(c,e). some1(X,X).", "facts(some1(A,B)), X = A/B.", "X", "'a' / 'b'", "'c' / 'd'", "'c' / 'e'");
+    checkException("facts(X).");
+  }
+
+  @Test
+  void testSort2() {
+    checkVarsAfterCall("sort([B,A,1], [2,3,1]).", new String[][] {new String[] {"A", "B"}, new String[] {"3", "2"}});
+    checkVarValues("sort([4,2,5,1,4,7,8,2,6,5,3,5,9,1,0],X).", "X", "[0,1,2,3,4,5,6,7,8,9]");
+  }
+
+  @Test
+  void testPause1() {
+    final long start = System.currentTimeMillis();
+    checkVarValues("X=100,pause(X).", "X", "100");
+    assertTrue(System.currentTimeMillis() - start > 100);
+    checkException("pause(X).");
+    checkException("pause(a(1)).");
+  }
+
+  @Test
+  void testNeg1() {
+    checkVarValues("C=-1, X is -C.", "X", "1");
+    checkVarValues("C=1, X is -C.", "X", "-1");
+    checkVarValues("C=1.5, X is -C.", "X", "-1.5");
+    checkVarValues("C=-1.5, X is -C.", "X", "1.5");
+    checkException("X is -C.");
+  }
+
+  @Test
+  void testPlus1() {
+    checkVarValues("C=-1, X is +C.", "X", "-1");
+    checkVarValues("C=1, X is +C.", "X", "1");
+    checkVarValues("C=1.5, X is +C.", "X", "1.5");
+    checkVarValues("C=-1.5, X is +C.", "X", "-1.5");
+    checkException("X is +C.");
+  }
 
   @Test
   void testVar1() {
@@ -39,7 +163,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testIfThen() {
+  void testIfThen2() {
     //['->'(true, true), success].
     checkOnce("->(true, true).", true);
     //['->'(true, fail), failure].
@@ -65,7 +189,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testXor1() {
+  void testXor2() {
     checkVarValues("X is xor(123,334).", "X", String.valueOf(123 ^ 334));
     checkVarValues("X is xor(123,xor(334,4452234)).", "X", String.valueOf(123 ^ 334 ^ 4452234));
     checkException("X is xor(123,xor(334.24,4452234.21)).");
@@ -266,7 +390,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testRetract() throws Exception {
+  void testRetract1() throws Exception {
     //[retract((4 :- X)), type_error(callable, 4)].
     checkException("retract((4:-X)).");
     //[retract((atom(_) :- X == '[]')),permission_error(modify,static_procedure,atom/1)].
@@ -284,7 +408,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testFindAll() throws Exception {
+  void testFindAll3() throws Exception {
 
     checkVarValues("findall(X,(X=1;X=2),X).", "X", "[1,2]");
     //[findall(X,(X=1 ; X=2),S),[[S <-- [1,2]]]].
@@ -315,7 +439,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testSetOf() throws Exception {
+  void testSetOf3() throws Exception {
     //[setof(X,(X=1;X=2),L), [[L <-- [1, 2]]]].
     checkVarValues("setof(X,(X=1;X=2),L).", "L", "[1,2]");
     //[setof(X,(X=1;X=2),X), [[X <-- [1, 2]]]].
@@ -363,7 +487,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testBagOf() throws Exception {
+  void testBagOf3() throws Exception {
     //[bagof(X, (X = 1; X = 2),L), [[L<-- [1, 2]]]].
     checkVarValues("bagof(X,(X=1;X=2),L).", "L", "[1,2]");
     //[bagof(X, (X = 1; X = 2),X), [[X<-- [1, 2]]]].
@@ -426,7 +550,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testAssertZ() throws Exception {
+  void testAssertZ1() throws Exception {
     //[assertz((foo(X) :- X -> call(X))), success].
     checkOnce("assertz((foo(X):-X->call(X))).", true);
     //[assertz(_), instantiation_error].
@@ -442,7 +566,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testAssertA() throws Exception {
+  void testAssertA1() throws Exception {
     //[(asserta((bar(X) :- X)), clause(bar(X), B)), [[B <-- call(X)]]].
     checkVarValues("asserta(bar(X):-call(X)),clause(bar(X),B).", "B", "call(X)");
 
@@ -460,7 +584,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testNumberCodes() throws Exception {
+  void testNumberCodes2() throws Exception {
     //[number_codes(33.0,[0'3,0'.,0'3,0'E,0'+,0'0,0'1]), success].
     //[number_codes(A,[0'-,0'2,0'5]), [[A <-- (-25)]]].
     //[number_codes(A,[0' ,0'3]), [[A <-- 3]]].
@@ -493,165 +617,165 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testTermLtEq() throws Exception {
+  void testTermLtEq2() throws Exception {
     //['@=<'(1.0,1), success].
-    checkOnce("'@=<'(1.0,1).", true);
+    checkOnce("1.0@=<1.", true);
     //['@=<'(aardvark,zebra), success].
-    checkOnce("'@=<'(aardvark,zebra).", true);
+    checkOnce("aardvark@=<zebra.", true);
     //['@=<'(short,short), success].
-    checkOnce("'@=<'(short,short).", true);
+    checkOnce("short@=<short.", true);
     //['@=<'(short,shorter), success].
-    checkOnce("'@=<'(short,shorter).", true);
+    checkOnce("short@=<shorter.", true);
     //['@=<'(foo(b),foo(a)), failure].
-    checkOnce("'@=<'(foo(b),foo(a)).", false);
+    checkOnce("foo(b)@=<foo(a).", false);
     //['@=<'(X,X), success].
-    checkOnce("'@=<'(X,X).", true);
+    checkOnce("X@=<X.", true);
     //['@=<'(foo(a,X),foo(b,Y)), success].
-    checkOnce("'@=<'(foo(a,X),foo(b,Y)).", true);
+    checkOnce("foo(a,X)@=<foo(b,Y).", true);
   }
 
   @Test
-  void testTermLt() throws Exception {
+  void testTermLt2() throws Exception {
     //['@<'(1.0,1), success].
-    checkOnce("'@<'(1.0,1).", false);// ???
+    checkOnce("1.0@<1.", false);// ???
     //['@<'(aardvark,zebra), success].
-    checkOnce("'@<'(aardvark,zebra).", true);
+    checkOnce("aardvark@<zebra.", true);
     //['@<'(short,short), failure].
-    checkOnce("'@<'(short,short).", false);
+    checkOnce("short@<short.", false);
     //['@<'(short,shorter), success].
-    checkOnce("'@<'(short,shorter).", true);
+    checkOnce("short@<shorter.", true);
     //['@<'(foo(b),foo(a)), failure].
-    checkOnce("'@<'(foo(b),foo(a)).", false);
+    checkOnce("foo(b)@<foo(a).", false);
     //['@<'(X,X), failure].
-    checkOnce("'@<'(X,X).", false);
+    checkOnce("X@<X.", false);
     //['@<'(foo(a,X),foo(b,Y)), success].
-    checkOnce("'@<'(foo(a,X),foo(b,Y)).", true);
+    checkOnce("foo(a,X)@<foo(b,Y).", true);
   }
 
   @Test
-  void testTermGtEqu() throws Exception {
+  void testTermGtEqu2() throws Exception {
     //['@>='(1.0,1), failure].
-    checkOnce("'@>='(1.0,1).", true);// ???
+    checkOnce("1.0@>=1.", true);// ???
     //['@>='(aardvark,zebra), failure].
-    checkOnce("'@>='(aardvark,zebra).", false);
+    checkOnce("aardvark@>=zebra.", false);
     //['@>='(short,short), success].
-    checkOnce("'@>='(short,short).", true);
+    checkOnce("short@>=short.", true);
     //['@>='(short,shorter), failure].
-    checkOnce("'@>='(short,shorter).", false);
+    checkOnce("short@>=shorter.", false);
     //['@>='(foo(b),foo(a)), success].
-    checkOnce("'@>='(foo(b),foo(a)).", true);
+    checkOnce("foo(b)@>=foo(a).", true);
     //['@>='(X,X), success].
-    checkOnce("'@>='(X,X).", true);
+    checkOnce("X@>=X.", true);
     //['@>='(foo(a,X),foo(b,Y)), failure].
-    checkOnce("'@>='(foo(a,X),foo(b,Y)).", false);
+    checkOnce("foo(a,X)@>=foo(b,Y).", false);
   }
 
   @Test
-  void testTermGt() throws Exception {
+  void testTermGt2() throws Exception {
     //['@>'(1.0,1), failure].
-    checkOnce("'@>'(1.0,1).", false);
+    checkOnce("1.0@>1.", false);
     //['@>'(aardvark,zebra), failure].
-    checkOnce("'@>'(aardvark,zebra).", false);
+    checkOnce("aardvark@>zebra.", false);
     //['@>'(short,short), failure].
-    checkOnce("'@>'(short,short).", false);
+    checkOnce("short@>short.", false);
     //['@>'(short,shorter), failure].
-    checkOnce("'@>'(short,shorter).", false);
+    checkOnce("short@>shorter.", false);
     //['@>'(foo(b),foo(a)), success].
-    checkOnce("'@>'(foo(b),foo(a)).", true);
+    checkOnce("foo(b)@>foo(a).", true);
     //['@>'(X,X), failure].
-    checkOnce("'@>'(X,X).", false);
+    checkOnce("X@>X.", false);
     //['@>'(foo(a,X),foo(b,Y)), failure].
-    checkOnce("'@>'(foo(a,X),foo(b,Y)).", false);
+    checkOnce("foo(a,X)@>foo(b,Y).", false);
   }
 
   @Test
-  void testLtEqu() throws Exception {
+  void testLtEqu2() throws Exception {
     //['=<'(0,1), success].
-    checkOnce("'=<'(0,1).", true);
+    checkOnce("0=<1.", true);
     //['=<'(1.0,1), success].
-    checkOnce("'=<'(1.0,1).", true);
+    checkOnce("1.0=<1.", true);
     //['=<'(3*2,7-1), success].
-    checkOnce("'=<'(3*2,7-1).", true);
+    checkOnce("3*2=<7-1.", true);
     //['=<'(X,5), instantiation_error].
-    checkException("'=<'(X,5).");
+    checkException("X=<5.");
     //['=<'(2 + floot(1),5), type_error(evaluable, floot/1)].
-    checkException("'=<'(2+floot(1),5).");
+    checkException("2+floot(1)=<5.");
   }
 
   @Test
-  void testLt() throws Exception {
+  void testLt2() throws Exception {
     //['<'(0,1), success].
-    checkOnce("'<'(0,1).", true);
+    checkOnce("0<1.", true);
     //['<'(1.0,1), failure].
-    checkOnce("'<'(1.0,1).", false);
+    checkOnce("1.0<1.", false);
     //['<'(3*2,7-1), failure].
-    checkOnce("'<'(3*2,7-1).", false);
+    checkOnce("3*2<7-1.", false);
     //['<'(X,5), instantiation_error].
-    checkException("'<'(X,5).");
+    checkException("X<5.");
     //['<'(2 + floot(1),5), type_error(evaluable, floot/1)].
-    checkException("'<'(2+floot(1),5).");
+    checkException("2+floot(1)<5.");
   }
 
   @Test
-  void testGtEqu() throws Exception {
+  void testGtEqu2() throws Exception {
     //['>='(0,1), failure].
-    checkOnce("'>='(0,1).", false);
+    checkOnce("0>=1.", false);
     //['>='(1.0,1), success].
-    checkOnce("'>='(1.0,1).", true);
+    checkOnce("1.0>=1.", true);
     //['>='(3*2,7-1), success].
-    checkOnce("'>='(3*2,7-1).", true);
+    checkOnce("3*2>=7-1.", true);
     //['>='(X,5), instantiation_error].
-    checkException("'>='(X,5).");
+    checkException("X>=5.");
     //['>='(2 + floot(1),5), type_error(evaluable, floot/1)].
-    checkException("'>='(2+floot(1),5).");
+    checkException("2+floot(1)>=5.");
   }
 
   @Test
-  void testGt() throws Exception {
+  void testGt2() throws Exception {
     //['>'(0,1), failure].
-    checkOnce("'>'(0,1).", false);
+    checkOnce("0>1.", false);
     //['>'(1.0,1), failure].
-    checkOnce("'>'(1.0,1).", false);
+    checkOnce("1.0>1.", false);
     //['>'(3*2,7-1), failure].
-    checkOnce("'>'(3*2,7-1).", false);
+    checkOnce("3*2>7-1.", false);
     //['>'(X,5), instantiation_error].
-    checkException("'>'(X,5).");
+    checkException("X>5.");
     //['>'(2 + floot(1),5), type_error(evaluable, floot/1)].
-    checkException("'>'(2+floot(1),5).");
+    checkException("2+floot(1)>5.");
   }
 
   @Test
-  void testArithEq() throws Exception {
+  void testArithEq2() throws Exception {
     //['=:='(0,1), failure].
-    checkOnce("'=:='(0,1).", false);
+    checkOnce("0=:=1.", false);
     //['=:='(1.0,1), success].
-    checkOnce("'=:='(1.0,1).", true);
+    checkOnce("1.0=:=1.", true);
     //['=:='(3 * 2,7 - 1), success].
-    checkOnce("'=:='(3*2,7-1).", true);
+    checkOnce("3*2=:=7-1.", true);
     //['=:='(N,5), instantiation_error].
-    checkException("'=:='(N,5).");
+    checkException("N=:=5.");
     //['=:='(floot(1),5), type_error(evaluable, floot/1)].
-    checkException("'=:='(floot(1),5).");
+    checkException("floot(1)=:=5.");
     //[0.333 =:= 1/3, failure].
     checkOnce("0.333=:=1/3.", false);
   }
 
   @Test
-  void testArithDiff() throws Exception {
+  void testArithDiff2() throws Exception {
     //['=\\='(0,1), success].
-    checkOnce("'=\\\\='(0,1).", true);
+    checkOnce("0=\\=1.", true);
     //['=\\='(1.0,1), failure].
-    checkOnce("'=\\\\='(1.0,1).", false);
+    checkOnce("1.0=\\=1.", false);
     //['=\\='(3 * 2,7 - 1), failure].
-    checkOnce("'=\\\\='(3*2,7-1).", false);
+    checkOnce("3*2=\\=7-1.", false);
     //['=\\='(N,5), instantiation_error].
-    checkException("'=\\\\='(N,5).");
+    checkException("N=\\=5.");
     //['=\\='(floot(1),5), type_error(evaluable, floot/1)].
-    checkException("'=\\\\='(floot(1),5).");
+    checkException("floot(1)=\\=5.");
   }
 
   @Test
-  void testCopyTerm() throws Exception {
+  void testCopyTerm2() throws Exception {
     //[copy_term(X,Y), success].
     checkOnce("copy_term(X,Y).", true);
     //[copy_term(X,3), success].
@@ -680,7 +804,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testClause() throws Exception {
+  void testClause2() throws Exception {
     //[clause(x,Body), failure].
     checkOnce("clause(x,Body).", false);
     //[clause(_,B), instantiation_error].
@@ -694,7 +818,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testCatchAndThrow() throws Exception {
+  void testCatchAndThrow4() throws Exception {
     //[(catch(true, C, write('something')), throw(blabla)), system_error].
     try {
       checkOnce("catch(true, C, write('something')), throw(blabla).", true);
@@ -708,7 +832,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testCall() throws Exception {
+  void testCall1() throws Exception {
     //[call(!),success].
     checkOnce("call(!).", true);
     //[call(fail), failure].
@@ -808,7 +932,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testCurrentPredicateAndCurrentPredicateAll() throws Exception {
+  void testCurrentPredicateAndCurrentPredicateAll1() throws Exception {
     //[current_predicate(current_predicate/1), failure].
     checkOnce("current_predicate(current_predicate/1).", false);
 
@@ -834,11 +958,15 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testAtomConcat() throws Exception {
+  void testAtomConcat3() throws Exception {
     //[atom_concat('hello',' world',A), [[A <-- 'hello world']]].
     checkVarValues("atom_concat('hello',' world',A).", "A", "'hello world'");
     //[atom_concat(T,' world','small world'), [[T <-- 'small']]].
     checkVarValues("atom_concat(T,' world','small world').", "T", "'small'");
+
+    checkOnce("atom_concat('world',X,'small world').", false);
+    checkVarValues("atom_concat('small ', X,'small world').", "X", "'world'");
+
     //[atom_concat('hello',' world','small world'), failure].
     checkOnce("atom_concat('hello',' world','small world').", false);
     checkOnce("atom_concat('small',' world','small world').", true);
@@ -888,7 +1016,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testHalt() throws Exception {
+  void testDispose1() throws Exception {
     //[dispose, impl_defined].
 //    checkException("dispose.");
     //[dispose(1), impl_defined].
@@ -898,7 +1026,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testAtomCodes() throws Exception {
+  void testAtomCodes2() throws Exception {
 
     //[atom_codes('',L), [[L <-- []]]].
     checkVarValues("atom_codes('',L).", "L", "[]");
@@ -930,7 +1058,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testCharCode() throws Exception {
+  void testCharCode2() throws Exception {
     //[char_code(Char,0'c),[[Char <-- c]]].
     //[char_code(Char,163),[[Char <-- '\xa3\']]].
 
@@ -953,7 +1081,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testAtomChars() throws Exception {
+  void testAtomChars2() throws Exception {
 
     //[atom_chars('''',L), [[L <-- ['''']]]].
     checkVarValues("atom_chars('\\'',L).", "L", "['\\'']");
@@ -989,7 +1117,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testFunctor_Bis() throws Exception {
+  void testFunctor_Bis3() throws Exception {
     //[functor(foo(a,b,c),foo,3),success].
     checkOnce("functor(foo(a,b,c),foo,3).", true);
 
@@ -1057,7 +1185,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testFunctor() throws Exception {
+  void testFunctor3() throws Exception {
     //[(current_prolog_flag(max_arity,A), X is A + 1, functor(T, foo, X)),representation_error(max_arity)].
 
     //[functor(foo(a,b,c),foo,3), success].
@@ -1113,7 +1241,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testCautAndFail() throws Exception {
+  void testCutAndFail() throws Exception {
     checkOnce("\\+((!,fail)).", true);
   }
 
@@ -1136,7 +1264,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testOnce() throws Exception {
+  void testOnce1() throws Exception {
     //[once(!), success].
     checkOnce("once(!).", true);
     //[(once(!), (X=1; X=2)), [[X <-- 1],[X <-- 2]]].
@@ -1152,7 +1280,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testArg() throws Exception {
+  void testArg3() throws Exception {
     //[arg(1,foo(a,b),a), success].
     checkOnce("arg(1,foo(a,b),a).", true);
     //[arg(1,foo(X,b),a), [[X <-- a]]].
@@ -1191,7 +1319,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testAtomLength() throws Exception {
+  void testAtomLength2() throws Exception {
     //[atom_length('enchanted evening', N), [[N <-- 17]]].
     checkVarValues("atom_length('enchanted evening', N).", "N", 17L);
     //[atom_length('', N), [[N <-- 0]]].
@@ -1207,7 +1335,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testFloat() throws Exception {
+  void testFloat1() throws Exception {
     //[float(3.3), success].
     checkOnce("float(3.3).", true);
     //[float(-3.3), success].
@@ -1221,7 +1349,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testUnify() throws Exception {
+  void testUnify2() throws Exception {
     //['='(1,1), success].
     checkOnce("'='(1,1).", true);
     //['='(X,1),[[X <-- 1]]].
@@ -1266,7 +1394,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testNonVar() throws Exception {
+  void testNonVar1() {
     //[nonvar(33.3), success].
     checkOnce("nonvar(33.3).", true);
     //[nonvar(foo), success].
@@ -1282,7 +1410,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testCompound() throws Exception {
+  void testCompound1() {
 
     //[compound(33.3), failure].
     checkOnce("compound(33.3).", false);
@@ -1304,7 +1432,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testAtomic() throws Exception {
+  void testAtomic1() {
     //[atomic(atom), success].
     checkOnce("atomic(atom).", true);
     //[atomic(a(b)), failure].
@@ -1320,7 +1448,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testAtom() throws Exception {
+  void testAtom1() {
     //[atom(atom), success].
     checkOnce("atom(atom).", true);
     //[atom('string'), success].
@@ -1338,7 +1466,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testInteger() throws Exception {
+  void testInteger1() throws Exception {
     //[integer(3), success].
     checkOnce("integer(3).", true);
     //[integer(-3), success].
@@ -1352,7 +1480,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testNumber() throws Exception {
+  void testNumber1() throws Exception {
     //[number(3), success].
     checkOnce("number(3).", true);
     //[number(3.3), success].
@@ -1366,7 +1494,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testNumberChars() throws Exception {
+  void testNumberChars2() {
     //[number_chars(33,['3','3']), success].
     checkOnce("number_chars(33,['3','3']).", true);
 
