@@ -60,18 +60,18 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testRepeat() {
+  void testRepeat0() {
     //[(repeat,!,fail), failure].
     checkOnce("repeat,!,fail.", false);
   }
 
   @Test
-  void testTrue() {
+  void testTrue0() {
     checkOnce("true.", true);
   }
 
   @Test
-  void testFail() {
+  void testFail0() {
     checkOnce("fail.", false);
   }
 
@@ -154,7 +154,7 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testAnd() throws Exception {
+  void testAnd2() {
     //[','(X=1, var(X)), failure].
     checkOnce("','(X=1,var(X)).", false);
     //[','(var(X), X=1), [[X <-- 1]]].
@@ -168,7 +168,7 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testIfThenElse() {
+  void testIfThenElse2() {
     //[';'('->'(true, true), fail), success].
     checkOnce(";('->'(true, true), fail).", true);
     //[';'('->'(fail, true), true), success].

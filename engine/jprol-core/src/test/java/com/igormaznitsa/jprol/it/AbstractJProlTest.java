@@ -21,6 +21,7 @@ import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeContextFactory;
 import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
 import com.igormaznitsa.jprol.libs.JProlIoLibrary;
+import com.igormaznitsa.jprol.libs.JProlThreadLibrary;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 
@@ -35,7 +36,8 @@ public abstract class AbstractJProlTest {
         new InMemoryKnowledgeContextFactory(),
         "test-context",
         new JProlCoreLibrary(),
-        new JProlIoLibrary()
+        new JProlIoLibrary(),
+        new JProlThreadLibrary()
     );
   }
 

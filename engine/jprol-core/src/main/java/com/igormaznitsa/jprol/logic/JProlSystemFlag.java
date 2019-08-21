@@ -11,6 +11,21 @@ import static com.igormaznitsa.jprol.data.Terms.*;
 import static java.util.Arrays.stream;
 
 public enum JProlSystemFlag {
+  ADDRESS_BIT(true, Terms.newAtom("address_bit"), Terms.newLong(64)),
+  ALLOW_VARIABLE_NAME_AS_FUNCTOR(true, Terms.newAtom("allow_variable_name_as_functor"), FALSE),
+  OS(true, Terms.newAtom("os"), Terms.newAtom(System.getProperty("os.name", "unknown"))),
+  ARCH(true, Terms.newAtom("arch"), Terms.newAtom(System.getProperty("os.arch", "unknown"))),
+  BOUNDED(true, Terms.newAtom("bounded"), TRUE),
+  DEBUG(false, Terms.newAtom("debug"), TRUE),
+  DIALECT(true, Terms.newAtom("dialect"), Terms.newAtom("jprol")),
+  ENCODING(false, Terms.newAtom("encoding"), Terms.newAtom("UTF-8")),
+  GC(true, Terms.newAtom("gc"), TRUE),
+  MAX_ARITY(true, Terms.newAtom("max_arity"), Terms.newLong(Integer.MAX_VALUE)),
+  MAX_INTEGER(true, Terms.newAtom("max_integer"), Terms.newLong(Long.MAX_VALUE)),
+  MIN_INTEGER(true, Terms.newAtom("min_integer"), Terms.newLong(Long.MIN_VALUE)),
+  CPU_COUNT(true, Terms.newAtom("cpu_count"), Terms.newLong(Runtime.getRuntime().availableProcessors())),
+  UNDEFINED_PREDICATE(false, Terms.newAtom("undefined_predicate"), Terms.newAtom("error")),
+  HOME(true, Terms.newAtom("home"), Terms.newAtom(System.getProperty("user.home", ""))),
   VERIFY(false, Terms.newAtom("verify"), TRUE),
   VERSION_DATA(true, Terms.newAtom("version_data"), newStruct(newAtom("jprol"), new Term[] {newLong(2), newLong(0), newLong(0), NULL_LIST}));
 

@@ -20,10 +20,7 @@ import com.igormaznitsa.jprol.annotations.ConsultClasspath;
 import com.igormaznitsa.jprol.annotations.ConsultFile;
 import com.igormaznitsa.jprol.annotations.ConsultText;
 import com.igormaznitsa.jprol.data.*;
-import com.igormaznitsa.jprol.exceptions.ProlException;
-import com.igormaznitsa.jprol.exceptions.ProlForkExecutionException;
-import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
-import com.igormaznitsa.jprol.exceptions.ProlKnowledgeBaseException;
+import com.igormaznitsa.jprol.exceptions.*;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
 import com.igormaznitsa.jprol.kbase.KnowledgeContext;
 import com.igormaznitsa.jprol.kbase.KnowledgeContextFactory;
@@ -99,6 +96,8 @@ public final class JProlContext {
 
   private final List<IoResourceProvider> ioProviders = new CopyOnWriteArrayList<>();
   private boolean templateValidate;
+  private boolean debug;
+  private UndefinedPredicateBehaviour undefinedPredicateBehaviour;
 
   public JProlContext(final KnowledgeContextFactory knowledgeContextFactory, final String name, final AbstractJProlLibrary... libs) {
     this(
@@ -140,8 +139,16 @@ public final class JProlContext {
     this.libraries.addAll(asList(additionalLibraries));
   }
 
-  boolean isTemplateValidate() {
+  public boolean isTemplateValidate() {
     return this.templateValidate;
+  }
+
+  public UndefinedPredicateBehaviour getUndefinedPredicateBehavior() {
+    return this.undefinedPredicateBehaviour;
+  }
+
+  public boolean isDebug() {
+    return this.debug;
   }
 
   public Term getSystemFlag(final JProlSystemFlag flag) {
@@ -172,6 +179,8 @@ public final class JProlContext {
 
   private void onSystemFlagsUpdated() {
     this.templateValidate = Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.VERIFY).getText());
+    this.debug = Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.DEBUG).getText());
+    this.undefinedPredicateBehaviour = UndefinedPredicateBehaviour.find(this.systemFlags.get(JProlSystemFlag.UNDEFINED_PREDICATE).getText()).orElseThrow(() -> new ProlDomainErrorException(Arrays.toString(UndefinedPredicateBehaviour.values()), this.systemFlags.get(JProlSystemFlag.UNDEFINED_PREDICATE)));
   }
 
   public JProlContext addTraceListener(final TracingChoicePointListener listener) {
@@ -207,7 +216,7 @@ public final class JProlContext {
   }
 
   void fireTraceEvent(final TraceEvent event, final ChoicePoint choicePoint) {
-    if (!this.traceListeners.isEmpty()) {
+    if (this.isDebug() && !this.traceListeners.isEmpty()) {
       this.traceListeners.forEach(l -> l.onTraceChoicePointEvent(event, choicePoint));
     }
   }

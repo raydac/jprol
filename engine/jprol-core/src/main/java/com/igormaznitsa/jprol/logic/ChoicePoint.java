@@ -193,7 +193,9 @@ public final class ChoicePoint {
   }
 
   public ChoicePoint replaceLastGoalAtChain(final Term goal) {
-    this.context.fireTraceEvent(EXIT, this.rootCp.rootLastGoalAtChain);
+    if (this.context.isDebug()) {
+      this.context.fireTraceEvent(EXIT, this.rootCp.rootLastGoalAtChain);
+    }
 
     final ChoicePoint newGoal = new ChoicePoint(this.rootCp, goal, this.context, null);
     final ChoicePoint prevGoal = newGoal.prevCp;
@@ -240,8 +242,10 @@ public final class ChoicePoint {
         if (goalToProcess.thereAreVariants) {
           switch (goalToProcess.resolve()) {
             case FAIL: {
-              this.context.fireTraceEvent(TraceEvent.FAIL, goalToProcess);
-              this.context.fireTraceEvent(EXIT, goalToProcess);
+              if (this.context.isDebug()) {
+                this.context.fireTraceEvent(TraceEvent.FAIL, goalToProcess);
+                this.context.fireTraceEvent(EXIT, goalToProcess);
+              }
               this.rootCp.rootLastGoalAtChain = goalToProcess.prevCp;
             }
             break;
@@ -265,7 +269,9 @@ public final class ChoicePoint {
               throw new Error("Unexpected status");
           }
         } else {
-          this.context.fireTraceEvent(EXIT, goalToProcess);
+          if (this.context.isDebug()) {
+            this.context.fireTraceEvent(EXIT, goalToProcess);
+          }
           this.rootCp.rootLastGoalAtChain = goalToProcess.prevCp;
         }
       }
@@ -278,11 +284,15 @@ public final class ChoicePoint {
     if (Thread.currentThread().isInterrupted()) {
       return ChoicePointResult.FAIL;
     }
+    final TraceEvent traceEvent;
     if (this.notFirstProve) {
-      this.context.fireTraceEvent(TraceEvent.REDO, this);
+      traceEvent = TraceEvent.REDO;
     } else {
+      traceEvent = TraceEvent.CALL;
       this.notFirstProve = true;
-      this.context.fireTraceEvent(TraceEvent.CALL, this);
+    }
+    if (this.context.isDebug()) {
+      this.context.fireTraceEvent(traceEvent, this);
     }
 
     ChoicePointResult result = ChoicePointResult.FAIL;

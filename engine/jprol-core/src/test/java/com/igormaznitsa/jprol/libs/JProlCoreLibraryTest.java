@@ -54,6 +54,11 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
+  void testRetractAll1() {
+    checkOnce("asserta(some1(a)), asserta(some1(b)), retractall(some1(_)), not some1(_).", true);
+  }
+
+  @Test
   void testShiftL2() {
     checkVarValues("X is 1346 >> 3.", "X", "168");
     checkVarValues("X is 1346.423 >> 3.", "X", "168");
@@ -409,7 +414,6 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testFindAll3() throws Exception {
-
     checkVarValues("findall(X,(X=1;X=2),X).", "X", "[1,2]");
     //[findall(X,(X=1 ; X=2),S),[[S <-- [1,2]]]].
     checkVarValues("findall(X,(X=1;X=2),S).", "S", "[1,2]");
@@ -800,7 +804,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     checkOnce("copy_term(a+X,X+b),copy_term(a+X,X+b).", false);
 
     //[copy_term(X+X+Y,A+B+B),[[B <-- A]]].
-    //checkOnceVar("copy_term(X+X+Y,A+B+B).","B","A"); // prol links variables as objects so it is no so easy to say which variable is parent
+    checkVarValues("copy_term(X+X+Y,A+B+B), A = 666.", "B", "666");
   }
 
   @Test
@@ -857,7 +861,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     checkException("call(1).");
 
     //[call((fail, 1)), type_error(callable,(fail,1))].
-    //checkException("call((fail,1))."); // it is not working at proll because prol checks sequentially and fail will be the first one
+    //checkException("call((fail,1))."); // it doesn't throw error in jprol because fail,1 is valid callable construction and jprol doesn't make pre-check of arguments.
 
     checkException("call([fail]).");
   }
@@ -1117,7 +1121,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testFunctor_Bis3() throws Exception {
+  void testFunctor3_Bis3() throws Exception {
     //[functor(foo(a,b,c),foo,3),success].
     checkOnce("functor(foo(a,b,c),foo,3).", true);
 
@@ -1280,7 +1284,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testArg3() throws Exception {
+  void testArg3() {
     //[arg(1,foo(a,b),a), success].
     checkOnce("arg(1,foo(a,b),a).", true);
     //[arg(1,foo(X,b),a), [[X <-- a]]].
@@ -1411,7 +1415,6 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testCompound1() {
-
     //[compound(33.3), failure].
     checkOnce("compound(33.3).", false);
     //[compound(-33.3), failure].

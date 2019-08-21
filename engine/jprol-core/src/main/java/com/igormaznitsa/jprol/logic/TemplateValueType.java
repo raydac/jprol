@@ -112,27 +112,16 @@ public enum TemplateValueType {
     }
   }),
   CALLABLE_TERM(t -> {
-    boolean error = true;
-
-    final TermType typeAtom = t.getTermType();
-    if (typeAtom == TermType.ATOM) {
-      if (!(t instanceof NumericTerm)) {
-        error = false;
-      }
-    } else if (typeAtom == STRUCT) {
-      error = false;
-    }
-    if (error) {
+    final TermType termType = t.getTermType();
+    if (termType != TermType.STRUCT && (termType != TermType.ATOM || t instanceof NumericTerm)) {
       throw new ProlInstantiationErrorException("Should be callable term \'" + t + '\'', t);
     }
   }),
   CHARACTER(t -> {
     boolean error = true;
-
     if (t.getTermType() == TermType.ATOM && t.getText().length() == 1) {
       error = false;
     }
-
     if (error) {
       throw new ProlInstantiationErrorException("Should be character \'" + t + '\'', t);
     }
