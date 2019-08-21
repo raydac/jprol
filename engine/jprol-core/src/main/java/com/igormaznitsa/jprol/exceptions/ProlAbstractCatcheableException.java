@@ -19,6 +19,8 @@ package com.igormaznitsa.jprol.exceptions;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 
+import java.util.Objects;
+
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 
@@ -30,7 +32,7 @@ public abstract class ProlAbstractCatcheableException extends ProlException {
   private final Term culprit;
 
   public ProlAbstractCatcheableException(final Term culprit) {
-    this.culprit = culprit;
+    this.culprit = Objects.requireNonNull(culprit);
   }
 
   public ProlAbstractCatcheableException(final String message, final Term culprit) {

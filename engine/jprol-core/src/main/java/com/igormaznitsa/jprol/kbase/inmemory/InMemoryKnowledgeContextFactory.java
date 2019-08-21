@@ -8,7 +8,7 @@ public final class InMemoryKnowledgeContextFactory implements KnowledgeContextFa
   public static final KnowledgeContext DEFAULT_KCONTEXT = new InMemoryKnowledgeContext("");
 
   @Override
-  public KnowledgeContext makeDefaultKnowledgeContext() {
+  public KnowledgeContext getDefaultKnowledgeContext() {
     return DEFAULT_KCONTEXT;
   }
 

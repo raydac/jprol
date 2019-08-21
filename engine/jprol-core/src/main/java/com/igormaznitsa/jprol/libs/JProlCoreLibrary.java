@@ -600,8 +600,15 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     Iterator<TermStruct> clIterator = goal.getPayload();
 
     if (clIterator == null) {
-      clIterator = goal.getContext().getKnowledgeBase().iterate(goal.getContext().getKnowledgeContext(), IteratorType.ANY, head.getTermType() == STRUCT ? (TermStruct) head : newStruct(head));
-      if (clIterator == null || !clIterator.hasNext()) {
+      clIterator = goal.getContext().getKnowledgeBase().iterate(
+          goal.getContext().getKnowledgeContext(),
+          IteratorType.ANY,
+          head.getTermType() == STRUCT ? (TermStruct) head : newStruct(head),
+          x -> {
+            goal.getContext().notifyAboutUndefinedPredicate(goal, x);
+          }
+      );
+      if (!clIterator.hasNext()) {
         goal.cutVariants();
         return false;
       }
@@ -1481,15 +1488,15 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       templateCopy.arrangeVariablesInsideTerms(pgoalCopy);
 
       assertUnify(pgoalCopy, nextTemplate);
-        // good, add to the list
-        if (result == null) {
-          // first
-          result = newList(templateCopy.findNonVarOrSame().makeClone());
-          currentList = result;
-        } else {
-          // not first
-          currentList = createOrAppendToList(currentList, templateCopy.findNonVarOrSame().makeClone());
-        }
+      // good, add to the list
+      if (result == null) {
+        // first
+        result = newList(templateCopy.findNonVarOrSame().makeClone());
+        currentList = result;
+      } else {
+        // not first
+        currentList = createOrAppendToList(currentList, templateCopy.findNonVarOrSame().makeClone());
+      }
     }
 
     if (result == null) {
@@ -1589,15 +1596,15 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         templateCopy.arrangeVariablesInsideTerms(pgoalCopy);
 
         assertUnify(pgoalCopy, nextTemplate);
-          final BofKey thekey = new BofKey(find_goal, excludedVars);
-          final TermList resultList;
-          if (preparedMap.containsKey(thekey)) {
-            resultList = preparedMap.get(thekey);
-            createOrAppendToList(resultList, templateCopy.findNonVarOrSame().makeClone());
-          } else {
-            resultList = newList(templateCopy.findNonVarOrSame().makeClone());
-            preparedMap.put(thekey, resultList);
-          }
+        final BofKey thekey = new BofKey(find_goal, excludedVars);
+        final TermList resultList;
+        if (preparedMap.containsKey(thekey)) {
+          resultList = preparedMap.get(thekey);
+          createOrAppendToList(resultList, templateCopy.findNonVarOrSame().makeClone());
+        } else {
+          resultList = newList(templateCopy.findNonVarOrSame().makeClone());
+          preparedMap.put(thekey, resultList);
+        }
       }
 
       goal.setPayload(preparedMap);
@@ -1707,15 +1714,15 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         templateCopy.arrangeVariablesInsideTerms(pgoalCopy);
 
         assertUnify(pgoalCopy, nextTemplate);
-          final SofKey thekey = new SofKey(find_goal, excludedVars);
-          final TermList resultList;
-          if (preparedMap.containsKey(thekey)) {
-            resultList = preparedMap.get(thekey);
-            Utils.createOrAppendToList(resultList, templateCopy.findNonVarOrSame().makeClone());
-          } else {
-            resultList = newList(templateCopy.findNonVarOrSame().makeClone());
-            preparedMap.put(thekey, resultList);
-          }
+        final SofKey thekey = new SofKey(find_goal, excludedVars);
+        final TermList resultList;
+        if (preparedMap.containsKey(thekey)) {
+          resultList = preparedMap.get(thekey);
+          Utils.createOrAppendToList(resultList, templateCopy.findNonVarOrSame().makeClone());
+        } else {
+          resultList = newList(templateCopy.findNonVarOrSame().makeClone());
+          preparedMap.put(thekey, resultList);
+        }
       }
 
       final Map<SofKey, TermList> sortedMap = new LinkedHashMap<>();
@@ -1985,7 +1992,9 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       Term term = callableTerm;
       factIterator = goal.getContext()
           .getKnowledgeBase()
-          .iterate(goal.getContext().getKnowledgeContext(), IteratorType.FACTS, (TermStruct) term);
+          .iterate(goal.getContext().getKnowledgeContext(), IteratorType.FACTS, (TermStruct) term, x -> {
+            goal.getContext().notifyAboutUndefinedPredicate(goal, x);
+          });
 
       if (factIterator == null) {
         goal.cutVariants();

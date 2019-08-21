@@ -34,6 +34,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
@@ -180,17 +181,18 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public CloseableIterator<TermStruct> iterate(final KnowledgeContext knowledgeContext, final IteratorType type, final TermStruct template) {
+  public CloseableIterator<TermStruct> iterate(
+      final KnowledgeContext knowledgeContext,
+      final IteratorType type,
+      final TermStruct template,
+      final Consumer<String> unknownPredicateConsumer
+  ) {
     final String uid = template.getSignature();
-
     final List<InMemoryItem> list = this.predicateTable.get(uid);
-
-    CloseableIterator<TermStruct> result = null;
-
-    if (list != null) {
-      result = new InMemoryClauseIterator(knowledgeContext, type, list, template);
+    if (list == null) {
+      unknownPredicateConsumer.accept(uid);
     }
-    return result;
+    return new InMemoryClauseIterator(knowledgeContext, type, list == null ? Collections.emptyList() : list, template);
   }
 
   @Override
@@ -211,10 +213,14 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public CloseableIterator<TermStruct> iterate(final KnowledgeContext knowledgeContext, final String signature) {
+  public CloseableIterator<TermStruct> iterate(
+      final KnowledgeContext knowledgeContext,
+      final String signature,
+      final Consumer<String> unknownPredicateConsumer) {
     final List<InMemoryItem> list = this.predicateTable.get(signature);
 
     if (list == null) {
+      unknownPredicateConsumer.accept(signature);
       return makeCloseableIterator(Collections.emptyIterator(), () -> {
       });
     } else {
@@ -374,7 +380,6 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
     result = predicateTable.remove(normalSignature) != null;
 
-    // notify triggers if they are presented
     if (result && context.hasRegisteredTriggersForSignature(normalSignature, JProlTriggerType.TRIGGER_RETRACT)) {
       context.notifyTriggersForSignature(normalSignature, JProlTriggerType.TRIGGER_RETRACT);
     }

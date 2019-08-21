@@ -50,6 +50,11 @@ public class ProlDomainErrorException extends ProlAbstractCatcheableException {
     this.validDomain = validDomain == null ? UNDEFINED.getText() : validDomain;
   }
 
+  @Override
+  public String getMessage() {
+    return String.format("%s: detected = %s, expected = %s", (super.getMessage() == null ? "domain_error" : super.getMessage()), this.getCulprit().getText(), (this.validDomain == null ? "not defined" : this.validDomain));
+  }
+
   public String getValidDomain() {
     return this.validDomain;
   }

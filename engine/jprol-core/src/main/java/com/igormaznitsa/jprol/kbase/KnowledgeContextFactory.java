@@ -1,7 +1,7 @@
 package com.igormaznitsa.jprol.kbase;
 
 public interface KnowledgeContextFactory {
-  KnowledgeContext makeDefaultKnowledgeContext();
+  KnowledgeContext getDefaultKnowledgeContext();
 
   KnowledgeContext makeKnowledgeContext(String text);
 }

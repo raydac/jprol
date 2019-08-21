@@ -365,7 +365,12 @@ public final class ChoicePoint {
       switch (this.goalTerm.getTermType()) {
         case ATOM: {
           final String text = this.goalTerm.getText();
-          result = this.context.hasZeroArityPredicateForName(text) ? ChoicePointResult.SUCCESS : ChoicePointResult.FAIL;
+          if (this.context.hasZeroArityPredicateForName(text)) {
+            result = ChoicePointResult.SUCCESS;
+          } else {
+            this.context.notifyAboutUndefinedPredicate(this, this.goalTerm.getSignature());
+            result = ChoicePointResult.FAIL;
+          }
           cutVariants();
           doLoop = false;
         }
@@ -437,26 +442,33 @@ public final class ChoicePoint {
             }
 
             if (nonConsumed) {
-              final PredicateInvoker processor = ensureProcessor(struct);
-              if (processor == PredicateInvoker.NULL_PROCESSOR) {
-                this.clauseIterator = this.context.getKnowledgeBase().iterate(this.context.getKnowledgeContext(), IteratorType.ANY, struct);
-                if (this.clauseIterator == null || !this.clauseIterator.hasNext()) {
+              final PredicateInvoker foundProcessor = findProcessorInLibraries(struct);
+              if (foundProcessor == PredicateInvoker.NULL_PROCESSOR) {
+                this.clauseIterator = this.context.getKnowledgeBase().iterate(
+                    this.context.getKnowledgeContext(),
+                    IteratorType.ANY,
+                    struct,
+                    x -> {
+                      this.context.notifyAboutUndefinedPredicate(this, x);
+                    }
+                );
+                if (!this.clauseIterator.hasNext()) {
                   doLoop = false;
                   this.cutVariants();
                   result = ChoicePointResult.FAIL;
                 }
               } else {
-                if (processor.isEvaluable() || processor.isDetermined()) {
+                if (foundProcessor.isEvaluable() || foundProcessor.isDetermined()) {
                   this.cutVariants();
                 }
 
-                if (processor.execute(this, struct)) {
+                if (foundProcessor.execute(this, struct)) {
                   result = ChoicePointResult.SUCCESS;
                 } else {
                   result = ChoicePointResult.FAIL;
                 }
 
-                if (result == ChoicePointResult.SUCCESS && processor.doesChangeGoalChain()) {
+                if (result == ChoicePointResult.SUCCESS && foundProcessor.doesChangeGoalChain()) {
                   result = ChoicePointResult.STACK_CHANGED;
                 }
 
@@ -492,7 +504,7 @@ public final class ChoicePoint {
     this.prevCp = null;
   }
 
-  private PredicateInvoker ensureProcessor(final TermStruct structure) {
+  private PredicateInvoker findProcessorInLibraries(final TermStruct structure) {
     PredicateInvoker processor = structure.getPredicateProcessor();
     if (processor == null) {
       processor = this.context.findProcessor(structure);

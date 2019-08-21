@@ -214,7 +214,7 @@ public class Term {
   }
 
   public String getSignature() {
-    return getText();
+    return getText() + "/0";
   }
 
   public String forWrite() {

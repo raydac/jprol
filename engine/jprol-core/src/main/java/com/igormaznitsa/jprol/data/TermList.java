@@ -216,7 +216,7 @@ public final class TermList extends TermStruct {
 
   @Override
   public String getSignature() {
-    return toSrcString();
+    return "./2";
   }
 
   public final void replaceLastElement(final Term newLastElement) {

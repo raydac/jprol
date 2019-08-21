@@ -31,8 +31,8 @@ import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
 import com.igormaznitsa.jprol.logic.triggers.JProlTrigger;
 import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
 import com.igormaznitsa.jprol.logic.triggers.TriggerEvent;
+import com.igormaznitsa.jprol.trace.JProlContextListener;
 import com.igormaznitsa.jprol.trace.TraceEvent;
-import com.igormaznitsa.jprol.trace.TracingChoicePointListener;
 import com.igormaznitsa.jprol.utils.Utils;
 import com.igormaznitsa.prologparser.ParserContext;
 import com.igormaznitsa.prologparser.PrologParser;
@@ -70,7 +70,7 @@ public final class JProlContext {
   private final AtomicBoolean disposed = new AtomicBoolean(false);
   private final KnowledgeBase knowledgeBase;
   private final ExecutorService executorService;
-  private final List<TracingChoicePointListener> traceListeners = new CopyOnWriteArrayList<>();
+  private final List<JProlContextListener> contextListeners = new CopyOnWriteArrayList<>();
   private final Map<JProlSystemFlag, Term> systemFlags = new ConcurrentHashMap<>();
   private final AtomicInteger currentAsyncTaskNumber = new AtomicInteger();
   private final KnowledgeContextFactory knowledgeContextFactory;
@@ -97,7 +97,7 @@ public final class JProlContext {
   private final List<IoResourceProvider> ioProviders = new CopyOnWriteArrayList<>();
   private boolean templateValidate;
   private boolean debug;
-  private UndefinedPredicateBehaviour undefinedPredicateBehaviour;
+  private UndefinedPredicateBehavior undefinedPredicateBehaviour;
 
   public JProlContext(final KnowledgeContextFactory knowledgeContextFactory, final String name, final AbstractJProlLibrary... libs) {
     this(
@@ -106,6 +106,7 @@ public final class JProlContext {
         new InMemoryKnowledgeBase(name + "_kbase"),
         ForkJoinPool.commonPool(),
         emptyMap(),
+        emptyList(),
         emptyList(),
         libs
     );
@@ -117,14 +118,16 @@ public final class JProlContext {
       final KnowledgeBase base,
       final ExecutorService executorService,
       final Map<JProlSystemFlag, Term> systemFlags,
+      final List<JProlContextListener> contextListeners,
       final List<IoResourceProvider> ioProviders,
       final AbstractJProlLibrary... additionalLibraries
   ) {
     this.knowledgeContextFactory = Objects.requireNonNull(knowledgeContextFactory);
-    this.knowledgeContext = ThreadLocal.withInitial(() -> this.knowledgeContextFactory.makeDefaultKnowledgeContext());
+    this.knowledgeContext = ThreadLocal.withInitial(this.knowledgeContextFactory::getDefaultKnowledgeContext);
     this.contextId = requireNonNull(contextId, "Context Id is null");
     this.knowledgeBase = requireNonNull(base, "Knowledge base is null");
     this.executorService = requireNonNull(executorService);
+    this.contextListeners.addAll(contextListeners);
 
     Arrays.stream(JProlSystemFlag.values())
         .filter(x -> !x.isReadOnly())
@@ -143,7 +146,7 @@ public final class JProlContext {
     return this.templateValidate;
   }
 
-  public UndefinedPredicateBehaviour getUndefinedPredicateBehavior() {
+  public UndefinedPredicateBehavior getUndefinedPredicateBehavior() {
     return this.undefinedPredicateBehaviour;
   }
 
@@ -180,16 +183,21 @@ public final class JProlContext {
   private void onSystemFlagsUpdated() {
     this.templateValidate = Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.VERIFY).getText());
     this.debug = Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.DEBUG).getText());
-    this.undefinedPredicateBehaviour = UndefinedPredicateBehaviour.find(this.systemFlags.get(JProlSystemFlag.UNDEFINED_PREDICATE).getText()).orElseThrow(() -> new ProlDomainErrorException(Arrays.toString(UndefinedPredicateBehaviour.values()), this.systemFlags.get(JProlSystemFlag.UNDEFINED_PREDICATE)));
+    this.undefinedPredicateBehaviour = UndefinedPredicateBehavior
+        .find(this.systemFlags.get(JProlSystemFlag.UNDEFINED_PREDICATE).getText())
+        .orElseThrow(() -> new ProlDomainErrorException(
+            Arrays.toString(UndefinedPredicateBehavior.values()),
+            this.systemFlags.get(JProlSystemFlag.UNDEFINED_PREDICATE))
+        );
   }
 
-  public JProlContext addTraceListener(final TracingChoicePointListener listener) {
-    this.traceListeners.add(listener);
+  public JProlContext addContextListener(final JProlContextListener listener) {
+    this.contextListeners.add(listener);
     return this;
   }
 
-  public JProlContext removeTraceListener(final TracingChoicePointListener listener) {
-    this.traceListeners.remove(listener);
+  public JProlContext removeContextListener(final JProlContextListener listener) {
+    this.contextListeners.remove(listener);
     return this;
   }
 
@@ -216,8 +224,8 @@ public final class JProlContext {
   }
 
   void fireTraceEvent(final TraceEvent event, final ChoicePoint choicePoint) {
-    if (this.isDebug() && !this.traceListeners.isEmpty()) {
-      this.traceListeners.forEach(l -> l.onTraceChoicePointEvent(event, choicePoint));
+    if (this.isDebug() && !this.contextListeners.isEmpty()) {
+      this.contextListeners.forEach(l -> l.onChoicePointTraceEvent(this, choicePoint, event));
     }
   }
 
@@ -516,6 +524,24 @@ public final class JProlContext {
     return result;
   }
 
+  public void notifyAboutUndefinedPredicate(final ChoicePoint choicePoint, final String signature) {
+    switch (this.getUndefinedPredicateBehavior()) {
+      case ERROR: {
+        throw new ProlUndefinedPredicateErrorException(signature);
+      }
+      case WARNING: {
+        this.contextListeners.forEach(x -> x.onUndefinedPredicateWarning(this, choicePoint, signature));
+      }
+      break;
+      case FAIL: {
+        //nothing
+      }
+      break;
+      default:
+        throw new Error("Unexpected behavior: " + this.getUndefinedPredicateBehavior());
+    }
+  }
+
   public void notifyTriggersForSignature(final String normalizedSignature,
                                          final JProlTriggerType observedEvent) {
     final List<JProlTrigger> listOfTriggers;
@@ -631,7 +657,7 @@ public final class JProlContext {
           }
         }
       } catch (Exception ex) {
-        throw new PrologParserException(ex.getMessage(), line, strpos, ex);
+        throw new PrologParserException(ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage(), line, strpos, ex);
       }
     } while (!Thread.currentThread().isInterrupted());
   }
@@ -664,6 +690,7 @@ public final class JProlContext {
         this.knowledgeBase.makeCopy(),
         this.executorService,
         this.systemFlags,
+        this.contextListeners,
         this.ioProviders
     );
   }

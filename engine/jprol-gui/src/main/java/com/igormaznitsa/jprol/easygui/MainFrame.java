@@ -21,6 +21,7 @@ import com.igormaznitsa.jprol.annotations.Predicate;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermVar;
+import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeContextFactory;
@@ -28,9 +29,10 @@ import com.igormaznitsa.jprol.libs.*;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
 import com.igormaznitsa.jprol.logic.ConsultInteractor;
 import com.igormaznitsa.jprol.logic.JProlContext;
+import com.igormaznitsa.jprol.logic.JProlSystemFlag;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
+import com.igormaznitsa.jprol.trace.JProlContextListener;
 import com.igormaznitsa.jprol.trace.TraceEvent;
-import com.igormaznitsa.jprol.trace.TracingChoicePointListener;
 import com.igormaznitsa.jprol.utils.Utils;
 import com.igormaznitsa.prologparser.exceptions.PrologParserException;
 
@@ -58,7 +60,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public final class MainFrame extends javax.swing.JFrame implements ConsultInteractor, IoResourceProvider, Runnable, UndoableEditListener, WindowListener, DocumentListener, HyperlinkListener, TracingChoicePointListener {
+public final class MainFrame extends javax.swing.JFrame implements ConsultInteractor, IoResourceProvider, Runnable, UndoableEditListener, WindowListener, DocumentListener, HyperlinkListener, JProlContextListener {
 
   protected static final String PROL_EXTENSION = ".prl";
   private static final long serialVersionUID = 72348723421332L;
@@ -253,19 +255,24 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
   }
 
   @Override
-  public void onTraceChoicePointEvent(final TraceEvent event, final ChoicePoint source) {
+  public void onUndefinedPredicateWarning(final JProlContext source, final ChoicePoint choicePoint, final String undefinedPredicateSignature) {
+    this.messageEditor.addWarningText("Detected undefined predicate: " + undefinedPredicateSignature);
+  }
+
+  @Override
+  public void onChoicePointTraceEvent(final JProlContext source, final ChoicePoint choicePoint, final TraceEvent event) {
     switch (event) {
       case CALL:
-        traceEditor.addCallText(source.getGoalTerm().forWrite());
+        this.traceEditor.addCallText(choicePoint.getGoalTerm().forWrite());
         break;
       case REDO:
-        traceEditor.addRedoText(source.getGoalTerm().forWrite());
+        this.traceEditor.addRedoText(choicePoint.getGoalTerm().forWrite());
         break;
       case FAIL:
-        traceEditor.addFailText(source.getGoalTerm().forWrite());
+        this.traceEditor.addFailText(choicePoint.getGoalTerm().forWrite());
         break;
       case EXIT:
-        traceEditor.addExitText(source.getGoalTerm().forWrite());
+        this.traceEditor.addExitText(choicePoint.getGoalTerm().forWrite());
         break;
     }
   }
@@ -1114,8 +1121,11 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
 
       try {
         context = new JProlContext(new InMemoryKnowledgeContextFactory(), "prol-script").addIoResourceProvider(this);
+        context.addContextListener(this);
         if (this.startedInTracing.get()) {
-          context.addTraceListener(this);
+          context.setSystemFlag(JProlSystemFlag.DEBUG, Terms.TRUE);
+        } else {
+          context.setSystemFlag(JProlSystemFlag.DEBUG, Terms.FALSE);
         }
 
         for (final String str : PROL_LIBRARIES) {
