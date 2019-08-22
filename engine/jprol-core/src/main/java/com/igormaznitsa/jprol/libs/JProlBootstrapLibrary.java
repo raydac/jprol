@@ -135,7 +135,7 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
   @Determined
   public static boolean predicateNOT(final ChoicePoint goal, final TermStruct predicate) {
     final ChoicePoint localGoal = new ChoicePoint(predicate.getElement(0), goal.getContext());
-    final Term result = localGoal.next();
+    final Term result = localGoal.next(true);
     return result == null;
   }
 

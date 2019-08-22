@@ -164,7 +164,7 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
     //[','(X = true, call(X)), [[X <-- true]]].
     checkVarValues("','(X=true,call(X)).", "X", "true");
     //[','(nofoo(X), call(X)), existence_error(procedure, nofoo/1)].
-    checkOnce("','(nofoo(X), call(X)).", false);
+    checkException("','(nofoo(X), call(X)).");
   }
 
   @Test

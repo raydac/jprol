@@ -605,7 +605,6 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
           IteratorType.ANY,
           head.getTermType() == STRUCT ? (TermStruct) head : newStruct(head),
           x -> {
-            goal.getContext().notifyAboutUndefinedPredicate(goal, x);
           }
       );
       if (!clIterator.hasNext()) {
@@ -1585,7 +1584,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       final ChoicePoint find_goal = new ChoicePoint(processingGoal.makeClone(), goal.getContext());
 
       while (true) {
-        final Term nextTemplate = find_goal.next();
+        final Term nextTemplate = find_goal.next(true);
 
         if (nextTemplate == null) {
           break;
@@ -1703,7 +1702,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       final ChoicePoint find_goal = new ChoicePoint(processingGoal.makeClone(), goal.getContext());
 
       while (true) {
-        final Term nextTemplate = find_goal.next();
+        final Term nextTemplate = find_goal.next(true);
 
         if (nextTemplate == null) {
           break;
@@ -2059,6 +2058,6 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public final boolean predicateCannotBeProven1(final ChoicePoint goal, final TermStruct predicate) {
     final Term argument = predicate.getElement(0);
     final ChoicePoint subgoal = new ChoicePoint(argument, goal.getContext());
-    return subgoal.next() == null;
+    return subgoal.next(true) == null;
   }
 }

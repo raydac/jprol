@@ -31,6 +31,7 @@ import java.io.StringReader;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
@@ -61,6 +62,9 @@ public final class ChoicePoint {
 
   private static final AtomicLong UID_GEN = new AtomicLong();
   private final long uid;
+
+  private static final Consumer<String> NULL_UNDEFINED_SUPPLIER = x -> {
+  };
 
   private ChoicePoint(
       final ChoicePoint rootCp,
@@ -225,6 +229,10 @@ public final class ChoicePoint {
   }
 
   public Term next() {
+    return this.next(false);
+  }
+
+  public Term next(final boolean silentFailForUndefinedPredicate) {
     Term result = null;
 
     boolean loop = true;
@@ -240,7 +248,7 @@ public final class ChoicePoint {
         break;
       } else {
         if (goalToProcess.thereAreVariants) {
-          switch (goalToProcess.resolve()) {
+          switch (goalToProcess.resolve(silentFailForUndefinedPredicate)) {
             case FAIL: {
               if (this.context.isDebug()) {
                 this.context.fireTraceEvent(TraceEvent.FAIL, goalToProcess);
@@ -280,7 +288,7 @@ public final class ChoicePoint {
     return result;
   }
 
-  private ChoicePointResult resolve() {
+  private ChoicePointResult resolve(final boolean silentFailForUndefinedPredicate) {
     if (Thread.currentThread().isInterrupted()) {
       return ChoicePointResult.FAIL;
     }
@@ -307,7 +315,7 @@ public final class ChoicePoint {
 
       if (this.subCp != null) {
         // solve subgoal
-        final Term solvedTerm = this.subCp.next();
+        final Term solvedTerm = this.subCp.next(silentFailForUndefinedPredicate);
 
         if (this.subCp.cutMeet) {
           this.clauseIterator = null;
@@ -448,9 +456,10 @@ public final class ChoicePoint {
                     this.context.getKnowledgeContext(),
                     IteratorType.ANY,
                     struct,
-                    x -> {
-                      this.context.notifyAboutUndefinedPredicate(this, x);
-                    }
+                    silentFailForUndefinedPredicate ? NULL_UNDEFINED_SUPPLIER :
+                        x -> {
+                          this.context.notifyAboutUndefinedPredicate(this, x);
+                        }
                 );
                 if (!this.clauseIterator.hasNext()) {
                   doLoop = false;
