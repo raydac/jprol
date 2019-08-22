@@ -1584,7 +1584,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       final ChoicePoint find_goal = new ChoicePoint(processingGoal.makeClone(), goal.getContext());
 
       while (true) {
-        final Term nextTemplate = find_goal.next(true);
+        final Term nextTemplate = find_goal.nextAndFailForUnknown();
 
         if (nextTemplate == null) {
           break;
@@ -1702,7 +1702,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       final ChoicePoint find_goal = new ChoicePoint(processingGoal.makeClone(), goal.getContext());
 
       while (true) {
-        final Term nextTemplate = find_goal.next(true);
+        final Term nextTemplate = find_goal.nextAndFailForUnknown();
 
         if (nextTemplate == null) {
           break;
@@ -2058,6 +2058,6 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public final boolean predicateCannotBeProven1(final ChoicePoint goal, final TermStruct predicate) {
     final Term argument = predicate.getElement(0);
     final ChoicePoint subgoal = new ChoicePoint(argument, goal.getContext());
-    return subgoal.next(true) == null;
+    return subgoal.nextAndFailForUnknown() == null;
   }
 }

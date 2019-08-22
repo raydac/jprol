@@ -231,10 +231,14 @@ public final class ChoicePoint {
   }
 
   public Term next() {
-    return this.next(false);
+    return this.next(x -> this.context.notifyAboutUndefinedPredicate(this, x));
   }
 
-  public Term next(final boolean silentFailForUndefinedPredicate) {
+  public Term nextAndFailForUnknown() {
+    return this.next(NULL_UNDEFINED_PREDICATE_CONSUMER);
+  }
+
+  private Term next(final Consumer<String> unknownPredicateConsumer) {
     Term result = null;
 
     boolean loop = true;
@@ -250,7 +254,7 @@ public final class ChoicePoint {
         break;
       } else {
         if (goalToProcess.thereAreVariants) {
-          switch (goalToProcess.resolve(silentFailForUndefinedPredicate)) {
+          switch (goalToProcess.resolve(unknownPredicateConsumer)) {
             case FAIL: {
               if (this.debug) {
                 this.context.fireTraceEvent(TraceEvent.FAIL, goalToProcess);
@@ -290,7 +294,7 @@ public final class ChoicePoint {
     return result;
   }
 
-  private ChoicePointResult resolve(final boolean silentFailForUndefinedPredicate) {
+  private ChoicePointResult resolve(final Consumer<String> unknownPredicateConsumer) {
     if (Thread.currentThread().isInterrupted()) {
       return ChoicePointResult.FAIL;
     }
@@ -317,7 +321,7 @@ public final class ChoicePoint {
 
       if (this.subCp != null) {
         // solve subgoal
-        final Term solvedTerm = this.subCp.next(silentFailForUndefinedPredicate);
+        final Term solvedTerm = this.subCp.next();
 
         if (this.subCp.cutMeet) {
           this.clauseIterator = null;
@@ -458,10 +462,7 @@ public final class ChoicePoint {
                     this.context.getKnowledgeContext(),
                     IteratorType.ANY,
                     struct,
-                    silentFailForUndefinedPredicate ? NULL_UNDEFINED_SUPPLIER :
-                        x -> {
-                          this.context.notifyAboutUndefinedPredicate(this, x);
-                        }
+                    unknownPredicateConsumer
                 );
                 if (!this.clauseIterator.hasNext()) {
                   doLoop = false;

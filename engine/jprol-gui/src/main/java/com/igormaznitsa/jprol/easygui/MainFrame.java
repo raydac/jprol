@@ -67,6 +67,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
 
   private static final String[] PROL_LIBRARIES = new String[] {
       JProlCoreLibrary.class.getCanonicalName(),
+      JProlThreadLibrary.class.getCanonicalName(),
       JProlIoLibrary.class.getCanonicalName(),
       JProlStrLibrary.class.getCanonicalName(),
       JProlGfxLibrary.class.getCanonicalName(),
