@@ -63,8 +63,9 @@ public final class ChoicePoint {
   private static final AtomicLong UID_GEN = new AtomicLong();
   private final long uid;
 
-  private static final Consumer<String> NULL_UNDEFINED_SUPPLIER = x -> {
+  private static final Consumer<String> NULL_UNDEFINED_PREDICATE_CONSUMER = x -> {
   };
+  private final boolean debug;
 
   private ChoicePoint(
       final ChoicePoint rootCp,
@@ -75,6 +76,7 @@ public final class ChoicePoint {
     this.uid = UID_GEN.incrementAndGet();
 
     this.thereAreVariants = true;
+    this.debug = context.isDebug();
 
     this.rootCp = rootCp == null ? this : rootCp;
     this.goalTerm = goalToSolve.getTermType() == ATOM ? newStruct(goalToSolve) : goalToSolve;
@@ -197,7 +199,7 @@ public final class ChoicePoint {
   }
 
   public ChoicePoint replaceLastGoalAtChain(final Term goal) {
-    if (this.context.isDebug()) {
+    if (this.debug) {
       this.context.fireTraceEvent(EXIT, this.rootCp.rootLastGoalAtChain);
     }
 
@@ -250,7 +252,7 @@ public final class ChoicePoint {
         if (goalToProcess.thereAreVariants) {
           switch (goalToProcess.resolve(silentFailForUndefinedPredicate)) {
             case FAIL: {
-              if (this.context.isDebug()) {
+              if (this.debug) {
                 this.context.fireTraceEvent(TraceEvent.FAIL, goalToProcess);
                 this.context.fireTraceEvent(EXIT, goalToProcess);
               }
@@ -277,7 +279,7 @@ public final class ChoicePoint {
               throw new Error("Unexpected status");
           }
         } else {
-          if (this.context.isDebug()) {
+          if (this.debug) {
             this.context.fireTraceEvent(EXIT, goalToProcess);
           }
           this.rootCp.rootLastGoalAtChain = goalToProcess.prevCp;
@@ -299,7 +301,7 @@ public final class ChoicePoint {
       traceEvent = TraceEvent.CALL;
       this.notFirstProve = true;
     }
-    if (this.context.isDebug()) {
+    if (this.debug) {
       this.context.fireTraceEvent(traceEvent, this);
     }
 

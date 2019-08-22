@@ -224,7 +224,7 @@ public final class JProlContext {
   }
 
   void fireTraceEvent(final TraceEvent event, final ChoicePoint choicePoint) {
-    if (this.isDebug() && !this.contextListeners.isEmpty()) {
+    if (!this.contextListeners.isEmpty()) {
       this.contextListeners.forEach(l -> l.onChoicePointTraceEvent(this, choicePoint, event));
     }
   }
