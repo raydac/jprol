@@ -1,6 +1,5 @@
 package com.igormaznitsa.jprol.libs;
 
-import com.igormaznitsa.jprol.annotations.Determined;
 import com.igormaznitsa.jprol.annotations.Predicate;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
@@ -215,8 +214,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }).orElseThrow(() -> new ProlPermissionErrorException("read", "text_input", predicate));
   }
 
-  @Predicate(signature = "read/1", reference = " Read  the next Prolog term from the current input stream.")
-  @Determined
+  @Predicate(determined = true, signature = "read/1", reference = " Read  the next Prolog term from the current input stream.")
   public final boolean predicateRead(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     final Reader current = getIoReaders(goal.getContext()).get(CURRENT_STREAM_ID);
@@ -262,8 +260,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }).orElseThrow(() -> new ProlPermissionErrorException("read", "text_input", goal));
   }
 
-  @Predicate(signature = "seen/0", reference = "Close the current input stream.")
-  @Determined
+  @Predicate(determined = true, signature = "seen/0", reference = "Close the current input stream.")
   public final boolean predicateSEEN(final ChoicePoint goal, final TermStruct predicate) {
     return findCurrentInput(goal.getContext(), predicate).map(reader -> {
       try {
@@ -319,8 +316,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @Predicate(signature = "write/1", reference = "Write a term into the current output stream.")
-  @Determined
+  @Predicate(determined = true, signature = "write/1", reference = "Write a term into the current output stream.")
   public final boolean predicateWrite(final ChoicePoint goal, final TermStruct predicate) {
     return findCurrentOutput(goal.getContext(), predicate).map(writer -> {
       try {
@@ -350,8 +346,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     return arg.unifyTo(result);
   }
 
-  @Predicate(signature = "told/0", reference = "Close the current output stream.")
-  @Determined
+  @Predicate(determined = true, signature = "told/0", reference = "Close the current output stream.")
   public final boolean predicateTOLD(final ChoicePoint goal, final TermStruct predicate) {
     return this.findCurrentOutput(goal.getContext(), predicate).map(writer -> {
       try {
@@ -363,8 +358,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }).orElseThrow(() -> new ProlPermissionErrorException("close", "text_stream", predicate));
   }
 
-  @Predicate(signature = "nl/0", reference = "Out the next line char symbol into current output stream")
-  @Determined
+  @Predicate(determined = true, signature = "nl/0", reference = "Out the next line char symbol into current output stream")
   public final boolean predicateNL(final ChoicePoint goal, final TermStruct predicate) {
     return this.findCurrentOutput(goal.getContext(), predicate).map(writer -> {
       try {

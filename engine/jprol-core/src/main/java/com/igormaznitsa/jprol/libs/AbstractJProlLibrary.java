@@ -31,6 +31,7 @@ import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
 import com.igormaznitsa.jprol.utils.OperatorIterator;
+import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.Utils;
 
 import java.lang.reflect.Method;
@@ -159,11 +160,8 @@ public abstract class AbstractJProlLibrary {
 
       switch (term.getTermType()) {
         case ATOM: {
-          if (term instanceof NumericTerm) {
-            result = (NumericTerm) term;
-          } else {
-            throw new ProlTypeErrorException("number", "Not a numeric atom +[" + term + "] found at goal [" + goal + ']', term);
-          }
+          ProlAssertions.assertNumber(term);
+          result = (NumericTerm) term;
         }
         break;
         case STRUCT: {

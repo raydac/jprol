@@ -30,4 +30,10 @@ public @interface Predicate {
   String[] template() default {};
 
   String reference() default "";
+
+  boolean determined() default false;
+
+  boolean evaluable() default false;
+
+  boolean changesChooseChain() default false;
 }

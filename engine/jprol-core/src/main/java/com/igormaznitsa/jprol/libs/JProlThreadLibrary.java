@@ -1,6 +1,5 @@
 package com.igormaznitsa.jprol.libs;
 
-import com.igormaznitsa.jprol.annotations.Determined;
 import com.igormaznitsa.jprol.annotations.Predicate;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
@@ -274,8 +273,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
     context.submitAsync(goalToSolve);
   }
 
-  @Predicate(signature = "waitasync/0", reference = "Blocking waiting until all daemon threads (started with either fork/1 or async/1) of the context will be done.")
-  @Determined
+  @Predicate(determined = true, signature = "waitasync/0", reference = "Blocking waiting until all daemon threads (started with either fork/1 or async/1) of the context will be done.")
   public static void predicateWAITASYNC0(final ChoicePoint goal, final TermStruct predicate) {
     final ExecutorService service = goal.getContext().getContextExecutorService();
 

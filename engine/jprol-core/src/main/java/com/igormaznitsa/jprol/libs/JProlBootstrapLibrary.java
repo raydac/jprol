@@ -1,6 +1,5 @@
 package com.igormaznitsa.jprol.libs;
 
-import com.igormaznitsa.jprol.annotations.Determined;
 import com.igormaznitsa.jprol.annotations.Predicate;
 import com.igormaznitsa.jprol.annotations.ProlOperator;
 import com.igormaznitsa.jprol.annotations.ProlOperators;
@@ -120,39 +119,28 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     return leftPart.unifyTo(rightPart);
   }
 
-  @Predicate(signature = "true/0", reference = "The perdicate is always true.")
-  @Determined
-  public static void predicateTRUE(final ChoicePoint goal, final TermStruct predicate) {
+  @Predicate(determined = true, signature = "true/0", reference = "The perdicate is always true.")
+  public static void predicateTRUE(final ChoicePoint cpoint, final TermStruct predicate) {
   }
 
-  @Predicate(signature = "fail/0", reference = "The predicate is always false.")
-  @Determined
-  public static boolean predicateFAIL(final ChoicePoint goal, final TermStruct predicate) {
+  @Predicate(determined = true, signature = "fail/0", reference = "The predicate is always false.")
+  public static boolean predicateFAIL(final ChoicePoint cpoint, final TermStruct predicate) {
     return false;
   }
 
-  @Predicate(signature = "not/1", reference = "True if goal cannot be proven")
-  @Determined
-  public static boolean predicateNOT(final ChoicePoint goal, final TermStruct predicate) {
-    final ChoicePoint localGoal = new ChoicePoint(predicate.getElement(0), goal.getContext());
-    final Term result = localGoal.nextAndFailForUnknown();
-    return result == null;
+  @Predicate(determined = true, signature = "not/1", reference = "True if goal cannot be proven")
+  public static boolean predicateNOT(final ChoicePoint cpoint, final TermStruct predicate) {
+    return cpoint.makeForGoal(predicate.getElement(0).findNonVarOrSame()).nextAndFailForUnknown() == null;
   }
 
-  @Predicate(signature = "=/2", reference = "Unify X and Y terms. It is true if X and Y are unifiable.")
-  @Determined
-  public static boolean predicateEQU(final ChoicePoint goal, final TermStruct predicate) {
-    final Term left = predicate.getElement(0);
-    final Term right = predicate.getElement(1);
-    return left.unifyTo(right);
+  @Predicate(determined = true, signature = "=/2", reference = "Unify X and Y terms. It is true if X and Y are unifiable.")
+  public static boolean predicateEQU(final ChoicePoint cpoint, final TermStruct predicate) {
+    return predicate.getElement(0).unifyTo(predicate.getElement(1));
   }
 
-  @Predicate(signature = "\\=/2", reference = "Unify X and Y terms. It is true if X and Y are not-unifiable.")
-  @Determined
-  public static boolean predicateNOTEQU(final ChoicePoint goal, final TermStruct predicate) {
-    final Term left = predicate.getElement(0);
-    final Term right = predicate.getElement(1);
-    return !left.unifyTo(right);
+  @Predicate(determined = true, signature = "\\=/2", reference = "Unify X and Y terms. It is true if X and Y are not-unifiable.")
+  public static boolean predicateNOTEQU(final ChoicePoint cpoint, final TermStruct predicate) {
+    return !predicate.getElement(0).unifyTo(predicate.getElement(1));
   }
 
   @Predicate(signature = ";/2", reference = "';'(Either, Or) is true if either Either or Or is true.")
@@ -165,15 +153,13 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     // stub, see Goal#resolve
   }
 
-  @Predicate(signature = "!/0", reference = "! is true. All choice ponts between the cut and the parent goal are removed. The effect is commit to use of both the current clause and the substitutions found at the point of the cut.")
-  @Determined
-  public static void predicateCUT(final ChoicePoint goal, final TermStruct predicate) {
+  @Predicate(determined = true, signature = "!/0", reference = "! is true. All choice ponts between the cut and the parent goal are removed. The effect is commit to use of both the current clause and the substitutions found at the point of the cut.")
+  public static void predicateCUT(final ChoicePoint cpoint, final TermStruct predicate) {
     // it is a stub function for embedded inside operator
   }
 
-  @Predicate(signature = "!!/0", reference = "!! is true. Local version of !/0. It doesn't cut the knowledge base selection, i.e. it works only inbounds of current goal.")
-  @Determined
-  public static void predicateCUTLOCAL(final ChoicePoint goal, final TermStruct predicate) {
+  @Predicate(determined = true, signature = "!!/0", reference = "!! is true. Local version of !/0. It doesn't cut the knowledge base selection, i.e. it works only inbounds of current goal.")
+  public static void predicateCUTLOCAL(final ChoicePoint cpoint, final TermStruct predicate) {
     // it is a stub function for embedded inside operator
   }
 }

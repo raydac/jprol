@@ -16,12 +16,12 @@
 
 package com.igormaznitsa.jprol.logic;
 
-import com.igormaznitsa.jprol.annotations.ChangesChoosePointChain;
-import com.igormaznitsa.jprol.annotations.Determined;
-import com.igormaznitsa.jprol.annotations.Evaluable;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
-import com.igormaznitsa.jprol.exceptions.*;
+import com.igormaznitsa.jprol.exceptions.ProlAbstractCatcheableException;
+import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
+import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 
 import java.lang.invoke.MethodHandle;
@@ -67,9 +67,9 @@ public final class PredicateInvoker {
       }
 
       this.voidResult = method.getReturnType() == CLASS_RESULT_VOID;
-      this.determined = method.isAnnotationPresent(Determined.class);
-      this.evaluable = method.isAnnotationPresent(Evaluable.class);
-      this.changesGoalChain = method.isAnnotationPresent(ChangesChoosePointChain.class);
+      this.determined = determined;
+      this.evaluable = evaluable;
+      this.changesGoalChain = affectsChain;
     }
   }
 

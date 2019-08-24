@@ -527,7 +527,7 @@ public final class JProlContext {
   public void notifyAboutUndefinedPredicate(final ChoicePoint choicePoint, final String signature) {
     switch (this.getUndefinedPredicateBehavior()) {
       case ERROR: {
-        throw new ProlUndefinedPredicateErrorException(signature);
+        throw new ProlExistenceErrorException("predicate", "Undefined predicate: " + signature, choicePoint.getGoalTerm());
       }
       case WARNING: {
         this.contextListeners.forEach(x -> x.onUndefinedPredicateWarning(this, choicePoint, signature));
