@@ -58,9 +58,8 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
     assertEquals(goal.getVarAsNumber("Y"), 9L);
     assertNull(goal.next());
 
-    //todo check WTF
     //['is'(foo,77), failure]. % error? foo
-    //assertThrowProlException("is(foo,77).");
+    checkOnce("'is'(foo,77).", false);
 
     //['is'(77, N), instantiation_error].
     assertProlException("is(77,N).", ProlInstantiationErrorException.class);

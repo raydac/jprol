@@ -126,15 +126,13 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
         }).orElseThrow(() -> new ProlDomainErrorException("prolog_flag", atom));
   }
 
-  @JProlPredicate(determined = true, signature = "is/2", args = {"?number,@evaluable"}, reference = "'is'(Result, Expression) is true if and only if the value of evaluating Expression as an expression is Result")
+  @JProlPredicate(determined = true, signature = "is/2", args = {"-number,+evaluable"}, reference = "'is'(Result, Expression) is true if and only if the value of evaluating Expression as an expression is Result")
   public static boolean predicateIS(final ChoicePoint cpoint, final TermStruct predicate) {
     final Term left = predicate.getElement(0).findNonVarOrSame();
     final Term right = predicate.getElement(1).findNonVarOrSame();
 
     if (cpoint.isArgsValidate()) {
-      if (left.getTermType() != TermType.VAR) {
-        ProlAssertions.assertNumber(left);
-      }
+      ProlAssertions.assertEvaluable(right);
     }
 
     final NumericTerm rightResult = calculatEvaluable(cpoint, right);

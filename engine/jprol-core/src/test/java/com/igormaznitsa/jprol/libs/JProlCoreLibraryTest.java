@@ -586,7 +586,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
     //todo check if reproducible
     //[asserta((foo :- 4)), type_error(callable, 4)].
-    //checkException("asserta((foo:-4))."); //!!jprol allows
+//    assertProlException("asserta((foo:-4)).", ProlTypeErrorException.class); //!!jprol allows
 
     //[asserta((atom(_) :- true)), permission_error(modify,static_procedure,atom/1)].
     assertProlException("asserta((atom(_):-true)).", ProlPermissionErrorException.class);
@@ -594,16 +594,24 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testNumberCodes2() {
-    //todo check why commented
+    //[number_codes(A,[0' ,0'3]), [[A <-- 3]]]. !!! SPACE IS NOT SUPPORTED IN JPROL
+    //checkVarValues("number_codes(A,[0' ,0'3]).","A","3");
+
     //[number_codes(33.0,[0'3,0'.,0'3,0'E,0'+,0'0,0'1]), success].
+    checkOnce("number_codes(33.0,[0'3,0'.,0'3,0'E,0'+,0'0,0'1]).", true);
     //[number_codes(A,[0'-,0'2,0'5]), [[A <-- (-25)]]].
-    //[number_codes(A,[0' ,0'3]), [[A <-- 3]]].
+    checkVarValues("number_codes(A,[0'-,0'2,0'5]).", "A", "-25");
     //[number_codes(A,[0'0,0'x,0'f]), [[A <-- 15]]].
+    checkVarValues("number_codes(A,[0'0,0'x,0'f]).", "A", "15");
     //[number_codes(A,[0'0,39,0'a]), [[A <-- 97]]].
+    checkVarValues("number_codes(A,[0'0,39,0'a]).", "A", "'0\\'a'");
     //[number_codes(A,[0'4,0'.,0'2]), [[A <-- 4.2]]].
+    checkVarValues("number_codes(A,[0'4,0'.,0'2]).", "A", "4.2");
     //[number_codes(A,[0'4,0'2,0'.,0'0,0'e,0'-,0'1]), [[A <-- 4.2]]].
+    checkVarValues("number_codes(A,[0'4,0'2,0'.,0'0,0'e,0'-,0'1]).", "A", "4.2");
 
     //[number_codes(A,[ 0'1, 0'2, 1000]), representation_error(character_code)]. % 1000 not a code
+    assertProlException("number_codes(A,[ 0'1, 0'2, 100000]).", ProlRepresentationErrorException.class);
 
     //[number_codes(A,L), instantiation_error].
     assertProlException("number_codes(A,L).", ProlInstantiationErrorException.class);
