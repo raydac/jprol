@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
 
 @Target(value = ElementType.METHOD)
 @Retention(value = RetentionPolicy.RUNTIME)
-public @interface Predicate {
+public @interface JProlPredicate {
   String signature();
 
   String[] args() default {};

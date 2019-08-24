@@ -1,8 +1,8 @@
 package com.igormaznitsa.jprol.libs;
 
-import com.igormaznitsa.jprol.annotations.Predicate;
-import com.igormaznitsa.jprol.annotations.ProlOperator;
-import com.igormaznitsa.jprol.annotations.ProlOperators;
+import com.igormaznitsa.jprol.annotations.JProlOperator;
+import com.igormaznitsa.jprol.annotations.JProlOperators;
+import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.NumericTerm;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
@@ -18,29 +18,29 @@ import java.util.stream.Stream;
 import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.*;
 
 @SuppressWarnings( {"EmptyMethod", "unused"})
-@ProlOperators(operators = {
-    @ProlOperator(priority = 700, type = XFX, name = "is"),
-    @ProlOperator(priority = 700, type = XFX, name = "="),
-    @ProlOperator(priority = 700, type = XFX, name = "\\="),
-    @ProlOperator(priority = 0, type = XFX, name = "("),
-    @ProlOperator(priority = 0, type = XFX, name = ")"),
-    @ProlOperator(priority = 0, type = XFX, name = "["),
-    @ProlOperator(priority = 0, type = XFX, name = "]"),
-    @ProlOperator(priority = 1200, type = XF, name = "."),
-    @ProlOperator(priority = 1200, type = XFX, name = "|"),
-    @ProlOperator(priority = 1000, type = XFY, name = ","),
-    @ProlOperator(priority = 1100, type = XFY, name = ";"),
-    @ProlOperator(priority = 1200, type = FX, name = "?-"),
-    @ProlOperator(priority = 1200, type = FX, name = ":-"),
-    @ProlOperator(priority = 1200, type = XFX, name = ":-"),
-    @ProlOperator(priority = 500, type = FX, name = "not")
+@JProlOperators(operators = {
+    @JProlOperator(priority = 700, type = XFX, name = "is"),
+    @JProlOperator(priority = 700, type = XFX, name = "="),
+    @JProlOperator(priority = 700, type = XFX, name = "\\="),
+    @JProlOperator(priority = 0, type = XFX, name = "("),
+    @JProlOperator(priority = 0, type = XFX, name = ")"),
+    @JProlOperator(priority = 0, type = XFX, name = "["),
+    @JProlOperator(priority = 0, type = XFX, name = "]"),
+    @JProlOperator(priority = 1200, type = XF, name = "."),
+    @JProlOperator(priority = 1200, type = XFX, name = "|"),
+    @JProlOperator(priority = 1000, type = XFY, name = ","),
+    @JProlOperator(priority = 1100, type = XFY, name = ";"),
+    @JProlOperator(priority = 1200, type = FX, name = "?-"),
+    @JProlOperator(priority = 1200, type = FX, name = ":-"),
+    @JProlOperator(priority = 1200, type = XFX, name = ":-"),
+    @JProlOperator(priority = 500, type = FX, name = "not")
 })
 public class JProlBootstrapLibrary extends AbstractJProlLibrary {
   public JProlBootstrapLibrary() {
     super("jprol-bootstrap-lib");
   }
 
-  @Predicate(signature = "current_prolog_flag/2", args = {"?atom,?term"}, reference = "Check prolog flag and flag values.")
+  @JProlPredicate(signature = "current_prolog_flag/2", args = {"?atom,?term"}, reference = "Check prolog flag and flag values.")
   public static boolean predicateCURRENTPROLOGFLAG(final ChoicePoint cpoint, final TermStruct predicate) {
     final Term atom = predicate.getElement(0).findNonVarOrSame();
     final Term term = predicate.getElement(1).findNonVarOrSame();
@@ -87,7 +87,7 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     return found;
   }
 
-  @Predicate(determined = true, signature = "kcontext/1", args = {"?atom"}, reference = "Set or get current knowledge context parameter.")
+  @JProlPredicate(determined = true, signature = "kcontext/1", args = {"?atom"}, reference = "Set or get current knowledge context parameter.")
   public static boolean predicateKCONTEXT1(final ChoicePoint cpoint, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
 
@@ -103,7 +103,7 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @Predicate(
+  @JProlPredicate(
       determined = true,
       signature = "set_prolog_flag/2",
       args = {"+atom,+term"},
@@ -126,7 +126,7 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
         }).orElseThrow(() -> new ProlDomainErrorException("prolog_flag", atom));
   }
 
-  @Predicate(determined = true, signature = "is/2", args = {"?number,@evaluable"}, reference = "'is'(Result, Expression) is true if and only if the value of evaluating Expression as an expression is Result")
+  @JProlPredicate(determined = true, signature = "is/2", args = {"?number,@evaluable"}, reference = "'is'(Result, Expression) is true if and only if the value of evaluating Expression as an expression is Result")
   public static boolean predicateIS(final ChoicePoint cpoint, final TermStruct predicate) {
     final Term left = predicate.getElement(0).findNonVarOrSame();
     final Term right = predicate.getElement(1).findNonVarOrSame();
@@ -141,46 +141,46 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     return rightResult != null && left.unifyTo(rightResult);
   }
 
-  @Predicate(determined = true, signature = "true/0", reference = "The perdicate is always true.")
+  @JProlPredicate(determined = true, signature = "true/0", reference = "The perdicate is always true.")
   public static void predicateTRUE(final ChoicePoint cpoint, final TermStruct predicate) {
   }
 
-  @Predicate(determined = true, signature = "fail/0", reference = "The predicate is always false.")
+  @JProlPredicate(determined = true, signature = "fail/0", reference = "The predicate is always false.")
   public static boolean predicateFAIL(final ChoicePoint cpoint, final TermStruct predicate) {
     return false;
   }
 
-  @Predicate(determined = true, signature = "not/1", reference = "True if goal cannot be proven")
+  @JProlPredicate(determined = true, signature = "not/1", reference = "True if goal cannot be proven")
   public static boolean predicateNOT(final ChoicePoint cpoint, final TermStruct predicate) {
     return cpoint.makeForGoal(predicate.getElement(0).findNonVarOrSame()).nextAndFailForUnknown() == null;
   }
 
-  @Predicate(determined = true, signature = "=/2", reference = "Unify X and Y terms. It is true if X and Y are unifiable.")
+  @JProlPredicate(determined = true, signature = "=/2", reference = "Unify X and Y terms. It is true if X and Y are unifiable.")
   public static boolean predicateEQU(final ChoicePoint cpoint, final TermStruct predicate) {
     return predicate.getElement(0).unifyTo(predicate.getElement(1));
   }
 
-  @Predicate(determined = true, signature = "\\=/2", reference = "Unify X and Y terms. It is true if X and Y are not-unifiable.")
+  @JProlPredicate(determined = true, signature = "\\=/2", reference = "Unify X and Y terms. It is true if X and Y are not-unifiable.")
   public static boolean predicateNOTEQU(final ChoicePoint cpoint, final TermStruct predicate) {
     return !predicate.getElement(0).unifyTo(predicate.getElement(1));
   }
 
-  @Predicate(signature = ";/2", reference = "';'(Either, Or) is true if either Either or Or is true.")
+  @JProlPredicate(signature = ";/2", reference = "';'(Either, Or) is true if either Either or Or is true.")
   public static void predicateOR(final ChoicePoint cpoint, final TermStruct predicate) {
     // stub, see Goal#resolve
   }
 
-  @Predicate(signature = ",/2", reference = "','(First, Second) is true if and only if First is true and Second is true.")
+  @JProlPredicate(signature = ",/2", reference = "','(First, Second) is true if and only if First is true and Second is true.")
   public static void predicateAND(final ChoicePoint cpoint, final TermStruct predicate) {
     // stub, see Goal#resolve
   }
 
-  @Predicate(determined = true, signature = "!/0", reference = "! is true. All choice ponts between the cut and the parent goal are removed. The effect is commit to use of both the current clause and the substitutions found at the point of the cut.")
+  @JProlPredicate(determined = true, signature = "!/0", reference = "! is true. All choice ponts between the cut and the parent goal are removed. The effect is commit to use of both the current clause and the substitutions found at the point of the cut.")
   public static void predicateCUT(final ChoicePoint cpoint, final TermStruct predicate) {
     // it is a stub function for embedded inside operator
   }
 
-  @Predicate(determined = true, signature = "!!/0", reference = "!! is true. Local version of !/0. It doesn't cut the knowledge base selection, i.e. it works only inbounds of current goal.")
+  @JProlPredicate(determined = true, signature = "!!/0", reference = "!! is true. Local version of !/0. It doesn't cut the knowledge base selection, i.e. it works only inbounds of current goal.")
   public static void predicateCUTLOCAL(final ChoicePoint cpoint, final TermStruct predicate) {
     // it is a stub function for embedded inside operator
   }

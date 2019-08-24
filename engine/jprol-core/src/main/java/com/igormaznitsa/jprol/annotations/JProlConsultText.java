@@ -23,6 +23,6 @@ import java.lang.annotation.Target;
 
 @Target(value = ElementType.TYPE)
 @Retention(value = RetentionPolicy.RUNTIME)
-public @interface ProlOperators {
-  ProlOperator[] operators();
+public @interface JProlConsultText {
+  String[] value() default "";
 }

@@ -16,9 +16,9 @@
 
 package com.igormaznitsa.jprol.logic;
 
-import com.igormaznitsa.jprol.annotations.ConsultClasspath;
-import com.igormaznitsa.jprol.annotations.ConsultFile;
-import com.igormaznitsa.jprol.annotations.ConsultText;
+import com.igormaznitsa.jprol.annotations.JProlConsultClasspath;
+import com.igormaznitsa.jprol.annotations.JProlConsultFile;
+import com.igormaznitsa.jprol.annotations.JProlConsultText;
 import com.igormaznitsa.jprol.data.*;
 import com.igormaznitsa.jprol.exceptions.*;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
@@ -327,7 +327,7 @@ public final class JProlContext {
 
     this.libraries.add(0, library);
 
-    final ConsultText consultText = library.getClass().getAnnotation(ConsultText.class);
+    final JProlConsultText consultText = library.getClass().getAnnotation(JProlConsultText.class);
     if (consultText != null) {
       final String text = Arrays.stream(consultText.value()).collect(Collectors.joining("\n"));
       if (text.length() > 0) {
@@ -335,7 +335,7 @@ public final class JProlContext {
       }
     }
 
-    final ConsultFile consultFile = library.getClass().getAnnotation(ConsultFile.class);
+    final JProlConsultFile consultFile = library.getClass().getAnnotation(JProlConsultFile.class);
     if (consultFile != null) {
       final String resourceText = Arrays.stream(consultFile.value())
           .filter(x -> !(x == null || x.trim().isEmpty()))
@@ -351,7 +351,7 @@ public final class JProlContext {
       this.consult(new StringReader(resourceText), null);
     }
 
-    final ConsultClasspath consultClasspath = library.getClass().getAnnotation(ConsultClasspath.class);
+    final JProlConsultClasspath consultClasspath = library.getClass().getAnnotation(JProlConsultClasspath.class);
     if (consultClasspath != null) {
       final String resourceText = Arrays.stream(consultClasspath.value())
           .filter(x -> !(x == null || x.trim().isEmpty()))

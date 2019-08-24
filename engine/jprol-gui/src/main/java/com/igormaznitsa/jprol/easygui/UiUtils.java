@@ -16,9 +16,9 @@
 
 package com.igormaznitsa.jprol.easygui;
 
-import com.igormaznitsa.jprol.annotations.Predicate;
-import com.igormaznitsa.jprol.annotations.ProlOperator;
-import com.igormaznitsa.jprol.annotations.ProlOperators;
+import com.igormaznitsa.jprol.annotations.JProlOperator;
+import com.igormaznitsa.jprol.annotations.JProlOperators;
+import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 
 import javax.imageio.ImageIO;
@@ -64,13 +64,13 @@ public final class UiUtils {
     out.println(libraryClass.getCanonicalName());
     out.println("===============================================");
 
-    final ProlOperators operators = libraryClass.getAnnotation(ProlOperators.class);
+    final JProlOperators operators = libraryClass.getAnnotation(JProlOperators.class);
     if (operators != null) {
       // there is defined operators
-      final ProlOperator[] ops = operators.operators();
+      final JProlOperator[] ops = operators.operators();
       if (ops.length > 0) {
         out.println("Operators\n-----------------------");
-        for (final ProlOperator oper : ops) {
+        for (final JProlOperator oper : ops) {
           if (oper.priority() > 0) {
             out.println(":-op(" + oper.priority() + "," + oper.type().getText() + ",\'" + oper.name() + "\').");
           }
@@ -80,7 +80,7 @@ public final class UiUtils {
     }
 
     for (final Method method : methods) {
-      final Predicate predicate = method.getAnnotation(Predicate.class);
+      final JProlPredicate predicate = method.getAnnotation(JProlPredicate.class);
       if (predicate != null) {
         final boolean determined = predicate.determined();
         out.print(predicate.signature());

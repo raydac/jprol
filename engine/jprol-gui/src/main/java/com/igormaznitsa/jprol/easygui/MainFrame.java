@@ -16,7 +16,7 @@
 
 package com.igormaznitsa.jprol.easygui;
 
-import com.igormaznitsa.jprol.annotations.Predicate;
+import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermVar;
@@ -1643,7 +1643,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
       super("JProlGuiLogger");
     }
 
-    @Predicate(determined = true, signature = "msgerror/1", reference = "The predicate allows to output information marked as error at the message window.")
+    @JProlPredicate(determined = true, signature = "msgerror/1", reference = "The predicate allows to output information marked as error at the message window.")
     public void predicateMSGERROR(final ChoicePoint goal, final TermStruct struct) {
       final Term term = struct.getElement(0).findNonVarOrSame();
       final String text = term.forWrite();
@@ -1651,7 +1651,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
       messageEditor.addErrorText(text);
     }
 
-    @Predicate(determined = true, signature = "msgwarning/1", reference = "The predicate allows to output information marked as warning at the message window.")
+    @JProlPredicate(determined = true, signature = "msgwarning/1", reference = "The predicate allows to output information marked as warning at the message window.")
     public void predicateMSGWARNING(final ChoicePoint goal, final TermStruct struct) {
       final Term term = struct.getElement(0).findNonVarOrSame();
       final String text = term.forWrite();
@@ -1659,7 +1659,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
       messageEditor.addWarningText(text);
     }
 
-    @Predicate(determined = true, signature = "msginfo/1", reference = "The predicate allows to output information marked as info at the message window.")
+    @JProlPredicate(determined = true, signature = "msginfo/1", reference = "The predicate allows to output information marked as info at the message window.")
     public void predicateMSGINFO(final ChoicePoint goal, final TermStruct struct) {
       final Term term = struct.getElement(0).findNonVarOrSame();
       final String text = term.forWrite();

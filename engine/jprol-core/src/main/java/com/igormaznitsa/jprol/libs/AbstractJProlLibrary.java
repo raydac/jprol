@@ -16,9 +16,9 @@
 
 package com.igormaznitsa.jprol.libs;
 
-import com.igormaznitsa.jprol.annotations.Predicate;
-import com.igormaznitsa.jprol.annotations.ProlOperator;
-import com.igormaznitsa.jprol.annotations.ProlOperators;
+import com.igormaznitsa.jprol.annotations.JProlOperator;
+import com.igormaznitsa.jprol.annotations.JProlOperators;
+import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.*;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
@@ -72,7 +72,7 @@ public abstract class AbstractJProlLibrary {
     return true;
   }
 
-  private static void registerStaticOperator(final Map<String, TermOperatorContainer> operatorMap, final ProlOperator operator) {
+  private static void registerStaticOperator(final Map<String, TermOperatorContainer> operatorMap, final JProlOperator operator) {
     TermOperator newOperator = new TermOperator(operator.priority(), operator.type(), operator.name());
     TermOperatorContainer container = operatorMap.get(operator.name());
     if (container == null) {
@@ -85,15 +85,15 @@ public abstract class AbstractJProlLibrary {
 
   private static Map<String, TermOperatorContainer> loadStaticOperators(final Class<?> klazz) {
     final Map<String, TermOperatorContainer> result = new HashMap<>();
-    final ProlOperators operators = klazz.getAnnotation(ProlOperators.class);
+    final JProlOperators operators = klazz.getAnnotation(JProlOperators.class);
     if (operators != null) {
-      ProlOperator[] operatorList = operators.operators();
-      for (final ProlOperator lst : operatorList) {
+      JProlOperator[] operatorList = operators.operators();
+      for (final JProlOperator lst : operatorList) {
         registerStaticOperator(result, lst);
       }
     }
 
-    final ProlOperator operator = klazz.getAnnotation(ProlOperator.class);
+    final JProlOperator operator = klazz.getAnnotation(JProlOperator.class);
     if (operator != null) {
       registerStaticOperator(result, operator);
     }
@@ -238,7 +238,7 @@ public abstract class AbstractJProlLibrary {
 
     final Method[] methods = this.getClass().getMethods();
     for (final Method method : methods) {
-      final Predicate predicateAnnotation = method.getAnnotation(Predicate.class);
+      final JProlPredicate predicateAnnotation = method.getAnnotation(JProlPredicate.class);
 
       if (predicateAnnotation != null) {
         final String signature = Utils.normalizeSignature(predicateAnnotation.signature());
