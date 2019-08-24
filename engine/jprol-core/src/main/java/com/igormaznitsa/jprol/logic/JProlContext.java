@@ -90,7 +90,7 @@ public final class JProlContext {
 
     @Override
     public int getFlags() {
-      return ParserContext.FLAG_ZERO_STRUCT;
+      return ParserContext.FLAG_ZERO_STRUCT | ParserContext.FLAG_ZERO_QUOTATION_CHARCODE | ParserContext.FLAG_BLOCK_COMMENTS;
     }
   };
 
@@ -184,10 +184,10 @@ public final class JProlContext {
     this.templateValidate = Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.VERIFY).getText());
     this.debug = Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.DEBUG).getText());
     this.undefinedPredicateBehaviour = UndefinedPredicateBehavior
-        .find(this.systemFlags.get(JProlSystemFlag.UNDEFINED_PREDICATE).getText())
+        .find(this.systemFlags.get(JProlSystemFlag.UNKNOWN).getText())
         .orElseThrow(() -> new ProlDomainErrorException(
             Arrays.toString(UndefinedPredicateBehavior.values()),
-            this.systemFlags.get(JProlSystemFlag.UNDEFINED_PREDICATE))
+            this.systemFlags.get(JProlSystemFlag.UNKNOWN))
         );
   }
 

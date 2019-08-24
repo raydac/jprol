@@ -27,32 +27,31 @@ public class ProlRepresentationErrorException extends ProlAbstractCatcheableExce
   private static final long serialVersionUID = -4337637438675029939L;
 
   private static final Term TERM_ERROR = newAtom("representation_error");
-  private final String flag;
+  private final String errorCode;
 
-  public ProlRepresentationErrorException(final String flag, final Term culprit, final Throwable cause) {
+  public ProlRepresentationErrorException(final String errorCode, final Term culprit, final Throwable cause) {
     super(culprit, cause);
-    this.flag = flag == null ? UNDEFINED.getText() : flag;
+    this.errorCode = errorCode == null ? UNDEFINED.getText() : errorCode;
   }
 
-  public ProlRepresentationErrorException(final String flag, final String message, final Term culprit, final Throwable cause) {
+  public ProlRepresentationErrorException(final String errorCode, final String message, final Term culprit, final Throwable cause) {
     super(message, culprit, cause);
-    this.flag = flag == null ? UNDEFINED.getText() : flag;
+    this.errorCode = errorCode == null ? UNDEFINED.getText() : errorCode;
   }
 
-  public ProlRepresentationErrorException(final String flag, final String message, final Term culprit) {
+  public ProlRepresentationErrorException(final String errorCode, final String message, final Term culprit) {
     super(message, culprit);
-    this.flag = flag == null ? UNDEFINED.getText() : flag;
+    this.errorCode = errorCode == null ? UNDEFINED.getText() : errorCode;
   }
 
   public ProlRepresentationErrorException(final String flag, final Term culprit) {
     super(culprit);
-    this.flag = flag == null ? UNDEFINED.getText() : flag;
+    this.errorCode = flag == null ? UNDEFINED.getText() : flag;
   }
 
-  public String getFlag() {
-    return flag;
+  public String getErrorCode() {
+    return errorCode;
   }
-
 
   @Override
   public Term getErrorTerm() {
@@ -61,6 +60,6 @@ public class ProlRepresentationErrorException extends ProlAbstractCatcheableExce
 
   @Override
   public TermStruct getAsStruct() {
-    return this.makeErrorStruct(TERM_ERROR, TermList.asTermList(newAtom(this.flag), this.getCulprit()));
+    return this.makeErrorStruct(TERM_ERROR, TermList.asTermList(newAtom(this.errorCode), this.getCulprit()));
   }
 }

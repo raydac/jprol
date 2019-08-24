@@ -35,8 +35,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     super("jprol-io-lib");
   }
 
-  @Predicate(signature = "consult/1", template = {"+atom", "+list"}, reference = "Take an atom as the file name of the resource to be used for consultation, or a list contains resource name chain.")
-  @Determined
+  @Predicate(determined = true, signature = "consult/1", args = {"+atom", "+list"}, reference = "Take an atom as the file name of the resource to be used for consultation, or a list contains resource name chain.")
   public boolean predicateCONSULT(final ChoicePoint goal, final TermStruct predicate) {
     final Term term = predicate.getElement(0).findNonVarOrSame();
     final JProlContext context = goal.getContext();
@@ -156,8 +155,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     return this.findContextObject(context, READERS_MAP, id -> new ConcurrentHashMap<>());
   }
 
-  @Predicate(signature = "put/1", template = "+number", reference = "Write a char for its code into the current output stream.")
-  @Determined
+  @Predicate(determined = true, signature = "put/1", args = "+number", reference = "Write a char for its code into the current output stream.")
   public final void predicatePUT(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     final Writer current = getIoWriters(goal.getContext()).get(CURRENT_STREAM_ID);
@@ -171,8 +169,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @Predicate(signature = "get/1", template = "?number", reference = "Read next non-blank char code from the current input stream.")
-  @Determined
+  @Predicate(determined = true, signature = "get/1", args = "?number", reference = "Read next non-blank char code from the current input stream.")
   public final boolean predicateGET(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     return findCurrentInput(goal.getContext(), predicate).map(reader -> {
@@ -196,8 +193,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }).orElseThrow(() -> new ProlPermissionErrorException("read", "text_input", predicate));
   }
 
-  @Predicate(signature = "get0/1", template = "?number", reference = "Read next char code from the current input stream.")
-  @Determined
+  @Predicate(determined = true, signature = "get0/1", args = "?number", reference = "Read next char code from the current input stream.")
   public final boolean predicateGET0(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     return findCurrentInput(goal.getContext(), predicate).map(reader -> {
@@ -272,8 +268,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }).orElseThrow(() -> new ProlPermissionErrorException("close", "text_stream", predicate));
   }
 
-  @Predicate(signature = "see/1", template = "+atom", reference = "Open source for reading and make it the current input")
-  @Determined
+  @Predicate(determined = true, signature = "see/1", args = "+atom", reference = "Open source for reading and make it the current input")
   public final void predicateSEE(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     final String name = arg.getText();
@@ -294,8 +289,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @Predicate(signature = "tell/1", template = "+atom", reference = "Open SrcDest for writing and make it the current output")
-  @Determined
+  @Predicate(determined = true, signature = "tell/1", args = "+atom", reference = "Open SrcDest for writing and make it the current output")
   public final void predicateTELL(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrDefault(null);
     final String name = arg.getText();
@@ -328,8 +322,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }).orElseThrow(() -> new ProlPermissionErrorException("write", "text_output", predicate));
   }
 
-  @Predicate(signature = "seeing/1", template = "?term", reference = "Return the current input stream name.")
-  @Determined
+  @Predicate(determined = true, signature = "seeing/1", args = "?term", reference = "Return the current input stream name.")
   public final boolean predicateSEEING(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     final InternalReader current = this.getIoReaders(goal.getContext()).get(CURRENT_STREAM_ID);
@@ -337,8 +330,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     return arg.unifyTo(result);
   }
 
-  @Predicate(signature = "telling/1", template = "?term", reference = "Return the current output stream name.")
-  @Determined
+  @Predicate(determined = true, signature = "telling/1", args = "?term", reference = "Return the current output stream name.")
   public final boolean predicateTELLING(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrDefault(null);
     final InternalWriter current = this.getIoWriters(goal.getContext()).get(CURRENT_STREAM_ID);
@@ -370,7 +362,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }).orElseThrow(() -> new ProlPermissionErrorException("write", "text_stream", predicate));
   }
 
-  @Predicate(signature = "time/1", template = "+callable_term", reference = "Execute  Goal just but  print used time, It supports choice point (!) for inside goal.")
+  @Predicate(signature = "time/1", args = "+callable", reference = "Execute  Goal just but  print used time, It supports choice point (!) for inside goal.")
   public boolean predicateTime(final ChoicePoint goal, final TermStruct predicate) {
     final long time = System.nanoTime();
     final boolean result = predicateCALL(goal, predicate);
@@ -392,8 +384,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }).orElseThrow(() -> new ProlPermissionErrorException("write", "text_stream", predicate));
   }
 
-  @Predicate(signature = "tab/1", template = {"+integer"}, reference = "Out a number of space symbols into current output stream")
-  @Determined
+  @Predicate(determined = true, signature = "tab/1", args = {"+integer"}, reference = "Out a number of space symbols into current output stream")
   public final boolean predicateTAB(final ChoicePoint goal, final TermStruct predicate) throws IOException {
     final long spaces = predicate.getElement(0).toNumber().longValue();
     final InternalWriter writer = findCurrentOutput(goal.getContext(), predicate).orElseThrow(() -> new ProlPermissionErrorException("write", "text_stream", predicate));

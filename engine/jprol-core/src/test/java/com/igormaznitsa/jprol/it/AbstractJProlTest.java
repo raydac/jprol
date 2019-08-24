@@ -59,10 +59,10 @@ public abstract class AbstractJProlTest {
     return new ChoicePoint(goal, makeContextAndConsult(consult));
   }
 
-  protected void checkException(final String goal) {
+  protected void assertProlException(final String goal, final Class<? extends ProlException> exceptionClass) {
     final JProlContext context = makeTestContext();
     final ChoicePoint thisGoal = new ChoicePoint(goal, context);
-    assertThrows(ProlException.class, thisGoal::next);
+    assertThrows(exceptionClass, thisGoal::next);
   }
 
   protected ChoicePoint proveGoal(String goal) {

@@ -65,18 +65,22 @@ public final class ChoicePoint {
 
   private static final Consumer<String> NULL_UNDEFINED_PREDICATE_CONSUMER = x -> {
   };
+  private final boolean validate;
   private final boolean debug;
 
   private ChoicePoint(
       final ChoicePoint rootCp,
       final Term goalToSolve,
       final JProlContext context,
+      final boolean debug,
+      final boolean validate,
       final Map<String, Term> predefinedVarValues
   ) {
     this.uid = UID_GEN.incrementAndGet();
 
     this.thereAreVariants = true;
-    this.debug = context.isDebug();
+    this.validate = validate;
+    this.debug = debug;
 
     this.rootCp = rootCp == null ? this : rootCp;
     this.goalTerm = goalToSolve.getTermType() == ATOM ? newStruct(goalToSolve) : goalToSolve;
@@ -111,15 +115,27 @@ public final class ChoicePoint {
   }
 
   public ChoicePoint(final Term goal, final JProlContext context) {
-    this(null, goal, context, null);
+    this(null, goal, context, context.isDebug(), context.isTemplateValidate(), null);
   }
 
   public ChoicePoint(final Term goal, final JProlContext context, final Map<String, Term> predefinedVarValues) {
-    this(null, goal, context, predefinedVarValues);
+    this(null, goal, context, context.isDebug(), context.isTemplateValidate(), predefinedVarValues);
+  }
+
+  public ChoicePoint makeForGoal(final Term goal) {
+    return new ChoicePoint(null, goal, this.context, this.debug, this.validate, null);
   }
 
   public long getUid() {
     return this.uid;
+  }
+
+  public boolean isDebug() {
+    return this.debug;
+  }
+
+  public boolean isArgsValidate() {
+    return this.validate;
   }
 
   @Override
@@ -203,7 +219,7 @@ public final class ChoicePoint {
       this.context.fireTraceEvent(EXIT, this.rootCp.rootLastGoalAtChain);
     }
 
-    final ChoicePoint newGoal = new ChoicePoint(this.rootCp, goal, this.context, null);
+    final ChoicePoint newGoal = new ChoicePoint(this.rootCp, goal, this.context, this.debug, this.validate, null);
     final ChoicePoint prevGoal = newGoal.prevCp;
     if (prevGoal != null) {
       newGoal.prevCp = prevGoal.prevCp;
@@ -268,7 +284,7 @@ public final class ChoicePoint {
               goalToProcess = this.rootCp.rootLastGoalAtChain;
 
               if (goalToProcess.nextAndTerm != null) {
-                final ChoicePoint nextGoal = new ChoicePoint(this.rootCp, goalToProcess.nextAndTerm, localcontext, null);
+                final ChoicePoint nextGoal = new ChoicePoint(this.rootCp, goalToProcess.nextAndTerm, localcontext, this.debug, this.validate, null);
                 nextGoal.nextAndTerm = goalToProcess.nextAndTermForNextGoal;
               } else {
                 result = this.rootCp.goalTerm;
@@ -442,7 +458,7 @@ public final class ChoicePoint {
                   nonConsumed = false;
                 } else if (functorText.charAt(0) == ';') {// or
                   if (getPayload() == null) {
-                    final ChoicePoint leftSubbranch = new ChoicePoint(this.rootCp, struct.getElement(0), this.context, null);
+                    final ChoicePoint leftSubbranch = new ChoicePoint(this.rootCp, struct.getElement(0), this.context, this.debug, this.validate, null);
                     leftSubbranch.nextAndTerm = this.nextAndTerm;
                     setPayload(leftSubbranch);
                   } else {

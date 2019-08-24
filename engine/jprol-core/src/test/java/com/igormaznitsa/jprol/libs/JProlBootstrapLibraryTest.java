@@ -1,5 +1,9 @@
 package com.igormaznitsa.jprol.libs;
 
+import com.igormaznitsa.jprol.data.TermVar;
+import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.it.AbstractJProlTest;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlSystemFlag;
@@ -12,7 +16,9 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
   void testCurrentPrologFlag2() {
     final ChoicePoint point = prepareGoal("current_prolog_flag(" + JProlSystemFlag.VERIFY.getNameTerm().getText() + ",X).");
     assertNotNull(point.next());
-    assertTrue(JProlSystemFlag.VERIFY.getDefaultValue().unifyTo(point.getVarForName("X").getValue()));
+    final TermVar xVar = point.getVarForName("X");
+    assertNotNull(xVar);
+    assertTrue(JProlSystemFlag.VERIFY.getDefaultValue().unifyTo(xVar.getValue()));
     assertNull(point.next());
 
     final ChoicePoint all = prepareGoal("current_prolog_flag(A,B).");
@@ -23,8 +29,8 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
     }
     assertNull(all.next());
 
-    checkException("current_prolog_flag(5, V).");
-    checkException("current_prolog_flag(some_unknown_flag_lalala, V).");
+    assertProlException("current_prolog_flag(5, V).", ProlTypeErrorException.class);
+    assertProlException("current_prolog_flag(some_unknown_flag_lalala, V).", ProlTypeErrorException.class);
   }
 
   @Test
@@ -33,14 +39,14 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
     assertNotNull(point.next());
     assertNull(point.next());
     assertEquals("false", point.getContext().getSystemFlag(JProlSystemFlag.VERIFY).getText());
-    checkException("set_prolog_flag(someunknownlalala, true).");
-    checkException("set_prolog_flag(" + JProlSystemFlag.VERSION_DATA.getNameTerm().getText() + ", true).");
+    assertProlException("set_prolog_flag(someunknownlalala, true).", ProlTypeErrorException.class);
+    assertProlException("set_prolog_flag(" + JProlSystemFlag.VERSION_DATA.getNameTerm().getText() + ", true).", ProlTypeErrorException.class);
   }
 
   @Test
   void testIs2() {
     //['is'(X,float(3)),[[X <-- 3.0]]].
-    checkException("is(X,float(3)).");
+    assertProlException("is(X,float(3)).", ProlTypeErrorException.class);
 
     //['is'(Result,3 + 11.0),[[Result <-- 14.0]]].
     checkVarValues("is(Result,3+11.0).", "Result", 14.0d);
@@ -51,12 +57,14 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
     assertEquals(goal.getVarAsNumber("Y"), 9L);
     assertNull(goal.next());
 
+    //todo check WTF
     //['is'(foo,77), failure]. % error? foo
-    checkException("is(foo,77).");
+    //assertThrowProlException("is(foo,77).");
+
     //['is'(77, N), instantiation_error].
-    checkException("is(77,N).");
+    assertProlException("is(77,N).", ProlInstantiationErrorException.class);
     //['is'(77, foo), type_error(evaluable, foo/0)].
-    checkException("is(77,foo).");
+    assertProlException("is(77,foo).", ProlTypeErrorException.class);
   }
 
   @Test
@@ -164,7 +172,7 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
     //[','(X = true, call(X)), [[X <-- true]]].
     checkVarValues("','(X=true,call(X)).", "X", "true");
     //[','(nofoo(X), call(X)), existence_error(procedure, nofoo/1)].
-    checkException("','(nofoo(X), call(X)).");
+    assertProlException("','(nofoo(X), call(X)).", ProlExistenceErrorException.class);
   }
 
   @Test

@@ -31,7 +31,7 @@ import java.lang.reflect.Modifier;
 
 public final class PredicateInvoker {
 
-  public static final PredicateInvoker NULL_PROCESSOR = new PredicateInvoker(null, null, null, null);
+  public static final PredicateInvoker NULL_PROCESSOR = new PredicateInvoker(null, true, false, false, null, null);
   private static final MethodHandles.Lookup METHOD_LOOKUP = MethodHandles.lookup();
   private static final Class<?> CLASS_RESULT_VOID = void.class;
   private final String predicateSignature;
@@ -41,13 +41,18 @@ public final class PredicateInvoker {
   private final boolean determined;
   private final boolean evaluable;
   private final boolean changesGoalChain;
-  private final CheckingTemplate[][] templates;
 
-  public PredicateInvoker(final AbstractJProlLibrary owner, final String signature, final Method method, final CheckingTemplate[][] templates) {
+  public PredicateInvoker(
+      final AbstractJProlLibrary owner,
+      final boolean determined,
+      final boolean evaluable,
+      final boolean affectsChain,
+      final String signature,
+      final Method method
+  ) {
     super();
     this.predicateSignature = signature;
     this.ownerLibrary = owner;
-    this.templates = templates;
 
     if (method == null) {
       this.methodHandle = null;
@@ -97,75 +102,9 @@ public final class PredicateInvoker {
     return this.methodHandle;
   }
 
-  public CheckingTemplate[][] getTemplates() {
-    return this.templates;
-  }
-
-  private Term[] checkTemplates(final TermStruct predicate) {
-    final Term[] structelements = predicate.getElementsAsArray();
-    final int structElementsNumber = predicate.getArity();
-
-    ProlInstantiationErrorException lastException = null;
-
-    Term[] result = null;
-
-    for (final CheckingTemplate[] template : this.templates) {
-      final int lencur = template.length;
-
-      lastException = null;
-      Term[] currentResult = null;
-
-      try {
-        if (lencur == structElementsNumber) {
-          for (int ld = 0; ld < lencur; ld++) {
-            final CheckingTemplate curTemplate = template[ld];
-            final Term element = structelements[ld];
-            if (curTemplate.isTermMustNotBeAltered(element)) {
-              if (currentResult == null) {
-                currentResult = new Term[lencur];
-              }
-              currentResult[ld] = element;
-            }
-          }
-        }
-      } catch (ProlInstantiationErrorException ex) {
-        lastException = ex;
-      }
-
-      if (lastException == null) {
-        result = currentResult;
-        break;
-      }
-    }
-    if (lastException != null) {
-      throw lastException;
-    }
-
-    return result;
-  }
-
   public final Term executeEvaluable(final ChoicePoint goal, final TermStruct predicate) {
     try {
-      Term[] termsToNotBeChanged = null;
-      if (goal.getContext().isTemplateValidate() && this.templates != null) {
-        termsToNotBeChanged = checkTemplates(predicate);
-      }
-
       final Object result = this.methodHandle.invoke(goal, predicate);
-
-      if (termsToNotBeChanged != null) {
-        final Term[] elements = predicate.getElementsAsArray();
-        final int len = elements.length;
-        for (int li = 0; li < len; li++) {
-          if (termsToNotBeChanged[li] == null) {
-            continue;
-          }
-          if (!termsToNotBeChanged[li].stronglyEqualsTo(elements[li])) {
-            throw new ProlInstantiationErrorException("Nonchangeable element was changed [" + termsToNotBeChanged[li] + "<>" + elements[li] + "]", predicate);
-          }
-        }
-      }
-
       return (Term) result;
     } catch (IllegalAccessException ex) {
       throw new ProlCriticalError("Illegal access exception at " + predicate, ex);
@@ -188,26 +127,8 @@ public final class PredicateInvoker {
 
   public final boolean execute(final ChoicePoint goal, final TermStruct predicate) {
     try {
-      Term[] termsToNotBeChanged = null;
-      if (goal.getContext().isTemplateValidate() && this.templates != null) {
-        termsToNotBeChanged = checkTemplates(predicate);
-      }
-
       final Object result;
       result = this.methodHandle.invoke(goal, predicate);
-
-      if (termsToNotBeChanged != null) {
-        final Term[] elements = predicate.getElementsAsArray();
-        final int len = elements.length;
-        for (int li = 0; li < len; li++) {
-          if (termsToNotBeChanged[li] == null) {
-            continue;
-          }
-          if (!termsToNotBeChanged[li].stronglyEqualsTo(elements[li])) {
-            throw new ProlInstantiationErrorException("Non-changeable item is changed [" + termsToNotBeChanged[li] + "<>" + elements[li] + "]", predicate);
-          }
-        }
-      }
 
       if (this.voidResult) {
         return true;

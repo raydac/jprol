@@ -286,7 +286,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     }
   }
 
-  @Predicate(signature = "dot/2", template = {"+number,+number"}, reference = "Draw a point in the coordinates (X,Y) with the current pen color.")
+  @Predicate(signature = "dot/2", args = {"+number,+number"}, reference = "Draw a point in the coordinates (X,Y) with the current pen color.")
   @Determined
   public void predicateDOT(final ChoicePoint goal, final TermStruct predicate) {
     final int argx = predicate.getElement(0).findNonVarOrSame().toNumber().intValue();
@@ -310,7 +310,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     label.repaint();
   }
 
-  @Predicate(signature = "removeaction/1", template = {"+term"}, reference = "Remove an action from the action menu for its name.")
+  @Predicate(signature = "removeaction/1", args = {"+term"}, reference = "Remove an action from the action menu for its name.")
   @Determined
   public final void predicateREMOVEACTION(final ChoicePoint goal, final TermStruct predicate) {
     final Term menuitem = predicate.getElement(0).findNonVarOrSame();
@@ -347,7 +347,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     graphicFrame.repaint();
   }
 
-  @Predicate(signature = "removeallactions/0", template = {}, reference = "Remove all actions from the action menu")
+  @Predicate(signature = "removeallactions/0", args = {}, reference = "Remove all actions from the action menu")
   @Determined
   public final void predicateREMOVEALLACTIONS(final ChoicePoint goal, final TermStruct predicate) {
     synchronized (menuBar) {
@@ -362,7 +362,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     graphicFrame.repaint();
   }
 
-  @Predicate(signature = "bindaction/2", template = {"+term,+callable_term"}, reference = "Bind a goal to an action menu item (menu_item_name, action) which can be selected by user.")
+  @Predicate(signature = "bindaction/2", args = {"+term,+callable"}, reference = "Bind a goal to an action menu item (menu_item_name, action) which can be selected by user.")
   @Determined
   public final void predicateBINDACTION(final ChoicePoint goal, final TermStruct predicate) {
     final Term menuitem = predicate.getElement(0).findNonVarOrSame();
@@ -421,7 +421,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     graphicFrame.repaint();
   }
 
-  @Predicate(signature = "rectangle/4", template = {"+number,+number,+number,+number"}, reference = "Draw a rectangle in the coordinates (X,Y,Width,Height) with the current pen color.")
+  @Predicate(signature = "rectangle/4", args = {"+number,+number,+number,+number"}, reference = "Draw a rectangle in the coordinates (X,Y,Width,Height) with the current pen color.")
   @Determined
   public final void predicateRECTANGLE(final ChoicePoint goal, final TermStruct predicate) {
     final int argx = predicate.getElement(0).findNonVarOrSame().toNumber().intValue();
@@ -446,7 +446,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     label.repaint();
   }
 
-  @Predicate(signature = "fillrectangle/4", template = {"+number,+number,+number,+number"}, reference = "Fill a rectangle in the coordinates (X,Y,Width,Height) with the current brush color.")
+  @Predicate(signature = "fillrectangle/4", args = {"+number,+number,+number,+number"}, reference = "Fill a rectangle in the coordinates (X,Y,Width,Height) with the current brush color.")
   @Determined
   public void predicateFILLRECTANGLE(final ChoicePoint goal, final TermStruct predicate) {
     final int argx = predicate.getElement(0).toNumber().intValue();
@@ -471,7 +471,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     label.repaint();
   }
 
-  @Predicate(signature = "plot/4", template = {"+number,+number,+number,+number"}, reference = "Draw a line (X1,Y1,X2,Y2) with the current pen color.")
+  @Predicate(signature = "plot/4", args = {"+number,+number,+number,+number"}, reference = "Draw a line (X1,Y1,X2,Y2) with the current pen color.")
   @Determined
   public void predicatePLOT(final ChoicePoint goal, final TermStruct predicate) {
     final int argx = predicate.getElement(0).findNonVarOrSame().toNumber().intValue();
@@ -496,7 +496,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     label.repaint();
   }
 
-  @Predicate(signature = "plot/2", template = {"+number,+number"}, reference = "Draw a line from the last point to (X,Y) with the current pen color.")
+  @Predicate(signature = "plot/2", args = {"+number,+number"}, reference = "Draw a line from the last point to (X,Y) with the current pen color.")
   @Determined
   public void predicatePLOT2(final ChoicePoint goal, final TermStruct predicate) {
     final int argx = predicate.getElement(0).findNonVarOrSame().toNumber().intValue();
@@ -518,7 +518,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     label.repaint();
   }
 
-  @Predicate(signature = "oval/4", template = {"+number,+number,+number,+number"}, reference = "Draw an oval into a rectangle area with coords (X,Y,Width,Height) with the current pen color.")
+  @Predicate(signature = "oval/4", args = {"+number,+number,+number,+number"}, reference = "Draw an oval into a rectangle area with coords (X,Y,Width,Height) with the current pen color.")
   @Determined
   public void predicateOVAL(final ChoicePoint goal, final TermStruct predicate) {
     final int argx = predicate.getElement(0).findNonVarOrSame().toNumber().intValue();
@@ -542,7 +542,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     label.repaint();
   }
 
-  @Predicate(signature = "filloval/4", template = {"+number,+number,+number,+number"}, reference = "Fill an oval into a rectangle area with coords (X,Y,Width,Height) with the current pen color.")
+  @Predicate(signature = "filloval/4", args = {"+number,+number,+number,+number"}, reference = "Fill an oval into a rectangle area with coords (X,Y,Width,Height) with the current pen color.")
   @Determined
   public void predicateFILLOVAL(final ChoicePoint goal, final TermStruct predicate) {
     final int argx = predicate.getElement(0).findNonVarOrSame().toNumber().intValue();
@@ -582,7 +582,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     label.repaint();
   }
 
-  @Predicate(signature = "brushcolor/1", template = {"?atom"}, reference = "Change or get the current brush color. If it can't set color then it will return false")
+  @Predicate(signature = "brushcolor/1", args = {"?atom"}, reference = "Change or get the current brush color. If it can't set color then it will return false")
   @Determined
   public boolean predicateBRUSHCOLOR(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
@@ -618,14 +618,14 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     return true;
   }
 
-  @Predicate(signature = "settitle/1", template = {"+atom"}, reference = "Set the title for the current graphic screen")
+  @Predicate(signature = "settitle/1", args = {"+atom"}, reference = "Set the title for the current graphic screen")
   @Determined
   public void predicateSETTITLE(final ChoicePoint goal, final TermStruct predicate) {
     final String title = predicate.getElement(0).findNonVarOrSame().getText();
     SwingUtilities.invokeLater(() -> graphicFrame.setTitle(title));
   }
 
-  @Predicate(signature = "pencolor/1", template = {"?atom"}, reference = "Change or get the current pen color. If it can't set color then it will return false")
+  @Predicate(signature = "pencolor/1", args = {"?atom"}, reference = "Change or get the current pen color. If it can't set color then it will return false")
   @Determined
   public boolean predicatePENCOLOR(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
@@ -661,7 +661,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     return true;
   }
 
-  @Predicate(signature = "cursor/2", template = {"?number,?number"}, reference = "Set or get the current cursor position (X,Y).")
+  @Predicate(signature = "cursor/2", args = {"?number,?number"}, reference = "Set or get the current cursor position (X,Y).")
   @Determined
   public boolean predicateCURSOR(final ChoicePoint goal, final TermStruct predicate) {
     final Term elemX = predicate.getElement(0).findNonVarOrSame();
@@ -696,7 +696,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     return true;
   }
 
-  @Predicate(signature = "print/1", template = {"+term"}, reference = "Print the text representation of the term with the current pen color. The baseline of the leftmost character is at the cursor position.")
+  @Predicate(signature = "print/1", args = {"+term"}, reference = "Print the text representation of the term with the current pen color. The baseline of the leftmost character is at the cursor position.")
   @Determined
   public void predicatePRINT(final ChoicePoint goal, final TermStruct predicate) {
     final Term elem = predicate.getElement(0).findNonVarOrSame();
@@ -752,7 +752,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     }
   }
 
-  @Predicate(signature = "saveimage/2", template = {"+atom,+atom"}, reference = "Arguments (image_name,format_name). Format can be 'png','jpg' or 'gif'. Save the current graphic buffer state as a named image with the type. It can throw \'permission_error\' exception if it is not possible to write the image.")
+  @Predicate(signature = "saveimage/2", args = {"+atom,+atom"}, reference = "Arguments (image_name,format_name). Format can be 'png','jpg' or 'gif'. Save the current graphic buffer state as a named image with the type. It can throw \'permission_error\' exception if it is not possible to write the image.")
   @Determined
   public void predicateSAVEIMAGE(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
@@ -760,7 +760,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     saveCurrentBuffer(arg.getText(), format.getText().trim().toLowerCase(), predicate);
   }
 
-  @Predicate(signature = "graphics/2", template = {"?integer,?integer"}, reference = "Change or get the graphic screen size (width,heigh) and fill it with the curren background color. Pay attention, the predicate creates the new offscreen buffer so don't use it to clear screen.")
+  @Predicate(signature = "graphics/2", args = {"?integer,?integer"}, reference = "Change or get the graphic screen size (width,heigh) and fill it with the curren background color. Pay attention, the predicate creates the new offscreen buffer so don't use it to clear screen.")
   @Determined
   public boolean predicateGRAPHICS(final ChoicePoint goal, final TermStruct predicate) {
     final Term width = predicate.getElement(0).findNonVarOrSame();

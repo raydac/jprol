@@ -61,7 +61,7 @@ public class TermStruct extends Term {
     return functor;
   }
 
-  public final Term[] getElementsAsArray() {
+  public final Term[] getElementArray() {
     return this.terms;
   }
 
@@ -517,7 +517,7 @@ public class TermStruct extends Term {
     if (this.getArity() == 0) {
       result = this;
     } else {
-      final Term[] elements = this.getElementsAsArray();
+      final Term[] elements = this.getElementArray();
       final int arity = elements.length;
       final Term[] destElements = new Term[arity];
 
@@ -561,7 +561,7 @@ public class TermStruct extends Term {
     if (this.getArity() == 0) {
       result = this;
     } else {
-      final Term[] elements = this.getElementsAsArray();
+      final Term[] elements = this.getElementArray();
       final int arity = elements.length;
       final Term[] destElements = new Term[arity];
 

@@ -33,7 +33,7 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     super("jprol-str-lib");
   }
 
-  @Predicate(signature = "concat/3", template = {"+atom,+atom,?atom", "+atom,?atom,+atom", "?atom,+atom,+atom"}, reference = "Concat two strings.")
+  @Predicate(signature = "concat/3", args = {"+atom,+atom,?atom", "+atom,?atom,+atom", "?atom,+atom,+atom"}, reference = "Concat two strings.")
   @Determined
   public static boolean predicateCONCAT(final ChoicePoint goal, final TermStruct predicate) {
     final Term argFIRST = predicate.getElement(0).findNonVarOrSame();
@@ -69,7 +69,7 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @Predicate(signature = "str_trim/2", template = {"+atom,?atom"}, reference = "Trim string.")
+  @Predicate(signature = "str_trim/2", args = {"+atom,?atom"}, reference = "Trim string.")
   @Determined
   public static boolean predicateSTRTRIM(final ChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = predicate.getElement(0).findNonVarOrSame();
@@ -80,7 +80,7 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     return argRight.unifyTo(result);
   }
 
-  @Predicate(signature = "frontstr/4", template = {"+integer,+atom,?atom,?atom"}, reference = "Extracts the first n characters from a string.")
+  @Predicate(signature = "frontstr/4", args = {"+integer,+atom,?atom,?atom"}, reference = "Extracts the first n characters from a string.")
   @Determined
   public static boolean predicateFRONTSTR(final ChoicePoint goal, final TermStruct predicate) {
     final int numberOfChars = predicate.getElement(0).toNumber().intValue();
@@ -99,7 +99,7 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     return frontStr.unifyTo(newAtom(fstr)) && restStr.unifyTo(newAtom(rstr));
   }
 
-  @Predicate(signature = "upper_lower/2", template = {"+atom,?atom", "?atom,+atom"}, reference = "Allows to make upper or lower case text version of an atom.")
+  @Predicate(signature = "upper_lower/2", args = {"+atom,?atom", "?atom,+atom"}, reference = "Allows to make upper or lower case text version of an atom.")
   @Determined
   public static boolean predicateUPPERLOWER(final ChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = predicate.getElement(0).findNonVarOrSame();
@@ -116,7 +116,7 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @Predicate(signature = "str_len/2", template = {"+atom,?integer"}, reference = "Get string length.")
+  @Predicate(signature = "str_len/2", args = {"+atom,?integer"}, reference = "Get string length.")
   @Determined
   public static boolean predicateSTRLEN(final ChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = predicate.getElement(0).findNonVarOrSame();
@@ -127,7 +127,7 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     return argRight.unifyTo(result);
   }
 
-  @Predicate(signature = "str_int/2", template = {"+atom,?integer", "?atom,+integer"}, reference = "Convert a text atom to an integer atom (or back).")
+  @Predicate(signature = "str_int/2", args = {"+atom,?integer", "?atom,+integer"}, reference = "Convert a text atom to an integer atom (or back).")
   @Determined
   public static boolean predicateSTRINT(final ChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = predicate.getElement(0).findNonVarOrSame();
@@ -149,7 +149,7 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @Predicate(signature = "str_real/2", template = {"+atom,?number", "?atom,+number"}, reference = "Convert a text atom to a real numeric atom (or back).")
+  @Predicate(signature = "str_real/2", args = {"+atom,?number", "?atom,+number"}, reference = "Convert a text atom to a real numeric atom (or back).")
   @Determined
   public static boolean predicateSTRREAL(final ChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = predicate.getElement(0).findNonVarOrSame();

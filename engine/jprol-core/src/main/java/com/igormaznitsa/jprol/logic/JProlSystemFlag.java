@@ -24,7 +24,7 @@ public enum JProlSystemFlag {
   MAX_INTEGER(true, Terms.newAtom("max_integer"), Terms.newLong(Long.MAX_VALUE)),
   MIN_INTEGER(true, Terms.newAtom("min_integer"), Terms.newLong(Long.MIN_VALUE)),
   CPU_COUNT(true, Terms.newAtom("cpu_count"), Terms.newLong(Runtime.getRuntime().availableProcessors())),
-  UNDEFINED_PREDICATE(false, Terms.newAtom("undefined_predicate"), UndefinedPredicateBehavior.ERROR.getTerm()),
+  UNKNOWN(false, Terms.newAtom("unknown"), UndefinedPredicateBehavior.ERROR.getTerm()),
   HOME(true, Terms.newAtom("home"), Terms.newAtom(System.getProperty("user.home", ""))),
   VERIFY(false, Terms.newAtom("verify"), TRUE),
   VERSION_DATA(true, Terms.newAtom("version_data"), newStruct(newAtom("jprol"), new Term[] {newLong(2), newLong(0), newLong(0), NULL_LIST}));

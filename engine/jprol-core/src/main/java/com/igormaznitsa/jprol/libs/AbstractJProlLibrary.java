@@ -25,7 +25,6 @@ import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
-import com.igormaznitsa.jprol.logic.CheckingTemplate;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
@@ -147,13 +146,10 @@ public abstract class AbstractJProlLibrary {
     return this.predicateMethodsMap.containsKey(signature);
   }
 
-  protected static NumericTerm calculatEvaluable(final ChoicePoint goal, Term term) {
+  protected static NumericTerm calculatEvaluable(final ChoicePoint goal, final Term term) {
     try {
       if (term.getTermType() == VAR) {
-        term = term.findNonVarOrSame();
-        if (term.getTermType() == VAR) {
-          throw new ProlInstantiationErrorException("Non-instantiated variable", term);
-        }
+        throw new ProlInstantiationErrorException("Non-instantiated var: " + term, term);
       }
 
       final NumericTerm result;
@@ -169,12 +165,12 @@ public abstract class AbstractJProlLibrary {
           if (processor.isEvaluable()) {
             result = (NumericTerm) processor.executeEvaluable(goal, (TermStruct) term);
           } else {
-            throw new ProlTypeErrorException("evaluable", "Not an arithmetic operator found [" + goal.toString() + ']', term);
+            throw new ProlTypeErrorException("evaluable", "Non-evaluable item found: " + term, term);
           }
         }
         break;
         default:
-          throw new ProlTypeErrorException("evaluable", "Unsupported atom at an arithmetic expression [" + goal.toString() + ']', term);
+          throw new ProlTypeErrorException("evaluable", "Can't evaluate item: " + term, term);
       }
       return result;
     } catch (final ArithmeticException ex) {
@@ -257,21 +253,7 @@ public abstract class AbstractJProlLibrary {
           throw new ProlCriticalError("Duplicated predicate method " + signature + " at " + libraryUID);
         }
 
-        CheckingTemplate[][] templates = null;
-        final String[] templateStrings = predicateAnnotation.template();
-        if (templateStrings.length > 0) {
-          templates = new CheckingTemplate[templateStrings.length][];
-          for (int lt = 0; lt < templateStrings.length; lt++) {
-            final String[] str = templateStrings[lt].split(",");
-            CheckingTemplate[] curtemp = new CheckingTemplate[str.length];
-            for (int ld = 0; ld < str.length; ld++) {
-              curtemp[ld] = new CheckingTemplate(str[ld]);
-            }
-            templates[lt] = curtemp;
-          }
-        }
-
-        final PredicateInvoker invoker = new PredicateInvoker(this, signature, method, templates);
+        final PredicateInvoker invoker = new PredicateInvoker(this, predicateAnnotation.determined(), predicateAnnotation.evaluable(), predicateAnnotation.changesChooseChain(), signature, method);
         result.put(signature, invoker);
         if (signature.endsWith("/0")) {
           foundZeroArityPredicates.add(signature.substring(0, signature.lastIndexOf('/')));

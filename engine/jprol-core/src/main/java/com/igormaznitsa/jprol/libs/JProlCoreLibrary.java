@@ -83,113 +83,91 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     super("jprol-core-lib");
   }
 
-  @Predicate(signature = "=:=/2", template = {"@evaluable,@evaluable"}, reference = "Arithmetic Equal")
-  @Determined
+  @Predicate(determined = true, signature = "=:=/2", args = {"@evaluable,@evaluable"}, reference = "Arithmetic equal")
   public static boolean predicateArithEqu(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
     return left.compare(right) == 0;
   }
 
-  @Predicate(signature = "@</2", template = {"?term,?term"}, reference = "Term less than")
-  @Determined
+  @Predicate(determined = true, signature = "@</2", args = {"?term,?term"}, reference = "Term less than")
   public static boolean predicateTermLess(final ChoicePoint goal, final TermStruct predicate) {
     return predicate.getElement(0).compareTermTo(predicate.getElement(1)) < 0;
   }
 
-  @Predicate(signature = "@=</2", template = {"?term,?term"}, reference = "Term less than or equal to.")
-  @Determined
+  @Predicate(determined = true, signature = "@=</2", args = {"?term,?term"}, reference = "Term less than or equal to.")
   public static boolean predicateTermLessOrEqu(final ChoicePoint goal, final TermStruct predicate) {
     return predicate.getElement(0).compareTermTo(predicate.getElement(1)) <= 0;
   }
 
-  @Predicate(signature = "@>/2", template = {"?term,?term"}, reference = "Term greater than")
-  @Determined
+  @Predicate(determined = true, signature = "@>/2", args = {"?term,?term"}, reference = "Term greater than")
   public static boolean predicateTermMore(final ChoicePoint goal, final TermStruct predicate) {
     return predicate.getElement(0).compareTermTo(predicate.getElement(1)) > 0;
   }
 
-  @Predicate(signature = "@>=/2", template = {"?term,?term"}, reference = "Term greater than or equal to.")
-  @Determined
+  @Predicate(determined = true, signature = "@>=/2", args = {"?term,?term"}, reference = "Term greater than or equal to.")
   public static boolean predicateTermMoreOrEqu(final ChoicePoint goal, final TermStruct predicate) {
     return predicate.getElement(0).compareTermTo(predicate.getElement(1)) >= 0;
   }
 
-  @Predicate(signature = "==/2", template = {"?term,?term"}, reference = "Term identical")
-  @Determined
+  @Predicate(determined = true, signature = "==/2", args = {"?term,?term"}, reference = "Term identical")
   public static boolean predicateTermEqu(final ChoicePoint goal, final TermStruct predicate) {
     return predicate.getElement(0).compareTermTo(predicate.getElement(1)) == 0;
   }
 
-  @Predicate(signature = "\\==/2", template = {"?term,?term"}, reference = "Term not identical")
-  @Determined
+  @Predicate(determined = true, signature = "\\==/2", args = {"?term,?term"}, reference = "Term not identical")
   public static boolean predicateNotTermEqu(final ChoicePoint goal, final TermStruct predicate) {
     return predicate.getElement(0).compareTermTo(predicate.getElement(1)) != 0;
   }
 
-  @Predicate(signature = ">/2", template = {"@evaluable,@evaluable"}, reference = "Arithmetic greater than")
-  @Determined
+  @Predicate(determined = true, signature = ">/2", args = {"+evaluable,+evaluable"}, reference = "Arithmetic greater than")
   public static boolean predicateArithMore(final ChoicePoint goal, final TermStruct predicate) {
-    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
-    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
-
+    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
+    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
     return left.compare(right) > 0;
   }
 
-  @Predicate(signature = "</2", template = {"@evaluable,@evaluable"}, reference = "Arithmetic less than")
-  @Determined
+  @Predicate(determined = true, signature = "</2", args = {"+evaluable,+evaluable"}, reference = "Arithmetic less than")
   public static boolean predicateArithLess(final ChoicePoint goal, final TermStruct predicate) {
-    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
-    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
-
+    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
+    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
     return left.compare(right) < 0;
   }
 
-  @Predicate(signature = ">=/2", template = {"@evaluable,@evaluable"}, reference = "Arithmetic greater than or equal to")
-  @Determined
+  @Predicate(determined = true, signature = ">=/2", args = {"+evaluable,+evaluable"}, reference = "Arithmetic greater than or equal to")
   public static boolean predicateArithMoreOrEqu(final ChoicePoint goal, final TermStruct predicate) {
-    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
-    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
-
+    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
+    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
     return left.compare(right) >= 0;
   }
 
-  @Predicate(signature = "=</2", template = {"@evaluable,@evaluable"}, reference = "Arithmetic less than or equal to")
-  @Determined
+  @Predicate(determined = true, signature = "=</2", args = {"+evaluable,+evaluable"}, reference = "Arithmetic less than or equal to")
   public static boolean predicateArithLessOrEqu(final ChoicePoint goal, final TermStruct predicate) {
-    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
-    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
-
+    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
+    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
     return left.compare(right) <= 0;
   }
 
-  @Predicate(signature = "=\\=/2", template = {"@evaluable,@evaluable"}, reference = "Arithmetic Not equal")
-  @Determined
+  @Predicate(determined = true, signature = "=\\=/2", args = {"+evaluable,+evaluable"}, reference = "Arithmetic Not equal")
   public static boolean predicateArithNotEqu(final ChoicePoint goal, final TermStruct predicate) {
-    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
-    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
-
+    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
+    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
     return left.compare(right) != 0;
   }
 
-  @Predicate(signature = "xor/2", template = {"+evaluable,+evaluable"}, reference = "Bitwise exclusive or.")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "xor/2", args = {"+evaluable,+evaluable"}, reference = "Bitwise exclusive or.")
   public static Term predicateXOR(final ChoicePoint goal, final TermStruct predicate) {
-    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
-    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
+    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
+    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
 
-    if (left instanceof TermLong && right instanceof TermLong) {
-      final long lft = left.toNumber().longValue();
-      final long rght = right.toNumber().longValue();
-
-      return newLong(lft ^ rght);
-    } else {
-      throw new ProlTypeErrorException("integer expected", predicate);
+    if (goal.isArgsValidate()) {
+      ProlAssertions.assertInteger(left);
+      ProlAssertions.assertInteger(right);
     }
+    return newLong(left.toNumber().longValue() ^ right.toNumber().longValue());
   }
 
-  @Predicate(signature = "\\/1", template = {"+evaluable"}, reference = "Bitwise 'not'")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "\\/1", args = {"+evaluable"}, reference = "Bitwise 'not'")
   public static Term predicateBITWISENOT(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0));
     if (goal.isArgsValidate()) {
@@ -198,8 +176,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return newLong(arg.toNumber().longValue());
   }
 
-  @Predicate(signature = "\\//2", template = {"+evaluable,+evaluable"}, reference = "Bitwise 'or'")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "\\//2", args = {"+evaluable,+evaluable"}, reference = "Bitwise 'or'")
   public static Term predicateBITWISEOR(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
@@ -211,44 +188,38 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return newLong(left.toNumber().longValue() | right.toNumber().longValue());
   }
 
-  @Predicate(signature = "/\\/2", template = {"+evaluable,+evaluable"}, reference = "Bitwise 'and'")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "/\\/2", args = {"+evaluable,+evaluable"}, reference = "Bitwise 'and'")
   public static Term predicateBITWISEAND(final ChoicePoint goal, final TermStruct predicate) {
-    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
-    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
+    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
+    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
 
-    if (left instanceof TermLong && right instanceof TermLong) {
-      final long lft = left.toNumber().longValue();
-      final long rght = right.toNumber().longValue();
-
-      return newLong(lft & rght);
-    } else {
-      throw new ProlTypeErrorException("integer expected", predicate);
+    if (goal.isArgsValidate()) {
+      ProlAssertions.assertInteger(left);
+      ProlAssertions.assertInteger(right);
     }
+    return newLong(left.toNumber().longValue() & right.toNumber().longValue());
   }
 
-  @Predicate(signature = "mod/2", template = {"+evaluable,+evaluable"}, reference = "Modulus")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "mod/2", args = {"+evaluable,+evaluable"}, reference = "Modulus")
   public static Term predicateMOD(final ChoicePoint goal, final TermStruct predicate) {
-    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
-    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
+    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
+    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
 
-    if (left instanceof TermLong && right instanceof TermLong) {
-      final long rightNum = right.toNumber().longValue();
-      if (rightNum == 0L) {
-        throw new ProlEvaluationErrorException("zero divisor", predicate);
-      }
-      return newLong(left.toNumber().longValue() % rightNum);
-    } else {
-      throw new ProlTypeErrorException("integer expected", predicate);
+    if (goal.isArgsValidate()) {
+      ProlAssertions.assertInteger(left);
+      ProlAssertions.assertInteger(right);
     }
+    final long rightNum = right.toNumber().longValue();
+    if (rightNum == 0L) {
+      throw new ProlEvaluationErrorException("zero divisor", predicate);
+    }
+    return newLong(left.toNumber().longValue() % rightNum);
   }
 
-  @Predicate(signature = "rem/2", template = {"+evaluable,+evaluable"}, reference = "Remainder")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "rem/2", args = {"+evaluable,+evaluable"}, reference = "Remainder")
   public static Term predicateREM(final ChoicePoint goal, final TermStruct predicate) {
-    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
-    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
+    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
+    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
 
     if (goal.isArgsValidate()) {
       ProlAssertions.assertInteger(left);
@@ -263,8 +234,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return newLong(leftNum - (leftNum / rightNum) * rightNum);
   }
 
-  @Predicate(signature = "**/2", template = {"+evaluable,+evaluable"}, reference = "Power")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "**/2", args = {"+evaluable,+evaluable"}, reference = "Power")
   public static Term predicatePOWER(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
@@ -275,31 +245,26 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return newDouble(Math.pow(leftval, rightval));
   }
 
-  @Predicate(signature = "+/2", template = {"+evaluable,+evaluable"}, reference = "Addition")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "+/2", args = {"+evaluable,+evaluable"}, reference = "Addition")
   public static Term predicateADDTWO(final ChoicePoint goal, final TermStruct predicate) {
-    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
-    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
-
+    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
+    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
     return left.add(right);
   }
 
-  @Predicate(signature = "sin/1", template = {"+evaluable"}, reference = "Sine")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "sin/1", args = {"+evaluable"}, reference = "Sine")
   public static Term predicateSIN(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     return newDouble(Math.sin(arg.toNumber().doubleValue()));
   }
 
-  @Predicate(signature = "float_integer_part/1", template = {"+evaluable"}, reference = "Integer part")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "float_integer_part/1", args = {"+evaluable"}, reference = "Integer part")
   public static Term predicateFLOATINTEGERPART(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     return newLong(arg.toNumber().longValue());
   }
 
-  @Predicate(signature = "float_fractional_part/1", template = {"+evaluable"}, reference = "Fractional part")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "float_fractional_part/1", args = {"+evaluable"}, reference = "Fractional part")
   public static Term predicateFLOATFRACTIONALPART(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
@@ -307,93 +272,82 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return newDouble(value - (double) valueInt);
   }
 
-  @Predicate(signature = "floor/1", template = {"+evaluable"}, reference = "Floor")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "floor/1", args = {"+evaluable"}, reference = "Floor")
   public static Term predicateFLOOR(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
     return newLong((long) Math.floor(value));
   }
 
-  @Predicate(signature = "truncate/1", template = {"+evaluable"}, reference = "Truncate")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "truncate/1", args = {"+evaluable"}, reference = "Truncate")
   public static Term predicateTRUNCATE(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
     return newLong(value < 0 ? (long) Math.ceil(value) : (long) Math.floor(value));
   }
 
-  @Predicate(signature = "round/1", template = {"+evaluable"}, reference = "Round")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "round/1", args = {"+evaluable"}, reference = "Round")
   public static Term predicateROUND(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
     return newLong(Math.round(value));
   }
 
-  @Predicate(signature = "ceiling/1", template = {"+evaluable"}, reference = "Ceiling")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "ceiling/1", args = {"+evaluable"}, reference = "Ceiling")
   public static Term predicateCEILING(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
     return newLong((long) Math.ceil(value));
   }
 
-  @Predicate(signature = "cos/1", template = {"+evaluable"}, reference = "Cosine")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "cos/1", args = {"+evaluable"}, reference = "Cosine")
   public static Term predicateCOS(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
     return newDouble(Math.cos(value));
   }
 
-  @Predicate(signature = "atan/1", template = {"+evaluable"}, reference = "Arc tangent")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "atan/1", args = {"+evaluable"}, reference = "Arc tangent")
   public static Term predicateATAN(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
     return newDouble(Math.atan(value));
   }
 
-  @Predicate(signature = "exp/1", template = {"+evaluable"}, reference = "Exponentiation")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "exp/1", args = {"+evaluable"}, reference = "Exponentiation")
   public static Term predicateEXP(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
     return newDouble(Math.exp(value));
   }
 
-  @Predicate(signature = "log/1", template = {"+evaluable"}, reference = "Log")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "log/1", args = {"+evaluable"}, reference = "Log")
   public static Term predicateLOG(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
     return newDouble(Math.log(value));
   }
 
-  @Predicate(signature = "sqrt/1", template = {"+evaluable"}, reference = "Square root")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "sqrt/1", args = {"+evaluable"}, reference = "Square root")
   public static Term predicateSQRT(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
     return newDouble(Math.sqrt(value));
   }
 
-  @Predicate(signature = "abs/1", template = {"+evaluable"}, reference = "Absolute value")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "abs/1", args = {"+evaluable"}, reference = "Absolute value")
   public static Term predicateABS(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     return arg.abs();
   }
 
-  @Predicate(signature = "sign/1", template = {"+evaluable"}, reference = "SIGN")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "sign/1", args = {"+evaluable"}, reference = "SIGN")
   public static Term predicateSIGN(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     return arg.sign();
   }
 
-  @Predicate(signature = "sub_atom/5", template = {"+atom,?integer,?integer,?integer,?atom"}, reference = "Breaking atoms")
+  @Predicate(signature = "sub_atom/5", args = {"+atom,?integer,?integer,?integer,?atom"}, reference = "Breaking atoms")
   public static boolean predicateSUBATOM(final ChoicePoint goal, final TermStruct predicate) {
     class SubAtomIterator {
       final String atom;
@@ -502,42 +456,35 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     );
   }
 
-  @Predicate(signature = "-/2", template = {"+evaluable,+evaluable"}, reference = "Subtraction")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "-/2", args = {"+evaluable,+evaluable"}, reference = "Subtraction")
   public static Term predicateSUBTWO(final ChoicePoint goal, final TermStruct predicate) {
-    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
-    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
-
+    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
+    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
     return left.sub(right);
   }
 
-  @Predicate(signature = "-/1", template = {"+evaluable"}, reference = "Negation")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "-/1", args = {"+evaluable"}, reference = "Negation")
   public static Term predicateNeg(final ChoicePoint goal, final TermStruct predicate) {
-    final NumericTerm val = calculatEvaluable(goal, predicate.getElement(0));
+    final NumericTerm val = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     return val.neg();
   }
 
-  @Predicate(signature = "+/1", template = {"+evaluable"}, reference = "Not action over a number")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "+/1", args = {"+evaluable"}, reference = "Not action over a number")
   public static Term predicateTheSame(final ChoicePoint goal, final TermStruct predicate) {
-    return calculatEvaluable(goal, predicate.getElement(0));
+    return calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
   }
 
-  @Predicate(signature = "*/2", template = {"+evaluable,+evaluable"}, reference = "Multiplication")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "*/2", args = {"+evaluable,+evaluable"}, reference = "Multiplication")
   public static Term predicateMUL(final ChoicePoint goal, final TermStruct predicate) {
-    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
-    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
-
+    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
+    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
     return left.mul(right);
   }
 
-  @Predicate(signature = "//2", template = {"+evaluable,+evaluable"}, reference = "Division")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "//2", args = {"+evaluable,+evaluable"}, reference = "Division")
   public static Term predicateDIV(final ChoicePoint goal, final TermStruct predicate) {
-    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
-    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
+    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
+    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
 
     try {
       if ((right instanceof TermDouble && Double.compare(0.0d, right.toNumber().doubleValue()) == 0)
@@ -550,14 +497,14 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @Predicate(signature = "///2", template = {"+evaluable,+evaluable"}, reference = "Integer division.")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "///2", args = {"+evaluable,+evaluable"}, reference = "Integer division.")
   public static Term predicateIDIV2(final ChoicePoint goal, final TermStruct predicate) {
-    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0));
-    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1));
+    final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
+    final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
 
-    if (left instanceof TermDouble || right instanceof TermDouble) {
-      throw new ProlTypeErrorException("integer", "Integer expected but float found", predicate);
+    if (goal.isArgsValidate()) {
+      ProlAssertions.assertInteger(left);
+      ProlAssertions.assertInteger(right);
     }
 
     try {
@@ -567,8 +514,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @Predicate(signature = "<</2", template = {"+evaluable,+evaluable"}, reference = "Bitwise left shift")
-  @Evaluable
+  @Predicate(evaluable = true, signature = "<</2", args = {"+evaluable,+evaluable"}, reference = "Bitwise left shift")
   public static Term predicateSHIFTL2(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
@@ -579,8 +525,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return newLong(value << shift);
   }
 
-  @Predicate(signature = ">>/2", template = {"+evaluable,+evaluable"}, reference = "Bitwise right shift")
-  @Evaluable
+  @Predicate(evaluable = true, signature = ">>/2", args = {"+evaluable,+evaluable"}, reference = "Bitwise right shift")
   public static Term predicateSHIFTR(final ChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
@@ -596,7 +541,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     // we just make a choose point
   }
 
-  @Predicate(signature = "clause/2", template = {"+head,?callable_term"}, reference = "clause(Head, Body) is true if and only if\n* The predicate of Head is public (the standard does not specify how a predicate is declared public but dynamic predicates are public, and\n* There is a clause in the database which corresponds to a term H:- B which unifies with Head :- Body.")
+  @Predicate(signature = "clause/2", args = {"+head,?callable"}, reference = "clause(Head, Body) is true if and only if\n* The predicate of Head is public (the standard does not specify how a predicate is declared public but dynamic predicates are public, and\n* There is a clause in the database which corresponds to a term H:- B which unifies with Head :- Body.")
   public static boolean predicateCLAUSE2(final ChoicePoint goal, final TermStruct predicate) {
     final Term head = predicate.getElement(0).findNonVarOrSame();
     final Term body = predicate.getElement(1).findNonVarOrSame();
@@ -653,7 +598,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return false;
   }
 
-  @Predicate(signature = "current_op/3", template = "?integer,?operator_specifier,?atom", reference = "current_op(Priority, Op_specifier, TermOperator) is true if and only if TermOperator is an operator with properties given by  Op_specifier and Priority")
+  @Predicate(signature = "current_op/3", args = "?integer,?operator_specifier,?atom", reference = "current_op(Priority, Op_specifier, TermOperator) is true if and only if TermOperator is an operator with properties given by  Op_specifier and Priority")
   @SuppressWarnings("unchecked")
   public static boolean predicateCURRENTOP3(final ChoicePoint goal, final TermStruct predicate) {
     final Term priority = predicate.getElement(0).findNonVarOrSame();
@@ -701,8 +646,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return false;
   }
 
-  @Predicate(signature = "op/3", template = "+integer,+operator_specifier,@atom_or_atom_list", reference = "Predicate allows to alter operators.\nop(Priority, Op_Specifier, TermOperator) is true, with the side effect that\n1. if Priority is 0 then TermOperator is removed from operators\n2. TermOperator is added into operators, with priority (lower binds tighter) Priority and associativity determined by Op_Specifier")
-  @Determined
+  @Predicate(determined = true, signature = "op/3", args = "+integer,+operator_specifier,+atom_or_atom_list", reference = "Predicate allows to alter operators.\nop(Priority, Op_Specifier, TermOperator) is true, with the side effect that\n1. if Priority is 0 then TermOperator is removed from operators\n2. TermOperator is added into operators, with priority (lower binds tighter) Priority and associativity determined by Op_Specifier")
   public static boolean predicateOP(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg1 = predicate.getElement(0).findNonVarOrSame();
     final Term arg2 = predicate.getElement(1).findNonVarOrSame();
@@ -758,7 +702,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return true;
   }
 
-  @Predicate(signature = "call/1", template = {"+callable_term"}, reference = "call(G) is true if and only if G represents a goal which is true.")
+  @Predicate(signature = "call/1", args = {"+callable"}, reference = "call(G) is true if and only if G represents a goal which is true.")
   public static boolean predicateCALL(final ChoicePoint goal, final TermStruct predicate) {
     final Term argument = predicate.getElement(0).findNonVarOrSame();
 
@@ -784,8 +728,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return result;
   }
 
-  @Predicate(signature = "once/1", template = {"+callable_term"}, reference = "once(Term) is true. once/1 is not re-executable.")
-  @Determined
+  @Predicate(determined = true, signature = "once/1", args = {"+callable"}, reference = "once(Term) is true. once/1 is not re-executable.")
   public static boolean predicateONCE(final ChoicePoint goal, final TermStruct predicate) {
     final Term argument = predicate.getElement(0).findNonVarOrSame();
     if (goal.isArgsValidate()) {
@@ -912,8 +855,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return result;
   }
 
-  @Predicate(signature = "arg/3", template = {"+integer,+compound_term,?term"}, reference = "arg(N,Term, Arg) is true if nad only if the Nth argument of Term is Arg")
-  @Determined
+  @Predicate(determined = true, signature = "arg/3", args = {"+integer,+compound_term,?term"}, reference = "arg(N,Term, Arg) is true if nad only if the Nth argument of Term is Arg")
   public static boolean predicateARG(final ChoicePoint goal, final TermStruct predicate) {
     final Term number = predicate.getElement(0).findNonVarOrSame();
     final Term compound_term = predicate.getElement(1).findNonVarOrSame();
@@ -944,8 +886,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return result;
   }
 
-  @Predicate(signature = "functor/3", template = {"-nonvar,+atomic,+integer", "+nonvar,?atomic,?integer"}, reference = "functor(Term, Name, Arity) is true if and only if Term is a compound term with functor name Name and arity Arity or Term is an atomic term equal to Name and Arity is 0.")
-  @Determined
+  @Predicate(determined = true, signature = "functor/3", args = {"-nonvar,+atomic,+arity", "+nonvar,?atomic,?arity"}, reference = "functor(Term, Name, Arity) is true if and only if Term is a compound term with functor name Name and arity Arity or Term is an atomic term equal to Name and Arity is 0.")
   public static boolean predicateFUNCTOR(final ChoicePoint goal, final TermStruct predicate) {
     final Term argTerm = predicate.getElement(0).findNonVarOrSame();
     final Term argName = predicate.getElement(1).findNonVarOrSame();
@@ -1024,8 +965,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   }
 
-  @Predicate(signature = "=../2", template = {"+nonvar,?non_empty_list", "-nonvar,+non_empty_list"}, reference = "Term =.. List is true if and only if\n* Term is an atomic term and List is the list whose only element is Term, or\n* Term is a compound term and List is the list whose head is the functor name of Term and whose tail is the list of the arguments of Term. ")
-  @Determined
+  @Predicate(determined = true, signature = "=../2", args = {"+nonvar,?non_empty_list", "-nonvar,+non_empty_list"}, reference = "Term =.. List is true if and only if\n* Term is an atomic term and List is the list whose only element is Term, or\n* Term is a compound term and List is the list whose head is the functor name of Term and whose tail is the list of the arguments of Term. ")
   public static boolean predicateUNIV(final ChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = predicate.getElement(0).findNonVarOrSame();
     final Term argRight = predicate.getElement(1).findNonVarOrSame();
@@ -1059,8 +999,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @Predicate(signature = "atom_chars/2", template = {"+atom,?list", "-atom,+character_list"}, reference = "atom_chars(Atom, List) succeeds if and only if List is a list whose elements are the one character atoms that in order make up  Atom.")
-  @Determined
+  @Predicate(determined = true, signature = "atom_chars/2", args = {"+atom,?character_list", "-atom,+character_list"}, reference = "atom_chars(Atom, List) succeeds if and only if List is a list whose elements are the one character atoms that in order make up  Atom.")
   public static boolean predicateATOMCHARS(final ChoicePoint goal, final TermStruct predicate) {
     Term left = predicate.getElement(0).findNonVarOrSame();
     Term right = predicate.getElement(1).findNonVarOrSame();
@@ -1114,8 +1053,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return false;
   }
 
-  @Predicate(signature = "char_code/2", template = {"+character,?character_code", "-character,+character_code"}, reference = "char_code(Char, Code) succeeds if and only if Code is the character code that corresponds to the character Char.")
-  @Determined
+  @Predicate(determined = true, signature = "char_code/2", args = {"+character,?character_code", "-character,+character_code"}, reference = "char_code(Char, Code) succeeds if and only if Code is the character code that corresponds to the character Char.")
   public static boolean predicateCHARCODE(final ChoicePoint goal, final TermStruct predicate) {
     Term left = predicate.getElement(0).findNonVarOrSame();
     Term right = predicate.getElement(1).findNonVarOrSame();
@@ -1143,8 +1081,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return false;
   }
 
-  @Predicate(signature = "number_codes/2", template = {"+number,?character_code_list", "-number,+character_code_list"}, reference = "number_codes(Number, CodeList) succeeds if and only if CodeList is a list whose elements are the codes for the one character atoms that in order make up Number.")
-  @Determined
+  @Predicate(determined = true, signature = "number_codes/2", args = {"+number,?character_code_list", "-number,+character_code_list"}, reference = "number_codes(Number, CodeList) succeeds if and only if CodeList is a list whose elements are the codes for the one character atoms that in order make up Number.")
   public static boolean predicateNUMBERCODES(final ChoicePoint goal, final TermStruct predicate) {
     Term left = predicate.getElement(0).findNonVarOrSame();
     final Term right = predicate.getElement(1).findNonVarOrSame();
@@ -1206,7 +1143,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @Predicate(signature = "current_predicate_all/1",
-      template = {"?predicate_indicator"},
+      args = {"?predicate_indicator"},
       reference = "True if PredicateIndicator is a currently defined predicate. It looks for predicates both in knowledge base and attached libraries."
   )
   public static boolean predicateCURRENTPREDICATEALL(final ChoicePoint goal, final TermStruct predicate) {
@@ -1235,7 +1172,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @Predicate(signature = "current_predicate/1",
-      template = {"?predicate_indicator"},
+      args = {"?predicate_indicator"},
       reference = "True if PredicateIndicator is a currently defined predicate. It looks for predicates only in current knowledge base."
   )
   public static boolean predicateCURRENTPREDICATE(final ChoicePoint goal, final TermStruct predicate) {
@@ -1263,7 +1200,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @Predicate(signature = "atom_concat/3",
-      template = {"?atom,?atom,?atom"},
+      args = {"?atom,?atom,?atom"},
       reference = "Atom3 forms the concatenation of Atom1 and Atom2.")
   public static boolean predicateATOMCONCAT3(final ChoicePoint goal, final TermStruct predicate) {
     final Term atom1 = predicate.getElement(0).findNonVarOrSame();
@@ -1354,8 +1291,10 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
 
-  @Predicate(signature = "number_chars/2",
-      template = {"+number,?character_list", "-number,+character_list"},
+  @Predicate(
+      determined = true,
+      signature = "number_chars/2",
+      args = {"+number,?character_list", "-number,+character_list"},
       reference = "number_chars(Number, List) succeeds if and only if List is a list whose elements are the one character atoms that in order make up Number.")
   public static boolean predicateNUMBERCHARS2(final ChoicePoint goal, final TermStruct predicate) {
     Term left = predicate.getElement(0).findNonVarOrSame();
@@ -1427,7 +1366,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return false;
   }
 
-  @Predicate(signature = "for/3", template = {"?term,+integer,+integer"}, reference = "Allows to make integer counter from a variable, (TermVar, Low, High).")
+  @Predicate(signature = "for/3", args = {"?term,+integer,+integer"}, reference = "Allows to make integer counter from a variable, (TermVar, Low, High).")
   public static boolean predicateFOR3(final ChoicePoint goal, final TermStruct predicate) {
     final Term term = predicate.getElement(0).findNonVarOrSame();
 
@@ -1476,8 +1415,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return term.unifyTo(Terms.newLong(value));
   }
 
-  @Predicate(signature = "rnd/2", template = {"+integer,?integer", "+list,?term"}, reference = "Generate pseudo random in 0(included)...limit(excluded) or select random element from the list.")
-  @Determined
+  @Predicate(determined = true, signature = "rnd/2", args = {"+integer,?integer", "+list,?term"}, reference = "Generate pseudo random in 0(included)...limit(excluded) or select random element from the list.")
   public static boolean predicateRND(final ChoicePoint goal, final TermStruct predicate) {
     final Term first = predicate.getElement(0).findNonVarOrSame();
     final Term second = predicate.getElement(1).findNonVarOrSame();
@@ -1506,8 +1444,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return second.unifyTo(result);
   }
 
-  @Predicate(signature = "atom_length/2", template = {"+atom,?integer"}, reference = "atom_length(Atom, Length) is true if and only if the integer Length equals the number of characters in the name of the atom Atom.")
-  @Determined
+  @Predicate(determined = true, signature = "atom_length/2", args = {"+atom,?integer"}, reference = "atom_length(Atom, Length) is true if and only if the integer Length equals the number of characters in the name of the atom Atom.")
   public static boolean predicateATOMLENGTH(final ChoicePoint goal, final TermStruct predicate) {
     Term left = predicate.getElement(0).findNonVarOrSame();
     final Term right = predicate.getElement(1).findNonVarOrSame();
@@ -1523,8 +1460,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return left.unifyTo(right);
   }
 
-  @Predicate(signature = "atom_codes/2", template = {"+atom,?character_code_list", "?atom,+list"}, reference = "atom_codes(Atom, List) succeeds if and only if List is a list whose elements are the character codes that in order correspond to the characters that make up  Atom.")
-  @Determined
+  @Predicate(determined = true, signature = "atom_codes/2", args = {"+atom,?character_code_list", "?atom,+character_code_list"}, reference = "atom_codes(Atom, List) succeeds if and only if List is a list whose elements are the character codes that in order correspond to the characters that make up  Atom.")
   public static boolean predicateATOMCHARCODES(final ChoicePoint goal, final TermStruct predicate) {
     Term left = predicate.getElement(0).findNonVarOrSame();
     Term right = predicate.getElement(1).findNonVarOrSame();
@@ -1591,7 +1527,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return false;
   }
 
-  @Predicate(signature = "dispose/1", template = {"+integer"}, reference = " These predicate terminate a Prolog engine and you can send the status of a cause.")
+  @Predicate(determined = true, signature = "dispose/1", args = {"+integer"}, reference = " These predicate terminate a Prolog engine and you can send the status of a cause.")
   @PredicateSynonyms(signatures = {"dispose/0"})
   public static void predicateHALT(final ChoicePoint goal, final TermStruct predicate) {
     if (predicate.getArity() == 0) {
@@ -1608,8 +1544,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @Predicate(signature = "abolish/1", template = {"@predicate_indicator"}, reference = "abolish(Pred/2) is true. It has for side effect the removal of all clauses of the predicate indicated by Pred. After abolish/1 the predicate is not found by current_predicate.")
-  @Determined
+  @Predicate(determined = true, signature = "abolish/1", args = {"+predicate_indicator"}, reference = "abolish(Pred/2) is true. It has for side effect the removal of all clauses of the predicate indicated by Pred. After abolish/1 the predicate is not found by current_predicate.")
   public static boolean predicateABOLISH(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     if (goal.isArgsValidate()) {
@@ -1626,8 +1561,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return true;
   }
 
-  @Predicate(signature = "sort/2", template = {"+list,?list"}, reference = "True if Sorted can be unified with a list holding the elements of List, sorted to the standard order of terms")
-  @Determined
+  @Predicate(determined = true, signature = "sort/2", args = {"+list,?list"}, reference = "True if Sorted can be unified with a list holding the elements of List, sorted to the standard order of terms")
   public static boolean predicateSORT2(final ChoicePoint goal, final TermStruct predicate) {
     final Term termList = predicate.getElement(0).findNonVarOrSame();
     final Term termSorted = predicate.getElement(1).findNonVarOrSame();
@@ -1661,8 +1595,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @Predicate(signature = "findall/3", template = {"?term,+callable_term,?list"}, reference = "Creates  a list of the instantiations Template gets  successively on backtracking  over Goal and unifies the  result with Bag.")
-  @Determined
+  @Predicate(determined = true, signature = "findall/3", args = {"?term,+callable,?list"}, reference = "Creates  a list of the instantiations Template gets  successively on backtracking  over Goal and unifies the  result with Bag.")
   public static boolean predicateFINDALL3(final ChoicePoint goal, final TermStruct predicate) {
     final Term template = predicate.getElement(0).findNonVarOrSame();
     final Term pgoal = predicate.getElement(1).findNonVarOrSame();
@@ -1710,7 +1643,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return instances.unifyTo(result);
   }
 
-  @Predicate(signature = "bagof/3", template = {"?term,+callable_term,?list"}, reference = "Unify Bag with the alternatives of Template. If Goal has free variables besides the one sharing with Template, bagof/3 will backtrack over the alternatives of these free variables, unifying Bag with the corresponding alternatives of Template. The construct +TermVar^Goal tells bagof/3 not to bind TermVar in Goal. bagof/3 fails if Goal has no solutions.")
+  @Predicate(signature = "bagof/3", args = {"?term,+callable,?list"}, reference = "Unify Bag with the alternatives of Template. If Goal has free variables besides the one sharing with Template, bagof/3 will backtrack over the alternatives of these free variables, unifying Bag with the corresponding alternatives of Template. The construct +TermVar^Goal tells bagof/3 not to bind TermVar in Goal. bagof/3 fails if Goal has no solutions.")
   public static boolean predicateBAGOF(final ChoicePoint goal, final TermStruct predicate) {
     final Term template = predicate.getElement(0).findNonVarOrSame();
     final Term pgoal = predicate.getElement(1).findNonVarOrSame();
@@ -1834,7 +1767,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @Predicate(signature = "setof/3", template = {"?term,+callable_term,?list"}, reference = "Equivalent to bagof/3, but sorts the result using sort/2 to get a sorted list of alternatives without duplicates.")
+  @Predicate(signature = "setof/3", args = {"?term,+callable,?list"}, reference = "Equivalent to bagof/3, but sorts the result using sort/2 to get a sorted list of alternatives without duplicates.")
   public static boolean predicateSETOF3(final ChoicePoint goal, final TermStruct predicate) {
     final Term template = predicate.getElement(0).findNonVarOrSame();
     final Term pgoal = predicate.getElement(1).findNonVarOrSame();
@@ -1972,8 +1905,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @Predicate(signature = "asserta/1", template = {"@clause"}, reference = "Addition of a clause into the knowlwde base before all other clauses.")
-  @Determined
+  @Predicate(determined = true, signature = "asserta/1", args = {"+callable"}, reference = "Addition of a clause into the knowlwde base before all other clauses.")
   public static boolean predicateASSERTA1(final ChoicePoint goal, final TermStruct predicate) {
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
 
@@ -1997,7 +1929,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return true;
   }
 
-  @Predicate(signature = "assertz/1", template = {"@clause"}, reference = "Addition of a clause into the knowlwde base after all other clauses.")
+  @Predicate(determined = true, signature = "assertz/1", args = {"+callable"}, reference = "Addition of a clause into the knowlwde base after all other clauses.")
   @PredicateSynonyms(signatures = "assert/1")
   public static boolean predicateASSERTZ1(final ChoicePoint goal, final TermStruct predicate) {
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
@@ -2021,7 +1953,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return true;
   }
 
-  @Predicate(signature = "retract/1", template = {"@clause"}, reference = "Retract the first clause which can be unified with argument. True if there is such clause in the knowledge base.")
+  @Predicate(determined = true, signature = "retract/1", args = {"+callable"}, reference = "Retract the first clause which can be unified with argument. True if there is such clause in the knowledge base.")
   @PredicateSynonyms(signatures = "retracta/1")
   public static boolean predicateRETRACT1(final ChoicePoint goal, final TermStruct predicate) {
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
@@ -2045,8 +1977,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return base.retractA(goal.getContext(), (TermStruct) atom.makeCloneAndVarBound());
   }
 
-  @Predicate(signature = "retractz/1", template = {"@clause"}, reference = "Retract the last clause which can be unified with argument. True if there is such clause in the knowledge base.")
-  @Determined
+  @Predicate(determined = true, signature = "retractz/1", args = {"+callable"}, reference = "Retract the last clause which can be unified with argument. True if there is such clause in the knowledge base.")
   public static boolean predicateRETRACTZ(final ChoicePoint goal, final TermStruct predicate) {
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
     Term atom = predicate.getElement(0).findNonVarOrSame();
@@ -2068,8 +1999,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return base.retractZ(goal.getContext(), (TermStruct) atom);
   }
 
-  @Predicate(signature = "retractall/1", template = {"@clause"}, reference = "Retract all clauses which can be unified with argument. True if there is as minimum one clause in the knowledge base.")
-  @Determined
+  @Predicate(determined = true, signature = "retractall/1", args = {"+callable"}, reference = "Retract all clauses which can be unified with argument. True if there is as minimum one clause in the knowledge base.")
   public static boolean predicateRETRACTALL(final ChoicePoint goal, final TermStruct predicate) {
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
     Term atom = predicate.getElement(0).findNonVarOrSame();
@@ -2091,7 +2021,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return base.retractAll(goal.getContext(), (TermStruct) atom);
   }
 
-  @Predicate(signature = "catch/3", template = "+callable_term,?term,+callable_term", reference = "A goal catch(Goal, Catcher, Handler) is true if\n1. call(Goal) is true, or\n2. An exception is raised which throws a Ball that is caught by Catcher and Handler then succeeds ")
+  @Predicate(signature = "catch/3", args = "+callable,?term,+callable", reference = "A goal catch(Goal, Catcher, Handler) is true if\n1. call(Goal) is true, or\n2. An exception is raised which throws a Ball that is caught by Catcher and Handler then succeeds ")
   public static boolean predicateCATCH(final ChoicePoint goal, final TermStruct predicate) {
     ChoicePoint catchGoal = goal.getPayload();
 
@@ -2156,8 +2086,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @Predicate(signature = "throw/1", template = "+callable_term", reference = "Throw an exception which can be catched by catch/3")
-  @Determined
+  @Predicate(determined = true, signature = "throw/1", args = "+callable", reference = "Throw an exception which can be catched by catch/3")
   public static void predicateTHROW(final ChoicePoint goal, final TermStruct predicate) {
     final Term term = predicate.getElement(0).findNonVarOrSame();
     if (goal.isArgsValidate()) {
@@ -2199,8 +2128,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     throw new ProlCustomErrorException(arg, predicate);
   }
 
-  @Predicate(signature = "pause/1", template = {"+number"}, reference = "Make pause for defined milliseconds.")
-  @Determined
+  @Predicate(determined = true, signature = "pause/1", args = {"+number"}, reference = "Make pause for defined milliseconds.")
   public static void predicatePAUSE(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
     final Term term = predicate.getElement(0).findNonVarOrSame();
     if (goal.isArgsValidate()) {
@@ -2223,7 +2151,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return result;
   }
 
-  @Predicate(signature = "facts/1", template = {"+callable_term"}, reference = "Finds only facts at the knowledge base.")
+  @Predicate(signature = "facts/1", args = {"+callable"}, reference = "Finds only facts at the knowledge base.")
   public static boolean predicateFACTS(final ChoicePoint goal, final TermStruct predicate) {
     final Term callableTerm = predicate.getElement(0).findNonVarOrSame();
     if (goal.isArgsValidate()) {
@@ -2258,8 +2186,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return result;
   }
 
-  @Predicate(signature = "regtrigger/3", template = {"+predicate_indicator,+triggerevent,+callable_term"}, reference = "regtrigger(somepredicate/3,onassert,triggerhandler) is always true. The predicate allows to register a trigger handler for distinguished predicate signature. The handled trigger event can be selected from the list [onassert, onretract, onassertretract].")
-  @Determined
+  @Predicate(determined = true, signature = "regtrigger/3", args = {"+predicate_indicator,+atom,+callable"}, reference = "regtrigger(somepredicate/3,onassert,triggerhandler) is always true. The predicate allows to register a trigger handler for distinguished predicate signature. The handled trigger event can be selected from the list [onassert, onretract, onassertretract].")
   public static boolean predicateREGTRIGGER3(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg1 = predicate.getElement(0).findNonVarOrSame();
     final Term arg2 = predicate.getElement(1).findNonVarOrSame();
@@ -2298,16 +2225,14 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return true;
   }
 
-  @Predicate(signature = "copy_term/2", template = {"?term,?term"}, reference = "copy_term(X,Y) is true if and only if Y unifies with a term T which is a renamed copy of X.")
-  @Determined
+  @Predicate(determined = true, signature = "copy_term/2", args = {"?term,?term"}, reference = "copy_term(X,Y) is true if and only if Y unifies with a term T which is a renamed copy of X.")
   public final boolean predicateCOPYTERM2(final ChoicePoint goal, final TermStruct predicate) {
     final Term in = predicate.getElement(0).findNonVarOrSame().makeClone();
     final Term out = predicate.getElement(1).findNonVarOrSame();
     return in.unifyTo(out);
   }
 
-  @Predicate(signature = "\\+/1", template = "+callable_term", reference = "\\+(Term) is true if and only if call(Term) is false.")
-  @Determined
+  @Predicate(determined = true, signature = "\\+/1", args = "+callable", reference = "\\+(Term) is true if and only if call(Term) is false.")
   public final boolean predicateCannotBeProven1(final ChoicePoint goal, final TermStruct predicate) {
     final Term argument = predicate.getElement(0).findNonVarOrSame();
     if (goal.isArgsValidate()) {

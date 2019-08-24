@@ -10,13 +10,14 @@ import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlSystemFlag;
+import com.igormaznitsa.jprol.utils.ProlAssertions;
 
 import java.util.Iterator;
 import java.util.stream.Stream;
 
 import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.*;
 
-@SuppressWarnings("EmptyMethod")
+@SuppressWarnings( {"EmptyMethod", "unused"})
 @ProlOperators(operators = {
     @ProlOperator(priority = 700, type = XFX, name = "is"),
     @ProlOperator(priority = 700, type = XFX, name = "="),
@@ -39,20 +40,24 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     super("jprol-bootstrap-lib");
   }
 
-  @Predicate(signature = "current_prolog_flag/2", template = {"?atom,?term"}, reference = "Check prolog flag and flag values.")
-  public static boolean predicateCURRENTPROLOGFLAG(final ChoicePoint goal, final TermStruct predicate) {
+  @Predicate(signature = "current_prolog_flag/2", args = {"?atom,?term"}, reference = "Check prolog flag and flag values.")
+  public static boolean predicateCURRENTPROLOGFLAG(final ChoicePoint cpoint, final TermStruct predicate) {
     final Term atom = predicate.getElement(0).findNonVarOrSame();
     final Term term = predicate.getElement(1).findNonVarOrSame();
+
+    if (cpoint.isArgsValidate() && atom.getTermType() != TermType.VAR) {
+      ProlAssertions.assertAtom(atom);
+    }
 
     final boolean only = atom.isGround();
 
     boolean found = false;
-    Iterator<JProlSystemFlag> iterator = goal.getPayload();
+    Iterator<JProlSystemFlag> iterator = cpoint.getPayload();
     final boolean firstCall;
     if (iterator == null) {
       firstCall = true;
       iterator = Stream.of(JProlSystemFlag.values()).iterator();
-      goal.setPayload(iterator);
+      cpoint.setPayload(iterator);
     } else {
       firstCall = false;
     }
@@ -60,7 +65,7 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     while (iterator.hasNext()) {
       final JProlSystemFlag flag = iterator.next();
       if (atom.dryUnifyTo(flag.getNameTerm())) {
-        final Term flagValue = goal.getContext().getSystemFlag(flag);
+        final Term flagValue = cpoint.getContext().getSystemFlag(flag);
         if (term.dryUnifyTo(flagValue)) {
           found = assertUnify(atom, flag.getNameTerm()) && assertUnify(term, flagValue);
           break;
@@ -68,10 +73,10 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
       }
 
       if (only || !iterator.hasNext()) {
-        goal.setPayload(null);
-        goal.cutVariants();
-      } else if (iterator.hasNext()) {
-        goal.setPayload(iterator);
+        cpoint.setPayload(null);
+        cpoint.cutVariants();
+      } else {
+        cpoint.setPayload(iterator);
       }
     }
 
@@ -82,41 +87,58 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     return found;
   }
 
-  @Predicate(signature = "kcontext/1", template = {"?atom"}, reference = "Set or get current knowledge context parameter.")
-  @Determined
-  public static boolean predicateKCONTEXT1(final ChoicePoint goal, final TermStruct predicate) {
+  @Predicate(determined = true, signature = "kcontext/1", args = {"?atom"}, reference = "Set or get current knowledge context parameter.")
+  public static boolean predicateKCONTEXT1(final ChoicePoint cpoint, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
+
+    if (cpoint.isArgsValidate() && arg.getTermType() != TermType.VAR) {
+      ProlAssertions.assertAtom(arg);
+    }
+
     if (arg.getTermType() == TermType.VAR) {
-      return arg.unifyTo(goal.getContext().getKnowledgeContext().asTerm());
+      return arg.unifyTo(cpoint.getContext().getKnowledgeContext().asTerm());
     } else {
-      goal.getContext().setKnowledgeContext(goal.getContext().getKnowledgeContextFactory().makeKnowledgeContext(arg.getText()));
+      cpoint.getContext().setKnowledgeContext(cpoint.getContext().getKnowledgeContextFactory().makeKnowledgeContext(arg.getText()));
       return true;
     }
   }
 
-  @Predicate(signature = "set_prolog_flag/2", template = {"+atom,+term"}, reference = "Set value of flag.")
-  @Determined
-  public static boolean predicateSETPROLOGFLAG(final ChoicePoint goal, final TermStruct predicate) {
+  @Predicate(
+      determined = true,
+      signature = "set_prolog_flag/2",
+      args = {"+atom,+term"},
+      reference = "Set value of flag."
+  )
+  public static boolean predicateSETPROLOGFLAG(final ChoicePoint cpoint, final TermStruct predicate) {
     final Term atom = predicate.getElement(0).findNonVarOrSame();
     final Term term = predicate.getElement(1).findNonVarOrSame();
+
+    if (cpoint.isArgsValidate()) {
+      ProlAssertions.assertAtom(atom);
+      ProlAssertions.assertNonVar(term);
+    }
+
     return JProlSystemFlag.find(atom)
         .filter(x -> !x.isReadOnly())
         .map(x -> {
-          goal.getContext().setSystemFlag(x, term);
+          cpoint.getContext().setSystemFlag(x, term);
           return true;
         }).orElseThrow(() -> new ProlDomainErrorException("prolog_flag", atom));
   }
 
-  @Predicate(signature = "is/2", template = {"?evaluable,@evaluable"}, reference = "'is'(Result, Expression) is true if and only if the value of evaluating Expression as an expression is Result")
-  @Determined
-  public static boolean predicateIS(final ChoicePoint goal, final TermStruct predicate) {
-    final Term leftPart = predicate.getElement(0);
+  @Predicate(determined = true, signature = "is/2", args = {"?number,@evaluable"}, reference = "'is'(Result, Expression) is true if and only if the value of evaluating Expression as an expression is Result")
+  public static boolean predicateIS(final ChoicePoint cpoint, final TermStruct predicate) {
+    final Term left = predicate.getElement(0).findNonVarOrSame();
+    final Term right = predicate.getElement(1).findNonVarOrSame();
 
-    final NumericTerm rightPart = calculatEvaluable(goal, predicate.getElement(1));
-    if (rightPart == null) {
-      return false;
+    if (cpoint.isArgsValidate()) {
+      if (left.getTermType() != TermType.VAR) {
+        ProlAssertions.assertNumber(left);
+      }
     }
-    return leftPart.unifyTo(rightPart);
+
+    final NumericTerm rightResult = calculatEvaluable(cpoint, right);
+    return rightResult != null && left.unifyTo(rightResult);
   }
 
   @Predicate(determined = true, signature = "true/0", reference = "The perdicate is always true.")
@@ -144,12 +166,12 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
   }
 
   @Predicate(signature = ";/2", reference = "';'(Either, Or) is true if either Either or Or is true.")
-  public static void predicateOR(final ChoicePoint goal, final TermStruct predicate) {
+  public static void predicateOR(final ChoicePoint cpoint, final TermStruct predicate) {
     // stub, see Goal#resolve
   }
 
   @Predicate(signature = ",/2", reference = "','(First, Second) is true if and only if First is true and Second is true.")
-  public static void predicateAND(final ChoicePoint goal, final TermStruct predicate) {
+  public static void predicateAND(final ChoicePoint cpoint, final TermStruct predicate) {
     // stub, see Goal#resolve
   }
 

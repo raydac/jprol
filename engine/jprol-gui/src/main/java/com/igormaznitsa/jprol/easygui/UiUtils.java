@@ -16,7 +16,10 @@
 
 package com.igormaznitsa.jprol.easygui;
 
-import com.igormaznitsa.jprol.annotations.*;
+import com.igormaznitsa.jprol.annotations.Predicate;
+import com.igormaznitsa.jprol.annotations.PredicateSynonyms;
+import com.igormaznitsa.jprol.annotations.ProlOperator;
+import com.igormaznitsa.jprol.annotations.ProlOperators;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 
 import javax.imageio.ImageIO;
@@ -99,7 +102,7 @@ public final class UiUtils {
         }
         out.println();
 
-        final String[] templates = predicate.template();
+        final String[] templates = predicate.args();
         for (String template : templates) {
           out.println('[' + template + ']');
         }
