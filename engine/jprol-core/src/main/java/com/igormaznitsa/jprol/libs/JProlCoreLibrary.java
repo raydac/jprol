@@ -1556,7 +1556,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "abolish/1", args = {"+predicate_indicator"}, reference = "abolish(Pred/2) is true. It has for side effect the removal of all clauses of the predicate indicated by Pred. After abolish/1 the predicate is not found by current_predicate.")
-  public static boolean predicateABOLISH(final ChoicePoint goal, final TermStruct predicate) {
+  public static boolean predicateABOLISH1(final ChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     if (goal.isArgsValidate()) {
       ProlAssertions.assertIndicator(arg);

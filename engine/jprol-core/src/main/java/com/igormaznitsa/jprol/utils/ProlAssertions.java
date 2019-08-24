@@ -452,8 +452,14 @@ public final class ProlAssertions {
             || (right.getTermType() == VAR && !right.isGround());
 
         if (leftOk && rightOk) {
-          if (right instanceof NumericTerm && (right instanceof TermDouble || right.toNumber().longValue() < 0L)) {
-            errorCode = 2;
+          if (right instanceof NumericTerm) {
+            if (right instanceof TermDouble || right.toNumber().longValue() < 0L) {
+              errorCode = 2;
+            } else if (right.toNumber().longValue() > Integer.MAX_VALUE) {
+              errorCode = 3;
+            } else {
+              errorCode = 0;
+            }
           } else {
             errorCode = 0;
           }
@@ -468,6 +474,8 @@ public final class ProlAssertions {
         throw new ProlTypeErrorException("predicate_indicator", "Predicate indicator expected: " + t, t);
       case 2:
         throw new ProlDomainErrorException("integer", "Predicate indicator expected: " + t, t);
+      case 3:
+        throw new ProlRepresentationErrorException("max_arity", "Wrong arity: " + t, t);
     }
   }
 

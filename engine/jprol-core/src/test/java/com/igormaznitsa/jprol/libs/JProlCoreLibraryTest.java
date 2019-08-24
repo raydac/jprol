@@ -381,6 +381,9 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testAbolish1() {
+    //[(current_prolog_flag(max_arity,A), X is A + 1, abolish(foo/X)), representation_error(max_arity)].
+    assertProlException("current_prolog_flag(max_arity,A), X is A + 1, abolish(foo/X).", ProlRepresentationErrorException.class);
+
     checkOnce("assert(test(1)),test(X),X==1,abolish(test/1),\\+ test(_).", true);
 
     //[abolish(abolish/1), permission_error(modify,static_procedure,abolish/1)].
