@@ -16,9 +16,11 @@
             <outputDirectory>${file.separator}</outputDirectory>
         </file>
         <file>
-          <filtered>true</filtered>  
-          <source>${project.basedir}${file.separator}src${file.separator}assemble${file.separator}linux${file.separator}run.sh</source>
-          <outputDirectory>${file.separator}</outputDirectory>
+            <filtered>true</filtered>
+            <source>
+                ${project.basedir}${file.separator}src${file.separator}assemble${file.separator}linux${file.separator}run.sh
+            </source>
+            <outputDirectory>${file.separator}</outputDirectory>
         </file>
         <file>
             <source>${project.build.directory}${file.separator}${app.name}.jar</source>
@@ -32,10 +34,10 @@
             <outputDirectory>${file.separator}</outputDirectory>
             <filtered>false</filtered>
             <excludes>
-              <exclude>**/*.sh</exclude>
+                <exclude>**/*.sh</exclude>
             </excludes>
             <includes>
-              <include>*/**</include>
+                <include>*/**</include>
             </includes>
         </fileSet>
         <fileSet>

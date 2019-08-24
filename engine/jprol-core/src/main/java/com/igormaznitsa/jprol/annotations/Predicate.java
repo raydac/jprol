@@ -27,6 +27,7 @@ public @interface Predicate {
   String signature();
 
   String[] args() default {};
+
   String reference() default "";
 
   boolean determined() default false;

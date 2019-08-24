@@ -83,7 +83,7 @@ public final class UiUtils {
     for (final Method method : methods) {
       final Predicate predicate = method.getAnnotation(Predicate.class);
       if (predicate != null) {
-        final boolean determined = method.getAnnotation(Determined.class) != null;
+        final boolean determined = predicate.determined();
         final PredicateSynonyms predicateSynonims = method.getAnnotation(PredicateSynonyms.class);
         out.print(predicate.signature());
         if (predicateSynonims != null) {

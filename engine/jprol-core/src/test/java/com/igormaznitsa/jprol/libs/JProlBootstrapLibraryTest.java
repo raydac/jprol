@@ -1,6 +1,7 @@
 package com.igormaznitsa.jprol.libs;
 
 import com.igormaznitsa.jprol.data.TermVar;
+import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
@@ -30,7 +31,7 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
     assertNull(all.next());
 
     assertProlException("current_prolog_flag(5, V).", ProlTypeErrorException.class);
-    assertProlException("current_prolog_flag(some_unknown_flag_lalala, V).", ProlTypeErrorException.class);
+    assertProlException("current_prolog_flag(some_unknown_flag_lalala, V).", ProlDomainErrorException.class);
   }
 
   @Test
@@ -39,8 +40,8 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
     assertNotNull(point.next());
     assertNull(point.next());
     assertEquals("false", point.getContext().getSystemFlag(JProlSystemFlag.VERIFY).getText());
-    assertProlException("set_prolog_flag(someunknownlalala, true).", ProlTypeErrorException.class);
-    assertProlException("set_prolog_flag(" + JProlSystemFlag.VERSION_DATA.getNameTerm().getText() + ", true).", ProlTypeErrorException.class);
+    assertProlException("set_prolog_flag(someunknownlalala, true).", ProlDomainErrorException.class);
+    assertProlException("set_prolog_flag(" + JProlSystemFlag.VERSION_DATA.getNameTerm().getText() + ", true).", ProlDomainErrorException.class);
   }
 
   @Test

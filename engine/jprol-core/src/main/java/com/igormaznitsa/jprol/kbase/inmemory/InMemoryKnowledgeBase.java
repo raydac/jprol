@@ -26,6 +26,7 @@ import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
 import com.igormaznitsa.jprol.utils.OperatorIterator;
+import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.Utils;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
@@ -316,8 +317,9 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   public boolean retractA(final JProlContext context, final TermStruct clause) {
     TermStruct struct = clause;
     if (struct.isClause()) {
-      // it's a clause
-      struct = struct.getElement(0);
+      final Term head = struct.getElement(0).findNonVarOrSame();
+      ProlAssertions.assertStruct(head);
+      struct = (TermStruct) head;
     }
 
     boolean result = false;

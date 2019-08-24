@@ -84,7 +84,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     checkVarValues("X is 10 // 2.", "X", "5");
     checkVarValues("X is -11 // 4.", "X", "-2");
 
-    assertProlException("X is 10 // 0.", ProlTypeErrorException.class);
+    assertProlException("X is 10 // 0.", ProlEvaluationErrorException.class);
     assertProlException("X is 10 // 0.3.", ProlTypeErrorException.class);
     assertProlException("X is 10.5 // 3.", ProlTypeErrorException.class);
   }
@@ -97,15 +97,15 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     checkVarValues("X is -10 / 2.5.", "X", "-4.0");
     checkVarValues("X is 2.5 / 2.5.", "X", "1.0");
 
-    assertProlException("X is 10.3 / 0.", ProlTypeErrorException.class);
-    assertProlException("X is 10 / 0.0.", ProlTypeErrorException.class);
+    assertProlException("X is 10.3 / 0.", ProlEvaluationErrorException.class);
+    assertProlException("X is 10 / 0.0.", ProlEvaluationErrorException.class);
   }
 
   @Test
   void testFacts1() {
     consultAndCheckVar("some1(a). some1(b). some1(X):-number(X). some1(c). some1(X).", "facts(some1(X)).", "X", "'a'", "'b'", "'c'");
     consultAndCheckVar("some1(a,b). some1(c,d). some1(a,X):-number(X). some1(c,e). some1(X,X).", "facts(some1(A,B)), X = A/B.", "X", "'a' / 'b'", "'c' / 'd'", "'c' / 'e'");
-    assertProlException("facts(X).", ProlTypeErrorException.class);
+    assertProlException("facts(X).", ProlInstantiationErrorException.class);
   }
 
   @Test
@@ -119,7 +119,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     final long start = System.currentTimeMillis();
     checkVarValues("X=100,pause(X).", "X", "100");
     assertTrue(System.currentTimeMillis() - start >= 100L);
-    assertProlException("pause(X).", ProlTypeErrorException.class);
+    assertProlException("pause(X).", ProlInstantiationErrorException.class);
     assertProlException("pause(a(1)).", ProlTypeErrorException.class);
   }
 
@@ -129,7 +129,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     checkVarValues("C=1, X is -C.", "X", "-1");
     checkVarValues("C=1.5, X is -C.", "X", "-1.5");
     checkVarValues("C=-1.5, X is -C.", "X", "1.5");
-    assertProlException("X is -C.", ProlTypeErrorException.class);
+    assertProlException("X is -C.", ProlInstantiationErrorException.class);
   }
 
   @Test
@@ -138,7 +138,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     checkVarValues("C=1, X is +C.", "X", "1");
     checkVarValues("C=1.5, X is +C.", "X", "1.5");
     checkVarValues("C=-1.5, X is +C.", "X", "-1.5");
-    assertProlException("X is +C.", ProlTypeErrorException.class);
+    assertProlException("X is +C.", ProlInstantiationErrorException.class);
   }
 
   @Test
@@ -162,11 +162,11 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   void testFor3() {
     checkVarValues("for(X,0,1).", "X", "0", "1");
     checkOnce("for(100,100,101).", true);
-    checkOnce("for(X,4,1).", false);
+    checkVarValues("for(X,4,1).", "X", "4", "3", "2", "1");
     checkOnce("for(5,1,4).", false);
-    assertProlException("for(5,X,4).", ProlTypeErrorException.class);
-    assertProlException("for(5,1,X).", ProlTypeErrorException.class);
-    assertProlException("for(5,A,X).", ProlTypeErrorException.class);
+    assertProlException("for(5,X,4).", ProlInstantiationErrorException.class);
+    assertProlException("for(5,1,X).", ProlInstantiationErrorException.class);
+    assertProlException("for(5,A,X).", ProlInstantiationErrorException.class);
   }
 
   @Test
@@ -192,7 +192,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   void testTermAsList3() {
     checkVarValues("foo(hello, X)=..List.", "List", "['foo','hello',X]");
     checkVarValues("Term=..[baz, foo(1)].", "Term", "baz(foo(1))");
-    assertProlException("a()=..L.", ProlTypeErrorException.class);
+    assertProlException("a()=..L.", ProlDomainErrorException.class);
   }
 
   @Test
@@ -229,7 +229,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     checkVarValues("X is mod(16,8).", "X", String.valueOf(0));
     checkVarValues("X is mod(344,123).", "X", String.valueOf(344 % 123));
     assertProlException("X is mod(344.456,123.11).", ProlTypeErrorException.class);
-    assertProlException("X is mod(344,0).", ProlTypeErrorException.class);
+    assertProlException("X is mod(344,0).", ProlEvaluationErrorException.class);
   }
 
   @Test
@@ -237,10 +237,10 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     checkVarValues("X is rem(16,8).", "X", String.valueOf(0));
     checkVarValues("X is rem(344,123).", "X", String.valueOf(98));
     assertProlException("X is rem(344.456,123.11).", ProlTypeErrorException.class);
-    assertProlException("X is rem(344,0).", ProlTypeErrorException.class);
+    assertProlException("X is rem(344,0).", ProlEvaluationErrorException.class);
     assertProlException("X is rem('a',12).", ProlTypeErrorException.class);
-    assertProlException("X is rem(A,12).", ProlTypeErrorException.class);
-    assertProlException("X is rem(12,B).", ProlTypeErrorException.class);
+    assertProlException("X is rem(A,12).", ProlInstantiationErrorException.class);
+    assertProlException("X is rem(12,B).", ProlInstantiationErrorException.class);
     assertProlException("X is rem(0,'b').", ProlTypeErrorException.class);
   }
 
@@ -250,10 +250,10 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     checkVarValues("X is 16**0.", "X", String.valueOf(1.0));
     checkVarValues("X is 16**-2.", "X", String.valueOf(Math.pow(16, -2)));
     assertProlException("X is 'a'**-2.", ProlTypeErrorException.class);
-    assertProlException("X is A**-2.", ProlTypeErrorException.class);
+    assertProlException("X is A**-2.", ProlInstantiationErrorException.class);
     assertProlException("X is 16**-'b'.", ProlTypeErrorException.class);
     assertProlException("X is 2**-'b'.", ProlTypeErrorException.class);
-    assertProlException("X is A**-B.", ProlTypeErrorException.class);
+    assertProlException("X is A**-B.", ProlInstantiationErrorException.class);
   }
 
   @Test
@@ -843,6 +843,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testCall1() {
+    assertProlException("call((write(3),X)).", ProlInstantiationErrorException.class);
+
     //[call(!),success].
     checkOnce("call(!).", true);
     //[call(fail), failure].
@@ -1521,7 +1523,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     checkVarValues("number_chars(A,['\\n',' ','3']).", "A", 3L);
 
     //[number_chars(A,['3',' ']), syntax_error(_)].
-    assertProlException("number_chars(A,['3',' ']).", ProlTypeErrorException.class);
+    assertProlException("number_chars(A,['3',' ']).", ProlCustomErrorException.class);
 
     //[number_chars(A,['0','''','A']), [[A <-- 65]]].
 

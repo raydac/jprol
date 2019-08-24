@@ -15,7 +15,15 @@ public final class ProlAssertions {
   private ProlAssertions() {
   }
 
+  public static void assertStruct(final Term term) {
+    assertNonVar(term);
+    if (term.getTermType() != STRUCT) {
+      throw new ProlTypeErrorException("struct", "Expected struct: " + term, term);
+    }
+  }
+
   public static void assertArity(final Term term) {
+    assertNonVar(term);
     if (term instanceof TermLong) {
       if (term.toNumber().longValue() < 0) {
         throw new ProlDomainErrorException("integer", "Expected zero or positive: " + term, term);
@@ -44,12 +52,14 @@ public final class ProlAssertions {
   }
 
   public static void assertAtom(final Term t) {
+    assertNonVar(t);
     if (!isAtom(t)) {
       throw new ProlTypeErrorException("atom", "Atom expected: " + t, t);
     }
   }
 
   public static void assertAtomOrAtomList(final Term t) {
+    assertNonVar(t);
     boolean error = true;
     switch (t.getTermType()) {
       case ATOM: {
@@ -65,7 +75,7 @@ public final class ProlAssertions {
           break;
         }
 
-        while (!Thread.currentThread().isInterrupted()) {
+        while (!error) {
           Term head = lst.getHead();
           if (head.getTermType() == VAR) {
             head = ((TermVar) head).getValue();
@@ -99,6 +109,7 @@ public final class ProlAssertions {
   }
 
   public static void assertAtomic(final Term t) {
+    assertNonVar(t);
     boolean errorType = false;
     switch (t.getTermType()) {
       case LIST: {
@@ -120,6 +131,7 @@ public final class ProlAssertions {
   }
 
   public static void assertByte(final Term t) {
+    assertNonVar(t);
     boolean error = true;
     if (t instanceof TermLong) {
       final int value = t.toNumber().intValue();
@@ -156,6 +168,7 @@ public final class ProlAssertions {
   }
 
   public static void assertCharacter(final Term t) {
+    assertNonVar(t);
     boolean error = true;
     if (t.getTermType() == TermType.ATOM && t.getText().length() == 1) {
       error = false;
@@ -166,6 +179,7 @@ public final class ProlAssertions {
   }
 
   public static void assertCharacterCode(final Term t) {
+    assertNonVar(t);
     if (t instanceof TermLong) {
       final int value = t.toNumber().intValue();
       if ((value & 0xFFFF0000) != 0) {
@@ -263,7 +277,7 @@ public final class ProlAssertions {
       }
       break;
       case VAR: {
-        throw new ProlInstantiationErrorException("Expected compound term: " + t, t);
+        throw new ProlInstantiationErrorException("Expected instantiated compound term: " + t, t);
       }
       default:
         throw new ProlTypeErrorException("compound", "Expected compound: " + t, t);
@@ -271,6 +285,7 @@ public final class ProlAssertions {
   }
 
   public static void assertEvaluable(final Term t) {
+    assertNonVar(t);
     boolean error = true;
     if (t instanceof NumericTerm) {
       error = false;
@@ -289,6 +304,7 @@ public final class ProlAssertions {
   }
 
   public static void assertHead(final Term t) {
+    assertNonVar(t);
     boolean error = true;
     switch (t.getTermType()) {
       case ATOM: {
@@ -306,11 +322,12 @@ public final class ProlAssertions {
       break;
     }
     if (error) {
-      throw new ProlInstantiationErrorException("Imcompatible clause head", t);
+      throw new ProlTypeErrorException("Unexpected head: " + t, t);
     }
   }
 
   public static void assertInByte(final Term t) {
+    assertNonVar(t);
     boolean error = false;
     if (t instanceof TermLong) {
       final int val = t.toNumber().intValue();
@@ -326,6 +343,7 @@ public final class ProlAssertions {
   }
 
   public static void assertInCharacter(final Term t) {
+    assertNonVar(t);
     boolean error = false;
     if (t.getTermType() == TermType.ATOM) {
       final String text = t.getText();
@@ -341,6 +359,7 @@ public final class ProlAssertions {
   }
 
   public static void assertInCharacterCode(final Term t) {
+    assertNonVar(t);
     boolean error = false;
     if (t instanceof TermLong) {
       final int val = t.toNumber().intValue();
@@ -356,15 +375,14 @@ public final class ProlAssertions {
   }
 
   public static void assertInteger(final Term t) {
-    if (t.getTermType() == VAR) {
-      throw new ProlInstantiationErrorException("Integer expected: " + t, t);
-    }
+    assertNonVar(t);
     if (!(t instanceof TermLong)) {
       throw new ProlTypeErrorException("integer", "Integer expected: " + t, t);
     }
   }
 
   public static void assertIoMode(final Term t) {
+    assertNonVar(t);
     boolean error = true;
     if (t.getTermType() == TermType.ATOM) {
       final String text = t.getText();
@@ -373,11 +391,12 @@ public final class ProlAssertions {
       }
     }
     if (error) {
-      throw new ProlInstantiationErrorException("Should be 'read', 'write' or 'append' [" + t + ']', t);
+      throw new ProlDomainErrorException("[read,write,append]", "Wrong io mode: " + t, t);
     }
   }
 
   public static void assertList(final Term t) {
+    assertNonVar(t);
     if (t.getTermType() != TermType.LIST) {
       throw new ProlTypeErrorException("list", "List expected: " + t, t);
     }
@@ -391,17 +410,19 @@ public final class ProlAssertions {
 
   public static void assertNonVar(final Term t) {
     if (t.getTermType() == VAR) {
-      throw new ProlTypeErrorException("nonvar", "Non-var expected: " + t, t);
+      throw new ProlInstantiationErrorException("Grounded value expected: " + t, t);
     }
   }
 
   public static void assertNumber(final Term t) {
+    assertNonVar(t);
     if (!(t instanceof NumericTerm)) {
       throw new ProlTypeErrorException("number", "Number expected: " + t, t);
     }
   }
 
   public static void assertOperatorSpecifier(final Term t) {
+    assertNonVar(t);
     boolean error;
     if (t.getTermType() == TermType.ATOM && !(t instanceof NumericTerm)) {
       final String text = t.getText();
@@ -415,6 +436,7 @@ public final class ProlAssertions {
   }
 
   public static void assertIndicator(final Term t) {
+    assertNonVar(t);
     int errorCode = 1;
     if (t.getTermType() == STRUCT) {
       final TermStruct struct = (TermStruct) t;
@@ -450,16 +472,18 @@ public final class ProlAssertions {
   }
 
   public static void assertNonEmptyList(final Term t) {
+    assertNonVar(t);
     if (t.getTermType() != TermType.LIST) {
-      throw new ProlInstantiationErrorException("Should be list \'" + t + '\'', t);
+      throw new ProlTypeErrorException("list", "Expected list: " + t, t);
     } else {
       if (t == Terms.NULL_LIST) {
-        throw new ProlInstantiationErrorException("Should not be empty list \'" + t + '\'', t);
+        throw new ProlDomainErrorException("[]", "Expected non-empty list: " + t, t);
       }
     }
   }
 
   public void assertTriggerEvent(final Term t) {
+    assertNonVar(t);
     if (t.getTermType() != TermType.ATOM) {
       throw new ProlInstantiationErrorException("Should be an atom \'" + t + '\'', t);
     } else {

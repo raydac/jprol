@@ -41,17 +41,22 @@ import static java.util.stream.Collectors.toMap;
 
 public final class ChoicePoint {
 
+  private static final AtomicLong UID_GEN = new AtomicLong();
+  private static final Consumer<String> NULL_UNDEFINED_PREDICATE_CONSUMER = x -> {
+  };
   private final Map<String, TermVar> variables;
   private final VariableStateSnapshot varSnapshot;
   private final JProlContext context;
   private final ChoicePoint rootCp;
-  private boolean thereAreVariants;
   private final Term goalTerm;
+  private final long uid;
+  private final boolean validate;
+  private final boolean debug;
+  private boolean thereAreVariants;
   private Object payload;
   private ChoicePoint prevCp;
   private ChoicePoint rootLastGoalAtChain;
   private ChoicePoint subCp;
-
   private Term subChoicePointConnector;
   private Term thisConnector;
   private Term nextAndTerm;
@@ -59,14 +64,6 @@ public final class ChoicePoint {
   private Iterator<TermStruct> clauseIterator;
   private boolean cutMeet;
   private boolean notFirstProve;
-
-  private static final AtomicLong UID_GEN = new AtomicLong();
-  private final long uid;
-
-  private static final Consumer<String> NULL_UNDEFINED_PREDICATE_CONSUMER = x -> {
-  };
-  private final boolean validate;
-  private final boolean debug;
 
   private ChoicePoint(
       final ChoicePoint rootCp,
@@ -122,6 +119,29 @@ public final class ChoicePoint {
     this(null, goal, context, context.isDebug(), context.isTemplateValidate(), predefinedVarValues);
   }
 
+  private static Term assertCallable(final Term term) {
+    switch (term.getTermType()) {
+      case ATOM: {
+        if (term instanceof NumericTerm) {
+          throw new ProlTypeErrorException("callable", term);
+        }
+      }
+      break;
+      case VAR: {
+        if (!term.isGround()) {
+          throw new ProlInstantiationErrorException("callable", term);
+        }
+      }
+      break;
+      case LIST: {
+        throw new ProlTypeErrorException("callable", term);
+      }
+      default:
+        break;
+    }
+    return term;
+  }
+
   public ChoicePoint makeForGoal(final Term goal) {
     return new ChoicePoint(null, goal, this.context, this.debug, this.validate, null);
   }
@@ -152,29 +172,6 @@ public final class ChoicePoint {
   @Override
   public int hashCode() {
     return (int) ((this.uid >>> 32) ^ this.uid);
-  }
-
-  private static Term assertCallable(final Term term) {
-    switch (term.getTermType()) {
-      case ATOM: {
-        if (term instanceof NumericTerm) {
-          throw new ProlTypeErrorException("callable", term);
-        }
-      }
-      break;
-      case VAR: {
-        if (!term.isGround()) {
-          throw new ProlInstantiationErrorException("callable", term);
-        }
-      }
-      break;
-      case LIST: {
-        throw new ProlTypeErrorException("callable", term);
-      }
-      default:
-        break;
-    }
-    return term;
   }
 
   public Map<String, Term> findAllGroundedVars() {

@@ -173,7 +173,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     if (goal.isArgsValidate()) {
       ProlAssertions.assertInteger(arg);
     }
-    return newLong(arg.toNumber().longValue());
+    return newLong(~arg.toNumber().longValue());
   }
 
   @Predicate(evaluable = true, signature = "\\//2", args = {"+evaluable,+evaluable"}, reference = "Bitwise 'or'")
@@ -712,7 +712,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         ProlAssertions.assertCallable(argument);
       }
 
-      newChoicePoint = new ChoicePoint(argument, goal.getContext());
+      newChoicePoint = goal.makeForGoal(argument);
       goal.setPayload(newChoicePoint);
     }
     final Term nextResult = newChoicePoint.next();
@@ -1012,6 +1012,9 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       } else {
         ProlAssertions.assertVar(left);
         ProlAssertions.assertCharacterList(right);
+        if (!right.isGround()) {
+          throw new ProlInstantiationErrorException("List contains non-instantiated vars: " + right, right);
+        }
       }
     }
 
@@ -1062,6 +1065,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       if (left.getTermType() == VAR) {
         ProlAssertions.assertCharacterCode(right);
       } else {
+        ProlAssertions.assertCharacter(left);
         if (right.getTermType() != VAR) {
           ProlAssertions.assertCharacterCode(right);
         }
@@ -1367,52 +1371,61 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @Predicate(signature = "for/3", args = {"?term,+integer,+integer"}, reference = "Allows to make integer counter from a variable, (TermVar, Low, High).")
-  public static boolean predicateFOR3(final ChoicePoint goal, final TermStruct predicate) {
+  public static boolean predicateFOR3(final ChoicePoint cpoint, final TermStruct predicate) {
     final Term term = predicate.getElement(0).findNonVarOrSame();
 
-    final class CounterFor {
+    final class For3CounterStorage {
       final long low;
       final long high;
       long value;
 
-      CounterFor(final long low, final long high) {
+      For3CounterStorage(final long low, final long high) {
         this.low = low;
         this.high = high;
         this.value = low;
       }
 
       boolean isEnd() {
-        return this.value >= high;
+        if (this.low <= this.high) {
+          return this.value > high;
+        } else {
+          return this.value < high;
+        }
       }
 
       void inc() {
-        this.value += 1;
+        if (this.low <= this.high) {
+          this.value++;
+        } else {
+          this.value--;
+        }
       }
     }
 
-    CounterFor counter = goal.getPayload();
+    For3CounterStorage counter = cpoint.getPayload();
     if (counter == null) {
       final Term lowTerm = predicate.getElement(1).findNonVarOrSame();
       final Term highTerm = predicate.getElement(2).findNonVarOrSame();
 
-      if (goal.isArgsValidate()) {
+      if (cpoint.isArgsValidate()) {
         ProlAssertions.assertInteger(lowTerm);
         ProlAssertions.assertInteger(highTerm);
       }
-      final long low = predicate.getElement(1).findNonVarOrSame().toNumber().longValue();
-      final long high = predicate.getElement(2).findNonVarOrSame().toNumber().longValue();
+      final long low = lowTerm.toNumber().longValue();
+      final long high = highTerm.toNumber().longValue();
 
-      counter = new CounterFor(low, high);
-      goal.setPayload(counter);
+      counter = new For3CounterStorage(low, high);
+      cpoint.setPayload(counter);
     } else {
       counter.inc();
     }
     final long value = counter.value;
     if (counter.isEnd()) {
-      goal.cutVariants();
+      cpoint.cutVariants();
       return false;
+    } else {
+      return term.unifyTo(Terms.newLong(value));
     }
-    return term.unifyTo(Terms.newLong(value));
   }
 
   @Predicate(determined = true, signature = "rnd/2", args = {"+integer,?integer", "+list,?term"}, reference = "Generate pseudo random in 0(included)...limit(excluded) or select random element from the list.")
@@ -1961,8 +1974,6 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     if (goal.isArgsValidate()) {
       ProlAssertions.assertCallable(atom);
     }
-
-
     if (atom.getTermType() != STRUCT) {
       atom = newStruct(atom);
     }

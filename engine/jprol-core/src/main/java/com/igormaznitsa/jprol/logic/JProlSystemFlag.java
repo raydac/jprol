@@ -39,10 +39,6 @@ public enum JProlSystemFlag {
     this.defaultValue = defaultValue;
   }
 
-  public Term getNameTerm() {
-    return this.nameTerm;
-  }
-
   public static Optional<JProlSystemFlag> find(final Term term) {
     final String termText = term.getTermType() != TermType.ATOM ? null : term.getText().toUpperCase(Locale.ENGLISH);
 
@@ -53,6 +49,10 @@ public enum JProlSystemFlag {
           .findFirst();
     }
     return result;
+  }
+
+  public Term getNameTerm() {
+    return this.nameTerm;
   }
 
   public boolean isReadOnly() {

@@ -73,32 +73,6 @@ public abstract class AbstractJProlLibrary {
     return true;
   }
 
-  public CloseableIterator<TermOperator> makeOperatorIterator() {
-    return new OperatorIterator(this.systemOperators.values().iterator());
-  }
-
-  @SuppressWarnings("unchecked")
-  protected <T> T findContextObject(final JProlContext context, final String objectId, final Function<String, T> defaultSupplier) {
-    return (T) this.contextNamedObjects
-        .computeIfAbsent(context, ctx -> new ConcurrentHashMap<>())
-        .computeIfAbsent(objectId, defaultSupplier);
-  }
-
-  protected void putContextObject(final JProlContext context, final String objectId, final Object obj) {
-    final Map<String, Object> contextMap = this.contextNamedObjects
-        .computeIfAbsent(context, ctx -> new ConcurrentHashMap<>());
-
-    if (obj == null) {
-      contextMap.remove(objectId);
-    } else {
-      contextMap.put(objectId, obj);
-    }
-  }
-
-  protected Map<String, Object> getContextNamedObjects(final JProlContext context) {
-    return this.contextNamedObjects.computeIfAbsent(context, ctx -> new ConcurrentHashMap<>());
-  }
-
   private static void registerStaticOperator(final Map<String, TermOperatorContainer> operatorMap, final ProlOperator operator) {
     TermOperator newOperator = new TermOperator(operator.priority(), operator.type(), operator.name());
     TermOperatorContainer container = operatorMap.get(operator.name());
@@ -125,25 +99,6 @@ public abstract class AbstractJProlLibrary {
       registerStaticOperator(result, operator);
     }
     return result;
-  }
-
-  public List<TermStruct> findAllForPredicateIndicator(final Term predicateIndicator) {
-    return this.predicateMethodsMap.keySet()
-        .stream()
-        .map(key -> {
-          final int index = key.lastIndexOf('/');
-          return newStruct(SIGNATURE_OPERATOR,
-              new Term[] {
-                  newAtom(key.substring(0, index)),
-                  newLong(parseInt(key.substring(index + 1)))
-              });
-        })
-        .filter(predicateIndicator::dryUnifyTo)
-        .collect(Collectors.toList());
-  }
-
-  public boolean hasPredicateForSignature(final String signature) {
-    return this.predicateMethodsMap.containsKey(signature);
   }
 
   protected static NumericTerm calculatEvaluable(final ChoicePoint goal, final Term term) {
@@ -176,6 +131,51 @@ public abstract class AbstractJProlLibrary {
     } catch (final ArithmeticException ex) {
       throw new ProlEvaluationErrorException(ex.getMessage(), "Arithmetic exception", term, ex);
     }
+  }
+
+  public CloseableIterator<TermOperator> makeOperatorIterator() {
+    return new OperatorIterator(this.systemOperators.values().iterator());
+  }
+
+  @SuppressWarnings("unchecked")
+  protected <T> T findContextObject(final JProlContext context, final String objectId, final Function<String, T> defaultSupplier) {
+    return (T) this.contextNamedObjects
+        .computeIfAbsent(context, ctx -> new ConcurrentHashMap<>())
+        .computeIfAbsent(objectId, defaultSupplier);
+  }
+
+  protected void putContextObject(final JProlContext context, final String objectId, final Object obj) {
+    final Map<String, Object> contextMap = this.contextNamedObjects
+        .computeIfAbsent(context, ctx -> new ConcurrentHashMap<>());
+
+    if (obj == null) {
+      contextMap.remove(objectId);
+    } else {
+      contextMap.put(objectId, obj);
+    }
+  }
+
+  protected Map<String, Object> getContextNamedObjects(final JProlContext context) {
+    return this.contextNamedObjects.computeIfAbsent(context, ctx -> new ConcurrentHashMap<>());
+  }
+
+  public List<TermStruct> findAllForPredicateIndicator(final Term predicateIndicator) {
+    return this.predicateMethodsMap.keySet()
+        .stream()
+        .map(key -> {
+          final int index = key.lastIndexOf('/');
+          return newStruct(SIGNATURE_OPERATOR,
+              new Term[] {
+                  newAtom(key.substring(0, index)),
+                  newLong(parseInt(key.substring(index + 1)))
+              });
+        })
+        .filter(predicateIndicator::dryUnifyTo)
+        .collect(Collectors.toList());
+  }
+
+  public boolean hasPredicateForSignature(final String signature) {
+    return this.predicateMethodsMap.containsKey(signature);
   }
 
   public PredicateInvoker findProcessorForPredicate(final TermStruct predicate) {

@@ -16,7 +16,6 @@
 
 package com.igormaznitsa.jprol.easygui;
 
-import com.igormaznitsa.jprol.annotations.Determined;
 import com.igormaznitsa.jprol.annotations.Predicate;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
@@ -1568,56 +1567,6 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     return this.messageEditor;
   }
 
-  private static final class JLFRadioButtonItem extends JRadioButtonMenuItem {
-
-    private static final long serialVersionUID = 71348723421332L;
-
-    private final String lfClassName;
-
-    public JLFRadioButtonItem(final String text, final String className) {
-      super(text);
-      this.lfClassName = className;
-    }
-
-    public String getLfClassName() {
-      return this.lfClassName;
-    }
-  }
-
-  protected final class LogLibrary extends AbstractJProlLibrary {
-
-    public LogLibrary() {
-      super("JProlGuiLogger");
-    }
-
-    @Predicate(signature = "msgerror/1", reference = "The predicate allows to output information marked as error at the message window.")
-    @Determined
-    public void predicateMSGERROR(final ChoicePoint goal, final TermStruct struct) {
-      final Term term = struct.getElement(0).findNonVarOrSame();
-      final String text = term.forWrite();
-      LOG.log(Level.SEVERE, "msgerror/1 : {0}", text);
-      messageEditor.addErrorText(text);
-    }
-
-    @Predicate(signature = "msgwarning/1", reference = "The predicate allows to output information marked as warning at the message window.")
-    @Determined
-    public void predicateMSGWARNING(final ChoicePoint goal, final TermStruct struct) {
-      final Term term = struct.getElement(0).findNonVarOrSame();
-      final String text = term.forWrite();
-      LOG.log(Level.WARNING, "msgwarning/1 : {0}", text);
-      messageEditor.addWarningText(text);
-    }
-
-    @Predicate(signature = "msginfo/1", reference = "The predicate allows to output information marked as info at the message window.")
-    @Determined
-    public void predicateMSGINFO(final ChoicePoint goal, final TermStruct struct) {
-      final Term term = struct.getElement(0).findNonVarOrSame();
-      final String text = term.forWrite();
-      LOG.log(Level.INFO, "msginfo/1 : {0}", text);
-      messageEditor.addInfoText(text);
-    }
-  }
-
   @Override
   public boolean onFoundInteractiveGoal(final JProlContext context, final Term goal) {
     return context.findResourceWriter("user", true).map(writer -> {
@@ -1670,5 +1619,52 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
         ex.printStackTrace();
       }
     });
+  }
+
+  private static final class JLFRadioButtonItem extends JRadioButtonMenuItem {
+
+    private static final long serialVersionUID = 71348723421332L;
+
+    private final String lfClassName;
+
+    public JLFRadioButtonItem(final String text, final String className) {
+      super(text);
+      this.lfClassName = className;
+    }
+
+    public String getLfClassName() {
+      return this.lfClassName;
+    }
+  }
+
+  protected final class LogLibrary extends AbstractJProlLibrary {
+
+    public LogLibrary() {
+      super("JProlGuiLogger");
+    }
+
+    @Predicate(determined = true, signature = "msgerror/1", reference = "The predicate allows to output information marked as error at the message window.")
+    public void predicateMSGERROR(final ChoicePoint goal, final TermStruct struct) {
+      final Term term = struct.getElement(0).findNonVarOrSame();
+      final String text = term.forWrite();
+      LOG.log(Level.SEVERE, "msgerror/1 : {0}", text);
+      messageEditor.addErrorText(text);
+    }
+
+    @Predicate(determined = true, signature = "msgwarning/1", reference = "The predicate allows to output information marked as warning at the message window.")
+    public void predicateMSGWARNING(final ChoicePoint goal, final TermStruct struct) {
+      final Term term = struct.getElement(0).findNonVarOrSame();
+      final String text = term.forWrite();
+      LOG.log(Level.WARNING, "msgwarning/1 : {0}", text);
+      messageEditor.addWarningText(text);
+    }
+
+    @Predicate(determined = true, signature = "msginfo/1", reference = "The predicate allows to output information marked as info at the message window.")
+    public void predicateMSGINFO(final ChoicePoint goal, final TermStruct struct) {
+      final Term term = struct.getElement(0).findNonVarOrSame();
+      final String text = term.forWrite();
+      LOG.log(Level.INFO, "msginfo/1 : {0}", text);
+      messageEditor.addInfoText(text);
+    }
   }
 }

@@ -24,21 +24,44 @@ import com.igormaznitsa.jprol.libs.JProlIoLibrary;
 import com.igormaznitsa.jprol.libs.JProlThreadLibrary;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
+import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
 
+import java.io.Reader;
 import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.Writer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class AbstractJProlTest {
 
-  public JProlContext makeTestContext() {
-    return new JProlContext(
+  public JProlContext makeTestContext(final IoResourceProvider... ioProviders) {
+    final JProlContext context = new JProlContext(
         new InMemoryKnowledgeContextFactory(),
         "test-context",
         new JProlCoreLibrary(),
         new JProlIoLibrary(),
         new JProlThreadLibrary()
     );
+
+    if (ioProviders.length == 0) {
+      context.addIoResourceProvider(new IoResourceProvider() {
+        @Override
+        public Reader findReader(final JProlContext context, final String readerId) {
+          return new StringReader("");
+        }
+
+        @Override
+        public Writer findWriter(final JProlContext context, final String writerId, final boolean append) {
+          return new StringWriter();
+        }
+      });
+    } else {
+      for (final IoResourceProvider p : ioProviders) {
+        context.addIoResourceProvider(p);
+      }
+    }
+    return context;
   }
 
   public JProlContext makeContextAndConsult(final String knowledgeBase) {
