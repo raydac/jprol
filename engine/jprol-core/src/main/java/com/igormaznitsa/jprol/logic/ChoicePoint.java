@@ -280,12 +280,12 @@ public final class ChoicePoint {
               // we have to renew data about last chain goal because it can be changed during the operation
               goalToProcess = this.rootCp.rootLastGoalAtChain;
 
-              if (goalToProcess.nextAndTerm != null) {
-                final ChoicePoint nextGoal = new ChoicePoint(this.rootCp, goalToProcess.nextAndTerm, localcontext, this.debug, this.validate, null);
-                nextGoal.nextAndTerm = goalToProcess.nextAndTermForNextGoal;
-              } else {
+              if (goalToProcess.nextAndTerm == null) {
                 result = this.rootCp.goalTerm;
                 loop = false;
+              } else {
+                final ChoicePoint nextGoal = new ChoicePoint(this.rootCp, goalToProcess.nextAndTerm, localcontext, this.debug, this.validate, null);
+                nextGoal.nextAndTerm = goalToProcess.nextAndTermForNextGoal;
               }
             }
             break;
