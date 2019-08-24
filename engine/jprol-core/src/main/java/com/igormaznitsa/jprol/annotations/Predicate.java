@@ -28,6 +28,8 @@ public @interface Predicate {
 
   String[] args() default {};
 
+  String[] synonims() default {};
+
   String reference() default "";
 
   boolean determined() default false;

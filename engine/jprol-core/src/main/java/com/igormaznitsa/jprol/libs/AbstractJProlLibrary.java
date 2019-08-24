@@ -17,7 +17,6 @@
 package com.igormaznitsa.jprol.libs;
 
 import com.igormaznitsa.jprol.annotations.Predicate;
-import com.igormaznitsa.jprol.annotations.PredicateSynonyms;
 import com.igormaznitsa.jprol.annotations.ProlOperator;
 import com.igormaznitsa.jprol.annotations.ProlOperators;
 import com.igormaznitsa.jprol.data.*;
@@ -240,7 +239,6 @@ public abstract class AbstractJProlLibrary {
     final Method[] methods = this.getClass().getMethods();
     for (final Method method : methods) {
       final Predicate predicateAnnotation = method.getAnnotation(Predicate.class);
-      final PredicateSynonyms synonims = method.getAnnotation(PredicateSynonyms.class);
 
       if (predicateAnnotation != null) {
         final String signature = Utils.normalizeSignature(predicateAnnotation.signature());
@@ -259,8 +257,7 @@ public abstract class AbstractJProlLibrary {
           foundZeroArityPredicates.add(signature.substring(0, signature.lastIndexOf('/')));
         }
 
-        if (synonims != null) {
-          final String[] synonimSignatures = synonims.signatures();
+        final String[] synonimSignatures = predicateAnnotation.synonims();
           for (String synonimSignature : synonimSignatures) {
             final String sig = synonimSignature.trim();
             result.put(sig, invoker);
@@ -268,7 +265,6 @@ public abstract class AbstractJProlLibrary {
               foundZeroArityPredicates.add(sig.substring(0, sig.lastIndexOf('/')));
             }
           }
-        }
       }
     }
 

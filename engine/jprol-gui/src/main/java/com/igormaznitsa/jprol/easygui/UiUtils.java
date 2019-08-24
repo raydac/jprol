@@ -17,7 +17,6 @@
 package com.igormaznitsa.jprol.easygui;
 
 import com.igormaznitsa.jprol.annotations.Predicate;
-import com.igormaznitsa.jprol.annotations.PredicateSynonyms;
 import com.igormaznitsa.jprol.annotations.ProlOperator;
 import com.igormaznitsa.jprol.annotations.ProlOperators;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
@@ -84,11 +83,10 @@ public final class UiUtils {
       final Predicate predicate = method.getAnnotation(Predicate.class);
       if (predicate != null) {
         final boolean determined = predicate.determined();
-        final PredicateSynonyms predicateSynonims = method.getAnnotation(PredicateSynonyms.class);
         out.print(predicate.signature());
-        if (predicateSynonims != null) {
+        if (predicate.synonims().length > 0) {
           out.print(" {");
-          final String[] signatures = predicateSynonims.signatures();
+          final String[] signatures = predicate.synonims();
           for (int ls = 0; ls < signatures.length; ls++) {
             if (ls > 0) {
               out.print(", ");

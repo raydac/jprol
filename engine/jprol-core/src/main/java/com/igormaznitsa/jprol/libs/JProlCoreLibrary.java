@@ -17,7 +17,6 @@
 package com.igormaznitsa.jprol.libs;
 
 import com.igormaznitsa.jprol.annotations.Predicate;
-import com.igormaznitsa.jprol.annotations.PredicateSynonyms;
 import com.igormaznitsa.jprol.annotations.ProlOperator;
 import com.igormaznitsa.jprol.annotations.ProlOperators;
 import com.igormaznitsa.jprol.data.*;
@@ -1540,8 +1539,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return false;
   }
 
-  @Predicate(determined = true, signature = "dispose/1", args = {"+integer"}, reference = " These predicate terminate a Prolog engine and you can send the status of a cause.")
-  @PredicateSynonyms(signatures = {"dispose/0"})
+  @Predicate(determined = true, signature = "dispose/1", synonims = {"dispose/0"}, args = {"+integer"}, reference = " These predicate terminate a Prolog engine and you can send the status of a cause.")
   public static void predicateHALT(final ChoicePoint goal, final TermStruct predicate) {
     if (predicate.getArity() == 0) {
       goal.getContext().dispose();
@@ -1942,8 +1940,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return true;
   }
 
-  @Predicate(determined = true, signature = "assertz/1", args = {"+callable"}, reference = "Addition of a clause into the knowlwde base after all other clauses.")
-  @PredicateSynonyms(signatures = "assert/1")
+  @Predicate(determined = true, signature = "assertz/1", synonims = {"assert/1"}, args = {"+callable"}, reference = "Addition of a clause into the knowlwde base after all other clauses.")
   public static boolean predicateASSERTZ1(final ChoicePoint goal, final TermStruct predicate) {
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
     Term termToRemove = predicate.getElement(0).findNonVarOrSame();
@@ -1966,8 +1963,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return true;
   }
 
-  @Predicate(determined = true, signature = "retract/1", args = {"+callable"}, reference = "Retract the first clause which can be unified with argument. True if there is such clause in the knowledge base.")
-  @PredicateSynonyms(signatures = "retracta/1")
+  @Predicate(determined = true, signature = "retract/1", synonims = {"retracta/1"}, args = {"+callable"}, reference = "Retract the first clause which can be unified with argument. True if there is such clause in the knowledge base.")
   public static boolean predicateRETRACT1(final ChoicePoint goal, final TermStruct predicate) {
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
     Term atom = predicate.getElement(0).findNonVarOrSame();
