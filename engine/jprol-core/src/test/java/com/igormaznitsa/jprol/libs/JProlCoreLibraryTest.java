@@ -598,7 +598,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   @Test
   void testNumberCodes2() {
     //[number_codes(A,[0' ,0'3]), [[A <-- 3]]]. !!! SPACE IS NOT SUPPORTED IN JPROL
-    //checkVarValues("number_codes(A,[0' ,0'3]).","A","3");
+    checkVarValues("number_codes(A,[0' ,0'3]).", "A", "' 3'");
 
     //[number_codes(33.0,[0'3,0'.,0'3,0'E,0'+,0'0,0'1]), success].
     checkOnce("number_codes(33.0,[0'3,0'.,0'3,0'E,0'+,0'0,0'1]).", true);

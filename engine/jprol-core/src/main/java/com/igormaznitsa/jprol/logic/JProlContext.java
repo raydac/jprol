@@ -90,7 +90,10 @@ public final class JProlContext {
 
     @Override
     public int getFlags() {
-      return ParserContext.FLAG_ZERO_STRUCT | ParserContext.FLAG_ZERO_QUOTATION_CHARCODE | ParserContext.FLAG_BLOCK_COMMENTS;
+      return ParserContext.FLAG_ZERO_STRUCT
+          | ParserContext.FLAG_ZERO_QUOTATION_CHARCODE
+          | ParserContext.FLAG_ZERO_QUOTATION_ALLOWS_WHITESPACE_CHAR
+          | ParserContext.FLAG_BLOCK_COMMENTS;
     }
   };
 
