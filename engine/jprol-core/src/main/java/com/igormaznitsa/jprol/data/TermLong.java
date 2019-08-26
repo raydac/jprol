@@ -20,7 +20,7 @@ import static com.igormaznitsa.jprol.data.Terms.newLong;
 
 public final class TermLong extends NumericTerm {
 
-  private final long value;
+  private final Long value;
 
   TermLong(final String name) {
     super(name);
@@ -44,7 +44,7 @@ public final class TermLong extends NumericTerm {
 
   @Override
   public int hashCode() {
-    return (int) this.value ^ (int) (this.value >> 32);
+    return this.value.hashCode();
   }
 
   @Override

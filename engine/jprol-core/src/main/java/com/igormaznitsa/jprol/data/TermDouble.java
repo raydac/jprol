@@ -18,7 +18,7 @@ package com.igormaznitsa.jprol.data;
 
 public final class TermDouble extends NumericTerm {
 
-  private final double value;
+  private final Double value;
 
   TermDouble(final String name) {
     super(name);
@@ -45,7 +45,7 @@ public final class TermDouble extends NumericTerm {
 
   @Override
   public int hashCode() {
-    return (int) value;
+    return this.value.hashCode();
   }
 
   @Override
