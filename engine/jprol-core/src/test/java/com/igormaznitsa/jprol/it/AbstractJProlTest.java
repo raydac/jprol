@@ -124,9 +124,16 @@ public abstract class AbstractJProlTest {
   }
 
   protected void checkVarsAfterCall(String goal, String[][] varsAndValues) {
+    checkVarsAfterCall(null, goal, varsAndValues);
+  }
+
+  protected void checkVarsAfterCall(String consult, String goal, String[][] varsAndValues) {
     assertTrue((varsAndValues.length & 1) == 0);
 
     final JProlContext context = makeTestContext();
+    if (consult != null) {
+      context.consult(new StringReader(consult));
+    }
     final ChoicePoint thisGoal = new ChoicePoint(goal, context);
 
     for (int i = 0; i < varsAndValues.length / 2; i++) {

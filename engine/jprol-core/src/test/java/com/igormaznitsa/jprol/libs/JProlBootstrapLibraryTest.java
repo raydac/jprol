@@ -200,6 +200,13 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
     checkOnce("p1 :- \\+ q1. q1 :- fail. q1 :- true. p2:- \\+ q2. q2 :- !, fail. q2 :- true.", "p1.", false);
     checkOnce("p1 :- \\+ q1. q1 :- fail. q1 :- true. p2:- \\+ q2. q2 :- !, fail. q2 :- true.", "p2.", true);
 
+    consultAndCheckVar("some(1). some(2):-!. some(3).", "some(X).", "X", "1", "2");
+    checkVarsAfterCall("b(1). b(2). b(3). c(1). c(2). c(3). a(X,Y):-b(X),!,c(Y).", "a(X,Y).", new String[][] {
+        new String[] {"X", "Y"}, new String[] {"1", "1"},
+        new String[] {"X", "Y"}, new String[] {"1", "2"},
+        new String[] {"X", "Y"}, new String[] {"1", "3"},
+    });
+
     //[!, success].
     checkOnce("!.", true);
     //[(!,fail;true), failure].
