@@ -23,7 +23,7 @@ class JProlIoLibraryTest extends AbstractJProlTest {
 
   @Test
   @Disabled
-  void testSeek1() throws Exception {
+  void testSeek1() {
     //TODO seek/2
     //[(seek(my_file,3),at(my_file,X)),in(my_file),[[X <-- 3]]].
     //[(seek(my_file,eof),at(my_file,X)),in(my_file),[[X <-- eof]]].
@@ -32,7 +32,7 @@ class JProlIoLibraryTest extends AbstractJProlTest {
 
   @Test
   @Disabled
-  void testCurrentOutput1() throws Exception {
+  void testCurrentOutput1() {
     //TODO current_output/1
     //[exists(current_output/1), success].
   }
