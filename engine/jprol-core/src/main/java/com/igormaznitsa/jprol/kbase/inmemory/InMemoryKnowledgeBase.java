@@ -17,6 +17,7 @@
 package com.igormaznitsa.jprol.kbase.inmemory;
 
 import com.igormaznitsa.jprol.data.*;
+import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlKnowledgeBaseException;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
@@ -39,6 +40,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
+import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.utils.Utils.makeCloseableIterator;
 import static java.lang.Integer.parseInt;
@@ -153,7 +155,19 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     try {
       final String uid;
       if (clause.isClause()) {
-        Term leftPart = clause.getElement(0);
+        Term leftPart = clause.getElement(0).findNonVarOrSame();
+        final Term rightPart = clause.getArity() == 2 ? clause.getElement(1).findNonVarOrSame() : null;
+
+        if (rightPart != null) {
+          if (rightPart.getTermType() == VAR) {
+            if (!leftPart.hasVariableWithName(rightPart.getText())) {
+              throw new ProlInstantiationErrorException("Arguments are not sufficiently instantiated: " + rightPart, clause);
+            }
+          } else {
+            ProlAssertions.assertCallable(rightPart);
+          }
+        }
+
         if (leftPart.getTermType() == ATOM) {
           leftPart = newStruct(leftPart);
           clause.setElement(0, leftPart);
@@ -163,7 +177,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
         uid = clause.getSignature();
       }
 
-      final List<InMemoryItem> list = predicateTable.computeIfAbsent(uid, x -> new CopyOnWriteArrayList<>());
+      final List<InMemoryItem> list = this.predicateTable.computeIfAbsent(uid, x -> new CopyOnWriteArrayList<>());
       if (asFirst) {
         list.add(0, InMemoryItem.fromClause(context.getKnowledgeContext(), clause));
       } else {

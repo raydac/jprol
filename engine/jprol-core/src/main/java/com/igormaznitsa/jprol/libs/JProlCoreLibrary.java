@@ -25,13 +25,16 @@ import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
 import com.igormaznitsa.jprol.logic.ChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
+import com.igormaznitsa.jprol.logic.JProlTreeBuilder;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
 import com.igormaznitsa.jprol.logic.triggers.JProlTriggeringEventObserver;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.Utils;
+import com.igormaznitsa.prologparser.exceptions.PrologParserException;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
+import java.io.StringReader;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
@@ -1314,6 +1317,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
     }
 
+    final boolean result;
     if (right.getTermType() == LIST) {
       final StringBuilder builder = new StringBuilder();
 
@@ -1339,34 +1343,38 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
           return false;
         }
       }
+      builder.append('.');
 
-      Term number;
-
-      final String numberValue = builder.toString();
-
-      try {
-        if (numberValue.startsWith("0x")) {
-          number = newLong(Long.parseLong(numberValue.substring(2), 16));
-        } else {
-          number = newLong(numberValue);
-        }
-      } catch (NumberFormatException ex) {
-        try {
-          number = newDouble(numberValue);
-        } catch (NumberFormatException exx) {
-          throw new ProlCustomErrorException(newStruct(newAtom("syntax_error"), new Term[] {newAtom(numberValue)}), predicate);
+      final String text = builder.toString();
+      if (goal.isArgsValidate()) {
+        for (int i = 0; i < text.length(); i++) {
+          final char chr = text.charAt(i);
+          if (Character.isISOControl(chr) || Character.isWhitespace(chr)) {
+            throw new ProlCustomErrorException(Terms.newAtom("syntax_error"), right);
+          }
         }
       }
 
-      return left.unifyTo(number);
-    }
+      final Term term;
+      try {
+        term = new JProlTreeBuilder(goal.getContext()).readPhraseAndMakeTree(new StringReader(builder.append('.').toString())).term;
+      } catch (PrologParserException ex) {
+        throw new ProlCustomErrorException(Terms.newAtom("syntax_error"), right);
+      }
 
-    if (left.getTermType() == ATOM) {
+      if (term instanceof NumericTerm) {
+        result = left.unifyTo(term);
+      } else {
+        throw new ProlTypeErrorException("number", "Expected numeric term: " + term, term);
+      }
+    } else if (left.getTermType() == ATOM) {
       left = left.toCharList();
-      return left.unifyTo(right);
+      result = left.unifyTo(right);
+    } else {
+      result = false;
     }
 
-    return false;
+    return result;
   }
 
   @JProlPredicate(signature = "for/3", args = {"?term,+integer,+integer"}, reference = "Allows to make integer counter from a variable, (TermVar, Low, High).")

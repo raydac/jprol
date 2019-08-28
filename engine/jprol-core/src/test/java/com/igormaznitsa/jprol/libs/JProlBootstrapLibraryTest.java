@@ -216,6 +216,12 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
   }
 
   @Test
+  void testCutLocal0() {
+    consultAndCheckVar("some(1). some(2):-!!. some(3).", "some(X).", "X", "1", "2", "3");
+    consultAndCheckVar("a(a). a(b). some(1). some(X):-a(X),!!. some(3).", "some(X).", "X", "1", "'a'", "3");
+  }
+
+  @Test
   void testNot1() {
     checkOnce("not(2=4).", true);
     checkOnce("not(2=2).", false);

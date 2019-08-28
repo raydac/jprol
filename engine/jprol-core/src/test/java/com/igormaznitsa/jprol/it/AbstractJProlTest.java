@@ -111,11 +111,10 @@ public abstract class AbstractJProlTest {
       assertNotNull(thisGoal.next());
       if (res instanceof Number) {
         if (res instanceof Double) {
-          assertEquals(0, Double.compare(thisGoal.getVarAsNumber(varName).doubleValue(), (Double) res));
+          assertEquals((double) res, thisGoal.getVarAsNumber(varName).doubleValue());
         } else {
-          assertEquals(res, thisGoal.getVarAsNumber(varName));
+          assertEquals(((Number) res).longValue(), thisGoal.getVarAsNumber(varName).longValue());
         }
-
       } else {
         assertEquals(res.toString(), thisGoal.getVarAsText(varName));
       }
