@@ -256,15 +256,14 @@ public final class JProlContext {
     }
   }
 
-  public void submitAsync(final Term goal) {
+  public void callAsync(final Term goal) {
     this.assertNotDisposed();
 
     this.currentAsyncTaskNumber.incrementAndGet();
     try {
-      getContextExecutorService().submit(() -> {
+      this.getContextExecutorService().submit(() -> {
         try {
-          final ChoicePoint asyncGoal = new ChoicePoint(requireNonNull(goal), JProlContext.this);
-
+          final ChoicePoint asyncGoal = new ChoicePoint(requireNonNull(goal), this.makeCopy());
           while (!Thread.currentThread().isInterrupted()) {
             final Term result = asyncGoal.next();
             if (result == null) {
