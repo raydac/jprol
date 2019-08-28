@@ -25,8 +25,8 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
     super("jprol-thread-lib");
   }
 
-  private static List<Future<Term>> startListAsFork(final ChoicePoint goal, final TermStruct predicate, final TermList termlist) {
-    List<AuxForkTask> goalList = goal.getPayload();
+  private static List<Future<Term>> startListAsFork(final ChoicePoint cpoint, final TermStruct predicate, final TermList termlist) {
+    List<AuxForkTask> goalList = cpoint.getPayload();
 
     if (goalList == null) {
       Set<Integer> varFlagTable = null;
@@ -34,7 +34,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
       // the first call
       goalList = new ArrayList<>();
       TermList tlist = termlist;
-      final JProlContext context = goal.getContext();
+      final JProlContext context = cpoint.getContext();
       while (!tlist.isNullList()) {
         final Term term = tlist.getHead();
 
@@ -69,12 +69,12 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
           break;
         }
       }
-      goal.setPayload(goalList);
+      cpoint.setPayload(goalList);
     }
 
     List<Future<Term>> resultList = new ArrayList<>();
 
-    final ExecutorService executor = goal.getContext().getContextExecutorService();
+    final ExecutorService executor = cpoint.getContext().getContextExecutorService();
 
     for (final AuxForkTask task : goalList) {
       resultList.add(executor.submit(task));
@@ -84,11 +84,10 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(signature = "fork/1", args = {"+list"}, reference = "Allows to prove a few goals (non linked between each other) in separated threads simultaneously, it is blocking the calling thread until all threads (started by the predicate) are completed. The fork implements AND operation (i.e. all goals have to be true else the predicate will fail).You must not have the same noninstantiated variables in terms that will be executed in different threads. The fork_error/1 will be thrown if any thread will throw an exception.")
-  public static boolean predicateFORK1(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
+  public static boolean predicateFORK1(final ChoicePoint cpoint, final TermStruct predicate) throws InterruptedException {
     TermList termlist = predicate.getElement(0).findNonVarOrSame();
 
-    // invoke all taska and wait for them all
-    final List<Future<Term>> taskList = startListAsFork(goal, predicate, termlist);
+    final List<Future<Term>> taskList = startListAsFork(cpoint, predicate, termlist);
 
     boolean result = true;
     int taskindex = 0;
@@ -127,23 +126,22 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
     }
 
     if (forkExceptions != null) {
-
       throw new ProlForkExecutionException(predicate, forkExceptions.toArray(new Throwable[0]));
     }
 
     if (!result) {
-      goal.cutVariants();
+      cpoint.cutVariants();
     }
 
     return result;
   }
 
   @JProlPredicate(signature = "ifork/1", args = {"+list"}, reference = "It works like fork/1 but it will interrupt all non-completed threads of the fork if any of completed fails.")
-  public static boolean predicateIFORK1(final ChoicePoint goal, final TermStruct predicate) throws InterruptedException {
+  public static boolean predicateIFORK1(final ChoicePoint cpoint, final TermStruct predicate) throws InterruptedException {
     final TermList termlist = predicate.getElement(0).findNonVarOrSame();
 
     // invoke all taska and wait for them all
-    final List<Future<Term>> taskList = startListAsFork(goal, predicate, termlist);
+    final List<Future<Term>> taskList = startListAsFork(cpoint, predicate, termlist);
 
     boolean result = true;
 
@@ -221,7 +219,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
     }
 
     if (!result) {
-      goal.cutVariants();
+      cpoint.cutVariants();
     }
 
     return result;
@@ -229,17 +227,17 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
 
 
   @JProlPredicate(determined = true, signature = "lock/1", args = {"+atom"}, reference = "Block current thread until it will be possible to lock an atom, don't forget unlock.")
-  public static void predicateLOCK1(final ChoicePoint goal, final TermStruct predicate) {
+  public static void predicateLOCK1(final ChoicePoint cpoint, final TermStruct predicate) {
     final String atomName = predicate.getElement(0).getText();
-    goal.getContext().lockLockerForName(atomName);
+    cpoint.getContext().lockLockerForName(atomName);
   }
 
   @JProlPredicate(determined = true, signature = "unlock/1", args = {"+atom"}, reference = "Unlock a locker for its name and allow to continue work of waiting threads. If any other thread is the owner for the locker then permission_error/3 will be thrown.")
-  public static void predicateUNLOCK1(final ChoicePoint goal, final TermStruct predicate) {
+  public static void predicateUNLOCK1(final ChoicePoint cpoint, final TermStruct predicate) {
     final String atomName = predicate.getElement(0).getText();
 
     try {
-      goal.getContext().unlockLockerForName(atomName);
+      cpoint.getContext().unlockLockerForName(atomName);
     } catch (IllegalArgumentException ex) {
       throw new ProlExistenceErrorException("locker", "unlock", predicate, ex);
     } catch (IllegalMonitorStateException ex) {
@@ -254,9 +252,9 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "async/1", args = {"+callable"}, reference = "Allows to next a goal asynchronously, it will be started as a daemon so it will be stopped when the main goal will be solved or failed. If there will be uncatched exception it will be just out at the log.")
-  public static void predicateASYNC1(final ChoicePoint goal, final TermStruct predicate) {
+  public static void predicateASYNC1(final ChoicePoint cpoint, final TermStruct predicate) {
     final Term goalToSolve = predicate.getElement(0).findNonVarOrSame();
-    final JProlContext context = goal.getContext();
+    final JProlContext context = cpoint.getContext();
 
     // we have to check the goal because it must not have any noninstantiated variable!!!!
     final Map<String, TermVar> vars = goalToSolve.allNamedVarsAsMap();
@@ -270,10 +268,10 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "waitasync/0", reference = "Blocking waiting until all daemon threads (started with either fork/1 or async/1) of the context will be done.")
-  public static void predicateWAITASYNC0(final ChoicePoint goal, final TermStruct predicate) {
-    final ExecutorService service = goal.getContext().getContextExecutorService();
+  public static void predicateWAITASYNC0(final ChoicePoint cpoint, final TermStruct predicate) {
+    final ExecutorService service = cpoint.getContext().getContextExecutorService();
 
-    goal.getContext().waitForAllAsyncDone();
+    cpoint.getContext().waitForAllAsyncDone();
 
     if (Thread.currentThread().isInterrupted()) {
       service.shutdown();
@@ -294,14 +292,6 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
       } else {
         this.goal = new ChoicePoint(this.term, context, null);
       }
-    }
-
-    ChoicePoint getGoal() {
-      return this.goal;
-    }
-
-    Term getTerm() {
-      return this.term;
     }
 
     @Override
