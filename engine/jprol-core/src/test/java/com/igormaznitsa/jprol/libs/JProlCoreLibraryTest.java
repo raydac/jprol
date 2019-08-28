@@ -14,9 +14,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testAsserta1() {
-    //todo check why red
     //[asserta((foo :- 4)), type_error(callable, 4)].
-    //assertProlException("asserta((foo :- 4)).", ProlTypeErrorException.class);
+    assertProlException("asserta((foo :- 4)).", ProlTypeErrorException.class);
 
     checkVarValues("asserta(some1(a)), asserta(some1(b)), some1(X).", "X", "'b'", "'a'");
 
@@ -587,9 +586,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     //[asserta(4), type_error(callable, 4)].
     assertProlException("asserta(4).", ProlTypeErrorException.class);
 
-    //todo check if reproducible
     //[asserta((foo :- 4)), type_error(callable, 4)].
-//    assertProlException("asserta((foo:-4)).", ProlTypeErrorException.class); //!!jprol allows
+    assertProlException("asserta((foo:-4)).", ProlTypeErrorException.class);
 
     //[asserta((atom(_) :- true)), permission_error(modify,static_procedure,atom/1)].
     assertProlException("asserta((atom(_):-true)).", ProlPermissionErrorException.class);
@@ -880,7 +878,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     assertProlException("call(1).", ProlTypeErrorException.class);
 
     //[call((fail, 1)), type_error(callable,(fail,1))].
-    //checkException("call((fail,1))."); // it doesn't throw error in jprol because fail,1 is valid callable construction and jprol doesn't make pre-check of arguments.
+    //assertProlException("call((fail,1)).", ProlTypeErrorException.class); // it doesn't throw error in jprol because fail,1 is valid callable construction and jprol doesn't make pre-check of arguments.
 
     assertProlException("call([fail]).", ProlTypeErrorException.class);
   }
@@ -1040,6 +1038,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testDispose1() {
+    //todo improve test
     //[dispose, impl_defined].
 //    checkException("dispose.");
     //[dispose(1), impl_defined].
@@ -1516,6 +1515,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testNumberChars2() {
+    checkVarValues("number_chars(A,['0','\\'','A']).", "A", 65);
+
     //[number_chars(33,['3','3']), success].
     checkOnce("number_chars(33,['3','3']).", true);
 
@@ -1537,10 +1538,14 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     assertProlException("number_chars(A,['3',' ']).", ProlCustomErrorException.class);
 
     //[number_chars(A,['0','''','A']), [[A <-- 65]]].
+    checkVarValues("number_chars(A,['0','\\'','A']).", "A", 65);
 
     //[number_chars(a,L), type_error(number, a)].
+    assertProlException("number_chars(a,L).", ProlTypeErrorException.class);
     //[number_chars(A,4), type_error(list, 4)].
+    assertProlException("number_chars(A,4).", ProlTypeErrorException.class);
     //[number_chars(A,['4',2]), type_error(character, 2)].
+    assertProlException("number_chars(A,['4',2]).", ProlTypeErrorException.class);
 
     //[number_chars(A,['4','.','2']), [[A <-- 4.2]]].
     checkVarValues("number_chars(A,['4','.','2']).", "A", 4.2d);
@@ -1552,8 +1557,6 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     //[number_chars(A,L), instantiation_error].
     assertProlException("number_chars(A,L).", ProlInstantiationErrorException.class);
 
-    //[number_chars(A,['0','''','A']), [[A <-- 65]]].
-//    checkOnceVar("number_chars(A,['0','\\'','A']).", "A", 65);
   }
 
 }
