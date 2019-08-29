@@ -23,7 +23,10 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
 
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
 
@@ -34,6 +37,19 @@ public final class Utils {
   public static final TermOperator SIGNATURE_OPERATOR = new TermOperator(400, OpAssoc.YFX, "/");
 
   private Utils() {
+  }
+
+  public static Throwable[] extractErrors(final List<CompletableFuture<Term>> futures) {
+    return futures.stream().filter(CompletableFuture::isCompletedExceptionally).map(x -> {
+      try {
+        x.join();
+      } catch (Throwable e) {
+        if (!(e instanceof CancellationException)) {
+          return e;
+        }
+      }
+      return null;
+    }).filter(Objects::nonNull).toArray(Throwable[]::new);
   }
 
   public static <T> CloseableIterator<T> makeCloseableIterator(final Iterator<T> iterator, final Runnable onClose) {

@@ -237,7 +237,7 @@ public final class JProlContext {
   }
 
   public void waitAllAsyncTasks() {
-    while (this.asyncTaskCounter.get() > 0) {
+    while (this.asyncTaskCounter.get() > 0 && !Thread.currentThread().isInterrupted()) {
       synchronized (this.asyncTaskCounter) {
         try {
           this.asyncTaskCounter.wait();

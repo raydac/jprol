@@ -17,6 +17,8 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import static com.igormaznitsa.jprol.utils.Utils.extractErrors;
+
 public class JProlThreadLibrary extends AbstractJProlLibrary {
   public JProlThreadLibrary() {
     super("jprol-thread-lib");
@@ -38,23 +40,13 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
     }
     TermList taskTerms = (TermList) arg;
 
-    final CompletableFuture<Term>[] startedTasks = (CompletableFuture<Term>[]) asyncProveOnce(cpoint, taskTerms).toArray(new CompletableFuture[0]);
-
-    try {
-      CompletableFuture.allOf(startedTasks).join();
-    } catch (Throwable ex) {
-      throw new ProlForkExecutionException(predicate, Arrays.stream(startedTasks)
-          .filter(x -> x.isCompletedExceptionally())
-          .map(x -> {
-            try {
-              x.get();
-              return null;
-            } catch (Throwable e) {
-              return e;
-            }
-          }).filter(Objects::nonNull).toArray(Throwable[]::new));
+    final List<CompletableFuture<Term>> startedTasks = asyncProveOnce(cpoint, taskTerms);
+    CompletableFuture.allOf(startedTasks.toArray(new CompletableFuture[0])).join();
+    final Throwable[] errors = extractErrors(startedTasks);
+    if (errors.length != 0) {
+      throw new ProlForkExecutionException("Detected exception during fork/1", predicate, errors);
     }
-    return Arrays.stream(startedTasks).map(CompletableFuture::join).allMatch(Objects::nonNull);
+    return startedTasks.stream().map(CompletableFuture::join).allMatch(Objects::nonNull);
   }
 
   @JProlPredicate(determined = true, signature = "ifork/1", args = {"+list"}, reference = "It works like fork/1 but it will interrupt all non-completed threads of the fork if any of completed fails.")
@@ -65,26 +57,17 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
     }
     TermList taskTerms = (TermList) arg;
 
-    final CompletableFuture<Term>[] startedTasks = (CompletableFuture<Term>[]) asyncProveOnce(cpoint, taskTerms).toArray(new CompletableFuture[0]);
+    final List<CompletableFuture<Term>> startedTasks = asyncProveOnce(cpoint, taskTerms);
 
-    try {
-      CompletableFuture.anyOf(startedTasks).join();
-    } catch (Throwable ex) {
-      throw new ProlForkExecutionException(predicate, Arrays.stream(startedTasks)
-          .filter(x -> x.isCompletedExceptionally())
-          .map(x -> {
-            try {
-              x.get();
-              return null;
-            } catch (Throwable e) {
-              return e;
-            }
-          }).filter(Objects::nonNull).toArray(Throwable[]::new));
+    CompletableFuture.anyOf(startedTasks.toArray(new CompletableFuture[0])).join();
+    startedTasks.stream().filter(x -> !x.isDone()).forEach(x -> x.cancel(true));
+    final Throwable[] errors = extractErrors(startedTasks);
+    if (errors.length != 0) {
+      throw new ProlForkExecutionException("Detected exception during ifork/1", predicate, errors);
     }
-    Arrays.stream(startedTasks).filter(x -> !x.isDone()).forEach(x -> x.cancel(true));
-    return Arrays.stream(startedTasks)
+    return startedTasks.stream()
         .filter(x -> !x.isCancelled())
-        .map(x -> x.join())
+        .map(CompletableFuture::join)
         .allMatch(Objects::nonNull);
   }
 
