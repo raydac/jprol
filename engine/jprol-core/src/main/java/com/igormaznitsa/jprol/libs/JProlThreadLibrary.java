@@ -22,11 +22,11 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
     super("jprol-thread-lib");
   }
 
-  private static List<CompletableFuture<Term>> callTermsAsync(final ChoicePoint cpoint, final TermList list) {
+  private static List<CompletableFuture<Term>> asyncProveOnce(final ChoicePoint cpoint, final TermList list) {
     final Term[] terms = list.toArray();
     Arrays.stream(terms).forEach(x -> ProlAssertions.assertCallable(x.findNonVarOrSame()));
     return Arrays.stream(terms)
-        .map(x -> CompletableFuture.supplyAsync(() -> cpoint.makeForGoal(x.makeClone()).next(), cpoint.getContext().getContextExecutorService()))
+        .map(x -> cpoint.getContext().proveOnceAsync(x.makeClone()))
         .collect(Collectors.toList());
   }
 
@@ -38,7 +38,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
     }
     TermList taskTerms = (TermList) arg;
 
-    final CompletableFuture<Term>[] startedTasks = (CompletableFuture<Term>[]) callTermsAsync(cpoint, taskTerms).toArray(new CompletableFuture[0]);
+    final CompletableFuture<Term>[] startedTasks = (CompletableFuture<Term>[]) asyncProveOnce(cpoint, taskTerms).toArray(new CompletableFuture[0]);
 
     try {
       CompletableFuture.allOf(startedTasks).join();
@@ -65,7 +65,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
     }
     TermList taskTerms = (TermList) arg;
 
-    final CompletableFuture<Term>[] startedTasks = (CompletableFuture<Term>[]) callTermsAsync(cpoint, taskTerms).toArray(new CompletableFuture[0]);
+    final CompletableFuture<Term>[] startedTasks = (CompletableFuture<Term>[]) asyncProveOnce(cpoint, taskTerms).toArray(new CompletableFuture[0]);
 
     try {
       CompletableFuture.anyOf(startedTasks).join();
@@ -99,7 +99,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
       throw new ProlInstantiationErrorException("Callable term must be bounded", predicate);
     }
 
-    cpoint.getContext().callAsync(term);
+    cpoint.getContext().proveAllAsync(term);
   }
 
   @JProlPredicate(determined = true, signature = "unlock/1", args = {"+atom"}, reference = "Unlock a locker for its name and allow to continue work of waiting threads. If any other thread is the owner for the locker then permission_error/3 will be thrown.")
@@ -138,7 +138,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = "waitasync/0", reference = "Blocking waiting until all daemon threads (started with either fork/1 or async/1) of the context will be done.")
   public static void predicateWAITASYNC0(final ChoicePoint cpoint, final TermStruct predicate) {
-    cpoint.getContext().waitForAllAsyncDone();
+    cpoint.getContext().waitAllAsyncTasks();
     if (Thread.currentThread().isInterrupted()) {
       cpoint.getContext().getContextExecutorService().shutdown();
       throw new ProlForkExecutionException("Execution interrupted", predicate, null);

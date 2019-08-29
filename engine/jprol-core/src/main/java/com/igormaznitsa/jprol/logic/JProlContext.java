@@ -65,14 +65,14 @@ public final class JProlContext {
 
   private final Map<String, List<JProlTrigger>> triggersOnAssert = new ConcurrentHashMap<>();
   private final Map<String, List<JProlTrigger>> triggersOnRetract = new ConcurrentHashMap<>();
-  private final Map<String, ReentrantLock> namedLockerObjects = new ConcurrentHashMap<>();
+  private final Map<String, ReentrantLock> namedLockers = new ConcurrentHashMap<>();
   private final List<AbstractJProlLibrary> libraries = new CopyOnWriteArrayList<>();
   private final AtomicBoolean disposed = new AtomicBoolean(false);
   private final KnowledgeBase knowledgeBase;
   private final ExecutorService executorService;
   private final List<JProlContextListener> contextListeners = new CopyOnWriteArrayList<>();
   private final Map<JProlSystemFlag, Term> systemFlags = new ConcurrentHashMap<>();
-  private final AtomicInteger currentAsyncTaskNumber = new AtomicInteger();
+  private final AtomicInteger asyncTaskCounter = new AtomicInteger();
   private final KnowledgeContextFactory knowledgeContextFactory;
   private final ThreadLocal<KnowledgeContext> knowledgeContext;
 
@@ -233,14 +233,14 @@ public final class JProlContext {
   }
 
   public int getCurrentAsyncTaskNumber() {
-    return this.currentAsyncTaskNumber.get();
+    return this.asyncTaskCounter.get();
   }
 
-  public void waitForAllAsyncDone() {
-    while (this.currentAsyncTaskNumber.get() > 0) {
-      synchronized (this.currentAsyncTaskNumber) {
+  public void waitAllAsyncTasks() {
+    while (this.asyncTaskCounter.get() > 0) {
+      synchronized (this.asyncTaskCounter) {
         try {
-          this.currentAsyncTaskNumber.wait();
+          this.asyncTaskCounter.wait();
         } catch (InterruptedException ex) {
           Thread.currentThread().interrupt();
           return;
@@ -249,38 +249,47 @@ public final class JProlContext {
     }
   }
 
-  private void onAsyncGoalCompleted(final Term goal) {
-    this.currentAsyncTaskNumber.decrementAndGet();
-    synchronized (this.currentAsyncTaskNumber) {
-      this.currentAsyncTaskNumber.notifyAll();
+  private void onAsyncTaskCompleted(final Term goal) {
+    this.asyncTaskCounter.decrementAndGet();
+    synchronized (this.asyncTaskCounter) {
+      this.asyncTaskCounter.notifyAll();
     }
   }
 
-  public void callAsync(final Term goal) {
+  public CompletableFuture<Void> proveAllAsync(final Term goal) {
     this.assertNotDisposed();
-
-    this.currentAsyncTaskNumber.incrementAndGet();
-    try {
-      this.getContextExecutorService().submit(() -> {
-        try {
-          final ChoicePoint asyncGoal = new ChoicePoint(requireNonNull(goal), this.makeCopy());
-          while (!Thread.currentThread().isInterrupted()) {
-            final Term result = asyncGoal.next();
-            if (result == null) {
-              break;
-            }
-          }
-        } finally {
-          JProlContext.this.onAsyncGoalCompleted(goal);
-        }
-      });
-    } catch (RejectedExecutionException ex) {
-      this.currentAsyncTaskNumber.decrementAndGet();
-      synchronized (this.currentAsyncTaskNumber) {
-        this.currentAsyncTaskNumber.notifyAll();
+    this.asyncTaskCounter.incrementAndGet();
+    return CompletableFuture.runAsync(() -> {
+      final ChoicePoint asyncGoal = new ChoicePoint(requireNonNull(goal), this.makeCopy());
+      while (asyncGoal.next() != null && !Thread.currentThread().isInterrupted()) {
+        ;
       }
-      throw new ProlForkExecutionException("Can't submit term for async resolving", goal, new Throwable[] {ex});
-    }
+    }, this.executorService).handle((x, e) -> {
+          onAsyncTaskCompleted(goal);
+      if (e != null) {
+        throw new ProlForkExecutionException("Error during async/1", goal, new Throwable[] {e});
+      }
+          return x;
+        }
+    );
+  }
+
+  public CompletableFuture<Term> proveOnceAsync(final Term goal) {
+    this.assertNotDisposed();
+    this.asyncTaskCounter.incrementAndGet();
+    return CompletableFuture.supplyAsync(() -> {
+      final ChoicePoint asyncGoal = new ChoicePoint(requireNonNull(goal), this.makeCopy());
+      final Term result = asyncGoal.next();
+      asyncGoal.cutVariants();
+      return result;
+    }, this.executorService).handle((x, e) -> {
+          onAsyncTaskCompleted(goal);
+      if (e != null) {
+        throw new ProlForkExecutionException("Error during once async/1", goal, new Throwable[] {e});
+      }
+          return x;
+        }
+    );
   }
 
   public ExecutorService getContextExecutorService() {
@@ -289,15 +298,17 @@ public final class JProlContext {
 
   private Optional<ReentrantLock> findLockerForId(final String lockerId, final boolean createIfAbsent) {
     if (createIfAbsent) {
-      return Optional.of(this.namedLockerObjects.computeIfAbsent(lockerId, s -> new ReentrantLock()));
+      return Optional.of(this.namedLockers.computeIfAbsent(lockerId, s -> new ReentrantLock()));
     } else {
-      return Optional.ofNullable(this.namedLockerObjects.get(lockerId));
+      return Optional.ofNullable(this.namedLockers.get(lockerId));
     }
   }
 
   public void lockLockerForName(final String lockerId) {
     try {
-      this.findLockerForId(lockerId, true).orElseThrow(() -> new Error("Locker must be presented: " + lockerId)).lockInterruptibly();
+      this.findLockerForId(lockerId, true)
+          .orElseThrow(() -> new IllegalArgumentException("Named locker is not presented: " + lockerId))
+          .lockInterruptibly();
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
       throw new RuntimeException("Locker wait has been interrupted: " + lockerId, ex);
@@ -305,7 +316,7 @@ public final class JProlContext {
   }
 
   public boolean trylockLockerForName(final String lockerId) {
-    return this.findLockerForId(lockerId, true).orElseThrow(() -> new Error("Locker must be presented: " + lockerId)).tryLock();
+    return this.findLockerForId(lockerId, true).orElseThrow(() -> new IllegalArgumentException("Named locker is not presented: " + lockerId)).tryLock();
   }
 
   public void unlockLockerForName(final String lockerId) {
