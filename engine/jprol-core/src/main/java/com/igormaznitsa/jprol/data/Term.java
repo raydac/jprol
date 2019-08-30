@@ -39,9 +39,6 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
-import static com.igormaznitsa.jprol.data.Terms.newList;
-import static com.igormaznitsa.jprol.data.Terms.newLong;
-import static com.igormaznitsa.jprol.utils.Utils.createOrAppendToList;
 import static com.igormaznitsa.jprol.utils.Utils.escapeSrc;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
@@ -208,33 +205,6 @@ public class Term {
     }
   }
 
-  public TermList toCharList() {
-    final String text = getText();
-    final int len = text.length();
-    if (len == 0) {
-      return Terms.NULL_LIST;
-    }
-
-    final StringBuilder buff = new StringBuilder(1);
-
-    TermList resultList = null;
-    TermList curList = null;
-
-    for (int li = 0; li < len; li++) {
-      buff.append(text.charAt(li));
-      final Term newAtom = new Term(buff.toString());
-      buff.setLength(0);
-      if (li == 0) {
-        resultList = newList(newAtom);
-        curList = resultList;
-      } else {
-        curList = createOrAppendToList(curList, newAtom);
-      }
-    }
-
-    return resultList;
-  }
-
   public int compareTermTo(Term atom) {
     if (this == atom) {
       return 0;
@@ -257,21 +227,6 @@ public class Term {
       }
       default:
         return -1;
-    }
-  }
-
-  public TermList toCharCodeList() {
-    final String text = this.getText();
-
-    if (text == null || text.isEmpty()) {
-      return Terms.NULL_LIST;
-    } else {
-      final TermList result = createOrAppendToList(null, newLong(text.charAt(0)));
-      TermList current = result;
-      for (int i = 1; i < text.length(); i++) {
-        current = createOrAppendToList(current, newLong(text.charAt(i)));
-      }
-      return result;
     }
   }
 

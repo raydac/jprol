@@ -29,6 +29,8 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
+import static com.igormaznitsa.jprol.data.Terms.newList;
+import static com.igormaznitsa.jprol.data.Terms.newLong;
 
 public final class Utils {
 
@@ -38,6 +40,50 @@ public final class Utils {
 
   private Utils() {
   }
+
+  public static TermList toCharCodeList(final Term term) {
+    final String text = term.getText();
+
+    if (text == null || text.isEmpty()) {
+      return Terms.NULL_LIST;
+    } else {
+      final TermList result = createOrAppendToList(null, newLong(text.charAt(0)));
+      TermList current = result;
+      for (int i = 1; i < text.length(); i++) {
+        current = createOrAppendToList(current, newLong(text.charAt(i)));
+      }
+      return result;
+    }
+  }
+
+  public static TermList toCharList(final Term term) {
+    final String text = term.getText();
+    final int len = text.length();
+    if (len == 0) {
+      return Terms.NULL_LIST;
+    }
+
+    final StringBuilder buff = new StringBuilder(1);
+
+    TermList resultList = null;
+    TermList curList = null;
+
+    for (int li = 0; li < len; li++) {
+      buff.append(text.charAt(li));
+      final Term newAtom = Terms.newAtom(buff.toString());
+      buff.setLength(0);
+      if (li == 0) {
+        resultList = newList(newAtom);
+        curList = resultList;
+      } else {
+        curList = createOrAppendToList(curList, newAtom);
+      }
+    }
+
+    return resultList;
+  }
+
+
 
   public static Throwable[] extractErrors(final List<CompletableFuture<Term>> futures) {
     return futures.stream().filter(CompletableFuture::isCompletedExceptionally).map(x -> {

@@ -1022,13 +1022,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
     switch (left.getTermType()) {
       case ATOM: {
-        left = left.toCharList();
-        return left.unifyTo(right);
+        return Utils.toCharList(left).unifyTo(right);
       }
       case LIST: {
         if (((TermList) left).isNullList()) {
-          left = newAtom("[]").toCharList();
-          return left.unifyTo(right);
+          return Utils.toCharList(Terms.newAtom("[]")).unifyTo(right);
         } else {
           throw new ProlTypeErrorException("atom", predicate);
         }
@@ -1104,8 +1102,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
 
     if (left.getTermType() == ATOM && right.getTermType() == VAR) {
-      left = left.toCharCodeList();
-      return left.unifyTo(right);
+      return Utils.toCharCodeList(left).unifyTo(right);
     }
 
     if (right.getTermType() == LIST) {
@@ -1368,8 +1365,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         throw new ProlTypeErrorException("number", "Expected numeric term: " + term, term);
       }
     } else if (left.getTermType() == ATOM) {
-      left = left.toCharList();
-      result = left.unifyTo(right);
+      result = Utils.toCharList(left).unifyTo(right);
     } else {
       result = false;
     }
@@ -1500,13 +1496,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
     switch (left.getTermType()) {
       case ATOM: {
-        left = left.toCharCodeList();
-        return left.unifyTo(right);
+        return Utils.toCharCodeList(left).unifyTo(right);
       }
       case LIST: {
         if (((TermList) left).isNullList()) {
-          left = newAtom("[]").toCharCodeList();
-          return left.unifyTo(right);
+          return Utils.toCharCodeList(newAtom("[]")).unifyTo(right);
         } else {
           throw new ProlTypeErrorException("atom", predicate);
         }
@@ -1514,9 +1508,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
 
     if (left.getTermType() == ATOM) {
-      left = left.toCharCodeList();
-
-      return left.unifyTo(right);
+      return Utils.toCharCodeList(left).unifyTo(right);
     }
 
     if (right.getTermType() == LIST) {
