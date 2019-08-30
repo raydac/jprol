@@ -24,7 +24,7 @@ import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
-import com.igormaznitsa.jprol.logic.ChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
@@ -100,7 +100,7 @@ public abstract class AbstractJProlLibrary {
     return result;
   }
 
-  protected static NumericTerm calculatEvaluable(final ChoicePoint goal, final Term term) {
+  protected static NumericTerm calculatEvaluable(final JProlChoicePoint goal, final Term term) {
     try {
       if (term.getTermType() == VAR) {
         throw new ProlInstantiationErrorException("Non-instantiated var: " + term, term);

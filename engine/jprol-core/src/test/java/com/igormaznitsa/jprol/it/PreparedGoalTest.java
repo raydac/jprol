@@ -1,7 +1,7 @@
 package com.igormaznitsa.jprol.it;
 
 import com.igormaznitsa.jprol.data.Term;
-import com.igormaznitsa.jprol.logic.ChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PreparedGoal;
 import org.junit.jupiter.api.Test;
@@ -22,8 +22,8 @@ class PreparedGoalTest extends AbstractJProlTest {
           for (long d = 1; d < 5; d++) {
             final long precalculatedResult = a + b / c * d;
 
-            final ChoicePoint workGoal = goal.makeChoicePoint(context, a, b, c, d);
-            assertNotNull(workGoal.next());
+            final JProlChoicePoint workGoal = goal.makeChoicePoint(context, a, b, c, d);
+            assertNotNull(workGoal.prove());
 
             assertEquals(precalculatedResult, workGoal.getVarAsNumber("Result").longValue());
           }

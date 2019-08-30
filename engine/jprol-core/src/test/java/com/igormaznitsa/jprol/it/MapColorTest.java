@@ -1,7 +1,7 @@
 package com.igormaznitsa.jprol.it;
 
 import com.igormaznitsa.jprol.data.Term;
-import com.igormaznitsa.jprol.logic.ChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import org.junit.jupiter.api.Test;
 
@@ -36,11 +36,11 @@ class MapColorTest extends AbstractJProlTest {
         + "member(X, [_|T]):-\n"
         + "        member(X, T).");
 
-    final ChoicePoint goal = new ChoicePoint("colour_countries(X).", context);
+    final JProlChoicePoint goal = new JProlChoicePoint("colour_countries(X).", context);
     int counter = 0;
     Term result0 = null;
     Term result7775 = null;
-    while (goal.next() != null) {
+    while (goal.prove() != null) {
       if (counter == 0) {
         result0 = goal.getVarForName("X").getValue().makeClone();
       } else if (counter == 7775) {

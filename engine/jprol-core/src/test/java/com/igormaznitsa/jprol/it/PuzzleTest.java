@@ -1,6 +1,6 @@
 package com.igormaznitsa.jprol.it;
 
-import com.igormaznitsa.jprol.logic.ChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import org.junit.jupiter.api.Test;
 
@@ -19,25 +19,25 @@ class PuzzleTest extends AbstractJProlTest {
         + "del_var(A,[B|L],[B|L1]):-del_var(A,L,L1)."
         + "puzzle1([D,O,N,A,L,D],[G,E,R,A,L,D],[R,O,B,E,R,T])."
         + "puzzle2([0,S,E,N,D],[0,M,O,R,E],[M,O,N,E,Y]).");
-    final ChoicePoint goal = new ChoicePoint("puzzle1(X,Y,Z),sum(X,Y,Z).", context);
+    final JProlChoicePoint goal = new JProlChoicePoint("puzzle1(X,Y,Z),sum(X,Y,Z).", context);
 
     final String[] puzzle1solXYZ = new String[] {"[5,2,6,4,8,5]", "[1,9,7,4,8,5]", "[7,2,3,9,7,0]"};
 
     final String[] puzzle2solZ = new String[] {"[0,8,3,5,6]", "[0,6,3,7,8]", "[0,4,2,8,9]", "[0,7,5,8,9]", "[0,9,3,4,6]", "[0,9,4,5,7]", "[0,4,1,7,9]", "[0,6,3,7,9]", "[0,8,4,6,9]", "[0,7,5,8,1]", "[0,9,2,3,7]", "[0,7,2,5,9]", "[0,8,3,5,9]", "[0,7,1,4,9]", "[0,8,1,3,9]", "[1,0,6,5,2]", "[0,3,1,8,5]", "[0,7,1,4,3]", "[0,8,2,4,3]", "[0,8,3,5,4]", "[0,8,4,6,5]", "[0,4,1,7,6]", "[0,3,1,8,7]", "[0,4,2,8,7]", "[0,6,4,8,7]"
     };
 
-    assertNotNull(goal.next());
+    assertNotNull(goal.prove());
     assertEquals(goal.getVarAsText("X"), puzzle1solXYZ[0]);
     assertEquals(goal.getVarAsText("Y"), puzzle1solXYZ[1]);
     assertEquals(goal.getVarAsText("Z"), puzzle1solXYZ[2]);
-    assertNull(goal.next());
-    final ChoicePoint goal2 = new ChoicePoint("puzzle2(X,Y,Z),sum(X,Y,Z).", context);
+    assertNull(goal.prove());
+    final JProlChoicePoint goal2 = new JProlChoicePoint("puzzle2(X,Y,Z),sum(X,Y,Z).", context);
 
     for (final String aPuzzle2solZ : puzzle2solZ) {
-      assertNotNull(goal2.next());
+      assertNotNull(goal2.prove());
       assertEquals(aPuzzle2solZ, goal2.getVarAsText("Z"));
     }
 
-    assertNull(goal2.next());
+    assertNull(goal2.prove());
   }
 }

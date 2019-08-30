@@ -2,7 +2,7 @@ package com.igormaznitsa.jprol.it;
 
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
-import com.igormaznitsa.jprol.logic.ChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PreparedGoal;
 import org.junit.jupiter.api.Test;
@@ -16,7 +16,7 @@ class OperatorTest extends AbstractJProlTest {
   void testOperatorDefs() throws Exception {
     final JProlContext context = makeContextAndConsult(":-op(800,xfx,'<===>'). :-op(700,xfy,'v'). :-op(600,xfy,'&'). :-op(500,fy,'~'). moon <===> earth.");
 
-    final ChoicePoint prepGoal = new ChoicePoint("~(xxx & yyy) <===> ~xxx v ~yyy.", context);
+    final JProlChoicePoint prepGoal = new JProlChoicePoint("~(xxx & yyy) <===> ~xxx v ~yyy.", context);
     TermStruct root = (TermStruct) prepGoal.getGoalTerm();
 
     assertEquals("<===>", root.getText());
@@ -56,10 +56,10 @@ class OperatorTest extends AbstractJProlTest {
 
     final PreparedGoal prepGoal2 = new PreparedGoal("moon <===> X.", context);
     int solvecounter = 0;
-    final ChoicePoint gl = prepGoal2.makeChoicePoint(context);
+    final JProlChoicePoint gl = prepGoal2.makeChoicePoint(context);
     String text = null;
     Term curresult;
-    while ((curresult = gl.next()) != null) {
+    while ((curresult = gl.prove()) != null) {
       text = gl.getVarForName("X").getValue().getText();
       solvecounter++;
     }

@@ -1,6 +1,6 @@
 package com.igormaznitsa.jprol.it;
 
-import com.igormaznitsa.jprol.logic.ChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import org.junit.jupiter.api.Test;
 
@@ -85,12 +85,12 @@ class NonDeterministicAutomataTest extends AbstractJProlTest {
         "['b','b','b','b','b','a','b']"
     };
 
-    final ChoicePoint goal = new ChoicePoint("X=[_,_,_,_,_,_,_],accepts(s1,X).", context);
+    final JProlChoicePoint goal = new JProlChoicePoint("X=[_,_,_,_,_,_,_],accepts(s1,X).", context);
 
     for (final String e : etal) {
-      assertNotNull(goal.next());
+      assertNotNull(goal.prove());
       assertEquals(e, goal.getVarAsText("X"));
     }
-    assertNull(goal.next());
+    assertNull(goal.prove());
   }
 }

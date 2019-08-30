@@ -1,6 +1,6 @@
 package com.igormaznitsa.jprol.it;
 
-import com.igormaznitsa.jprol.logic.ChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import org.junit.jupiter.api.Test;
 
@@ -42,16 +42,16 @@ class CryptoTest extends AbstractJProlTest {
         + "puzzle2([0,S,E,N,D],[0,M,O,R,E],[M,O,N,E,Y]).\n"));
 
 
-    final ChoicePoint goal = new ChoicePoint("puzzle1(N1,N2,N), sum(N1,N2,N).", context);
-    assertNotNull(goal.next());
+    final JProlChoicePoint goal = new JProlChoicePoint("puzzle1(N1,N2,N), sum(N1,N2,N).", context);
+    assertNotNull(goal.prove());
     assertEquals("[7,2,3,9,7,0]", goal.getVarAsText("N"));
     assertEquals("[5,2,6,4,8,5]", goal.getVarAsText("N1"));
     assertEquals("[1,9,7,4,8,5]", goal.getVarAsText("N2"));
-    assertNull(goal.next());
+    assertNull(goal.prove());
 
-    final ChoicePoint goal2 = new ChoicePoint("puzzle2(N1,N2,N), sum(N1,N2,N).", context);
+    final JProlChoicePoint goal2 = new JProlChoicePoint("puzzle2(N1,N2,N), sum(N1,N2,N).", context);
     int counter = 0;
-    while (goal2.next() != null) {
+    while (goal2.prove() != null) {
       counter++;
     }
     assertEquals(25, counter);

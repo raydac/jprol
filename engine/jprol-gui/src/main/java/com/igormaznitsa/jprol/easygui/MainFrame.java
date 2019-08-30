@@ -25,8 +25,8 @@ import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeContextFactory;
 import com.igormaznitsa.jprol.libs.*;
-import com.igormaznitsa.jprol.logic.ChoicePoint;
 import com.igormaznitsa.jprol.logic.ConsultInteractor;
+import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.JProlSystemFlag;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
@@ -255,12 +255,12 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
   }
 
   @Override
-  public void onUndefinedPredicateWarning(final JProlContext source, final ChoicePoint choicePoint, final String undefinedPredicateSignature) {
+  public void onUndefinedPredicateWarning(final JProlContext source, final JProlChoicePoint choicePoint, final String undefinedPredicateSignature) {
     this.messageEditor.addWarningText("Detected undefined predicate: " + undefinedPredicateSignature);
   }
 
   @Override
-  public void onChoicePointTraceEvent(final JProlContext source, final ChoicePoint choicePoint, final TraceEvent event) {
+  public void onChoicePointTraceEvent(final JProlContext source, final JProlChoicePoint choicePoint, final TraceEvent event) {
     switch (event) {
       case CALL:
         this.traceEditor.addCallText(choicePoint.getGoalTerm().forWrite());
@@ -1644,7 +1644,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     }
 
     @JProlPredicate(determined = true, signature = "msgerror/1", reference = "The predicate allows to output information marked as error at the message window.")
-    public void predicateMSGERROR(final ChoicePoint goal, final TermStruct struct) {
+    public void predicateMSGERROR(final JProlChoicePoint goal, final TermStruct struct) {
       final Term term = struct.getElement(0).findNonVarOrSame();
       final String text = term.forWrite();
       LOG.log(Level.SEVERE, "msgerror/1 : {0}", text);
@@ -1652,7 +1652,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     }
 
     @JProlPredicate(determined = true, signature = "msgwarning/1", reference = "The predicate allows to output information marked as warning at the message window.")
-    public void predicateMSGWARNING(final ChoicePoint goal, final TermStruct struct) {
+    public void predicateMSGWARNING(final JProlChoicePoint goal, final TermStruct struct) {
       final Term term = struct.getElement(0).findNonVarOrSame();
       final String text = term.forWrite();
       LOG.log(Level.WARNING, "msgwarning/1 : {0}", text);
@@ -1660,7 +1660,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     }
 
     @JProlPredicate(determined = true, signature = "msginfo/1", reference = "The predicate allows to output information marked as info at the message window.")
-    public void predicateMSGINFO(final ChoicePoint goal, final TermStruct struct) {
+    public void predicateMSGINFO(final JProlChoicePoint goal, final TermStruct struct) {
       final Term term = struct.getElement(0).findNonVarOrSame();
       final String text = term.forWrite();
       LOG.log(Level.INFO, "msginfo/1 : {0}", text);

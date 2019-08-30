@@ -1,7 +1,7 @@
 package com.igormaznitsa.jprol.libs;
 
 import com.igormaznitsa.jprol.it.AbstractJProlTest;
-import com.igormaznitsa.jprol.logic.ChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
 import org.junit.jupiter.api.Disabled;
@@ -16,8 +16,8 @@ class JProlIoLibraryTest extends AbstractJProlTest {
   void testSeeing1() {
     final JProlContext context = makeTestContext();
     context.addIoResourceProvider(Mockito.mock(IoResourceProvider.class));
-    final ChoicePoint point = prepareGoal("seeing(X).", context);
-    assertNotNull(point.next());
+    final JProlChoicePoint point = prepareGoal("seeing(X).", context);
+    assertNotNull(point.prove());
     assertEquals("[]", point.getVarForName("X").getValue().toString());
   }
 

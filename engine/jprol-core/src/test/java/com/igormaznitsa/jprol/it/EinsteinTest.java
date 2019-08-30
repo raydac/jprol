@@ -1,6 +1,6 @@
 package com.igormaznitsa.jprol.it;
 
-import com.igormaznitsa.jprol.logic.ChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import org.junit.jupiter.api.Test;
 
@@ -32,10 +32,10 @@ class EinsteinTest extends AbstractJProlTest {
         + "iright(L,R,[L,R|_]). iright(L,R,[_|Rest]) :- iright(L,R,Rest)."
         + "member2(E,[E|_]). member2(E,[_|L]) :- member2(E,L).");
 
-    final ChoicePoint goal = new ChoicePoint("einstein(_,X).", context);
-    assertNotNull(goal.next());
+    final JProlChoicePoint goal = new JProlChoicePoint("einstein(_,X).", context);
+    assertNotNull(goal.prove());
     assertEquals("'german'", goal.getVarAsText("X"));
-    assertNull(goal.next());
+    assertNull(goal.prove());
   }
 
 }

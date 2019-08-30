@@ -17,7 +17,7 @@
 package com.igormaznitsa.jprol.logic.triggers;
 
 import com.igormaznitsa.jprol.data.Term;
-import com.igormaznitsa.jprol.logic.ChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PreparedGoal;
 
@@ -33,10 +33,10 @@ public class JProlTriggeringEventObserver extends AbstractJProlTrigger {
   @Override
   public void onTriggerEvent(final TriggerEvent event) {
     if (this.goal != null) {
-      final ChoicePoint choicePoint = this.goal.makeChoicePoint(event.getContext());
+      final JProlChoicePoint choicePoint = this.goal.makeChoicePoint(event.getContext());
 
       while (!Thread.currentThread().isInterrupted()) {
-        final Term result = choicePoint.next();
+        final Term result = choicePoint.proveWithFailForUnknown();
         if (result == null) {
           break;
         }

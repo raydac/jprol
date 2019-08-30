@@ -6,7 +6,7 @@ import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.it.AbstractJProlTest;
-import com.igormaznitsa.jprol.logic.ChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlSystemFlag;
 import org.junit.jupiter.api.Test;
 
@@ -15,20 +15,20 @@ import static org.junit.jupiter.api.Assertions.*;
 class JProlBootstrapLibraryTest extends AbstractJProlTest {
   @Test
   void testCurrentPrologFlag2() {
-    final ChoicePoint point = prepareGoal("current_prolog_flag(" + JProlSystemFlag.VERIFY.getNameTerm().getText() + ",X).");
-    assertNotNull(point.next());
+    final JProlChoicePoint point = prepareGoal("current_prolog_flag(" + JProlSystemFlag.VERIFY.getNameTerm().getText() + ",X).");
+    assertNotNull(point.prove());
     final TermVar xVar = point.getVarForName("X");
     assertNotNull(xVar);
     assertTrue(JProlSystemFlag.VERIFY.getDefaultValue().unifyTo(xVar.getValue()));
-    assertNull(point.next());
+    assertNull(point.prove());
 
-    final ChoicePoint all = prepareGoal("current_prolog_flag(A,B).");
+    final JProlChoicePoint all = prepareGoal("current_prolog_flag(A,B).");
     for (final JProlSystemFlag f : JProlSystemFlag.values()) {
-      assertNotNull(all.next());
+      assertNotNull(all.prove());
       assertTrue(f.getNameTerm().dryUnifyTo(all.getVarForName("A")));
       assertTrue(f.getDefaultValue().dryUnifyTo(all.getVarForName("B")));
     }
-    assertNull(all.next());
+    assertNull(all.prove());
 
     assertProlException("current_prolog_flag(5, V).", ProlTypeErrorException.class);
     assertProlException("current_prolog_flag(some_unknown_flag_lalala, V).", ProlDomainErrorException.class);
@@ -36,9 +36,9 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
 
   @Test
   void testSetPrologFlag2() {
-    final ChoicePoint point = prepareGoal("current_prolog_flag(verify,true), set_prolog_flag(verify,false), current_prolog_flag(verify,false).");
-    assertNotNull(point.next());
-    assertNull(point.next());
+    final JProlChoicePoint point = prepareGoal("current_prolog_flag(verify,true), set_prolog_flag(verify,false), current_prolog_flag(verify,false).");
+    assertNotNull(point.prove());
+    assertNull(point.prove());
     assertEquals("false", point.getContext().getSystemFlag(JProlSystemFlag.VERIFY).getText());
     assertProlException("set_prolog_flag(someunknownlalala, true).", ProlDomainErrorException.class);
     assertProlException("set_prolog_flag(" + JProlSystemFlag.VERSION_DATA.getNameTerm().getText() + ", true).", ProlDomainErrorException.class);
@@ -53,10 +53,10 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
     checkVarValues("is(Result,3+11.0).", "Result", 14.0d);
 
     //[(X = 1 + 2, 'is'(Y, X * 3)),[[X <-- (1 + 2), Y <-- 9]]]. % error? 1+2
-    ChoicePoint goal = proveGoal("X=1+2,is(Y,X*3).");
+    JProlChoicePoint goal = proveGoal("X=1+2,is(Y,X*3).");
     assertEquals(goal.getVarAsText("X"), "1 + 2");
     assertEquals(goal.getVarAsNumber("Y"), 9L);
-    assertNull(goal.next());
+    assertNull(goal.prove());
 
     //['is'(foo,77), failure]. % error? foo
     checkOnce("'is'(foo,77).", false);

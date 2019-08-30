@@ -102,7 +102,7 @@ public final class PredicateInvoker {
     return this.methodHandle;
   }
 
-  public final Term executeEvaluable(final ChoicePoint goal, final TermStruct predicate) {
+  public final Term executeEvaluable(final JProlChoicePoint goal, final TermStruct predicate) {
     try {
       final Object result = this.methodHandle.invoke(goal, predicate);
       return (Term) result;
@@ -125,7 +125,7 @@ public final class PredicateInvoker {
     }
   }
 
-  public final boolean execute(final ChoicePoint goal, final TermStruct predicate) {
+  public final boolean execute(final JProlChoicePoint goal, final TermStruct predicate) {
     try {
       final Object result;
       result = this.methodHandle.invoke(goal, predicate);

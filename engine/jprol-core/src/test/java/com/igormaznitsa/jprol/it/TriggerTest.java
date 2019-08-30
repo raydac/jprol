@@ -1,7 +1,7 @@
 package com.igormaznitsa.jprol.it;
 
 import com.igormaznitsa.jprol.data.Term;
-import com.igormaznitsa.jprol.logic.ChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.triggers.AbstractJProlTrigger;
 import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
@@ -16,7 +16,7 @@ class TriggerTest extends AbstractJProlTest {
 
   @Test
   void testTrigger() {
-    final InternaltestTrigger trigger = new InternaltestTrigger();
+    final InternalTestTrigger trigger = new InternalTestTrigger();
     trigger.addSignature("testassert/1", JProlTriggerType.TRIGGER_ASSERT);
     trigger.addSignature("testretract/1", JProlTriggerType.TRIGGER_RETRACT);
     trigger.addSignature("testboth/1", JProlTriggerType.TRIGGER_ASSERT_RETRACT);
@@ -25,22 +25,22 @@ class TriggerTest extends AbstractJProlTest {
 
     context.registerTrigger(trigger);
 
-    ChoicePoint goal = new ChoicePoint("assert(testassert(1000)),asserta(testassert(1)),assertz(testassert(2)).", context);
+    JProlChoicePoint goal = new JProlChoicePoint("assert(testassert(1000)),asserta(testassert(1)),assertz(testassert(2)).", context);
 
     int decisionnum = 0;
-    while (goal.next() != null) {
+    while (goal.prove() != null) {
       decisionnum++;
     }
 
     assertEquals(1, decisionnum);
 
-    goal = new ChoicePoint("retracta(testassert(_)),retractz(testassert(_)),testassert(X),assert(testretract(test)),retract(testretract(_)),assert(testretract(world)),abolish(testretract/1).", context);
+    goal = new JProlChoicePoint("retracta(testassert(_)),retractz(testassert(_)),testassert(X),assert(testretract(test)),retract(testretract(_)),assert(testretract(world)),abolish(testretract/1).", context);
 
     int result = -1;
 
     decisionnum = 0;
     Term resultterm;
-    while ((resultterm = goal.next()) != null) {
+    while ((resultterm = goal.prove()) != null) {
       result = resultterm.variables()
           .filter(x -> "X".equals(x.getText()))
           .findFirst()
@@ -60,8 +60,8 @@ class TriggerTest extends AbstractJProlTest {
     trigger.clear();
 
     decisionnum = 0;
-    goal = new ChoicePoint("assert(testboth(111)),assert(testboth(222)),testboth(222),retractall(testboth(_)).", context);
-    while (goal.next() != null) {
+    goal = new JProlChoicePoint("assert(testboth(111)),assert(testboth(222)),testboth(222),retractall(testboth(_)).", context);
+    while (goal.prove() != null) {
       decisionnum++;
     }
 
@@ -76,14 +76,14 @@ class TriggerTest extends AbstractJProlTest {
     assertEquals(1, trigger.haltCounter.get());
   }
 
-  private static class InternaltestTrigger extends AbstractJProlTrigger {
+  private static class InternalTestTrigger extends AbstractJProlTrigger {
 
     private final AtomicInteger haltCounter = new AtomicInteger();
     private final AtomicInteger assertevents = new AtomicInteger();
     private final AtomicInteger retractevents = new AtomicInteger();
     private final AtomicInteger assertretractevents = new AtomicInteger();
 
-    InternaltestTrigger() {
+    InternalTestTrigger() {
       super();
     }
 

@@ -23,7 +23,7 @@ import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.easygui.MainFrame;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeBase;
-import com.igormaznitsa.jprol.logic.ChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.Utils;
 
@@ -55,7 +55,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "renamefile/2", args = {"+term,+term"}, reference = "Rename file")
-  public static boolean predicateRenameFile(final ChoicePoint goal, final TermStruct predicate) {
+  public static boolean predicateRenameFile(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term oldpath = predicate.getElement(0).findNonVarOrSame();
     final Term newname = predicate.getElement(1).findNonVarOrSame();
 
@@ -71,7 +71,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "file_str/2", args = {"+term,?term"}, reference = "Reads string from a file and transfers it to a variable, or creates a file and writes the string into the file.")
-  public boolean predicateFileStr(final ChoicePoint goal, final TermStruct predicate) {
+  public boolean predicateFileStr(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term tfile = predicate.getElement(0).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
@@ -104,7 +104,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "deletefile/1", args = {"+term"}, reference = "Delete file for name")
-  public boolean predicateDeleteFile(final ChoicePoint goal, final TermStruct predicate) {
+  public boolean predicateDeleteFile(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     if (goal.isArgsValidate()) {
       ProlAssertions.assertNonVar(arg);
@@ -117,7 +117,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "existfile/1", args = {"+term"}, reference = "Ceck that a file exists in current directory")
-  public boolean predicateExistFile(final ChoicePoint goal, final TermStruct predicate) {
+  public boolean predicateExistFile(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
@@ -131,7 +131,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "dir/3", args = {"+term,+term,?term"}, reference = "Open directory to select file")
-  public boolean predicateDir(final ChoicePoint goal, final TermStruct predicate) {
+  public boolean predicateDir(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term tthePath = predicate.getElement(0).findNonVarOrSame();
     final Term textension = predicate.getElement(1).findNonVarOrSame();
 
@@ -170,7 +170,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "disk/1", args = {"?term"}, reference = "Set or get current path")
-  public boolean predicateDisk(final ChoicePoint goal, final TermStruct predicate) {
+  public boolean predicateDisk(final JProlChoicePoint goal, final TermStruct predicate) {
     Term thePath = predicate.getElement(0).findNonVarOrSame();
 
     boolean result = false;
@@ -194,7 +194,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "save/1", args = {"+term"}, reference = "Save current data base")
-  public boolean predicateSave(final ChoicePoint goal, final TermStruct predicate) {
+  public boolean predicateSave(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     if (goal.isArgsValidate()) {
       ProlAssertions.assertNonVar(arg);

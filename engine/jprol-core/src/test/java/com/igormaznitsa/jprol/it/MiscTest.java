@@ -19,7 +19,7 @@ package com.igormaznitsa.jprol.it;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermVar;
-import com.igormaznitsa.jprol.logic.ChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import org.junit.jupiter.api.Test;
 
@@ -35,7 +35,7 @@ class MiscTest extends AbstractJProlTest {
   void testGetAllGoalsAndConvertThem() {
     final JProlContext context = makeContextAndConsult("map(one,1,a). map(two,2,b). map(three,3,c).");
 
-    final ChoicePoint goal = new ChoicePoint("map(X,Y,_).", context);
+    final JProlChoicePoint goal = new JProlChoicePoint("map(X,Y,_).", context);
 
     final class Result {
       final String name;
@@ -55,7 +55,7 @@ class MiscTest extends AbstractJProlTest {
 
     final List<Result> result = new ArrayList<>();
     Term t;
-    while ((t = goal.next()) != null) {
+    while ((t = goal.prove()) != null) {
       result.add(new Result(t.allNamedVarValuesAsMap()));
     }
 
@@ -72,12 +72,12 @@ class MiscTest extends AbstractJProlTest {
   void findAllTest() {
     JProlContext context;
     context = makeContextAndConsult("powerSet([],[]).powerSet([_|Xt],Y) :- powerSet(Xt,Y).powerSet([Xh|Xt],[Xh|Yt]) :- powerSet(Xt,Yt).");
-    final ChoicePoint goal = new ChoicePoint("findall(X,powerSet([a,b],X),Y).", context);
+    final JProlChoicePoint goal = new JProlChoicePoint("findall(X,powerSet([a,b],X),Y).", context);
 
     TermVar result = null;
 
     Term t;
-    while ((t = goal.next()) != null) {
+    while ((t = goal.prove()) != null) {
       final TermVar valy = goal.getVarForName("Y");
       assertNull(result);
       result = valy;

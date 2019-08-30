@@ -74,23 +74,23 @@ public final class PreparedGoal {
 
   public Term once(final JProlContext context) {
     final Term target = this.preparedGoalTerm.makeClone();
-    final ChoicePoint goal = new ChoicePoint(target, context);
-    return goal.next();
+    final JProlChoicePoint goal = new JProlChoicePoint(target, context);
+    return goal.prove();
   }
 
-  public ChoicePoint makeChoicePoint(final JProlContext context, final long... parameters) {
+  public JProlChoicePoint makeChoicePoint(final JProlContext context, final long... parameters) {
     return this.makeChoicePoint(context, Arrays.stream(parameters).mapToObj(Terms::newLong).toArray(Term[]::new));
   }
 
-  public ChoicePoint makeChoicePoint(final JProlContext context, final String... parameters) {
+  public JProlChoicePoint makeChoicePoint(final JProlContext context, final String... parameters) {
     return this.makeChoicePoint(context, Arrays.stream(parameters).map(Terms::newAtom).toArray(Term[]::new));
   }
 
-  public ChoicePoint makeChoicePoint(final JProlContext context, final double... parameters) {
+  public JProlChoicePoint makeChoicePoint(final JProlContext context, final double... parameters) {
     return this.makeChoicePoint(context, Arrays.stream(parameters).mapToObj(Terms::newDouble).toArray(Term[]::new));
   }
 
-  public ChoicePoint makeChoicePoint(final JProlContext context, final Term... parameters) {
+  public JProlChoicePoint makeChoicePoint(final JProlContext context, final Term... parameters) {
     if (this.paramNames.size() != parameters.length) {
       throw new IllegalArgumentException(String.format("Wrong params number, expected %d", this.paramNames.size()));
     }
@@ -107,10 +107,10 @@ public final class PreparedGoal {
           .setValue(parameter);
     }
 
-    return new ChoicePoint(clonedGoal, context);
+    return new JProlChoicePoint(clonedGoal, context);
   }
 
-  public ChoicePoint makeChoicePoint(final JProlContext context, final Map<String, Term> vars) {
+  public JProlChoicePoint makeChoicePoint(final JProlContext context, final Map<String, Term> vars) {
     final Term clonedGoal = this.preparedGoalTerm.makeClone();
     vars.forEach((key, value) -> clonedGoal.variables()
         .filter(x -> key.equals(x.getText()))
@@ -118,10 +118,10 @@ public final class PreparedGoal {
         .orElseThrow(() -> new IllegalArgumentException(String.format("Can't find variable \'%s\'", key)))
         .setValue(value));
 
-    return new ChoicePoint(clonedGoal, context);
+    return new JProlChoicePoint(clonedGoal, context);
   }
 
-  public ChoicePoint makeChoicePoint(final JProlContext context) {
-    return new ChoicePoint(this.preparedGoalTerm.makeClone(), context);
+  public JProlChoicePoint makeChoicePoint(final JProlContext context) {
+    return new JProlChoicePoint(this.preparedGoalTerm.makeClone(), context);
   }
 }

@@ -22,7 +22,7 @@ import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeContextFactory;
 import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
 import com.igormaznitsa.jprol.libs.JProlIoLibrary;
 import com.igormaznitsa.jprol.libs.JProlThreadLibrary;
-import com.igormaznitsa.jprol.logic.ChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
 
@@ -70,27 +70,27 @@ public abstract class AbstractJProlTest {
     return context;
   }
 
-  protected ChoicePoint prepareGoal(String goal) {
+  protected JProlChoicePoint prepareGoal(String goal) {
     return prepareGoal(goal, makeTestContext());
   }
 
-  protected ChoicePoint prepareGoal(String goal, final JProlContext context) {
-    return new ChoicePoint(goal, context);
+  protected JProlChoicePoint prepareGoal(String goal, final JProlContext context) {
+    return new JProlChoicePoint(goal, context);
   }
 
-  protected ChoicePoint prepareGoal(String consult, String goal) {
-    return new ChoicePoint(goal, makeContextAndConsult(consult));
+  protected JProlChoicePoint prepareGoal(String consult, String goal) {
+    return new JProlChoicePoint(goal, makeContextAndConsult(consult));
   }
 
   protected void assertProlException(final String goal, final Class<? extends ProlException> exceptionClass) {
     final JProlContext context = makeTestContext();
-    final ChoicePoint thisGoal = new ChoicePoint(goal, context);
-    assertThrows(exceptionClass, thisGoal::next);
+    final JProlChoicePoint thisGoal = new JProlChoicePoint(goal, context);
+    assertThrows(exceptionClass, thisGoal::prove);
   }
 
-  protected ChoicePoint proveGoal(String goal) {
-    final ChoicePoint thisGoal = this.prepareGoal(goal);
-    assertNotNull(thisGoal.next());
+  protected JProlChoicePoint proveGoal(String goal) {
+    final JProlChoicePoint thisGoal = this.prepareGoal(goal);
+    assertNotNull(thisGoal.prove());
     return thisGoal;
   }
 
@@ -105,10 +105,10 @@ public abstract class AbstractJProlTest {
   }
 
   protected void checkVarValues(JProlContext context, String goal, String varName, Object... results) {
-    final ChoicePoint thisGoal = new ChoicePoint(goal, context);
+    final JProlChoicePoint thisGoal = new JProlChoicePoint(goal, context);
 
     for (final Object res : results) {
-      assertNotNull(thisGoal.next());
+      assertNotNull(thisGoal.prove());
       if (res instanceof Number) {
         if (res instanceof Double) {
           assertEquals((double) res, thisGoal.getVarAsNumber(varName).doubleValue());
@@ -119,7 +119,7 @@ public abstract class AbstractJProlTest {
         assertEquals(res.toString(), thisGoal.getVarAsText(varName));
       }
     }
-    assertNull(thisGoal.next());
+    assertNull(thisGoal.prove());
   }
 
   protected void checkVarsAfterCall(String goal, String[][] varsAndValues) {
@@ -133,10 +133,10 @@ public abstract class AbstractJProlTest {
     if (consult != null) {
       context.consult(new StringReader(consult));
     }
-    final ChoicePoint thisGoal = new ChoicePoint(goal, context);
+    final JProlChoicePoint thisGoal = new JProlChoicePoint(goal, context);
 
     for (int i = 0; i < varsAndValues.length / 2; i++) {
-      assertNotNull(thisGoal.next(), "Index " + i);
+      assertNotNull(thisGoal.prove(), "Index " + i);
       final int index = i * 2;
       final String[] names = varsAndValues[index];
       final String[] values = varsAndValues[index + 1];
@@ -147,7 +147,7 @@ public abstract class AbstractJProlTest {
         assertEquals(values[v], thevar.getValue().getText(), i + ": Var=" + names[v]);
       }
     }
-    assertNull(thisGoal.next());
+    assertNull(thisGoal.prove());
   }
 
   protected void checkOnce(String goal, boolean expectedResult) {
@@ -156,12 +156,12 @@ public abstract class AbstractJProlTest {
 
   protected void checkOnce(String consult, String goal, boolean expectedResult) {
     final JProlContext context = makeContextAndConsult(consult);
-    final ChoicePoint thisGoal = new ChoicePoint(goal, context);
+    final JProlChoicePoint thisGoal = new JProlChoicePoint(goal, context);
     if (expectedResult) {
-      assertNotNull(thisGoal.next());
-      assertNull(thisGoal.next());
+      assertNotNull(thisGoal.prove());
+      assertNull(thisGoal.prove());
     } else {
-      assertNull(thisGoal.next());
+      assertNull(thisGoal.prove());
     }
   }
 

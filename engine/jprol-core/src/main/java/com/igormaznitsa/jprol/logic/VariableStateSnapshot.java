@@ -64,7 +64,7 @@ final class VariableStateSnapshot {
     this.processedVariables = null;
   }
 
-  public VariableStateSnapshot(final Term source, Map<String, Term> predefValues) {
+  public VariableStateSnapshot(final Term source, final Map<String, Term> predefValues) {
     this.containers = new ArrayList<>();
     extractAllVariables(source, predefValues);
     this.processedVariables = null;
@@ -156,7 +156,7 @@ final class VariableStateSnapshot {
     return buffer.toString();
   }
 
-  private final static class VariableContainer {
+  private static final class VariableContainer {
     final TermVar variable;
     final Term etalonValue;
 

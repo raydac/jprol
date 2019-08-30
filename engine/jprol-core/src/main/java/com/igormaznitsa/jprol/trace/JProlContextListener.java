@@ -16,13 +16,13 @@
 
 package com.igormaznitsa.jprol.trace;
 
-import com.igormaznitsa.jprol.logic.ChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 
 public interface JProlContextListener {
-  default void onChoicePointTraceEvent(JProlContext source, ChoicePoint choicePoint, TraceEvent event) {
+  default void onChoicePointTraceEvent(JProlContext source, JProlChoicePoint choicePoint, TraceEvent event) {
   }
 
-  default void onUndefinedPredicateWarning(JProlContext source, ChoicePoint choicePoint, String undefinedPredicateSignature) {
+  default void onUndefinedPredicateWarning(JProlContext source, JProlChoicePoint choicePoint, String undefinedPredicateSignature) {
   }
 }

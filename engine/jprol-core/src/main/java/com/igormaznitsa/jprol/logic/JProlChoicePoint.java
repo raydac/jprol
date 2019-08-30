@@ -26,6 +26,7 @@ import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.trace.TraceEvent;
+import com.igormaznitsa.jprol.utils.ProlAssertions;
 
 import java.io.StringReader;
 import java.util.Iterator;
@@ -39,7 +40,7 @@ import static com.igormaznitsa.jprol.trace.TraceEvent.EXIT;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
 
-public final class ChoicePoint {
+public final class JProlChoicePoint {
 
   private static final AtomicLong UID_GEN = new AtomicLong();
   private static final Consumer<String> NULL_UNDEFINED_PREDICATE_CONSUMER = x -> {
@@ -47,16 +48,16 @@ public final class ChoicePoint {
   private final Map<String, TermVar> variables;
   private final VariableStateSnapshot varSnapshot;
   private final JProlContext context;
-  private final ChoicePoint rootCp;
+  private final JProlChoicePoint rootChoicePoint;
   private final Term goalTerm;
   private final long uid;
   private final boolean validate;
   private final boolean debug;
   private boolean thereAreVariants;
   private Object payload;
-  private ChoicePoint prevCp;
-  private ChoicePoint rootLastGoalAtChain;
-  private ChoicePoint subCp;
+  private JProlChoicePoint prevCp;
+  private JProlChoicePoint rootLastGoalAtChain;
+  private JProlChoicePoint subCp;
   private Term subChoicePointConnector;
   private Term thisConnector;
   private Term nextAndTerm;
@@ -65,13 +66,13 @@ public final class ChoicePoint {
   private boolean cutMeet;
   private boolean notFirstProve;
 
-  private ChoicePoint(
-      final ChoicePoint rootCp,
+  private JProlChoicePoint(
+      final JProlChoicePoint rootChoicePoint,
       final Term goalToSolve,
       final JProlContext context,
       final boolean debug,
       final boolean validate,
-      final Map<String, Term> predefinedVarValues
+      final Map<String, Term> presetVarValues
   ) {
     this.uid = UID_GEN.incrementAndGet();
 
@@ -79,19 +80,23 @@ public final class ChoicePoint {
     this.validate = validate;
     this.debug = debug;
 
-    this.rootCp = rootCp == null ? this : rootCp;
+    this.rootChoicePoint = rootChoicePoint == null ? this : rootChoicePoint;
     this.goalTerm = goalToSolve.getTermType() == ATOM ? newStruct(goalToSolve) : goalToSolve;
     this.context = context;
 
-    final Term goal = assertCallable(goalToSolve.findNonVarOrDefault(goalToSolve));
+    final Term goal = goalToSolve.findNonVarOrSame();
 
-    if (rootCp == null) {
+    if (this.isArgsValidate()) {
+      ProlAssertions.assertCallable(goal);
+    }
+
+    if (rootChoicePoint == null) {
       if (goal.getTermType() == ATOM) {
         this.varSnapshot = null;
         this.variables = null;
       } else {
         this.variables = goal.allNamedVarsAsMap();
-        this.varSnapshot = new VariableStateSnapshot(goal, predefinedVarValues);
+        this.varSnapshot = new VariableStateSnapshot(goal, presetVarValues);
       }
       this.rootLastGoalAtChain = this;
       this.prevCp = null;
@@ -100,22 +105,22 @@ public final class ChoicePoint {
       if (goal.getTermType() == ATOM) {
         this.varSnapshot = null;
       } else {
-        this.varSnapshot = new VariableStateSnapshot(rootCp.varSnapshot);
+        this.varSnapshot = new VariableStateSnapshot(rootChoicePoint.varSnapshot);
       }
-      this.prevCp = rootCp.rootLastGoalAtChain;
-      rootCp.rootLastGoalAtChain = this;
+      this.prevCp = rootChoicePoint.rootLastGoalAtChain;
+      rootChoicePoint.rootLastGoalAtChain = this;
     }
   }
 
-  public ChoicePoint(final String goal, final JProlContext context) {
+  public JProlChoicePoint(final String goal, final JProlContext context) {
     this(new JProlTreeBuilder(context).readPhraseAndMakeTree(new StringReader(goal)).term, context, null);
   }
 
-  public ChoicePoint(final Term goal, final JProlContext context) {
+  public JProlChoicePoint(final Term goal, final JProlContext context) {
     this(null, goal, context, context.isDebug(), context.isTemplateValidate(), null);
   }
 
-  public ChoicePoint(final Term goal, final JProlContext context, final Map<String, Term> predefinedVarValues) {
+  public JProlChoicePoint(final Term goal, final JProlContext context, final Map<String, Term> predefinedVarValues) {
     this(null, goal, context, context.isDebug(), context.isTemplateValidate(), predefinedVarValues);
   }
 
@@ -142,8 +147,8 @@ public final class ChoicePoint {
     return term;
   }
 
-  public ChoicePoint makeForGoal(final Term goal) {
-    return new ChoicePoint(null, goal, this.context, this.debug, this.validate, null);
+  public JProlChoicePoint makeForGoal(final Term goal) {
+    return new JProlChoicePoint(null, goal, this.context, this.debug, this.validate, null);
   }
 
   public long getUid() {
@@ -163,8 +168,8 @@ public final class ChoicePoint {
     if (this == that) {
       return true;
     }
-    if (that instanceof ChoicePoint) {
-      return this.uid == ((ChoicePoint) that).uid;
+    if (that instanceof JProlChoicePoint) {
+      return this.uid == ((JProlChoicePoint) that).uid;
     }
     return false;
   }
@@ -211,13 +216,13 @@ public final class ChoicePoint {
     return this.variables == null ? null : this.variables.get(requireNonNull(name));
   }
 
-  public ChoicePoint replaceLastGoalAtChain(final Term goal) {
+  public JProlChoicePoint replaceLastGoalAtChain(final Term goal) {
     if (this.debug) {
-      this.context.fireTraceEvent(EXIT, this.rootCp.rootLastGoalAtChain);
+      this.context.fireTraceEvent(EXIT, this.rootChoicePoint.rootLastGoalAtChain);
     }
 
-    final ChoicePoint newGoal = new ChoicePoint(this.rootCp, goal, this.context, this.debug, this.validate, null);
-    final ChoicePoint prevGoal = newGoal.prevCp;
+    final JProlChoicePoint newGoal = new JProlChoicePoint(this.rootChoicePoint, goal, this.context, this.debug, this.validate, null);
+    final JProlChoicePoint prevGoal = newGoal.prevCp;
     if (prevGoal != null) {
       newGoal.prevCp = prevGoal.prevCp;
       newGoal.nextAndTerm = prevGoal.nextAndTerm;
@@ -243,26 +248,25 @@ public final class ChoicePoint {
     return this.context;
   }
 
-  public Term next() {
-    return this.next(x -> this.context.notifyAboutUndefinedPredicate(this, x));
+  public Term prove() {
+    return this.proveNext(x -> this.context.notifyAboutUndefinedPredicate(this, x));
   }
 
-  public Term nextAndFailForUnknown() {
-    return this.next(NULL_UNDEFINED_PREDICATE_CONSUMER);
+  public Term proveWithFailForUnknown() {
+    return this.proveNext(NULL_UNDEFINED_PREDICATE_CONSUMER);
   }
 
-  private Term next(final Consumer<String> unknownPredicateConsumer) {
+  private Term proveNext(final Consumer<String> unknownPredicateConsumer) {
     Term result = null;
 
     boolean loop = true;
-    final JProlContext localcontext = this.context;
 
     while (loop && !Thread.currentThread().isInterrupted()) {
-      if (localcontext.isDisposed()) {
+      if (this.context.isDisposed()) {
         throw new ProlHaltExecutionException();
       }
 
-      ChoicePoint goalToProcess = this.rootCp.rootLastGoalAtChain;
+      JProlChoicePoint goalToProcess = this.rootChoicePoint.rootLastGoalAtChain;
       if (goalToProcess == null) {
         break;
       } else {
@@ -273,18 +277,18 @@ public final class ChoicePoint {
                 this.context.fireTraceEvent(TraceEvent.FAIL, goalToProcess);
                 this.context.fireTraceEvent(EXIT, goalToProcess);
               }
-              this.rootCp.rootLastGoalAtChain = goalToProcess.prevCp;
+              this.rootChoicePoint.rootLastGoalAtChain = goalToProcess.prevCp;
             }
             break;
             case SUCCESS: {
               // we have to renew data about last chain goal because it can be changed during the operation
-              goalToProcess = this.rootCp.rootLastGoalAtChain;
+              goalToProcess = this.rootChoicePoint.rootLastGoalAtChain;
 
               if (goalToProcess.nextAndTerm == null) {
-                result = this.rootCp.goalTerm;
+                result = this.rootChoicePoint.goalTerm;
                 loop = false;
               } else {
-                final ChoicePoint nextGoal = new ChoicePoint(this.rootCp, goalToProcess.nextAndTerm, localcontext, this.debug, this.validate, null);
+                final JProlChoicePoint nextGoal = new JProlChoicePoint(this.rootChoicePoint, goalToProcess.nextAndTerm, this.context, this.debug, this.validate, null);
                 nextGoal.nextAndTerm = goalToProcess.nextAndTermForNextGoal;
               }
             }
@@ -299,7 +303,7 @@ public final class ChoicePoint {
           if (this.debug) {
             this.context.fireTraceEvent(EXIT, goalToProcess);
           }
-          this.rootCp.rootLastGoalAtChain = goalToProcess.prevCp;
+          this.rootChoicePoint.rootLastGoalAtChain = goalToProcess.prevCp;
         }
       }
     }
@@ -307,9 +311,9 @@ public final class ChoicePoint {
     return result;
   }
 
-  private ChoicePointResult resolve(final Consumer<String> unknownPredicateConsumer) {
+  private JProlChoicePointResult resolve(final Consumer<String> unknownPredicateConsumer) {
     if (Thread.currentThread().isInterrupted()) {
-      return ChoicePointResult.FAIL;
+      return JProlChoicePointResult.FAIL;
     }
     final TraceEvent traceEvent;
     if (this.notFirstProve) {
@@ -322,7 +326,7 @@ public final class ChoicePoint {
       this.context.fireTraceEvent(traceEvent, this);
     }
 
-    ChoicePointResult result = ChoicePointResult.FAIL;
+    JProlChoicePointResult result = JProlChoicePointResult.FAIL;
 
     boolean doLoop = true;
 
@@ -334,7 +338,7 @@ public final class ChoicePoint {
 
       if (this.subCp != null) {
         // solve subgoal
-        final Term solvedTerm = this.subCp.next();
+        final Term solvedTerm = this.subCp.proveNext(unknownPredicateConsumer);
 
         if (this.subCp.cutMeet) {
           this.clauseIterator = null;
@@ -349,7 +353,7 @@ public final class ChoicePoint {
           if (!this.thisConnector.unifyTo(this.subChoicePointConnector)) {
             throw new ProlCriticalError("Critical error #980234");
           }
-          result = ChoicePointResult.SUCCESS;
+          result = JProlChoicePointResult.SUCCESS;
           break;
         }
       }
@@ -373,13 +377,13 @@ public final class ChoicePoint {
           if (nextClause.isClause()) {
             this.thisConnector = goalTerm;
             this.subChoicePointConnector = nextClause.getElement(0);
-            this.subCp = new ChoicePoint(nextClause.getElement(1), this.context);
+            this.subCp = new JProlChoicePoint(nextClause.getElement(1), this.context);
             continue;
           } else {
             if (!this.goalTerm.unifyTo(nextClause)) {
               throw new ProlCriticalError("Impossible situation #0009824");
             }
-            result = ChoicePointResult.SUCCESS;
+            result = JProlChoicePointResult.SUCCESS;
             break;
           }
         } else {
@@ -393,10 +397,10 @@ public final class ChoicePoint {
         case ATOM: {
           final String text = this.goalTerm.getText();
           if (this.context.hasZeroArityPredicateForName(text)) {
-            result = ChoicePointResult.SUCCESS;
+            result = JProlChoicePointResult.SUCCESS;
           } else {
             this.context.notifyAboutUndefinedPredicate(this, this.goalTerm.getSignature());
-            result = ChoicePointResult.FAIL;
+            result = JProlChoicePointResult.FAIL;
           }
           cutVariants();
           doLoop = false;
@@ -413,9 +417,9 @@ public final class ChoicePoint {
             this.subChoicePointConnector = structClone.getElement(0);
 
             if (arity == 1) {
-              this.subCp = new ChoicePoint(structClone.getElement(0), this.context);
+              this.subCp = new JProlChoicePoint(structClone.getElement(0), this.context);
             } else {
-              this.subCp = new ChoicePoint(structClone.getElement(1), this.context);
+              this.subCp = new JProlChoicePoint(structClone.getElement(1), this.context);
             }
           } else {
 
@@ -431,7 +435,7 @@ public final class ChoicePoint {
                 cut();
                 nonConsumed = false;
                 doLoop = false;
-                result = ChoicePointResult.SUCCESS;
+                result = JProlChoicePointResult.SUCCESS;
                 this.thereAreVariants = false;
               } else if (len == 2 && "!!".equals(functorText)) {
                 // cut local
@@ -439,29 +443,29 @@ public final class ChoicePoint {
                 nonConsumed = false;
                 doLoop = false;
                 this.thereAreVariants = false;
-                result = ChoicePointResult.SUCCESS;
+                result = JProlChoicePointResult.SUCCESS;
               }
             } else if (arity == 2) {
               final int textLen = functorText.length();
               if (textLen == 1) {
                 if (functorText.charAt(0) == ',') {// and
-                  final ChoicePoint leftSubgoal = replaceLastGoalAtChain(struct.getElement(0));
+                  final JProlChoicePoint leftSubgoal = replaceLastGoalAtChain(struct.getElement(0));
                   leftSubgoal.nextAndTerm = struct.getElement(1);
                   leftSubgoal.nextAndTermForNextGoal = this.nextAndTerm;
 
-                  result = ChoicePointResult.STACK_CHANGED;
+                  result = JProlChoicePointResult.STACK_CHANGED;
 
                   doLoop = false;
                   nonConsumed = false;
                 } else if (functorText.charAt(0) == ';') {// or
                   if (getPayload() == null) {
-                    final ChoicePoint leftSubbranch = new ChoicePoint(this.rootCp, struct.getElement(0), this.context, this.debug, this.validate, null);
+                    final JProlChoicePoint leftSubbranch = new JProlChoicePoint(this.rootChoicePoint, struct.getElement(0), this.context, this.debug, this.validate, null);
                     leftSubbranch.nextAndTerm = this.nextAndTerm;
                     setPayload(leftSubbranch);
                   } else {
                     replaceLastGoalAtChain(struct.getElement(1));
                   }
-                  result = ChoicePointResult.STACK_CHANGED;
+                  result = JProlChoicePointResult.STACK_CHANGED;
                   nonConsumed = false;
                   doLoop = false;
                 }
@@ -480,7 +484,7 @@ public final class ChoicePoint {
                 if (!this.clauseIterator.hasNext()) {
                   doLoop = false;
                   this.cutVariants();
-                  result = ChoicePointResult.FAIL;
+                  result = JProlChoicePointResult.FAIL;
                 }
               } else {
                 if (foundProcessor.isEvaluable() || foundProcessor.isDetermined()) {
@@ -488,13 +492,13 @@ public final class ChoicePoint {
                 }
 
                 if (foundProcessor.execute(this, struct)) {
-                  result = ChoicePointResult.SUCCESS;
+                  result = JProlChoicePointResult.SUCCESS;
                 } else {
-                  result = ChoicePointResult.FAIL;
+                  result = JProlChoicePointResult.FAIL;
                 }
 
-                if (result == ChoicePointResult.SUCCESS && foundProcessor.doesChangeGoalChain()) {
-                  result = ChoicePointResult.STACK_CHANGED;
+                if (result == JProlChoicePointResult.SUCCESS && foundProcessor.doesChangeGoalChain()) {
+                  result = JProlChoicePointResult.STACK_CHANGED;
                 }
 
                 doLoop = false;
@@ -504,7 +508,7 @@ public final class ChoicePoint {
         }
         break;
         default: {
-          result = ChoicePointResult.FAIL;
+          result = JProlChoicePointResult.FAIL;
           doLoop = false;
           this.cutVariants();
         }
@@ -520,8 +524,8 @@ public final class ChoicePoint {
   }
 
   public void cut() {
-    this.rootCp.cutMeet = true;
-    this.rootCp.clauseIterator = null;
+    this.rootChoicePoint.cutMeet = true;
+    this.rootChoicePoint.clauseIterator = null;
     this.prevCp = null;
   }
 
@@ -539,6 +543,6 @@ public final class ChoicePoint {
   }
 
   public boolean isCompleted() {
-    return this.rootCp.rootLastGoalAtChain == null || !this.thereAreVariants;
+    return this.rootChoicePoint.rootLastGoalAtChain == null || !this.thereAreVariants;
   }
 }

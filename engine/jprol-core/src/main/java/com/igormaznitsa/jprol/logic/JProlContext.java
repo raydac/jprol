@@ -226,7 +226,7 @@ public final class JProlContext {
     return this.contextId;
   }
 
-  void fireTraceEvent(final TraceEvent event, final ChoicePoint choicePoint) {
+  void fireTraceEvent(final TraceEvent event, final JProlChoicePoint choicePoint) {
     if (!this.contextListeners.isEmpty()) {
       this.contextListeners.forEach(l -> l.onChoicePointTraceEvent(this, choicePoint, event));
     }
@@ -260,8 +260,8 @@ public final class JProlContext {
     this.assertNotDisposed();
     this.asyncTaskCounter.incrementAndGet();
     return CompletableFuture.runAsync(() -> {
-      final ChoicePoint asyncGoal = new ChoicePoint(requireNonNull(goal), this.makeCopy());
-      while (asyncGoal.next() != null && !Thread.currentThread().isInterrupted()) {
+      final JProlChoicePoint asyncGoal = new JProlChoicePoint(requireNonNull(goal), this.makeCopy());
+      while (asyncGoal.prove() != null && !Thread.currentThread().isInterrupted()) {
         ;
       }
     }, this.executorService).handle((x, e) -> {
@@ -278,8 +278,8 @@ public final class JProlContext {
     this.assertNotDisposed();
     this.asyncTaskCounter.incrementAndGet();
     return CompletableFuture.supplyAsync(() -> {
-      final ChoicePoint asyncGoal = new ChoicePoint(requireNonNull(goal), this.makeCopy());
-      final Term result = asyncGoal.next();
+      final JProlChoicePoint asyncGoal = new JProlChoicePoint(requireNonNull(goal), this.makeCopy());
+      final Term result = asyncGoal.prove();
       asyncGoal.cutVariants();
       return result;
     }, this.executorService).handle((x, e) -> {
@@ -537,7 +537,7 @@ public final class JProlContext {
     return result;
   }
 
-  public void notifyAboutUndefinedPredicate(final ChoicePoint choicePoint, final String signature) {
+  public void notifyAboutUndefinedPredicate(final JProlChoicePoint choicePoint, final String signature) {
     switch (this.getUndefinedPredicateBehavior()) {
       case ERROR: {
         throw new ProlExistenceErrorException("predicate", "Undefined predicate: " + signature, choicePoint.getGoalTerm());
@@ -641,7 +641,7 @@ public final class JProlContext {
                   final Map<String, TermVar> varmap = new HashMap<>();
                   final AtomicInteger solutioncounter = new AtomicInteger();
 
-                  final ChoicePoint thisGoal = new ChoicePoint(termGoal, this, null);
+                  final JProlChoicePoint thisGoal = new JProlChoicePoint(termGoal, this, null);
 
                   boolean doFindNextSolution;
                   do {
@@ -675,8 +675,8 @@ public final class JProlContext {
     } while (!Thread.currentThread().isInterrupted());
   }
 
-  private boolean solveGoal(final ChoicePoint goal, final Map<String, TermVar> varTable) {
-    final Term result = goal.next();
+  private boolean solveGoal(final JProlChoicePoint goal, final Map<String, TermVar> varTable) {
+    final Term result = goal.prove();
 
     if (result != null && varTable != null) {
       result.variables().forEach(e -> varTable.put(e.getText(), e));
@@ -686,8 +686,8 @@ public final class JProlContext {
   }
 
   private boolean processDirective(final Term directive) {
-    final ChoicePoint goal = new ChoicePoint(directive, this, null);
-    return goal.next() != null;
+    final JProlChoicePoint goal = new JProlChoicePoint(directive, this, null);
+    return goal.prove() != null;
   }
 
 
