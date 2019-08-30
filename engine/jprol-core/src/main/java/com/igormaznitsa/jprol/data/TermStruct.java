@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 import static com.igormaznitsa.jprol.data.TermType.*;
 import static java.util.Objects.requireNonNull;
 
-public class TermStruct extends Term {
+public class TermStruct extends CompoundTerm {
 
   static final Term[] EMPTY_ARRAY = new Term[0];
   final Term[] terms;
@@ -427,52 +427,6 @@ public class TermStruct extends Term {
       return this.getFunctor().getText().equals(atom.getText());
     }
     return false;
-  }
-
-  @Override
-  public int compareTermTo(Term atom) {
-    if (this == atom) {
-      return 0;
-    }
-
-    atom = atom.findNonVarOrSame();
-
-    switch (atom.getTermType()) {
-      case LIST:
-        return -1;
-      case STRUCT: {
-        final TermStruct thatStruct = (TermStruct) atom;
-
-        final int thisArity = getArity();
-        final int thatArity = thatStruct.getArity();
-
-        if (thisArity == thatArity) {
-          int result = getFunctor().compareTermTo(thatStruct.getFunctor());
-          if (result == 0) {
-            for (int li = 0; li < thisArity; li++) {
-              final Term thisAtom = getElement(li);
-              final Term thatAtom = thatStruct.getElement(li);
-
-              result = thisAtom.compareTermTo(thatAtom);
-              if (result != 0) {
-                return result;
-              }
-            }
-            return 0;
-          } else {
-            return result;
-          }
-        } else {
-          if (thisArity < thatArity) {
-            return -1;
-          } else {
-            return 1;
-          }
-        }
-      }
-      default:
-        return 1;
-    }
   }
 
   public Term makeClone() {

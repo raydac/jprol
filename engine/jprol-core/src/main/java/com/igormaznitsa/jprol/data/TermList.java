@@ -304,42 +304,6 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public int compareTermTo(Term atom) {
-    if (this == atom) {
-      return 0;
-    }
-
-    atom = atom.findNonVarOrSame();
-
-    if (atom.getTermType() == LIST) {
-      final TermList thatList = (TermList) atom;
-      if (isNullList() && thatList.isNullList()) {
-        return 0;
-      }
-
-      final TermList thisList = this;
-
-      if (thisList.isNullList() && !thatList.isNullList()) {
-        return -1;
-      }
-      if (!thisList.isNullList() && thatList.isNullList()) {
-        return 1;
-      }
-
-      final Term thisHead = thisList.getHead();
-      final Term thatHead = thatList.getHead();
-
-      int result = thisHead.compareTermTo(thatHead);
-      if (result != 0) {
-        return result;
-      }
-
-      return thisList.getTail().compareTermTo(thatList.getTail());
-    }
-    return 1;
-  }
-
-  @Override
   public String forWrite() {
     if (isNullList()) {
       return "[]";

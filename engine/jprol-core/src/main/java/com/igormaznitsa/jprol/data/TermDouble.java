@@ -121,31 +121,6 @@ public final class TermDouble extends NumericTerm {
   }
 
   @Override
-  public int compareTermTo(Term atom) {
-    if (this == atom) {
-      return 0;
-    }
-
-    atom = atom.findNonVarOrDefault(atom);
-
-    switch (atom.getTermType()) {
-      case VAR:
-        return 1;
-      case ATOM: {
-        if (atom instanceof NumericTerm) {
-          NumericTerm num = (NumericTerm) atom;
-          double value = num.toNumber().doubleValue();
-          return Double.compare(this.value, value);
-        } else {
-          return -1;
-        }
-      }
-      default:
-        return -1;
-    }
-  }
-
-  @Override
   public NumericTerm abs() {
     if (Double.compare(this.value, 0.0d) >= 0) {
       return this;

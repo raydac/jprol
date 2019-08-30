@@ -205,31 +205,6 @@ public class Term {
     }
   }
 
-  public int compareTermTo(Term atom) {
-    if (this == atom) {
-      return 0;
-    }
-
-    atom = atom.findNonVarOrSame();
-
-    switch (atom.getTermType()) {
-      case ATOM: {
-        if (atom instanceof NumericTerm) {
-          return 1;
-        }
-        return this.text.compareTo(atom.text);
-      }
-      case VAR: {
-        return 1;
-      }
-      case OPERATOR: {
-        return this.text.compareTo(atom.text);
-      }
-      default:
-        return -1;
-    }
-  }
-
   protected void doArrangeVars(final Map<String, TermVar> variables) {
   }
 

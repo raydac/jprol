@@ -21,7 +21,6 @@ import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -33,8 +32,6 @@ import static com.igormaznitsa.jprol.data.Terms.newList;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
 
 public final class Utils {
-
-  public static final Comparator<Term> TERM_COMPARATOR = Term::compareTermTo;
 
   public static final TermOperator SIGNATURE_OPERATOR = new TermOperator(400, OpAssoc.YFX, "/");
 

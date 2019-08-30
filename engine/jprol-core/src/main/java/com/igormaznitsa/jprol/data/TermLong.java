@@ -135,31 +135,6 @@ public final class TermLong extends NumericTerm {
   }
 
   @Override
-  public int compareTermTo(Term atom) {
-    if (this == atom) {
-      return 0;
-    }
-
-    atom = atom.findNonVarOrDefault(atom);
-
-    switch (atom.getTermType()) {
-      case VAR:
-        return 1;
-      case ATOM: {
-        if (atom instanceof NumericTerm) {
-          final long value = ((NumericTerm) atom).isDouble() ? Math.round(atom.toNumber().doubleValue()) :
-              atom.toNumber().longValue();
-          return Long.compare(this.value, value);
-        } else {
-          return -1;
-        }
-      }
-      default:
-        return -1;
-    }
-  }
-
-  @Override
   public NumericTerm abs() {
     if (this.value >= 0L) {
       return this;

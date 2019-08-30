@@ -325,25 +325,6 @@ public final class TermVar extends Term {
   }
 
   @Override
-  public int compareTermTo(Term atom) {
-    if (this == atom) {
-      return 0;
-    }
-    final Term thisAtom = this.findNonVarOrSame();
-    atom = atom.findNonVarOrSame();
-
-    int result = -1;
-    if (thisAtom == this) {
-      if (atom.getTermType() == VAR) {
-        result = getText().compareTo(atom.getText());
-      }
-    } else {
-      result = thisAtom.compareTermTo(atom);
-    }
-    return result;
-  }
-
-  @Override
   public boolean hasVariableWithName(final String name) {
     return getText().equals(name);
   }

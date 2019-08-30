@@ -16,10 +16,7 @@
 
 package com.igormaznitsa.jprol.logic;
 
-import com.igormaznitsa.jprol.data.NumericTerm;
-import com.igormaznitsa.jprol.data.Term;
-import com.igormaznitsa.jprol.data.TermStruct;
-import com.igormaznitsa.jprol.data.TermVar;
+import com.igormaznitsa.jprol.data.*;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
@@ -29,18 +26,20 @@ import com.igormaznitsa.jprol.trace.TraceEvent;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
 
 import java.io.StringReader;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
+import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.trace.TraceEvent.EXIT;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
 
-public final class JProlChoicePoint {
+public final class JProlChoicePoint implements Comparator<Term> {
 
   private static final AtomicLong UID_GEN = new AtomicLong();
   private static final Consumer<String> NULL_UNDEFINED_PREDICATE_CONSUMER = x -> {
@@ -544,5 +543,72 @@ public final class JProlChoicePoint {
 
   public boolean isCompleted() {
     return this.rootChoicePoint.rootLastGoalAtChain == null || !this.thereAreVariants;
+  }
+
+  @Override
+  public int compare(Term term1, Term term2) {
+    if (term1 == term2) {
+      return 0;
+    }
+
+    term1 = term1.findNonVarOrSame();
+    term2 = term2.findNonVarOrSame();
+
+    final int result;
+    switch (term1.findNonVarOrSame().getTermType()) {
+      case ATOM: {
+        if (term2 instanceof CompoundTerm) {
+          result = -1;
+        } else if (term2.getTermType() == ATOM) {
+          if (term1 instanceof NumericTerm) {
+            if (term2 instanceof NumericTerm) {
+              if (term1 instanceof TermDouble || term2 instanceof TermDouble) {
+                result = Double.compare(term1.toNumber().doubleValue(), term2.toNumber().doubleValue());
+              } else {
+                result = Long.compare(term1.toNumber().longValue(), term2.toNumber().longValue());
+              }
+            } else {
+              result = -1;
+            }
+          } else {
+            result = term2 instanceof NumericTerm ? 1 : term1.getText().compareTo(term2.getText());
+          }
+        } else {
+          result = 1;
+        }
+      }
+      break;
+      case LIST:
+      case STRUCT: {
+        if (term2 instanceof CompoundTerm) {
+          final TermStruct struct1 = (TermStruct) term1;
+          final TermStruct struct2 = (TermStruct) term2;
+          int res = Integer.compare(struct1.getArity(), struct2.getArity());
+          if (res == 0) {
+            res = struct1.getFunctor().getText().compareTo(struct2.getFunctor().getText());
+            if (res == 0) {
+              for (int i = 0; i < struct1.getArity() && res == 0; i++) {
+                res = this.compare(struct1.getElement(i), struct2.getElement(i));
+              }
+            }
+          }
+          result = res;
+        } else {
+          result = 1;
+        }
+      }
+      break;
+      case VAR: {
+        if (term2.getTermType() == VAR) {
+          result = term1.getText().compareTo(term2.getText());
+        } else {
+          result = -1;
+        }
+      }
+      break;
+      default:
+        result = 1;
+    }
+    return result;
   }
 }
