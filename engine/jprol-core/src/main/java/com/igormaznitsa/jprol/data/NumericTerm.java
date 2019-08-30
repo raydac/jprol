@@ -42,12 +42,6 @@ public abstract class NumericTerm extends Term {
 
   public abstract boolean isDouble();
 
-  @SuppressWarnings("unchecked")
-  @Override
-  public final <T> T toObject() {
-    return (T) this.toNumber();
-  }
-
   @Override
   public final String forWrite() {
     return this.getText();

@@ -284,11 +284,6 @@ public class Term {
     termTwo.doArrangeVars(varMap);
   }
 
-  @SuppressWarnings("unchecked")
-  public <T> T toObject() {
-    return (T) this.text;
-  }
-
   public int getTextLength() {
     return this.text == null ? 0 : this.text.length();
   }

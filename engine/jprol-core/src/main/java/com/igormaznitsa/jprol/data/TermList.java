@@ -18,7 +18,10 @@ package com.igormaznitsa.jprol.data;
 
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import static com.igormaznitsa.jprol.data.TermType.LIST;
@@ -439,25 +442,6 @@ public final class TermList extends TermStruct {
         break;
       }
     }
-  }
-
-
-  @SuppressWarnings("unchecked")
-  @Override
-  public <T> T toObject() {
-    final List<Object> list = new ArrayList<>();
-    TermList tlist = this;
-    while (tlist.isNullList()) {
-      list.add(tlist.getHead().toObject());
-      final Term tail = tlist.getTail();
-      if (tail.getTermType() == LIST) {
-        tlist = (TermList) tail;
-      } else {
-        list.add(tail.toObject());
-        break;
-      }
-    }
-    return (T) list;
   }
 
   @Override

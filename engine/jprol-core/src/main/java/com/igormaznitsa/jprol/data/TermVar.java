@@ -230,16 +230,6 @@ public final class TermVar extends Term {
   }
 
   @Override
-  public <T> T toObject() {
-    final Term foundValue = this.findNonVarOrDefault(null);
-    if (foundValue == null) {
-      throw new IllegalStateException(String.format("Free variable \'%s\' can't be converted into Object", this.getText()));
-    } else {
-      return foundValue.toObject();
-    }
-  }
-
-  @Override
   public String toString() {
     final StringBuilder builder = new StringBuilder();
     final Term val = getValue();

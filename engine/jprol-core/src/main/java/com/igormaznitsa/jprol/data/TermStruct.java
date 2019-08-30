@@ -112,20 +112,6 @@ public class TermStruct extends Term {
     return getStringRepresentation(true);
   }
 
-  @SuppressWarnings("unchecked")
-  @Override
-  public <T> T toObject() {
-    final int size = this.getArity() + 1;
-    final Object[] array = new Object[size];
-
-    array[0] = this.getFunctor().toObject();
-    for (int li = 1; li < size; li++) {
-      array[li] = this.getElement(li - 1).toObject();
-    }
-
-    return (T) array;
-  }
-
   private String getStringRepresentation(final boolean sourceLike) {
     if (functor.getTermType() != OPERATOR) {
       // just struct
