@@ -406,24 +406,6 @@ public class TermStruct extends Term {
   }
 
   @Override
-  public boolean stronglyEqualsTo(final Term term) {
-    boolean result = false;
-
-    if (term.getClass() == TermStruct.class) {
-      final TermStruct thatStruct = (TermStruct) term;
-      final int arity = this.getArity();
-      if (arity == thatStruct.getArity() && this.getFunctor().stronglyEqualsTo(thatStruct.getFunctor())) {
-        result = true;
-        for (int i = 0; i < arity && result; i++) {
-          result = this.getElement(i).stronglyEqualsTo(thatStruct.getElement(i));
-        }
-      }
-    }
-
-    return result;
-  }
-
-  @Override
   public boolean dryUnifyTo(Term atom) {
     if (this == atom) {
       return true;

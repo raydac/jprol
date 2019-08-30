@@ -61,11 +61,6 @@ public final class TermLong extends NumericTerm {
   }
 
   @Override
-  public boolean stronglyEqualsTo(final Term term) {
-    return this == term || (term.getClass() == TermLong.class && this.value == ((TermLong) term).value);
-  }
-
-  @Override
   public Number toNumber() {
     return this.value;
   }

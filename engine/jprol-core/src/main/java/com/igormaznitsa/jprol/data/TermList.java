@@ -265,21 +265,6 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public boolean stronglyEqualsTo(final Term term) {
-    boolean result = false;
-
-    if (term.getClass() == TermList.class) {
-      final TermList thatList = (TermList) term;
-      if (this.isNullList() && thatList.isNullList()) {
-        result = true;
-      } else {
-        result = this.getHead().stronglyEqualsTo(thatList.getHead()) && this.getTail().stronglyEqualsTo(thatList.getTail());
-      }
-    }
-    return result;
-  }
-
-  @Override
   public boolean dryUnifyTo(Term atom) {
     if (this == atom) {
       return true;

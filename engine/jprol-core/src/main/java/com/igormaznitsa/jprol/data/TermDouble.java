@@ -62,11 +62,6 @@ public final class TermDouble extends NumericTerm {
   }
 
   @Override
-  public boolean stronglyEqualsTo(final Term term) {
-    return this == term || (term.getClass() == TermDouble.class && Double.compare(this.value, ((TermDouble) term).value) == 0);
-  }
-
-  @Override
   public Number toNumber() {
     return this.value;
   }

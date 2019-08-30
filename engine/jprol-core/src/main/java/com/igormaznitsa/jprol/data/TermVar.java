@@ -354,26 +354,6 @@ public final class TermVar extends Term {
   }
 
   @Override
-  public boolean stronglyEqualsTo(final Term term) {
-    boolean result = false;
-    if (term.getClass() == TermVar.class) {
-      final TermVar thatVar = (TermVar) term;
-
-      if (this.uid == thatVar.uid) {
-        final Term value = this.value;
-        final Term thatValue = thatVar.value;
-        if (value == null && thatValue == null) {
-          result = true;
-        } else {
-          result = value != null && thatValue != null && value.stronglyEqualsTo(thatValue);
-        }
-      }
-    }
-
-    return result;
-  }
-
-  @Override
   public boolean hasVariableWithName(final String name) {
     return getText().equals(name);
   }
