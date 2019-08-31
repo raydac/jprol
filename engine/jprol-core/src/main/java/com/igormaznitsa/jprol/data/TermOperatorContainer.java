@@ -25,7 +25,7 @@ import java.util.List;
 
 import static com.igormaznitsa.jprol.data.TermType.OPERATORS;
 
-public final class TermOperatorContainer extends Term {
+public final class TermOperatorContainer extends SpecialTerm {
 
   private final OpContainer opContainer;
   private volatile TermOperator opFZ;
