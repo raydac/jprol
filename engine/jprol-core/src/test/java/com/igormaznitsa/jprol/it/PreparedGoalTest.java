@@ -25,7 +25,7 @@ class PreparedGoalTest extends AbstractJProlTest {
             final JProlChoicePoint workGoal = goal.makeChoicePoint(context, a, b, c, d);
             assertNotNull(workGoal.prove());
 
-            assertEquals(precalculatedResult, workGoal.getVarAsNumber("Result").longValue());
+            assertEquals(precalculatedResult, getVarAsNumber(workGoal, "Result").longValue());
           }
         }
       }

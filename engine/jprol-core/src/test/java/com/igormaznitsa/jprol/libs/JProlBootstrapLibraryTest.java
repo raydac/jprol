@@ -17,16 +17,15 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
   void testCurrentPrologFlag2() {
     final JProlChoicePoint point = prepareGoal("current_prolog_flag(" + JProlSystemFlag.VERIFY.getNameTerm().getText() + ",X).");
     assertNotNull(point.prove());
-    final TermVar xVar = point.getVarForName("X");
-    assertNotNull(xVar);
+    final TermVar xVar = point.findVar("X").get();
     assertTrue(JProlSystemFlag.VERIFY.getDefaultValue().unifyTo(xVar.getValue()));
     assertNull(point.prove());
 
     final JProlChoicePoint all = prepareGoal("current_prolog_flag(A,B).");
     for (final JProlSystemFlag f : JProlSystemFlag.values()) {
       assertNotNull(all.prove());
-      assertTrue(f.getNameTerm().dryUnifyTo(all.getVarForName("A")));
-      assertTrue(f.getDefaultValue().dryUnifyTo(all.getVarForName("B")));
+      assertTrue(f.getNameTerm().dryUnifyTo(all.findVar("A").get()));
+      assertTrue(f.getDefaultValue().dryUnifyTo(all.findVar("B").get()));
     }
     assertNull(all.prove());
 
@@ -54,8 +53,8 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
 
     //[(X = 1 + 2, 'is'(Y, X * 3)),[[X <-- (1 + 2), Y <-- 9]]]. % error? 1+2
     JProlChoicePoint goal = proveGoal("X=1+2,is(Y,X*3).");
-    assertEquals(goal.getVarAsText("X"), "1 + 2");
-    assertEquals(goal.getVarAsNumber("Y"), 9L);
+    assertEquals("1 + 2", getVarAsText(goal, "X"));
+    assertEquals(9L, getVarAsNumber(goal, "Y"));
     assertNull(goal.prove());
 
     //['is'(foo,77), failure]. % error? foo

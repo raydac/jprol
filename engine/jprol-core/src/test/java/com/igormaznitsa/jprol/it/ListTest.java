@@ -22,7 +22,7 @@ class ListTest extends AbstractJProlTest {
 
     for (final String anEtalon : etalon) {
       assertNotNull(testgoal.prove());
-      assertEquals(anEtalon, testgoal.getVarAsText("X"));
+      assertEquals(anEtalon, getVarAsText(testgoal, "X"));
     }
     assertNull(testgoal.prove());
   }
@@ -45,7 +45,7 @@ class ListTest extends AbstractJProlTest {
 
     for (final String anEtalon : etalon) {
       assertNotNull(testgoal.prove());
-      assertEquals(anEtalon, testgoal.getVarAsText("X"));
+      assertEquals(anEtalon, getVarAsText(testgoal, "X"));
     }
     assertNull(testgoal.prove());
   }
@@ -56,7 +56,7 @@ class ListTest extends AbstractJProlTest {
     final JProlChoicePoint testgoal = new JProlChoicePoint("prime_list(100,X).", context);
 
     assertNotNull(testgoal.prove());
-    assertEquals("[2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97]", testgoal.getVarAsText("X"));
+    assertEquals("[2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97]", getVarAsText(testgoal, "X"));
     assertNull(testgoal.prove());
   }
 
@@ -66,7 +66,7 @@ class ListTest extends AbstractJProlTest {
     final JProlChoicePoint testgoal = new JProlChoicePoint("fill_natural(10,L).", context);
 
     assertNotNull(testgoal.prove());
-    assertEquals("[1,2,3,4,5,6,7,8,9,10]", testgoal.getVarAsText("L"));
+    assertEquals("[1,2,3,4,5,6,7,8,9,10]", getVarAsText(testgoal, "L"));
     assertNull(testgoal.prove());
   }
 
@@ -76,13 +76,13 @@ class ListTest extends AbstractJProlTest {
     JProlChoicePoint testgoal = new JProlChoicePoint("rcshift(X,[1,2,3,4,5,6,7]).", context);
 
     assertNotNull(testgoal.prove());
-    assertEquals("[2,3,4,5,6,7,1]", testgoal.getVarAsText("X"));
+    assertEquals("[2,3,4,5,6,7,1]", getVarAsText(testgoal, "X"));
     assertNull(testgoal.prove());
 
     testgoal = new JProlChoicePoint("lcshift(X,[1,2,3,4,5,6,7]).", context);
 
     assertNotNull(testgoal.prove());
-    assertEquals("[7,1,2,3,4,5,6]", testgoal.getVarAsText("X"));
+    assertEquals("[7,1,2,3,4,5,6]", getVarAsText(testgoal, "X"));
     assertNull(testgoal.prove());
   }
 
@@ -92,7 +92,7 @@ class ListTest extends AbstractJProlTest {
     final JProlChoicePoint testgoal = new JProlChoicePoint("sublist([a,b,c,d,e],2,X).", context);
 
     assertNotNull(testgoal.prove());
-    assertEquals("['c','d','e']", testgoal.getVarAsText("X"));
+    assertEquals("['c','d','e']", getVarAsText(testgoal, "X"));
     assertNull(testgoal.prove());
   }
 
@@ -102,7 +102,7 @@ class ListTest extends AbstractJProlTest {
     final JProlChoicePoint testgoal = new JProlChoicePoint("replace([a,b,c,d,e,f,g],e,1,X).", context);
 
     assertNotNull(testgoal.prove());
-    assertEquals("['a','b','c','d',1,'f','g']", testgoal.getVarAsText("X"));
+    assertEquals("['a','b','c','d',1,'f','g']", getVarAsText(testgoal, "X"));
     assertNull(testgoal.prove());
   }
 
@@ -112,7 +112,7 @@ class ListTest extends AbstractJProlTest {
     final JProlChoicePoint testgoal = new JProlChoicePoint("bubble([3,1,99,3,7,5,20],X).", context);
 
     assertNotNull(testgoal.prove());
-    assertEquals("[1,3,3,5,7,20,99]", testgoal.getVarAsText("X"));
+    assertEquals("[1,3,3,5,7,20,99]", getVarAsText(testgoal, "X"));
     assertNull(testgoal.prove());
   }
 
@@ -122,7 +122,7 @@ class ListTest extends AbstractJProlTest {
     final JProlChoicePoint testgoal = new JProlChoicePoint("reverse([1,2,3,4,5,6],X).", context);
 
     assertNotNull(testgoal.prove());
-    assertEquals("[6,5,4,3,2,1]", testgoal.getVarAsText("X"));
+    assertEquals("[6,5,4,3,2,1]", getVarAsText(testgoal, "X"));
     assertNull(testgoal.prove());
   }
 
@@ -143,8 +143,8 @@ class ListTest extends AbstractJProlTest {
 
     for (int li = 0; li < etalon.length; li += 2) {
       assertNotNull(testgoal.prove());
-      assertEquals(etalon[li], testgoal.getVarAsText("X"));
-      assertEquals(etalon[li + 1], testgoal.getVarAsText("Y"));
+      assertEquals(etalon[li], getVarAsText(testgoal, "X"));
+      assertEquals(etalon[li + 1], getVarAsText(testgoal, "Y"));
     }
     assertNull(testgoal.prove());
 
@@ -156,7 +156,7 @@ class ListTest extends AbstractJProlTest {
     final JProlChoicePoint testgoal = new JProlChoicePoint("test(R).", context);
 
     assertNotNull(testgoal.prove());
-    assertEquals(testgoal.getVarAsText("R"), "[1,2,3,4]");
+    assertEquals(getVarAsText(testgoal, "R"), "[1,2,3,4]");
     assertNull(testgoal.prove());
   }
 
@@ -169,7 +169,7 @@ class ListTest extends AbstractJProlTest {
     for (final String anEtalon : etalon) {
       final Term nextTerm = testgoal.prove();
       assertNotNull(nextTerm);
-      assertEquals(anEtalon, testgoal.getVarAsText("X"));
+      assertEquals(anEtalon, getVarAsText(testgoal, "X"));
     }
 
     assertNull(testgoal.prove());
@@ -187,7 +187,7 @@ class ListTest extends AbstractJProlTest {
         break;
       }
 
-      assertEquals(etalon, testgoal.getVarAsNumber("X").intValue());
+      assertEquals(etalon, getVarAsNumber(testgoal, "X").intValue());
 
       etalon++;
     }
@@ -200,7 +200,7 @@ class ListTest extends AbstractJProlTest {
     final JProlChoicePoint testgoal = new JProlChoicePoint("test(X).", context);
 
     assertNotNull(testgoal.prove());
-    assertEquals("[1,'b','c',4]", testgoal.getVarAsText("X"));
+    assertEquals("[1,'b','c',4]", getVarAsText(testgoal, "X"));
     assertNull(testgoal.prove());
   }
 

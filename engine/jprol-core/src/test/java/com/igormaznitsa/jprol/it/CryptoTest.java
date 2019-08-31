@@ -44,9 +44,9 @@ class CryptoTest extends AbstractJProlTest {
 
     final JProlChoicePoint goal = new JProlChoicePoint("puzzle1(N1,N2,N), sum(N1,N2,N).", context);
     assertNotNull(goal.prove());
-    assertEquals("[7,2,3,9,7,0]", goal.getVarAsText("N"));
-    assertEquals("[5,2,6,4,8,5]", goal.getVarAsText("N1"));
-    assertEquals("[1,9,7,4,8,5]", goal.getVarAsText("N2"));
+    assertEquals("[7,2,3,9,7,0]", getVarAsText(goal, "N"));
+    assertEquals("[5,2,6,4,8,5]", getVarAsText(goal, "N1"));
+    assertEquals("[1,9,7,4,8,5]", getVarAsText(goal, "N2"));
     assertNull(goal.prove());
 
     final JProlChoicePoint goal2 = new JProlChoicePoint("puzzle2(N1,N2,N), sum(N1,N2,N).", context);

@@ -29,6 +29,7 @@ import java.io.StringReader;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
@@ -190,29 +191,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
     return (this.isCompleted() ? "Completed " : "Active ") + "Goal(" + this.goalTerm.toString() + ')';
   }
 
-  public Number getVarAsNumber(final String varName) {
-    final TermVar var = getVarForName(varName);
-    if (var == null) {
-      throw new IllegalArgumentException("Unknown variable for name \'" + varName + '\'');
-    }
-    return var.toNumber();
-  }
-
-  public String getVarAsText(final String varName) {
-    final TermVar var = getVarForName(varName);
-    if (var == null) {
-      throw new IllegalArgumentException("Unknown variable for name \'" + varName + '\'');
-    }
-    final Term value = var.getValue();
-    if (value == null) {
-      return null;
-    } else {
-      return value.toSrcString();
-    }
-  }
-
-  public TermVar getVarForName(final String name) {
-    return this.variables == null ? null : this.variables.get(requireNonNull(name));
+  public Optional<TermVar> findVar(final String name) {
+    return this.variables == null ? Optional.empty() : Optional.ofNullable(this.variables.get(requireNonNull(name)));
   }
 
   public JProlChoicePoint replaceLastGoalAtChain(final Term goal) {

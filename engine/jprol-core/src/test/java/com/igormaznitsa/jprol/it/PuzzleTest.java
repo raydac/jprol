@@ -27,15 +27,15 @@ class PuzzleTest extends AbstractJProlTest {
     };
 
     assertNotNull(goal.prove());
-    assertEquals(goal.getVarAsText("X"), puzzle1solXYZ[0]);
-    assertEquals(goal.getVarAsText("Y"), puzzle1solXYZ[1]);
-    assertEquals(goal.getVarAsText("Z"), puzzle1solXYZ[2]);
+    assertEquals(getVarAsText(goal, "X"), puzzle1solXYZ[0]);
+    assertEquals(getVarAsText(goal, "Y"), puzzle1solXYZ[1]);
+    assertEquals(getVarAsText(goal, "Z"), puzzle1solXYZ[2]);
     assertNull(goal.prove());
     final JProlChoicePoint goal2 = new JProlChoicePoint("puzzle2(X,Y,Z),sum(X,Y,Z).", context);
 
     for (final String aPuzzle2solZ : puzzle2solZ) {
       assertNotNull(goal2.prove());
-      assertEquals(aPuzzle2solZ, goal2.getVarAsText("Z"));
+      assertEquals(aPuzzle2solZ, getVarAsText(goal2, "Z"));
     }
 
     assertNull(goal2.prove());

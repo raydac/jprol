@@ -17,7 +17,7 @@ class MiscAlgorithmsTest extends AbstractJProlTest {
     final JProlChoicePoint goal = new JProlChoicePoint(goalText, context);
     final Term resultterm = goal.prove();
     assertNotNull(resultterm);
-    final Term result = goal.getVarForName("A").getValue();
+    final Term result = goal.findVar("A").get().getValue();
     assertNotNull(result);
     assertEquals(a, result.toNumber().intValue());
     assertNull(goal.prove());
@@ -51,7 +51,7 @@ class MiscAlgorithmsTest extends AbstractJProlTest {
     final JProlChoicePoint goal = new JProlChoicePoint("fib(22,Result).", context);
 
     assertNotNull(goal.prove());
-    assertEquals(17711L, goal.getVarAsNumber("Result").intValue());
+    assertEquals(17711L, getVarAsNumber(goal, "Result").intValue());
     assertNull(goal.prove());
   }
 
@@ -67,7 +67,7 @@ class MiscAlgorithmsTest extends AbstractJProlTest {
     final JProlChoicePoint goal = new JProlChoicePoint("Rec1=rectangle(4,3),send(Rec1,area(Area)).", context);
 
     assertNotNull(goal.prove());
-    assertEquals(12L, goal.getVarAsNumber("Area").longValue());
+    assertEquals(12L, getVarAsNumber(goal, "Area").longValue());
     assertNull(goal.prove());
   }
 }

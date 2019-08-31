@@ -42,9 +42,9 @@ class MapColorTest extends AbstractJProlTest {
     Term result7775 = null;
     while (goal.prove() != null) {
       if (counter == 0) {
-        result0 = goal.getVarForName("X").getValue().makeClone();
+        result0 = goal.findVar("X").get().getValue().makeClone();
       } else if (counter == 7775) {
-        result7775 = goal.getVarForName("X").getValue().makeClone();
+        result7775 = goal.findVar("X").get().getValue().makeClone();
       }
       counter++;
     }

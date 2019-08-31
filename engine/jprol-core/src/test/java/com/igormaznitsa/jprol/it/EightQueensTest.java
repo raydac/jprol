@@ -115,7 +115,7 @@ class EightQueensTest extends AbstractJProlTest {
 
     for (final String e : etal) {
       assertNotNull(goal.prove());
-      assertEquals(e, goal.getVarAsText("Res"));
+      assertEquals(e, getVarAsText(goal, "Res"));
     }
     assertNull(goal.prove());
   }

@@ -78,7 +78,7 @@ class MiscTest extends AbstractJProlTest {
 
     Term t;
     while ((t = goal.prove()) != null) {
-      final TermVar valy = goal.getVarForName("Y");
+      final TermVar valy = goal.findVar("Y").get();
       assertNull(result);
       result = valy;
     }

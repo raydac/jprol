@@ -60,7 +60,7 @@ class OperatorTest extends AbstractJProlTest {
     String text = null;
     Term curresult;
     while ((curresult = gl.prove()) != null) {
-      text = gl.getVarForName("X").getValue().getText();
+      text = gl.findVar("X").get().getValue().getText();
       solvecounter++;
     }
 

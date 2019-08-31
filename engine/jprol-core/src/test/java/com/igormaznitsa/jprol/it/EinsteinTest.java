@@ -34,7 +34,7 @@ class EinsteinTest extends AbstractJProlTest {
 
     final JProlChoicePoint goal = new JProlChoicePoint("einstein(_,X).", context);
     assertNotNull(goal.prove());
-    assertEquals("'german'", goal.getVarAsText("X"));
+    assertEquals("'german'", getVarAsText(goal, "X"));
     assertNull(goal.prove());
   }
 

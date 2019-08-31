@@ -89,7 +89,7 @@ class NonDeterministicAutomataTest extends AbstractJProlTest {
 
     for (final String e : etal) {
       assertNotNull(goal.prove());
-      assertEquals(e, goal.getVarAsText("X"));
+      assertEquals(e, getVarAsText(goal, "X"));
     }
     assertNull(goal.prove());
   }

@@ -16,6 +16,7 @@
 
 package com.igormaznitsa.jprol.it;
 
+import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeContextFactory;
@@ -64,6 +65,22 @@ public abstract class AbstractJProlTest {
     return context;
   }
 
+  public static Number getVarAsNumber(final JProlChoicePoint cp, final String varName) {
+    final TermVar variable = cp.findVar(varName).orElseThrow(() -> new IllegalArgumentException("Unknown variable for name \'" + varName + '\''));
+    return variable.toNumber();
+  }
+
+  public static String getVarAsText(final JProlChoicePoint cp, final String varName) {
+    final TermVar variable = cp.findVar(varName).orElseThrow(() -> new IllegalArgumentException("Unknown variable for name \'" + varName + '\''));
+    final Term value = variable.getValue();
+    if (value == null) {
+      return null;
+    } else {
+      return value.toSrcString();
+    }
+  }
+
+
   public JProlContext makeContextAndConsult(final String knowledgeBase) {
     final JProlContext context = this.makeTestContext();
     context.consult(new StringReader(knowledgeBase));
@@ -111,12 +128,12 @@ public abstract class AbstractJProlTest {
       assertNotNull(thisGoal.prove());
       if (res instanceof Number) {
         if (res instanceof Double) {
-          assertEquals((double) res, thisGoal.getVarAsNumber(varName).doubleValue());
+          assertEquals((double) res, getVarAsNumber(thisGoal, varName).doubleValue());
         } else {
-          assertEquals(((Number) res).longValue(), thisGoal.getVarAsNumber(varName).longValue());
+          assertEquals(((Number) res).longValue(), getVarAsNumber(thisGoal, varName).longValue());
         }
       } else {
-        assertEquals(res.toString(), thisGoal.getVarAsText(varName));
+        assertEquals(res.toString(), getVarAsText(thisGoal, varName));
       }
     }
     assertNull(thisGoal.prove());
@@ -142,9 +159,9 @@ public abstract class AbstractJProlTest {
       final String[] values = varsAndValues[index + 1];
       assertEquals(names.length, values.length);
       for (int v = 0; v < names.length; v++) {
-        final TermVar thevar = thisGoal.getVarForName(names[v]);
-        assertNotNull(thevar, "Can't find var: " + names[v]);
-        assertEquals(values[v], thevar.getValue().getText(), i + ": Var=" + names[v]);
+        final String varName = names[v];
+        final TermVar thevar = thisGoal.findVar(varName).orElseThrow(() -> new IllegalArgumentException("Can't find var: " + varName));
+        assertEquals(values[v], thevar.getValue().getText(), i + ": Var=" + varName);
       }
     }
     assertNull(thisGoal.prove());

@@ -19,7 +19,7 @@ class PrimitiveTest extends AbstractJProlTest {
     final JProlChoicePoint goal = new JProlChoicePoint("list(F).", context);
 
     assertNotNull(goal.prove());
-    assertEquals("['a','b','c','e']", goal.getVarAsText("F"));
+    assertEquals("['a','b','c','e']", getVarAsText(goal, "F"));
     assertNull(goal.prove());
   }
 
@@ -39,7 +39,7 @@ class PrimitiveTest extends AbstractJProlTest {
 
     for (final String etal : etalon) {
       assertNotNull(goal.prove());
-      assertEquals(etal, goal.getVarAsText("X"));
+      assertEquals(etal, getVarAsText(goal, "X"));
     }
     assertNull(goal.prove());
   }
@@ -50,7 +50,7 @@ class PrimitiveTest extends AbstractJProlTest {
     final JProlChoicePoint goal = new JProlChoicePoint("X=Y,Y=X,Y=2.", context);
 
     assertNotNull(goal.prove());
-    assertEquals("2", goal.getVarAsText("Y"));
+    assertEquals("2", getVarAsText(goal, "Y"));
     assertNull(goal.prove());
   }
 
@@ -60,16 +60,16 @@ class PrimitiveTest extends AbstractJProlTest {
     final JProlChoicePoint goal = new JProlChoicePoint("clause(a(X),Y).", context);
 
     assertNotNull(goal.prove());
-    assertEquals("'a1'", goal.getVarAsText("X"));
-    assertEquals("'true'", goal.getVarAsText("Y"));
+    assertEquals("'a1'", getVarAsText(goal, "X"));
+    assertEquals("'true'", getVarAsText(goal, "Y"));
 
     assertNotNull(goal.prove());
-    assertEquals("X", goal.getVarAsText("X"));
-    assertEquals("X = 100", goal.getVarAsText("Y"));
+    assertEquals("X", getVarAsText(goal, "X"));
+    assertEquals("X = 100", getVarAsText(goal, "Y"));
 
     assertNotNull(goal.prove());
-    assertEquals("2", goal.getVarAsText("X"));
-    assertEquals("'true'", goal.getVarAsText("Y"));
+    assertEquals("2", getVarAsText(goal, "X"));
+    assertEquals("'true'", getVarAsText(goal, "Y"));
 
     assertNull(goal.prove());
 
@@ -81,14 +81,14 @@ class PrimitiveTest extends AbstractJProlTest {
     final JProlChoicePoint goal = new JProlChoicePoint("catch(a(X),error(Err,_),Y='exc').", context);
 
     assertNotNull(goal.prove());
-    assertEquals("999", goal.getVarAsText("X"));
-    assertNull(goal.getVarAsText("Err"));
-    assertNull(goal.getVarAsText("Y"));
+    assertEquals("999", getVarAsText(goal, "X"));
+    assertNull(getVarAsText(goal, "Err"));
+    assertNull(getVarAsText(goal, "Y"));
 
     assertNotNull(goal.prove());
-    assertNull(goal.getVarAsText("X"));
-    assertEquals("some_exception", goal.getVarAsText("Err"));
-    assertEquals("'exc'", goal.getVarAsText("Y"));
+    assertNull(getVarAsText(goal, "X"));
+    assertEquals("some_exception", getVarAsText(goal, "Err"));
+    assertEquals("'exc'", getVarAsText(goal, "Y"));
 
     assertNull(goal.prove());
   }
@@ -100,14 +100,14 @@ class PrimitiveTest extends AbstractJProlTest {
     final JProlChoicePoint goal = new JProlChoicePoint("b(B)->a(A);b(C).", context);
 
     assertNotNull(goal.prove());
-    assertEquals("'b1'", goal.getVarAsText("B"));
-    assertEquals("'a1'", goal.getVarAsText("A"));
-    assertNull(goal.getVarAsText("C"));
+    assertEquals("'b1'", getVarAsText(goal, "B"));
+    assertEquals("'a1'", getVarAsText(goal, "A"));
+    assertNull(getVarAsText(goal, "C"));
 
     assertNotNull(goal.prove());
-    assertEquals("'b1'", goal.getVarAsText("B"));
-    assertEquals("'a2'", goal.getVarAsText("A"));
-    assertNull(goal.getVarAsText("C"));
+    assertEquals("'b1'", getVarAsText(goal, "B"));
+    assertEquals("'a2'", getVarAsText(goal, "A"));
+    assertNull(getVarAsText(goal, "C"));
 
     assertNull(goal.prove());
   }
@@ -123,7 +123,7 @@ class PrimitiveTest extends AbstractJProlTest {
     int index = 0;
 
     while (goal.prove() != null) {
-      assertEquals(results[index++], goal.getVarForName("X").getValue().getText());
+      assertEquals(results[index++], goal.findVar("X").get().getValue().getText());
     }
 
     assertEquals(results.length, index);
@@ -139,7 +139,7 @@ class PrimitiveTest extends AbstractJProlTest {
 
     for (final String result : results) {
       assertNotNull(goal.prove());
-      assertEquals(result, goal.getVarAsText("X"));
+      assertEquals(result, getVarAsText(goal, "X"));
     }
 
     assertNull(goal.prove());
@@ -174,8 +174,8 @@ class PrimitiveTest extends AbstractJProlTest {
 
     int index = 0;
     while (goal.prove() != null) {
-      assertEquals(results[index++], goal.getVarForName("X").getValue().getText());
-      assertEquals(results[index++], goal.getVarForName("Y").getValue().getText());
+      assertEquals(results[index++], goal.findVar("X").get().getValue().getText());
+      assertEquals(results[index++], goal.findVar("Y").get().getValue().getText());
     }
 
     assertEquals(results.length, index);
@@ -192,7 +192,7 @@ class PrimitiveTest extends AbstractJProlTest {
     int index = 0;
     for (final String result : results) {
       assertNotNull(goal.prove());
-      assertEquals(results[index++], goal.getVarAsText("X"));
+      assertEquals(results[index++], getVarAsText(goal, "X"));
     }
     assertNull(goal.prove());
   }
@@ -207,7 +207,7 @@ class PrimitiveTest extends AbstractJProlTest {
 
     for (final String result : results) {
       assertNotNull(goal.prove());
-      assertEquals(result, goal.getVarAsText("X"));
+      assertEquals(result, getVarAsText(goal, "X"));
     }
     assertNull(goal.prove());
 
@@ -222,7 +222,7 @@ class PrimitiveTest extends AbstractJProlTest {
     final JProlChoicePoint goal = new JProlChoicePoint("a(a3,X).", context);
 
     assertNotNull(goal.prove());
-    assertEquals("'b3'", goal.getVarAsText("X"));
+    assertEquals("'b3'", getVarAsText(goal, "X"));
     assertNull(goal.prove());
   }
 
@@ -250,7 +250,7 @@ class PrimitiveTest extends AbstractJProlTest {
 
     for (final String result : results) {
       assertNotNull(goal.prove());
-      assertEquals(result, goal.getVarAsText("X"));
+      assertEquals(result, getVarAsText(goal, "X"));
     }
     assertNull(goal.prove());
   }
@@ -265,7 +265,7 @@ class PrimitiveTest extends AbstractJProlTest {
 
     for (final String result : results) {
       assertNotNull(goal.prove());
-      assertEquals(result, goal.getVarAsText("X"));
+      assertEquals(result, getVarAsText(goal, "X"));
     }
     assertNull(goal.prove());
   }
@@ -280,7 +280,7 @@ class PrimitiveTest extends AbstractJProlTest {
 
     for (final String result : results) {
       assertNotNull(goal.prove());
-      assertEquals(result, goal.getVarAsText("X"));
+      assertEquals(result, getVarAsText(goal, "X"));
     }
     assertNull(goal.prove());
   }
@@ -297,8 +297,8 @@ class PrimitiveTest extends AbstractJProlTest {
     for (int la = 0; la < 2; la++) {
       for (int lb = 0; lb < 2; lb++) {
         assertNotNull(goal.prove());
-        assertEquals(resultsA[la], goal.getVarAsText("A"));
-        assertEquals(resultsB[lb], goal.getVarAsText("B"));
+        assertEquals(resultsA[la], getVarAsText(goal, "A"));
+        assertEquals(resultsB[lb], getVarAsText(goal, "B"));
       }
     }
     assertNull(goal.prove());
@@ -313,7 +313,7 @@ class PrimitiveTest extends AbstractJProlTest {
 
     for (final String result : results) {
       assertNotNull(goal.prove());
-      assertEquals(result, goal.getVarAsText("A"));
+      assertEquals(result, getVarAsText(goal, "A"));
     }
     assertNull(goal.prove());
   }
@@ -330,8 +330,8 @@ class PrimitiveTest extends AbstractJProlTest {
     for (final String aResultsA : resultsA) {
       for (final String aResultsB : resultsB) {
         assertNotNull(goal.prove());
-        assertEquals(aResultsA, goal.getVarAsText("A"));
-        assertEquals(aResultsB, goal.getVarAsText("B"));
+        assertEquals(aResultsA, getVarAsText(goal, "A"));
+        assertEquals(aResultsB, getVarAsText(goal, "B"));
       }
     }
 
@@ -344,7 +344,7 @@ class PrimitiveTest extends AbstractJProlTest {
 
     final JProlChoicePoint goal = new JProlChoicePoint("a(X).", context);
     assertNotNull(goal.prove());
-    assertEquals(goal.getVarAsText("X"), "'a1'");
+    assertEquals(getVarAsText(goal, "X"), "'a1'");
     assertNull(goal.prove());
   }
 
@@ -358,7 +358,7 @@ class PrimitiveTest extends AbstractJProlTest {
 
     for (final String result : results) {
       assertNotNull(goal.prove());
-      assertEquals(result, goal.getVarAsText("X"));
+      assertEquals(result, getVarAsText(goal, "X"));
     }
     assertNull(goal.prove());
   }
@@ -373,7 +373,7 @@ class PrimitiveTest extends AbstractJProlTest {
 
     for (final String result : results) {
       assertNotNull(goal.prove());
-      assertEquals(result, goal.getVarAsText("X"));
+      assertEquals(result, getVarAsText(goal, "X"));
     }
     assertNull(goal.prove());
   }
@@ -388,7 +388,7 @@ class PrimitiveTest extends AbstractJProlTest {
 
     for (final String result : results) {
       assertNotNull(goal.prove());
-      assertEquals(result, goal.getVarAsText("X"));
+      assertEquals(result, getVarAsText(goal, "X"));
     }
     assertNull(goal.prove());
   }
@@ -402,7 +402,7 @@ class PrimitiveTest extends AbstractJProlTest {
 
     for (final String result : results) {
       assertNotNull(goal.prove());
-      assertEquals(result, goal.getVarAsText("X"));
+      assertEquals(result, getVarAsText(goal, "X"));
     }
     assertNull(goal.prove());
 

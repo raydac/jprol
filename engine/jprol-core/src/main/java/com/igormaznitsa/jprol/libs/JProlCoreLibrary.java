@@ -1682,10 +1682,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
       public void restoreVarValues(final JProlChoicePoint goal) {
         this.vars.keySet().forEach(name -> {
-          final TermVar thatvar = goal.getVarForName(name);
-          if (thatvar != null) {
-            thatvar.unifyTo(this.vars.get(name));
-          }
+          goal.findVar(name).ifPresent(v -> v.unifyTo(this.vars.get(name)));
         });
       }
 
@@ -1806,10 +1803,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
       public void restoreVarValues(final JProlChoicePoint goal) {
         this.vars.keySet().forEach(name -> {
-          final TermVar thatvar = goal.getVarForName(name);
-          if (thatvar != null) {
-            thatvar.unifyTo(this.vars.get(name));
-          }
+          goal.findVar(name).ifPresent(v -> v.unifyTo(this.vars.get(name)));
         });
       }
 

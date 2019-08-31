@@ -18,7 +18,7 @@ class JProlIoLibraryTest extends AbstractJProlTest {
     context.addIoResourceProvider(Mockito.mock(IoResourceProvider.class));
     final JProlChoicePoint point = prepareGoal("seeing(X).", context);
     assertNotNull(point.prove());
-    assertEquals("[]", point.getVarForName("X").getValue().toString());
+    assertEquals("[]", point.findVar("X").get().getValue().toString());
   }
 
   @Test
