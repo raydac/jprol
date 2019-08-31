@@ -28,7 +28,6 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
@@ -40,7 +39,6 @@ import static java.util.stream.Collectors.toMap;
 
 public final class JProlChoicePoint implements Comparator<Term> {
 
-  private static final AtomicLong UID_GEN = new AtomicLong();
   private static final Consumer<String> NULL_UNDEFINED_PREDICATE_CONSUMER = x -> {
   };
   private final Map<String, TermVar> variables;
@@ -48,7 +46,6 @@ public final class JProlChoicePoint implements Comparator<Term> {
   private final JProlContext context;
   private final JProlChoicePoint rootChoicePoint;
   private final Term goalTerm;
-  private final long uid;
   private final boolean validate;
   private final boolean debug;
   private boolean thereAreVariants;
@@ -72,8 +69,6 @@ public final class JProlChoicePoint implements Comparator<Term> {
       final boolean validate,
       final Map<String, Term> presetVarValues
   ) {
-    this.uid = UID_GEN.incrementAndGet();
-
     this.thereAreVariants = true;
     this.validate = validate;
     this.debug = debug;
@@ -126,32 +121,12 @@ public final class JProlChoicePoint implements Comparator<Term> {
     return new JProlChoicePoint(null, goal, this.context, this.debug, this.validate, null);
   }
 
-  public long getUid() {
-    return this.uid;
-  }
-
   public boolean isDebug() {
     return this.debug;
   }
 
   public boolean isArgsValidate() {
     return this.validate;
-  }
-
-  @Override
-  public boolean equals(final Object that) {
-    if (this == that) {
-      return true;
-    }
-    if (that instanceof JProlChoicePoint) {
-      return this.uid == ((JProlChoicePoint) that).uid;
-    }
-    return false;
-  }
-
-  @Override
-  public int hashCode() {
-    return (int) ((this.uid >>> 32) ^ this.uid);
   }
 
   public Map<String, Term> findAllGroundedVars() {
