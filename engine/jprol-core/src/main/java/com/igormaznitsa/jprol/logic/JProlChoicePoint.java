@@ -19,8 +19,6 @@ package com.igormaznitsa.jprol.logic;
 import com.igormaznitsa.jprol.data.*;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
-import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
-import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.trace.TraceEvent;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
@@ -122,29 +120,6 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
   public JProlChoicePoint(final Term goal, final JProlContext context, final Map<String, Term> predefinedVarValues) {
     this(null, goal, context, context.isDebug(), context.isTemplateValidate(), predefinedVarValues);
-  }
-
-  private static Term assertCallable(final Term term) {
-    switch (term.getTermType()) {
-      case ATOM: {
-        if (term instanceof NumericTerm) {
-          throw new ProlTypeErrorException("callable", term);
-        }
-      }
-      break;
-      case VAR: {
-        if (!term.isGround()) {
-          throw new ProlInstantiationErrorException("callable", term);
-        }
-      }
-      break;
-      case LIST: {
-        throw new ProlTypeErrorException("callable", term);
-      }
-      default:
-        break;
-    }
-    return term;
   }
 
   public JProlChoicePoint makeForGoal(final Term goal) {
