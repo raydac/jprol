@@ -23,7 +23,6 @@ import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
-import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeContextFactory;
 import com.igormaznitsa.jprol.libs.*;
 import com.igormaznitsa.jprol.logic.ConsultInteractor;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
@@ -1120,7 +1119,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
       this.messageEditor.addInfoText("Creating Context...");
 
       try {
-        context = new JProlContext(new InMemoryKnowledgeContextFactory(), "prol-script").addIoResourceProvider(this);
+        context = new JProlContext("prol-script").addIoResourceProvider(this);
         context.addContextListener(this);
         if (this.startedInTracing.get()) {
           context.setSystemFlag(JProlSystemFlag.DEBUG, Terms.TRUE);

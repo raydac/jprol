@@ -19,7 +19,6 @@ package com.igormaznitsa.jprol.it;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.exceptions.ProlException;
-import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeContextFactory;
 import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
 import com.igormaznitsa.jprol.libs.JProlIoLibrary;
 import com.igormaznitsa.jprol.libs.JProlThreadLibrary;
@@ -38,7 +37,6 @@ public abstract class AbstractJProlTest {
 
   public JProlContext makeTestContext(final IoResourceProvider... ioProviders) {
     final JProlContext context = new JProlContext(
-        new InMemoryKnowledgeContextFactory(),
         "test-context",
         new JProlCoreLibrary(),
         new JProlIoLibrary(),

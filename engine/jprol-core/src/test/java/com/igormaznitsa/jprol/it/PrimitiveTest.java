@@ -393,19 +393,4 @@ class PrimitiveTest extends AbstractJProlTest {
     assertNull(goal.prove());
   }
 
-  @Test
-  void testLocalCut() {
-    final JProlContext context = makeContextAndConsult("f(f1).f(f2).c(c1).c(c2).c(c3).a(X):-c(X),!!.a(a2).a(a3).a(a4).b(X):-a(X).");
-
-    final JProlChoicePoint goal = new JProlChoicePoint("b(X).", context);
-    final String[] results = new String[] {"'c1'", "'a2'", "'a3'", "'a4'"};
-
-    for (final String result : results) {
-      assertNotNull(goal.prove());
-      assertEquals(result, getVarAsText(goal, "X"));
-    }
-    assertNull(goal.prove());
-
-  }
-
 }

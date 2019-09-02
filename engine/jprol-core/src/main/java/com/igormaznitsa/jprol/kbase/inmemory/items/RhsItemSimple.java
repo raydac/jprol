@@ -18,12 +18,11 @@ package com.igormaznitsa.jprol.kbase.inmemory.items;
 
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
-import com.igormaznitsa.jprol.kbase.KnowledgeContext;
 
 final class RhsItemSimple extends InMemoryItem {
 
-  RhsItemSimple(final KnowledgeContext knowledgeContext, final TermStruct clause) {
-    super(knowledgeContext, clause);
+  RhsItemSimple(final TermStruct clause) {
+    super(clause);
   }
 
   @Override

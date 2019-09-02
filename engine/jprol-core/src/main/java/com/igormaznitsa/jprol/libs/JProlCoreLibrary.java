@@ -563,7 +563,6 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
 
       clIterator = goal.getContext().getKnowledgeBase().iterate(
-          goal.getContext().getKnowledgeContext(),
           IteratorType.ANY,
           head.getTermType() == STRUCT ? (TermStruct) head : newStruct(head),
           x -> {
@@ -1158,7 +1157,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
       list = new ArrayList<>(cpoint.getContext().findAllForPredicateIndicatorInLibs(predicateIndicator));
 
-      final Iterator<TermStruct> iter = cpoint.getContext().getKnowledgeBase().iterateSignatures(cpoint.getContext().getKnowledgeContext(), predicateIndicator.getTermType() == VAR ? Terms.newStruct("/", new Term[] {Terms.newVar(), Terms.newVar()}) : (TermStruct) predicateIndicator);
+      final Iterator<TermStruct> iter = cpoint.getContext().getKnowledgeBase().iterateSignatures(predicateIndicator.getTermType() == VAR ? Terms.newStruct("/", new Term[] {Terms.newVar(), Terms.newVar()}) : (TermStruct) predicateIndicator);
       while (iter.hasNext()) {
         list.add(iter.next());
       }
@@ -1186,7 +1185,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
 
       list = new ArrayList<>();
-      final Iterator<TermStruct> iter = cpoint.getContext().getKnowledgeBase().iterateSignatures(cpoint.getContext().getKnowledgeContext(), predicateIndicator.getTermType() == VAR ? Terms.newStruct("/", new Term[] {Terms.newVar(), Terms.newVar()}) : (TermStruct) predicateIndicator);
+      final Iterator<TermStruct> iter = cpoint.getContext().getKnowledgeBase().iterateSignatures(predicateIndicator.getTermType() == VAR ? Terms.newStruct("/", new Term[] {Terms.newVar(), Terms.newVar()}) : (TermStruct) predicateIndicator);
       while (iter.hasNext()) {
         list.add(iter.next());
       }
@@ -2138,52 +2137,6 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     if (milliseconds > 0) {
       Thread.sleep(milliseconds);
     }
-  }
-
-  // internal auxiliary function for facts/1 and rules/1 predicates
-  private static TermStruct processIterator(final JProlChoicePoint goal, final Iterator<TermStruct> iterator) {
-    TermStruct result = null;
-    if (iterator.hasNext()) {
-      result = iterator.next();
-    } else {
-      goal.cutVariants();
-    }
-    return result;
-  }
-
-  @JProlPredicate(signature = "facts/1", args = {"+callable"}, reference = "Finds only facts at the knowledge base.")
-  public static boolean predicateFACTS(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term callableTerm = predicate.getElement(0).findNonVarOrSame();
-    if (goal.isArgsValidate()) {
-      ProlAssertions.assertCallable(callableTerm);
-    }
-
-    Iterator<TermStruct> factIterator = goal.getPayload();
-    if (factIterator == null) {
-      Term term = callableTerm;
-      factIterator = goal.getContext()
-          .getKnowledgeBase()
-          .iterate(goal.getContext().getKnowledgeContext(), IteratorType.FACTS, (TermStruct) term, x -> {
-            goal.getContext().notifyAboutUndefinedPredicate(goal, x);
-          });
-
-      if (factIterator == null) {
-        goal.cutVariants();
-        return false;
-      } else {
-        goal.setPayload(factIterator);
-      }
-    }
-
-    boolean result = false;
-    final TermStruct nextFact = processIterator(goal, factIterator);
-    if (nextFact == null) {
-      goal.cutVariants();
-    } else {
-      result = assertUnify(callableTerm, nextFact);
-    }
-
-    return result;
   }
 
   @JProlPredicate(determined = true, signature = "regtrigger/3", args = {"+predicate_indicator,+atom,+callable"}, reference = "regtrigger(somepredicate/3,onassert,triggerhandler) is always true. The predicate allows to register a trigger handler for distinguished predicate signature. The handled trigger event can be selected from the list [onassert, onretract, onassertretract].")

@@ -101,13 +101,6 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testFacts1() {
-    consultAndCheckVar("some1(a). some1(b). some1(X):-number(X). some1(c). some1(X).", "facts(some1(X)).", "X", "'a'", "'b'", "'c'");
-    consultAndCheckVar("some1(a,b). some1(c,d). some1(a,X):-number(X). some1(c,e). some1(X,X).", "facts(some1(A,B)), X = A/B.", "X", "'a' / 'b'", "'c' / 'd'", "'c' / 'e'");
-    assertProlException("facts(X).", ProlInstantiationErrorException.class);
-  }
-
-  @Test
   void testSort2() {
     checkVarsAfterCall("sort([B,A,1], [2,3,1]).", new String[][] {new String[] {"A", "B"}, new String[] {"3", "2"}});
     checkVarValues("sort([4,2,5,1,4,7,8,2,6,5,3,5,9,1,0],X).", "X", "[0,1,2,3,4,5,6,7,8,9]");

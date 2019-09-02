@@ -37,11 +37,11 @@ public interface KnowledgeBase {
 
   boolean hasOperatorStartsWith(JProlContext context, String str);
 
-  CloseableIterator<TermStruct> iterate(KnowledgeContext knowledgeContext, IteratorType type, TermStruct template, Consumer<String> unknownPredicateConsumer);
+  CloseableIterator<TermStruct> iterate(IteratorType type, TermStruct template, Consumer<String> unknownPredicateConsumer);
 
-  CloseableIterator<TermStruct> iterate(KnowledgeContext knowledgeContext, String signature, Consumer<String> unknownPredicateConsumer);
+  CloseableIterator<TermStruct> iterate(String signature, Consumer<String> unknownPredicateConsumer);
 
-  CloseableIterator<TermStruct> iterateSignatures(KnowledgeContext knowledgeContext, TermStruct indicator);
+  CloseableIterator<TermStruct> iterateSignatures(TermStruct indicator);
 
   CloseableIterator<TermOperator> makeOperatorIterator();
 

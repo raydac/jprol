@@ -22,8 +22,6 @@ import com.igormaznitsa.jprol.annotations.JProlConsultText;
 import com.igormaznitsa.jprol.data.*;
 import com.igormaznitsa.jprol.exceptions.*;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
-import com.igormaznitsa.jprol.kbase.KnowledgeContext;
-import com.igormaznitsa.jprol.kbase.KnowledgeContextFactory;
 import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.libs.JProlBootstrapLibrary;
@@ -73,8 +71,6 @@ public final class JProlContext {
   private final List<JProlContextListener> contextListeners = new CopyOnWriteArrayList<>();
   private final Map<JProlSystemFlag, Term> systemFlags = new ConcurrentHashMap<>();
   private final AtomicInteger asyncTaskCounter = new AtomicInteger();
-  private final KnowledgeContextFactory knowledgeContextFactory;
-  private final ThreadLocal<KnowledgeContext> knowledgeContext;
 
   private final ParserContext parserContext = new ParserContext() {
     @Override
@@ -102,9 +98,8 @@ public final class JProlContext {
   private boolean debug;
   private UndefinedPredicateBehavior undefinedPredicateBehaviour;
 
-  public JProlContext(final KnowledgeContextFactory knowledgeContextFactory, final String name, final AbstractJProlLibrary... libs) {
+  public JProlContext(final String name, final AbstractJProlLibrary... libs) {
     this(
-        knowledgeContextFactory,
         name,
         new InMemoryKnowledgeBase(name + "_kbase"),
         ForkJoinPool.commonPool(),
@@ -116,7 +111,6 @@ public final class JProlContext {
   }
 
   private JProlContext(
-      final KnowledgeContextFactory knowledgeContextFactory,
       final String contextId,
       final KnowledgeBase base,
       final ExecutorService executorService,
@@ -125,8 +119,6 @@ public final class JProlContext {
       final List<IoResourceProvider> ioProviders,
       final AbstractJProlLibrary... additionalLibraries
   ) {
-    this.knowledgeContextFactory = Objects.requireNonNull(knowledgeContextFactory);
-    this.knowledgeContext = ThreadLocal.withInitial(this.knowledgeContextFactory::getDefaultKnowledgeContext);
     this.contextId = requireNonNull(contextId, "Context Id is null");
     this.knowledgeBase = requireNonNull(base, "Knowledge base is null");
     this.executorService = requireNonNull(executorService);
@@ -159,18 +151,6 @@ public final class JProlContext {
 
   public Term getSystemFlag(final JProlSystemFlag flag) {
     return this.systemFlags.getOrDefault(flag, flag.getDefaultValue());
-  }
-
-  public KnowledgeContextFactory getKnowledgeContextFactory() {
-    return this.knowledgeContextFactory;
-  }
-
-  public KnowledgeContext getKnowledgeContext() {
-    return this.knowledgeContext.get();
-  }
-
-  public void setKnowledgeContext(final KnowledgeContext context) {
-    this.knowledgeContext.set(Objects.requireNonNull(context));
   }
 
   public void setSystemFlag(final JProlSystemFlag flag, final Term term) {
@@ -698,7 +678,6 @@ public final class JProlContext {
 
   public JProlContext makeCopy() {
     return new JProlContext(
-        this.knowledgeContextFactory,
         this.contextId + "_copy",
         this.knowledgeBase.makeCopy(),
         this.executorService,

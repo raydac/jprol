@@ -87,22 +87,6 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     return found;
   }
 
-  @JProlPredicate(determined = true, signature = "kcontext/1", args = {"?atom"}, reference = "Set or get current knowledge context parameter.")
-  public static boolean predicateKCONTEXT1(final JProlChoicePoint cpoint, final TermStruct predicate) {
-    final Term arg = predicate.getElement(0).findNonVarOrSame();
-
-    if (cpoint.isArgsValidate() && arg.getTermType() != TermType.VAR) {
-      ProlAssertions.assertAtom(arg);
-    }
-
-    if (arg.getTermType() == TermType.VAR) {
-      return arg.unifyTo(cpoint.getContext().getKnowledgeContext().asTerm());
-    } else {
-      cpoint.getContext().setKnowledgeContext(cpoint.getContext().getKnowledgeContextFactory().makeKnowledgeContext(arg.getText()));
-      return true;
-    }
-  }
-
   @JProlPredicate(
       determined = true,
       signature = "set_prolog_flag/2",
@@ -175,11 +159,6 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = "!/0", reference = "! is true. All choice ponts between the cut and the parent goal are removed. The effect is commit to use of both the current clause and the substitutions found at the point of the cut.")
   public static void predicateCUT(final JProlChoicePoint cpoint, final TermStruct predicate) {
-    // it is a stub function for embedded inside operator
-  }
-
-  @JProlPredicate(determined = true, signature = "!!/0", reference = "!! is true. Local version of !/0. It doesn't cut the knowledge base selection, i.e. it works only inbounds of current goal.")
-  public static void predicateCUTLOCAL(final JProlChoicePoint cpoint, final TermStruct predicate) {
     // it is a stub function for embedded inside operator
   }
 }

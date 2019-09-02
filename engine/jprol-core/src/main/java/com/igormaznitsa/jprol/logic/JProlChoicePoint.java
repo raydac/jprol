@@ -366,13 +366,6 @@ public final class JProlChoicePoint implements Comparator<Term> {
                 doLoop = false;
                 result = JProlChoicePointResult.SUCCESS;
                 this.thereAreVariants = false;
-              } else if (len == 2 && "!!".equals(functorText)) {
-                // cut local
-                this.cutLocally();
-                nonConsumed = false;
-                doLoop = false;
-                this.thereAreVariants = false;
-                result = JProlChoicePointResult.SUCCESS;
               }
             } else if (arity == 2) {
               final int textLen = functorText.length();
@@ -405,7 +398,6 @@ public final class JProlChoicePoint implements Comparator<Term> {
               final PredicateInvoker foundProcessor = findProcessorInLibraries(struct);
               if (foundProcessor == PredicateInvoker.NULL_PROCESSOR) {
                 this.clauseIterator = this.context.getKnowledgeBase().iterate(
-                    this.context.getKnowledgeContext(),
                     IteratorType.ANY,
                     struct,
                     unknownPredicateConsumer
