@@ -211,7 +211,7 @@
                             <outfile>${project.build.directory}/${app.name}.exe</outfile>
                             <downloadUrl>http://www.oracle.com/technetwork/java/javase/downloads</downloadUrl>
                             <classPath>
-                                <mainClass>com.igormaznitsa.sciareto.Main</mainClass>
+                                <mainClass>com.igormaznitsa.jprol.easygui.Main</mainClass>
                                 <preCp>anything</preCp>
                             </classPath>
                             <icon>
@@ -448,7 +448,7 @@
                                         <fileset>
                                             <directory>${project.build.directory}</directory>
                                             <includes>
-                                                <include>original-sciareto-*.jar</include>
+                                                <include>original-jprol-*.jar</include>
                                                 <include>${app.name}.exe</include>
                                                 <include>${app.name}-nojre.exe</include>
                                                 <include>jdeps.out</include>
