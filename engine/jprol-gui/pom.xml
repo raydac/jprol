@@ -14,7 +14,7 @@
 
     <properties>
         <app.name>jprol-gui-${project.version}</app.name>
-        <jre.version>11.0.4</jre.version>
+        <jre.version>11.0.6+10</jre.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
@@ -41,7 +41,7 @@
         <dependency>
             <groupId>com.fifesoft</groupId>
             <artifactId>rsyntaxtextarea</artifactId>
-            <version>3.0.3</version>
+            <version>3.1.1</version>
         </dependency>
     </dependencies>
 
@@ -53,7 +53,7 @@
                     <plugin>
                         <groupId>com.igormaznitsa</groupId>
                         <artifactId>mvn-jlink-wrapper</artifactId>
-                        <version>1.0.3</version>
+                        <version>1.1.0</version>
                         <executions>
                             <execution>
                                 <id>cache-work-jdk</id>
