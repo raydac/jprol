@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.igormaznitsa.jprol.easygui;
 
 import javax.swing.*;
@@ -33,6 +32,8 @@ import java.awt.event.KeyListener;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.prefs.Preferences;
 
 /**
@@ -46,8 +47,8 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
   private static final long serialVersionUID = 5005224218702033782L;
   private final NonClossableReader inputReader;
   private final NonClossableWriter inputWriter;
-  private final NonClossableWriter outsideWriter;
-  private final NonClossableReader outsideReader;
+  private final NonClossableWriter outputWriter;
+  private final NonClossableReader outputReader;
   private final Thread dialogThread;
   private final SimpleAttributeSet consoleAttribute;
   private final SimpleAttributeSet userAttribute;
@@ -77,10 +78,10 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
     editor.addKeyListener(this);
     editor.addFocusListener(this);
 
-    outsideWriter = new NonClossableWriter();
-    outsideReader = new NonClossableReader(outsideWriter);
+    outputWriter = new NonClossableWriter(false);
+    outputReader = new NonClossableReader(outputWriter);
 
-    inputWriter = new NonClossableWriter();
+    inputWriter = new NonClossableWriter(true);
     inputReader = new NonClossableReader(inputWriter);
 
     setEnabled(false);
@@ -103,7 +104,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
     final SimpleAttributeSet background = new SimpleAttributeSet();
     StyleConstants.setBackground(background, val);
     textPane.getStyledDocument().setParagraphAttributes(0,
-        textPane.getDocument().getLength(), background, false);
+            textPane.getDocument().getLength(), background, false);
     consoleAttribute.addAttribute(CharacterConstants.Background, val);
     userAttribute.addAttribute(CharacterConstants.Background, val);
     super.setEdBackground(val);
@@ -147,13 +148,13 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
   public synchronized void initBeforeSession() {
     cancelCurrentRead = false;
     inputWriter.clearBuffer();
-    outsideWriter.clearBuffer();
+    outputWriter.clearBuffer();
   }
 
   public synchronized void cancelRead() {
     cancelCurrentRead = true;
     inputWriter.clearBuffer();
-    outsideWriter.clearBuffer();
+    outputWriter.clearBuffer();
   }
 
   public Color getEdOutputColor() {
@@ -179,7 +180,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
     super.clearText();
     // clear input cache
     inputWriter.clearBuffer();
-    outsideWriter.clearBuffer();
+    outputWriter.clearBuffer();
   }
 
   public Reader getInputReader() {
@@ -187,7 +188,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
   }
 
   public Writer getOutputWriter() {
-    return outsideWriter;
+    return outputWriter;
   }
 
   public void addText(final String text) {
@@ -275,10 +276,10 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
       final StringBuilder builder = new StringBuilder(256);
 
       while (!thisThread.isInterrupted() && isWorking) {
-        if (outsideReader.ready()) {
+        if (outputReader.ready()) {
           synchronized (this) {
-            while (outsideReader.ready()) {
-              final int ch = outsideReader.read();
+            while (outputReader.ready()) {
+              final int ch = outputReader.read();
               if (ch < 0) {
                 break;
               }
@@ -291,7 +292,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
           try {
             Thread.sleep(200);
           } catch (InterruptedException ex) {
-
+            Thread.currentThread().interrupt();
           }
         }
       }
@@ -329,8 +330,11 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
   public final static class NonClossableWriter extends PipedWriter {
 
     protected final List<Character> buffer;
+    private final boolean waitEnter;
+    private final AtomicInteger foundNextLineCounter = new AtomicInteger();
 
-    public NonClossableWriter() {
+    public NonClossableWriter(final boolean waitEnter) {
+      this.waitEnter = waitEnter;
       buffer = new ArrayList<>();
     }
 
@@ -338,19 +342,44 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
     public void write(final int c) throws IOException {
       synchronized (buffer) {
         buffer.add((char) c);
+        if (c == '\n') {
+          if (this.waitEnter) {
+            boolean bufferChanged;
+            do {
+              bufferChanged = false;
+              for (int i = 0; i < this.buffer.size() && !bufferChanged; i++) {
+                switch (this.buffer.get(i)) {
+                  case KeyEvent.VK_DELETE: {
+                    buffer.remove(i);
+                    if (i < buffer.size()) {
+                      buffer.remove(i);
+                    }
+                    bufferChanged = true;
+                  }
+                  break;
+                  case KeyEvent.VK_BACK_SPACE: {
+                    buffer.remove(i);
+                    if (i > 0) {
+                      buffer.remove(i - 1);
+                    }
+                    bufferChanged = true;
+                  }
+                  break;
+                };
+              }
+            } while (bufferChanged && !Thread.currentThread().isInterrupted());
+          }
+          this.foundNextLineCounter.incrementAndGet();
+        }
       }
     }
 
     @Override
     public void write(final char[] cbuf, final int off, final int len) throws IOException {
       int start = off;
-      final Thread thisThread = Thread.currentThread();
       synchronized (buffer) {
         for (int li = 0; li < len; li++) {
-          if (thisThread.isInterrupted()) {
-            return;
-          }
-          buffer.add(cbuf[start++]);
+          this.write(cbuf[start++]);
         }
       }
     }
@@ -365,8 +394,15 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
       int result = -1;
       if (!Thread.currentThread().isInterrupted()) {
         synchronized (this.buffer) {
-          if (!this.buffer.isEmpty()) {
-            result = buffer.remove(0);
+          if (this.waitEnter && this.foundNextLineCounter.get() == 0) {
+            return -1;
+          } else {
+            if (!this.buffer.isEmpty()) {
+              result = buffer.remove(0);
+              if (result == '\n') {
+                this.foundNextLineCounter.decrementAndGet();
+              }
+            }
           }
         }
       }
@@ -383,6 +419,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
 
     public void clearBuffer() {
       synchronized (this.buffer) {
+        this.foundNextLineCounter.set(0);
         this.buffer.clear();
       }
     }
@@ -427,6 +464,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
           try {
             Thread.sleep(10);
           } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
             return -1;
           }
         }

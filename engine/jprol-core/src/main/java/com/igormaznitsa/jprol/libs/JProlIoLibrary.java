@@ -22,6 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.igormaznitsa.jprol.data.TermType.LIST;
 import static com.igormaznitsa.jprol.libs.JProlCoreLibrary.predicateCALL;
+import com.igormaznitsa.prologparser.terms.PrologTerm;
+import java.util.NoSuchElementException;
 
 public class JProlIoLibrary extends AbstractJProlLibrary {
 
@@ -125,7 +127,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
   }
 
   private Optional<InternalReader> makeUserAsCurrentIn(final JProlContext context) {
-    if (getIoWriters(context).containsKey("user")) {
+    if (getIoReaders(context).containsKey("user")) {
       return Optional.ofNullable(getIoReaders(context).get("user"));
     } else {
       final Optional<Reader> userReader = context.findResourceReader("user");
@@ -213,22 +215,22 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
   @JProlPredicate(determined = true, signature = "read/1", reference = " Read  the next Prolog term from the current input stream.")
   public final boolean predicateRead(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
-    final Reader current = getIoReaders(goal.getContext()).get(CURRENT_STREAM_ID);
+    final Optional<InternalReader> current = findCurrentInput(goal.getContext(), arg);
 
-    if (current == null) {
-      throw new ProlPermissionErrorException("read", "text_input", predicate);
-    } else {
-      final PrologParser parser = new GenericPrologParser(current, goal.getContext().getParserContext());
-      final TokenizerResult result = parser.getInternalTokenizer().readNextToken();
-
-      final Term readTerm;
-      if (result == null) {
-        readTerm = END_OF_FILE;
-      } else {
-        readTerm = Terms.fromParsed(goal.getContext(), result.getResult());
+    if (current.isPresent()) {
+      final PrologParser parser = new GenericPrologParser(current.get(), goal.getContext().getParserContext());
+      PrologTerm nextTerm;
+      try{
+        nextTerm = parser.next();
+      }catch(NoSuchElementException ex){
+        nextTerm = null;
       }
-
-      return arg.unifyTo(readTerm);
+      
+      final Term asterm = nextTerm == null ? END_OF_FILE : Terms.fromParsed(goal.getContext(), nextTerm);
+      
+      return arg.unifyTo(asterm);
+    } else {
+      throw new ProlPermissionErrorException("read", "text_input", predicate);
     }
   }
 
