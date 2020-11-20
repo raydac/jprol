@@ -16,12 +16,12 @@
 
 package com.igormaznitsa.jprol.data;
 
+import static com.igormaznitsa.jprol.data.TermType.OPERATOR;
+
+
 import com.igormaznitsa.prologparser.tokenizer.Op;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
-
 import java.io.PrintWriter;
-
-import static com.igormaznitsa.jprol.data.TermType.OPERATOR;
 
 public final class TermOperator extends Term {
 
@@ -118,9 +118,9 @@ public final class TermOperator extends Term {
     writer.print(this.op.getPrecedence());
     writer.print(',');
     writer.print(getTypeAsString());
-    writer.print(",\'");
+    writer.print(",'");
     writer.print(getText());
-    writer.println("\').");
+    writer.println("').");
   }
 
   @Override

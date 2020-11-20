@@ -16,13 +16,13 @@
 
 package com.igormaznitsa.jprol.exceptions;
 
-import com.igormaznitsa.jprol.data.Term;
-import com.igormaznitsa.jprol.data.TermStruct;
-
-import java.util.Arrays;
-
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
+
+
+import com.igormaznitsa.jprol.data.Term;
+import com.igormaznitsa.jprol.data.TermStruct;
+import java.util.Arrays;
 
 public class ProlForkExecutionException extends ProlAbstractCatcheableException {
 
@@ -33,10 +33,12 @@ public class ProlForkExecutionException extends ProlAbstractCatcheableException 
   private final Throwable[] throwables;
 
   public ProlForkExecutionException(final Term culprit, final Throwable[] causes) {
-    this("Error during a fork thread " + (causes != null ? Arrays.toString(causes) : "[]") + '\'', culprit, causes);
+    this("Error during a fork thread " + (causes != null ? Arrays.toString(causes) : "[]") + '\'',
+        culprit, causes);
   }
 
-  public ProlForkExecutionException(final String message, final Term culprit, final Throwable[] causes) {
+  public ProlForkExecutionException(final String message, final Term culprit,
+                                    final Throwable[] causes) {
     super(message, culprit);
     this.throwables = causes == null ? new Throwable[0] : causes;
   }

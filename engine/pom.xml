@@ -29,7 +29,7 @@
 
     <organization>
         <name>Igor Maznitsa</name>
-        <url>http://www.igormaznitsa.com</url>
+        <url>https://www.igormaznitsa.com</url>
     </organization>
 
     <issueManagement>
@@ -50,7 +50,7 @@
             <roles>
                 <role>developer</role>
             </roles>
-            <url>http://www.igormaznitsa.com</url>
+            <url>https://www.igormaznitsa.com</url>
             <timezone>+3</timezone>
         </developer>
     </developers>
@@ -60,24 +60,24 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>3.0.0</version>
+                <version>3.6.0</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-api</artifactId>
-                <version>5.5.1</version>
+                <version>5.7.0</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-engine</artifactId>
-                <version>5.5.1</version>
+                <version>5.7.0</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.8</version>
+                <version>1.18.16</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -98,27 +98,17 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>animal-sniffer-maven-plugin</artifactId>
-                    <version>1.18</version>
+                    <version>1.19</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
-                    <version>3.2.1</version>
+                    <version>3.2.2</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.1.1</version>
-                </plugin>
-                <plugin>
-                    <groupId>com.akathist.maven.plugins.launch4j</groupId>
-                    <artifactId>launch4j-maven-plugin</artifactId>
-                    <version>1.7.25</version>
-                </plugin>
-                <plugin>
-                    <groupId>sh.tak.appbundler</groupId>
-                    <artifactId>appbundle-maven-plugin</artifactId>
-                    <version>1.2.0</version>
+                    <version>3.2.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -170,6 +160,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
+                    <release>8</release>
                     <compilerArgument>-Xlint:all</compilerArgument>
                     <verbose>false</verbose>
                     <source>${maven.compiler.source}</source>
@@ -181,7 +172,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M3</version>
+                <version>3.0.0-M4</version>
             </plugin>
         </plugins>
     </build>

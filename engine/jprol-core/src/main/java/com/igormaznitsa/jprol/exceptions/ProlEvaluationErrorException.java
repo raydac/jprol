@@ -16,11 +16,12 @@
 
 package com.igormaznitsa.jprol.exceptions;
 
+import static com.igormaznitsa.jprol.data.Terms.newAtom;
+
+
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermStruct;
-
-import static com.igormaznitsa.jprol.data.Terms.newAtom;
 
 public class ProlEvaluationErrorException extends ProlAbstractCatcheableException {
 
@@ -30,17 +31,20 @@ public class ProlEvaluationErrorException extends ProlAbstractCatcheableExceptio
 
   private final String error;
 
-  public ProlEvaluationErrorException(final String error, final Term culprit, final Throwable cause) {
+  public ProlEvaluationErrorException(final String error, final Term culprit,
+                                      final Throwable cause) {
     super(culprit, cause);
     this.error = error == null ? UNDEFINED.getText() : error;
   }
 
-  public ProlEvaluationErrorException(final String error, final String message, final Term culprit, final Throwable cause) {
+  public ProlEvaluationErrorException(final String error, final String message, final Term culprit,
+                                      final Throwable cause) {
     super(message, culprit, cause);
     this.error = error == null ? UNDEFINED.getText() : error;
   }
 
-  public ProlEvaluationErrorException(final String error, final String message, final Term culprit) {
+  public ProlEvaluationErrorException(final String error, final String message,
+                                      final Term culprit) {
     super(message, culprit);
     this.error = error == null ? UNDEFINED.getText() : error;
   }
@@ -62,6 +66,7 @@ public class ProlEvaluationErrorException extends ProlAbstractCatcheableExceptio
 
   @Override
   public TermStruct getAsStruct() {
-    return this.makeErrorStruct(TERM_ERROR, TermList.asTermList(newAtom(this.error), this.getCulprit()));
+    return this
+        .makeErrorStruct(TERM_ERROR, TermList.asTermList(newAtom(this.error), this.getCulprit()));
   }
 }

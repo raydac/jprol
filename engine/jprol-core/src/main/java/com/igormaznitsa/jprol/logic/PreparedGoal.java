@@ -16,16 +16,20 @@
 
 package com.igormaznitsa.jprol.logic;
 
-import com.igormaznitsa.jprol.data.Term;
-import com.igormaznitsa.jprol.data.Terms;
-
-import java.io.StringReader;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
+
+
+import com.igormaznitsa.jprol.data.Term;
+import com.igormaznitsa.jprol.data.Terms;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class PreparedGoal {
 
@@ -60,7 +64,8 @@ public final class PreparedGoal {
     builder.append(goal, lastFoundEnd, goal.length());
 
     this.paramNames = unmodifiableList(orderedVarNames);
-    this.preparedGoalTerm = new JProlTreeBuilder(context).readPhraseAndMakeTree(new StringReader(builder.toString())).term;
+    this.preparedGoalTerm = new JProlTreeBuilder(context)
+        .readPhraseAndMakeTree(new StringReader(builder.toString())).term;
   }
 
   public List<String> getParamNames() {
@@ -79,20 +84,24 @@ public final class PreparedGoal {
   }
 
   public JProlChoicePoint makeChoicePoint(final JProlContext context, final long... parameters) {
-    return this.makeChoicePoint(context, Arrays.stream(parameters).mapToObj(Terms::newLong).toArray(Term[]::new));
+    return this.makeChoicePoint(context,
+        Arrays.stream(parameters).mapToObj(Terms::newLong).toArray(Term[]::new));
   }
 
   public JProlChoicePoint makeChoicePoint(final JProlContext context, final String... parameters) {
-    return this.makeChoicePoint(context, Arrays.stream(parameters).map(Terms::newAtom).toArray(Term[]::new));
+    return this.makeChoicePoint(context,
+        Arrays.stream(parameters).map(Terms::newAtom).toArray(Term[]::new));
   }
 
   public JProlChoicePoint makeChoicePoint(final JProlContext context, final double... parameters) {
-    return this.makeChoicePoint(context, Arrays.stream(parameters).mapToObj(Terms::newDouble).toArray(Term[]::new));
+    return this.makeChoicePoint(context,
+        Arrays.stream(parameters).mapToObj(Terms::newDouble).toArray(Term[]::new));
   }
 
   public JProlChoicePoint makeChoicePoint(final JProlContext context, final Term... parameters) {
     if (this.paramNames.size() != parameters.length) {
-      throw new IllegalArgumentException(String.format("Wrong params number, expected %d", this.paramNames.size()));
+      throw new IllegalArgumentException(
+          String.format("Wrong params number, expected %d", this.paramNames.size()));
     }
 
     final Term clonedGoal = this.preparedGoalTerm.makeClone();
@@ -103,19 +112,22 @@ public final class PreparedGoal {
       clonedGoal.variables()
           .filter(x -> varName.equals(x.getText()))
           .findFirst()
-          .orElseThrow(() -> new IllegalArgumentException(String.format("Can't find variable \'%s\'", varName)))
+          .orElseThrow(() -> new IllegalArgumentException(
+              String.format("Can't find variable '%s'", varName)))
           .setValue(parameter);
     }
 
     return new JProlChoicePoint(clonedGoal, context);
   }
 
-  public JProlChoicePoint makeChoicePoint(final JProlContext context, final Map<String, Term> vars) {
+  public JProlChoicePoint makeChoicePoint(final JProlContext context,
+                                          final Map<String, Term> vars) {
     final Term clonedGoal = this.preparedGoalTerm.makeClone();
     vars.forEach((key, value) -> clonedGoal.variables()
         .filter(x -> key.equals(x.getText()))
         .findFirst()
-        .orElseThrow(() -> new IllegalArgumentException(String.format("Can't find variable \'%s\'", key)))
+        .orElseThrow(
+            () -> new IllegalArgumentException(String.format("Can't find variable '%s'", key)))
         .setValue(value));
 
     return new JProlChoicePoint(clonedGoal, context);

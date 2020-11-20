@@ -16,7 +16,19 @@
 
 package com.igormaznitsa.jprol.kbase.inmemory;
 
-import com.igormaznitsa.jprol.data.*;
+import static com.igormaznitsa.jprol.data.TermType.ATOM;
+import static com.igormaznitsa.jprol.data.TermType.VAR;
+import static com.igormaznitsa.jprol.data.Terms.newStruct;
+import static com.igormaznitsa.jprol.utils.Utils.makeCloseableIterator;
+import static java.lang.Integer.parseInt;
+import static java.util.Objects.requireNonNull;
+
+
+import com.igormaznitsa.jprol.data.Term;
+import com.igormaznitsa.jprol.data.TermOperator;
+import com.igormaznitsa.jprol.data.TermOperatorContainer;
+import com.igormaznitsa.jprol.data.TermStruct;
+import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlKnowledgeBaseException;
 import com.igormaznitsa.jprol.kbase.IteratorType;
@@ -29,21 +41,17 @@ import com.igormaznitsa.jprol.utils.OperatorIterator;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.Utils;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
-
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
-import static com.igormaznitsa.jprol.data.TermType.ATOM;
-import static com.igormaznitsa.jprol.data.TermType.VAR;
-import static com.igormaznitsa.jprol.data.Terms.newStruct;
-import static com.igormaznitsa.jprol.utils.Utils.makeCloseableIterator;
-import static java.lang.Integer.parseInt;
-import static java.util.Objects.requireNonNull;
 
 public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
@@ -101,7 +109,8 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   public void addOperator(final JProlContext context, final TermOperator operator) {
     final String operatorName = operator.getText();
     if (context.isSystemOperator(operator.getText())) {
-      throw new SecurityException("Attemption to override a system operator [" + operator.getText() + ']');
+      throw new SecurityException(
+          "Attemption to override a system operator [" + operator.getText() + ']');
     }
 
     TermOperatorContainer list = this.operatorTable.get(operatorName);
@@ -110,7 +119,8 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
       this.operatorTable.put(operatorName, list);
     } else {
       if (!list.setOperator(operator)) {
-        throw new SecurityException("Such or a compatible operator is already presented [" + operatorName + ']');
+        throw new SecurityException(
+            "Such or a compatible operator is already presented [" + operatorName + ']');
       }
     }
   }
@@ -149,17 +159,20 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     return new OperatorIterator(this.operatorTable.values().iterator());
   }
 
-  private boolean assertClause(final JProlContext context, final TermStruct clause, final boolean asFirst) {
+  private boolean assertClause(final JProlContext context, final TermStruct clause,
+                               final boolean asFirst) {
     try {
       final String uid;
       if (clause.isClause()) {
         Term leftPart = clause.getElement(0).findNonVarOrSame();
-        final Term rightPart = clause.getArity() == 2 ? clause.getElement(1).findNonVarOrSame() : null;
+        final Term rightPart =
+            clause.getArity() == 2 ? clause.getElement(1).findNonVarOrSame() : null;
 
         if (rightPart != null) {
           if (rightPart.getTermType() == VAR) {
             if (!leftPart.hasVariableWithName(rightPart.getText())) {
-              throw new ProlInstantiationErrorException("Arguments are not sufficiently instantiated: " + rightPart, clause);
+              throw new ProlInstantiationErrorException(
+                  "Arguments are not sufficiently instantiated: " + rightPart, clause);
             }
           } else {
             ProlAssertions.assertCallable(rightPart);
@@ -175,7 +188,8 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
         uid = clause.getSignature();
       }
 
-      final List<InMemoryItem> list = this.predicateTable.computeIfAbsent(uid, x -> new CopyOnWriteArrayList<>());
+      final List<InMemoryItem> list =
+          this.predicateTable.computeIfAbsent(uid, x -> new CopyOnWriteArrayList<>());
       if (asFirst) {
         list.add(0, InMemoryItem.fromClause(clause));
       } else {
@@ -189,7 +203,8 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
       return true;
 
     } catch (IllegalArgumentException ex) {
-      throw new ProlKnowledgeBaseException("You can't add such atom into the base [" + clause.toSrcString() + ']', ex);
+      throw new ProlKnowledgeBaseException(
+          "You can't add such atom into the base [" + clause.toSrcString() + ']', ex);
     }
   }
 
@@ -204,7 +219,8 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     if (list == null) {
       unknownPredicateConsumer.accept(uid);
     }
-    return new InMemoryClauseIterator(type, list == null ? Collections.emptyList() : list, template);
+    return new InMemoryClauseIterator(type, list == null ? Collections.emptyList() : list,
+        template);
   }
 
   @Override
@@ -288,7 +304,8 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     }
 
     // notify triggers if they are presented
-    if (result && context.hasRegisteredTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT)) {
+    if (result &&
+        context.hasRegisteredTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT)) {
       context.notifyTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT);
     }
 
@@ -296,7 +313,8 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   private boolean internalRetractAll(final List<InMemoryItem> list, final TermStruct clause) {
-    final InMemoryClauseIterator iterator = new InMemoryClauseIterator(IteratorType.ANY, list, clause);
+    final InMemoryClauseIterator iterator =
+        new InMemoryClauseIterator(IteratorType.ANY, list, clause);
     final List<InMemoryItem> toRemove = new ArrayList<>();
     while (iterator.hasNext()) {
       toRemove.add(iterator.nextItem());
@@ -305,7 +323,8 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   private boolean internalRetractA(final List<InMemoryItem> list, final TermStruct clause) {
-    final InMemoryClauseIterator iterator = new InMemoryClauseIterator(IteratorType.ANY, list, clause);
+    final InMemoryClauseIterator iterator =
+        new InMemoryClauseIterator(IteratorType.ANY, list, clause);
     if (iterator.hasNext()) {
       final InMemoryItem item = iterator.nextItem();
       return list.remove(item);
@@ -315,7 +334,8 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   private boolean internalRetractZ(final List<InMemoryItem> list, final TermStruct clause) {
-    final InMemoryClauseIterator iterator = new InMemoryClauseIterator(IteratorType.ANY, list, clause);
+    final InMemoryClauseIterator iterator =
+        new InMemoryClauseIterator(IteratorType.ANY, list, clause);
     InMemoryItem toRemove = null;
     while (iterator.hasNext()) {
       toRemove = iterator.nextItem();
@@ -345,7 +365,8 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     }
 
     // notify triggers if they are presented
-    if (result && context.hasRegisteredTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT)) {
+    if (result &&
+        context.hasRegisteredTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT)) {
       context.notifyTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT);
     }
 
@@ -374,7 +395,8 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     }
 
     // notify triggers if they are presented
-    if (result && context.hasRegisteredTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT)) {
+    if (result &&
+        context.hasRegisteredTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT)) {
       context.notifyTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT);
     }
 
@@ -387,12 +409,13 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
     final String normalSignature = Utils.normalizeSignature(signature);
     if (normalSignature == null) {
-      throw new IllegalArgumentException("Wrong signature format \'" + signature + '\'');
+      throw new IllegalArgumentException("Wrong signature format '" + signature + '\'');
     }
 
     result = predicateTable.remove(normalSignature) != null;
 
-    if (result && context.hasRegisteredTriggersForSignature(normalSignature, JProlTriggerType.TRIGGER_RETRACT)) {
+    if (result && context
+        .hasRegisteredTriggersForSignature(normalSignature, JProlTriggerType.TRIGGER_RETRACT)) {
       context.notifyTriggersForSignature(normalSignature, JProlTriggerType.TRIGGER_RETRACT);
     }
   }

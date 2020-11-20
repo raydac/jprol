@@ -1,15 +1,24 @@
 package com.igormaznitsa.jprol.utils;
 
-import com.igormaznitsa.jprol.data.*;
+import static com.igormaznitsa.jprol.data.TermType.STRUCT;
+import static com.igormaznitsa.jprol.data.TermType.VAR;
+
+
+import com.igormaznitsa.jprol.data.NumericTerm;
+import com.igormaznitsa.jprol.data.Term;
+import com.igormaznitsa.jprol.data.TermDouble;
+import com.igormaznitsa.jprol.data.TermList;
+import com.igormaznitsa.jprol.data.TermLong;
+import com.igormaznitsa.jprol.data.TermStruct;
+import com.igormaznitsa.jprol.data.TermType;
+import com.igormaznitsa.jprol.data.TermVar;
+import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlRepresentationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
-
-import static com.igormaznitsa.jprol.data.TermType.STRUCT;
-import static com.igormaznitsa.jprol.data.TermType.VAR;
 
 public final class ProlAssertions {
   private ProlAssertions() {
@@ -104,7 +113,7 @@ public final class ProlAssertions {
       break;
     }
     if (error) {
-      throw new ProlInstantiationErrorException("Should be atom or atom list \'" + t + '\'', t);
+      throw new ProlInstantiationErrorException("Should be atom or atom list '" + t + '\'', t);
     }
   }
 
@@ -140,7 +149,7 @@ public final class ProlAssertions {
       }
     }
     if (error) {
-      throw new ProlInstantiationErrorException("Should be byte \'" + t + '\'', t);
+      throw new ProlInstantiationErrorException("Should be byte '" + t + '\'', t);
     }
   }
 
@@ -183,7 +192,8 @@ public final class ProlAssertions {
     if (t instanceof TermLong) {
       final int value = t.toNumber().intValue();
       if ((value & 0xFFFF0000) != 0) {
-        throw new ProlRepresentationErrorException("character_code", "Incompatible character code: " + t, t);
+        throw new ProlRepresentationErrorException("character_code",
+            "Incompatible character code: " + t, t);
       }
     } else {
       throw new ProlTypeErrorException("character", "Char code expected: " + t, t);
@@ -222,9 +232,11 @@ public final class ProlAssertions {
     }
     switch (errorCode) {
       case 1:
-        throw new ProlTypeErrorException("character_code_list", "Character code list expected: " + t, t);
+        throw new ProlTypeErrorException("character_code_list",
+            "Character code list expected: " + t, t);
       case 2:
-        throw new ProlRepresentationErrorException("character_code", "Incompatible character code in list: " + t, t);
+        throw new ProlRepresentationErrorException("character_code",
+            "Incompatible character code in list: " + t, t);
       case 3:
         throw new ProlInstantiationErrorException("Must be instantiated: " + t, t);
     }
@@ -338,7 +350,7 @@ public final class ProlAssertions {
       error = true;
     }
     if (error) {
-      throw new ProlInstantiationErrorException("Should be byte or -1 \'" + t + '\'', t);
+      throw new ProlInstantiationErrorException("Should be byte or -1 '" + t + '\'', t);
     }
   }
 
@@ -354,7 +366,7 @@ public final class ProlAssertions {
       error = true;
     }
     if (error) {
-      throw new ProlInstantiationErrorException("Should be character code or -1 \'" + t + '\'', t);
+      throw new ProlInstantiationErrorException("Should be character code or -1 '" + t + '\'', t);
     }
   }
 
@@ -370,7 +382,7 @@ public final class ProlAssertions {
       error = true;
     }
     if (error) {
-      throw new ProlInstantiationErrorException("Should be character code or -1 \'" + t + '\'', t);
+      throw new ProlInstantiationErrorException("Should be character code or -1 '" + t + '\'', t);
     }
   }
 
@@ -431,7 +443,8 @@ public final class ProlAssertions {
       error = true;
     }
     if (error) {
-      throw new ProlDomainErrorException("Should be only [xfx,yfx,xfy,xf,fx,yf,fy] but \'" + t + '\'', t);
+      throw new ProlDomainErrorException(
+          "Should be only [xfx,yfx,xfy,xf,fx,yf,fy] but '" + t + '\'', t);
     }
   }
 
@@ -444,12 +457,14 @@ public final class ProlAssertions {
         final Term left = struct.getElement(0).findNonVarOrSame();
         final Term right = struct.getElement(1).findNonVarOrSame();
 
-        final boolean leftOk = (left.getTermType() == TermType.ATOM && left.getClass() == Term.class)
-            || (left.getTermType() == STRUCT && ((TermStruct) left).getArity() == 0)
-            || (left.getTermType() == VAR && !left.isGround());
+        final boolean leftOk =
+            (left.getTermType() == TermType.ATOM && left.getClass() == Term.class)
+                || (left.getTermType() == STRUCT && ((TermStruct) left).getArity() == 0)
+                || (left.getTermType() == VAR && !left.isGround());
 
-        final boolean rightOk = (right.getTermType() == TermType.ATOM && right.getClass() == TermLong.class)
-            || (right.getTermType() == VAR && !right.isGround());
+        final boolean rightOk =
+            (right.getTermType() == TermType.ATOM && right.getClass() == TermLong.class)
+                || (right.getTermType() == VAR && !right.isGround());
 
         if (leftOk && rightOk) {
           if (right instanceof NumericTerm) {
@@ -471,7 +486,8 @@ public final class ProlAssertions {
 
     switch (errorCode) {
       case 1:
-        throw new ProlTypeErrorException("predicate_indicator", "Predicate indicator expected: " + t, t);
+        throw new ProlTypeErrorException("predicate_indicator",
+            "Predicate indicator expected: " + t, t);
       case 2:
         throw new ProlDomainErrorException("integer", "Predicate indicator expected: " + t, t);
       case 3:
@@ -493,11 +509,14 @@ public final class ProlAssertions {
   public void assertTriggerEvent(final Term t) {
     assertNonVar(t);
     if (t.getTermType() != TermType.ATOM) {
-      throw new ProlInstantiationErrorException("Should be an atom \'" + t + '\'', t);
+      throw new ProlInstantiationErrorException("Should be an atom '" + t + '\'', t);
     } else {
       final String value = t.getText();
-      if (!"onassert".equals(value) && !"onretract".equals(value) && !"onassertretract".equals(value)) {
-        throw new ProlDomainErrorException("Should be a value from the list [onassert, onretract, onassertretract] \'" + t + '\'', t);
+      if (!"onassert".equals(value) && !"onretract".equals(value) &&
+          !"onassertretract".equals(value)) {
+        throw new ProlDomainErrorException(
+            "Should be a value from the list [onassert, onretract, onassertretract] '" + t + '\'',
+            t);
       }
     }
   }

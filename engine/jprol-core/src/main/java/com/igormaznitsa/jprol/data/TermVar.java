@@ -16,15 +16,15 @@
 
 package com.igormaznitsa.jprol.data;
 
-import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
+import static com.igormaznitsa.jprol.data.TermType.VAR;
+import static com.igormaznitsa.jprol.data.Terms.newVar;
 
+
+import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
-
-import static com.igormaznitsa.jprol.data.TermType.VAR;
-import static com.igormaznitsa.jprol.data.Terms.newVar;
 
 public final class TermVar extends Term {
 
@@ -207,7 +207,8 @@ public final class TermVar extends Term {
 
   @Override
   public String toSrcString() {
-    return this.getValue() == null ? (this.isAnonymous() ? "_" : this.getText()) : this.getValue().toSrcString();
+    return this.getValue() == null ? (this.isAnonymous() ? "_" : this.getText()) :
+        this.getValue().toSrcString();
   }
 
   public boolean isGround() {
@@ -215,7 +216,8 @@ public final class TermVar extends Term {
   }
 
   public boolean isFree() {
-    return this.value == null || (this.value.getTermType() == VAR && ((TermVar) this.value).isFree());
+    return this.value == null ||
+        (this.value.getTermType() == VAR && ((TermVar) this.value).isFree());
   }
 
   @Override

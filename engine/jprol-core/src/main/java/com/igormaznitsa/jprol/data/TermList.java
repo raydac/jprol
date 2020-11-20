@@ -16,19 +16,19 @@
 
 package com.igormaznitsa.jprol.data;
 
-import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Stream;
-
 import static com.igormaznitsa.jprol.data.TermType.LIST;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.newList;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.utils.Utils.createOrAppendToList;
+
+
+import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 public final class TermList extends TermStruct {
 
@@ -135,7 +135,8 @@ public final class TermList extends TermStruct {
 
   @Override
   protected Term makeCloneAndVarBound(final Map<Integer, TermVar> vars) {
-    return this.isNullList() ? Terms.NULL_LIST : newList(this.getHead().makeCloneAndVarBound(vars), this.getTail().makeCloneAndVarBound(vars));
+    return this.isNullList() ? Terms.NULL_LIST : newList(this.getHead().makeCloneAndVarBound(vars),
+        this.getTail().makeCloneAndVarBound(vars));
   }
 
   @Override
@@ -150,7 +151,8 @@ public final class TermList extends TermStruct {
 
   @Override
   protected Term doMakeClone(Map<Integer, TermVar> vars) {
-    return this.isNullList() ? Terms.NULL_LIST : newList(this.getHead().doMakeClone(vars), this.getTail().doMakeClone(vars));
+    return this.isNullList() ? Terms.NULL_LIST :
+        newList(this.getHead().doMakeClone(vars), this.getTail().doMakeClone(vars));
   }
 
   @Override
@@ -252,7 +254,8 @@ public final class TermList extends TermStruct {
           return false;
         }
 
-        return this.getHead().unifyTo(thatList.getHead()) && this.getTail().unifyTo(thatList.getTail());
+        return this.getHead().unifyTo(thatList.getHead()) &&
+            this.getTail().unifyTo(thatList.getTail());
       }
       case VAR: {
         final TermVar var = (TermVar) atom;

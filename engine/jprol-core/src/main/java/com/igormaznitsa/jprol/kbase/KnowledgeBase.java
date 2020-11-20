@@ -22,7 +22,6 @@ import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
-
 import java.util.function.Consumer;
 
 public interface KnowledgeBase {
@@ -37,9 +36,11 @@ public interface KnowledgeBase {
 
   boolean hasOperatorStartsWith(JProlContext context, String str);
 
-  CloseableIterator<TermStruct> iterate(IteratorType type, TermStruct template, Consumer<String> unknownPredicateConsumer);
+  CloseableIterator<TermStruct> iterate(IteratorType type, TermStruct template,
+                                        Consumer<String> unknownPredicateConsumer);
 
-  CloseableIterator<TermStruct> iterate(String signature, Consumer<String> unknownPredicateConsumer);
+  CloseableIterator<TermStruct> iterate(String signature,
+                                        Consumer<String> unknownPredicateConsumer);
 
   CloseableIterator<TermStruct> iterateSignatures(TermStruct indicator);
 

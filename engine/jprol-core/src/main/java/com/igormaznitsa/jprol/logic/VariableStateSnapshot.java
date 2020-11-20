@@ -16,14 +16,19 @@
 
 package com.igormaznitsa.jprol.logic;
 
+import static com.igormaznitsa.jprol.data.TermType.VAR;
+
+
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermVar;
-
-import java.util.*;
-
-import static com.igormaznitsa.jprol.data.TermType.VAR;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 final class VariableStateSnapshot {
 
@@ -141,7 +146,8 @@ final class VariableStateSnapshot {
       } else {
         if (value.getTermType() == VAR) {
           if (value.isGround()) {
-            valueTxt = value.toSrcString() + '{' + value.getVarUid() + '}' + '[' + value.getValue().toString() + ']';
+            valueTxt = value.toSrcString() + '{' + value.getVarUid() + '}' + '[' +
+                value.getValue().toString() + ']';
           } else {
             valueTxt = value.toSrcString() + '{' + value.getVarUid() + '}';
           }
@@ -150,7 +156,9 @@ final class VariableStateSnapshot {
         }
       }
 
-      buffer.append(value == null ? valueTxt : value.toSrcString()).append('{').append(value == null ? "<NULL>" : value.getVarUid()).append('}').append('=').append(valueTxt);
+      buffer.append(value == null ? valueTxt : value.toSrcString()).append('{')
+          .append(value == null ? "<NULL>" : value.getVarUid()).append('}').append('=')
+          .append(valueTxt);
     }
     buffer.append(']');
     return buffer.toString();

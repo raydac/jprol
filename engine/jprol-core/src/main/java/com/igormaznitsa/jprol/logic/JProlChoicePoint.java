@@ -16,26 +16,31 @@
 
 package com.igormaznitsa.jprol.logic;
 
-import com.igormaznitsa.jprol.data.*;
-import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
-import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
-import com.igormaznitsa.jprol.kbase.IteratorType;
-import com.igormaznitsa.jprol.trace.TraceEvent;
-import com.igormaznitsa.jprol.utils.ProlAssertions;
-
-import java.io.StringReader;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Consumer;
-
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.trace.TraceEvent.EXIT;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
+
+
+import com.igormaznitsa.jprol.data.CompoundTerm;
+import com.igormaznitsa.jprol.data.NumericTerm;
+import com.igormaznitsa.jprol.data.Term;
+import com.igormaznitsa.jprol.data.TermDouble;
+import com.igormaznitsa.jprol.data.TermStruct;
+import com.igormaznitsa.jprol.data.TermVar;
+import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
+import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
+import com.igormaznitsa.jprol.kbase.IteratorType;
+import com.igormaznitsa.jprol.trace.TraceEvent;
+import com.igormaznitsa.jprol.utils.ProlAssertions;
+import java.io.StringReader;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 public final class JProlChoicePoint implements Comparator<Term> {
 
@@ -106,14 +111,16 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public JProlChoicePoint(final String goal, final JProlContext context) {
-    this(new JProlTreeBuilder(context).readPhraseAndMakeTree(new StringReader(goal)).term, context, null);
+    this(new JProlTreeBuilder(context).readPhraseAndMakeTree(new StringReader(goal)).term, context,
+        null);
   }
 
   public JProlChoicePoint(final Term goal, final JProlContext context) {
     this(null, goal, context, context.isDebug(), context.isTemplateValidate(), null);
   }
 
-  public JProlChoicePoint(final Term goal, final JProlContext context, final Map<String, Term> predefinedVarValues) {
+  public JProlChoicePoint(final Term goal, final JProlContext context,
+                          final Map<String, Term> predefinedVarValues) {
     this(null, goal, context, context.isDebug(), context.isTemplateValidate(), predefinedVarValues);
   }
 
@@ -138,11 +145,13 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
   @Override
   public String toString() {
-    return (this.isCompleted() ? "Completed " : "Active ") + "Goal(" + this.goalTerm.toString() + ')';
+    return (this.isCompleted() ? "Completed " : "Active ") + "Goal(" + this.goalTerm.toString() +
+        ')';
   }
 
   public Optional<TermVar> findVar(final String name) {
-    return this.variables == null ? Optional.empty() : Optional.ofNullable(this.variables.get(requireNonNull(name)));
+    return this.variables == null ? Optional.empty() :
+        Optional.ofNullable(this.variables.get(requireNonNull(name)));
   }
 
   public JProlChoicePoint replaceLastGoalAtChain(final Term goal) {
@@ -150,7 +159,9 @@ public final class JProlChoicePoint implements Comparator<Term> {
       this.context.fireTraceEvent(EXIT, this.rootChoicePoint.rootLastGoalAtChain);
     }
 
-    final JProlChoicePoint newGoal = new JProlChoicePoint(this.rootChoicePoint, goal, this.context, this.debug, this.validate, null);
+    final JProlChoicePoint newGoal =
+        new JProlChoicePoint(this.rootChoicePoint, goal, this.context, this.debug, this.validate,
+            null);
     final JProlChoicePoint prevGoal = newGoal.prevCp;
     if (prevGoal != null) {
       newGoal.prevCp = prevGoal.prevCp;
@@ -217,7 +228,9 @@ public final class JProlChoicePoint implements Comparator<Term> {
                 result = this.rootChoicePoint.goalTerm;
                 loop = false;
               } else {
-                final JProlChoicePoint nextGoal = new JProlChoicePoint(this.rootChoicePoint, goalToProcess.nextAndTerm, this.context, this.debug, this.validate, null);
+                final JProlChoicePoint nextGoal =
+                    new JProlChoicePoint(this.rootChoicePoint, goalToProcess.nextAndTerm,
+                        this.context, this.debug, this.validate, null);
                 nextGoal.nextAndTerm = goalToProcess.nextAndTermForNextGoal;
               }
             }
@@ -299,8 +312,10 @@ public final class JProlChoicePoint implements Comparator<Term> {
             goalTermForEqu = this.goalTerm.makeClone();
           }
 
-          if (!goalTermForEqu.unifyTo(nextClause.isClause() ? nextClause.getElement(0) : nextClause)) {
-            throw new ProlCriticalError("Unexpectedly can't unify term with prvided by knowledge base!");
+          if (!goalTermForEqu
+              .unifyTo(nextClause.isClause() ? nextClause.getElement(0) : nextClause)) {
+            throw new ProlCriticalError(
+                "Unexpectedly can't unify term with prvided by knowledge base!");
           }
 
           if (nextClause.isClause()) {
@@ -381,7 +396,9 @@ public final class JProlChoicePoint implements Comparator<Term> {
                   nonConsumed = false;
                 } else if (functorText.charAt(0) == ';') {// or
                   if (getPayload() == null) {
-                    final JProlChoicePoint leftSubbranch = new JProlChoicePoint(this.rootChoicePoint, struct.getElement(0), this.context, this.debug, this.validate, null);
+                    final JProlChoicePoint leftSubbranch =
+                        new JProlChoicePoint(this.rootChoicePoint, struct.getElement(0),
+                            this.context, this.debug, this.validate, null);
                     leftSubbranch.nextAndTerm = this.nextAndTerm;
                     setPayload(leftSubbranch);
                   } else {
@@ -418,7 +435,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
                   result = JProlChoicePointResult.FAIL;
                 }
 
-                if (result == JProlChoicePointResult.SUCCESS && foundProcessor.doesChangeGoalChain()) {
+                if (result == JProlChoicePointResult.SUCCESS &&
+                    foundProcessor.doesChangeGoalChain()) {
                   result = JProlChoicePointResult.STACK_CHANGED;
                 }
 
@@ -485,7 +503,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
           if (term1 instanceof NumericTerm) {
             if (term2 instanceof NumericTerm) {
               if (term1 instanceof TermDouble || term2 instanceof TermDouble) {
-                result = Double.compare(term1.toNumber().doubleValue(), term2.toNumber().doubleValue());
+                result =
+                    Double.compare(term1.toNumber().doubleValue(), term2.toNumber().doubleValue());
               } else {
                 result = Long.compare(term1.toNumber().longValue(), term2.toNumber().longValue());
               }

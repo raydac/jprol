@@ -16,11 +16,31 @@
 
 package com.igormaznitsa.jprol.logic;
 
+import static com.igormaznitsa.jprol.data.Terms.newStruct;
+import static com.igormaznitsa.jprol.logic.PredicateInvoker.NULL_PROCESSOR;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Stream.concat;
+
+
 import com.igormaznitsa.jprol.annotations.JProlConsultClasspath;
 import com.igormaznitsa.jprol.annotations.JProlConsultFile;
 import com.igormaznitsa.jprol.annotations.JProlConsultText;
-import com.igormaznitsa.jprol.data.*;
-import com.igormaznitsa.jprol.exceptions.*;
+import com.igormaznitsa.jprol.data.Term;
+import com.igormaznitsa.jprol.data.TermOperator;
+import com.igormaznitsa.jprol.data.TermOperatorContainer;
+import com.igormaznitsa.jprol.data.TermStruct;
+import com.igormaznitsa.jprol.data.TermType;
+import com.igormaznitsa.jprol.data.TermVar;
+import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlException;
+import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlForkExecutionException;
+import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
+import com.igormaznitsa.jprol.exceptions.ProlKnowledgeBaseException;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
 import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
@@ -37,26 +57,33 @@ import com.igormaznitsa.prologparser.PrologParser;
 import com.igormaznitsa.prologparser.exceptions.PrologParserException;
 import com.igormaznitsa.prologparser.terms.OpContainer;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
-
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.*;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static com.igormaznitsa.jprol.data.Terms.newStruct;
-import static com.igormaznitsa.jprol.logic.PredicateInvoker.NULL_PROCESSOR;
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Stream.concat;
 
 public final class JProlContext {
   private final String contextId;
@@ -80,7 +107,8 @@ public final class JProlContext {
 
     @Override
     public OpContainer findOpForName(final PrologParser prologParser, final String s) {
-      final TermOperatorContainer container = JProlContext.this.knowledgeBase.findOperatorForName(JProlContext.this, s);
+      final TermOperatorContainer container =
+          JProlContext.this.knowledgeBase.findOperatorForName(JProlContext.this, s);
       return container == null ? null : container.asOpContainer();
     }
 
@@ -164,7 +192,8 @@ public final class JProlContext {
   }
 
   private void onSystemFlagsUpdated() {
-    this.templateValidate = Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.VERIFY).getText());
+    this.templateValidate =
+        Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.VERIFY).getText());
     this.debug = Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.DEBUG).getText());
     this.undefinedPredicateBehaviour = UndefinedPredicateBehavior
         .find(this.systemFlags.get(JProlSystemFlag.UNKNOWN).getText())
@@ -195,11 +224,13 @@ public final class JProlContext {
   }
 
   public Optional<Reader> findResourceReader(final String readerId) {
-    return this.ioProviders.stream().map(x -> x.findReader(this, readerId)).filter(Objects::nonNull).findFirst();
+    return this.ioProviders.stream().map(x -> x.findReader(this, readerId)).filter(Objects::nonNull)
+        .findFirst();
   }
 
   public Optional<Writer> findResourceWriter(final String writerId, final boolean append) {
-    return this.ioProviders.stream().map(x -> x.findWriter(this, writerId, append)).filter(Objects::nonNull).findFirst();
+    return this.ioProviders.stream().map(x -> x.findWriter(this, writerId, append))
+        .filter(Objects::nonNull).findFirst();
   }
 
   public final String getName() {
@@ -240,15 +271,14 @@ public final class JProlContext {
     this.assertNotDisposed();
     this.asyncTaskCounter.incrementAndGet();
     return CompletableFuture.runAsync(() -> {
-      final JProlChoicePoint asyncGoal = new JProlChoicePoint(requireNonNull(goal), this.makeCopy());
-      while (asyncGoal.prove() != null && !Thread.currentThread().isInterrupted()) {
-        ;
-      }
+      final JProlChoicePoint asyncGoal =
+          new JProlChoicePoint(requireNonNull(goal), this.makeCopy());
+      while (asyncGoal.prove() != null && !Thread.currentThread().isInterrupted());
     }, this.executorService).handle((x, e) -> {
           onAsyncTaskCompleted(goal);
-      if (e != null) {
-        throw new ProlForkExecutionException("Error during async/1", goal, new Throwable[] {e});
-      }
+          if (e != null) {
+            throw new ProlForkExecutionException("Error during async/1", goal, new Throwable[] {e});
+          }
           return x;
         }
     );
@@ -258,15 +288,17 @@ public final class JProlContext {
     this.assertNotDisposed();
     this.asyncTaskCounter.incrementAndGet();
     return CompletableFuture.supplyAsync(() -> {
-      final JProlChoicePoint asyncGoal = new JProlChoicePoint(requireNonNull(goal), this.makeCopy());
+      final JProlChoicePoint asyncGoal =
+          new JProlChoicePoint(requireNonNull(goal), this.makeCopy());
       final Term result = asyncGoal.prove();
       asyncGoal.cutVariants();
       return result;
     }, this.executorService).handle((x, e) -> {
           onAsyncTaskCompleted(goal);
-      if (e != null) {
-        throw new ProlForkExecutionException("Error during once async/1", goal, new Throwable[] {e});
-      }
+          if (e != null) {
+            throw new ProlForkExecutionException("Error during once async/1", goal,
+                new Throwable[] {e});
+          }
           return x;
         }
     );
@@ -276,7 +308,8 @@ public final class JProlContext {
     return this.executorService;
   }
 
-  private Optional<ReentrantLock> findLockerForId(final String lockerId, final boolean createIfAbsent) {
+  private Optional<ReentrantLock> findLockerForId(final String lockerId,
+                                                  final boolean createIfAbsent) {
     if (createIfAbsent) {
       return Optional.of(this.namedLockers.computeIfAbsent(lockerId, s -> new ReentrantLock()));
     } else {
@@ -287,7 +320,8 @@ public final class JProlContext {
   public void lockLockerForName(final String lockerId) {
     try {
       this.findLockerForId(lockerId, true)
-          .orElseThrow(() -> new IllegalArgumentException("Named locker is not presented: " + lockerId))
+          .orElseThrow(
+              () -> new IllegalArgumentException("Named locker is not presented: " + lockerId))
           .lockInterruptibly();
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
@@ -296,7 +330,8 @@ public final class JProlContext {
   }
 
   public boolean trylockLockerForName(final String lockerId) {
-    return this.findLockerForId(lockerId, true).orElseThrow(() -> new IllegalArgumentException("Named locker is not presented: " + lockerId)).tryLock();
+    return this.findLockerForId(lockerId, true).orElseThrow(
+        () -> new IllegalArgumentException("Named locker is not presented: " + lockerId)).tryLock();
   }
 
   public void unlockLockerForName(final String lockerId) {
@@ -322,7 +357,7 @@ public final class JProlContext {
 
     final JProlConsultText consultText = library.getClass().getAnnotation(JProlConsultText.class);
     if (consultText != null) {
-      final String text = Arrays.stream(consultText.value()).collect(Collectors.joining("\n"));
+      final String text = String.join("\n", consultText.value());
       if (text.length() > 0) {
         this.consult(new StringReader(text), null);
       }
@@ -344,7 +379,8 @@ public final class JProlContext {
       this.consult(new StringReader(resourceText), null);
     }
 
-    final JProlConsultClasspath consultClasspath = library.getClass().getAnnotation(JProlConsultClasspath.class);
+    final JProlConsultClasspath consultClasspath =
+        library.getClass().getAnnotation(JProlConsultClasspath.class);
     if (consultClasspath != null) {
       final String resourceText = Arrays.stream(consultClasspath.value())
           .filter(x -> !(x == null || x.trim().isEmpty()))
@@ -357,7 +393,8 @@ public final class JProlContext {
           })
           .map(x -> {
             final StringBuilder buffer = new StringBuilder();
-            try (final Reader reader = new InputStreamReader(new BufferedInputStream(x), StandardCharsets.UTF_8)) {
+            try (final Reader reader = new InputStreamReader(new BufferedInputStream(x),
+                StandardCharsets.UTF_8)) {
               while (!Thread.currentThread().isInterrupted()) {
                 final int value = reader.read();
                 if (value < 0) {
@@ -466,18 +503,23 @@ public final class JProlContext {
       }
       signature = Utils.normalizeSignature(signature);
 
-      if (triggerType == JProlTriggerType.TRIGGER_ASSERT || triggerType == JProlTriggerType.TRIGGER_ASSERT_RETRACT) {
-        this.triggersOnAssert.computeIfAbsent(signature, k -> new CopyOnWriteArrayList<>()).add(trigger);
+      if (triggerType == JProlTriggerType.TRIGGER_ASSERT ||
+          triggerType == JProlTriggerType.TRIGGER_ASSERT_RETRACT) {
+        this.triggersOnAssert.computeIfAbsent(signature, k -> new CopyOnWriteArrayList<>())
+            .add(trigger);
       }
 
-      if (triggerType == JProlTriggerType.TRIGGER_RETRACT || triggerType == JProlTriggerType.TRIGGER_ASSERT_RETRACT) {
-        this.triggersOnRetract.computeIfAbsent(signature, k -> new CopyOnWriteArrayList<>()).add(trigger);
+      if (triggerType == JProlTriggerType.TRIGGER_RETRACT ||
+          triggerType == JProlTriggerType.TRIGGER_ASSERT_RETRACT) {
+        this.triggersOnRetract.computeIfAbsent(signature, k -> new CopyOnWriteArrayList<>())
+            .add(trigger);
       }
     });
   }
 
   public void unregisterTrigger(final JProlTrigger trigger) {
-    Stream.of(this.triggersOnAssert.entrySet().iterator(), this.triggersOnRetract.entrySet().iterator()).forEach(iterator -> {
+    Stream.of(this.triggersOnAssert.entrySet().iterator(),
+        this.triggersOnRetract.entrySet().iterator()).forEach(iterator -> {
       while (iterator.hasNext()) {
         final Entry<String, List<JProlTrigger>> entry = iterator.next();
         final List<JProlTrigger> lst = entry.getValue();
@@ -510,20 +552,24 @@ public final class JProlContext {
       }
       break;
       default: {
-        throw new IllegalArgumentException("Unsupported observed event [" + observedEvent.name() + ']');
+        throw new IllegalArgumentException(
+            "Unsupported observed event [" + observedEvent.name() + ']');
       }
     }
 
     return result;
   }
 
-  public void notifyAboutUndefinedPredicate(final JProlChoicePoint choicePoint, final String signature) {
+  public void notifyAboutUndefinedPredicate(final JProlChoicePoint choicePoint,
+                                            final String signature) {
     switch (this.getUndefinedPredicateBehavior()) {
       case ERROR: {
-        throw new ProlExistenceErrorException("predicate", "Undefined predicate: " + signature, choicePoint.getGoalTerm());
+        throw new ProlExistenceErrorException("predicate", "Undefined predicate: " + signature,
+            choicePoint.getGoalTerm());
       }
       case WARNING: {
-        this.contextListeners.forEach(x -> x.onUndefinedPredicateWarning(this, choicePoint, signature));
+        this.contextListeners
+            .forEach(x -> x.onUndefinedPredicateWarning(this, choicePoint, signature));
       }
       break;
       case FAIL: {
@@ -549,9 +595,12 @@ public final class JProlContext {
       }
       break;
       case TRIGGER_ASSERT_RETRACT: {
-        final List<JProlTrigger> triggersAssert = this.triggersOnAssert.getOrDefault(normalizedSignature, emptyList());
-        final List<JProlTrigger> triggersRetract = this.triggersOnRetract.getOrDefault(normalizedSignature, emptyList());
-        listOfTriggers = triggersRetract.isEmpty() && triggersAssert.isEmpty() ? emptyList() : concat(triggersAssert.stream(), triggersRetract.stream()).collect(toList());
+        final List<JProlTrigger> triggersAssert =
+            this.triggersOnAssert.getOrDefault(normalizedSignature, emptyList());
+        final List<JProlTrigger> triggersRetract =
+            this.triggersOnRetract.getOrDefault(normalizedSignature, emptyList());
+        listOfTriggers = triggersRetract.isEmpty() && triggersAssert.isEmpty() ? emptyList() :
+            concat(triggersAssert.stream(), triggersRetract.stream()).collect(toList());
       }
       break;
       default: {
@@ -627,9 +676,11 @@ public final class JProlContext {
                   do {
                     varmap.clear();
                     if (solveGoal(thisGoal, varmap)) {
-                      doFindNextSolution = interactor.onSolution(this, termGoal, varmap, solutioncounter.incrementAndGet());
+                      doFindNextSolution = interactor
+                          .onSolution(this, termGoal, varmap, solutioncounter.incrementAndGet());
                       if (!doFindNextSolution) {
-                        throw new ProlHaltExecutionException(String.format("Solution search halted: %s", termGoal), 1);
+                        throw new ProlHaltExecutionException(
+                            String.format("Solution search halted: %s", termGoal), 1);
                       }
                     } else {
                       interactor.onFail(this, termGoal, solutioncounter.get());
@@ -646,11 +697,13 @@ public final class JProlContext {
           }
           break;
           default: {
-            throw new ProlKnowledgeBaseException("Such element can't be saved at knowledge base [" + nextItem + ']');
+            throw new ProlKnowledgeBaseException(
+                "Such element can't be saved at knowledge base [" + nextItem + ']');
           }
         }
       } catch (Exception ex) {
-        throw new PrologParserException(ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage(), line, strpos, ex);
+        throw new PrologParserException(
+            ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage(), line, strpos, ex);
       }
     } while (!Thread.currentThread().isInterrupted());
   }

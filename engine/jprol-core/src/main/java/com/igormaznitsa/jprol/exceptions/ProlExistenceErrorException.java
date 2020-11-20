@@ -16,11 +16,12 @@
 
 package com.igormaznitsa.jprol.exceptions;
 
+import static com.igormaznitsa.jprol.data.Terms.newAtom;
+
+
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermStruct;
-
-import static com.igormaznitsa.jprol.data.Terms.newAtom;
 
 public class ProlExistenceErrorException extends ProlAbstractCatcheableException {
 
@@ -30,17 +31,20 @@ public class ProlExistenceErrorException extends ProlAbstractCatcheableException
 
   private final String objectType;
 
-  public ProlExistenceErrorException(final String objectType, final Term culprit, final Throwable cause) {
+  public ProlExistenceErrorException(final String objectType, final Term culprit,
+                                     final Throwable cause) {
     super(culprit, cause);
     this.objectType = objectType == null ? UNDEFINED.getText() : objectType;
   }
 
-  public ProlExistenceErrorException(final String objectType, final String message, final Term culprit, final Throwable cause) {
+  public ProlExistenceErrorException(final String objectType, final String message,
+                                     final Term culprit, final Throwable cause) {
     super(message, culprit, cause);
     this.objectType = objectType == null ? UNDEFINED.getText() : objectType;
   }
 
-  public ProlExistenceErrorException(final String objectType, final String message, final Term culprit) {
+  public ProlExistenceErrorException(final String objectType, final String message,
+                                     final Term culprit) {
     super(message, culprit);
     this.objectType = objectType == null ? UNDEFINED.getText() : objectType;
   }
@@ -57,7 +61,8 @@ public class ProlExistenceErrorException extends ProlAbstractCatcheableException
 
   @Override
   public TermStruct getAsStruct() {
-    return this.makeErrorStruct(ERROR_TERM, TermList.asTermList(newAtom(this.objectType), getCulprit()));
+    return this
+        .makeErrorStruct(ERROR_TERM, TermList.asTermList(newAtom(this.objectType), getCulprit()));
   }
 
 }

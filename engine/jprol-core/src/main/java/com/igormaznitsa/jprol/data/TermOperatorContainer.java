@@ -16,14 +16,14 @@
 
 package com.igormaznitsa.jprol.data;
 
+import static com.igormaznitsa.jprol.data.TermType.OPERATORS;
+
+
 import com.igormaznitsa.prologparser.terms.OpContainer;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
-
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.igormaznitsa.jprol.data.TermType.OPERATORS;
 
 public final class TermOperatorContainer extends SpecialTerm {
 

@@ -2,9 +2,14 @@ package com.igormaznitsa.jprol.data;
 
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
-import com.igormaznitsa.prologparser.terms.*;
+import com.igormaznitsa.prologparser.terms.PrologFloat;
+import com.igormaznitsa.prologparser.terms.PrologInt;
+import com.igormaznitsa.prologparser.terms.PrologList;
+import com.igormaznitsa.prologparser.terms.PrologNumeric;
+import com.igormaznitsa.prologparser.terms.PrologStruct;
+import com.igormaznitsa.prologparser.terms.PrologTerm;
+import com.igormaznitsa.prologparser.terms.PrologVar;
 import com.igormaznitsa.prologparser.tokenizer.Op;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -77,11 +82,13 @@ public final class Terms {
     return new TermStruct(functor, elements);
   }
 
-  public static TermStruct newStruct(final Term functor, final Term[] elements, final PredicateInvoker processor) {
+  public static TermStruct newStruct(final Term functor, final Term[] elements,
+                                     final PredicateInvoker processor) {
     return new TermStruct(functor, elements, processor);
   }
 
-  private static Term convert(final JProlContext context, final PrologTerm term, final Map<String, TermVar> vars) {
+  private static Term convert(final JProlContext context, final PrologTerm term,
+                              final Map<String, TermVar> vars) {
     switch (term.getType()) {
       case ATOM: {
         if (term instanceof PrologNumeric) {
@@ -102,11 +109,13 @@ public final class Terms {
         }
       }
       case OPERATOR: {
-        return context.getKnowledgeBase().findOperatorForName(context, term.getText()).getForTypePrecisely(((Op) term).getAssoc());
+        return context.getKnowledgeBase().findOperatorForName(context, term.getText())
+            .getForTypePrecisely(((Op) term).getAssoc());
       }
       case LIST: {
         final PrologList list = (PrologList) term;
-        return list.isEmpty() ? NULL_LIST : newList(convert(context, list.getHead(), vars), convert(context, list.getTail(), vars));
+        return list.isEmpty() ? NULL_LIST :
+            newList(convert(context, list.getHead(), vars), convert(context, list.getTail(), vars));
       }
       case STRUCT: {
         final PrologStruct struct = (PrologStruct) term;

@@ -1,7 +1,6 @@
 package com.igormaznitsa.jprol.logic.io;
 
 import com.igormaznitsa.jprol.logic.JProlContext;
-
 import java.io.Reader;
 import java.io.Writer;
 

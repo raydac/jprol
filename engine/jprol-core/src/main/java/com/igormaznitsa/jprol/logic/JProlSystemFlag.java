@@ -1,14 +1,19 @@
 package com.igormaznitsa.jprol.logic;
 
+import static com.igormaznitsa.jprol.data.Terms.FALSE;
+import static com.igormaznitsa.jprol.data.Terms.NULL_LIST;
+import static com.igormaznitsa.jprol.data.Terms.TRUE;
+import static com.igormaznitsa.jprol.data.Terms.newAtom;
+import static com.igormaznitsa.jprol.data.Terms.newLong;
+import static com.igormaznitsa.jprol.data.Terms.newStruct;
+import static java.util.Arrays.stream;
+
+
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.data.Terms;
-
 import java.util.Locale;
 import java.util.Optional;
-
-import static com.igormaznitsa.jprol.data.Terms.*;
-import static java.util.Arrays.stream;
 
 public enum JProlSystemFlag {
   ADDRESS_BIT(true, Terms.newAtom("address_bit"), Terms.newLong(64)),
@@ -23,11 +28,13 @@ public enum JProlSystemFlag {
   MAX_ARITY(true, Terms.newAtom("max_arity"), Terms.newLong(Integer.MAX_VALUE)),
   MAX_INTEGER(true, Terms.newAtom("max_integer"), Terms.newLong(Long.MAX_VALUE)),
   MIN_INTEGER(true, Terms.newAtom("min_integer"), Terms.newLong(Long.MIN_VALUE)),
-  CPU_COUNT(true, Terms.newAtom("cpu_count"), Terms.newLong(Runtime.getRuntime().availableProcessors())),
+  CPU_COUNT(true, Terms.newAtom("cpu_count"),
+      Terms.newLong(Runtime.getRuntime().availableProcessors())),
   UNKNOWN(false, Terms.newAtom("unknown"), UndefinedPredicateBehavior.ERROR.getTerm()),
   HOME(true, Terms.newAtom("home"), Terms.newAtom(System.getProperty("user.home", ""))),
   VERIFY(false, Terms.newAtom("verify"), TRUE),
-  VERSION_DATA(true, Terms.newAtom("version_data"), newStruct(newAtom("jprol"), new Term[] {newLong(2), newLong(0), newLong(0), NULL_LIST}));
+  VERSION_DATA(true, Terms.newAtom("version_data"),
+      newStruct(newAtom("jprol"), new Term[] {newLong(2), newLong(0), newLong(0), NULL_LIST}));
 
   private final Term nameTerm;
   private final Term defaultValue;
@@ -40,7 +47,8 @@ public enum JProlSystemFlag {
   }
 
   public static Optional<JProlSystemFlag> find(final Term term) {
-    final String termText = term.getTermType() != TermType.ATOM ? null : term.getText().toUpperCase(Locale.ENGLISH);
+    final String termText =
+        term.getTermType() != TermType.ATOM ? null : term.getText().toUpperCase(Locale.ENGLISH);
 
     Optional<JProlSystemFlag> result = Optional.empty();
     if (termText != null) {

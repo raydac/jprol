@@ -1,16 +1,16 @@
 package com.igormaznitsa.jprol.kbase.inmemory.items;
 
+import static java.util.Objects.requireNonNull;
+
+
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.data.TermVar;
-import lombok.Data;
-
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static java.util.Objects.requireNonNull;
+import lombok.Data;
 
 @Data
 public abstract class InMemoryItem {

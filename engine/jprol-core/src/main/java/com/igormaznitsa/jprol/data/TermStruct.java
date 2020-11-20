@@ -16,17 +16,20 @@
 
 package com.igormaznitsa.jprol.data;
 
+import static com.igormaznitsa.jprol.data.TermType.ATOM;
+import static com.igormaznitsa.jprol.data.TermType.OPERATOR;
+import static com.igormaznitsa.jprol.data.TermType.STRUCT;
+import static com.igormaznitsa.jprol.data.TermType.VAR;
+import static java.util.Objects.requireNonNull;
+
+
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import com.igormaznitsa.jprol.utils.Utils;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
-
-import static com.igormaznitsa.jprol.data.TermType.*;
-import static java.util.Objects.requireNonNull;
 
 public class TermStruct extends CompoundTerm {
 
@@ -359,7 +362,8 @@ public class TermStruct extends CompoundTerm {
 
         final int arity = thisStruct.getArity();
 
-        if (arity == thatStruct.getArity() && thisStruct.getFunctor().unifyTo(thatStruct.getFunctor())) {
+        if (arity == thatStruct.getArity() &&
+            thisStruct.getFunctor().unifyTo(thatStruct.getFunctor())) {
           for (int li = 0; li < arity; li++) {
             final Term thiselement = thisStruct.getElement(li);
             final Term thatelement = thatStruct.getElement(li);
@@ -415,7 +419,8 @@ public class TermStruct extends CompoundTerm {
 
       final int arity = thisStruct.getArity();
 
-      if (arity == thatStruct.getArity() && thisStruct.getFunctor().dryUnifyTo(thatStruct.getFunctor())) {
+      if (arity == thatStruct.getArity() &&
+          thisStruct.getFunctor().dryUnifyTo(thatStruct.getFunctor())) {
         for (int li = 0; li < arity; li++) {
           if (!thisStruct.getElement(li).dryUnifyTo(thatStruct.getElement(li))) {
             return false;

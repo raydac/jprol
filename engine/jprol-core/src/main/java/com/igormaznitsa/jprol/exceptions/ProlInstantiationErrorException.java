@@ -16,10 +16,11 @@
 
 package com.igormaznitsa.jprol.exceptions;
 
+import static com.igormaznitsa.jprol.data.Terms.newAtom;
+
+
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
-
-import static com.igormaznitsa.jprol.data.Terms.newAtom;
 
 public class ProlInstantiationErrorException extends ProlAbstractCatcheableException {
 
@@ -31,7 +32,8 @@ public class ProlInstantiationErrorException extends ProlAbstractCatcheableExcep
     super(culprit, cause);
   }
 
-  public ProlInstantiationErrorException(final String message, final Term culprit, final Throwable cause) {
+  public ProlInstantiationErrorException(final String message, final Term culprit,
+                                         final Throwable cause) {
     super(message, culprit, cause);
   }
 

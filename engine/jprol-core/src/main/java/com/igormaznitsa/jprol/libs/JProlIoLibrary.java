@@ -1,5 +1,9 @@
 package com.igormaznitsa.jprol.libs;
 
+import static com.igormaznitsa.jprol.data.TermType.LIST;
+import static com.igormaznitsa.jprol.libs.JProlCoreLibrary.predicateCALL;
+
+
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
@@ -11,19 +15,21 @@ import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.prologparser.GenericPrologParser;
 import com.igormaznitsa.prologparser.PrologParser;
-import com.igormaznitsa.prologparser.tokenizer.TokenizerResult;
+import com.igormaznitsa.prologparser.terms.PrologTerm;
 import com.igormaznitsa.prologparser.utils.StringBuilderEx;
-
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.FilterWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PushbackReader;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static com.igormaznitsa.jprol.data.TermType.LIST;
-import static com.igormaznitsa.jprol.libs.JProlCoreLibrary.predicateCALL;
-import com.igormaznitsa.prologparser.terms.PrologTerm;
-import java.util.NoSuchElementException;
 
 public class JProlIoLibrary extends AbstractJProlLibrary {
 
@@ -37,7 +43,8 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     super("jprol-io-lib");
   }
 
-  @JProlPredicate(determined = true, signature = "consult/1", args = {"+atom", "+list"}, reference = "Take an atom as the file name of the resource to be used for consultation, or a list contains resource name chain.")
+  @JProlPredicate(determined = true, signature = "consult/1", args = {"+atom",
+      "+list"}, reference = "Take an atom as the file name of the resource to be used for consultation, or a list contains resource name chain.")
   public boolean predicateCONSULT(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term term = predicate.getElement(0).findNonVarOrSame();
     final JProlContext context = goal.getContext();
@@ -84,19 +91,23 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     return true;
   }
 
-  private InternalReader makeResourceReader(final JProlContext context, final String resourceId) throws IOException {
-    final Reader reader = context.findResourceReader(resourceId).orElseThrow(() -> new FileNotFoundException(resourceId));
+  private InternalReader makeResourceReader(final JProlContext context, final String resourceId)
+      throws IOException {
+    final Reader reader = context.findResourceReader(resourceId)
+        .orElseThrow(() -> new FileNotFoundException(resourceId));
 
     if (reader != null) {
       return new InternalReader(Terms.newAtom(resourceId), reader, true);
     } else if ("user".equals(resourceId)) {
-      return new InternalReader(Terms.newAtom("user"), new InputStreamReader(System.in, Charset.defaultCharset()), false);
+      return new InternalReader(Terms.newAtom("user"),
+          new InputStreamReader(System.in, Charset.defaultCharset()), false);
     } else {
       throw new FileNotFoundException(resourceId);
     }
   }
 
-  private InternalWriter makeResourceWriter(final JProlContext context, final String resourceId, final boolean append) throws IOException {
+  private InternalWriter makeResourceWriter(final JProlContext context, final String resourceId,
+                                            final boolean append) throws IOException {
     final Writer writer = context.findResourceWriter(resourceId, append).orElse(null);
 
     if (writer != null) {
@@ -113,7 +124,8 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }
   }
 
-  private Optional<InternalWriter> makeUserAsCurrentOut(final JProlContext context, final boolean append) {
+  private Optional<InternalWriter> makeUserAsCurrentOut(final JProlContext context,
+                                                        final boolean append) {
     if (getIoWriters(context).containsKey("user")) {
       return Optional.ofNullable(getIoWriters(context).get("user"));
     } else {
@@ -218,16 +230,18 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     final Optional<InternalReader> current = findCurrentInput(goal.getContext(), arg);
 
     if (current.isPresent()) {
-      final PrologParser parser = new GenericPrologParser(current.get(), goal.getContext().getParserContext());
+      final PrologParser parser =
+          new GenericPrologParser(current.get(), goal.getContext().getParserContext());
       PrologTerm nextTerm;
-      try{
+      try {
         nextTerm = parser.next();
-      }catch(NoSuchElementException ex){
+      } catch (NoSuchElementException ex) {
         nextTerm = null;
       }
-      
-      final Term asterm = nextTerm == null ? END_OF_FILE : Terms.fromParsed(goal.getContext(), nextTerm);
-      
+
+      final Term asterm =
+          nextTerm == null ? END_OF_FILE : Terms.fromParsed(goal.getContext(), nextTerm);
+
       return arg.unifyTo(asterm);
     } else {
       throw new ProlPermissionErrorException("read", "text_input", predicate);
@@ -386,10 +400,13 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }).orElseThrow(() -> new ProlPermissionErrorException("write", "text_stream", predicate));
   }
 
-  @JProlPredicate(determined = true, signature = "tab/1", args = {"+integer"}, reference = "Out a number of space symbols into current output stream")
-  public final boolean predicateTAB(final JProlChoicePoint goal, final TermStruct predicate) throws IOException {
+  @JProlPredicate(determined = true, signature = "tab/1", args = {
+      "+integer"}, reference = "Out a number of space symbols into current output stream")
+  public final boolean predicateTAB(final JProlChoicePoint goal, final TermStruct predicate)
+      throws IOException {
     final long spaces = predicate.getElement(0).toNumber().longValue();
-    final InternalWriter writer = findCurrentOutput(goal.getContext(), predicate).orElseThrow(() -> new ProlPermissionErrorException("write", "text_stream", predicate));
+    final InternalWriter writer = findCurrentOutput(goal.getContext(), predicate)
+        .orElseThrow(() -> new ProlPermissionErrorException("write", "text_stream", predicate));
     for (long li = 0; li < spaces; li++) {
       writer.write(" ");
     }

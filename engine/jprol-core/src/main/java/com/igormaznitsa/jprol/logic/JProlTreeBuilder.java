@@ -5,7 +5,6 @@ import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.prologparser.GenericPrologParser;
 import com.igormaznitsa.prologparser.PrologParser;
 import com.igormaznitsa.prologparser.terms.PrologTerm;
-
 import java.io.Reader;
 import java.util.NoSuchElementException;
 

@@ -17,7 +17,6 @@
 package com.igormaznitsa.jprol.logic.triggers;
 
 import com.igormaznitsa.jprol.logic.JProlContext;
-
 import java.util.Map;
 
 public interface JProlTrigger {

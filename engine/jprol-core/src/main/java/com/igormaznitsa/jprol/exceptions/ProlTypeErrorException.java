@@ -16,11 +16,12 @@
 
 package com.igormaznitsa.jprol.exceptions;
 
-import com.igormaznitsa.jprol.data.Term;
-import com.igormaznitsa.jprol.data.TermStruct;
-
 import static com.igormaznitsa.jprol.data.TermList.asTermList;
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
+
+
+import com.igormaznitsa.jprol.data.Term;
+import com.igormaznitsa.jprol.data.TermStruct;
 
 public class ProlTypeErrorException extends ProlAbstractCatcheableException {
 
@@ -35,7 +36,8 @@ public class ProlTypeErrorException extends ProlAbstractCatcheableException {
     this.validType = validType == null ? UNDEFINED.getText() : validType;
   }
 
-  public ProlTypeErrorException(final String validType, final String message, final Term culprit, final Throwable cause) {
+  public ProlTypeErrorException(final String validType, final String message, final Term culprit,
+                                final Throwable cause) {
     super(message, culprit, cause);
     this.validType = validType == null ? UNDEFINED.getText() : validType;
   }

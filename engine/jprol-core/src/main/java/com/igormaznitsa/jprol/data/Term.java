@@ -32,16 +32,16 @@
 
 package com.igormaznitsa.jprol.data;
 
-import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Stream;
-
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.utils.Utils.escapeSrc;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
+
+
+import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Stream;
 
 public class Term {
 
@@ -119,7 +119,7 @@ public class Term {
   }
 
   public String toSrcString() {
-    return String.format("\'%s\'", escapeSrc(getText()));
+    return String.format("'%s'", escapeSrc(getText()));
   }
 
   @Override

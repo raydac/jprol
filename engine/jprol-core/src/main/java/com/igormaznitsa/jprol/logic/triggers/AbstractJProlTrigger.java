@@ -16,13 +16,14 @@
 
 package com.igormaznitsa.jprol.logic.triggers;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import static com.igormaznitsa.jprol.utils.Utils.normalizeSignature;
 import static com.igormaznitsa.jprol.utils.Utils.validateSignature;
 import static java.util.Objects.requireNonNull;
+
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class AbstractJProlTrigger implements JProlTrigger {
 
@@ -32,7 +33,8 @@ public abstract class AbstractJProlTrigger implements JProlTrigger {
     this.signatureMap = Collections.synchronizedMap(new HashMap<>());
   }
 
-  public AbstractJProlTrigger addSignature(final String signature, final JProlTriggerType observedEvent) {
+  public AbstractJProlTrigger addSignature(final String signature,
+                                           final JProlTriggerType observedEvent) {
     String processedsignature = validateSignature(requireNonNull(signature));
 
     if (processedsignature == null) {

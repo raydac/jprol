@@ -16,20 +16,33 @@
 
 package com.igormaznitsa.jprol.utils;
 
-import com.igormaznitsa.jprol.data.*;
-import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
+import static com.igormaznitsa.jprol.data.TermType.ATOM;
+import static com.igormaznitsa.jprol.data.Terms.newList;
+import static com.igormaznitsa.jprol.data.Terms.newLong;
 
-import java.io.*;
+
+import com.igormaznitsa.jprol.data.Term;
+import com.igormaznitsa.jprol.data.TermList;
+import com.igormaznitsa.jprol.data.TermLong;
+import com.igormaznitsa.jprol.data.TermOperator;
+import com.igormaznitsa.jprol.data.TermStruct;
+import com.igormaznitsa.jprol.data.Terms;
+import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-
-import static com.igormaznitsa.jprol.data.TermType.ATOM;
-import static com.igormaznitsa.jprol.data.Terms.newList;
-import static com.igormaznitsa.jprol.data.Terms.newLong;
 
 public final class Utils {
 
@@ -81,7 +94,6 @@ public final class Utils {
   }
 
 
-
   public static Throwable[] extractErrors(final List<CompletableFuture<Term>> futures) {
     return futures.stream().filter(CompletableFuture::isCompletedExceptionally).map(x -> {
       try {
@@ -95,7 +107,8 @@ public final class Utils {
     }).filter(Objects::nonNull).toArray(Throwable[]::new);
   }
 
-  public static <T> CloseableIterator<T> makeCloseableIterator(final Iterator<T> iterator, final Runnable onClose) {
+  public static <T> CloseableIterator<T> makeCloseableIterator(final Iterator<T> iterator,
+                                                               final Runnable onClose) {
     return new CloseableIterator<T>() {
       private final Iterator<T> wrapped = iterator;
 
@@ -119,15 +132,18 @@ public final class Utils {
   }
 
   public static void writeAsUtf8(final File file, final CharSequence seq) throws IOException {
-    try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false), StandardCharsets.UTF_8))) {
+    try (Writer writer = new BufferedWriter(
+        new OutputStreamWriter(new FileOutputStream(file, false), StandardCharsets.UTF_8))) {
       writer.write(seq.toString());
       writer.flush();
     }
   }
 
   public static String readAsUtf8(final File file) throws IOException {
-    try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
-      final StringBuilder buffer = new StringBuilder((int) file.length() < 0 ? 16384 : (int) file.length());
+    try (BufferedReader reader = new BufferedReader(
+        new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+      final StringBuilder buffer =
+          new StringBuilder((int) file.length() < 0 ? 16384 : (int) file.length());
       while (!Thread.currentThread().isInterrupted()) {
         final int chr = reader.read();
         if (chr < 0) {
@@ -166,7 +182,7 @@ public final class Utils {
           builder.append("\\\\");
           break;
         case '\'':
-          builder.append("\\\'");
+          builder.append("\\'");
           break;
         case '\"':
           builder.append("\\\"");
@@ -240,7 +256,8 @@ public final class Utils {
   }
 
   public static String validateSignature(final String signature) {
-    final String[] parsed = Objects.requireNonNull(signature, "Null signature not allowed").split("/");
+    final String[] parsed =
+        Objects.requireNonNull(signature, "Null signature not allowed").split("/");
     if (parsed.length == 2) {
       String str = parsed[0].trim();
       boolean quoted = false;
@@ -259,7 +276,8 @@ public final class Utils {
         }
 
         final char firstChar = str.charAt(0);
-        if (!quoted && (Character.isDigit(firstChar) || Character.isUpperCase(firstChar) || Character.isWhitespace(firstChar) || firstChar == '.')) {
+        if (!quoted && (Character.isDigit(firstChar) || Character.isUpperCase(firstChar) ||
+            Character.isWhitespace(firstChar) || firstChar == '.')) {
           return null;
         }
 

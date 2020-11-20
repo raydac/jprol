@@ -14,7 +14,7 @@
 
     <properties>
         <app.name>jprol-gui-${project.version}</app.name>
-        <jre.version>11.0.6+10</jre.version>
+        <jre.version>11.0.9.1+1</jre.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
@@ -465,6 +465,20 @@
     </profiles>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.akathist.maven.plugins.launch4j</groupId>
+                    <artifactId>launch4j-maven-plugin</artifactId>
+                    <version>1.7.25</version>
+                </plugin>
+                <plugin>
+                    <groupId>sh.tak.appbundler</groupId>
+                    <artifactId>appbundle-maven-plugin</artifactId>
+                    <version>1.2.0</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <finalName>${app.name}</finalName>
         <plugins>
             <plugin>

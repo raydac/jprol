@@ -16,10 +16,22 @@
 
 package com.igormaznitsa.jprol.libs;
 
+import static com.igormaznitsa.jprol.data.TermType.VAR;
+import static com.igormaznitsa.jprol.data.Terms.newAtom;
+import static com.igormaznitsa.jprol.data.Terms.newLong;
+import static com.igormaznitsa.jprol.data.Terms.newStruct;
+import static com.igormaznitsa.jprol.utils.Utils.SIGNATURE_OPERATOR;
+import static java.lang.Integer.parseInt;
+
+
 import com.igormaznitsa.jprol.annotations.JProlOperator;
 import com.igormaznitsa.jprol.annotations.JProlOperators;
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
-import com.igormaznitsa.jprol.data.*;
+import com.igormaznitsa.jprol.data.NumericTerm;
+import com.igormaznitsa.jprol.data.Term;
+import com.igormaznitsa.jprol.data.TermOperator;
+import com.igormaznitsa.jprol.data.TermOperatorContainer;
+import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
@@ -31,17 +43,16 @@ import com.igormaznitsa.jprol.utils.CloseableIterator;
 import com.igormaznitsa.jprol.utils.OperatorIterator;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.Utils;
-
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static com.igormaznitsa.jprol.data.TermType.VAR;
-import static com.igormaznitsa.jprol.data.Terms.*;
-import static com.igormaznitsa.jprol.utils.Utils.SIGNATURE_OPERATOR;
-import static java.lang.Integer.parseInt;
 
 public abstract class AbstractJProlLibrary {
 
@@ -50,7 +61,8 @@ public abstract class AbstractJProlLibrary {
   private final Map<String, PredicateInvoker> predicateMethodsMap;
   private final Set<String> zeroArityPredicateNames;
 
-  private final Map<JProlContext, Map<String, Object>> contextNamedObjects = new ConcurrentHashMap<>();
+  private final Map<JProlContext, Map<String, Object>> contextNamedObjects =
+      new ConcurrentHashMap<>();
 
   public AbstractJProlLibrary(final String libraryUid) {
     if (libraryUid == null) {
@@ -61,19 +73,23 @@ public abstract class AbstractJProlLibrary {
 
     this.systemOperators = Collections.unmodifiableMap(loadStaticOperators(this.getClass()));
     final Set<String> zeroArityPredicates = new HashSet<>();
-    this.predicateMethodsMap = Collections.unmodifiableMap(extractAnnotatedMethodsAsPredicates(libraryUid, zeroArityPredicates));
+    this.predicateMethodsMap = Collections
+        .unmodifiableMap(extractAnnotatedMethodsAsPredicates(libraryUid, zeroArityPredicates));
     this.zeroArityPredicateNames = Collections.unmodifiableSet(zeroArityPredicates);
   }
 
   protected static boolean assertUnify(final Term a, final Term b) {
     if (!a.unifyTo(b)) {
-      throw new ProlCriticalError("Can't unify terms, it's critical unexpected error, contact developer!");
+      throw new ProlCriticalError(
+          "Can't unify terms, it's critical unexpected error, contact developer!");
     }
     return true;
   }
 
-  private static void registerStaticOperator(final Map<String, TermOperatorContainer> operatorMap, final JProlOperator operator) {
-    TermOperator newOperator = new TermOperator(operator.priority(), operator.type(), operator.name());
+  private static void registerStaticOperator(final Map<String, TermOperatorContainer> operatorMap,
+                                             final JProlOperator operator) {
+    TermOperator newOperator =
+        new TermOperator(operator.priority(), operator.type(), operator.name());
     TermOperatorContainer container = operatorMap.get(operator.name());
     if (container == null) {
       container = new TermOperatorContainer(newOperator);
@@ -119,7 +135,8 @@ public abstract class AbstractJProlLibrary {
           if (processor.isEvaluable()) {
             result = (NumericTerm) processor.executeEvaluable(goal, (TermStruct) term);
           } else {
-            throw new ProlTypeErrorException("evaluable", "Non-evaluable item found: " + term, term);
+            throw new ProlTypeErrorException("evaluable", "Non-evaluable item found: " + term,
+                term);
           }
         }
         break;
@@ -137,13 +154,15 @@ public abstract class AbstractJProlLibrary {
   }
 
   @SuppressWarnings("unchecked")
-  protected <T> T findContextObject(final JProlContext context, final String objectId, final Function<String, T> defaultSupplier) {
+  protected <T> T findContextObject(final JProlContext context, final String objectId,
+                                    final Function<String, T> defaultSupplier) {
     return (T) this.contextNamedObjects
         .computeIfAbsent(context, ctx -> new ConcurrentHashMap<>())
         .computeIfAbsent(objectId, defaultSupplier);
   }
 
-  protected void putContextObject(final JProlContext context, final String objectId, final Object obj) {
+  protected void putContextObject(final JProlContext context, final String objectId,
+                                  final Object obj) {
     final Map<String, Object> contextMap = this.contextNamedObjects
         .computeIfAbsent(context, ctx -> new ConcurrentHashMap<>());
 
@@ -184,7 +203,8 @@ public abstract class AbstractJProlLibrary {
   }
 
   public boolean hasZeroArityPredicate(final String predicateName) {
-    return this.onBeforeHasZeroArityPredicate(predicateName) || this.zeroArityPredicateNames.contains(predicateName);
+    return this.onBeforeHasZeroArityPredicate(predicateName) ||
+        this.zeroArityPredicateNames.contains(predicateName);
   }
 
   protected boolean onBeforeHasZeroArityPredicate(final String predicateName) {
@@ -233,7 +253,8 @@ public abstract class AbstractJProlLibrary {
     this.contextNamedObjects.remove(context);
   }
 
-  private Map<String, PredicateInvoker> extractAnnotatedMethodsAsPredicates(final String libraryUID, final Set<String> foundZeroArityPredicates) {
+  private Map<String, PredicateInvoker> extractAnnotatedMethodsAsPredicates(final String libraryUID,
+                                                                            final Set<String> foundZeroArityPredicates) {
     final Map<String, PredicateInvoker> result = new HashMap<>();
 
     final Method[] methods = this.getClass().getMethods();
@@ -244,27 +265,32 @@ public abstract class AbstractJProlLibrary {
         final String signature = Utils.normalizeSignature(predicateAnnotation.signature());
 
         if (signature == null) {
-          throw new ProlCriticalError("Wrong signature of a predicate method " + method.getName() + " at " + libraryUID);
+          throw new ProlCriticalError(
+              "Wrong signature of a predicate method " + method.getName() + " at " + libraryUID);
         }
 
         if (result.containsKey(signature)) {
-          throw new ProlCriticalError("Duplicated predicate method " + signature + " at " + libraryUID);
+          throw new ProlCriticalError(
+              "Duplicated predicate method " + signature + " at " + libraryUID);
         }
 
-        final PredicateInvoker invoker = new PredicateInvoker(this, predicateAnnotation.determined(), predicateAnnotation.evaluable(), predicateAnnotation.changesChooseChain(), signature, method);
+        final PredicateInvoker invoker =
+            new PredicateInvoker(this, predicateAnnotation.determined(),
+                predicateAnnotation.evaluable(), predicateAnnotation.changesChooseChain(),
+                signature, method);
         result.put(signature, invoker);
         if (signature.endsWith("/0")) {
           foundZeroArityPredicates.add(signature.substring(0, signature.lastIndexOf('/')));
         }
 
         final String[] synonimSignatures = predicateAnnotation.synonims();
-          for (String synonimSignature : synonimSignatures) {
-            final String sig = synonimSignature.trim();
-            result.put(sig, invoker);
-            if (sig.endsWith("/0")) {
-              foundZeroArityPredicates.add(sig.substring(0, sig.lastIndexOf('/')));
-            }
+        for (String synonimSignature : synonimSignatures) {
+          final String sig = synonimSignature.trim();
+          result.put(sig, invoker);
+          if (sig.endsWith("/0")) {
+            foundZeroArityPredicates.add(sig.substring(0, sig.lastIndexOf('/')));
           }
+        }
       }
     }
 

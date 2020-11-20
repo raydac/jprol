@@ -16,9 +16,10 @@
 
 package com.igormaznitsa.jprol.logic.triggers;
 
-import com.igormaznitsa.jprol.logic.JProlContext;
-
 import static java.util.Objects.requireNonNull;
+
+
+import com.igormaznitsa.jprol.logic.JProlContext;
 
 public class TriggerEvent {
 
@@ -26,7 +27,8 @@ public class TriggerEvent {
   private final String normalizedSignature;
   private final JProlTriggerType eventType;
 
-  public TriggerEvent(final JProlContext context, final String normalizedSignature, final JProlTriggerType eventType) {
+  public TriggerEvent(final JProlContext context, final String normalizedSignature,
+                      final JProlTriggerType eventType) {
     this.context = requireNonNull(context);
     this.normalizedSignature = requireNonNull(normalizedSignature);
     this.eventType = requireNonNull(eventType);
@@ -46,6 +48,7 @@ public class TriggerEvent {
 
   @Override
   public String toString() {
-    return "Trigger Event (context=" + context.toString() + ',' + "signature=\'" + normalizedSignature + "\',event=" + eventType.name() + ')';
+    return "Trigger Event (context=" + context.toString() + ',' + "signature='" +
+        normalizedSignature + "',event=" + eventType.name() + ')';
   }
 }

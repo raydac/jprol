@@ -16,11 +16,12 @@
 
 package com.igormaznitsa.jprol.exceptions;
 
+import static com.igormaznitsa.jprol.data.Terms.newAtom;
+
+
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermStruct;
-
-import static com.igormaznitsa.jprol.data.Terms.newAtom;
 
 public class ProlRepresentationErrorException extends ProlAbstractCatcheableException {
 
@@ -29,17 +30,20 @@ public class ProlRepresentationErrorException extends ProlAbstractCatcheableExce
   private static final Term TERM_ERROR = newAtom("representation_error");
   private final String errorCode;
 
-  public ProlRepresentationErrorException(final String errorCode, final Term culprit, final Throwable cause) {
+  public ProlRepresentationErrorException(final String errorCode, final Term culprit,
+                                          final Throwable cause) {
     super(culprit, cause);
     this.errorCode = errorCode == null ? UNDEFINED.getText() : errorCode;
   }
 
-  public ProlRepresentationErrorException(final String errorCode, final String message, final Term culprit, final Throwable cause) {
+  public ProlRepresentationErrorException(final String errorCode, final String message,
+                                          final Term culprit, final Throwable cause) {
     super(message, culprit, cause);
     this.errorCode = errorCode == null ? UNDEFINED.getText() : errorCode;
   }
 
-  public ProlRepresentationErrorException(final String errorCode, final String message, final Term culprit) {
+  public ProlRepresentationErrorException(final String errorCode, final String message,
+                                          final Term culprit) {
     super(message, culprit);
     this.errorCode = errorCode == null ? UNDEFINED.getText() : errorCode;
   }
@@ -60,6 +64,7 @@ public class ProlRepresentationErrorException extends ProlAbstractCatcheableExce
 
   @Override
   public TermStruct getAsStruct() {
-    return this.makeErrorStruct(TERM_ERROR, TermList.asTermList(newAtom(this.errorCode), this.getCulprit()));
+    return this.makeErrorStruct(TERM_ERROR,
+        TermList.asTermList(newAtom(this.errorCode), this.getCulprit()));
   }
 }

@@ -22,7 +22,6 @@ import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.kbase.inmemory.items.InMemoryItem;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -80,29 +79,29 @@ public final class InMemoryClauseIterator implements CloseableIterator<TermStruc
 
     while (this.iterator.hasNext() && result == null) {
       final InMemoryItem nextItem = this.iterator.next();
-        switch (this.type) {
-          case ANY: {
-            if (nextItem.matches(this.search)) {
-              result = nextItem;
-            }
+      switch (this.type) {
+        case ANY: {
+          if (nextItem.matches(this.search)) {
+            result = nextItem;
           }
-          break;
-          case FACTS: {
-            if (nextItem.isFact() && nextItem.matches(this.search)) {
-              result = nextItem;
-            }
-          }
-          break;
-          case RULES: {
-            if (nextItem.isRule() && nextItem.matches(this.search)) {
-              result = nextItem;
-            }
-          }
-          break;
-          default:
-            throw new Error("Unexpected type: " + this.type);
         }
+        break;
+        case FACTS: {
+          if (nextItem.isFact() && nextItem.matches(this.search)) {
+            result = nextItem;
+          }
+        }
+        break;
+        case RULES: {
+          if (nextItem.isRule() && nextItem.matches(this.search)) {
+            result = nextItem;
+          }
+        }
+        break;
+        default:
+          throw new Error("Unexpected type: " + this.type);
       }
+    }
     return result;
   }
 

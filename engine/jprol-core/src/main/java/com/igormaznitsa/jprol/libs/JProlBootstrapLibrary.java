@@ -1,5 +1,11 @@
 package com.igormaznitsa.jprol.libs;
 
+import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.FX;
+import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.XF;
+import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.XFX;
+import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.XFY;
+
+
 import com.igormaznitsa.jprol.annotations.JProlOperator;
 import com.igormaznitsa.jprol.annotations.JProlOperators;
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
@@ -11,13 +17,10 @@ import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlSystemFlag;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
-
 import java.util.Iterator;
 import java.util.stream.Stream;
 
-import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.*;
-
-@SuppressWarnings( {"EmptyMethod", "unused"})
+@SuppressWarnings({"EmptyMethod", "unused"})
 @JProlOperators(operators = {
     @JProlOperator(priority = 700, type = XFX, name = "is"),
     @JProlOperator(priority = 700, type = XFX, name = "="),
@@ -40,8 +43,10 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     super("jprol-bootstrap-lib");
   }
 
-  @JProlPredicate(signature = "current_prolog_flag/2", args = {"?atom,?term"}, reference = "Check prolog flag and flag values.")
-  public static boolean predicateCURRENTPROLOGFLAG(final JProlChoicePoint cpoint, final TermStruct predicate) {
+  @JProlPredicate(signature = "current_prolog_flag/2", args = {
+      "?atom,?term"}, reference = "Check prolog flag and flag values.")
+  public static boolean predicateCURRENTPROLOGFLAG(final JProlChoicePoint cpoint,
+                                                   final TermStruct predicate) {
     final Term atom = predicate.getElement(0).findNonVarOrSame();
     final Term term = predicate.getElement(1).findNonVarOrSame();
 
@@ -93,7 +98,8 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
       args = {"+atom,+term"},
       reference = "Set value of flag."
   )
-  public static boolean predicateSETPROLOGFLAG(final JProlChoicePoint cpoint, final TermStruct predicate) {
+  public static boolean predicateSETPROLOGFLAG(final JProlChoicePoint cpoint,
+                                               final TermStruct predicate) {
     final Term atom = predicate.getElement(0).findNonVarOrSame();
     final Term term = predicate.getElement(1).findNonVarOrSame();
 
@@ -110,7 +116,8 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
         }).orElseThrow(() -> new ProlDomainErrorException("prolog_flag", atom));
   }
 
-  @JProlPredicate(determined = true, signature = "is/2", args = {"-number,+evaluable"}, reference = "'is'(Result, Expression) is true if and only if the value of evaluating Expression as an expression is Result")
+  @JProlPredicate(determined = true, signature = "is/2", args = {
+      "-number,+evaluable"}, reference = "'is'(Result, Expression) is true if and only if the value of evaluating Expression as an expression is Result")
   public static boolean predicateIS(final JProlChoicePoint cpoint, final TermStruct predicate) {
     final Term left = predicate.getElement(0).findNonVarOrSame();
     final Term right = predicate.getElement(1).findNonVarOrSame();
@@ -134,7 +141,9 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = "not/1", reference = "True if goal cannot be proven")
   public static boolean predicateNOT(final JProlChoicePoint cpoint, final TermStruct predicate) {
-    return cpoint.makeForGoal(predicate.getElement(0).findNonVarOrSame()).proveWithFailForUnknown() == null;
+    return
+        cpoint.makeForGoal(predicate.getElement(0).findNonVarOrSame()).proveWithFailForUnknown() ==
+            null;
   }
 
   @JProlPredicate(determined = true, signature = "=/2", reference = "Unify X and Y terms. It is true if X and Y are unifiable.")

@@ -16,13 +16,13 @@
 
 package com.igormaznitsa.jprol.exceptions;
 
-import com.igormaznitsa.jprol.data.Term;
-import com.igormaznitsa.jprol.data.TermStruct;
-
-import java.util.Objects;
-
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
+
+
+import com.igormaznitsa.jprol.data.Term;
+import com.igormaznitsa.jprol.data.TermStruct;
+import java.util.Objects;
 
 public abstract class ProlAbstractCatcheableException extends ProlException {
 
@@ -40,7 +40,8 @@ public abstract class ProlAbstractCatcheableException extends ProlException {
     this.culprit = culprit == null ? UNDEFINED : culprit.makeCloneAndVarBound();
   }
 
-  public ProlAbstractCatcheableException(final String message, final Term culprit, final Throwable cause) {
+  public ProlAbstractCatcheableException(final String message, final Term culprit,
+                                         final Throwable cause) {
     super(message, cause);
     this.culprit = culprit == null ? UNDEFINED : culprit.makeCloneAndVarBound();
   }

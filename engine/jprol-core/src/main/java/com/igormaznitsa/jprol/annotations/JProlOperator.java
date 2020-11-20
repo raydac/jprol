@@ -17,7 +17,6 @@
 package com.igormaznitsa.jprol.annotations;
 
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
