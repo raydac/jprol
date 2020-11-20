@@ -1,6 +1,7 @@
 nb-configuration.xml
 dependency-reduced-pom.xml
 *.iml
+.flattened-pom.xml
 uber-pom.xml
 .idea/
 target/

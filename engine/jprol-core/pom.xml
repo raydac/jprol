@@ -127,32 +127,21 @@
 
     <build>
         <plugins>
-
             <plugin>
-                <groupId>com.igormaznitsa</groupId>
-                <artifactId>uber-pom</artifactId>
-                <version>1.0.3</version>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.2.5</version>
                 <configuration>
-                    <removeDependencies>
-                        <dependency>
-                            <systemPath>*</systemPath>
-                        </dependency>
-                    </removeDependencies>
-                    <remove>
-                        <section>parent</section>
-                        <section>modules</section>
-                        <section>profiles/profile/modules</section>
-                    </remove>
-                    <removeSiblingDuplications>true</removeSiblingDuplications>
                 </configuration>
                 <executions>
                     <execution>
-                        <phase>package</phase>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
                         <goals>
-                            <goal>upom</goal>
+                            <goal>flatten</goal>
                         </goals>
                         <configuration>
-                            <enforceInjecting>true</enforceInjecting>
+                            <flattenMode>ossrh</flattenMode>
                         </configuration>
                     </execution>
                 </executions>
