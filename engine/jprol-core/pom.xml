@@ -3,18 +3,22 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>com.igormaznitsa</groupId>
-        <artifactId>jprol</artifactId>
-        <version>2.0.0</version>
-    </parent>
-
+    <groupId>com.igormaznitsa</groupId>
     <artifactId>jprol-core</artifactId>
+    <version>2.0.0</version>
     <packaging>jar</packaging>
 
-    <properties>
-        <app.name>jprol_${project.version}</app.name>
-    </properties>
+    <inceptionYear>2010</inceptionYear>
+
+    <name>jprol-core</name>
+    <description>A small embeddable Java based Edinburgh-styled Prolog interpreter with minimalistic libraries</description>
+
+    <prerequisites>
+        <maven>3.0</maven>
+    </prerequisites>
+
+
+    <url>https://github.com/raydac/jprol</url>
 
     <licenses>
         <license>
@@ -23,6 +27,40 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
+    <organization>
+        <name>Igor Maznitsa</name>
+        <url>https://www.igormaznitsa.com</url>
+    </organization>
+
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/raydac/jprol/issues</url>
+    </issueManagement>
+
+    <scm>
+        <url>https://github.com/jprol</url>
+        <connection>scm:git:git://github.com/raydac/jprol.git</connection>
+        <developerConnection>scm:git:git@github.com:raydac/jprol.git</developerConnection>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>raydac</id>
+            <email>rrg4400@gmail.com</email>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <url>https://www.igormaznitsa.com</url>
+            <timezone>+3</timezone>
+        </developer>
+    </developers>
 
     <dependencies>
         <dependency>
@@ -33,16 +71,19 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.7.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
+            <version>3.6.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>1.18.16</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -119,7 +160,6 @@
                             </execution>
                         </executions>
                     </plugin>
-
                 </plugins>
             </build>
         </profile>
@@ -127,26 +167,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>flatten-maven-plugin</artifactId>
-                <version>1.2.5</version>
-                <configuration>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>flatten</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>flatten</goal>
-                        </goals>
-                        <configuration>
-                            <flattenMode>ossrh</flattenMode>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
             <plugin>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok-maven-plugin</artifactId>
@@ -160,10 +180,10 @@
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>animal-sniffer-maven-plugin</artifactId>
+                <version>1.19</version>
                 <executions>
                     <execution>
                         <id>ensure-android-3.0_r2-class-library</id>
@@ -183,6 +203,42 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.0.0-M2</version>
+                <executions>
+                    <execution>
+                        <id>enforce-ban-duplicate-classes</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <banDuplicateClasses/>
+                            </rules>
+                            <fail>true</fail>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <compilerArgument>-Xlint:all</compilerArgument>
+                    <verbose>false</verbose>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <showDeprecation>true</showDeprecation>
+                    <showWarnings>true</showWarnings>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M4</version>
             </plugin>
         </plugins>
     </build>
