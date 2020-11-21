@@ -1,4 +1,4 @@
-[![JPROL logo](art/github_logo.png)]   
+![JPROL logo](art/github_logo.png)   
 [![License Apache 2.0](https://img.shields.io/badge/license-Apache%20License%202.0-green.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Java 1.8+](https://img.shields.io/badge/java-1.8%2b-green.svg)](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 [![PayPal donation](https://img.shields.io/badge/donation-PayPal-red.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AHWJHJFBAWGL2)
@@ -20,6 +20,7 @@ Since 2020, the engine core has been published in the maven central and can be e
     <version>2.0.0</version>
 </dependency>
 ```
+Keep in mind that as parser of Prolog sources, the engine uses [my another project](https://github.com/raydac/java-prolog-parser) whichh also published in the maven central. Inintally the engina had embedded parser but then I decided to split it to two projects.
 
 # Prebuilt versions
 There are published pre-built versions for main OSes (I can test it only for Linux, so that notify me about issues under Windows and MacOS). [Executable files can be downloaded from the latest release page](https://github.com/raydac/jprol/releases/latest)
