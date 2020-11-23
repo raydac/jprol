@@ -3,22 +3,18 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.igormaznitsa</groupId>
+    <parent>
+        <groupId>com.igormaznitsa</groupId>
+        <artifactId>jprol</artifactId>
+        <version>2.0.1-SNAPSHOT</version>
+    </parent>
+
     <artifactId>jprol-core</artifactId>
-    <version>2.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <inceptionYear>2010</inceptionYear>
-
     <name>jprol-core</name>
-    <description>A small embeddable Java based Edinburgh-styled Prolog interpreter with minimalistic libraries</description>
-
-    <prerequisites>
-        <maven>3.0</maven>
-    </prerequisites>
-
-
-    <url>https://github.com/raydac/jprol</url>
+    <description>A small embeddable Java based Edinburgh-styled Prolog interpreter with minimalistic libraries
+    </description>
 
     <licenses>
         <license>
@@ -33,34 +29,6 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
-
-    <organization>
-        <name>Igor Maznitsa</name>
-        <url>https://www.igormaznitsa.com</url>
-    </organization>
-
-    <issueManagement>
-        <system>GitHub Issues</system>
-        <url>https://github.com/raydac/jprol/issues</url>
-    </issueManagement>
-
-    <scm>
-        <url>https://github.com/jprol</url>
-        <connection>scm:git:git://github.com/raydac/jprol.git</connection>
-        <developerConnection>scm:git:git@github.com:raydac/jprol.git</developerConnection>
-    </scm>
-
-    <developers>
-        <developer>
-            <id>raydac</id>
-            <email>rrg4400@gmail.com</email>
-            <roles>
-                <role>developer</role>
-            </roles>
-            <url>https://www.igormaznitsa.com</url>
-            <timezone>+3</timezone>
-        </developer>
-    </developers>
 
     <dependencies>
         <dependency>
@@ -115,6 +83,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>3.2.0</version>
                         <executions>
                             <execution>
                                 <id>generate-javadoc</id>
@@ -136,6 +105,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
+                        <version>3.2.1</version>
                         <executions>
                             <execution>
                                 <id>generate-sources</id>
@@ -150,6 +120,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>

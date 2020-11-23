@@ -86,9 +86,14 @@
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <groupId>com.igormaznitsa</groupId>
-                    <artifactId>uber-pom</artifactId>
-                    <version>1.0.3</version>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>flatten-maven-plugin</artifactId>
+                    <version>1.2.5</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -119,6 +124,22 @@
         </pluginManagement>
         <plugins>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <configuration>
+                    <flattenMode>ossrh</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <version>3.0.0-M2</version>
@@ -134,25 +155,6 @@
                             </rules>
                             <fail>true</fail>
                         </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.igormaznitsa</groupId>
-                <artifactId>uber-pom</artifactId>
-                <configuration>
-                    <remove>
-                        <section>parent</section>
-                        <section>modules</section>
-                        <section>profiles/profile/modules</section>
-                    </remove>
-                    <removeSiblingDuplications>true</removeSiblingDuplications>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>upom</goal>
-                        </goals>
                     </execution>
                 </executions>
             </plugin>
