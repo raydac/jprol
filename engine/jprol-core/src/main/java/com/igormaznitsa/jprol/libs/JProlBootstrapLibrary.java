@@ -20,7 +20,7 @@ import com.igormaznitsa.jprol.utils.ProlAssertions;
 import java.util.Iterator;
 import java.util.stream.Stream;
 
-@SuppressWarnings({"EmptyMethod", "unused"})
+@SuppressWarnings({"EmptyMethod", "unused", "checkstyle:AbbreviationAsWordInName"})
 @JProlOperators(operators = {
     @JProlOperator(priority = 700, type = XFX, name = "is"),
     @JProlOperator(priority = 700, type = XFX, name = "="),
