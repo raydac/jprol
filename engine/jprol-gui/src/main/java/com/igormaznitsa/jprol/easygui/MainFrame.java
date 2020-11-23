@@ -163,14 +163,15 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
   /**
    * Creates new form MainFrame
    */
-  public MainFrame() {
+  public MainFrame(GraphicsConfiguration graphicsConfiguration) {
+    super(graphicsConfiguration);
     try {
       initComponents();
 
-      Toolkit dt = Toolkit.getDefaultToolkit();
-      Dimension scr = dt.getScreenSize();
-      setSize((scr.width * 10) / 12, (scr.height * 10) / 12);
-
+      Rectangle screenBounds = graphicsConfiguration == null ? null : graphicsConfiguration.getBounds();
+      if (screenBounds != null) {
+        setSize((screenBounds.width * 10) / 12, (screenBounds.height * 10) / 12);
+      }
       sourceEditor.addUndoableEditListener(this);
       sourceEditor.addDocumentListener(this);
       messageEditor.addHyperlinkListener(this);
@@ -217,8 +218,8 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     }
   }
 
-  public MainFrame(final File initFile) {
-    this();
+  public MainFrame(final GraphicsConfiguration config, final File initFile) {
+    this(config);
     loadFile(initFile, true);
   }
 

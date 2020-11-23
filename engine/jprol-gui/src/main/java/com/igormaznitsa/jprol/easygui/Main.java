@@ -17,6 +17,8 @@
 package com.igormaznitsa.jprol.easygui;
 
 import com.igormaznitsa.jprol.easygui.tokenizer.JProlTokenMaker;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsEnvironment;
 import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
 import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
 
@@ -57,10 +59,11 @@ public class Main {
     final File initFile = fileToLoad;
 
     SwingUtilities.invokeLater(() -> {
+      final GraphicsConfiguration config = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
       if (initFile != null) {
-        new MainFrame(initFile).setVisible(true);
+        new MainFrame(config, initFile).setVisible(true);
       } else {
-        new MainFrame().setVisible(true);
+        new MainFrame(config).setVisible(true);
       }
     });
   }
