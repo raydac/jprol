@@ -19,12 +19,12 @@ package com.igormaznitsa.jprol.easygui;
 import com.igormaznitsa.jprol.easygui.tokenizer.JProlTokenMaker;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
-import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
-import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
-
-import javax.swing.*;
 import java.io.File;
 import java.io.FileNotFoundException;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
+import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
 
 /**
  * The main class which starts the IDE
@@ -41,7 +41,8 @@ public class Main {
    */
   public static void main(final String... args) {
 
-    ((AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance()).putMapping("text/jprol", JProlTokenMaker.class.getName());
+    ((AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance())
+        .putMapping("text/jprol", JProlTokenMaker.class.getName());
 
     File fileToLoad = null;
     if (args != null && args.length > 0) {
@@ -51,7 +52,8 @@ public class Main {
           throw new FileNotFoundException();
         }
       } catch (FileNotFoundException thr) {
-        JOptionPane.showMessageDialog(null, String.format("Can't find file \'%s\'", args[0]), "Can't load file", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(null, String.format("Can't find file \'%s\'", args[0]),
+            "Can't load file", JOptionPane.ERROR_MESSAGE);
         fileToLoad = null;
       }
     }
@@ -59,11 +61,18 @@ public class Main {
     final File initFile = fileToLoad;
 
     SwingUtilities.invokeLater(() -> {
-      final GraphicsConfiguration config = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
-      if (initFile != null) {
-        new MainFrame(config, initFile).setVisible(true);
-      } else {
-        new MainFrame(config).setVisible(true);
+      final GraphicsConfiguration config =
+          GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice()
+              .getDefaultConfiguration();
+      try {
+        if (initFile != null) {
+          new MainFrame(config, initFile).setVisible(true);
+        } else {
+          new MainFrame(config).setVisible(true);
+        }
+      } catch (Exception ex) {
+        ex.printStackTrace();
+        System.exit(234);
       }
     });
   }

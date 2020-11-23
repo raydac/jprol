@@ -215,6 +215,13 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
       this.panelFindText.setVisible(false);
     } finally {
       MAIN_FRAME_INSTANCE = new WeakReference<>(this);
+      if (graphicsConfiguration != null) {
+        final Rectangle rect = graphicsConfiguration.getBounds();
+        if (rect != null) {
+          this.setBounds(rect.x + 32, rect.y + 32, Math.min(rect.width - 32, this.getSize().width),
+              Math.min(rect.height - 32, this.getSize().height));
+        }
+      }
     }
   }
 
