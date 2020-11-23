@@ -31,52 +31,55 @@ The engine has very small end restricted embedded GUI editor to create, edit and
 
 # How to define a predicate in Java
 It allows communicate with Java methods and use them as predicates through special annotations.
-For instance, below I show how implemented the SORT/2 predicate of the core JProl library. As you can see, the method is just marked by `@Predicate` annotation. Of course it is impossible to mark method because the method had to have specific arguments: `Goal` and `TermStruct`.
+For instance, below I show how implemented the `<</2` predicate of the core JProl library. As you can see, the method is just marked by `@JProlPredicate` annotation. Of course it is impossible to mark just any method because a marked method has to have special signature among arguments: `JProlChoicePoint` and `TermStruct`.
 ```Java
-@Predicate(Signature = "sort/2", Template = {"+list,?list"},Reference="True if Sorted can be unified with a list holding the elements  of List, sorted to the standard order of terms")
-    @Determined
-    public static final boolean predicateSORT(final Goal goal, final TermStruct predicate) {
-        final Term nonsorted = Utils.getTermFromElement(predicate.getElement(0));
-        final Term sorted = Utils.getTermFromElement(predicate.getElement(1));
-        final Term[] bufferarray = Utils.listToArray((TermList) nonsorted);
-        Arrays.sort(bufferarray, Utils.TERM_COMPARATOR);
-        final TermList sortedList = Utils.arrayToList(bufferarray);
-        return sorted.Equ(sortedList);
-    }
+@JProlPredicate(evaluable = true, signature = "<</2", args = {
+  "+evaluable,+evaluable"}, reference = "Bitwise left shift")
+public static Term predicateSHIFTL2(final JProlChoicePoint goal, final TermStruct predicate) {
+  final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
+  final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
+
+  final long value = left.toNumber().longValue();
+  final long shift = right.toNumber().longValue();
+
+  return Terms.newLong(value << shift);
+}
 ```
 # How to define new operators in library
 There is way to define more than one operator in your library, for such purposes you should use the `@ProlOperators` annotation.
 ```Java
-@ProlOperators(Operators = {
-    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "is"),
-    @ProlOperator(Priority = 700, Type = Operator.OPTYPE_XFX, Name = "="),
-    @ProlOperator(Priority = 1000, Type = Operator.OPTYPE_XFY, Name = ","),
-    @ProlOperator(Priority = 1050, Type = Operator.OPTYPE_XFY, Name = "->"),
+@JProlOperators(Operators = {
+    @JProlOperator(priority = 700, type = OpAssoc.OPTYPE_XFX, name = "is"),
+    @JProlOperator(priority = 700, type = OpAssoc.OPTYPE_XFX, name = "="),
+    @JProlOperator(priority = 1000, type = OpAssoc.OPTYPE_XFY, name = ","),
+    @JProlOperator(priority = 1050, type = OpAssoc.OPTYPE_XFY, name = "->"),
 ....
-    @ProlOperator(Priority = 300, Type = Operator.OPTYPE_XFX, Name = "mod"),
-    @ProlOperator(Priority = 200, Type = Operator.OPTYPE_FY, Name = "\\"),
-    @ProlOperator(Priority = 200, Type = Operator.OPTYPE_XFX, Name = "**")
+    @JProlOperator(priority = 300, type = OpAssoc.OPTYPE_XFX, name = "mod"),
+    @JProlOperator(priority = 200, type = OpAssoc.OPTYPE_FY, name = "\\"),
+    @JProlOperator(priority = 200, type = OpAssoc.OPTYPE_XFX, name = "**")
 })
-public class ProlCoreLibrary extends ProlAbstractLibrary {
+public class JProlCoreLibrary extends AbstractJProlLibrary {
 ...
 ```
 # Call the Engine from Java
-You can see example how to call make call to newly created engine and resolve a "Eight queens" puzzle. The example shows how to create a context, provide a task and get all possible solutions. Also it is good example to show how whole knowledge base can be provided directly just through only annotations.
+Example below shows how easily define Eight Queens puzzle and find all its solutions.
 ```Java
-final ProlContext context = new ProlContext("test",DefaultProlStreamManagerImpl.getInstance());
-           final ProlConsult consult = new ProlConsult("solution([]). solution([X/Y|Others]):-solution(Others),member(Y,[1,2,3,4,5,6,7,8]),notattack(X/Y,Others). notattack(_,[]). notattack(X/Y,[X1/Y1 | Others]):- Y=\\=Y1, Y1-Y=\\=X1-X, Y1-Y=\\=X-X1, notattack(X/Y,Others). member(Item,[Item|Rest]). member(Item,[First|Rest]):-member(Item,Rest). template([1/Y1,2/Y2,3/Y3,4/Y4,5/Y5,6/Y6,7/Y7,8/Y8]).", context);
-            consult.consult();
+    JProlContext context = new JProlContext(
+        "test-context",
+        new JProlCoreLibrary()
+    );
+    context.consult(new StringReader(
+        "solution([]). solution([X/Y|Others]):-solution(Others),member(Y,[1,2,3,4,5,6,7,8]),notattack(X/Y,Others). notattack(_,[]). notattack(X/Y,[X1/Y1 | Others]):- Y=\\=Y1, Y1-Y=\\=X1-X, Y1-Y=\\=X-X1, notattack(X/Y,Others). member(Item,[Item|Rest]). member(Item,[First|Rest]):-member(Item,Rest). template([1/Y1,2/Y2,3/Y3,4/Y4,5/Y5,6/Y6,7/Y7,8/Y8])."));
 
-            final Goal goal = new Goal("template(X),solution(X).", context);
-            int combinatioCounter = 0;
+    JProlChoicePoint goal = new JProlChoicePoint(
+        "solution([1/Y1,2/Y2,3/Y3,4/Y4,5/Y5,6/Y6,7/Y7,8/Y8]),Res = [Y1,Y2,Y3,Y4,Y5,Y6,Y7,Y8].",
+        context);
 
-            while (true) {
-                final Term result = goal.solve();
-                if (result == null) {
-                    break;
-                }
-                Utils.printTermState(result);
-            }
+    Term result;
+    while((result = goal.prove()) != null) {
+      TermList solution  = (TermList) goal.findVar("Res").orElseThrow(()-> new IllegalStateException("Can't find Res")).getValue();
+      System.out.println(solution.toSrcString());
+    }
 ```
 
 ## Prolog and Graphics
