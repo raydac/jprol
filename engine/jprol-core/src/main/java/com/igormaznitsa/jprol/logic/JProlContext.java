@@ -162,7 +162,8 @@ public final class JProlContext {
     this.ioProviders.addAll(ioProviders);
 
     this.libraries.add(new JProlBootstrapLibrary());
-    this.libraries.addAll(asList(additionalLibraries));
+
+    asList(additionalLibraries).forEach(this::addLibrary);
   }
 
   public boolean isTemplateValidate() {
@@ -273,15 +274,16 @@ public final class JProlContext {
     return CompletableFuture.runAsync(() -> {
       final JProlChoicePoint asyncGoal =
           new JProlChoicePoint(requireNonNull(goal), this.makeCopy());
-      while (asyncGoal.prove() != null && !Thread.currentThread().isInterrupted());
+      while (asyncGoal.prove() != null && !Thread.currentThread().isInterrupted()) {
+        ;
+      }
     }, this.executorService).handle((x, e) -> {
-          onAsyncTaskCompleted(goal);
-          if (e != null) {
-            throw new ProlForkExecutionException("Error during async/1", goal, new Throwable[] {e});
-          }
-          return x;
-        }
-    );
+      onAsyncTaskCompleted(goal);
+      if (e != null) {
+        throw new ProlForkExecutionException("Error during async/1", goal, new Throwable[] {e});
+      }
+      return x;
+    });
   }
 
   public CompletableFuture<Term> proveOnceAsync(final Term goal) {
@@ -294,14 +296,13 @@ public final class JProlContext {
       asyncGoal.cutVariants();
       return result;
     }, this.executorService).handle((x, e) -> {
-          onAsyncTaskCompleted(goal);
-          if (e != null) {
-            throw new ProlForkExecutionException("Error during once async/1", goal,
-                new Throwable[] {e});
-          }
-          return x;
-        }
-    );
+      onAsyncTaskCompleted(goal);
+      if (e != null) {
+        throw new ProlForkExecutionException("Error during once async/1", goal,
+            new Throwable[] {e});
+      }
+      return x;
+    });
   }
 
   public ExecutorService getContextExecutorService() {
@@ -523,10 +524,8 @@ public final class JProlContext {
       while (iterator.hasNext()) {
         final Entry<String, List<JProlTrigger>> entry = iterator.next();
         final List<JProlTrigger> lst = entry.getValue();
-        if (lst.remove(trigger)) {
-          if (lst.isEmpty()) {
-            iterator.remove();
-          }
+        if (lst.remove(trigger) && lst.isEmpty()) {
+          iterator.remove();
         }
       }
     });
