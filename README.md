@@ -12,7 +12,7 @@ JProl is a small Prolog engine developed with several libraries provided out of 
 In 2014 I was asked by [Yuki Katsura](http://iprolog.appstor.io/) to open sources of the engine (he made iPad version) and the project was published as OSS under Apache License 2.0
 
 # Use in maven projects
-Since 2020, the engine core has been published in the maven central and can be easily injected into maven projects through code snippet
+Since 2020, the engine core has been published in the maven central and can be [easily injected into Java projects](https://search.maven.org/artifact/com.igormaznitsa/jprol-core/2.0.0/jar), for instance below example for Maven
 ```xml
 <dependency>
     <groupId>com.igormaznitsa</groupId>
