@@ -106,6 +106,7 @@ public final class GameFieldRenderer extends JComponent {
     this.listeners.add(listener);
   }
 
+  @SuppressWarnings("unused")
   public void removeClickCellListener(ClickCellListener listener) {
     this.listeners.remove(listener);
   }

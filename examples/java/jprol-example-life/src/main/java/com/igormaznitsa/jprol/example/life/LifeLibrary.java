@@ -10,6 +10,7 @@ import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import java.util.Objects;
 
+@SuppressWarnings("unused")
 @JProlConsultText({
     "process_cell(X,Y,live) :- count_neighbors(X,Y,N), ((N < 2 ; N > 3), !, reset_cell(X,Y) ; set_cell(X,Y)),!.",
     "process_cell(X,Y,dead) :- count_neighbors(X,Y,N), N = 3, set_cell(X,Y),!.",

@@ -18,6 +18,7 @@ import javax.swing.JSlider;
 import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class MainForm extends JFrame implements GameFieldRenderer.ClickCellListener {
 
   private final Timer timer = new Timer("task-timer", true);
@@ -48,9 +49,7 @@ public class MainForm extends JFrame implements GameFieldRenderer.ClickCellListe
     this.timeSlider.setPaintTrack(true);
     this.timeSlider.setPaintTicks(true);
 
-    timeSlider.addChangeListener(e -> {
-      this.startTimer();
-    });
+    timeSlider.addChangeListener(e -> this.startTimer());
 
     final JButton clearButton = new JButton("Clear");
     clearButton.addActionListener(x -> {
@@ -93,6 +92,7 @@ public class MainForm extends JFrame implements GameFieldRenderer.ClickCellListe
     this.pack();
   }
 
+  @SuppressWarnings({"StatementWithEmptyBody", "UnusedAssignment"})
   private void doIteration() {
     final JProlChoicePoint choicePoint = new JProlChoicePoint("life().", this.prolContext);
     Term term;

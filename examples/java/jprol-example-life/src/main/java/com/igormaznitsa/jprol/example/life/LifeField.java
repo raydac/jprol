@@ -2,6 +2,7 @@ package com.igormaznitsa.jprol.example.life;
 
 import java.util.Arrays;
 
+@SuppressWarnings("ConstantConditions")
 public class LifeField {
 
   public static final int HEIGHT = 32;
