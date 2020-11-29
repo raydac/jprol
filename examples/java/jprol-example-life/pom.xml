@@ -6,11 +6,17 @@
     <artifactId>jprol-example-life</artifactId>
     <version>0.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
+
+    <name>JProl Life example</name>
+    <description>Small GUI application using JProl core to show example of intercommunication with Java</description>
+    <url>https://github.com/raydac/jprol</url>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.igormaznitsa</groupId>
