@@ -54,7 +54,7 @@ public class MainForm extends JFrame implements GameFieldRenderer.ClickCellListe
 
     final JButton clearButton = new JButton("Clear");
     clearButton.addActionListener(x -> {
-      this.startRun();
+      this.stopRun();
       this.lifeField.clear();
       this.gameFieldRenderer.repaint();
     });
