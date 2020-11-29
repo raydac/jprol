@@ -1,5 +1,9 @@
 package com.igormaznitsa.jprol.example.life;
 
+import static java.lang.Math.max;
+import static java.lang.Math.round;
+
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -20,7 +24,6 @@ public final class GameFieldRenderer extends JComponent {
   private static final Color GRID_COLOR = Color.BLACK;
   private final LifeField model;
   private final List<ClickCellListener> listeners = new CopyOnWriteArrayList<>();
-  private final boolean[] state = new boolean[LifeField.WIDTH * LifeField.HEIGHT];
   private boolean leftMouseButtonPressed = false;
 
   public GameFieldRenderer(final LifeField model) {
@@ -45,8 +48,8 @@ public final class GameFieldRenderer extends JComponent {
         final double dx = (double) size.width / LifeField.WIDTH;
         final double dy = (double) size.height / LifeField.HEIGHT;
 
-        final int cellX = (int) Math.round(event.getX() / dx);
-        final int cellY = (int) Math.round(event.getY() / dy);
+        final int cellX = (int) round(event.getX() / dx);
+        final int cellY = (int) round(event.getY() / dy);
 
         listeners.forEach(
             e -> e.onCellDragged(GameFieldRenderer.this, cellX, cellY, leftMouseButtonPressed));
@@ -70,8 +73,8 @@ public final class GameFieldRenderer extends JComponent {
         final double dx = (double) bounds.width / LifeField.WIDTH;
         final double dy = (double) bounds.height / LifeField.HEIGHT;
 
-        final int cellX = (int) Math.round(event.getX() / dx);
-        final int cellY = (int) Math.round(event.getY() / dy);
+        final int cellX = (int) round(event.getX() / dx);
+        final int cellY = (int) round(event.getY() / dy);
 
         listeners.forEach(
             e -> e.onCellClicked(GameFieldRenderer.this, cellX, cellY,
@@ -82,14 +85,6 @@ public final class GameFieldRenderer extends JComponent {
 
   public LifeField getModel() {
     return this.model;
-  }
-
-  public void loadState() {
-    for (int y = 0; y < LifeField.HEIGHT; y++) {
-      for (int x = 0; x < LifeField.WIDTH; x++) {
-        state[y * LifeField.WIDTH + x] = this.model.get(x, y);
-      }
-    }
   }
 
   @Override
@@ -113,28 +108,27 @@ public final class GameFieldRenderer extends JComponent {
 
   @Override
   public void paint(final Graphics g) {
-    final Rectangle bounds = this.getBounds();
+    final Dimension bounds = this.getSize();
 
     if (bounds.width <= 0 || bounds.height <= 0) {
       return;
     }
 
-    final double cellWidth = Math.max(1.0d, Math.round((double) bounds.width / LifeField.WIDTH));
-    final double cellHeight =
-        Math.max(1.0f, Math.round((double) bounds.height / LifeField.HEIGHT));
+    final double cellWidth = max(1.0d, round((double) bounds.width / LifeField.WIDTH));
+    final double cellHeight = max(1.0f, round((double) bounds.height / LifeField.HEIGHT));
 
     g.setColor(GROUND_COLOR);
     g.fillRect(0, 0, bounds.width, bounds.height);
 
-    final int cellWidthInt = (int) Math.round(cellWidth);
-    final int cellHeightInt = (int) Math.round(cellHeight);
+    final int cellWidthInt = (int) round(cellWidth);
+    final int cellHeightInt = (int) round(cellHeight);
 
     for (int y = 0; y < LifeField.HEIGHT; y++) {
-      final int cellY = (int) Math.round(cellHeight * y);
+      final int cellY = (int) round(cellHeight * y);
       for (int x = 0; x < LifeField.WIDTH; x++) {
-        if (this.state[x + y * LifeField.WIDTH]) {
+        if (this.model.get(x, y)) {
           g.setColor(CELL_COLOR);
-          g.fillRect((int) Math.round(x * cellWidth), cellY, cellWidthInt, cellHeightInt);
+          g.fillRect((int) round(x * cellWidth), cellY, cellWidthInt, cellHeightInt);
         }
       }
     }
@@ -142,14 +136,14 @@ public final class GameFieldRenderer extends JComponent {
     g.setColor(GRID_COLOR);
     double y = 0;
     while (y < bounds.height) {
-      final int cy = (int) Math.round(y);
+      final int cy = (int) round(y);
       g.drawLine(0, cy, bounds.width, cy);
       y += cellHeight;
     }
 
     double x = 0;
     while (x < bounds.width) {
-      final int cx = (int) Math.round(x);
+      final int cx = (int) round(x);
       g.drawLine(cx, 0, cx, bounds.height);
       x += cellWidth;
     }

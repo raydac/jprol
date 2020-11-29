@@ -13,6 +13,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JToggleButton;
@@ -47,7 +48,7 @@ public class MainForm extends JFrame implements GameFieldRenderer.ClickCellListe
     this.timeSlider.setMajorTickSpacing(10);
     this.timeSlider.setMinorTickSpacing(5);
     this.timeSlider.setPaintTrack(true);
-    this.timeSlider.setPaintTicks(true);
+    this.timeSlider.setPaintTicks(false);
 
     timeSlider.addChangeListener(e -> this.startTimer());
 
@@ -73,12 +74,18 @@ public class MainForm extends JFrame implements GameFieldRenderer.ClickCellListe
         new GridBagConstraints(GridBagConstraints.RELATIVE, 0, 1, 1, 1, 1, GridBagConstraints.WEST,
             GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
 
+    controlPanel.add(new JLabel(" FASTEST"), gbc);
+
     gbc.weightx = 10000;
     controlPanel.add(timeSlider, gbc);
 
     gbc.weightx = 1;
+    controlPanel.add(new JLabel("SLOWEST "), gbc);
+
+
     controlPanel.add(clearButton, gbc);
     controlPanel.add(startButton, gbc);
+
 
     mainPanel.add(controlPanel, BorderLayout.SOUTH);
 
@@ -101,7 +108,6 @@ public class MainForm extends JFrame implements GameFieldRenderer.ClickCellListe
     }
     this.lifeField.blinkGeneration();
     SwingUtilities.invokeLater(() -> {
-      this.gameFieldRenderer.loadState();
       this.gameFieldRenderer.revalidate();
       this.gameFieldRenderer.repaint();
     });
@@ -136,23 +142,29 @@ public class MainForm extends JFrame implements GameFieldRenderer.ClickCellListe
 
   @Override
   public void onCellDragged(GameFieldRenderer source, int x, int y, boolean set) {
+    if (x < 0 || x >= LifeField.WIDTH || y < 0 || y >= LifeField.HEIGHT) {
+      return;
+    }
+
     this.stopRun();
     final LifeField model = source.getModel();
 
     model.set(x, y, set);
 
-    source.loadState();
     source.repaint();
   }
 
   @Override
   public void onCellClicked(GameFieldRenderer source, int x, int y, boolean set) {
+    if (x < 0 || x >= LifeField.WIDTH || y < 0 || y >= LifeField.HEIGHT) {
+      return;
+    }
+
     this.stopRun();
     final LifeField model = source.getModel();
 
     model.set(x, y, set);
 
-    source.loadState();
     source.repaint();
   }
 }
