@@ -12,11 +12,12 @@ import static java.util.Arrays.stream;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.data.Terms;
+import com.igormaznitsa.jprol.utils.Utils;
 import java.util.Locale;
 import java.util.Optional;
 
 public enum JProlSystemFlag {
-  ADDRESS_BIT(true, Terms.newAtom("address_bit"), Terms.newLong(64)),
+  ADDRESS_BIT(true, Terms.newAtom("address_bit"), Terms.newLong(Utils.getJvmBitness())),
   ALLOW_VARIABLE_NAME_AS_FUNCTOR(true, Terms.newAtom("allow_variable_name_as_functor"), FALSE),
   OS(true, Terms.newAtom("os"), Terms.newAtom(System.getProperty("os.name", "unknown"))),
   ARCH(true, Terms.newAtom("arch"), Terms.newAtom(System.getProperty("os.arch", "unknown"))),
@@ -34,7 +35,7 @@ public enum JProlSystemFlag {
   HOME(true, Terms.newAtom("home"), Terms.newAtom(System.getProperty("user.home", ""))),
   VERIFY(false, Terms.newAtom("verify"), TRUE),
   VERSION_DATA(true, Terms.newAtom("version_data"),
-      newStruct(newAtom("jprol"), new Term[] {newLong(2), newLong(0), newLong(0), NULL_LIST}));
+      newStruct(newAtom("jprol"), new Term[] {newLong(2), newLong(0), newLong(1), NULL_LIST}));
 
   private final Term nameTerm;
   private final Term defaultValue;

@@ -87,23 +87,23 @@ while((result = goal.prove()) != null) {
 
 The bootstrap library of the engine has two predicates `set_prolog_flag/2` and `current_prolog_flag/2`. They can be used to tune work of the engine or get extra info. Not all of them still supported.
 - Flags:
-    - __address_bit__ address size of the hosting machine. Typically 32 or 64.
-    - __allow_variable_name_as_functor__ 
-    - __os.name__
-    - __os.arch__
-    - __bounded__ if true, integer representation is bound by min_integer and max_integer
-    - __debug__ switch debugging mode on/off
-    - __dialect__ fixed to jprol
-    - __encoding__ default encoding used for opening files in text mode. 
-    - __gc__ if true (default), the garbage collector is active.
-    - __max_arity__  flag describing there is no maximum arity to compound terms
-    - __max_integer__ maximum integer value if integers are bounded
-    - __min_integer__ minimum integer value if integers are bounded
-    - __cpu_count__ number of physical CPUs or cores in the system
+    - __address_bit__ (read only) address size of the hosting machine. Typically 32 or 64.
+    - __allow_variable_name_as_functor__ (read only)
+    - __os.name__ (read only)
+    - __os.arch__ (read only)
+    - __bounded__ (read only) if true, integer representation is bound by min_integer and max_integer
+    - __debug__ switch debugging mode true/false
+    - __dialect__ (read only) fixed to `jprol`
+    - __encoding__ default encoding used for opening files in text mode 
+    - __gc__ (read only) if true (default), the garbage collector is active
+    - __max_arity__ (read only) flag describing there is no maximum arity to compound terms
+    - __max_integer__ (read only) maximum integer value if integers are bounded
+    - __min_integer__ (read only) minimum integer value if integers are bounded
+    - __cpu_count__ (read only) number of physical CPUs or cores in the system
     - __unknown__ determines the behaviour if an undefined procedure is encountered. If fail, the predicate fails silently. Allowed `error`,`fail` or `warning` by default `error`
-    - __home__ notion of the home directory
+    - __home__ (read only) notion of the user home directory
     - __verify__
-    - __version_data__
+    - __version_data__ (read only)
 
 ## Prolog and Graphics
 JProl GUI editor module has predicates to work with graphics and even can save images. As an example, below you can find a program to draw a Koch snowflake fractal.

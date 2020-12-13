@@ -66,6 +66,13 @@ public final class Utils {
     }
   }
 
+  public static int getJvmBitness() {
+    String data = System.getProperty("sun.arch.data.model","");
+    if (data.contains("32")) return 32;
+    if (data.contains("64")) return 64;
+    return 64;
+  }
+  
   public static TermList toCharList(final Term term) {
     final String text = term.getText();
     final int len = text.length();
