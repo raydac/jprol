@@ -85,7 +85,7 @@ while((result = goal.prove()) != null) {
 
 ## Flags
 
-The bootstrap library of the engine has two predicates `set_prolog_flag/2` and `get_prolog_flag/2`. They can be used to tune work of the engine or get extra info. Not all of them still supported.
+The bootstrap library of the engine has two predicates `set_prolog_flag/2` and `current_prolog_flag/2`. They can be used to tune work of the engine or get extra info. Not all of them still supported.
 - Flags:
     - __address_bit__ address size of the hosting machine. Typically 32 or 64.
     - __allow_variable_name_as_functor__ 
