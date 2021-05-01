@@ -14,7 +14,8 @@
 
     <properties>
         <app.name>jprol-gui-${project.version}</app.name>
-        <jre.version>11.0.9.1+1</jre.version>
+        <jre.provider>BELLSOFT</jre.provider>
+        <jre.version>11.0.11+9</jre.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
@@ -41,7 +42,7 @@
         <dependency>
             <groupId>com.fifesoft</groupId>
             <artifactId>rsyntaxtextarea</artifactId>
-            <version>3.1.1</version>
+            <version>3.1.2</version>
         </dependency>
     </dependencies>
 
@@ -62,7 +63,7 @@
                                 </goals>
                                 <configuration>
                                     <jdkPathProperty>mvnjlink.jdk.work.path</jdkPathProperty>
-                                    <provider>BELLSOFT</provider>
+                                    <provider>${jre.provider}</provider>
                                     <providerConfig>
                                         <version>${jre.version}</version>
                                         <type>jdk</type>
@@ -77,7 +78,7 @@
                                 </goals>
                                 <configuration>
                                     <jdkPathProperty>mvnjlink.jdk.linux.path</jdkPathProperty>
-                                    <provider>BELLSOFT</provider>
+                                    <provider>${jre.provider}</provider>
                                     <providerConfig>
                                         <os>linux</os>
                                         <version>${jre.version}</version>
@@ -93,7 +94,7 @@
                                 </goals>
                                 <configuration>
                                     <jdkPathProperty>mvnjlink.jdk.windows.path</jdkPathProperty>
-                                    <provider>BELLSOFT</provider>
+                                    <provider>${jre.provider}</provider>
                                     <providerConfig>
                                         <os>windows</os>
                                         <version>${jre.version}</version>
@@ -109,12 +110,28 @@
                                 </goals>
                                 <configuration>
                                     <jdkPathProperty>mvnjlink.jdk.macos.path</jdkPathProperty>
-                                    <provider>BELLSOFT</provider>
+                                    <provider>${jre.provider}</provider>
                                     <providerConfig>
                                         <os>macos</os>
                                         <version>${jre.version}</version>
                                         <type>jdk</type>
                                         <arch>amd64</arch>
+                                    </providerConfig>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>cache-macos-arm64-jdk</id>
+                                <goals>
+                                    <goal>cache-jdk</goal>
+                                </goals>
+                                <configuration>
+                                    <jdkPathProperty>mvnjlink.jdk.macos.arm64.path</jdkPathProperty>
+                                    <provider>${jre.provider}</provider>
+                                    <providerConfig>
+                                        <os>macos</os>
+                                        <version>${jre.version}</version>
+                                        <type>jdk</type>
+                                        <arch>aarch64</arch>
                                     </providerConfig>
                                 </configuration>
                             </execution>
@@ -200,12 +217,34 @@
                                     </addModules>
                                 </configuration>
                             </execution>
+                            <execution>
+                                <id>make-jre-macos-arm64</id>
+                                <goals>
+                                    <goal>jlink</goal>
+                                </goals>
+                                <configuration>
+                                    <toolJdk>${mvnjlink.jdk.work.path}</toolJdk>
+                                    <jdepsReportPath>${project.build.directory}${file.separator}jdeps.out
+                                    </jdepsReportPath>
+                                    <output>${project.build.directory}${file.separator}jre_macos_arm64</output>
+                                    <modulePaths>${mvnjlink.jdk.macos.arm64.path}${file.separator}jmods</modulePaths>
+                                    <options>
+                                        <option>--compress=2</option>
+                                        <option>--no-header-files</option>
+                                        <option>--no-man-pages</option>
+                                    </options>
+                                    <addModules>
+                                        <module>jdk.scripting.nashorn</module>
+                                        <module>jdk.localedata</module>
+                                    </addModules>
+                                </configuration>
+                            </execution>
                         </executions>
                     </plugin>
                     <plugin>
                         <groupId>com.akathist.maven.plugins.launch4j</groupId>
                         <artifactId>launch4j-maven-plugin</artifactId>
-                        <version>1.7.25</version>
+                        <version>2.1.0</version>
                         <configuration>
                             <headerType>gui</headerType>
                             <outfile>${project.build.directory}/${app.name}.exe</outfile>
@@ -224,7 +263,7 @@
                                 <fileVersion>2.0.1.0</fileVersion>
                                 <txtFileVersion>${project.version}</txtFileVersion>
                                 <fileDescription>JProl GUI editor</fileDescription>
-                                <copyright>2010-2020 Igor Maznitsa</copyright>
+                                <copyright>2010-2021 Igor Maznitsa</copyright>
                                 <productVersion>2.0.1.0</productVersion>
                                 <txtProductVersion>${project.version}</txtProductVersion>
                                 <productName>${project.name}</productName>
@@ -243,9 +282,9 @@
                                 <configuration>
                                     <outfile>${project.build.directory}${file.separator}${app.name}.exe</outfile>
                                     <dontWrapJar>true</dontWrapJar>
-                                    <jar>.\jprol-gui.jar</jar>
+                                    <jar>jprol-gui.jar</jar>
                                     <jre>
-                                        <path>.\jre</path>
+                                        <path>%EXEDIR%\jre</path>
                                     </jre>
                                 </configuration>
                             </execution>
@@ -258,7 +297,7 @@
                                 <configuration>
                                     <outfile>${project.build.directory}${file.separator}${app.name}-nojre.exe</outfile>
                                     <dontWrapJar>true</dontWrapJar>
-                                    <jar>.\jprol-gui.jar</jar>
+                                    <jar>jprol-gui.jar</jar>
                                     <jre>
                                         <minVersion>1.8</minVersion>
                                     </jre>
@@ -278,7 +317,7 @@
                                 </goals>
                                 <configuration>
                                     <appendAssemblyId>false</appendAssemblyId>
-                                    <finalName>${app.name}-linux-x64-openjdk</finalName>
+                                    <finalName>${app.name}-linux-x64-jdk</finalName>
                                     <descriptors>
                                         <descriptor>src${file.separator}assembly${file.separator}linux.xml</descriptor>
                                     </descriptors>
@@ -307,7 +346,7 @@
                                 </goals>
                                 <configuration>
                                     <appendAssemblyId>false</appendAssemblyId>
-                                    <finalName>${app.name}-windows-x64-openjdk</finalName>
+                                    <finalName>${app.name}-windows-x64-jdk</finalName>
                                     <descriptors>
                                         <descriptor>src${file.separator}assembly${file.separator}windows.xml
                                         </descriptor>
@@ -337,9 +376,23 @@
                                 </goals>
                                 <configuration>
                                     <appendAssemblyId>false</appendAssemblyId>
-                                    <finalName>${project.build.finalName}-macos-x64-openjdk</finalName>
+                                    <finalName>${project.build.finalName}-macos-x64-jdk</finalName>
                                     <descriptors>
                                         <descriptor>src${file.separator}assembly${file.separator}mac.xml</descriptor>
+                                    </descriptors>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>make-mac-arm64</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                                <configuration>
+                                    <appendAssemblyId>false</appendAssemblyId>
+                                    <finalName>${project.build.finalName}-macos-arm64-jdk</finalName>
+                                    <descriptors>
+                                        <descriptor>src${file.separator}assembly${file.separator}mac-arm64.xml</descriptor>
                                     </descriptors>
                                 </configuration>
                             </execution>
@@ -374,7 +427,21 @@
                                 <configuration>
                                     <fileset>
                                         <directory>
-                                            ${project.build.directory}${file.separator}${project.build.finalName}-macos-x64-openjdk.jar${file.separator}META-INF
+                                            ${project.build.directory}${file.separator}${project.build.finalName}-macos-x64-jdk.jar${file.separator}META-INF
+                                        </directory>
+                                    </fileset>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>remove-manifest-from-mac-arm64-jar</id>
+                                <goals>
+                                    <goal>remove</goal>
+                                </goals>
+                                <phase>install</phase>
+                                <configuration>
+                                    <fileset>
+                                        <directory>
+                                            ${project.build.directory}${file.separator}${project.build.finalName}-macos-arm64-jdk.jar${file.separator}META-INF
                                         </directory>
                                     </fileset>
                                 </configuration>
@@ -408,10 +475,25 @@
                                 </goals>
                                 <configuration>
                                     <sourceFile>
-                                        ${project.build.directory}${file.separator}${project.build.finalName}-macos-x64-openjdk.jar
+                                        ${project.build.directory}${file.separator}${project.build.finalName}-macos-x64-jdk.jar
                                     </sourceFile>
                                     <destinationFile>
-                                        ${project.build.directory}${file.separator}${project.build.finalName}-macos-x64-openjdk.zip
+                                        ${project.build.directory}${file.separator}${project.build.finalName}-macos-x64-jdk.zip
+                                    </destinationFile>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>rename-mac-arm64-jar-to-zip</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>rename</goal>
+                                </goals>
+                                <configuration>
+                                    <sourceFile>
+                                        ${project.build.directory}${file.separator}${project.build.finalName}-macos-arm64-jdk.jar
+                                    </sourceFile>
+                                    <destinationFile>
+                                        ${project.build.directory}${file.separator}${project.build.finalName}-macos-arm64-jdk.zip
                                     </destinationFile>
                                 </configuration>
                             </execution>
