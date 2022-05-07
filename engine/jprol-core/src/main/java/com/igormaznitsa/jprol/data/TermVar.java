@@ -48,7 +48,7 @@ public final class TermVar extends Term {
     this("_$" + Long.toHexString(ANONYM_GENERATOR.incrementAndGet()), true);
   }
 
-  public final int getVarUid() {
+  public int getVarUid() {
     return this.uid;
   }
 
@@ -147,7 +147,7 @@ public final class TermVar extends Term {
     return result;
   }
 
-  public final Term getValue() {
+  public Term getValue() {
     Term result = this.value;
     if (result != null && result.getTermType() == VAR) {
       final TermVar nextVar = (TermVar) result;
@@ -159,7 +159,7 @@ public final class TermVar extends Term {
     return result;
   }
 
-  public final boolean setValue(final Term value) {
+  public boolean setValue(final Term value) {
     boolean result = true;
 
     if (value != this) {
@@ -238,7 +238,7 @@ public final class TermVar extends Term {
     if (val == null) {
       builder.append(isAnonymous() ? '_' : getText());
     } else {
-      builder.append(val.toString());
+      builder.append(val);
     }
     return builder.toString();
   }

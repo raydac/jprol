@@ -75,12 +75,10 @@ class MiscTest extends AbstractJProlTest {
     final JProlChoicePoint goal = new JProlChoicePoint("findall(X,powerSet([a,b],X),Y).", context);
 
     TermVar result = null;
-
-    Term t;
-    while ((t = goal.prove()) != null) {
-      final TermVar valy = goal.findVar("Y").get();
-      assertNull(result);
-      result = valy;
+    while (goal.prove() != null) {
+      final TermVar valueAtY = goal.findVar("Y").orElseThrow(() -> new IllegalArgumentException("Must be presented"));
+      assertNull(result, "Result must be null because it should be called only once");
+      result = valueAtY;
     }
 
     assertNotNull(result);

@@ -234,7 +234,7 @@ public final class JProlContext {
         .filter(Objects::nonNull).findFirst();
   }
 
-  public final String getName() {
+  public String getName() {
     return this.contextId;
   }
 
@@ -275,7 +275,7 @@ public final class JProlContext {
       final JProlChoicePoint asyncGoal =
           new JProlChoicePoint(requireNonNull(goal), this.makeCopy());
       while (asyncGoal.prove() != null && !Thread.currentThread().isInterrupted()) {
-        ;
+        // do nothing
       }
     }, this.executorService).handle((x, e) -> {
       onAsyncTaskCompleted(goal);

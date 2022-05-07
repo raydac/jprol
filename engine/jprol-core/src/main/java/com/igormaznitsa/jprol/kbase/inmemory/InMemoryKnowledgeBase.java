@@ -313,34 +313,37 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   private boolean internalRetractAll(final List<InMemoryItem> list, final TermStruct clause) {
-    final InMemoryClauseIterator iterator =
-        new InMemoryClauseIterator(IteratorType.ANY, list, clause);
-    final List<InMemoryItem> toRemove = new ArrayList<>();
-    while (iterator.hasNext()) {
-      toRemove.add(iterator.nextItem());
+    try(final InMemoryClauseIterator iterator =
+        new InMemoryClauseIterator(IteratorType.ANY, list, clause)) {
+      final List<InMemoryItem> toRemove = new ArrayList<>();
+      while (iterator.hasNext()) {
+        toRemove.add(iterator.nextItem());
+      }
+      return list.removeAll(toRemove);
     }
-    return list.removeAll(toRemove);
   }
 
   private boolean internalRetractA(final List<InMemoryItem> list, final TermStruct clause) {
-    final InMemoryClauseIterator iterator =
-        new InMemoryClauseIterator(IteratorType.ANY, list, clause);
-    if (iterator.hasNext()) {
-      final InMemoryItem item = iterator.nextItem();
-      return list.remove(item);
-    } else {
-      return false;
+    try(final InMemoryClauseIterator iterator =
+        new InMemoryClauseIterator(IteratorType.ANY, list, clause)) {
+      if (iterator.hasNext()) {
+        final InMemoryItem item = iterator.nextItem();
+        return list.remove(item);
+      } else {
+        return false;
+      }
     }
   }
 
   private boolean internalRetractZ(final List<InMemoryItem> list, final TermStruct clause) {
-    final InMemoryClauseIterator iterator =
-        new InMemoryClauseIterator(IteratorType.ANY, list, clause);
-    InMemoryItem toRemove = null;
-    while (iterator.hasNext()) {
-      toRemove = iterator.nextItem();
+    try(final InMemoryClauseIterator iterator =
+        new InMemoryClauseIterator(IteratorType.ANY, list, clause)) {
+      InMemoryItem toRemove = null;
+      while (iterator.hasNext()) {
+        toRemove = iterator.nextItem();
+      }
+      return toRemove != null && list.remove(toRemove);
     }
-    return toRemove != null && list.remove(toRemove);
   }
 
   @Override

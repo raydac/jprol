@@ -178,10 +178,7 @@ public final class ProlAssertions {
 
   public static void assertCharacter(final Term t) {
     assertNonVar(t);
-    boolean error = true;
-    if (t.getTermType() == TermType.ATOM && t.getText().length() == 1) {
-      error = false;
-    }
+    boolean error = t.getTermType() != TermType.ATOM || t.getText().length() != 1;
     if (error) {
       throw new ProlTypeErrorException("'character' expected, found an atom: " + t, t);
     }

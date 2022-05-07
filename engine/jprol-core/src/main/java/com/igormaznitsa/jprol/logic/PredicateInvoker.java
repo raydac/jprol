@@ -80,31 +80,31 @@ public final class PredicateInvoker {
     }
   }
 
-  public final boolean doesChangeGoalChain() {
+  public boolean doesChangeGoalChain() {
     return this.changesGoalChain;
   }
 
-  public final boolean isDetermined() {
+  public boolean isDetermined() {
     return this.determined;
   }
 
-  public final boolean isEvaluable() {
+  public boolean isEvaluable() {
     return this.evaluable;
   }
 
-  public final AbstractJProlLibrary getLibrary() {
+  public AbstractJProlLibrary getLibrary() {
     return this.ownerLibrary;
   }
 
-  public final String getSignature() {
+  public String getSignature() {
     return this.predicateSignature;
   }
 
-  public final MethodHandle getMethod() {
+  public MethodHandle getMethod() {
     return this.methodHandle;
   }
 
-  public final Term executeEvaluable(final JProlChoicePoint goal, final TermStruct predicate) {
+  public Term executeEvaluable(final JProlChoicePoint goal, final TermStruct predicate) {
     try {
       final Object result = this.methodHandle.invoke(goal, predicate);
       return (Term) result;
@@ -127,7 +127,7 @@ public final class PredicateInvoker {
     }
   }
 
-  public final boolean execute(final JProlChoicePoint goal, final TermStruct predicate) {
+  public boolean execute(final JProlChoicePoint goal, final TermStruct predicate) {
     try {
       final Object result;
       result = this.methodHandle.invoke(goal, predicate);

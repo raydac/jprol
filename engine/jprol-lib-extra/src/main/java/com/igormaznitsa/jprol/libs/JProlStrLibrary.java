@@ -29,6 +29,7 @@ import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.*;
 
+@SuppressWarnings("unused")
 public class JProlStrLibrary extends AbstractJProlLibrary {
 
   public JProlStrLibrary() {
@@ -109,6 +110,7 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     return argRight.unifyTo(result);
   }
 
+  @SuppressWarnings("SpellCheckingInspection")
   @JProlPredicate(determined = true, signature = "frontstr/4", args = {"+integer,+atom,?atom,?atom"}, reference = "Extracts the first n characters from a string.")
   public static boolean predicateFRONTSTR(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg1 = predicate.getElement(0).findNonVarOrSame();
@@ -137,10 +139,7 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final String fstr = str1.substring(0, numberOfChars);
     final String rstr = str1.substring(numberOfChars);
 
-    final Term frontStr = arg3;
-    final Term restStr = arg4;
-
-    return frontStr.unifyTo(newAtom(fstr)) && restStr.unifyTo(newAtom(rstr));
+    return arg3.unifyTo(newAtom(fstr)) && arg4.unifyTo(newAtom(rstr));
   }
 
   @JProlPredicate(determined = true, signature = "upper_lower/2", args = {"+atom,?atom", "?atom,+atom"}, reference = "Allows to make upper or lower case text version of an atom.")

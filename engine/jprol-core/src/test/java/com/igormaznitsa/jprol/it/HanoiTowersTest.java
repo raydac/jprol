@@ -31,7 +31,7 @@ class HanoiTowersTest extends AbstractJProlTest {
     final JProlContext context = makeTestContext(testIoProvider);
     context.consult(new StringReader("move(1,X,Y,_):-write('Move top disk from '),write(X),write(' to '),write(Y),nl." +
         "move(N,X,Y,Z):-N>1,M is N-1,move(M,X,Z,Y),move(1,X,Y,_),move(M,Z,Y,X)."));
-    final JProlChoicePoint goal = new JProlChoicePoint("tell(\'+hanoi\'),move(3,left,right,center).", context);
+    final JProlChoicePoint goal = new JProlChoicePoint("tell('+hanoi'),move(3,left,right,center).", context);
     assertNotNull(goal.prove());
     assertNull(goal.prove());
 

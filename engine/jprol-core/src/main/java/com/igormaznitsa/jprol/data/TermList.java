@@ -177,7 +177,7 @@ public final class TermList extends TermStruct {
         if (notfirst) {
           builder.append('|');
         }
-        builder.append(list.toString());
+        builder.append(list);
         break;
       }
       notfirst = true;
@@ -224,7 +224,7 @@ public final class TermList extends TermStruct {
     return "./2";
   }
 
-  public final void replaceLastElement(final Term newLastElement) {
+  public void replaceLastElement(final Term newLastElement) {
     if (isNullList()) {
       throw new ProlCriticalError("Attemption to change Null list");
     }

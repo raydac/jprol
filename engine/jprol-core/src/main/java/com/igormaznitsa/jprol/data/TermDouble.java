@@ -55,7 +55,7 @@ public final class TermDouble extends NumericTerm {
     }
 
     if (obj.getClass() == TermDouble.class) {
-      return ((TermDouble) obj).value == value;
+      return ((TermDouble) obj).value.equals(value);
     }
 
     return super.equals(obj);

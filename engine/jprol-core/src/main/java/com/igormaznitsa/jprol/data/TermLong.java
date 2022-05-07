@@ -54,7 +54,7 @@ public final class TermLong extends NumericTerm {
     }
 
     if (obj.getClass() == TermLong.class) {
-      return ((TermLong) obj).value == this.value;
+      return ((TermLong) obj).value.equals(this.value);
     }
 
     return super.equals(obj);

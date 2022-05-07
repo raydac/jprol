@@ -48,16 +48,7 @@ import com.igormaznitsa.jprol.data.TermOperator;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.data.Terms;
-import com.igormaznitsa.jprol.exceptions.ProlAbstractCatcheableException;
-import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
-import com.igormaznitsa.jprol.exceptions.ProlCustomErrorException;
-import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
-import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
-import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
-import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
-import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
-import com.igormaznitsa.jprol.exceptions.ProlRepresentationErrorException;
-import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
+import com.igormaznitsa.jprol.exceptions.*;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
@@ -66,10 +57,13 @@ import com.igormaznitsa.jprol.logic.JProlTreeBuilder;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
 import com.igormaznitsa.jprol.logic.triggers.JProlTriggeringEventObserver;
+import com.igormaznitsa.jprol.utils.CloseableIterator;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.Utils;
 import com.igormaznitsa.prologparser.exceptions.PrologParserException;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
+
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1276,15 +1270,18 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       list = new ArrayList<>(
           cpoint.getContext().findAllForPredicateIndicatorInLibs(predicateIndicator));
 
-      final Iterator<TermStruct> iter = cpoint.getContext().getKnowledgeBase().iterateSignatures(
+      try(final CloseableIterator<TermStruct> iter = cpoint.getContext().getKnowledgeBase().iterateSignatures(
           predicateIndicator.getTermType() == VAR ?
               Terms.newStruct("/", new Term[] {Terms.newVar(), Terms.newVar()}) :
-              (TermStruct) predicateIndicator);
-      while (iter.hasNext()) {
-        list.add(iter.next());
+              (TermStruct) predicateIndicator)) {
+        while (iter.hasNext()) {
+          list.add(iter.next());
+        }
+        list.sort(cpoint);
+        cpoint.setPayload(list);
+      } catch (IOException ex){
+        throw new ProlKnowledgeBaseException(ex);
       }
-      list.sort(cpoint);
-      cpoint.setPayload(list);
     }
 
     if (list.isEmpty()) {
@@ -1308,15 +1305,18 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
 
       list = new ArrayList<>();
-      final Iterator<TermStruct> iter = cpoint.getContext().getKnowledgeBase().iterateSignatures(
+      try(final CloseableIterator<TermStruct> iter = cpoint.getContext().getKnowledgeBase().iterateSignatures(
           predicateIndicator.getTermType() == VAR ?
               Terms.newStruct("/", new Term[] {Terms.newVar(), Terms.newVar()}) :
-              (TermStruct) predicateIndicator);
-      while (iter.hasNext()) {
-        list.add(iter.next());
+              (TermStruct) predicateIndicator)) {
+        while (iter.hasNext()) {
+          list.add(iter.next());
+        }
+        list.sort(cpoint);
+        cpoint.setPayload(list);
+      }catch (IOException ex){
+        throw new ProlKnowledgeBaseException(ex);
       }
-      list.sort(cpoint);
-      cpoint.setPayload(list);
     }
 
     if (list.isEmpty()) {
@@ -2349,15 +2349,15 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = "copy_term/2", args = {
       "?term,?term"}, reference = "copy_term(X,Y) is true if and only if Y unifies with a term T which is a renamed copy of X.")
-  public final boolean predicateCOPYTERM2(final JProlChoicePoint goal, final TermStruct predicate) {
+  public boolean predicateCOPYTERM2(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term in = predicate.getElement(0).findNonVarOrSame().makeClone();
     final Term out = predicate.getElement(1).findNonVarOrSame();
     return in.unifyTo(out);
   }
 
   @JProlPredicate(determined = true, signature = "\\+/1", args = "+callable", reference = "\\+(Term) is true if and only if call(Term) is false.")
-  public final boolean predicateCannotBeProven1(final JProlChoicePoint goal,
-                                                final TermStruct predicate) {
+  public boolean predicateCannotBeProven1(final JProlChoicePoint goal,
+                                          final TermStruct predicate) {
     final Term argument = predicate.getElement(0).findNonVarOrSame();
     if (goal.isArgsValidate()) {
       ProlAssertions.assertCallable(argument);

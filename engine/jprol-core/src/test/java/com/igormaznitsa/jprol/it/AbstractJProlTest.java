@@ -64,12 +64,12 @@ public abstract class AbstractJProlTest {
   }
 
   public static Number getVarAsNumber(final JProlChoicePoint cp, final String varName) {
-    final TermVar variable = cp.findVar(varName).orElseThrow(() -> new IllegalArgumentException("Unknown variable for name \'" + varName + '\''));
+    final TermVar variable = cp.findVar(varName).orElseThrow(() -> new IllegalArgumentException("Unknown variable for name '" + varName + '\''));
     return variable.toNumber();
   }
 
   public static String getVarAsText(final JProlChoicePoint cp, final String varName) {
-    final TermVar variable = cp.findVar(varName).orElseThrow(() -> new IllegalArgumentException("Unknown variable for name \'" + varName + '\''));
+    final TermVar variable = cp.findVar(varName).orElseThrow(() -> new IllegalArgumentException("Unknown variable for name '" + varName + '\''));
     final Term value = variable.getValue();
     if (value == null) {
       return null;
@@ -142,7 +142,7 @@ public abstract class AbstractJProlTest {
   }
 
   protected void checkVarsAfterCall(String consult, String goal, String[][] varsAndValues) {
-    assertTrue((varsAndValues.length & 1) == 0);
+    assertEquals(0, (varsAndValues.length & 1));
 
     final JProlContext context = makeTestContext();
     if (consult != null) {

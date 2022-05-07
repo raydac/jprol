@@ -32,8 +32,8 @@ class OperatorTest extends AbstractJProlTest {
 
     final TermStruct prevrighttree = righttree;
 
-    lefttree = (TermStruct) lefttree.getElement(0);
-    righttree = (TermStruct) righttree.getElement(0);
+    lefttree = lefttree.getElement(0);
+    righttree = righttree.getElement(0);
 
     assertEquals("&", lefttree.getText());
     assertEquals(2, lefttree.getArity());

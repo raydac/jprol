@@ -43,7 +43,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
     TermList taskTerms = (TermList) arg;
 
     final List<CompletableFuture<Term>> startedTasks = asyncProveOnce(cpoint, taskTerms);
-    CompletableFuture.allOf(startedTasks.toArray(new CompletableFuture[0])).join();
+    CompletableFuture.allOf(startedTasks.toArray(new CompletableFuture<?>[0])).join();
     final Throwable[] errors = extractErrors(startedTasks);
     if (errors.length != 0) {
       throw new ProlForkExecutionException("Detected exception during fork/1", predicate, errors);
@@ -62,7 +62,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
 
     final List<CompletableFuture<Term>> startedTasks = asyncProveOnce(cpoint, taskTerms);
 
-    CompletableFuture.anyOf(startedTasks.toArray(new CompletableFuture[0])).join();
+    CompletableFuture.anyOf(startedTasks.toArray(new CompletableFuture<?>[0])).join();
     startedTasks.stream().filter(x -> !x.isDone()).forEach(x -> x.cancel(true));
     final Throwable[] errors = extractErrors(startedTasks);
     if (errors.length != 0) {

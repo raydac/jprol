@@ -400,6 +400,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }).orElseThrow(() -> new ProlPermissionErrorException("write", "text_stream", predicate));
   }
 
+  @SuppressWarnings("resource")
   @JProlPredicate(determined = true, signature = "tab/1", args = {
       "+integer"}, reference = "Out a number of space symbols into current output stream")
   public final boolean predicateTAB(final JProlChoicePoint goal, final TermStruct predicate)

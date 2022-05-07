@@ -31,13 +31,13 @@ import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -69,7 +69,6 @@ public final class Utils {
   public static int getJvmBitness() {
     String data = System.getProperty("sun.arch.data.model","");
     if (data.contains("32")) return 32;
-    if (data.contains("64")) return 64;
     return 64;
   }
   
@@ -148,7 +147,7 @@ public final class Utils {
 
   public static String readAsUtf8(final File file) throws IOException {
     try (BufferedReader reader = new BufferedReader(
-        new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+        new InputStreamReader(Files.newInputStream(file.toPath()), StandardCharsets.UTF_8))) {
       final StringBuilder buffer =
           new StringBuilder((int) file.length() < 0 ? 16384 : (int) file.length());
       while (!Thread.currentThread().isInterrupted()) {
