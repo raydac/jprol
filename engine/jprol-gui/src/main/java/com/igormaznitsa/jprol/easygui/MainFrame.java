@@ -1372,7 +1372,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     this.currentOpenedFile = null;
     this.documentHasBeenChangedFlag = false;
 
-    setTitle("The Prol Notepad utility. Version: " + VERSION);
+    setTitle("JProl Notepad " + VERSION);
 
     repaint();
   }
@@ -1562,7 +1562,8 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
 
     return context.findResourceReader("user").map(reader -> {
       try {
-        final int chr = reader.read();
+        final DialogEditor.NonClosableReader dialogReader = (DialogEditor.NonClosableReader) reader;
+        final int chr = dialogReader.findFirstNonWhitespaceChar();
         final Optional<Writer> out = context.findResourceWriter("user", true);
         if (out.isPresent()) {
           out.get().write("\n");

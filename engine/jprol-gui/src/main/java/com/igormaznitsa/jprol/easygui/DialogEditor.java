@@ -44,10 +44,10 @@ import java.util.prefs.Preferences;
 public class DialogEditor extends AbstractProlEditor implements KeyListener, FocusListener, Runnable, EditorPane.EventReplacer {
 
   private static final long serialVersionUID = 5005224218702033782L;
-  private final NonClossableReader inputReader;
-  private final NonClossableWriter inputWriter;
-  private final NonClossableWriter outputWriter;
-  private final NonClossableReader outputReader;
+  private final NonClosableReader inputReader;
+  private final NonClosableWriter inputWriter;
+  private final NonClosableWriter outputWriter;
+  private final NonClosableReader outputReader;
   private final Thread dialogThread;
   private final SimpleAttributeSet consoleAttribute;
   private final SimpleAttributeSet userAttribute;
@@ -77,11 +77,11 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
     editor.addKeyListener(this);
     editor.addFocusListener(this);
 
-    outputWriter = new NonClossableWriter(false);
-    outputReader = new NonClossableReader(outputWriter);
+    outputWriter = new NonClosableWriter(false);
+    outputReader = new NonClosableReader(outputWriter);
 
-    inputWriter = new NonClossableWriter(true);
-    inputReader = new NonClossableReader(inputWriter);
+    inputWriter = new NonClosableWriter(true);
+    inputReader = new NonClosableReader(inputWriter);
 
     setEnabled(false);
 
@@ -323,13 +323,13 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
     pasteText();
   }
 
-  public final static class NonClossableWriter extends PipedWriter {
+  public final static class NonClosableWriter extends PipedWriter {
 
     protected final List<Character> buffer;
     private final boolean waitEnter;
     private final AtomicInteger foundNextLineCounter = new AtomicInteger();
 
-    public NonClossableWriter(final boolean waitEnter) {
+    public NonClosableWriter(final boolean waitEnter) {
       this.waitEnter = waitEnter;
       buffer = new ArrayList<>();
     }
@@ -386,7 +386,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
       }
     }
 
-    protected int readChar() {
+    private int readChar() {
       int result = -1;
       if (!Thread.currentThread().isInterrupted()) {
         synchronized (this.buffer) {
@@ -400,6 +400,24 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
               }
             }
           }
+        }
+      }
+      return result;
+    }
+
+    private int findFirstNonWhitespaceChar() {
+      int result = -1;
+      if (!Thread.currentThread().isInterrupted()) {
+        synchronized (this.buffer) {
+            if (!this.buffer.isEmpty()) {
+              result = buffer.remove(0);
+              if (result == '\n') {
+                this.foundNextLineCounter.decrementAndGet();
+              }
+              if (Character.isISOControl(result) || Character.isWhitespace(result)) {
+                result = -1;
+              }
+            }
         }
       }
       return result;
@@ -421,11 +439,11 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
     }
   }
 
-  public class NonClossableReader extends PipedReader {
+  public class NonClosableReader extends PipedReader {
 
-    protected final NonClossableWriter src;
+    protected final NonClosableWriter src;
 
-    protected NonClossableReader(final NonClossableWriter src) throws IOException {
+    protected NonClosableReader(final NonClosableWriter src) throws IOException {
       super(src);
       this.src = src;
     }
@@ -433,6 +451,40 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
     @Override
     public void close() {
     }
+
+    public synchronized int findFirstNonWhitespaceChar() throws IOException {
+      if (src == null) {
+        throw new IOException("There is not any connected source.");
+      }
+
+      final Thread thisThread = Thread.currentThread();
+
+      while (isWorking) {
+        final int chr = src.findFirstNonWhitespaceChar();
+
+        if (thisThread.isInterrupted()) {
+          return -1;
+        }
+
+        if (cancelCurrentRead) {
+          cancelCurrentRead = false;
+          return -1;
+        }
+
+        if (chr >= 0) {
+          return chr;
+        } else {
+          try {
+            Thread.sleep(30);
+          } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            return -1;
+          }
+        }
+      }
+      return -1;
+    }
+
 
     @Override
     public synchronized int read() throws IOException {
@@ -458,7 +510,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
           return chr;
         } else {
           try {
-            Thread.sleep(10);
+            Thread.sleep(30);
           } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             return -1;
