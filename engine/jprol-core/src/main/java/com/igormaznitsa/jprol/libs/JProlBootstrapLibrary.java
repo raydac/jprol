@@ -1,13 +1,6 @@
 package com.igormaznitsa.jprol.libs;
 
-import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.FX;
-import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.XF;
-import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.XFX;
-import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.XFY;
-
-
 import com.igormaznitsa.jprol.annotations.JProlOperator;
-import com.igormaznitsa.jprol.annotations.JProlOperators;
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.NumericTerm;
 import com.igormaznitsa.jprol.data.Term;
@@ -17,34 +10,35 @@ import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlSystemFlag;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
+
 import java.util.Iterator;
 import java.util.stream.Stream;
 
+import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.*;
+
 @SuppressWarnings({"EmptyMethod", "unused", "checkstyle:AbbreviationAsWordInName"})
-@JProlOperators(operators = {
-    @JProlOperator(priority = 700, type = XFX, name = "is"),
-    @JProlOperator(priority = 700, type = XFX, name = "="),
-    @JProlOperator(priority = 700, type = XFX, name = "\\="),
-    @JProlOperator(priority = 0, type = XFX, name = "("),
-    @JProlOperator(priority = 0, type = XFX, name = ")"),
-    @JProlOperator(priority = 0, type = XFX, name = "["),
-    @JProlOperator(priority = 0, type = XFX, name = "]"),
-    @JProlOperator(priority = 1200, type = XF, name = "."),
-    @JProlOperator(priority = 1200, type = XFX, name = "|"),
-    @JProlOperator(priority = 1000, type = XFY, name = ","),
-    @JProlOperator(priority = 1100, type = XFY, name = ";"),
-    @JProlOperator(priority = 1200, type = FX, name = "?-"),
-    @JProlOperator(priority = 1200, type = FX, name = ":-"),
-    @JProlOperator(priority = 1200, type = XFX, name = ":-"),
-    @JProlOperator(priority = 500, type = FX, name = "not")
-})
+@JProlOperator(priority = 700, type = XFX, name = "is")
+@JProlOperator(priority = 700, type = XFX, name = "=")
+@JProlOperator(priority = 700, type = XFX, name = "\\=")
+@JProlOperator(priority = 0, type = XFX, name = "(")
+@JProlOperator(priority = 0, type = XFX, name = ")")
+@JProlOperator(priority = 0, type = XFX, name = "[")
+@JProlOperator(priority = 0, type = XFX, name = "]")
+@JProlOperator(priority = 1200, type = XF, name = ".")
+@JProlOperator(priority = 1200, type = XFX, name = "|")
+@JProlOperator(priority = 1000, type = XFY, name = ",")
+@JProlOperator(priority = 1100, type = XFY, name = ";")
+@JProlOperator(priority = 1200, type = FX, name = "?-")
+@JProlOperator(priority = 1200, type = FX, name = ":-")
+@JProlOperator(priority = 1200, type = XFX, name = ":-")
+@JProlOperator(priority = 500, type = FX, name = "not")
 public class JProlBootstrapLibrary extends AbstractJProlLibrary {
   public JProlBootstrapLibrary() {
     super("jprol-bootstrap-lib");
   }
 
   @JProlPredicate(signature = "current_prolog_flag/2", args = {
-      "?atom,?term"}, reference = "Check prolog flag and flag values.")
+          "?atom,?term"}, reference = "Check prolog flag and flag values.")
   public static boolean predicateCURRENTPROLOGFLAG(final JProlChoicePoint choicePoint,
                                                    final TermStruct predicate) {
     final Term atom = predicate.getElement(0).findNonVarOrSame();
@@ -93,10 +87,10 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(
-      determined = true,
-      signature = "set_prolog_flag/2",
-      args = {"+atom,+term"},
-      reference = "Set value of flag."
+          determined = true,
+          signature = "set_prolog_flag/2",
+          args = {"+atom,+term"},
+          reference = "Set value of flag."
   )
   public static boolean predicateSETPROLOGFLAG(final JProlChoicePoint choicePoint,
                                                final TermStruct predicate) {
@@ -109,15 +103,15 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     }
 
     return JProlSystemFlag.find(atom)
-        .filter(x -> !x.isReadOnly())
-        .map(x -> {
-          choicePoint.getContext().setSystemFlag(x, term);
-          return true;
-        }).orElseThrow(() -> new ProlDomainErrorException("prolog_flag", atom));
+            .filter(x -> !x.isReadOnly())
+            .map(x -> {
+              choicePoint.getContext().setSystemFlag(x, term);
+              return true;
+            }).orElseThrow(() -> new ProlDomainErrorException("prolog_flag", atom));
   }
 
   @JProlPredicate(determined = true, signature = "is/2", args = {
-      "-number,+evaluable"}, reference = "'is'(Result, Expression) is true if and only if the value of evaluating Expression as an expression is Result")
+          "-number,+evaluable"}, reference = "'is'(Result, Expression) is true if and only if the value of evaluating Expression as an expression is Result")
   public static boolean predicateIS(final JProlChoicePoint choicePoint, final TermStruct predicate) {
     final Term left = predicate.getElement(0).findNonVarOrSame();
     final Term right = predicate.getElement(1).findNonVarOrSame();
@@ -142,8 +136,8 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
   @JProlPredicate(determined = true, signature = "not/1", reference = "True if goal cannot be proven")
   public static boolean predicateNOT(final JProlChoicePoint choicePoint, final TermStruct predicate) {
     return
-        choicePoint.makeForGoal(predicate.getElement(0).findNonVarOrSame()).proveWithFailForUnknown() ==
-            null;
+            choicePoint.makeForGoal(predicate.getElement(0).findNonVarOrSame()).proveWithFailForUnknown() ==
+                    null;
   }
 
   @JProlPredicate(determined = true, signature = "=/2", reference = "Unify X and Y terms. It is true if X and Y are unifiable.")

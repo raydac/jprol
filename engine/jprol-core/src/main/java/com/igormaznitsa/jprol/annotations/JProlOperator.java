@@ -17,13 +17,12 @@
 package com.igormaznitsa.jprol.annotations;
 
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+
+import java.lang.annotation.*;
 
 @Target(value = ElementType.TYPE)
 @Retention(value = RetentionPolicy.RUNTIME)
+@Repeatable(value = JProlOperators.class )
 public @interface JProlOperator {
   int priority();
 

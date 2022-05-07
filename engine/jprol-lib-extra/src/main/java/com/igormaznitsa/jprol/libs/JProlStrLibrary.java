@@ -29,7 +29,7 @@ import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.*;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"EmptyMethod", "unused", "checkstyle:AbbreviationAsWordInName"})
 public class JProlStrLibrary extends AbstractJProlLibrary {
 
   public JProlStrLibrary() {

@@ -19,6 +19,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+@SuppressWarnings({"EmptyMethod", "unused", "checkstyle:AbbreviationAsWordInName"})
 public class JProlThreadLibrary extends AbstractJProlLibrary {
   public JProlThreadLibrary() {
     super("jprol-thread-lib");

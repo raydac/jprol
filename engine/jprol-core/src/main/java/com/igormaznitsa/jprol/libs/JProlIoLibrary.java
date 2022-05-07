@@ -31,6 +31,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+@SuppressWarnings({"EmptyMethod", "unused", "checkstyle:AbbreviationAsWordInName"})
 public class JProlIoLibrary extends AbstractJProlLibrary {
 
   public static final String CURRENT_STREAM_ID = "#current#";

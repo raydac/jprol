@@ -16,38 +16,9 @@
 
 package com.igormaznitsa.jprol.libs;
 
-import static com.igormaznitsa.jprol.data.TermType.ATOM;
-import static com.igormaznitsa.jprol.data.TermType.LIST;
-import static com.igormaznitsa.jprol.data.TermType.STRUCT;
-import static com.igormaznitsa.jprol.data.TermType.VAR;
-import static com.igormaznitsa.jprol.data.Terms.LIST_FUNCTOR;
-import static com.igormaznitsa.jprol.data.Terms.NULL_LIST;
-import static com.igormaznitsa.jprol.data.Terms.newAtom;
-import static com.igormaznitsa.jprol.data.Terms.newDouble;
-import static com.igormaznitsa.jprol.data.Terms.newList;
-import static com.igormaznitsa.jprol.data.Terms.newLong;
-import static com.igormaznitsa.jprol.data.Terms.newStruct;
-import static com.igormaznitsa.jprol.data.Terms.newVar;
-import static com.igormaznitsa.jprol.utils.Utils.createOrAppendToList;
-import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.FX;
-import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.FY;
-import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.XFX;
-import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.XFY;
-import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.YFX;
-
-
 import com.igormaznitsa.jprol.annotations.JProlOperator;
-import com.igormaznitsa.jprol.annotations.JProlOperators;
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
-import com.igormaznitsa.jprol.data.NumericTerm;
-import com.igormaznitsa.jprol.data.Term;
-import com.igormaznitsa.jprol.data.TermDouble;
-import com.igormaznitsa.jprol.data.TermList;
-import com.igormaznitsa.jprol.data.TermLong;
-import com.igormaznitsa.jprol.data.TermOperator;
-import com.igormaznitsa.jprol.data.TermStruct;
-import com.igormaznitsa.jprol.data.TermVar;
-import com.igormaznitsa.jprol.data.Terms;
+import com.igormaznitsa.jprol.data.*;
 import com.igormaznitsa.jprol.exceptions.*;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
@@ -65,53 +36,47 @@ import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
-@SuppressWarnings("EmptyMethod")
-@JProlOperators(operators = {
-    @JProlOperator(priority = 1050, type = XFY, name = "->"),
-    @JProlOperator(priority = 900, type = FY, name = "\\+"),
-    @JProlOperator(priority = 700, type = XFX, name = ">"),
-    @JProlOperator(priority = 700, type = XFX, name = "<"),
-    @JProlOperator(priority = 700, type = XFX, name = "=<"),
-    @JProlOperator(priority = 700, type = XFX, name = ">="),
-    @JProlOperator(priority = 700, type = XFX, name = "=="),
-    @JProlOperator(priority = 700, type = XFX, name = "=\\="),
-    @JProlOperator(priority = 700, type = XFX, name = "\\=="),
-    @JProlOperator(priority = 700, type = XFX, name = "@<"),
-    @JProlOperator(priority = 700, type = XFX, name = "@>"),
-    @JProlOperator(priority = 700, type = XFX, name = "@=<"),
-    @JProlOperator(priority = 700, type = XFX, name = "@>="),
-    @JProlOperator(priority = 700, type = XFX, name = "=:="),
-    @JProlOperator(priority = 700, type = XFX, name = "=.."),
-    @JProlOperator(priority = 500, type = YFX, name = "/\\"),
-    @JProlOperator(priority = 500, type = YFX, name = "\\/"),
-    @JProlOperator(priority = 500, type = YFX, name = "+"),
-    @JProlOperator(priority = 500, type = YFX, name = "-"),
-    @JProlOperator(priority = 500, type = FX, name = "+"),
-    @JProlOperator(priority = 500, type = FX, name = "-"),
-    @JProlOperator(priority = 400, type = YFX, name = "*"),
-    @JProlOperator(priority = 400, type = YFX, name = "/"),
-    @JProlOperator(priority = 400, type = YFX, name = "//"),
-    @JProlOperator(priority = 400, type = YFX, name = "rem"),
-    @JProlOperator(priority = 400, type = YFX, name = "<<"),
-    @JProlOperator(priority = 400, type = YFX, name = ">>"),
-    @JProlOperator(priority = 300, type = XFX, name = "mod"),
-    @JProlOperator(priority = 200, type = FY, name = "\\"),
-    @JProlOperator(priority = 200, type = XFX, name = "**"),
-    @JProlOperator(priority = 200, type = XFY, name = "^")
-})
+import static com.igormaznitsa.jprol.data.TermType.*;
+import static com.igormaznitsa.jprol.data.Terms.*;
+import static com.igormaznitsa.jprol.utils.Utils.createOrAppendToList;
+import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.*;
+
+@SuppressWarnings({"EmptyMethod", "unused", "checkstyle:AbbreviationAsWordInName"})
+@JProlOperator(priority = 1050, type = XFY, name = "->")
+@JProlOperator(priority = 900, type = FY, name = "\\+")
+@JProlOperator(priority = 700, type = XFX, name = ">")
+@JProlOperator(priority = 700, type = XFX, name = "<")
+@JProlOperator(priority = 700, type = XFX, name = "=<")
+@JProlOperator(priority = 700, type = XFX, name = ">=")
+@JProlOperator(priority = 700, type = XFX, name = "==")
+@JProlOperator(priority = 700, type = XFX, name = "=\\=")
+@JProlOperator(priority = 700, type = XFX, name = "\\==")
+@JProlOperator(priority = 700, type = XFX, name = "@<")
+@JProlOperator(priority = 700, type = XFX, name = "@>")
+@JProlOperator(priority = 700, type = XFX, name = "@=<")
+@JProlOperator(priority = 700, type = XFX, name = "@>=")
+@JProlOperator(priority = 700, type = XFX, name = "=:=")
+@JProlOperator(priority = 700, type = XFX, name = "=..")
+@JProlOperator(priority = 500, type = YFX, name = "/\\")
+@JProlOperator(priority = 500, type = YFX, name = "\\/")
+@JProlOperator(priority = 500, type = YFX, name = "+")
+@JProlOperator(priority = 500, type = YFX, name = "-")
+@JProlOperator(priority = 500, type = FX, name = "+")
+@JProlOperator(priority = 500, type = FX, name = "-")
+@JProlOperator(priority = 400, type = YFX, name = "*")
+@JProlOperator(priority = 400, type = YFX, name = "/")
+@JProlOperator(priority = 400, type = YFX, name = "//")
+@JProlOperator(priority = 400, type = YFX, name = "rem")
+@JProlOperator(priority = 400, type = YFX, name = "<<")
+@JProlOperator(priority = 400, type = YFX, name = ">>")
+@JProlOperator(priority = 300, type = XFX, name = "mod")
+@JProlOperator(priority = 200, type = FY, name = "\\")
+@JProlOperator(priority = 200, type = XFX, name = "**")
+@JProlOperator(priority = 200, type = XFY, name = "^")
 public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   public JProlCoreLibrary() {
@@ -119,7 +84,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "=:=/2", args = {
-      "@evaluable,@evaluable"}, reference = "Arithmetic equal")
+          "@evaluable,@evaluable"}, reference = "Arithmetic equal")
   public static boolean predicateArithEqu(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calcEvaluable(goal, predicate.getElement(1));
@@ -127,49 +92,49 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "@</2", args = {
-      "?term,?term"}, reference = "Term less than")
+          "?term,?term"}, reference = "Term less than")
   public static boolean predicateTermLess(final JProlChoicePoint choicePoint,
                                           final TermStruct predicate) {
     return choicePoint.compare(predicate.getElement(0), predicate.getElement(1)) < 0;
   }
 
   @JProlPredicate(determined = true, signature = "@=</2", args = {
-      "?term,?term"}, reference = "Term less than or equal to.")
+          "?term,?term"}, reference = "Term less than or equal to.")
   public static boolean predicateTermLessOrEqu(final JProlChoicePoint choicePoint,
                                                final TermStruct predicate) {
     return choicePoint.compare(predicate.getElement(0), predicate.getElement(1)) <= 0;
   }
 
   @JProlPredicate(determined = true, signature = "@>/2", args = {
-      "?term,?term"}, reference = "Term greater than")
+          "?term,?term"}, reference = "Term greater than")
   public static boolean predicateTermMore(final JProlChoicePoint choicePoint,
                                           final TermStruct predicate) {
     return choicePoint.compare(predicate.getElement(0), predicate.getElement(1)) > 0;
   }
 
   @JProlPredicate(determined = true, signature = "@>=/2", args = {
-      "?term,?term"}, reference = "Term greater than or equal to.")
+          "?term,?term"}, reference = "Term greater than or equal to.")
   public static boolean predicateTermMoreOrEqu(final JProlChoicePoint choicePoint,
                                                final TermStruct predicate) {
     return choicePoint.compare(predicate.getElement(0), predicate.getElement(1)) >= 0;
   }
 
   @JProlPredicate(determined = true, signature = "==/2", args = {
-      "?term,?term"}, reference = "Term identical")
+          "?term,?term"}, reference = "Term identical")
   public static boolean predicateTermEqu(final JProlChoicePoint choicePoint,
                                          final TermStruct predicate) {
     return choicePoint.compare(predicate.getElement(0), predicate.getElement(1)) == 0;
   }
 
   @JProlPredicate(determined = true, signature = "\\==/2", args = {
-      "?term,?term"}, reference = "Term not identical")
+          "?term,?term"}, reference = "Term not identical")
   public static boolean predicateNotTermEqu(final JProlChoicePoint choicePoint,
                                             final TermStruct predicate) {
     return choicePoint.compare(predicate.getElement(0), predicate.getElement(1)) != 0;
   }
 
   @JProlPredicate(determined = true, signature = ">/2", args = {
-      "+evaluable,+evaluable"}, reference = "Arithmetic greater than")
+          "+evaluable,+evaluable"}, reference = "Arithmetic greater than")
   public static boolean predicateArithMore(final JProlChoicePoint goal,
                                            final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
@@ -178,7 +143,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "</2", args = {
-      "+evaluable,+evaluable"}, reference = "Arithmetic less than")
+          "+evaluable,+evaluable"}, reference = "Arithmetic less than")
   public static boolean predicateArithLess(final JProlChoicePoint goal,
                                            final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
@@ -187,7 +152,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = ">=/2", args = {
-      "+evaluable,+evaluable"}, reference = "Arithmetic greater than or equal to")
+          "+evaluable,+evaluable"}, reference = "Arithmetic greater than or equal to")
   public static boolean predicateArithMoreOrEqu(final JProlChoicePoint goal,
                                                 final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
@@ -196,7 +161,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "=</2", args = {
-      "+evaluable,+evaluable"}, reference = "Arithmetic less than or equal to")
+          "+evaluable,+evaluable"}, reference = "Arithmetic less than or equal to")
   public static boolean predicateArithLessOrEqu(final JProlChoicePoint goal,
                                                 final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
@@ -205,7 +170,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "=\\=/2", args = {
-      "+evaluable,+evaluable"}, reference = "Arithmetic Not equal")
+          "+evaluable,+evaluable"}, reference = "Arithmetic Not equal")
   public static boolean predicateArithNotEqu(final JProlChoicePoint goal,
                                              final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
@@ -214,7 +179,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "xor/2", args = {
-      "+evaluable,+evaluable"}, reference = "Bitwise exclusive or.")
+          "+evaluable,+evaluable"}, reference = "Bitwise exclusive or.")
   public static Term predicateXOR(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final NumericTerm right = calcEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
@@ -227,7 +192,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "\\/1", args = {
-      "+evaluable"}, reference = "Bitwise 'not'")
+          "+evaluable"}, reference = "Bitwise 'not'")
   public static Term predicateBITWISENOT(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0));
     if (goal.isArgsValidate()) {
@@ -237,7 +202,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "\\//2", args = {
-      "+evaluable,+evaluable"}, reference = "Bitwise 'or'")
+          "+evaluable,+evaluable"}, reference = "Bitwise 'or'")
   public static Term predicateBITWISEOR(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getElement(0));
     final NumericTerm right = calcEvaluable(goal, predicate.getElement(1));
@@ -250,7 +215,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "/\\/2", args = {
-      "+evaluable,+evaluable"}, reference = "Bitwise 'and'")
+          "+evaluable,+evaluable"}, reference = "Bitwise 'and'")
   public static Term predicateBITWISEAND(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final NumericTerm right = calcEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
@@ -263,7 +228,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "mod/2", args = {
-      "+evaluable,+evaluable"}, reference = "Modulus")
+          "+evaluable,+evaluable"}, reference = "Modulus")
   public static Term predicateMOD(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final NumericTerm right = calcEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
@@ -280,7 +245,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "rem/2", args = {
-      "+evaluable,+evaluable"}, reference = "Remainder")
+          "+evaluable,+evaluable"}, reference = "Remainder")
   public static Term predicateREM(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final NumericTerm right = calcEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
@@ -299,7 +264,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "**/2", args = {
-      "+evaluable,+evaluable"}, reference = "Power")
+          "+evaluable,+evaluable"}, reference = "Power")
   public static Term predicatePOWER(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final NumericTerm right = calcEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
@@ -311,7 +276,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "+/2", args = {
-      "+evaluable,+evaluable"}, reference = "Addition")
+          "+evaluable,+evaluable"}, reference = "Addition")
   public static Term predicateADDTWO(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final NumericTerm right = calcEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
@@ -325,7 +290,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "float_integer_part/1", args = {
-      "+evaluable"}, reference = "Integer part")
+          "+evaluable"}, reference = "Integer part")
   public static Term predicateFLOATINTEGERPART(final JProlChoicePoint goal,
                                                final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
@@ -333,7 +298,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "float_fractional_part/1", args = {
-      "+evaluable"}, reference = "Fractional part")
+          "+evaluable"}, reference = "Fractional part")
   public static Term predicateFLOATFRACTIONALPART(final JProlChoicePoint goal,
                                                   final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
@@ -343,7 +308,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "floor/1", args = {
-      "+evaluable"}, reference = "Floor")
+          "+evaluable"}, reference = "Floor")
   public static Term predicateFLOOR(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
@@ -351,7 +316,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "truncate/1", args = {
-      "+evaluable"}, reference = "Truncate")
+          "+evaluable"}, reference = "Truncate")
   public static Term predicateTRUNCATE(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
@@ -359,7 +324,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "round/1", args = {
-      "+evaluable"}, reference = "Round")
+          "+evaluable"}, reference = "Round")
   public static Term predicateROUND(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
@@ -367,7 +332,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "ceiling/1", args = {
-      "+evaluable"}, reference = "Ceiling")
+          "+evaluable"}, reference = "Ceiling")
   public static Term predicateCEILING(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
@@ -375,7 +340,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "cos/1", args = {
-      "+evaluable"}, reference = "Cosine")
+          "+evaluable"}, reference = "Cosine")
   public static Term predicateCOS(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
@@ -383,7 +348,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "atan/1", args = {
-      "+evaluable"}, reference = "Arc tangent")
+          "+evaluable"}, reference = "Arc tangent")
   public static Term predicateATAN(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
@@ -391,7 +356,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "exp/1", args = {
-      "+evaluable"}, reference = "Exponentiation")
+          "+evaluable"}, reference = "Exponentiation")
   public static Term predicateEXP(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
@@ -406,7 +371,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "sqrt/1", args = {
-      "+evaluable"}, reference = "Square root")
+          "+evaluable"}, reference = "Square root")
   public static Term predicateSQRT(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
@@ -414,7 +379,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "abs/1", args = {
-      "+evaluable"}, reference = "Absolute value")
+          "+evaluable"}, reference = "Absolute value")
   public static Term predicateABS(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     return arg.abs();
@@ -427,7 +392,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(signature = "sub_atom/5", args = {
-      "+atom,?integer,?integer,?integer,?atom"}, reference = "Breaking atoms")
+          "+atom,?integer,?integer,?integer,?atom"}, reference = "Breaking atoms")
   public static boolean predicateSUBATOM(final JProlChoicePoint goal, final TermStruct predicate) {
     class SubAtomIterator {
       final String atom;
@@ -443,7 +408,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         this.currentBefore = before.getTermType() == VAR ? 0 : before.toNumber().intValue();
         this.currentLength = length.getTermType() == VAR ? 0 : length.toNumber().intValue();
         this.currentAfter =
-            after.getTermType() == VAR ? this.atom.length() : after.toNumber().intValue();
+                after.getTermType() == VAR ? this.atom.length() : after.toNumber().intValue();
         this.theSub = sub.getTermType() == VAR ? null : sub.getText();
 
         if (length.getTermType() == VAR) {
@@ -473,12 +438,12 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         }
 
         final String currentSub =
-            this.atom.substring(this.currentBefore, this.currentBefore + this.currentLength);
+                this.atom.substring(this.currentBefore, this.currentBefore + this.currentLength);
 
         final boolean result = before.unifyTo(Terms.newLong(this.currentBefore))
-            && length.unifyTo(Terms.newLong(this.currentLength))
-            && after.unifyTo(Terms.newLong(this.currentAfter))
-            && sub.unifyTo(Terms.newAtom(currentSub));
+                && length.unifyTo(Terms.newLong(this.currentLength))
+                && after.unifyTo(Terms.newLong(this.currentAfter))
+                && sub.unifyTo(Terms.newAtom(currentSub));
 
         if (this.theSub == null) {
           if (this.initialLen < 0) {
@@ -532,15 +497,15 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
 
     return iterator.next(
-        predicate.getElement(1),
-        predicate.getElement(2),
-        predicate.getElement(3),
-        predicate.getElement(4)
+            predicate.getElement(1),
+            predicate.getElement(2),
+            predicate.getElement(3),
+            predicate.getElement(4)
     );
   }
 
   @JProlPredicate(evaluable = true, signature = "-/2", args = {
-      "+evaluable,+evaluable"}, reference = "Subtraction")
+          "+evaluable,+evaluable"}, reference = "Subtraction")
   public static Term predicateSUBTWO(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final NumericTerm right = calcEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
@@ -548,20 +513,20 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "-/1", args = {
-      "+evaluable"}, reference = "Negation")
+          "+evaluable"}, reference = "Negation")
   public static Term predicateNeg(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm val = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     return val.neg();
   }
 
   @JProlPredicate(evaluable = true, signature = "+/1", args = {
-      "+evaluable"}, reference = "Not action over a number")
+          "+evaluable"}, reference = "Not action over a number")
   public static Term predicateTheSame(final JProlChoicePoint goal, final TermStruct predicate) {
     return calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
   }
 
   @JProlPredicate(evaluable = true, signature = "*/2", args = {
-      "+evaluable,+evaluable"}, reference = "Multiplication")
+          "+evaluable,+evaluable"}, reference = "Multiplication")
   public static Term predicateMUL(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final NumericTerm right = calcEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
@@ -569,14 +534,14 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "//2", args = {
-      "+evaluable,+evaluable"}, reference = "Division")
+          "+evaluable,+evaluable"}, reference = "Division")
   public static Term predicateDIV(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final NumericTerm right = calcEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
 
     try {
       if ((right instanceof TermDouble && Double.compare(0.0d, right.toNumber().doubleValue()) == 0)
-          || (right instanceof TermLong && right.toNumber().longValue() == 0L)) {
+              || (right instanceof TermLong && right.toNumber().longValue() == 0L)) {
         throw new ArithmeticException("Zero divisor");
       }
       return left.div(right);
@@ -586,7 +551,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "///2", args = {
-      "+evaluable,+evaluable"}, reference = "Integer division.")
+          "+evaluable,+evaluable"}, reference = "Integer division.")
   public static Term predicateIDIV2(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final NumericTerm right = calcEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
@@ -604,7 +569,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = "<</2", args = {
-      "+evaluable,+evaluable"}, reference = "Bitwise left shift")
+          "+evaluable,+evaluable"}, reference = "Bitwise left shift")
   public static Term predicateSHIFTL2(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final NumericTerm right = calcEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
@@ -616,7 +581,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(evaluable = true, signature = ">>/2", args = {
-      "+evaluable,+evaluable"}, reference = "Bitwise right shift")
+          "+evaluable,+evaluable"}, reference = "Bitwise right shift")
   public static Term predicateSHIFTR(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final NumericTerm right = calcEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
@@ -633,7 +598,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(signature = "clause/2", args = {
-      "+head,?callable"}, reference = "clause(Head, Body) is true if and only if\n* The predicate of Head is public (the standard does not specify how a predicate is declared public but dynamic predicates are public, and\n* There is a clause in the database which corresponds to a term H:- B which unifies with Head :- Body.")
+          "+head,?callable"}, reference = "clause(Head, Body) is true if and only if\n* The predicate of Head is public (the standard does not specify how a predicate is declared public but dynamic predicates are public, and\n* There is a clause in the database which corresponds to a term H:- B which unifies with Head :- Body.")
   public static boolean predicateCLAUSE2(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term head = predicate.getElement(0).findNonVarOrSame();
     final Term body = predicate.getElement(1).findNonVarOrSame();
@@ -654,10 +619,10 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
 
       clIterator = goal.getContext().getKnowledgeBase().iterate(
-          IteratorType.ANY,
-          head.getTermType() == STRUCT ? (TermStruct) head : newStruct(head),
-          x -> {
-          }
+              IteratorType.ANY,
+              head.getTermType() == STRUCT ? (TermStruct) head : newStruct(head),
+              x -> {
+              }
       );
       if (!clIterator.hasNext()) {
         goal.cutVariants();
@@ -729,9 +694,9 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         final Term opName = Terms.newAtom(found.getText());
 
         if (priority.dryUnifyTo(opPriority) && specifier.dryUnifyTo(opType) &&
-            name.dryUnifyTo(opName)) {
+                name.dryUnifyTo(opName)) {
           return assertUnify(priority, opPriority) && assertUnify(specifier, opType) &&
-              assertUnify(name, opName);
+                  assertUnify(name, opName);
         }
       }
       list.remove(0);
@@ -757,11 +722,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
     if (priority < 0L || priority > 1200L) {
       throw new ProlDomainErrorException("Priority must be between 0 and 1200 inclusive",
-          predicate);
+              predicate);
     }
 
     OpAssoc opType = OpAssoc.findForName(specifier)
-        .orElseThrow(() -> new ProlDomainErrorException("Wrong operator specifier", predicate));
+            .orElseThrow(() -> new ProlDomainErrorException("Wrong operator specifier", predicate));
 
     final ArrayList<String> names = new ArrayList<>();
     if (atomOrList.getTermType() == LIST) {
@@ -790,17 +755,17 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         names.forEach((name) -> base.removeOperator(name, opType));
       } else {
         names.forEach((name) -> base
-            .addOperator(goal.getContext(), new TermOperator(priority, opType, name)));
+                .addOperator(goal.getContext(), new TermOperator(priority, opType, name)));
       }
     } catch (SecurityException ex) {
       throw new ProlPermissionErrorException("create", "operator",
-          "Attempt to override or remove a system operator", predicate);
+              "Attempt to override or remove a system operator", predicate);
     }
     return true;
   }
 
   @JProlPredicate(signature = "call/1", args = {
-      "+callable"}, reference = "call(G) is true if and only if G represents a goal which is true.")
+          "+callable"}, reference = "call(G) is true if and only if G represents a goal which is true.")
   public static boolean predicateCALL(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term argument = predicate.getElement(0).findNonVarOrSame();
 
@@ -827,7 +792,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "once/1", args = {
-      "+callable"}, reference = "once(Term) is true. once/1 is not re-executable.")
+          "+callable"}, reference = "once(Term) is true. once/1 is not re-executable.")
   public static boolean predicateONCE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term argument = predicate.getElement(0).findNonVarOrSame();
     if (goal.isArgsValidate()) {
@@ -844,7 +809,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static boolean predicateIFTHEN(final JProlChoicePoint goal, final TermStruct predicate) {
     // if-then
     final JProlChoicePoint leftSubbranch =
-        new JProlChoicePoint(predicate.getElement(0), goal.getContext());
+            new JProlChoicePoint(predicate.getElement(0), goal.getContext());
     boolean result = false;
     if (leftSubbranch.prove() != null) {
       // replace current goal by the 'then' goal
@@ -956,7 +921,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "arg/3", args = {
-      "+integer,+compound_term,?term"}, reference = "arg(N,Term, Arg) is true if nad only if the Nth argument of Term is Arg")
+          "+integer,+compound_term,?term"}, reference = "arg(N,Term, Arg) is true if nad only if the Nth argument of Term is Arg")
   public static boolean predicateARG(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term number = predicate.getElement(0).findNonVarOrSame();
     final Term compound_term = predicate.getElement(1).findNonVarOrSame();
@@ -988,7 +953,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "functor/3", args = {"-nonvar,+atomic,+arity",
-      "+nonvar,?atomic,?arity"}, reference = "functor(Term, Name, Arity) is true if and only if Term is a compound term with functor name Name and arity Arity or Term is an atomic term equal to Name and Arity is 0.")
+          "+nonvar,?atomic,?arity"}, reference = "functor(Term, Name, Arity) is true if and only if Term is a compound term with functor name Name and arity Arity or Term is an atomic term equal to Name and Arity is 0.")
   public static boolean predicateFUNCTOR(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term argTerm = predicate.getElement(0).findNonVarOrSame();
     final Term argName = predicate.getElement(1).findNonVarOrSame();
@@ -1068,7 +1033,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "=../2", args = {"+nonvar,?non_empty_list",
-      "-nonvar,+non_empty_list"}, reference = "Term =.. List is true if and only if\n* Term is an atomic term and List is the list whose only element is Term, or\n* Term is a compound term and List is the list whose head is the functor name of Term and whose tail is the list of the arguments of Term. ")
+          "-nonvar,+non_empty_list"}, reference = "Term =.. List is true if and only if\n* Term is an atomic term and List is the list whose only element is Term, or\n* Term is a compound term and List is the list whose head is the functor name of Term and whose tail is the list of the arguments of Term. ")
   public static boolean predicateUNIV(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = predicate.getElement(0).findNonVarOrSame();
     final Term argRight = predicate.getElement(1).findNonVarOrSame();
@@ -1103,7 +1068,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "atom_chars/2", args = {"+atom,?character_list",
-      "-atom,+character_list"}, reference = "atom_chars(Atom, List) succeeds if and only if List is a list whose elements are the one character atoms that in order make up  Atom.")
+          "-atom,+character_list"}, reference = "atom_chars(Atom, List) succeeds if and only if List is a list whose elements are the one character atoms that in order make up  Atom.")
   public static boolean predicateATOMCHARS(final JProlChoicePoint goal,
                                            final TermStruct predicate) {
     Term left = predicate.getElement(0).findNonVarOrSame();
@@ -1119,7 +1084,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         ProlAssertions.assertCharacterList(right);
         if (!right.isGround()) {
           throw new ProlInstantiationErrorException("List contains non-instantiated vars: " + right,
-              right);
+                  right);
         }
       }
     }
@@ -1161,8 +1126,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "char_code/2", args = {
-      "+character,?character_code",
-      "-character,+character_code"}, reference = "char_code(Char, Code) succeeds if and only if Code is the character code that corresponds to the character Char.")
+          "+character,?character_code",
+          "-character,+character_code"}, reference = "char_code(Char, Code) succeeds if and only if Code is the character code that corresponds to the character Char.")
   public static boolean predicateCHARCODE(final JProlChoicePoint goal, final TermStruct predicate) {
     Term left = predicate.getElement(0).findNonVarOrSame();
     Term right = predicate.getElement(1).findNonVarOrSame();
@@ -1192,8 +1157,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "number_codes/2", args = {
-      "+number,?character_code_list",
-      "-number,+character_code_list"}, reference = "number_codes(Number, CodeList) succeeds if and only if CodeList is a list whose elements are the codes for the one character atoms that in order make up Number.")
+          "+number,?character_code_list",
+          "-number,+character_code_list"}, reference = "number_codes(Number, CodeList) succeeds if and only if CodeList is a list whose elements are the codes for the one character atoms that in order make up Number.")
   public static boolean predicateNUMBERCODES(final JProlChoicePoint goal,
                                              final TermStruct predicate) {
     Term left = predicate.getElement(0).findNonVarOrSame();
@@ -1255,8 +1220,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(signature = "current_predicate_all/1",
-      args = {"?predicate_indicator"},
-      reference = "True if PredicateIndicator is a currently defined predicate. It looks for predicates both in knowledge base and attached libraries."
+          args = {"?predicate_indicator"},
+          reference = "True if PredicateIndicator is a currently defined predicate. It looks for predicates both in knowledge base and attached libraries."
   )
   public static boolean predicateCURRENTPREDICATEALL(final JProlChoicePoint choicePoint,
                                                      final TermStruct predicate) {
@@ -1268,18 +1233,18 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
 
       list = new ArrayList<>(
-          choicePoint.getContext().findAllForPredicateIndicatorInLibs(predicateIndicator));
+              choicePoint.getContext().findAllForPredicateIndicatorInLibs(predicateIndicator));
 
-      try(final CloseableIterator<TermStruct> knowledgeBaseIterator = choicePoint.getContext().getKnowledgeBase().iterateSignatures(
-          predicateIndicator.getTermType() == VAR ?
-              Terms.newStruct("/", new Term[] {Terms.newVar(), Terms.newVar()}) :
-              (TermStruct) predicateIndicator)) {
+      try (final CloseableIterator<TermStruct> knowledgeBaseIterator = choicePoint.getContext().getKnowledgeBase().iterateSignatures(
+              predicateIndicator.getTermType() == VAR ?
+                      Terms.newStruct("/", new Term[]{Terms.newVar(), Terms.newVar()}) :
+                      (TermStruct) predicateIndicator)) {
         while (knowledgeBaseIterator.hasNext()) {
           list.add(knowledgeBaseIterator.next());
         }
         list.sort(choicePoint);
         choicePoint.setPayload(list);
-      } catch (IOException ex){
+      } catch (IOException ex) {
         throw new ProlKnowledgeBaseException(ex);
       }
     }
@@ -1292,8 +1257,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(signature = "current_predicate/1",
-      args = {"?predicate_indicator"},
-      reference = "True if PredicateIndicator is a currently defined predicate. It looks for predicates only in current knowledge base."
+          args = {"?predicate_indicator"},
+          reference = "True if PredicateIndicator is a currently defined predicate. It looks for predicates only in current knowledge base."
   )
   public static boolean predicateCURRENTPREDICATE(final JProlChoicePoint choicePoint,
                                                   final TermStruct predicate) {
@@ -1305,16 +1270,16 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
 
       list = new ArrayList<>();
-      try(final CloseableIterator<TermStruct> knowledgeBaseIterator = choicePoint.getContext().getKnowledgeBase().iterateSignatures(
-          predicateIndicator.getTermType() == VAR ?
-              Terms.newStruct("/", new Term[] {Terms.newVar(), Terms.newVar()}) :
-              (TermStruct) predicateIndicator)) {
+      try (final CloseableIterator<TermStruct> knowledgeBaseIterator = choicePoint.getContext().getKnowledgeBase().iterateSignatures(
+              predicateIndicator.getTermType() == VAR ?
+                      Terms.newStruct("/", new Term[]{Terms.newVar(), Terms.newVar()}) :
+                      (TermStruct) predicateIndicator)) {
         while (knowledgeBaseIterator.hasNext()) {
           list.add(knowledgeBaseIterator.next());
         }
         list.sort(choicePoint);
         choicePoint.setPayload(list);
-      }catch (IOException ex){
+      } catch (IOException ex) {
         throw new ProlKnowledgeBaseException(ex);
       }
     }
@@ -1327,8 +1292,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(signature = "atom_concat/3",
-      args = {"?atom,?atom,?atom"},
-      reference = "Atom3 forms the concatenation of Atom1 and Atom2.")
+          args = {"?atom,?atom,?atom"},
+          reference = "Atom3 forms the concatenation of Atom1 and Atom2.")
   public static boolean predicateATOMCONCAT3(final JProlChoicePoint goal,
                                              final TermStruct predicate) {
     final Term atom1 = predicate.getElement(0).findNonVarOrSame();
@@ -1348,7 +1313,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
 
     final int bounded =
-        (atom1.isGround() ? 1 : 0) + (atom2.isGround() ? 1 : 0) + (atom3.isGround() ? 2 : 0);
+            (atom1.isGround() ? 1 : 0) + (atom2.isGround() ? 1 : 0) + (atom3.isGround() ? 2 : 0);
 
     class AtomConcatState {
       private final StringBuilder seq1;
@@ -1421,10 +1386,10 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
 
   @JProlPredicate(
-      determined = true,
-      signature = "number_chars/2",
-      args = {"+number,?character_list", "-number,+character_list"},
-      reference = "number_chars(Number, List) succeeds if and only if List is a list whose elements are the one character atoms that in order make up Number.")
+          determined = true,
+          signature = "number_chars/2",
+          args = {"+number,?character_list", "-number,+character_list"},
+          reference = "number_chars(Number, List) succeeds if and only if List is a list whose elements are the one character atoms that in order make up Number.")
   public static boolean predicateNUMBERCHARS2(final JProlChoicePoint goal,
                                               final TermStruct predicate) {
     Term left = predicate.getElement(0).findNonVarOrSame();
@@ -1482,7 +1447,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       final Term term;
       try {
         term = new JProlTreeBuilder(goal.getContext())
-            .readPhraseAndMakeTree(new StringReader(builder.append('.').toString())).term;
+                .readPhraseAndMakeTree(new StringReader(builder.append('.').toString())).term;
       } catch (PrologParserException ex) {
         throw new ProlCustomErrorException(Terms.newAtom("syntax_error"), right);
       }
@@ -1502,7 +1467,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(signature = "for/3", args = {
-      "?term,+integer,+integer"}, reference = "Allows to make integer counter from a variable, (TermVar, Low, High).")
+          "?term,+integer,+integer"}, reference = "Allows to make integer counter from a variable, (TermVar, Low, High).")
   public static boolean predicateFOR3(final JProlChoicePoint choicePoint, final TermStruct predicate) {
     final Term term = predicate.getElement(0).findNonVarOrSame();
 
@@ -1561,7 +1526,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "rnd/2", args = {"+integer,?integer",
-      "+list,?term"}, reference = "Generate pseudo random in 0(included)...limit(excluded) or select random element from the list.")
+          "+list,?term"}, reference = "Generate pseudo random in 0(included)...limit(excluded) or select random element from the list.")
   public static boolean predicateRND(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term first = predicate.getElement(0).findNonVarOrSame();
     final Term second = predicate.getElement(1).findNonVarOrSame();
@@ -1591,7 +1556,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "atom_length/2", args = {
-      "+atom,?integer"}, reference = "atom_length(Atom, Length) is true if and only if the integer Length equals the number of characters in the name of the atom Atom.")
+          "+atom,?integer"}, reference = "atom_length(Atom, Length) is true if and only if the integer Length equals the number of characters in the name of the atom Atom.")
   public static boolean predicateATOMLENGTH(final JProlChoicePoint goal,
                                             final TermStruct predicate) {
     Term left = predicate.getElement(0).findNonVarOrSame();
@@ -1609,8 +1574,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "atom_codes/2", args = {
-      "+atom,?character_code_list",
-      "?atom,+character_code_list"}, reference = "atom_codes(Atom, List) succeeds if and only if List is a list whose elements are the character codes that in order correspond to the characters that make up  Atom.")
+          "+atom,?character_code_list",
+          "?atom,+character_code_list"}, reference = "atom_codes(Atom, List) succeeds if and only if List is a list whose elements are the character codes that in order correspond to the characters that make up  Atom.")
   public static boolean predicateATOMCHARCODES(final JProlChoicePoint goal,
                                                final TermStruct predicate) {
     Term left = predicate.getElement(0).findNonVarOrSame();
@@ -1675,7 +1640,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "dispose/1", synonyms = {"dispose/0"}, args = {
-      "+integer"}, reference = " These predicate terminate a Prolog engine and you can send the status of a cause.")
+          "+integer"}, reference = " These predicate terminate a Prolog engine and you can send the status of a cause.")
   public static void predicateHALT(final JProlChoicePoint goal, final TermStruct predicate) {
     if (predicate.getArity() == 0) {
       goal.getContext().dispose();
@@ -1692,7 +1657,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "abolish/1", args = {
-      "+predicate_indicator"}, reference = "abolish(Pred/2) is true. It has for side effect the removal of all clauses of the predicate indicated by Pred. After abolish/1 the predicate is not found by current_predicate.")
+          "+predicate_indicator"}, reference = "abolish(Pred/2) is true. It has for side effect the removal of all clauses of the predicate indicated by Pred. After abolish/1 the predicate is not found by current_predicate.")
   public static boolean predicateABOLISH1(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     if (goal.isArgsValidate()) {
@@ -1710,7 +1675,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "sort/2", args = {
-      "+list,?list"}, reference = "True if Sorted can be unified with a list holding the elements of List, sorted to the standard order of terms")
+          "+list,?list"}, reference = "True if Sorted can be unified with a list holding the elements of List, sorted to the standard order of terms")
   public static boolean predicateSORT2(final JProlChoicePoint choicePoint, final TermStruct predicate) {
     final Term termList = predicate.getElement(0).findNonVarOrSame();
     final Term termSorted = predicate.getElement(1).findNonVarOrSame();
@@ -1735,7 +1700,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
           }
         }
         sortedList =
-            TermList.asTermList(Arrays.stream(terms).filter(Objects::nonNull).toArray(Term[]::new));
+                TermList.asTermList(Arrays.stream(terms).filter(Objects::nonNull).toArray(Term[]::new));
       } else {
         sortedList = TermList.asTermList(terms);
       }
@@ -1746,7 +1711,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "findall/3", args = {
-      "?term,+callable,?list"}, reference = "Creates a list of the instantiations Template gets successively on backtracking over Goal and unifies the result with Bag.")
+          "?term,+callable,?list"}, reference = "Creates a list of the instantiations Template gets successively on backtracking over Goal and unifies the result with Bag.")
   public static boolean predicateFINDALL3(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term template = predicate.getElement(0).findNonVarOrSame();
     final Term scopeGoal = predicate.getElement(1).findNonVarOrSame();
@@ -1784,7 +1749,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       } else {
         // not first
         currentList =
-            createOrAppendToList(currentList, templateCopy.findNonVarOrSame().makeClone());
+                createOrAppendToList(currentList, templateCopy.findNonVarOrSame().makeClone());
       }
     }
 
@@ -1796,7 +1761,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(signature = "bagof/3", args = {
-      "?term,+callable,?list"}, reference = "Unify Bag with the alternatives of Template. If Goal has free variables besides the one sharing with Template, bagof/3 will backtrack over the alternatives of these free variables, unifying Bag with the corresponding alternatives of Template. The construct +TermVar^Goal tells bagof/3 not to bind TermVar in Goal. bagof/3 fails if Goal has no solutions.")
+          "?term,+callable,?list"}, reference = "Unify Bag with the alternatives of Template. If Goal has free variables besides the one sharing with Template, bagof/3 will backtrack over the alternatives of these free variables, unifying Bag with the corresponding alternatives of Template. The construct +TermVar^Goal tells bagof/3 not to bind TermVar in Goal. bagof/3 fails if Goal has no solutions.")
   public static boolean predicateBAGOF(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term template = predicate.getElement(0).findNonVarOrSame();
     final Term scopeGoal = predicate.getElement(1).findNonVarOrSame();
@@ -1820,7 +1785,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         final List<String> orderedNames = new ArrayList<>(varSnapshot.keySet());
         Collections.sort(orderedNames);
         this.hash = orderedNames.stream().map(n -> varSnapshot.get(n).getText())
-            .collect(Collectors.joining(":")).hashCode();
+                .collect(Collectors.joining(":")).hashCode();
         this.vars = varSnapshot;
       }
 
@@ -1843,8 +1808,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         if (that instanceof BofKey && ((BofKey) that).vars.size() == this.vars.size()) {
           final BofKey thatKey = (BofKey) that;
           result = this.vars.entrySet().stream()
-              .allMatch(e -> thatKey.vars.containsKey(e.getKey()) &&
-                  thatKey.vars.get(e.getKey()).dryUnifyTo(e.getValue()));
+                  .allMatch(e -> thatKey.vars.containsKey(e.getKey()) &&
+                          thatKey.vars.get(e.getKey()).dryUnifyTo(e.getValue()));
         }
         return result;
       }
@@ -1860,8 +1825,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
       Term processingGoal = scopeGoal;
       while (processingGoal.getTermType() == STRUCT
-          && ((TermStruct) processingGoal).getArity() == 2
-          && "^".equals(((TermStruct) processingGoal).getFunctor().getText())) {
+              && ((TermStruct) processingGoal).getArity() == 2
+              && "^".equals(((TermStruct) processingGoal).getFunctor().getText())) {
 
         final TermStruct theStruct = (TermStruct) processingGoal;
         final Term left = theStruct.getElement(0);
@@ -1876,7 +1841,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
 
       final JProlChoicePoint find_goal =
-          new JProlChoicePoint(processingGoal.makeClone(), goal.getContext());
+              new JProlChoicePoint(processingGoal.makeClone(), goal.getContext());
 
       while (true) {
         final Term nextTemplate = find_goal.proveWithFailForUnknown();
@@ -1919,7 +1884,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(signature = "setof/3", args = {
-      "?term,+callable,?list"}, reference = "Equivalent to bagof/3, but sorts the result using sort/2 to get a sorted list of alternatives without duplicates.")
+          "?term,+callable,?list"}, reference = "Equivalent to bagof/3, but sorts the result using sort/2 to get a sorted list of alternatives without duplicates.")
   public static boolean predicateSETOF3(final JProlChoicePoint choicePoint, final TermStruct predicate) {
     final Term template = predicate.getElement(0).findNonVarOrSame();
     final Term scopeGoal = predicate.getElement(1).findNonVarOrSame();
@@ -1943,7 +1908,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         final List<String> orderedNames = new ArrayList<>(varSnapshot.keySet());
         Collections.sort(orderedNames);
         this.hash = orderedNames.stream().map(n -> varSnapshot.get(n).getText())
-            .collect(Collectors.joining(":")).hashCode();
+                .collect(Collectors.joining(":")).hashCode();
         this.vars = varSnapshot;
       }
 
@@ -1966,8 +1931,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         if (that instanceof SofKey && ((SofKey) that).vars.size() == this.vars.size()) {
           final SofKey thatKey = (SofKey) that;
           result = this.vars.entrySet().stream()
-              .allMatch(e -> thatKey.vars.containsKey(e.getKey()) &&
-                  thatKey.vars.get(e.getKey()).dryUnifyTo(e.getValue()));
+                  .allMatch(e -> thatKey.vars.containsKey(e.getKey()) &&
+                          thatKey.vars.get(e.getKey()).dryUnifyTo(e.getValue()));
         }
         return result;
       }
@@ -1983,8 +1948,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
       Term processingGoal = scopeGoal;
       while (processingGoal.getTermType() == STRUCT
-          && ((TermStruct) processingGoal).getArity() == 2
-          && "^".equals(((TermStruct) processingGoal).getFunctor().getText())) {
+              && ((TermStruct) processingGoal).getArity() == 2
+              && "^".equals(((TermStruct) processingGoal).getFunctor().getText())) {
 
         final TermStruct theStruct = (TermStruct) processingGoal;
         final Term left = theStruct.getElement(0);
@@ -1999,7 +1964,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
 
       final JProlChoicePoint find_goal =
-          new JProlChoicePoint(processingGoal.makeClone(), choicePoint.getContext());
+              new JProlChoicePoint(processingGoal.makeClone(), choicePoint.getContext());
 
       while (true) {
         final Term nextTemplate = find_goal.proveWithFailForUnknown();
@@ -2029,8 +1994,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         final Term[] tmpArray = value.toArray();
         Arrays.sort(tmpArray, choicePoint);
         final TermList sortedList = TermList.asTermList(
-            Arrays.stream(tmpArray)
-                .distinct().toArray(Term[]::new)
+                Arrays.stream(tmpArray)
+                        .distinct().toArray(Term[]::new)
         );
 
         sortedMap.put(key, sortedList);
@@ -2056,7 +2021,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "asserta/1", args = {
-      "+callable"}, reference = "Addition of a clause into the knowlwde base before all other clauses.")
+          "+callable"}, reference = "Addition of a clause into the knowlwde base before all other clauses.")
   public static boolean predicateASSERTA1(final JProlChoicePoint goal, final TermStruct predicate) {
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
 
@@ -2070,7 +2035,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
 
     final String signature = ((TermStruct) termToAdd).isClause() ?
-        ((TermStruct) termToAdd).getElement(0).getSignature() : termToAdd.getSignature();
+            ((TermStruct) termToAdd).getElement(0).getSignature() : termToAdd.getSignature();
 
     // check that it doesn't overload any static system predicate
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
@@ -2082,7 +2047,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "assertz/1", synonyms = {"assert/1"}, args = {
-      "+callable"}, reference = "Addition of a clause into the knowlwde base after all other clauses.")
+          "+callable"}, reference = "Addition of a clause into the knowlwde base after all other clauses.")
   public static boolean predicateASSERTZ1(final JProlChoicePoint goal, final TermStruct predicate) {
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
     Term termToRemove = predicate.getElement(0).findNonVarOrSame();
@@ -2095,7 +2060,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
 
     final String signature = ((TermStruct) termToRemove).isClause() ?
-        ((TermStruct) termToRemove).getElement(0).getSignature() : termToRemove.getSignature();
+            ((TermStruct) termToRemove).getElement(0).getSignature() : termToRemove.getSignature();
 
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
       throw new ProlPermissionErrorException("modify", "static_procedure", newAtom(signature));
@@ -2107,7 +2072,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "retract/1", synonyms = {"retracta/1"}, args = {
-      "+callable"}, reference = "Retract the first clause which can be unified with argument. True if there is such clause in the knowledge base.")
+          "+callable"}, reference = "Retract the first clause which can be unified with argument. True if there is such clause in the knowledge base.")
   public static boolean predicateRETRACT1(final JProlChoicePoint goal, final TermStruct predicate) {
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
     Term atom = predicate.getElement(0).findNonVarOrSame();
@@ -2119,8 +2084,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
 
     final String signature =
-        ((TermStruct) atom).isClause() ? ((TermStruct) atom).getElement(0).getSignature() :
-            atom.getSignature();
+            ((TermStruct) atom).isClause() ? ((TermStruct) atom).getElement(0).getSignature() :
+                    atom.getSignature();
 
     // check that it doesn't overload any static system predicate
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
@@ -2131,7 +2096,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "retractz/1", args = {
-      "+callable"}, reference = "Retract the last clause which can be unified with argument. True if there is such clause in the knowledge base.")
+          "+callable"}, reference = "Retract the last clause which can be unified with argument. True if there is such clause in the knowledge base.")
   public static boolean predicateRETRACTZ(final JProlChoicePoint goal, final TermStruct predicate) {
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
     Term atom = predicate.getElement(0).findNonVarOrSame();
@@ -2144,8 +2109,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
 
     final String signature =
-        ((TermStruct) atom).isClause() ? ((TermStruct) atom).getElement(0).getSignature() :
-            atom.getSignature();
+            ((TermStruct) atom).isClause() ? ((TermStruct) atom).getElement(0).getSignature() :
+                    atom.getSignature();
 
     // check that it doesn't overload any static system predicate
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
@@ -2156,7 +2121,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "retractall/1", args = {
-      "+callable"}, reference = "Retract all clauses which can be unified with argument. True if there is as minimum one clause in the knowledge base.")
+          "+callable"}, reference = "Retract all clauses which can be unified with argument. True if there is as minimum one clause in the knowledge base.")
   public static boolean predicateRETRACTALL(final JProlChoicePoint goal,
                                             final TermStruct predicate) {
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
@@ -2170,8 +2135,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
 
     final String signature =
-        ((TermStruct) atom).isClause() ? ((TermStruct) atom).getElement(0).getSignature() :
-            atom.getSignature();
+            ((TermStruct) atom).isClause() ? ((TermStruct) atom).getElement(0).getSignature() :
+                    atom.getSignature();
 
     // check that it doesn't overload any static system predicate
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
@@ -2265,12 +2230,12 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
     if ("domain_error/2".equals(exceptionSignature)) {
       throw new ProlDomainErrorException(predicate.getElement(0).forWrite(),
-          predicate.getElement(1));
+              predicate.getElement(1));
     }
 
     if ("permission_error/3".equals(exceptionSignature)) {
       throw new ProlPermissionErrorException(predicate.getElement(0).forWrite(),
-          predicate.getElement(1).forWrite(), predicate.getElement(2));
+              predicate.getElement(1).forWrite(), predicate.getElement(2));
     }
 
     if ("representation_error/1".equals(exceptionSignature)) {
@@ -2291,9 +2256,9 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "pause/1", args = {
-      "+number"}, reference = "Make pause for defined milliseconds.")
+          "+number"}, reference = "Make pause for defined milliseconds.")
   public static void predicatePAUSE(final JProlChoicePoint goal, final TermStruct predicate)
-      throws InterruptedException {
+          throws InterruptedException {
     final Term term = predicate.getElement(0).findNonVarOrSame();
     if (goal.isArgsValidate()) {
       ProlAssertions.assertNumber(term);
@@ -2305,7 +2270,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "regtrigger/3", args = {
-      "+predicate_indicator,+atom,+callable"}, reference = "regtrigger(somepredicate/3,onassert,triggerhandler) is always true. The predicate allows to register a trigger handler for distinguished predicate signature. The handled trigger event can be selected from the list [onassert, onretract, onassertretract].")
+          "+predicate_indicator,+atom,+callable"}, reference = "regtrigger(somepredicate/3,onassert,triggerhandler) is always true. The predicate allows to register a trigger handler for distinguished predicate signature. The handled trigger event can be selected from the list [onassert, onretract, onassertretract].")
   public static boolean predicateREGTRIGGER3(final JProlChoicePoint goal,
                                              final TermStruct predicate) {
     final Term arg1 = predicate.getElement(0).findNonVarOrSame();
@@ -2323,7 +2288,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final JProlContext context = goal.getContext();
 
     final JProlTriggeringEventObserver deferredTriggeringGoal =
-        new JProlTriggeringEventObserver(callableTerm);
+            new JProlTriggeringEventObserver(callableTerm);
 
     if (triggeringEvent != null) {
       switch (triggeringEvent) {
@@ -2338,7 +2303,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
           break;
         default:
           throw new ProlCriticalError(
-              "Unsupported trigger event detected [" + triggeringEvent + ']');
+                  "Unsupported trigger event detected [" + triggeringEvent + ']');
       }
     }
 
@@ -2348,7 +2313,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "copy_term/2", args = {
-      "?term,?term"}, reference = "copy_term(X,Y) is true if and only if Y unifies with a term T which is a renamed copy of X.")
+          "?term,?term"}, reference = "copy_term(X,Y) is true if and only if Y unifies with a term T which is a renamed copy of X.")
   public boolean predicateCOPYTERM2(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term in = predicate.getElement(0).findNonVarOrSame().makeClone();
     final Term out = predicate.getElement(1).findNonVarOrSame();

@@ -46,7 +46,7 @@ public final class UiUtils {
 
   }
 
-  public static void closeQuetly(final Closeable closeable) {
+  public static void closeQuietly(final Closeable closeable) {
     if (closeable != null) {
       try {
         closeable.close();
@@ -68,7 +68,7 @@ public final class UiUtils {
     final JProlOperators operators = libraryClass.getAnnotation(JProlOperators.class);
     if (operators != null) {
       // there is defined operators
-      final JProlOperator[] ops = operators.operators();
+      final JProlOperator[] ops = operators.value();
       if (ops.length > 0) {
         out.println("Operators\n-----------------------");
         for (final JProlOperator oper : ops) {

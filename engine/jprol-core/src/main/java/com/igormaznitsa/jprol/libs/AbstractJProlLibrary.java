@@ -103,7 +103,7 @@ public abstract class AbstractJProlLibrary {
     final Map<String, TermOperatorContainer> result = new HashMap<>();
     final JProlOperators operators = targetClass.getAnnotation(JProlOperators.class);
     if (operators != null) {
-      JProlOperator[] operatorList = operators.operators();
+      JProlOperator[] operatorList = operators.value();
       for (final JProlOperator lst : operatorList) {
         registerStaticOperator(result, lst);
       }
