@@ -516,35 +516,27 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuFileNew.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/page.png"))); // NOI18N
     menuFileNew.setText("New");
     menuFileNew.setToolTipText("Create new document");
-    menuFileNew.addActionListener((java.awt.event.ActionEvent evt) -> {
-      menuFileNewActionPerformed(evt);
-    });
+    menuFileNew.addActionListener(this::menuFileNewActionPerformed);
     menuFile.add(menuFileNew);
 
     menuFileOpen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK));
     menuFileOpen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/page_edit.png"))); // NOI18N
     menuFileOpen.setText("Open");
     menuFileOpen.setToolTipText("Open a saved document");
-    menuFileOpen.addActionListener((java.awt.event.ActionEvent evt) -> {
-      menuFileOpenActionPerformed(evt);
-    });
+    menuFileOpen.addActionListener(this::menuFileOpenActionPerformed);
     menuFile.add(menuFileOpen);
 
     menuFileSaveAs.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/page_save.png"))); // NOI18N
     menuFileSaveAs.setText("Save As..");
     menuFileSaveAs.setToolTipText("Save the current document as a file");
-    menuFileSaveAs.addActionListener((java.awt.event.ActionEvent evt) -> {
-      menuFileSaveAsActionPerformed(evt);
-    });
+    menuFileSaveAs.addActionListener(this::menuFileSaveAsActionPerformed);
     menuFile.add(menuFileSaveAs);
 
     menuFileSave.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
     menuFileSave.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/page_go.png"))); // NOI18N
     menuFileSave.setText("Save");
     menuFileSave.setToolTipText("Save the current document");
-    menuFileSave.addActionListener((java.awt.event.ActionEvent evt) -> {
-      menuFileSaveActionPerformed(evt);
-    });
+    menuFileSave.addActionListener(this::menuFileSaveActionPerformed);
     menuFile.add(menuFileSave);
     menuFile.add(jSeparator1);
 
@@ -572,9 +564,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuExit.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/door_in.png"))); // NOI18N
     menuExit.setText("Exit");
     menuExit.setToolTipText("Close the editor");
-    menuExit.addActionListener((java.awt.event.ActionEvent evt) -> {
-      menuExitActionPerformed(evt);
-    });
+    menuExit.addActionListener(this::menuExitActionPerformed);
     menuFile.add(menuExit);
 
     jMenuBar1.add(menuFile);
@@ -586,9 +576,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuUndo.setText("Undo");
     menuUndo.setToolTipText("Undo last changes in the document");
     menuUndo.setEnabled(false);
-    menuUndo.addActionListener((java.awt.event.ActionEvent evt) -> {
-      menuUndoActionPerformed(evt);
-    });
+    menuUndo.addActionListener(this::menuUndoActionPerformed);
     menuEdit.add(menuUndo);
 
     menuRedo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Y, InputEvent.CTRL_DOWN_MASK));
@@ -596,9 +584,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuRedo.setText("Redo");
     menuRedo.setToolTipText("Redo canceled changes in the document");
     menuRedo.setEnabled(false);
-    menuRedo.addActionListener((java.awt.event.ActionEvent evt) -> {
-      menuRedoActionPerformed(evt);
-    });
+    menuRedo.addActionListener(this::menuRedoActionPerformed);
     menuEdit.add(menuRedo);
     menuEdit.add(jSeparator2);
 
@@ -606,36 +592,28 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuClearText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/page_white.png"))); // NOI18N
     menuClearText.setText("Clear");
     menuClearText.setToolTipText("Just clear text in the current document");
-    menuClearText.addActionListener((java.awt.event.ActionEvent evt) -> {
-      menuClearTextActionPerformed(evt);
-    });
+    menuClearText.addActionListener(this::menuClearTextActionPerformed);
     menuEdit.add(menuClearText);
 
     menuEditCommentSelected.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_5, InputEvent.CTRL_DOWN_MASK));
     menuEditCommentSelected.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/comment_add.png"))); // NOI18N
     menuEditCommentSelected.setText("Comment selection");
     menuEditCommentSelected.setToolTipText("Place the commenting symbol as the first one into selected lines");
-    menuEditCommentSelected.addActionListener((java.awt.event.ActionEvent evt) -> {
-      menuEditCommentSelectedActionPerformed(evt);
-    });
+    menuEditCommentSelected.addActionListener(this::menuEditCommentSelectedActionPerformed);
     menuEdit.add(menuEditCommentSelected);
 
     menuEditUncommentSelected.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_U, InputEvent.CTRL_DOWN_MASK));
     menuEditUncommentSelected.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/comment_delete.png"))); // NOI18N
     menuEditUncommentSelected.setText("Uncomment selection");
     menuEditUncommentSelected.setToolTipText("Remove the first commenting symbol from selected lines");
-    menuEditUncommentSelected.addActionListener((java.awt.event.ActionEvent evt) -> {
-      menuEditUncommentSelectedActionPerformed(evt);
-    });
+    menuEditUncommentSelected.addActionListener(this::menuEditUncommentSelectedActionPerformed);
     menuEdit.add(menuEditUncommentSelected);
     menuEdit.add(jSeparator3);
 
     menuitemFindText.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK));
     menuitemFindText.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/zoom.png"))); // NOI18N
     menuitemFindText.setText("Find text");
-    menuitemFindText.addActionListener((java.awt.event.ActionEvent evt) -> {
-      menuitemFindTextActionPerformed(evt);
-    });
+    menuitemFindText.addActionListener(this::menuitemFindTextActionPerformed);
     menuEdit.add(menuitemFindText);
 
     menuItemWordWrapSources.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_W, InputEvent.CTRL_DOWN_MASK));
@@ -643,27 +621,21 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuItemWordWrapSources.setText("Word wrap (editor)");
     menuItemWordWrapSources.setToolTipText("Word-wrap mode for the document editor");
     menuItemWordWrapSources.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/text_align_justify.png"))); // NOI18N
-    menuItemWordWrapSources.addActionListener((java.awt.event.ActionEvent evt) -> {
-      menuItemWordWrapSourcesActionPerformed(evt);
-    });
+    menuItemWordWrapSources.addActionListener(this::menuItemWordWrapSourcesActionPerformed);
     menuEdit.add(menuItemWordWrapSources);
 
     menuItemFullScreen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
     menuItemFullScreen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/shape_move_forwards.png"))); // NOI18N
     menuItemFullScreen.setText("Full screen");
     menuItemFullScreen.setToolTipText("Turn on the full screen mode if it is supported by the device");
-    menuItemFullScreen.addActionListener((java.awt.event.ActionEvent evt) -> {
-      menuItemFullScreenActionPerformed(evt);
-    });
+    menuItemFullScreen.addActionListener(this::menuItemFullScreenActionPerformed);
     menuEdit.add(menuItemFullScreen);
     menuEdit.add(jSeparator5);
 
     menuEditOptions.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cog.png"))); // NOI18N
     menuEditOptions.setText("Options");
     menuEditOptions.setToolTipText("Open editor options");
-    menuEditOptions.addActionListener((java.awt.event.ActionEvent evt) -> {
-      menuEditOptionsActionPerformed(evt);
-    });
+    menuEditOptions.addActionListener(this::menuEditOptionsActionPerformed);
     menuEdit.add(menuEditOptions);
 
     jMenuBar1.add(menuEdit);
@@ -674,26 +646,20 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuRunScript.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/flag_green.png"))); // NOI18N
     menuRunScript.setText("Start");
     menuRunScript.setToolTipText("Execute the current document");
-    menuRunScript.addActionListener((java.awt.event.ActionEvent evt) -> {
-      menuRunScriptActionPerformed(evt);
-    });
+    menuRunScript.addActionListener(this::menuRunScriptActionPerformed);
     menuRun.add(menuRunScript);
 
     menuTraceScript.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/flag_blue.png"))); // NOI18N
     menuTraceScript.setText("Trace");
     menuTraceScript.setToolTipText("Execute the current document with tracing");
-    menuTraceScript.addActionListener((java.awt.event.ActionEvent evt) -> {
-      menuTraceScriptActionPerformed(evt);
-    });
+    menuTraceScript.addActionListener(this::menuTraceScriptActionPerformed);
     menuRun.add(menuTraceScript);
 
     menuRunStop.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/flag_red.png"))); // NOI18N
     menuRunStop.setText("Stop");
     menuRunStop.setToolTipText("Stop the current execution");
     menuRunStop.setEnabled(false);
-    menuRunStop.addActionListener((java.awt.event.ActionEvent evt) -> {
-      menuRunStopActionPerformed(evt);
-    });
+    menuRunStop.addActionListener(this::menuRunStopActionPerformed);
     menuRun.add(menuRunStop);
 
     jMenuBar1.add(menuRun);
@@ -705,18 +671,14 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuViewKnowledgeBase.setText("Show Knowledge base");
     menuViewKnowledgeBase.setToolTipText("Take and show the snapshot of the current knowledge base saved in the memory");
     menuViewKnowledgeBase.setEnabled(false);
-    menuViewKnowledgeBase.addActionListener((java.awt.event.ActionEvent evt) -> {
-      menuViewKnowledgeBaseActionPerformed(evt);
-    });
+    menuViewKnowledgeBase.addActionListener(this::menuViewKnowledgeBaseActionPerformed);
     menuView.add(menuViewKnowledgeBase);
 
     menuItemLibraryInfo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F1, 0));
     menuItemLibraryInfo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/table.png"))); // NOI18N
     menuItemLibraryInfo.setText("Library info");
     menuItemLibraryInfo.setToolTipText("Show all predicates found in embedded libraries");
-    menuItemLibraryInfo.addActionListener((java.awt.event.ActionEvent evt) -> {
-      menuItemLibraryInfoActionPerformed(evt);
-    });
+    menuItemLibraryInfo.addActionListener(this::menuItemLibraryInfoActionPerformed);
     menuView.add(menuItemLibraryInfo);
 
     jMenuBar1.add(menuView);
@@ -729,17 +691,13 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     menuHelpHelp.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/information.png"))); // NOI18N
     menuHelpHelp.setText("Help");
     menuHelpHelp.setToolTipText("Show information about usage of the utility");
-    menuHelpHelp.addActionListener((java.awt.event.ActionEvent evt) -> {
-      menuHelpHelpActionPerformed(evt);
-    });
+    menuHelpHelp.addActionListener(this::menuHelpHelpActionPerformed);
     menuHelp.add(menuHelpHelp);
 
     menuAbout.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/emoticon_smile.png"))); // NOI18N
     menuAbout.setText("About");
     menuAbout.setToolTipText("Show the information about the application and license");
-    menuAbout.addActionListener((java.awt.event.ActionEvent evt) -> {
-      menuAboutActionPerformed(evt);
-    });
+    menuAbout.addActionListener(this::menuAboutActionPerformed);
     menuHelp.add(menuAbout);
 
     jMenuBar1.add(menuHelp);
@@ -1070,9 +1028,9 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     } finally {
       if (!notTraceable) {
         if (successful) {
-          this.messageEditor.addInfoText(String.format("Reader for \'%s\' has been opened.", id));
+          this.messageEditor.addInfoText(String.format("Reader for '%s' has been opened.", id));
         } else {
-          this.messageEditor.addWarningText(String.format("Reader for \'%s\' can't be opened.", id));
+          this.messageEditor.addWarningText(String.format("Reader for '%s' can't be opened.", id));
         }
       }
     }
@@ -1100,9 +1058,9 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     } finally {
       if (!notTraceable) {
         if (successful) {
-          this.messageEditor.addInfoText(String.format("Writer for \'%s\' has been opened.", id));
+          this.messageEditor.addInfoText(String.format("Writer for '%s' has been opened.", id));
         } else {
-          this.messageEditor.addWarningText(String.format("Writer for \'%s\' can't be opened.", id));
+          this.messageEditor.addWarningText(String.format("Writer for '%s' can't be opened.", id));
         }
       }
     }
@@ -1139,11 +1097,11 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
           final AbstractJProlLibrary lib = (AbstractJProlLibrary) Class.forName(str).getDeclaredConstructor().newInstance();
 
           context.addLibrary(lib);
-          this.messageEditor.addInfoText(String.format("Library \'%s\' has been added...", lib.getLibraryUid()));
+          this.messageEditor.addInfoText(String.format("Library '%s' has been added...", lib.getLibraryUid()));
         }
 
         context.addLibrary(logLibrary);
-        this.messageEditor.addInfoText(String.format("Library \'%s\' has been added...", logLibrary.getLibraryUid()));
+        this.messageEditor.addInfoText(String.format("Library '%s' has been added...", logLibrary.getLibraryUid()));
 
         setLastContext(context);
       } catch (Throwable ex) {
@@ -1374,7 +1332,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
 
         if (saveAs || !file.equals(this.currentOpenedFile)) {
           if (file.exists()) {
-            if (JOptionPane.showConfirmDialog(this, String.format("File \'%s\' exists, to overwrite it?", file.getAbsolutePath()), "File exists", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION) {
+            if (JOptionPane.showConfirmDialog(this, String.format("File '%s' exists, to overwrite it?", file.getAbsolutePath()), "File exists", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION) {
               return;
             }
           }
@@ -1391,7 +1349,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
       this.recentFiles.put(file.getAbsolutePath());
     } catch (Throwable thr) {
       LOG.throwing(this.getClass().getCanonicalName(), "saveFile()", thr);
-      JOptionPane.showMessageDialog(this, String.format("Can't save file for error \'%s\'", (thr.getMessage() == null ? thr.getClass().getCanonicalName() : thr.getLocalizedMessage())), "Can't save file", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(this, String.format("Can't save file for error '%s'", (thr.getMessage() == null ? thr.getClass().getCanonicalName() : thr.getLocalizedMessage())), "Can't save file", JOptionPane.ERROR_MESSAGE);
       return;
     }
 
@@ -1589,8 +1547,8 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
 
   @Override
   public boolean onSolution(final JProlContext context, final Term goal, final Map<String, TermVar> varValues, final int solutionCounter) {
-    final String varText = varValues.entrySet().stream()
-        .map(e -> e.getValue().getText() + '=' + e.getValue().getValue().forWrite())
+    final String varText = varValues.values().stream()
+        .map(termVar -> termVar.getText() + '=' + termVar.getValue().forWrite())
         .collect(Collectors.joining("\n"));
 
     context.findResourceWriter("user", true)

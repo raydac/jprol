@@ -212,7 +212,7 @@ public class JProlTokenMaker extends AbstractTokenMaker {
               if (RSyntaxUtilities.isDigit(c)) {
                 currentTokenType = Token.LITERAL_NUMBER_DECIMAL_INT;
                 break;
-              } else if (RSyntaxUtilities.isLetter(c) || c == '/' || c == '_') {
+              } else if (RSyntaxUtilities.isLetter(c) || c == '/') {
                 currentTokenType = Token.IDENTIFIER;
                 break;
               }
@@ -232,11 +232,10 @@ public class JProlTokenMaker extends AbstractTokenMaker {
               if (indexOf > -1) {
                 addToken(text, currentTokenStart, i, Token.IDENTIFIER, newStartOffset + currentTokenStart);
                 currentTokenType = Token.NULL;
-                break;
               } else {
                 currentTokenType = Token.IDENTIFIER;
-                break;
               }
+              break;
 
           } // End of switch (c).
 
@@ -290,7 +289,7 @@ public class JProlTokenMaker extends AbstractTokenMaker {
               if (RSyntaxUtilities.isDigit(c)) {
                 currentTokenType = Token.LITERAL_NUMBER_DECIMAL_INT;
                 break;
-              } else if (RSyntaxUtilities.isLetter(c) || c == '/' || c == '_') {
+              } else if (RSyntaxUtilities.isLetter(c) || c == '/') {
                 currentTokenType = Token.IDENTIFIER;
                 break;
               }
@@ -352,7 +351,7 @@ public class JProlTokenMaker extends AbstractTokenMaker {
               break;
 
             default:
-              if (RSyntaxUtilities.isLetterOrDigit(c) || c == '/' || c == '_') {
+              if (RSyntaxUtilities.isLetterOrDigit(c) || c == '_') {
                 break;    // Still an identifier of some type.
               }
               int indexOf = operators.indexOf(c);

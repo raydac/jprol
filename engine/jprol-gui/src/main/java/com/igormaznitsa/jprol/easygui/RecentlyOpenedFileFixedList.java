@@ -37,10 +37,8 @@ public class RecentlyOpenedFileFixedList {
   }
 
   public synchronized void put(final String path) {
-    if (this.paths.contains(path)) {
-      // remove it to make as the last one
-      this.paths.remove(path);
-    }
+    // remove it to make as the last one
+    this.paths.remove(path);
     paths.add(0, path);
 
     while (this.paths.size() > maxLen) {
@@ -49,10 +47,8 @@ public class RecentlyOpenedFileFixedList {
   }
 
   public synchronized void add(final String path) {
-    if (this.paths.contains(path)) {
-      // remove it to make as the last one
-      this.paths.remove(path);
-    }
+    // remove it to make as the last one
+    this.paths.remove(path);
     if (this.paths.size() < maxLen) {
       this.paths.add(path);
     }

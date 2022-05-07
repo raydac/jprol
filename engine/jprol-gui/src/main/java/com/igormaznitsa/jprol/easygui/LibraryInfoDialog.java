@@ -29,6 +29,7 @@ import java.awt.event.KeyEvent;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 /**
  * The class implements the dialog window shows the help information about prol
@@ -89,12 +90,10 @@ public final class LibraryInfoDialog extends javax.swing.JDialog {
   public String fillTextInfoFromLibraries(final String[] libraries) throws Exception {
     final ByteArrayOutputStream baos = new ByteArrayOutputStream(16384);
     try (PrintStream out = new PrintStream(baos)) {
-      for (int li = 0; li < libraries.length; li++) {
-        final Class<?> libraryClass = Class.forName(libraries[li]);
+      for (String library : libraries) {
+        final Class<?> libraryClass = Class.forName(library);
         UiUtils.printPredicatesForLibrary(out, libraryClass);
-        if (li < libraries.length) {
-          out.println(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n\n");
-        }
+        out.println(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n\n");
       }
     }
 
@@ -132,12 +131,10 @@ public final class LibraryInfoDialog extends javax.swing.JDialog {
     gridBagConstraints.weighty = 1000.0;
     getContentPane().add(textPaneScroll, gridBagConstraints);
 
-    ButtonClose.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cross.png"))); // NOI18N
+    ButtonClose.setIcon(new javax.swing.ImageIcon(Objects.requireNonNull(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cross.png")))); // NOI18N
     ButtonClose.setText("Close");
     ButtonClose.setToolTipText("Close the dialog");
-    ButtonClose.addActionListener((java.awt.event.ActionEvent evt) -> {
-      ButtonCloseActionPerformed(evt);
-    });
+    ButtonClose.addActionListener(this::ButtonCloseActionPerformed);
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 2;
     gridBagConstraints.gridy = 1;

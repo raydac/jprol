@@ -85,21 +85,13 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     addPropertyToList(new PropertyLink(this, "Caret color", "EdCaretColor"));
     addPropertyToList(new PropertyLink(this, "Word wrap", "EdWordWrap"));
 
-    this.POPUP_CLEARTEXT.addActionListener((ActionEvent e) -> {
-      clearText();
-    });
+    this.POPUP_CLEARTEXT.addActionListener((ActionEvent e) -> clearText());
 
-    this.POPUP_COPY.addActionListener((ActionEvent e) -> {
-      copyText();
-    });
+    this.POPUP_COPY.addActionListener((ActionEvent e) -> copyText());
 
-    this.POPUP_PASTE.addActionListener((ActionEvent e) -> {
-      pasteText();
-    });
+    this.POPUP_PASTE.addActionListener((ActionEvent e) -> pasteText());
 
-    this.POPUP_CUT.addActionListener((ActionEvent e) -> {
-      cutText();
-    });
+    this.POPUP_CUT.addActionListener((ActionEvent e) -> cutText());
 
     // add popup
     if (doesSupportTextCut()) {
@@ -528,20 +520,18 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
       return ownerObject;
     }
 
-    @SuppressWarnings("unchecked")
     public Object getProperty() {
       try {
-        Method meth = ownerClass.getMethod("get" + property, (Class[]) null);
+        Method meth = ownerClass.getMethod("get" + property, (Class<?>[]) null);
         return meth.invoke(ownerObject);
       } catch (Throwable thr) {
         throw new RuntimeException("Can't read property", thr);
       }
     }
 
-    @SuppressWarnings("unchecked")
     public void setProperty(final Object obj) {
       try {
-        ownerClass.getMethod("set" + property, new Class<?>[] {obj.getClass()}).invoke(ownerObject, obj);
+        ownerClass.getMethod("set" + property, obj.getClass()).invoke(ownerObject, obj);
       } catch (Throwable thr) {
         throw new RuntimeException("Can't set property", thr);
       }
@@ -552,7 +542,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
       String str = this.name;
       final Object val = getProperty();
       if (val instanceof Boolean) {
-        str += " (" + val.toString() + ")";
+        str += " (" + val + ")";
       }
 
       return str;

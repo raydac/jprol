@@ -119,9 +119,9 @@ public class MessageEditor extends AbstractProlEditor {
 
     text = escapeHTML(text);
 
-    String color = null;
+    String color;
 
-    boolean bold = false;
+    boolean bold;
     boolean italic = false;
 
     switch (type) {

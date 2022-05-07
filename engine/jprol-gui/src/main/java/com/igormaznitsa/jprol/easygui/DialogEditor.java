@@ -32,7 +32,6 @@ import java.awt.event.KeyListener;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.prefs.Preferences;
 
@@ -217,9 +216,6 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
         SwingUtilities.invokeLater(code);
       }
     } catch (Throwable thr) {
-      if (thr instanceof InterruptedException) {
-        Thread.currentThread().interrupt();
-      }
 
       throw new Error("Error ", thr);
     }
@@ -339,7 +335,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
     }
 
     @Override
-    public void write(final int c) throws IOException {
+    public void write(final int c) {
       synchronized (buffer) {
         buffer.add((char) c);
         if (c == '\n') {
@@ -365,7 +361,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
                     bufferChanged = true;
                   }
                   break;
-                };
+                }
               }
             } while (bufferChanged && !Thread.currentThread().isInterrupted());
           }

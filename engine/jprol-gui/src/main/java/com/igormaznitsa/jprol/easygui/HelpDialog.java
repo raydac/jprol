@@ -18,6 +18,8 @@ package com.igormaznitsa.jprol.easygui;
 
 import org.fife.ui.rtextarea.RTextScrollPane;
 
+import java.util.Objects;
+
 /**
  * The class implements the dialog window contains the help about the IDE
  * because it is a very specialized auxiliary class, it is not described very
@@ -74,9 +76,9 @@ public class HelpDialog extends javax.swing.JDialog {
     gridBagConstraints.weighty = 1000.0;
     getContentPane().add(scrollTextHelp, gridBagConstraints);
 
-    buttonClose.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cross.png"))); // NOI18N
+    buttonClose.setIcon(new javax.swing.ImageIcon(Objects.requireNonNull(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cross.png")))); // NOI18N
     buttonClose.setText("Close");
-    buttonClose.addActionListener(evt -> buttonCloseActionPerformed(evt));
+    buttonClose.addActionListener(this::buttonCloseActionPerformed);
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 0;
     gridBagConstraints.gridy = 1;

@@ -21,6 +21,7 @@ import com.igormaznitsa.jprol.logic.JProlContext;
 
 import java.io.CharArrayWriter;
 import java.io.PrintWriter;
+import java.util.Objects;
 
 /**
  * The class implements the dialog window which allows user to take a look at
@@ -81,11 +82,9 @@ public class KnowledgeBaseSnapshotViewDialog extends javax.swing.JDialog {
     gridBagConstraints.weighty = 1000.0;
     getContentPane().add(SnapshotViewer, gridBagConstraints);
 
-    ButtonClose.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cross.png"))); // NOI18N
+    ButtonClose.setIcon(new javax.swing.ImageIcon(Objects.requireNonNull(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cross.png")))); // NOI18N
     ButtonClose.setText("Close");
-    ButtonClose.addActionListener((java.awt.event.ActionEvent evt) -> {
-      ButtonCloseActionPerformed(evt);
-    });
+    ButtonClose.addActionListener(this::ButtonCloseActionPerformed);
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 0;
     gridBagConstraints.gridy = 1;

@@ -52,7 +52,7 @@ public class Main {
           throw new FileNotFoundException();
         }
       } catch (FileNotFoundException thr) {
-        JOptionPane.showMessageDialog(null, String.format("Can't find file \'%s\'", args[0]),
+        JOptionPane.showMessageDialog(null, String.format("Can't find file '%s'", args[0]),
             "Can't load file", JOptionPane.ERROR_MESSAGE);
         fileToLoad = null;
       }

@@ -231,15 +231,11 @@ public class FontChooserDialog extends javax.swing.JDialog implements ActionList
     jPanel2.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
 
     buttonOk.setText("Ok");
-    buttonOk.addActionListener((java.awt.event.ActionEvent evt) -> {
-      buttonOkActionPerformed(evt);
-    });
+    buttonOk.addActionListener(this::buttonOkActionPerformed);
     jPanel2.add(buttonOk);
 
     buttonCancel.setText("Cancel");
-    buttonCancel.addActionListener((java.awt.event.ActionEvent evt) -> {
-      buttonCancelActionPerformed(evt);
-    });
+    buttonCancel.addActionListener(this::buttonCancelActionPerformed);
     jPanel2.add(buttonCancel);
 
     gridBagConstraints = new java.awt.GridBagConstraints();

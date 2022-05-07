@@ -103,16 +103,12 @@ public class OptionsDialog extends javax.swing.JDialog implements TreeSelectionL
     buttonEditOption.setText("Edit");
     buttonEditOption.setToolTipText("Edit or change the selected option");
     buttonEditOption.setEnabled(false);
-    buttonEditOption.addActionListener((java.awt.event.ActionEvent evt) -> {
-      buttonEditOptionActionPerformed(evt);
-    });
+    buttonEditOption.addActionListener(this::buttonEditOptionActionPerformed);
 
     buttonCloseDialog.setIcon(new javax.swing.ImageIcon(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cross.png"))); // NOI18N
     buttonCloseDialog.setText("Close");
     buttonCloseDialog.setToolTipText("Close the dialog");
-    buttonCloseDialog.addActionListener((java.awt.event.ActionEvent evt) -> {
-      buttonCloseDialogActionPerformed(evt);
-    });
+    buttonCloseDialog.addActionListener(this::buttonCloseDialogActionPerformed);
 
     javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
     getContentPane().setLayout(layout);
@@ -129,7 +125,7 @@ public class OptionsDialog extends javax.swing.JDialog implements TreeSelectionL
                 .addContainerGap())
     );
 
-    layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {buttonCloseDialog, buttonEditOption});
+    layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, buttonCloseDialog, buttonEditOption);
 
     layout.setVerticalGroup(
         layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -158,7 +154,7 @@ public class OptionsDialog extends javax.swing.JDialog implements TreeSelectionL
     final AbstractProlEditor.PropertyLink prop = (PropertyLink) path.getLastPathComponent();
     final Object val = prop.getProperty();
     if (val instanceof Font) {
-      final FontChooserDialog dialog = new FontChooserDialog(this, "Tune the font for \'" + prop.toString() + "\'", (Font) val, "?-repeat,write('Hello world'),nl,fail.\r\n:-X is 2*2,write(X).");
+      final FontChooserDialog dialog = new FontChooserDialog(this, "Tune the font for '" + prop + "'", (Font) val, "?-repeat,write('Hello world'),nl,fail.\r\n:-X is 2*2,write(X).");
       dialog.setVisible(true);
       final Font font = dialog.getResult();
       if (font != null) {
@@ -170,11 +166,9 @@ public class OptionsDialog extends javax.swing.JDialog implements TreeSelectionL
 
       final boolean[] array = new boolean[1];
 
-      ActionListener actionListenerOk = (ActionEvent e) -> {
-        array[0] = true;
-      };
+      ActionListener actionListenerOk = (ActionEvent e) -> array[0] = true;
 
-      JDialog colorChooser = JColorChooser.createDialog(this, "Choose color for \'" + prop.toString() + "\'", true, chooser, actionListenerOk, null);
+      JDialog colorChooser = JColorChooser.createDialog(this, "Choose color for '" + prop + "'", true, chooser, actionListenerOk, null);
       colorChooser.setVisible(true);
       if (array[0]) {
         prop.setProperty(chooser.getColor());

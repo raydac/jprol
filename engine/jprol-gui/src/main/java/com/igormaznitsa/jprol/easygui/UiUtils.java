@@ -32,6 +32,7 @@ import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -72,7 +73,7 @@ public final class UiUtils {
         out.println("Operators\n-----------------------");
         for (final JProlOperator oper : ops) {
           if (oper.priority() > 0) {
-            out.println(":-op(" + oper.priority() + "," + oper.type().getText() + ",\'" + oper.name() + "\').");
+            out.println(":-op(" + oper.priority() + "," + oper.type().getText() + ",'" + oper.name() + "').");
           }
         }
         out.println("-----------------------");
@@ -184,7 +185,7 @@ public final class UiUtils {
     try {
       final Image img;
       try (InputStream inStream = UiUtils.class.getClassLoader().getResourceAsStream("com/igormaznitsa/jprol/easygui/icons/" + name + ".png")) {
-        img = ImageIO.read(inStream);
+        img = ImageIO.read(Objects.requireNonNull(inStream));
       }
       return new ImageIcon(img);
     } catch (Exception ex) {

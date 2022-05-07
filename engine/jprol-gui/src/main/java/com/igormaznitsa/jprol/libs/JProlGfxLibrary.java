@@ -134,7 +134,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     } else {
       result = textToColor(color);
       if (result == null) {
-        throw new IllegalArgumentException("Wrong color name \'" + color + '\'');
+        throw new IllegalArgumentException("Wrong color name '" + color + '\'');
       }
     }
     return result;
@@ -189,7 +189,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
       return null;
     }
 
-    if (colorAsInteger && text.charAt(0) == '#') {
+    if (text.charAt(0) == '#') {
       text = text.substring(1);
       try {
         return new Color(Integer.parseInt(text, 16) & 0xFF000000);
@@ -224,16 +224,15 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     });
 
     if (fileChooser.showSaveDialog(this.graphicFrame) == JFileChooser.APPROVE_OPTION) {
-      File choosed = fileChooser.getSelectedFile();
-
-      if (choosed != null) {
-
+      File selectedFile = fileChooser.getSelectedFile();
+      if (selectedFile != null) {
+        this.lastSavedImage = selectedFile;
         try {
-          if (!choosed.getName().toLowerCase().endsWith(".png")) {
-            choosed = new File(choosed.getParentFile(), choosed.getName() + ".png");
+          if (!selectedFile.getName().toLowerCase().endsWith(".png")) {
+            selectedFile = new File(selectedFile.getParentFile(), selectedFile.getName() + ".png");
           }
 
-          if (!ImageIO.write(image, "png", choosed)) {
+          if (!ImageIO.write(image, "png", selectedFile)) {
             throw new IOException("Can't find the png encoder");
           }
         } catch (Exception ex) {
@@ -251,7 +250,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     }
 
     // make snapshot of current buffer
-    BufferedImage bufferCopy = null;
+    BufferedImage bufferCopy;
     internalLocker.lock();
     try {
       if (bufferedImage == null) {
@@ -317,7 +316,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
   }
 
   @JProlPredicate(determined = true, signature = "removeaction/1", args = {"+term"}, reference = "Remove an action from the action menu for its name.")
-  public final void predicateREMOVEACTION(final JProlChoicePoint goal, final TermStruct predicate) {
+  public void predicateREMOVEACTION(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term menuitem = predicate.getElement(0).findNonVarOrSame();
     if (goal.isArgsValidate()) {
       ProlAssertions.assertNonVar(menuitem);
@@ -356,7 +355,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
   }
 
   @JProlPredicate(determined = true, signature = "removeallactions/0", reference = "Remove all actions from the action menu")
-  public final void predicateREMOVEALLACTIONS0(final JProlChoicePoint goal, final TermStruct predicate) {
+  public void predicateREMOVEALLACTIONS0(final JProlChoicePoint goal, final TermStruct predicate) {
     synchronized (menuBar) {
       bindedMenu.removeAll();
       menuBar.remove(bindedMenu);
@@ -370,7 +369,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
   }
 
   @JProlPredicate(determined = true, signature = "bindaction/2", args = {"+term,+callable"}, reference = "Bind a goal to an action menu item (menu_item_name, action) which can be selected by user.")
-  public final void predicateBINDACTION(final JProlChoicePoint goal, final TermStruct predicate) {
+  public void predicateBINDACTION(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term menuitem = predicate.getElement(0).findNonVarOrSame();
     final Term action = predicate.getElement(1).findNonVarOrSame();
 
@@ -433,7 +432,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
   }
 
   @JProlPredicate(determined = true, signature = "rectangle/4", args = {"+number,+number,+number,+number"}, reference = "Draw a rectangle in the coordinates (X,Y,Width,Height) with the current pen color.")
-  public final void predicateRECTANGLE(final JProlChoicePoint goal, final TermStruct predicate) {
+  public void predicateRECTANGLE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term targx = predicate.getElement(0).findNonVarOrSame();
     final Term targy = predicate.getElement(1).findNonVarOrSame();
     final Term targw = predicate.getElement(2).findNonVarOrSame();
@@ -847,7 +846,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     }
   }
 
-  @JProlPredicate(determined = true, signature = "saveimage/2", args = {"+atom,+atom"}, reference = "Arguments (image_name,format_name). Format can be 'png','jpg' or 'gif'. Save the current graphic buffer state as a named image with the type. It can throw \'permission_error\' exception if it is not possible to write the image.")
+  @JProlPredicate(determined = true, signature = "saveimage/2", args = {"+atom,+atom"}, reference = "Arguments (image_name,format_name). Format can be 'png','jpg' or 'gif'. Save the current graphic buffer state as a named image with the type. It can throw 'permission_error' exception if it is not possible to write the image.")
   public void predicateSAVEIMAGE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     final Term format = predicate.getElement(1).findNonVarOrSame();
@@ -1022,7 +1021,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     }
 
     @Override
-    public Object getTransferData(final DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+    public Object getTransferData(final DataFlavor flavor) throws UnsupportedFlavorException {
       if (!DataFlavor.imageFlavor.equals(flavor)) {
         throw new UnsupportedFlavorException(flavor);
       }
@@ -1031,7 +1030,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
   }
 
   /**
-   * The class describes an registered UI action which can be called through a
+   * The class describes registered UI action which can be called through a
    * menu item
    */
   private static class RegisteredAction {

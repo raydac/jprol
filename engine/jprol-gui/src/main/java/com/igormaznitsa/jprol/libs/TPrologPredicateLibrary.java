@@ -32,6 +32,7 @@ import java.io.CharArrayWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import static com.igormaznitsa.jprol.data.TermType.VAR;
@@ -88,7 +89,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
         try {
           result = str.unifyTo(Terms.newAtom(Utils.readAsUtf8(file)));
         } catch (IOException ex) {
-          MainFrame.MAIN_FRAME_INSTANCE.get().addErrorText("Can't read file '" + file + "' : " + ex.getMessage());
+          Objects.requireNonNull(MainFrame.MAIN_FRAME_INSTANCE.get()).addErrorText("Can't read file '" + file + "' : " + ex.getMessage());
         }
       }
     } else {
@@ -96,7 +97,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
         Utils.writeAsUtf8(file, str.getText());
         result = true;
       } catch (IOException ex) {
-        MainFrame.MAIN_FRAME_INSTANCE.get().addErrorText("Can't write file '" + file + "' : " + ex.getMessage());
+        Objects.requireNonNull(MainFrame.MAIN_FRAME_INSTANCE.get()).addErrorText("Can't write file '" + file + "' : " + ex.getMessage());
       }
     }
 
@@ -144,7 +145,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
     final String extension = textension.getText();
     final Term selected = predicate.getElement(2).findNonVarOrSame();
 
-    final File choosenFile = MainFrame.MAIN_FRAME_INSTANCE.get().chooseFile(new File(thePath), new FileFilter() {
+    final File choosenFile = Objects.requireNonNull(MainFrame.MAIN_FRAME_INSTANCE.get()).chooseFile(new File(thePath), new FileFilter() {
       final String ext = '.' + extension;
 
       @Override
@@ -184,7 +185,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
           path = file;
           result = true;
         } else {
-          MainFrame.MAIN_FRAME_INSTANCE.get().addErrorText("Can't find directory '" + file.getAbsolutePath() + '\'');
+          Objects.requireNonNull(MainFrame.MAIN_FRAME_INSTANCE.get()).addErrorText("Can't find directory '" + file.getAbsolutePath() + '\'');
         }
       }
     } catch (IOException ex) {
@@ -202,7 +203,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
 
     final String filePath = arg.getText();
 
-    MainFrame.MAIN_FRAME_INSTANCE.get().addInfoText("Save data base as file '" + filePath + '\'');
+    Objects.requireNonNull(MainFrame.MAIN_FRAME_INSTANCE.get()).addInfoText("Save data base as file '" + filePath + '\'');
 
     final InMemoryKnowledgeBase base = (InMemoryKnowledgeBase) goal.getContext().getKnowledgeBase();
     final CharArrayWriter charArray = new CharArrayWriter(8096);
@@ -216,7 +217,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
       Utils.writeAsUtf8(path, dbtext);
       result = true;
     } catch (IOException ex) {
-      MainFrame.MAIN_FRAME_INSTANCE.get().addWarnText("Can't save data base as file, error : " + ex.getMessage());
+      Objects.requireNonNull(MainFrame.MAIN_FRAME_INSTANCE.get()).addWarnText("Can't save data base as file, error : " + ex.getMessage());
     }
     return result;
   }
