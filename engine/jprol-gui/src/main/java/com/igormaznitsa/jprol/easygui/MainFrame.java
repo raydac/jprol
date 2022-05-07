@@ -707,11 +707,11 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     pack();
   }
 
-  private void menuRunScriptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuRunScriptActionPerformed
+  private void menuRunScriptActionPerformed(java.awt.event.ActionEvent evt) {
     startExecution(false);
   }
 
-  private void menuUndoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuUndoActionPerformed
+  private void menuUndoActionPerformed(java.awt.event.ActionEvent evt) {
     try {
       this.sourceEditor.getUndoManager().undo();
     } catch (CannotUndoException ex) {
@@ -722,7 +722,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
 
   }
 
-  private void menuRedoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuRedoActionPerformed
+  private void menuRedoActionPerformed(java.awt.event.ActionEvent evt) {
     try {
       this.sourceEditor.getUndoManager().redo();
     } catch (CannotRedoException ex) {
@@ -733,11 +733,11 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
 
   }
 
-  private void menuExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuExitActionPerformed
+  private void menuExitActionPerformed(java.awt.event.ActionEvent evt) {
     windowClosing(null);
   }
 
-  private void menuClearTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuClearTextActionPerformed
+  private void menuClearTextActionPerformed(java.awt.event.ActionEvent evt) {
     if (this.sourceEditor.getEditor().getDocument().getLength() > 10) {
       if (JOptionPane.showConfirmDialog(this, "Do you really want to clean?", "Confirmation", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
         this.sourceEditor.getUndoManager().discardAllEdits();
@@ -746,19 +746,19 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     }
   }
 
-  private void menuFileOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuFileOpenActionPerformed
+  private void menuFileOpenActionPerformed(java.awt.event.ActionEvent evt) {
     loadFile(this.lastOpenedFile, false);
   }
 
-  private void menuFileSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuFileSaveActionPerformed
+  private void menuFileSaveActionPerformed(java.awt.event.ActionEvent evt) {
     saveFile(false);
   }
 
-  private void menuFileSaveAsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuFileSaveAsActionPerformed
+  private void menuFileSaveAsActionPerformed(java.awt.event.ActionEvent evt) {
     saveFile(true);
   }
 
-  private void buttonStopExecutingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonStopExecutingActionPerformed
+  private void buttonStopExecutingActionPerformed(java.awt.event.ActionEvent evt) {
     final Thread executingThread = this.currentExecutedScriptThread.get();
 
     SwingUtilities.invokeLater(() -> {
@@ -779,7 +779,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
   }
 
   private void menuAboutActionPerformed(java.awt.event.ActionEvent evt) {
-    final JHtmlLabel label = new JHtmlLabel("<html><body><h1>JProl Notepad</h1>Version: " + VERSION + "<br><b>Project page:</b> <a href=\"https://github.com/raydac/jprol\">https://github.com/raydac/jprol</a><br><b>Author:</b> Igor Maznitsa (<a href=\"http://www.igormaznitsa.com\">http://www.igormaznitsa.com</a>)<br><br>(C)2010-2021 Igor A. Maznitsa. <a href=\"https://www.apache.org/licenses/LICENSE-2.0\">Apache 2.0 License</a><br>Icons from the free icon set <a href=\"http://www.famfamfam.com/lab/icons/silk/\">http://www.famfamfam.com/lab/icons/silk/</a><br><br>If you like the application you could make some donation:<br><ul><li><a href=\"https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AHWJHJFBAWGL2\">PayPal</a></li><li><a href=\"http://yasobe.ru/na/iamoss\">Yandex.Money</a></li></ul><hr>The Application uses third part libraries:<ul><li><a href=\"https://github.com/bobbylight/RSyntaxTextArea\"><b>RSyntaxTextArea</b></a> <a href=\"https://raw.githubusercontent.com/bobbylight/RSyntaxTextArea/master/src/main/dist/RSyntaxTextArea.License.txt\">under modified BSD license</a></li></ul></body></html>");
+    final JHtmlLabel label = new JHtmlLabel("<html><body><h1>JProl Notepad</h1>Version: " + VERSION + "<br><b>Project page:</b> <a href=\"https://github.com/raydac/jprol\">https://github.com/raydac/jprol</a><br><b>Author:</b> Igor Maznitsa (<a href=\"http://www.igormaznitsa.com\">http://www.igormaznitsa.com</a>)<br><br>(C)2010-2022 Igor A. Maznitsa. <a href=\"https://www.apache.org/licenses/LICENSE-2.0\">Apache 2.0 License</a><br>Icons from the free icon set <a href=\"http://www.famfamfam.com/lab/icons/silk/\">http://www.famfamfam.com/lab/icons/silk/</a><br><br>If you like the application you could make some donation:<br><ul><li><a href=\"https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AHWJHJFBAWGL2\">PayPal</a></li><li><a href=\"http://yasobe.ru/na/iamoss\">Yandex.Money</a></li></ul><hr>The Application uses third part libraries:<ul><li><a href=\"https://github.com/bobbylight/RSyntaxTextArea\"><b>RSyntaxTextArea</b></a> <a href=\"https://raw.githubusercontent.com/bobbylight/RSyntaxTextArea/master/src/main/dist/RSyntaxTextArea.License.txt\">under modified BSD license</a></li></ul></body></html>");
     label.addLinkListener((final JHtmlLabel source, final String link) -> {
       try {
         final Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
@@ -793,7 +793,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     JOptionPane.showMessageDialog(this, label, "About", JOptionPane.INFORMATION_MESSAGE, new ImageIcon(this.getIconImage()));
   }
 
-  private void menuViewKnowledgeBaseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuViewKnowledgeBaseActionPerformed
+  private void menuViewKnowledgeBaseActionPerformed(java.awt.event.ActionEvent evt) {
     if (lastContext == null) {
       return;
     }
@@ -807,11 +807,11 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     dialog.setVisible(true);
   }
 
-  private void menuRunStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuRunStopActionPerformed
+  private void menuRunStopActionPerformed(java.awt.event.ActionEvent evt) {
     buttonStopExecutingActionPerformed(evt);
   }
 
-  private void menuHelpHelpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuHelpHelpActionPerformed
+  private void menuHelpHelpActionPerformed(java.awt.event.ActionEvent evt) {
     new HelpDialog(this).setVisible(true);
   }
 
@@ -820,7 +820,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     dialog.setVisible(true);
   }
 
-  private void menuItemLibraryInfoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItemLibraryInfoActionPerformed
+  private void menuItemLibraryInfoActionPerformed(java.awt.event.ActionEvent evt) {
     final java.util.List<String> list = new ArrayList<>();
     list.add(JProlCoreLibrary.class.getCanonicalName());
     list.addAll(Arrays.asList(PROL_LIBRARIES));
@@ -843,11 +843,11 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     infoDialog.dispose();
   }
 
-  private void menuItemWordWrapSourcesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItemWordWrapSourcesActionPerformed
+  private void menuItemWordWrapSourcesActionPerformed(java.awt.event.ActionEvent evt) {
     this.sourceEditor.setEdWordWrap(this.menuItemWordWrapSources.isSelected());
   }
 
-  private void menuFileNewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuFileNewActionPerformed
+  private void menuFileNewActionPerformed(java.awt.event.ActionEvent evt) {
     final Thread executingThread = this.currentExecutedScriptThread.get();
     if (executingThread != null && executingThread.isAlive()) {
       JOptionPane.showMessageDialog(this, "Wait until current Prolog application is completed.", "Can't create new one", JOptionPane.WARNING_MESSAGE);
@@ -919,11 +919,11 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     }
   }
 
-  private void menuTraceScriptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuTraceScriptActionPerformed
+  private void menuTraceScriptActionPerformed(java.awt.event.ActionEvent evt) {
     startExecution(true);
   }
 
-  private void menuFileRecentFilesMenuSelected(javax.swing.event.MenuEvent evt) {//GEN-FIRST:event_menuFileRecentFilesMenuSelected
+  private void menuFileRecentFilesMenuSelected(javax.swing.event.MenuEvent evt) {
     JMenu menu = (JMenu) evt.getSource();
     menu.removeAll();
     for (final String path : this.recentFiles.getCollection()) {
@@ -948,19 +948,19 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     }
   }
 
-  private void menuEditCommentSelectedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuEditCommentSelectedActionPerformed
+  private void menuEditCommentSelectedActionPerformed(java.awt.event.ActionEvent evt) {
     if (this.sourceEditor.commentSelectedLines()) {
       documentChanged();
     }
   }
 
-  private void menuEditUncommentSelectedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuEditUncommentSelectedActionPerformed
+  private void menuEditUncommentSelectedActionPerformed(java.awt.event.ActionEvent evt) {
     if (this.sourceEditor.uncommentSelectedLines()) {
       documentChanged();
     }
   }
 
-  private void menuItemFullScreenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItemFullScreenActionPerformed
+  private void menuItemFullScreenActionPerformed(java.awt.event.ActionEvent evt) {
     final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
     if (gd != null && gd.isFullScreenSupported()) {
       if (gd.getFullScreenWindow() == null) {
@@ -971,7 +971,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     }
   }
 
-  private void menuitemFindTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuitemFindTextActionPerformed
+  private void menuitemFindTextActionPerformed(java.awt.event.ActionEvent evt) {
     this.panelFindText.setVisible(true);
     this.textFind.setText("");
     this.textFind.requestFocus();
@@ -989,7 +989,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     return -1;
   }
 
-  private void textFindKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_textFindKeyReleased
+  private void textFindKeyReleased(java.awt.event.KeyEvent evt) {
     if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
       final Pattern patternToFind = UiUtils.makePattern(textFind.getText());
       final String text = this.sourceEditor.getText();

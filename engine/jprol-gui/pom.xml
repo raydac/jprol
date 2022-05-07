@@ -16,8 +16,6 @@
         <app.name>jprol-gui-${project.version}</app.name>
         <jre.provider>BELLSOFT</jre.provider>
         <jre.version>17.0.3+7</jre.version>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
     <dependencies>
@@ -51,6 +49,36 @@
             <id>publish</id>
             <build>
                 <plugins>
+                    <plugin>
+                        <groupId>de.perdian.maven.plugins</groupId>
+                        <artifactId>macosappbundler-maven-plugin</artifactId>
+                        <version>1.17.1</version>
+                        <configuration>
+                            <plist>
+                                <CFBundleIconFile>src/assembly/mac/JProlGui.app/Contents/Resources/jprol.icns</CFBundleIconFile>
+                                <CFBundleDisplayName>JProl Notepad</CFBundleDisplayName>
+                                <CFBundleDevelopmentRegion>English</CFBundleDevelopmentRegion>
+                                <CFBundleURLTypes>
+                                    <string>msa</string>
+                                </CFBundleURLTypes>
+                                <JVMVersion>8+</JVMVersion>
+                                <JVMMainClassName>com.igormaznitsa.jprol.easygui.Main</JVMMainClassName>
+                            </plist>
+                            <dmg>
+                                <generate>true</generate>
+                                <autoFallback>true</autoFallback>
+                            </dmg>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>make-macos-bundle</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>bundle</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
                     <plugin>
                         <groupId>com.igormaznitsa</groupId>
                         <artifactId>mvn-jlink-wrapper</artifactId>
@@ -538,6 +566,48 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>makesh</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <version>3.0.0</version>
+                        <executions>
+                            <execution>
+                                <id>make-sh</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>cat</executable>
+                                    <commandlineArgs>${basedir}${file.separator}stub.sh.txt ${project.build.directory}${file.separator}${app.name}.jar</commandlineArgs>
+                                    <outputFile>${project.build.directory}${file.separator}${app.name}.sh</outputFile>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>make-executable</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>chmod</executable>
+                                    <commandlineArgs>+x ${project.build.directory}${file.separator}${app.name}.sh</commandlineArgs>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
     <build>
@@ -578,7 +648,6 @@
                                 <filter>
                                     <artifact>*:*</artifact>
                                     <excludes>
-                                        <exclude>META-INF/MANIFEST.MF</exclude>
                                         <exclude>META-INF/*.SF</exclude>
                                         <exclude>META-INF/*.DSA</exclude>
                                         <exclude>META-INF/*.RSA</exclude>
