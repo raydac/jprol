@@ -61,16 +61,16 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
             return true;
           }
 
-          final Term headterm = list.getHead().findNonVarOrSame();
-          final Term tailTerm = list.getTail().findNonVarOrSame();
+          final Term termHead = list.getHead().findNonVarOrSame();
+          final Term termTail = list.getTail().findNonVarOrSame();
 
-          if (tailTerm.getTermType() == LIST) {
-            list = (TermList) tailTerm;
+          if (termTail.getTermType() == LIST) {
+            list = (TermList) termTail;
           } else {
             return false;
           }
 
-          if (consultFromResource(context, headterm.getText())) {
+          if (consultFromResource(context, termHead.getText())) {
             return false;
           }
 
@@ -239,10 +239,10 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
         nextTerm = null;
       }
 
-      final Term asterm =
+      final Term asTerm =
           nextTerm == null ? END_OF_FILE : Terms.fromParsed(goal.getContext(), nextTerm);
 
-      return arg.unifyTo(asterm);
+      return arg.unifyTo(asTerm);
     } else {
       throw new ProlPermissionErrorException("read", "text_input", predicate);
     }

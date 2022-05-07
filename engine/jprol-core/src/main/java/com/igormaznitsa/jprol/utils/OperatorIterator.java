@@ -2,7 +2,7 @@ package com.igormaznitsa.jprol.utils;
 
 import com.igormaznitsa.jprol.data.TermOperator;
 import com.igormaznitsa.jprol.data.TermOperatorContainer;
-import java.io.IOException;
+
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -23,7 +23,7 @@ public class OperatorIterator implements CloseableIterator<TermOperator> {
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
 
   }
 

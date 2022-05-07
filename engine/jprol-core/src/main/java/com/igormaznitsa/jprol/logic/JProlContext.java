@@ -268,6 +268,7 @@ public final class JProlContext {
     }
   }
 
+  @SuppressWarnings("StatementWithEmptyBody")
   public CompletableFuture<Void> proveAllAsync(final Term goal) {
     this.assertNotDisposed();
     this.asyncTaskCounter.incrementAndGet();
@@ -318,25 +319,25 @@ public final class JProlContext {
     }
   }
 
-  public void lockLockerForName(final String lockerId) {
+  public void lockFor(final String lockId) {
     try {
-      this.findLockerForId(lockerId, true)
+      this.findLockerForId(lockId, true)
           .orElseThrow(
-              () -> new IllegalArgumentException("Named locker is not presented: " + lockerId))
+              () -> new IllegalArgumentException("Named locker is not presented: " + lockId))
           .lockInterruptibly();
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
-      throw new RuntimeException("Locker wait has been interrupted: " + lockerId, ex);
+      throw new RuntimeException("Locker wait has been interrupted: " + lockId, ex);
     }
   }
 
-  public boolean trylockLockerForName(final String lockerId) {
-    return this.findLockerForId(lockerId, true).orElseThrow(
-        () -> new IllegalArgumentException("Named locker is not presented: " + lockerId)).tryLock();
+  public boolean tryLockFor(final String lockId) {
+    return this.findLockerForId(lockId, true).orElseThrow(
+        () -> new IllegalArgumentException("Named locker is not presented: " + lockId)).tryLock();
   }
 
-  public void unlockLockerForName(final String lockerId) {
-    this.findLockerForId(lockerId, false).ifPresent(ReentrantLock::unlock);
+  public void unlockFor(final String lockId) {
+    this.findLockerForId(lockId, false).ifPresent(ReentrantLock::unlock);
   }
 
   private void assertNotDisposed() {
@@ -470,7 +471,7 @@ public final class JProlContext {
 
   public boolean hasSystemOperatorStartsWith(final String str) {
     return this.libraries.stream()
-        .anyMatch(lib -> lib.hasSyatemOperatorStartsWith(str));
+        .anyMatch(lib -> lib.isSystemOperatorStartsWith(str));
   }
 
   public void dispose() {
@@ -617,7 +618,7 @@ public final class JProlContext {
     this.consult(source, null);
   }
 
-  public void consult(final Reader source, final ConsultInteractor interactor) {
+  public void consult(final Reader source, final ConsultInteract iterator) {
     final JProlTreeBuilder treeBuilder = new JProlTreeBuilder(this);
     do {
       final JProlTreeBuilder.Result parseResult = treeBuilder.readPhraseAndMakeTree(source);
@@ -626,7 +627,7 @@ public final class JProlContext {
       }
 
       final int line = parseResult.line;
-      final int strpos = parseResult.pos;
+      final int stringPos = parseResult.pos;
 
       final Term nextItem = parseResult.term;
 
@@ -664,25 +665,25 @@ public final class JProlContext {
               } else if ("?-".equals(text)) {
                 final Term termGoal = struct.getElement(0);
 
-                if (interactor != null && interactor.onFoundInteractiveGoal(this, termGoal)) {
+                if (iterator != null && iterator.onFoundInteractiveGoal(this, termGoal)) {
 
-                  final Map<String, TermVar> varmap = new HashMap<>();
-                  final AtomicInteger solutioncounter = new AtomicInteger();
+                  final Map<String, TermVar> variableMap = new HashMap<>();
+                  final AtomicInteger solutionCounter = new AtomicInteger();
 
                   final JProlChoicePoint thisGoal = new JProlChoicePoint(termGoal, this, null);
 
                   boolean doFindNextSolution;
                   do {
-                    varmap.clear();
-                    if (solveGoal(thisGoal, varmap)) {
-                      doFindNextSolution = interactor
-                          .onSolution(this, termGoal, varmap, solutioncounter.incrementAndGet());
+                    variableMap.clear();
+                    if (solveGoal(thisGoal, variableMap)) {
+                      doFindNextSolution = iterator
+                          .onSolution(this, termGoal, variableMap, solutionCounter.incrementAndGet());
                       if (!doFindNextSolution) {
                         throw new ProlHaltExecutionException(
                             String.format("Solution search halted: %s", termGoal), 1);
                       }
                     } else {
-                      interactor.onFail(this, termGoal, solutioncounter.get());
+                      iterator.onFail(this, termGoal, solutionCounter.get());
                       doFindNextSolution = false;
                     }
                   } while (doFindNextSolution && !Thread.currentThread().isInterrupted());
@@ -702,7 +703,7 @@ public final class JProlContext {
         }
       } catch (Exception ex) {
         throw new PrologParserException(
-            ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage(), line, strpos, ex);
+            ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage(), line, stringPos, ex);
       }
     } while (!Thread.currentThread().isInterrupted());
   }

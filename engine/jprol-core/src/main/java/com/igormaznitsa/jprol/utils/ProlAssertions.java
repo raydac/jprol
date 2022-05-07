@@ -503,6 +503,7 @@ public final class ProlAssertions {
     }
   }
 
+  @SuppressWarnings("SpellCheckingInspection")
   public void assertTriggerEvent(final Term t) {
     assertNonVar(t);
     if (t.getTermType() != TermType.ATOM) {

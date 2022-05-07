@@ -162,25 +162,25 @@ public final class TermList extends TermStruct {
     }
     final StringBuilder builder = new StringBuilder("[");
 
-    boolean notfirst = false;
+    boolean notFirst = false;
     Term list = this;
 
     while (list != Terms.NULL_LIST) {
       if (list.getTermType() == LIST) {
-        if (notfirst) {
+        if (notFirst) {
           builder.append(',');
         }
         final TermList asList = (TermList) list;
         builder.append(asList.getHead().toString());
         list = asList.getTail();
       } else {
-        if (notfirst) {
+        if (notFirst) {
           builder.append('|');
         }
         builder.append(list);
         break;
       }
-      notfirst = true;
+      notFirst = true;
     }
 
     builder.append(']');
@@ -194,25 +194,25 @@ public final class TermList extends TermStruct {
     }
     StringBuilder builder = new StringBuilder("[");
 
-    boolean notfirst = false;
+    boolean notFirst = false;
     Term list = this;
 
     while (list != Terms.NULL_LIST) {
       if (list.getTermType() == LIST) {
-        if (notfirst) {
+        if (notFirst) {
           builder.append(',');
         }
         final TermList asList = (TermList) list;
         builder.append(asList.getHead().toSrcString());
         list = asList.getTail();
       } else {
-        if (notfirst) {
+        if (notFirst) {
           builder.append('|');
         }
         builder.append(list.toSrcString());
         break;
       }
-      notfirst = true;
+      notFirst = true;
     }
 
     builder.append(']');
@@ -226,7 +226,7 @@ public final class TermList extends TermStruct {
 
   public void replaceLastElement(final Term newLastElement) {
     if (isNullList()) {
-      throw new ProlCriticalError("Attemption to change Null list");
+      throw new ProlCriticalError("Attempt to change Null list");
     }
     TermList curList = this;
     while (!Thread.currentThread().isInterrupted()) {
@@ -313,25 +313,25 @@ public final class TermList extends TermStruct {
     }
     StringBuilder builder = new StringBuilder("[");
 
-    boolean notfirst = false;
+    boolean notFirst = false;
     Term list = this;
 
     while (list != Terms.NULL_LIST) {
       if (list.getTermType() == LIST) {
-        if (notfirst) {
+        if (notFirst) {
           builder.append(',');
         }
         final TermList asList = (TermList) list;
         builder.append(asList.getHead().forWrite());
         list = asList.getTail();
       } else {
-        if (notfirst) {
+        if (notFirst) {
           builder.append('|');
         }
         builder.append(list.forWrite());
         break;
       }
-      notfirst = true;
+      notFirst = true;
     }
 
     builder.append(']');
@@ -344,15 +344,15 @@ public final class TermList extends TermStruct {
     }
 
     final ArrayList<Term> arraylist = new ArrayList<>();
-    TermList curlist = this;
+    TermList currentList = this;
     while (!Thread.currentThread().isInterrupted()) {
-      if (curlist.isNullList()) {
+      if (currentList.isNullList()) {
         break;
       }
-      arraylist.add(curlist.getHead());
-      final Term nextList = curlist.getTail();
+      arraylist.add(currentList.getHead());
+      final Term nextList = currentList.getTail();
       if (nextList.getTermType() == LIST) {
-        curlist = (TermList) nextList;
+        currentList = (TermList) nextList;
       } else {
         arraylist.add(nextList);
         break;

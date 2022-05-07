@@ -99,9 +99,9 @@ public abstract class AbstractJProlLibrary {
     }
   }
 
-  private static Map<String, TermOperatorContainer> loadStaticOperators(final Class<?> klazz) {
+  private static Map<String, TermOperatorContainer> loadStaticOperators(final Class<?> targetClass) {
     final Map<String, TermOperatorContainer> result = new HashMap<>();
-    final JProlOperators operators = klazz.getAnnotation(JProlOperators.class);
+    final JProlOperators operators = targetClass.getAnnotation(JProlOperators.class);
     if (operators != null) {
       JProlOperator[] operatorList = operators.operators();
       for (final JProlOperator lst : operatorList) {
@@ -109,14 +109,14 @@ public abstract class AbstractJProlLibrary {
       }
     }
 
-    final JProlOperator operator = klazz.getAnnotation(JProlOperator.class);
+    final JProlOperator operator = targetClass.getAnnotation(JProlOperator.class);
     if (operator != null) {
       registerStaticOperator(result, operator);
     }
     return result;
   }
 
-  protected static NumericTerm calculatEvaluable(final JProlChoicePoint goal, final Term term) {
+  protected static NumericTerm calcEvaluable(final JProlChoicePoint choicePoint, final Term term) {
     try {
       if (term.getTermType() == VAR) {
         throw new ProlInstantiationErrorException("Non-instantiated var: " + term, term);
@@ -133,7 +133,7 @@ public abstract class AbstractJProlLibrary {
         case STRUCT: {
           final PredicateInvoker processor = ((TermStruct) term).getPredicateProcessor();
           if (processor.isEvaluable()) {
-            result = (NumericTerm) processor.executeEvaluable(goal, (TermStruct) term);
+            result = (NumericTerm) processor.executeEvaluable(choicePoint, (TermStruct) term);
           } else {
             throw new ProlTypeErrorException("evaluable", "Non-evaluable item found: " + term,
                 term);
@@ -197,8 +197,8 @@ public abstract class AbstractJProlLibrary {
   }
 
   public PredicateInvoker findProcessorForPredicate(final TermStruct predicate) {
-    final String signture = predicate.getSignature();
-    PredicateInvoker result = onBeforeFindProcessorForPredicate(signture);
+    final String signature = predicate.getSignature();
+    PredicateInvoker result = onBeforeFindProcessorForPredicate(signature);
     return result == null ? this.predicateMethodsMap.get(predicate.getSignature()) : result;
   }
 
@@ -241,7 +241,7 @@ public abstract class AbstractJProlLibrary {
     return this.systemOperators.containsKey(nameToBeChecked);
   }
 
-  public boolean hasSyatemOperatorStartsWith(final String startSubstring) {
+  public boolean isSystemOperatorStartsWith(final String startSubstring) {
     return this.systemOperators.keySet().stream().anyMatch((s) -> (s.startsWith(startSubstring)));
   }
 
@@ -283,12 +283,12 @@ public abstract class AbstractJProlLibrary {
           foundZeroArityPredicates.add(signature.substring(0, signature.lastIndexOf('/')));
         }
 
-        final String[] synonimSignatures = predicateAnnotation.synonims();
-        for (String synonimSignature : synonimSignatures) {
-          final String sig = synonimSignature.trim();
-          result.put(sig, invoker);
-          if (sig.endsWith("/0")) {
-            foundZeroArityPredicates.add(sig.substring(0, sig.lastIndexOf('/')));
+        final String[] synonymSignatures = predicateAnnotation.synonyms();
+        for (final String s : synonymSignatures) {
+          final String trimmed = s.trim();
+          result.put(trimmed, invoker);
+          if (trimmed.endsWith("/0")) {
+            foundZeroArityPredicates.add(trimmed.substring(0, trimmed.lastIndexOf('/')));
           }
         }
       }

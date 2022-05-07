@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 
 public final class TermVar extends Term {
 
-  private static final AtomicInteger ANONYM_GENERATOR = new AtomicInteger(0);
+  private static final AtomicInteger ANONYMITY_GENERATOR = new AtomicInteger(0);
   private static final AtomicInteger UID_GENERATOR = new AtomicInteger(0);
   private final int uid;
   private final boolean anonymous;
@@ -45,7 +45,7 @@ public final class TermVar extends Term {
   }
 
   TermVar() {
-    this("_$" + Long.toHexString(ANONYM_GENERATOR.incrementAndGet()), true);
+    this("_$" + Long.toHexString(ANONYMITY_GENERATOR.incrementAndGet()), true);
   }
 
   public int getVarUid() {
@@ -172,9 +172,9 @@ public final class TermVar extends Term {
             // loop detected, just return
             return true;
           } else {
-            final Term nextval = curVar.getThisValue();
-            if (nextval != null && nextval.getTermType() == VAR) {
-              curVar = (TermVar) nextval;
+            final Term nextValue = curVar.getThisValue();
+            if (nextValue != null && nextValue.getTermType() == VAR) {
+              curVar = (TermVar) nextValue;
             } else {
               break;
             }

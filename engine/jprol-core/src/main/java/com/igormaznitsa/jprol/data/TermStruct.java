@@ -365,9 +365,9 @@ public class TermStruct extends CompoundTerm {
         if (arity == thatStruct.getArity() &&
             thisStruct.getFunctor().unifyTo(thatStruct.getFunctor())) {
           for (int li = 0; li < arity; li++) {
-            final Term thiselement = thisStruct.getElement(li);
-            final Term thatelement = thatStruct.getElement(li);
-            if (thiselement != thatelement && !thiselement.unifyTo(thatelement)) {
+            final Term thisElement = thisStruct.getElement(li);
+            final Term thatElement = thatStruct.getElement(li);
+            if (thisElement != thatElement && !thisElement.unifyTo(thatElement)) {
               return false;
             }
           }
@@ -466,11 +466,11 @@ public class TermStruct extends CompoundTerm {
       final Term element = struct.getElement(li);
       if (element.getTermType() == VAR) {
         final TermVar thatVar = (TermVar) element;
-        final String varname = thatVar.getText();
+        final String variableName = thatVar.getText();
         if (!thatVar.isAnonymous() && thatVar.isFree()) {
-          final TermVar var = variables.get(varname);
+          final TermVar var = variables.get(variableName);
           if (var == null) {
-            variables.put(varname, (TermVar) element);
+            variables.put(variableName, (TermVar) element);
           } else {
             struct.setElement(li, var);
           }

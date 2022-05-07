@@ -279,7 +279,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
       }
 
       if (this.subCp != null) {
-        // solve subgoal
+        // solve sub-goal
         final Term solvedTerm = this.subCp.proveNext(unknownPredicateConsumer);
 
         if (this.subCp.cutMeet) {
@@ -315,7 +315,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
           if (!goalTermForEqu
               .unifyTo(nextClause.isClause() ? nextClause.getElement(0) : nextClause)) {
             throw new ProlCriticalError(
-                "Unexpectedly can't unify term with prvided by knowledge base!");
+                "Unexpectedly can't unify term with provided by knowledge base!");
           }
 
           if (nextClause.isClause()) {
@@ -386,9 +386,9 @@ public final class JProlChoicePoint implements Comparator<Term> {
               final int textLen = functorText.length();
               if (textLen == 1) {
                 if (functorText.charAt(0) == ',') {// and
-                  final JProlChoicePoint leftSubgoal = replaceLastGoalAtChain(struct.getElement(0));
-                  leftSubgoal.nextAndTerm = struct.getElement(1);
-                  leftSubgoal.nextAndTermForNextGoal = this.nextAndTerm;
+                  final JProlChoicePoint leftSubGoal = replaceLastGoalAtChain(struct.getElement(0));
+                  leftSubGoal.nextAndTerm = struct.getElement(1);
+                  leftSubGoal.nextAndTermForNextGoal = this.nextAndTerm;
 
                   result = JProlChoicePointResult.STACK_CHANGED;
 

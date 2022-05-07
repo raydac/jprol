@@ -190,9 +190,9 @@ public class Term {
       return true;
     }
 
-    final Class<?> objclass = obj.getClass();
+    final Class<?> thatClass = obj.getClass();
 
-    if (objclass == TermLong.class || obj.getClass() == Term.class) {
+    if (thatClass == TermLong.class || obj.getClass() == Term.class) {
 
       final Term other = (Term) obj;
 

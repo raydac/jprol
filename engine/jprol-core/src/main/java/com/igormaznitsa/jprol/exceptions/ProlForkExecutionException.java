@@ -24,13 +24,13 @@ import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 import java.util.Arrays;
 
-public class ProlForkExecutionException extends ProlAbstractCatcheableException {
+public class ProlForkExecutionException extends ProAbstractCatchableException {
 
   private static final long serialVersionUID = 3401072948341099491L;
 
   private static final Term ERROR_TERM = newAtom("fork_error");
 
-  private final Throwable[] throwables;
+  private final Throwable[] throwableArray;
 
   public ProlForkExecutionException(final Term culprit, final Throwable[] causes) {
     this("Error during a fork thread " + (causes != null ? Arrays.toString(causes) : "[]") + '\'',
@@ -40,16 +40,16 @@ public class ProlForkExecutionException extends ProlAbstractCatcheableException 
   public ProlForkExecutionException(final String message, final Term culprit,
                                     final Throwable[] causes) {
     super(message, culprit);
-    this.throwables = causes == null ? new Throwable[0] : causes;
+    this.throwableArray = causes == null ? new Throwable[0] : causes;
   }
 
-  public Throwable[] getThrowables() {
-    return this.throwables.clone();
+  public Throwable[] getThrowableArray() {
+    return this.throwableArray.clone();
   }
 
   @Override
   public TermStruct getAsStruct() {
-    return makeErrorStruct(ERROR_TERM, newLong(throwables.length));
+    return makeErrorStruct(ERROR_TERM, newLong(throwableArray.length));
   }
 
   @Override
@@ -61,7 +61,7 @@ public class ProlForkExecutionException extends ProlAbstractCatcheableException 
   public String toString() {
     final StringBuilder builder = new StringBuilder(super.toString());
     builder.append('[');
-    for (int li = 0; li < throwables.length; li++) {
+    for (int li = 0; li < throwableArray.length; li++) {
       if (li > 0) {
         builder.append(',');
       }

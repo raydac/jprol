@@ -32,15 +32,15 @@ public final class TermOperatorContainer extends SpecialTerm {
   private volatile TermOperator opZF;
   private volatile TermOperator opZFZ;
 
-  private TermOperatorContainer(final TermOperatorContainer etalon) {
-    super(etalon.getText());
-    this.opContainer = OpContainer.make(etalon.getText(),
-        etalon.opFZ == null ? null : etalon.opFZ.asOp(),
-        etalon.opZF == null ? null : etalon.opZF.asOp(),
-        etalon.opZFZ == null ? null : etalon.opZFZ.asOp());
-    opFZ = etalon.opFZ;
-    opZF = etalon.opZF;
-    opZFZ = etalon.opZFZ;
+  private TermOperatorContainer(final TermOperatorContainer sample) {
+    super(sample.getText());
+    this.opContainer = OpContainer.make(sample.getText(),
+        sample.opFZ == null ? null : sample.opFZ.asOp(),
+        sample.opZF == null ? null : sample.opZF.asOp(),
+        sample.opZFZ == null ? null : sample.opZFZ.asOp());
+    opFZ = sample.opFZ;
+    opZF = sample.opZF;
+    opZFZ = sample.opZFZ;
   }
 
   public TermOperatorContainer(final TermOperator operator) {

@@ -63,12 +63,12 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     this.knowledgeBaseId = requireNonNull(id, "Id must not be null");
   }
 
-  private InMemoryKnowledgeBase(final String baseId, final InMemoryKnowledgeBase etalon) {
+  private InMemoryKnowledgeBase(final String baseId, final InMemoryKnowledgeBase base) {
     this.knowledgeBaseId = baseId;
-    for (final Entry<String, TermOperatorContainer> item : etalon.operatorTable.entrySet()) {
+    for (final Entry<String, TermOperatorContainer> item : base.operatorTable.entrySet()) {
       operatorTable.put(item.getKey(), item.getValue().makeCopy());
     }
-    etalon.predicateTable.forEach((key, value) -> this.predicateTable.put(key, makeClone(value)));
+    base.predicateTable.forEach((key, value) -> this.predicateTable.put(key, makeClone(value)));
   }
 
   private static List<InMemoryItem> makeClone(final List<InMemoryItem> src) {
@@ -110,7 +110,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     final String operatorName = operator.getText();
     if (context.isSystemOperator(operator.getText())) {
       throw new SecurityException(
-          "Attemption to override a system operator [" + operator.getText() + ']');
+          "Attempt to override a system operator [" + operator.getText() + ']');
     }
 
     TermOperatorContainer list = this.operatorTable.get(operatorName);
@@ -120,7 +120,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
     } else {
       if (!list.setOperator(operator)) {
         throw new SecurityException(
-            "Such or a compatible operator is already presented [" + operatorName + ']');
+            "Either such one or compatible operator already presented [" + operatorName + ']');
       }
     }
   }

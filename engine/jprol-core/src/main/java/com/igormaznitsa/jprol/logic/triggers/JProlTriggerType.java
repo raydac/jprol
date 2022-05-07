@@ -17,7 +17,7 @@
 package com.igormaznitsa.jprol.logic.triggers;
 
 /**
- * This enum contains allowed event types which can be catched by triggers
+ * This enum contains allowed event types which can be caught by triggers
  *
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */

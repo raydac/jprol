@@ -24,29 +24,29 @@ import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 import java.util.Objects;
 
-public abstract class ProlAbstractCatcheableException extends ProlException {
+public abstract class ProAbstractCatchableException extends ProlException {
 
   static final Term UNDEFINED = newAtom("<undefined>");
   private static final String ERROR_FUNCTOR = "error";
   private static final long serialVersionUID = 6911111912695145529L;
   private final Term culprit;
 
-  public ProlAbstractCatcheableException(final Term culprit) {
+  public ProAbstractCatchableException(final Term culprit) {
     this.culprit = Objects.requireNonNull(culprit);
   }
 
-  public ProlAbstractCatcheableException(final String message, final Term culprit) {
+  public ProAbstractCatchableException(final String message, final Term culprit) {
     super(message);
     this.culprit = culprit == null ? UNDEFINED : culprit.makeCloneAndVarBound();
   }
 
-  public ProlAbstractCatcheableException(final String message, final Term culprit,
-                                         final Throwable cause) {
+  public ProAbstractCatchableException(final String message, final Term culprit,
+                                       final Throwable cause) {
     super(message, cause);
     this.culprit = culprit == null ? UNDEFINED : culprit.makeCloneAndVarBound();
   }
 
-  public ProlAbstractCatcheableException(final Term culprit, final Throwable cause) {
+  public ProAbstractCatchableException(final Term culprit, final Throwable cause) {
     super(cause);
     this.culprit = culprit == null ? UNDEFINED : culprit.makeCloneAndVarBound();
   }

@@ -4,7 +4,7 @@ import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermVar;
 import java.util.Map;
 
-public interface ConsultInteractor {
+public interface ConsultInteract {
   boolean onFoundInteractiveGoal(JProlContext context, Term goal);
 
   boolean onSolution(JProlContext context, Term goal, Map<String, TermVar> varValues,

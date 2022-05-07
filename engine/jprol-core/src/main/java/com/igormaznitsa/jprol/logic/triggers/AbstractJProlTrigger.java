@@ -35,29 +35,29 @@ public abstract class AbstractJProlTrigger implements JProlTrigger {
 
   public AbstractJProlTrigger addSignature(final String signature,
                                            final JProlTriggerType observedEvent) {
-    String processedsignature = validateSignature(requireNonNull(signature));
+    String validatedSignature = validateSignature(requireNonNull(signature));
 
-    if (processedsignature == null) {
+    if (validatedSignature == null) {
       throw new IllegalArgumentException("Wrong signature format [" + signature + ']');
     } else {
-      processedsignature = normalizeSignature(processedsignature);
+      validatedSignature = normalizeSignature(validatedSignature);
     }
 
-    this.signatureMap.put(processedsignature, requireNonNull(observedEvent));
+    this.signatureMap.put(validatedSignature, requireNonNull(observedEvent));
 
     return this;
   }
 
   public AbstractJProlTrigger removeSignature(final String signature) {
-    String processedsignature = validateSignature(requireNonNull(signature, "Signature is null"));
+    String validatedSignature = validateSignature(requireNonNull(signature, "Signature is null"));
 
-    if (processedsignature == null) {
+    if (validatedSignature == null) {
       throw new IllegalArgumentException("Wrong signature format [" + signature + ']');
     } else {
-      processedsignature = normalizeSignature(processedsignature);
+      validatedSignature = normalizeSignature(validatedSignature);
     }
 
-    this.signatureMap.remove(processedsignature);
+    this.signatureMap.remove(validatedSignature);
 
     return this;
   }

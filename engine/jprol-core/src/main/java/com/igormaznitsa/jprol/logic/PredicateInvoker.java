@@ -18,7 +18,7 @@ package com.igormaznitsa.jprol.logic;
 
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
-import com.igormaznitsa.jprol.exceptions.ProlAbstractCatcheableException;
+import com.igormaznitsa.jprol.exceptions.ProAbstractCatchableException;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlException;
@@ -62,11 +62,11 @@ public final class PredicateInvoker {
       this.changesGoalChain = false;
     } else {
       try {
-        MethodHandle mhandle = METHOD_LOOKUP.unreflect(method);
+        MethodHandle lookupMethodHandle = METHOD_LOOKUP.unreflect(method);
         if (!Modifier.isStatic(method.getModifiers())) {
-          mhandle = mhandle.bindTo(this.ownerLibrary);
+          lookupMethodHandle = lookupMethodHandle.bindTo(this.ownerLibrary);
         }
-        this.methodHandle = mhandle;
+        this.methodHandle = lookupMethodHandle;
       } catch (IllegalAccessException ex) {
         throw new Error(String
             .format("Can't process library '%s' method '%s'", owner.getLibraryUid(),
@@ -117,8 +117,8 @@ public final class PredicateInvoker {
         throw new ProlEvaluationErrorException(cause.getMessage(), predicate);
       }
 
-      if (cause instanceof ProlAbstractCatcheableException) {
-        throw (ProlAbstractCatcheableException) cause;
+      if (cause instanceof ProAbstractCatchableException) {
+        throw (ProAbstractCatchableException) cause;
       }
       if (cause instanceof ProlException) {
         throw (ProlException) cause;
@@ -150,8 +150,8 @@ public final class PredicateInvoker {
         throw (ThreadDeath) cause;
       } else if (cause instanceof InterruptedException) {
         Thread.currentThread().interrupt();
-      } else if (cause instanceof ProlAbstractCatcheableException) {
-        throw (ProlAbstractCatcheableException) cause;
+      } else if (cause instanceof ProAbstractCatchableException) {
+        throw (ProAbstractCatchableException) cause;
       } else if (cause instanceof ProlException) {
         throw (ProlException) cause;
       }

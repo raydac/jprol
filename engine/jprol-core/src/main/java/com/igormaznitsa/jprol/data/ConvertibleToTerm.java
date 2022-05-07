@@ -18,7 +18,7 @@ package com.igormaznitsa.jprol.data;
 
 import java.util.Optional;
 
-public interface ConvertableToTerm {
+public interface ConvertibleToTerm {
 
   Optional<Term> asProlTerm();
 }

@@ -69,13 +69,13 @@ final class VariableStateSnapshot {
     this.processedVariables = null;
   }
 
-  public VariableStateSnapshot(final Term source, final Map<String, Term> predefValues) {
+  public VariableStateSnapshot(final Term source, final Map<String, Term> predefinedValues) {
     this.containers = new ArrayList<>();
-    extractAllVariables(source, predefValues);
+    extractAllVariables(source, predefinedValues);
     this.processedVariables = null;
   }
 
-  private void extractAllVariables(final Term src, final Map<String, Term> predefValues) {
+  private void extractAllVariables(final Term src, final Map<String, Term> predefinedValues) {
     if (src == null) {
       return;
     }
@@ -83,8 +83,8 @@ final class VariableStateSnapshot {
       case LIST: {
         final TermList list = (TermList) src;
         if (!list.isNullList()) {
-          extractAllVariables(list.getHead(), predefValues);
-          extractAllVariables(list.getTail(), predefValues);
+          extractAllVariables(list.getHead(), predefinedValues);
+          extractAllVariables(list.getTail(), predefinedValues);
         }
       }
       break;
@@ -92,7 +92,7 @@ final class VariableStateSnapshot {
         final TermStruct struct = (TermStruct) src;
         final Term[] elements = struct.getElementArray();
         for (Term element : elements) {
-          extractAllVariables(element, predefValues);
+          extractAllVariables(element, predefinedValues);
         }
       }
       break;
@@ -104,10 +104,10 @@ final class VariableStateSnapshot {
         final Integer uid = var.getVarUid();
         if (!this.processedVariables.contains(uid)) {
           this.processedVariables.add(uid);
-          this.containers.add(new VariableContainer(var, predefValues));
+          this.containers.add(new VariableContainer(var, predefinedValues));
           final Term value = var.getThisValue();
           if (value != null) {
-            extractAllVariables(value, predefValues);
+            extractAllVariables(value, predefinedValues);
           }
         }
       }
@@ -116,7 +116,7 @@ final class VariableStateSnapshot {
   }
 
   public void resetToState() {
-    this.containers.forEach(VariableContainer::resetToEtalon);
+    this.containers.forEach(VariableContainer::resetToSample);
   }
 
   public int getSize() {
@@ -128,19 +128,19 @@ final class VariableStateSnapshot {
     final StringBuilder buffer = new StringBuilder();
     buffer.append(super.toString());
     buffer.append('[');
-    final Iterator<VariableContainer> iter = this.containers.iterator();
-    boolean notfirst = false;
-    while (iter.hasNext()) {
-      final VariableContainer varcont = iter.next();
+    final Iterator<VariableContainer> iterator = this.containers.iterator();
+    boolean notFirst = false;
+    while (iterator.hasNext()) {
+      final VariableContainer variableContainer = iterator.next();
 
-      if (notfirst) {
+      if (notFirst) {
         buffer.append(',');
       } else {
-        notfirst = true;
+        notFirst = true;
       }
 
       final String valueTxt;
-      final TermVar value = varcont.variable;
+      final TermVar value = variableContainer.variable;
       if (value == null) {
         valueTxt = ".NULL";
       } else {
@@ -166,25 +166,25 @@ final class VariableStateSnapshot {
 
   private static final class VariableContainer {
     final TermVar variable;
-    final Term etalonValue;
+    final Term sampleValue;
 
     VariableContainer(final TermVar var, final Map<String, Term> predefinedValues) {
       this.variable = var;
 
       if (predefinedValues == null) {
-        this.etalonValue = var.getThisValue();
+        this.sampleValue = var.getThisValue();
       } else {
-        final Term predef = predefinedValues.get(var.getText());
-        this.etalonValue = predef == null ? var.getThisValue() : predef;
+        final Term predefined = predefinedValues.get(var.getText());
+        this.sampleValue = predefined == null ? var.getThisValue() : predefined;
       }
     }
 
-    void resetToEtalon() {
-      this.variable.setThisValue(this.etalonValue);
+    void resetToSample() {
+      this.variable.setThisValue(this.sampleValue);
     }
 
     boolean isChanged() {
-      return this.variable.getThisValue() != this.etalonValue;
+      return this.variable.getThisValue() != this.sampleValue;
     }
   }
 }

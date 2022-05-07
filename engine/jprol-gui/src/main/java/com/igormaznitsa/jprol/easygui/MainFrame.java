@@ -24,7 +24,7 @@ import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.jprol.libs.*;
-import com.igormaznitsa.jprol.logic.ConsultInteractor;
+import com.igormaznitsa.jprol.logic.ConsultInteract;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.JProlSystemFlag;
@@ -58,7 +58,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public final class MainFrame extends javax.swing.JFrame implements ConsultInteractor, IoResourceProvider, Runnable, UndoableEditListener, WindowListener, DocumentListener, HyperlinkListener, JProlContextListener {
+public final class MainFrame extends javax.swing.JFrame implements ConsultInteract, IoResourceProvider, Runnable, UndoableEditListener, WindowListener, DocumentListener, HyperlinkListener, JProlContextListener {
 
   protected static final String PROL_EXTENSION = ".prl";
   private static final long serialVersionUID = 72348723421332L;

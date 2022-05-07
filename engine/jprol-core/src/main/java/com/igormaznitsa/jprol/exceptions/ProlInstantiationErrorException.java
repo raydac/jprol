@@ -22,7 +22,7 @@ import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 
-public class ProlInstantiationErrorException extends ProlAbstractCatcheableException {
+public class ProlInstantiationErrorException extends ProAbstractCatchableException {
 
   private static final long serialVersionUID = -5157739502740121566L;
 

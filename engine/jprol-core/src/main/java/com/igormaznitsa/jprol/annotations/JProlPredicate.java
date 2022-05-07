@@ -28,7 +28,7 @@ public @interface JProlPredicate {
 
   String[] args() default {};
 
-  String[] synonims() default {};
+  String[] synonyms() default {};
 
   String reference() default "";
 

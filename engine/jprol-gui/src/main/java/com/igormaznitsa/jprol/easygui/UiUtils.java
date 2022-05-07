@@ -85,9 +85,9 @@ public final class UiUtils {
       if (predicate != null) {
         final boolean determined = predicate.determined();
         out.print(predicate.signature());
-        if (predicate.synonims().length > 0) {
+        if (predicate.synonyms().length > 0) {
           out.print(" {");
-          final String[] signatures = predicate.synonims();
+          final String[] signatures = predicate.synonyms();
           for (int ls = 0; ls < signatures.length; ls++) {
             if (ls > 0) {
               out.print(", ");
