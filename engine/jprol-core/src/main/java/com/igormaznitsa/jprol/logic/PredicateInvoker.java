@@ -18,7 +18,7 @@ package com.igormaznitsa.jprol.logic;
 
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
-import com.igormaznitsa.jprol.exceptions.ProAbstractCatchableException;
+import com.igormaznitsa.jprol.exceptions.ProlAbstractCatchableException;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlException;
@@ -117,8 +117,8 @@ public final class PredicateInvoker {
         throw new ProlEvaluationErrorException(cause.getMessage(), predicate);
       }
 
-      if (cause instanceof ProAbstractCatchableException) {
-        throw (ProAbstractCatchableException) cause;
+      if (cause instanceof ProlAbstractCatchableException) {
+        throw (ProlAbstractCatchableException) cause;
       }
       if (cause instanceof ProlException) {
         throw (ProlException) cause;
@@ -150,8 +150,8 @@ public final class PredicateInvoker {
         throw (ThreadDeath) cause;
       } else if (cause instanceof InterruptedException) {
         Thread.currentThread().interrupt();
-      } else if (cause instanceof ProAbstractCatchableException) {
-        throw (ProAbstractCatchableException) cause;
+      } else if (cause instanceof ProlAbstractCatchableException) {
+        throw (ProlAbstractCatchableException) cause;
       } else if (cause instanceof ProlException) {
         throw (ProlException) cause;
       }

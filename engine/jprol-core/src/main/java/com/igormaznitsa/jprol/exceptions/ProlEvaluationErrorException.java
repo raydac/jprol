@@ -23,7 +23,7 @@ import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermStruct;
 
-public class ProlEvaluationErrorException extends ProAbstractCatchableException {
+public class ProlEvaluationErrorException extends ProlAbstractCatchableException {
 
   private static final long serialVersionUID = -8773616695972049425L;
 

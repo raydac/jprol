@@ -24,7 +24,7 @@ import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 import java.util.Arrays;
 
-public class ProlForkExecutionException extends ProAbstractCatchableException {
+public class ProlForkExecutionException extends ProlAbstractCatchableException {
 
   private static final long serialVersionUID = 3401072948341099491L;
 

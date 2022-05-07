@@ -23,7 +23,7 @@ import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 
-public class ProlTypeErrorException extends ProAbstractCatchableException {
+public class ProlTypeErrorException extends ProlAbstractCatchableException {
 
   private static final long serialVersionUID = -3258214534404942716L;
 

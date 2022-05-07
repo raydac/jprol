@@ -30,6 +30,7 @@ import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermDouble;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermVar;
+import com.igormaznitsa.jprol.exceptions.ProlChoicePointInterruptedException;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.jprol.kbase.IteratorType;
@@ -254,9 +255,6 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   private JProlChoicePointResult resolve(final Consumer<String> unknownPredicateConsumer) {
-    if (Thread.currentThread().isInterrupted()) {
-      return JProlChoicePointResult.FAIL;
-    }
     final TraceEvent traceEvent;
     if (this.notFirstProve) {
       traceEvent = TraceEvent.REDO;
@@ -273,6 +271,10 @@ public final class JProlChoicePoint implements Comparator<Term> {
     boolean doLoop = true;
 
     while (doLoop) {
+      if (Thread.currentThread().isInterrupted()) {
+        throw new ProlChoicePointInterruptedException(this, this.goalTerm);
+      }
+
       // reset variables to their initial state
       if (this.varSnapshot != null) {
         this.varSnapshot.resetToState();

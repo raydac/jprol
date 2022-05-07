@@ -2189,7 +2189,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
           }
           return true;
         }
-      } catch (final ProAbstractCatchableException ex) {
+      } catch (final ProlAbstractCatchableException ex) {
         if (catcher.unifyTo(ex.getAsStruct())) {
           catchGoal = new JProlChoicePoint(solver, goal.getContext());
           goal.setPayload(catchGoal);

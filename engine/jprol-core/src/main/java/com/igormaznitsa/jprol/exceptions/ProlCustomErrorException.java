@@ -19,7 +19,7 @@ package com.igormaznitsa.jprol.exceptions;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 
-public class ProlCustomErrorException extends ProAbstractCatchableException {
+public class ProlCustomErrorException extends ProlAbstractCatchableException {
 
   private static final long serialVersionUID = -4720280738591345468L;
 
