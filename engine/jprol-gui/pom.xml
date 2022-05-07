@@ -15,7 +15,7 @@
     <properties>
         <app.name>jprol-gui-${project.version}</app.name>
         <jre.provider>BELLSOFT</jre.provider>
-        <jre.version>17.0.1+12</jre.version>
+        <jre.version>17.0.3+7</jre.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
@@ -42,7 +42,7 @@
         <dependency>
             <groupId>com.fifesoft</groupId>
             <artifactId>rsyntaxtextarea</artifactId>
-            <version>3.1.4</version>
+            <version>3.2.0</version>
         </dependency>
     </dependencies>
 
@@ -54,7 +54,6 @@
                     <plugin>
                         <groupId>com.igormaznitsa</groupId>
                         <artifactId>mvn-jlink-wrapper</artifactId>
-                        <version>1.1.0</version>
                         <executions>
                             <execution>
                                 <id>cache-work-jdk</id>
@@ -542,20 +541,6 @@
     </profiles>
 
     <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>com.akathist.maven.plugins.launch4j</groupId>
-                    <artifactId>launch4j-maven-plugin</artifactId>
-                    <version>2.1.2</version>
-                </plugin>
-                <plugin>
-                    <groupId>sh.tak.appbundler</groupId>
-                    <artifactId>appbundle-maven-plugin</artifactId>
-                    <version>1.2.0</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
         <finalName>${app.name}</finalName>
         <plugins>
             <plugin>
