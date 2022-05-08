@@ -242,7 +242,7 @@ public final class JProlContext implements AutoCloseable {
   }
 
   @SuppressWarnings("StatementWithEmptyBody")
-  public CompletableFuture<Void> proveAllAsync(final Term goal) {
+  public CompletableFuture<Void> proveAllAsync(final Term goal, final boolean allowDisposeContext) {
     this.assertNotDisposed();
     this.asyncTaskCounter.incrementAndGet();
     return CompletableFuture.runAsync(() -> {
@@ -260,7 +260,9 @@ public final class JProlContext implements AutoCloseable {
       onAsyncTaskCompleted(goal);
       if (e != null) {
         if (e instanceof CompletionException && e.getCause() instanceof ProlInterruptException) {
-          this.dispose();
+          if (allowDisposeContext) {
+            this.dispose();
+          }
         } else {
           throw new ProlForkExecutionException("Error during async/1", goal, new Throwable[]{e});
         }
@@ -269,7 +271,7 @@ public final class JProlContext implements AutoCloseable {
     });
   }
 
-  public CompletableFuture<Term> proveOnceAsync(final Term goal) {
+  public CompletableFuture<Term> proveOnceAsync(final Term goal, final boolean allowDisposeContext) {
     this.assertNotDisposed();
     this.asyncTaskCounter.incrementAndGet();
     return CompletableFuture.supplyAsync(() -> {
@@ -281,8 +283,13 @@ public final class JProlContext implements AutoCloseable {
     }, this.executorService).handle((x, e) -> {
       onAsyncTaskCompleted(goal);
       if (e != null) {
-        throw new ProlForkExecutionException("Error during once async/1", goal,
-                new Throwable[]{e});
+        if (e instanceof CompletionException && e.getCause() instanceof ProlInterruptException) {
+          if (allowDisposeContext) {
+            this.dispose();
+          }
+        } else {
+          throw new ProlForkExecutionException("Error during async/1", goal, new Throwable[]{e});
+        }
       }
       return x;
     });

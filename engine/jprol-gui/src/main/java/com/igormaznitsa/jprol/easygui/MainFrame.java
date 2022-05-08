@@ -1191,7 +1191,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
           }
         } else {
           this.messageEditor.addText("Halted [" + haltException.getMessage() + ']', MessageEditor.TYPE_WARNING, parserException != null ? ("source://" + parserException.getLine() + ';' + parserException.getPos()) : null, parserException != null ? ("line " + parserException.getLine() + ":" + parserException.getPos()) : null);
-          this.dialogEditor.addText(format("%nExecution halted: %s%n", haltException.getMessage()));
+          this.dialogEditor.addText(format("%nScript execution stopped: %s%n", haltException.getMessage()));
         }
         this.dialogEditor.setEnabled(false);
         this.currentExecutedScriptThread.compareAndSet(executing, null);
