@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo JProl Notepad 2.0.1
+echo JProl Notepad 2.1.0
 
 MYSELF=`which "$0" 2>/dev/null`
 [ $? -gt 0 -a -f "$0" ] && MYSELF="./$0"
