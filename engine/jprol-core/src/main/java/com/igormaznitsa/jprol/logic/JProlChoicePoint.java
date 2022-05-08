@@ -58,14 +58,14 @@ public final class JProlChoicePoint implements Comparator<Term> {
   private Object payload;
   private JProlChoicePoint prevCp;
   private JProlChoicePoint rootLastGoalAtChain;
-  private JProlChoicePoint subCp;
+  private JProlChoicePoint subChoicePoint;
   private Term subChoicePointConnector;
   private Term thisConnector;
   private Term nextAndTerm;
   private Term nextAndTermForNextGoal;
   private Iterator<TermStruct> clauseIterator;
   private boolean cutMeet;
-  private boolean notFirstProve;
+  private boolean firstResolveCall = true;
 
   private JProlChoicePoint(
       final JProlChoicePoint rootChoicePoint,
@@ -256,11 +256,11 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
   private JProlChoicePointResult resolve(final Consumer<String> unknownPredicateConsumer) {
     final TraceEvent traceEvent;
-    if (this.notFirstProve) {
-      traceEvent = TraceEvent.REDO;
-    } else {
+    if (this.firstResolveCall) {
       traceEvent = TraceEvent.CALL;
-      this.notFirstProve = true;
+      this.firstResolveCall = false;
+    } else {
+      traceEvent = TraceEvent.REDO;
     }
     if (this.debug) {
       this.context.fireTraceEvent(traceEvent, this);
@@ -280,16 +280,16 @@ public final class JProlChoicePoint implements Comparator<Term> {
         this.varSnapshot.resetToState();
       }
 
-      if (this.subCp != null) {
+      if (this.subChoicePoint != null) {
         // solve sub-goal
-        final Term solvedTerm = this.subCp.proveNext(unknownPredicateConsumer);
+        final Term solvedTerm = this.subChoicePoint.proveNext(unknownPredicateConsumer);
 
-        if (this.subCp.cutMeet) {
+        if (this.subChoicePoint.cutMeet) {
           this.clauseIterator = null;
         }
 
         if (solvedTerm == null) {
-          this.subCp = null;
+          this.subChoicePoint = null;
           if (this.clauseIterator == null) {
             break;
           }
@@ -323,7 +323,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
           if (nextClause.isClause()) {
             this.thisConnector = goalTerm;
             this.subChoicePointConnector = nextClause.getElement(0);
-            this.subCp = new JProlChoicePoint(nextClause.getElement(1), this.context);
+            this.subChoicePoint = new JProlChoicePoint(nextClause.getElement(1), this.context);
             continue;
           } else {
             if (!this.goalTerm.unifyTo(nextClause)) {
@@ -363,9 +363,9 @@ public final class JProlChoicePoint implements Comparator<Term> {
             this.subChoicePointConnector = structClone.getElement(0);
 
             if (arity == 1) {
-              this.subCp = new JProlChoicePoint(structClone.getElement(0), this.context);
+              this.subChoicePoint = new JProlChoicePoint(structClone.getElement(0), this.context);
             } else {
-              this.subCp = new JProlChoicePoint(structClone.getElement(1), this.context);
+              this.subChoicePoint = new JProlChoicePoint(structClone.getElement(1), this.context);
             }
           } else {
 
@@ -375,8 +375,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
             boolean nonConsumed = true;
 
             if (arity == 0) {
-              final int len = functorText.length();
-              if (len == 1 && functorText.charAt(0) == '!') {
+              final int functorTextLength = functorText.length();
+              if (functorTextLength == 1 && functorText.charAt(0) == '!') {
                 // cut
                 cut();
                 nonConsumed = false;
