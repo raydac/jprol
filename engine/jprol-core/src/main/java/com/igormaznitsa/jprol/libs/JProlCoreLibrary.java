@@ -1640,8 +1640,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "dispose/1", synonyms = {"dispose/0"}, args = {
-          "+integer"}, reference = " These predicate terminate a Prolog engine and you can send the status of a cause.")
-  public static void predicateHALT(final JProlChoicePoint goal, final TermStruct predicate) {
+          "+integer"}, reference = " These predicate terminate JProl context even if started through async.")
+  public static void predicateDispose(final JProlChoicePoint goal, final TermStruct predicate) {
     if (predicate.getArity() == 0) {
       goal.getContext().dispose();
       throw new ProlHaltExecutionException();

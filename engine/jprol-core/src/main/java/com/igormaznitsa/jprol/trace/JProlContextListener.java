@@ -20,6 +20,10 @@ import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 
 public interface JProlContextListener {
+
+  default void onContextDispose(JProlContext source) {
+  }
+
   default void onChoicePointTraceEvent(JProlContext source, JProlChoicePoint choicePoint,
                                        TraceEvent event) {
   }

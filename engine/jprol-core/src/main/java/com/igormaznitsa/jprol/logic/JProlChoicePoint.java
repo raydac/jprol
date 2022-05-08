@@ -271,8 +271,9 @@ public final class JProlChoicePoint implements Comparator<Term> {
     boolean doLoop = true;
 
     while (doLoop) {
-      if (Thread.currentThread().isInterrupted()) {
-        throw new ProlChoicePointInterruptedException(this, this.goalTerm);
+      if (Thread.currentThread().isInterrupted() || this.context.isDisposed()) {
+        Thread.currentThread().interrupt();
+        throw new ProlChoicePointInterruptedException("Thread interrupted", this);
       }
 
       // reset variables to their initial state

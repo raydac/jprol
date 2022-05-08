@@ -395,14 +395,14 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
         }
       }
 
-      final JMenuItem newitem = new JMenuItem(menuItemName);
-      newitem.addActionListener((ActionEvent e) -> {
-        RegisteredAction registeredAction1;
+      final JMenuItem newItem = new JMenuItem(menuItemName);
+      newItem.addActionListener((ActionEvent e) -> {
+        RegisteredAction foundAction;
         synchronized (registeredActions) {
-          registeredAction1 = registeredActions.get(e.getSource());
+          foundAction = registeredActions.get(e.getSource());
         }
-        if (registeredAction1 != null) {
-          if (!registeredAction1.execute()) {
+        if (foundAction != null) {
+          if (!foundAction.execute()) {
             //remove registered menu item
             synchronized (bindedMenu) {
               bindedMenu.remove((JMenuItem) e.getSource());
@@ -418,10 +418,10 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
       });
 
       synchronized (registeredActions) {
-        registeredActions.put(newitem, registeredAction);
+        registeredActions.put(newItem, registeredAction);
       }
 
-      bindedMenu.add(newitem);
+      bindedMenu.add(newItem);
 
       menuBar.add(bindedMenu);
 

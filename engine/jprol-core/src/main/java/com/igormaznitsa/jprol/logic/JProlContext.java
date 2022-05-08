@@ -16,31 +16,11 @@
 
 package com.igormaznitsa.jprol.logic;
 
-import static com.igormaznitsa.jprol.data.Terms.newStruct;
-import static com.igormaznitsa.jprol.logic.PredicateInvoker.NULL_PROCESSOR;
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Stream.concat;
-
-
 import com.igormaznitsa.jprol.annotations.JProlConsultClasspath;
 import com.igormaznitsa.jprol.annotations.JProlConsultFile;
 import com.igormaznitsa.jprol.annotations.JProlConsultText;
-import com.igormaznitsa.jprol.data.Term;
-import com.igormaznitsa.jprol.data.TermOperator;
-import com.igormaznitsa.jprol.data.TermOperatorContainer;
-import com.igormaznitsa.jprol.data.TermStruct;
-import com.igormaznitsa.jprol.data.TermType;
-import com.igormaznitsa.jprol.data.TermVar;
-import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
-import com.igormaznitsa.jprol.exceptions.ProlException;
-import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
-import com.igormaznitsa.jprol.exceptions.ProlForkExecutionException;
-import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
-import com.igormaznitsa.jprol.exceptions.ProlKnowledgeBaseException;
+import com.igormaznitsa.jprol.data.*;
+import com.igormaznitsa.jprol.exceptions.*;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
 import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
@@ -57,35 +37,28 @@ import com.igormaznitsa.prologparser.PrologParser;
 import com.igormaznitsa.prologparser.exceptions.PrologParserException;
 import com.igormaznitsa.prologparser.terms.OpContainer;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.Writer;
+
+import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class JProlContext {
+import static com.igormaznitsa.jprol.data.Terms.newStruct;
+import static com.igormaznitsa.jprol.logic.PredicateInvoker.NULL_PROCESSOR;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Stream.concat;
+
+public final class JProlContext implements AutoCloseable {
   private final String contextId;
 
   private final Map<String, List<JProlTrigger>> triggersOnAssert = new ConcurrentHashMap<>();
@@ -108,16 +81,16 @@ public final class JProlContext {
     @Override
     public OpContainer findOpForName(final PrologParser prologParser, final String s) {
       final TermOperatorContainer container =
-          JProlContext.this.knowledgeBase.findOperatorForName(JProlContext.this, s);
+              JProlContext.this.knowledgeBase.findOperatorForName(JProlContext.this, s);
       return container == null ? null : container.asOpContainer();
     }
 
     @Override
     public int getFlags() {
       return ParserContext.FLAG_ZERO_STRUCT
-          | ParserContext.FLAG_ZERO_QUOTATION_CHARCODE
-          | ParserContext.FLAG_ZERO_QUOTATION_ALLOWS_WHITESPACE_CHAR
-          | ParserContext.FLAG_BLOCK_COMMENTS;
+              | ParserContext.FLAG_ZERO_QUOTATION_CHARCODE
+              | ParserContext.FLAG_ZERO_QUOTATION_ALLOWS_WHITESPACE_CHAR
+              | ParserContext.FLAG_BLOCK_COMMENTS;
     }
   };
 
@@ -128,24 +101,24 @@ public final class JProlContext {
 
   public JProlContext(final String name, final AbstractJProlLibrary... libs) {
     this(
-        name,
-        new InMemoryKnowledgeBase(name + "_kbase"),
-        ForkJoinPool.commonPool(),
-        emptyMap(),
-        emptyList(),
-        emptyList(),
-        libs
+            name,
+            new InMemoryKnowledgeBase(name + "_kbase"),
+            ForkJoinPool.commonPool(),
+            emptyMap(),
+            emptyList(),
+            emptyList(),
+            libs
     );
   }
 
   private JProlContext(
-      final String contextId,
-      final KnowledgeBase base,
-      final ExecutorService executorService,
-      final Map<JProlSystemFlag, Term> systemFlags,
-      final List<JProlContextListener> contextListeners,
-      final List<IoResourceProvider> ioProviders,
-      final AbstractJProlLibrary... additionalLibraries
+          final String contextId,
+          final KnowledgeBase base,
+          final ExecutorService executorService,
+          final Map<JProlSystemFlag, Term> systemFlags,
+          final List<JProlContextListener> contextListeners,
+          final List<IoResourceProvider> ioProviders,
+          final AbstractJProlLibrary... additionalLibraries
   ) {
     this.contextId = requireNonNull(contextId, "Context Id is null");
     this.knowledgeBase = requireNonNull(base, "Knowledge base is null");
@@ -153,8 +126,8 @@ public final class JProlContext {
     this.contextListeners.addAll(contextListeners);
 
     Arrays.stream(JProlSystemFlag.values())
-        .filter(x -> !x.isReadOnly())
-        .forEach(x -> this.systemFlags.put(x, x.getDefaultValue()));
+            .filter(x -> !x.isReadOnly())
+            .forEach(x -> this.systemFlags.put(x, x.getDefaultValue()));
 
     this.systemFlags.putAll(systemFlags);
     this.onSystemFlagsUpdated();
@@ -194,14 +167,14 @@ public final class JProlContext {
 
   private void onSystemFlagsUpdated() {
     this.templateValidate =
-        Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.VERIFY).getText());
+            Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.VERIFY).getText());
     this.debug = Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.DEBUG).getText());
     this.undefinedPredicateBehaviour = UndefinedPredicateBehavior
-        .find(this.systemFlags.get(JProlSystemFlag.UNKNOWN).getText())
-        .orElseThrow(() -> new ProlDomainErrorException(
-            Arrays.toString(UndefinedPredicateBehavior.values()),
-            this.systemFlags.get(JProlSystemFlag.UNKNOWN))
-        );
+            .find(this.systemFlags.get(JProlSystemFlag.UNKNOWN).getText())
+            .orElseThrow(() -> new ProlDomainErrorException(
+                    Arrays.toString(UndefinedPredicateBehavior.values()),
+                    this.systemFlags.get(JProlSystemFlag.UNKNOWN))
+            );
   }
 
   public JProlContext addContextListener(final JProlContextListener listener) {
@@ -226,12 +199,12 @@ public final class JProlContext {
 
   public Optional<Reader> findResourceReader(final String readerId) {
     return this.ioProviders.stream().map(x -> x.findReader(this, readerId)).filter(Objects::nonNull)
-        .findFirst();
+            .findFirst();
   }
 
   public Optional<Writer> findResourceWriter(final String writerId, final boolean append) {
     return this.ioProviders.stream().map(x -> x.findWriter(this, writerId, append))
-        .filter(Objects::nonNull).findFirst();
+            .filter(Objects::nonNull).findFirst();
   }
 
   public String getName() {
@@ -273,15 +246,24 @@ public final class JProlContext {
     this.assertNotDisposed();
     this.asyncTaskCounter.incrementAndGet();
     return CompletableFuture.runAsync(() -> {
-      final JProlChoicePoint asyncGoal =
-          new JProlChoicePoint(requireNonNull(goal), this.makeCopy());
-      while (asyncGoal.prove() != null && !Thread.currentThread().isInterrupted()) {
-        // do nothing
+      try(final JProlContext contextCopy = this.makeCopy()) {
+        final JProlChoicePoint asyncGoal =
+                new JProlChoicePoint(requireNonNull(goal), this.makeCopy());
+        while (asyncGoal.prove() != null && !Thread.currentThread().isInterrupted()) {
+          // do nothing
+        }
+        if (contextCopy.isDisposed()) {
+          this.dispose();
+        }
       }
     }, this.executorService).handle((x, e) -> {
       onAsyncTaskCompleted(goal);
       if (e != null) {
-        throw new ProlForkExecutionException("Error during async/1", goal, new Throwable[] {e});
+        if (e instanceof CompletionException && e.getCause() instanceof ProlInterruptException) {
+          this.dispose();
+        } else {
+          throw new ProlForkExecutionException("Error during async/1", goal, new Throwable[]{e});
+        }
       }
       return x;
     });
@@ -292,7 +274,7 @@ public final class JProlContext {
     this.asyncTaskCounter.incrementAndGet();
     return CompletableFuture.supplyAsync(() -> {
       final JProlChoicePoint asyncGoal =
-          new JProlChoicePoint(requireNonNull(goal), this.makeCopy());
+              new JProlChoicePoint(requireNonNull(goal), this.makeCopy());
       final Term result = asyncGoal.prove();
       asyncGoal.cutVariants();
       return result;
@@ -300,7 +282,7 @@ public final class JProlContext {
       onAsyncTaskCompleted(goal);
       if (e != null) {
         throw new ProlForkExecutionException("Error during once async/1", goal,
-            new Throwable[] {e});
+                new Throwable[]{e});
       }
       return x;
     });
@@ -322,9 +304,9 @@ public final class JProlContext {
   public void lockFor(final String lockId) {
     try {
       this.findLockerForId(lockId, true)
-          .orElseThrow(
-              () -> new IllegalArgumentException("Named locker is not presented: " + lockId))
-          .lockInterruptibly();
+              .orElseThrow(
+                      () -> new IllegalArgumentException("Named locker is not presented: " + lockId))
+              .lockInterruptibly();
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
       throw new RuntimeException("Locker wait has been interrupted: " + lockId, ex);
@@ -333,7 +315,7 @@ public final class JProlContext {
 
   public boolean tryLockFor(final String lockId) {
     return this.findLockerForId(lockId, true).orElseThrow(
-        () -> new IllegalArgumentException("Named locker is not presented: " + lockId)).tryLock();
+            () -> new IllegalArgumentException("Named locker is not presented: " + lockId)).tryLock();
   }
 
   public void unlockFor(final String lockId) {
@@ -368,48 +350,48 @@ public final class JProlContext {
     final JProlConsultFile consultFile = library.getClass().getAnnotation(JProlConsultFile.class);
     if (consultFile != null) {
       final String resourceText = Arrays.stream(consultFile.value())
-          .filter(x -> !(x == null || x.trim().isEmpty()))
-          .map(File::new)
-          .map(x -> {
-            try {
-              return Utils.readAsUtf8(x);
-            } catch (IOException ex) {
-              throw new Error("Can't read file: " + x);
-            }
-          })
-          .collect(Collectors.joining("\n"));
+              .filter(x -> !(x == null || x.trim().isEmpty()))
+              .map(File::new)
+              .map(x -> {
+                try {
+                  return Utils.readAsUtf8(x);
+                } catch (IOException ex) {
+                  throw new Error("Can't read file: " + x);
+                }
+              })
+              .collect(Collectors.joining("\n"));
       this.consult(new StringReader(resourceText), null);
     }
 
     final JProlConsultClasspath consultClasspath =
-        library.getClass().getAnnotation(JProlConsultClasspath.class);
+            library.getClass().getAnnotation(JProlConsultClasspath.class);
     if (consultClasspath != null) {
       final String resourceText = Arrays.stream(consultClasspath.value())
-          .filter(x -> !(x == null || x.trim().isEmpty()))
-          .map(x -> {
-            final InputStream inStream = ClassLoader.getSystemClassLoader().getResourceAsStream(x);
-            if (inStream == null) {
-              throw new Error("Can't find resource: " + x);
-            }
-            return inStream;
-          })
-          .map(x -> {
-            final StringBuilder buffer = new StringBuilder();
-            try (final Reader reader = new InputStreamReader(new BufferedInputStream(x),
-                StandardCharsets.UTF_8)) {
-              while (!Thread.currentThread().isInterrupted()) {
-                final int value = reader.read();
-                if (value < 0) {
-                  break;
+              .filter(x -> !(x == null || x.trim().isEmpty()))
+              .map(x -> {
+                final InputStream inStream = ClassLoader.getSystemClassLoader().getResourceAsStream(x);
+                if (inStream == null) {
+                  throw new Error("Can't find resource: " + x);
                 }
-                buffer.append((char) value);
-              }
-            } catch (IOException ex) {
-              throw new Error("Can't read resource", ex);
-            }
-            return buffer.toString();
-          })
-          .collect(Collectors.joining("\n"));
+                return inStream;
+              })
+              .map(x -> {
+                final StringBuilder buffer = new StringBuilder();
+                try (final Reader reader = new InputStreamReader(new BufferedInputStream(x),
+                        StandardCharsets.UTF_8)) {
+                  while (!Thread.currentThread().isInterrupted()) {
+                    final int value = reader.read();
+                    if (value < 0) {
+                      break;
+                    }
+                    buffer.append((char) value);
+                  }
+                } catch (IOException ex) {
+                  throw new Error("Can't read resource", ex);
+                }
+                return buffer.toString();
+              })
+              .collect(Collectors.joining("\n"));
       this.consult(new StringReader(resourceText), null);
     }
 
@@ -430,39 +412,39 @@ public final class JProlContext {
 
   public PredicateInvoker findProcessor(final TermStruct predicate) {
     return this.libraries
-        .stream()
-        .map(lib -> lib.findProcessorForPredicate(predicate))
-        .filter(Objects::nonNull)
-        .findFirst()
-        .orElse(NULL_PROCESSOR);
+            .stream()
+            .map(lib -> lib.findProcessorForPredicate(predicate))
+            .filter(Objects::nonNull)
+            .findFirst()
+            .orElse(NULL_PROCESSOR);
   }
 
   public boolean hasZeroArityPredicateForName(final String name) {
     return this.libraries.stream()
-        .anyMatch(lib -> lib.hasZeroArityPredicate(name));
+            .anyMatch(lib -> lib.hasZeroArityPredicate(name));
   }
 
   public List<TermStruct> findAllForPredicateIndicatorInLibs(final Term predicateIndicator) {
     return this.libraries.stream()
-        .flatMap(lib -> lib.findAllForPredicateIndicator(predicateIndicator).stream())
-        .collect(toList());
+            .flatMap(lib -> lib.findAllForPredicateIndicator(predicateIndicator).stream())
+            .collect(toList());
   }
 
   public boolean hasPredicateAtLibraryForSignature(final String signature) {
     return this.libraries.stream()
-        .anyMatch(lib -> lib.hasPredicateForSignature(signature));
+            .anyMatch(lib -> lib.hasPredicateForSignature(signature));
   }
 
   public boolean isSystemOperator(final String name) {
     return this.libraries.stream()
-        .anyMatch(lib -> lib.isSystemOperator(name));
+            .anyMatch(lib -> lib.isSystemOperator(name));
   }
 
   public TermOperatorContainer getSystemOperatorForName(final String name) {
     return this.libraries.stream()
-        .map(lib -> lib.findSystemOperatorForName(name))
-        .filter(Objects::nonNull)
-        .findFirst().orElse(null);
+            .map(lib -> lib.findSystemOperatorForName(name))
+            .filter(Objects::nonNull)
+            .findFirst().orElse(null);
   }
 
   public Iterator<AbstractJProlLibrary> makeLibraryIterator() {
@@ -471,7 +453,7 @@ public final class JProlContext {
 
   public boolean hasSystemOperatorStartsWith(final String str) {
     return this.libraries.stream()
-        .anyMatch(lib -> lib.isSystemOperatorStartsWith(str));
+            .anyMatch(lib -> lib.isSystemOperatorStartsWith(str));
   }
 
   public void dispose() {
@@ -479,14 +461,15 @@ public final class JProlContext {
       this.executorService.shutdownNow();
 
       concat(this.triggersOnAssert.entrySet().stream(), this.triggersOnRetract.entrySet().stream())
-          .flatMap(x -> x.getValue().stream())
-          .distinct()
-          .forEach(x -> x.onContextHalting(this));
+              .flatMap(x -> x.getValue().stream())
+              .distinct()
+              .forEach(x -> x.onContextHalting(this));
 
       this.triggersOnAssert.clear();
       this.triggersOnRetract.clear();
-
-      this.libraries.forEach((library) -> library.onContextDispose(this));
+      this.libraries.forEach(library -> library.onContextDispose(this));
+      this.contextListeners.forEach(listener -> listener.onContextDispose(this));
+      this.contextListeners.clear();
     }
   }
 
@@ -506,22 +489,22 @@ public final class JProlContext {
       signature = Utils.normalizeSignature(signature);
 
       if (triggerType == JProlTriggerType.TRIGGER_ASSERT ||
-          triggerType == JProlTriggerType.TRIGGER_ASSERT_RETRACT) {
+              triggerType == JProlTriggerType.TRIGGER_ASSERT_RETRACT) {
         this.triggersOnAssert.computeIfAbsent(signature, k -> new CopyOnWriteArrayList<>())
-            .add(trigger);
+                .add(trigger);
       }
 
       if (triggerType == JProlTriggerType.TRIGGER_RETRACT ||
-          triggerType == JProlTriggerType.TRIGGER_ASSERT_RETRACT) {
+              triggerType == JProlTriggerType.TRIGGER_ASSERT_RETRACT) {
         this.triggersOnRetract.computeIfAbsent(signature, k -> new CopyOnWriteArrayList<>())
-            .add(trigger);
+                .add(trigger);
       }
     });
   }
 
   public void unregisterTrigger(final JProlTrigger trigger) {
     Stream.of(this.triggersOnAssert.entrySet().iterator(),
-        this.triggersOnRetract.entrySet().iterator()).forEach(iterator -> {
+            this.triggersOnRetract.entrySet().iterator()).forEach(iterator -> {
       while (iterator.hasNext()) {
         final Entry<String, List<JProlTrigger>> entry = iterator.next();
         final List<JProlTrigger> lst = entry.getValue();
@@ -553,7 +536,7 @@ public final class JProlContext {
       break;
       default: {
         throw new IllegalArgumentException(
-            "Unsupported observed event [" + observedEvent.name() + ']');
+                "Unsupported observed event [" + observedEvent.name() + ']');
       }
     }
 
@@ -565,11 +548,11 @@ public final class JProlContext {
     switch (this.getUndefinedPredicateBehavior()) {
       case ERROR: {
         throw new ProlExistenceErrorException("predicate", "Undefined predicate: " + signature,
-            choicePoint.getGoalTerm());
+                choicePoint.getGoalTerm());
       }
       case WARNING: {
         this.contextListeners
-            .forEach(x -> x.onUndefinedPredicateWarning(this, choicePoint, signature));
+                .forEach(x -> x.onUndefinedPredicateWarning(this, choicePoint, signature));
       }
       break;
       case FAIL: {
@@ -596,11 +579,11 @@ public final class JProlContext {
       break;
       case TRIGGER_ASSERT_RETRACT: {
         final List<JProlTrigger> triggersAssert =
-            this.triggersOnAssert.getOrDefault(normalizedSignature, emptyList());
+                this.triggersOnAssert.getOrDefault(normalizedSignature, emptyList());
         final List<JProlTrigger> triggersRetract =
-            this.triggersOnRetract.getOrDefault(normalizedSignature, emptyList());
+                this.triggersOnRetract.getOrDefault(normalizedSignature, emptyList());
         listOfTriggers = triggersRetract.isEmpty() && triggersAssert.isEmpty() ? emptyList() :
-            concat(triggersAssert.stream(), triggersRetract.stream()).collect(toList());
+                concat(triggersAssert.stream(), triggersRetract.stream()).collect(toList());
       }
       break;
       default: {
@@ -677,10 +660,10 @@ public final class JProlContext {
                     variableMap.clear();
                     if (solveGoal(thisGoal, variableMap)) {
                       doFindNextSolution = iterator
-                          .onSolution(this, termGoal, variableMap, solutionCounter.incrementAndGet());
+                              .onSolution(this, termGoal, variableMap, solutionCounter.incrementAndGet());
                       if (!doFindNextSolution) {
                         throw new ProlHaltExecutionException(
-                            String.format("Solution search halted: %s", termGoal), 1);
+                                String.format("Solution search halted: %s", termGoal), 1);
                       }
                     } else {
                       iterator.onFail(this, termGoal, solutionCounter.get());
@@ -698,12 +681,12 @@ public final class JProlContext {
           break;
           default: {
             throw new ProlKnowledgeBaseException(
-                "Such element can't be saved at knowledge base [" + nextItem + ']');
+                    "Such element can't be saved at knowledge base [" + nextItem + ']');
           }
         }
       } catch (Exception ex) {
         throw new PrologParserException(
-            ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage(), line, stringPos, ex);
+                ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage(), line, stringPos, ex);
       }
     } while (!Thread.currentThread().isInterrupted());
   }
@@ -731,13 +714,18 @@ public final class JProlContext {
 
   public JProlContext makeCopy() {
     return new JProlContext(
-        this.contextId + "_copy",
-        this.knowledgeBase.makeCopy(),
-        this.executorService,
-        this.systemFlags,
-        this.contextListeners,
-        this.ioProviders
+            this.contextId + "_copy",
+            this.knowledgeBase.makeCopy(),
+            this.executorService,
+            this.systemFlags,
+            this.contextListeners,
+            this.ioProviders
     );
+  }
+
+  @Override
+  public void close() {
+    this.dispose();
   }
 
   public ParserContext getParserContext() {

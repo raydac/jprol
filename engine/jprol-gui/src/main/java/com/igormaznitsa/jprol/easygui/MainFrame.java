@@ -21,8 +21,10 @@ import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.data.Terms;
+import com.igormaznitsa.jprol.exceptions.ProlChoicePointInterruptedException;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
+import com.igormaznitsa.jprol.exceptions.ProlInterruptException;
 import com.igormaznitsa.jprol.libs.*;
 import com.igormaznitsa.jprol.logic.ConsultInteract;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
@@ -57,6 +59,8 @@ import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static java.lang.String.format;
 
 public final class MainFrame extends javax.swing.JFrame implements ConsultInteract, IoResourceProvider, Runnable, UndoableEditListener, WindowListener, DocumentListener, HyperlinkListener, JProlContextListener {
 
@@ -779,7 +783,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
   }
 
   private void menuAboutActionPerformed(java.awt.event.ActionEvent evt) {
-    final JHtmlLabel label = new JHtmlLabel("<html><body><h1>JProl Notepad</h1>Version: " + VERSION + "<br><b>Project page:</b> <a href=\"https://github.com/raydac/jprol\">https://github.com/raydac/jprol</a><br><b>Author:</b> Igor Maznitsa (<a href=\"http://www.igormaznitsa.com\">http://www.igormaznitsa.com</a>)<br><br>(C)2010-2022 Igor A. Maznitsa. <a href=\"https://www.apache.org/licenses/LICENSE-2.0\">Apache 2.0 License</a><br>Icons from the free icon set <a href=\"http://www.famfamfam.com/lab/icons/silk/\">http://www.famfamfam.com/lab/icons/silk/</a><br><br>If you like the application you could make some donation:<br><ul><li><a href=\"https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AHWJHJFBAWGL2\">PayPal</a></li><li><a href=\"http://yasobe.ru/na/iamoss\">Yandex.Money</a></li></ul><hr>The Application uses third part libraries:<ul><li><a href=\"https://github.com/bobbylight/RSyntaxTextArea\"><b>RSyntaxTextArea</b></a> <a href=\"https://raw.githubusercontent.com/bobbylight/RSyntaxTextArea/master/src/main/dist/RSyntaxTextArea.License.txt\">under modified BSD license</a></li></ul></body></html>");
+    final JHtmlLabel label = new JHtmlLabel("<html><body><h1>JProl Notepad</h1>Version: " + VERSION + "<br><b>Project page:</b> <a href=\"https://github.com/raydac/jprol\">https://github.com/raydac/jprol</a><br><b>Author:</b> Igor Maznitsa (<a href=\"https://www.igormaznitsa.com\">https://www.igormaznitsa.com</a>)<br><br>(C)2010-2022 Igor A. Maznitsa. <a href=\"https://www.apache.org/licenses/LICENSE-2.0\">Apache 2.0 License</a><br>Icons provided by free icon set <a href=\"http://www.famfamfam.com/lab/icons/silk/\">http://www.famfamfam.com/lab/icons/silk/</a><br><br>If you like the application you could make some donation:<br><ul><li><a href=\"https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AHWJHJFBAWGL2\">PayPal</a></li><li><a href=\"https://yoomoney.ru/to/41001158080699\">YooMoney</a></li></ul><hr>The Application uses third part libraries:<ul><li><a href=\"https://github.com/bobbylight/RSyntaxTextArea\"><b>RSyntaxTextArea</b></a> <a href=\"https://raw.githubusercontent.com/bobbylight/RSyntaxTextArea/master/src/main/dist/RSyntaxTextArea.License.txt\">under modified BSD license</a></li></ul></body></html>");
     label.addLinkListener((final JHtmlLabel source, final String link) -> {
       try {
         final Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
@@ -1028,9 +1032,9 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     } finally {
       if (!notTraceable) {
         if (successful) {
-          this.messageEditor.addInfoText(String.format("Reader for '%s' has been opened.", id));
+          this.messageEditor.addInfoText(format("Reader for '%s' has been opened.", id));
         } else {
-          this.messageEditor.addWarningText(String.format("Reader for '%s' can't be opened.", id));
+          this.messageEditor.addWarningText(format("Reader for '%s' can't be opened.", id));
         }
       }
     }
@@ -1058,11 +1062,22 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     } finally {
       if (!notTraceable) {
         if (successful) {
-          this.messageEditor.addInfoText(String.format("Writer for '%s' has been opened.", id));
+          this.messageEditor.addInfoText(format("Writer for '%s' has been opened.", id));
         } else {
-          this.messageEditor.addWarningText(String.format("Writer for '%s' can't be opened.", id));
+          this.messageEditor.addWarningText(format("Writer for '%s' can't be opened.", id));
         }
       }
+    }
+  }
+
+  private static Throwable findRootCause(final Throwable throwable) {
+    if (throwable == null) {
+      return null;
+    } else if (throwable.getCause() == null) {
+      return throwable;
+    } else {
+      final Throwable thatError = findRootCause(throwable.getCause());
+      return thatError == null ? throwable : thatError;
     }
   }
 
@@ -1071,7 +1086,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     JProlContext context = null;
     boolean successfully = false;
     boolean canceled = false;
-    ProlHaltExecutionException halted = null;
+    ProlInterruptException haltException = null;
     PrologParserException parserException = null;
 
     long startTime = 0;
@@ -1097,11 +1112,11 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
           final AbstractJProlLibrary lib = (AbstractJProlLibrary) Class.forName(str).getDeclaredConstructor().newInstance();
 
           context.addLibrary(lib);
-          this.messageEditor.addInfoText(String.format("Library '%s' has been added...", lib.getLibraryUid()));
+          this.messageEditor.addInfoText(format("Library '%s' has been added...", lib.getLibraryUid()));
         }
 
         context.addLibrary(logLibrary);
-        this.messageEditor.addInfoText(String.format("Library '%s' has been added...", logLibrary.getLibraryUid()));
+        this.messageEditor.addInfoText(format("Library '%s' has been added...", logLibrary.getLibraryUid()));
 
         setLastContext(context);
       } catch (Throwable ex) {
@@ -1123,7 +1138,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
         LOG.log(Level.WARNING, "ExecutionThread.run()", ex);
         parserException = ex;
 
-        final Throwable cause = ex.getCause();
+        final Throwable cause = findRootCause(ex);
 
         if (cause instanceof StackOverflowError) {
           this.messageEditor.addErrorText("Stack Overflow!");
@@ -1135,10 +1150,10 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
           return;
         }
 
-        if (cause instanceof ProlHaltExecutionException) {
-          halted = (ProlHaltExecutionException) ex.getCause();
-        }
-        if (cause instanceof InterruptedException) {
+        if (cause instanceof ProlInterruptException) {
+          haltException = (ProlInterruptException) ex.getCause();
+          canceled = cause instanceof ProlChoicePointInterruptedException;
+        } else if (cause instanceof InterruptedException) {
           canceled = true;
         } else {
           this.messageEditor.addText("Parser exception [" + ex.getMessage() + ']', MessageEditor.TYPE_ERROR, "source://" + ex.getLine() + ';' + ex.getPos(), "line " + ex.getLine() + ":" + ex.getPos());
@@ -1149,11 +1164,11 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
       } catch (Throwable ex) {
         LOG.log(Level.WARNING, "ExecutionThread.run()", ex);
 
-        if (ex instanceof ProlHaltExecutionException || ex.getCause() instanceof ProlHaltExecutionException) {
-          if (ex instanceof ProlHaltExecutionException) {
-            halted = (ProlHaltExecutionException) ex;
+        if (ex instanceof ProlInterruptException || ex.getCause() instanceof ProlInterruptException) {
+          if (ex instanceof ProlInterruptException) {
+            haltException = (ProlInterruptException) ex;
           } else {
-            halted = (ProlHaltExecutionException) ex.getCause();
+            haltException = (ProlInterruptException) ex.getCause();
           }
         } else {
           this.messageEditor.addErrorText("Can't parse script for exception [" + ex.getMessage() + ']');
@@ -1165,16 +1180,18 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
       try {
         this.messageEditor.addInfoText("Total time " + ((System.currentTimeMillis() - startTime) / 1000f) + " sec.");
 
-        if (halted == null) {
+        if (haltException == null) {
           if (!canceled) {
             if (successfully) {
               this.messageEditor.addInfoText("Completed successfully.");
             } else {
               this.messageEditor.addErrorText("Completed with errors or not started.");
+              this.dialogEditor.addText(format("%nERROR! see 'Messages' log%n"));
             }
           }
         } else {
-          this.messageEditor.addText("Halted [" + halted.getMessage() + ']', MessageEditor.TYPE_WARNING, parserException != null ? ("source://" + parserException.getLine() + ';' + parserException.getPos()) : null, parserException != null ? ("line " + parserException.getLine() + ":" + parserException.getPos()) : null);
+          this.messageEditor.addText("Halted [" + haltException.getMessage() + ']', MessageEditor.TYPE_WARNING, parserException != null ? ("source://" + parserException.getLine() + ';' + parserException.getPos()) : null, parserException != null ? ("line " + parserException.getLine() + ":" + parserException.getPos()) : null);
+          this.dialogEditor.addText(format("%nExecution halted: %s%n", haltException.getMessage()));
         }
         this.dialogEditor.setEnabled(false);
         this.currentExecutedScriptThread.compareAndSet(executing, null);
@@ -1332,7 +1349,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
 
         if (saveAs || !file.equals(this.currentOpenedFile)) {
           if (file.exists()) {
-            if (JOptionPane.showConfirmDialog(this, String.format("File '%s' exists, to overwrite it?", file.getAbsolutePath()), "File exists", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION) {
+            if (JOptionPane.showConfirmDialog(this, format("File '%s' exists, to overwrite it?", file.getAbsolutePath()), "File exists", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION) {
               return;
             }
           }
@@ -1349,7 +1366,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
       this.recentFiles.put(file.getAbsolutePath());
     } catch (Throwable thr) {
       LOG.throwing(this.getClass().getCanonicalName(), "saveFile()", thr);
-      JOptionPane.showMessageDialog(this, String.format("Can't save file for error '%s'", (thr.getMessage() == null ? thr.getClass().getCanonicalName() : thr.getLocalizedMessage())), "Can't save file", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(this, format("Can't save file for error '%s'", (thr.getMessage() == null ? thr.getClass().getCanonicalName() : thr.getLocalizedMessage())), "Can't save file", JOptionPane.ERROR_MESSAGE);
       return;
     }
 
@@ -1414,7 +1431,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
 
       } catch (Throwable thr) {
         LOG.throwing(this.getClass().getCanonicalName(), "loadFile()", thr);
-        JOptionPane.showMessageDialog(this, String.format("Can't load file %s ! [%s]", fileToOpen.getAbsolutePath(), thr.getMessage()));
+        JOptionPane.showMessageDialog(this, format("Can't load file %s ! [%s]", fileToOpen.getAbsolutePath(), thr.getMessage()));
         this.recentFiles.remove(fileToOpen.getAbsolutePath());
       }
     }
@@ -1536,7 +1553,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
   public boolean onFoundInteractiveGoal(final JProlContext context, final Term goal) {
     return context.findResourceWriter("user", true).map(writer -> {
       try {
-        writer.write(String.format("Goal: '%s'%n", goal.forWrite()));
+        writer.write(format("Goal: '%s'%n", goal.forWrite()));
         return true;
       } catch (IOException ex) {
         ex.printStackTrace();
@@ -1554,7 +1571,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
     context.findResourceWriter("user", true)
         .ifPresent(writer -> {
           try {
-            writer.write(String.format("%nYES%n%s%nNext solution?:", varText));
+            writer.write(format("%nYES%n%s%nNext solution?:", varText));
           } catch (IOException ex) {
             ex.printStackTrace();
           }
@@ -1580,7 +1597,7 @@ public final class MainFrame extends javax.swing.JFrame implements ConsultIntera
   public void onFail(final JProlContext context, final Term goal, final int foundSolutionCounter) {
     context.findResourceWriter("user", true).ifPresent(writer -> {
       try {
-        writer.write(String.format("%nNO%n"));
+        writer.write(format("%nNO%n"));
       } catch (IOException ex) {
         ex.printStackTrace();
       }
