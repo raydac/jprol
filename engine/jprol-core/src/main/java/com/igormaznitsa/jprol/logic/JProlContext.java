@@ -669,8 +669,7 @@ public final class JProlContext implements AutoCloseable {
                       doFindNextSolution = iterator
                               .onSolution(this, termGoal, variableMap, solutionCounter.incrementAndGet());
                       if (!doFindNextSolution) {
-                        throw new ProlHaltExecutionException(
-                                String.format("Solution search halted: %s", termGoal), 1);
+                        throw new ProlHaltExecutionException("search halted", 1);
                       }
                     } else {
                       iterator.onFail(this, termGoal, solutionCounter.get());
