@@ -92,9 +92,9 @@
                     <version>2.1.2</version>
                 </plugin>
                 <plugin>
-                    <groupId>sh.tak.appbundler</groupId>
-                    <artifactId>appbundle-maven-plugin</artifactId>
-                    <version>1.2.0</version>
+                    <groupId>de.perdian.maven.plugins</groupId>
+                    <artifactId>macosappbundler-maven-plugin</artifactId>
+                    <version>1.17.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>

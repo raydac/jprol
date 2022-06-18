@@ -15,7 +15,7 @@
     <properties>
         <app.name>jprol-gui-${project.version}</app.name>
         <jre.provider>BELLSOFT</jre.provider>
-        <jre.version>17.0.3+7</jre.version>
+        <jre.version>17.0.3.1+2</jre.version>
     </properties>
 
     <dependencies>
@@ -52,7 +52,6 @@
                     <plugin>
                         <groupId>de.perdian.maven.plugins</groupId>
                         <artifactId>macosappbundler-maven-plugin</artifactId>
-                        <version>1.17.1</version>
                         <configuration>
                             <plist>
                                 <CFBundleIconFile>src/assembly/mac/JProlGui.app/Contents/Resources/jprol.icns</CFBundleIconFile>
