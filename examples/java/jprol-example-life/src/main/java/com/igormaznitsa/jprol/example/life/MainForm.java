@@ -8,7 +8,6 @@ import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -18,7 +17,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JToggleButton;
-import javax.swing.SwingUtilities;
 
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class MainForm extends JFrame implements LifeGameFieldRender.ClickCellListener {

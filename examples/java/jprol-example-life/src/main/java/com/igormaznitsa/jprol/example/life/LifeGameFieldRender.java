@@ -5,7 +5,6 @@ import static java.lang.Math.min;
 import static java.lang.Math.round;
 
 import java.awt.BasicStroke;
-import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -19,7 +18,6 @@ import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
-import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.List;
@@ -90,43 +88,39 @@ public final class LifeGameFieldRender extends JComponent {
 
       @Override
       public void mouseMoved(final MouseEvent e) {
-        updateCursorPos(e);
+        updateCursorPos(e.getPoint());
       }
     });
 
     this.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(final MouseEvent event) {
-        final Point cursorPos = updateCursorPos(event);
 
+      @Override
+      public void mousePressed(final MouseEvent evt) {
+        leftMouseButtonPressed = SwingUtilities.isLeftMouseButton(evt);
+        final Point cursorPos = updateCursorPos(evt.getPoint());
         listeners.forEach(
             e -> {
               LifeGameFieldRender.this.setCursorPos(cursorPos.x, cursorPos.y);
               e.onCellClicked(LifeGameFieldRender.this, cursorPos.x, cursorPos.y,
-                  SwingUtilities.isLeftMouseButton(event));
+                  leftMouseButtonPressed);
             });
-      }
-
-      @Override
-      public void mousePressed(MouseEvent e) {
-        leftMouseButtonPressed = SwingUtilities.isLeftMouseButton(e);
-        updateCursorPos(e);
+        refreshView();
       }
 
       @Override
       public void mouseEntered(final MouseEvent e) {
-        updateCursorPos(e);
+        updateCursorPos(e.getPoint());
       }
 
       @Override
       public void mouseMoved(final MouseEvent e) {
-        updateCursorPos(e);
+        updateCursorPos(e.getPoint());
       }
     });
 
   }
 
-  private Point updateCursorPos(final MouseEvent event) {
+  private Point updateCursorPos(final Point point) {
     final Rectangle bounds = this.getBounds();
     if (bounds.width <= 0 || bounds.height <= 0) {
       return new Point(0, 0);
@@ -135,8 +129,8 @@ public final class LifeGameFieldRender extends JComponent {
     final double dx = (double) bounds.width / LifeGameField.WIDTH;
     final double dy = (double) bounds.height / LifeGameField.HEIGHT;
 
-    final int cellX = (int) round(event.getX() / dx);
-    final int cellY = (int) round(event.getY() / dy);
+    final int cellX = (int) round(point.getX() / dx);
+    final int cellY = (int) round(point.getY() / dy);
 
     this.setCursorPos(cellX, cellY);
     return this.getCursorPos();
@@ -212,8 +206,8 @@ public final class LifeGameFieldRender extends JComponent {
     gfx.setColor(GRID_COLOR);
     gfx.drawRect(0, 0, bounds.width - 1, bounds.height - 1);
 
-    ((Graphics2D) g).setStroke(CURSOR_STROKE);
-    g.setColor(CURSOR_COLOR);
+    gfx.setStroke(CURSOR_STROKE);
+    gfx.setColor(CURSOR_COLOR);
 
     final int cursorX = (int) round(this.cellUnderCursor.x * cellWidth + cellWidth / 2);
     final int cursorY = (int) round(this.cellUnderCursor.y * cellHeight + cellHeight / 2);
