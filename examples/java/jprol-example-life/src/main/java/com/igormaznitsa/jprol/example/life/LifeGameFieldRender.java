@@ -40,7 +40,7 @@ public final class LifeGameFieldRender extends JComponent {
   private Point cellUnderCursor = new Point(0, 0);
 
   private final BufferedImage buffer;
-  private final int [] bufferData;
+  private final int[] bufferData;
 
   public LifeGameFieldRender(final LifeGameField model) {
     super();
@@ -58,8 +58,9 @@ public final class LifeGameFieldRender extends JComponent {
     this.setPreferredSize(size);
     this.setSize(size);
 
-    this.buffer = new BufferedImage(LifeGameField.WIDTH, LifeGameField.HEIGHT, BufferedImage.TYPE_INT_RGB);
-    this.bufferData = ((DataBufferInt)this.buffer.getRaster().getDataBuffer()).getData();
+    this.buffer =
+        new BufferedImage(LifeGameField.WIDTH, LifeGameField.HEIGHT, BufferedImage.TYPE_INT_RGB);
+    this.bufferData = ((DataBufferInt) this.buffer.getRaster().getDataBuffer()).getData();
 
     this.model = Objects.requireNonNull(model);
 
@@ -138,7 +139,8 @@ public final class LifeGameFieldRender extends JComponent {
 
   public void setCursorPos(final int x, final int y) {
     this.cellUnderCursor =
-        new Point(max(0, min(LifeGameField.WIDTH - 1, x)), max(0, min(LifeGameField.HEIGHT - 1, y)));
+        new Point(max(0, min(LifeGameField.WIDTH - 1, x)),
+            max(0, min(LifeGameField.HEIGHT - 1, y)));
     this.refreshView();
   }
 
@@ -166,7 +168,7 @@ public final class LifeGameFieldRender extends JComponent {
 
   @Override
   public void paint(final Graphics g) {
-    final Dimension bounds = this.getSize();
+    final Rectangle bounds = this.getBounds();
 
     if (bounds.width <= 0 || bounds.height <= 0) {
       return;
@@ -175,10 +177,11 @@ public final class LifeGameFieldRender extends JComponent {
     final Graphics2D gfx = (Graphics2D) g;
 
     gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    gfx.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+    gfx.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+        RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
-    final double cellWidth = max(1.0d, round((double) bounds.width / LifeGameField.WIDTH));
-    final double cellHeight = max(1.0f, round((double) bounds.height / LifeGameField.HEIGHT));
+    final double cellWidth = max(1.0d, (double) bounds.width / LifeGameField.WIDTH);
+    final double cellHeight = max(1.0f, (double) bounds.height / LifeGameField.HEIGHT);
 
     gfx.setColor(GROUND_COLOR);
     gfx.fillRect(0, 0, bounds.width, bounds.height);
@@ -186,21 +189,18 @@ public final class LifeGameFieldRender extends JComponent {
     final int cellWidthInt = (int) round(cellWidth);
     final int cellHeightInt = (int) round(cellHeight);
 
-    gfx.drawImage(this.buffer, 0,0, bounds.width, bounds.height, null);
+    gfx.drawImage(this.buffer, 0, 0, bounds.width, bounds.height, null);
 
     gfx.setColor(GRID_COLOR);
-    double y = 0;
-    while (y < bounds.height) {
-      final int cy = (int) round(y);
+
+    for (int y = 0; y < LifeGameField.HEIGHT; y++) {
+      final int cy = (int) round(y * cellHeight);
       gfx.drawLine(0, cy, bounds.width, cy);
-      y += cellHeight;
     }
 
-    double x = 0;
-    while (x < bounds.width) {
-      final int cx = (int) round(x);
+    for (int x = 0; x < LifeGameField.WIDTH; x++) {
+      final int cx = (int) round(x * cellWidth);
       gfx.drawLine(cx, 0, cx, bounds.height);
-      x += cellWidth;
     }
 
     gfx.setColor(GRID_COLOR);
