@@ -8,6 +8,7 @@ import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -20,15 +21,15 @@ import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-public class MainForm extends JFrame implements GameFieldRenderer.ClickCellListener {
+public class MainForm extends JFrame implements LifeGameFieldRender.ClickCellListener {
 
   private final Timer timer = new Timer("task-timer", true);
 
-  private final LifeField lifeField;
+  private final LifeGameField lifeGameField;
   private final JToggleButton startButton;
   private final JProlContext prolContext;
   private final JSlider timeSlider;
-  private final GameFieldRenderer gameFieldRenderer;
+  private final LifeGameFieldRender lifeGameFieldRender;
 
   private Optional<TimerTask> currentTimerTask = Optional.empty();
 
@@ -36,12 +37,12 @@ public class MainForm extends JFrame implements GameFieldRenderer.ClickCellListe
     super("Life");
     this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-    this.lifeField = new LifeField();
+    this.lifeGameField = new LifeGameField();
 
-    this.gameFieldRenderer = new GameFieldRenderer(this.lifeField);
+    this.lifeGameFieldRender = new LifeGameFieldRender(this.lifeGameField);
 
     final JPanel mainPanel = new JPanel(new BorderLayout());
-    mainPanel.add(this.gameFieldRenderer, BorderLayout.CENTER);
+    mainPanel.add(this.lifeGameFieldRender, BorderLayout.CENTER);
 
     this.timeSlider = new JSlider(JSlider.HORIZONTAL, 5, 100, 5);
     this.timeSlider.setSnapToTicks(true);
@@ -55,8 +56,8 @@ public class MainForm extends JFrame implements GameFieldRenderer.ClickCellListe
     final JButton clearButton = new JButton("Clear");
     clearButton.addActionListener(x -> {
       this.stopRun();
-      this.lifeField.clear();
-      this.gameFieldRenderer.repaint();
+      this.lifeGameField.clear();
+      this.lifeGameFieldRender.repaint();
     });
 
     this.startButton = new JToggleButton("Run");
@@ -66,7 +67,7 @@ public class MainForm extends JFrame implements GameFieldRenderer.ClickCellListe
       } else {
         stopRun();
       }
-      this.gameFieldRenderer.repaint();
+      this.lifeGameFieldRender.repaint();
     });
 
     final JPanel controlPanel = new JPanel(new GridBagLayout());
@@ -91,26 +92,12 @@ public class MainForm extends JFrame implements GameFieldRenderer.ClickCellListe
 
     this.setContentPane(mainPanel);
 
-    this.gameFieldRenderer.addClickCellListener(this);
+    this.lifeGameFieldRender.addClickCellListener(this);
 
-    this.prolContext = new JProlContext("life", new JProlCoreLibrary());
-    this.prolContext.addLibrary(new LifeLibrary(this.lifeField));
+    this.prolContext = new JProlContext("JProl E-life example", new JProlCoreLibrary());
+    this.prolContext.addLibrary(new LifeLibrary(this.lifeGameField));
 
     this.pack();
-  }
-
-  @SuppressWarnings({"StatementWithEmptyBody", "UnusedAssignment"})
-  private void doIteration() {
-    final JProlChoicePoint choicePoint = new JProlChoicePoint("life().", this.prolContext);
-    Term term;
-    while ((term = choicePoint.prove()) != null) {
-      // do nothing
-    }
-    this.lifeField.blinkGeneration();
-    SwingUtilities.invokeLater(() -> {
-      this.gameFieldRenderer.revalidate();
-      this.gameFieldRenderer.repaint();
-    });
   }
 
   private void startTimer() {
@@ -129,25 +116,36 @@ public class MainForm extends JFrame implements GameFieldRenderer.ClickCellListe
     }
   }
 
-  private void startRun() {
-    this.startButton.setSelected(true);
-    startTimer();
-  }
-
   private void stopRun() {
     this.startButton.setSelected(false);
     this.currentTimerTask.ifPresent(TimerTask::cancel);
     this.currentTimerTask = Optional.empty();
   }
 
+  private void startRun() {
+    this.startButton.setSelected(true);
+    startTimer();
+  }
+
+  @SuppressWarnings({"StatementWithEmptyBody", "UnusedAssignment"})
+  private void doIteration() {
+    final JProlChoicePoint choicePoint = new JProlChoicePoint("life().", this.prolContext);
+    Term term;
+    while ((term = choicePoint.prove()) != null) {
+      // do nothing
+    }
+    this.lifeGameField.blinkGeneration();
+    this.lifeGameFieldRender.refreshView();
+  }
+
   @Override
-  public void onCellDragged(GameFieldRenderer source, int x, int y, boolean set) {
-    if (x < 0 || x >= LifeField.WIDTH || y < 0 || y >= LifeField.HEIGHT) {
+  public void onCellClicked(LifeGameFieldRender source, int x, int y, boolean set) {
+    if (x < 0 || x >= LifeGameField.WIDTH || y < 0 || y >= LifeGameField.HEIGHT) {
       return;
     }
 
     this.stopRun();
-    final LifeField model = source.getModel();
+    final LifeGameField model = source.getModel();
 
     model.set(x, y, set);
 
@@ -155,13 +153,13 @@ public class MainForm extends JFrame implements GameFieldRenderer.ClickCellListe
   }
 
   @Override
-  public void onCellClicked(GameFieldRenderer source, int x, int y, boolean set) {
-    if (x < 0 || x >= LifeField.WIDTH || y < 0 || y >= LifeField.HEIGHT) {
+  public void onCellDragged(LifeGameFieldRender source, int x, int y, boolean set) {
+    if (x < 0 || x >= LifeGameField.WIDTH || y < 0 || y >= LifeGameField.HEIGHT) {
       return;
     }
 
     this.stopRun();
-    final LifeField model = source.getModel();
+    final LifeGameField model = source.getModel();
 
     model.set(x, y, set);
 

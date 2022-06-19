@@ -3,7 +3,7 @@ package com.igormaznitsa.jprol.example.life;
 import java.util.Arrays;
 
 @SuppressWarnings("ConstantConditions")
-public class LifeField {
+public class LifeGameField {
 
   public static final int HEIGHT = 32;
   private static final int COLUMNS = 1;
@@ -14,7 +14,7 @@ public class LifeField {
   private long[] generationCurrent = generationOne;
   private long[] generationNext = generationTwo;
 
-  public LifeField() {
+  public LifeGameField() {
 
   }
 

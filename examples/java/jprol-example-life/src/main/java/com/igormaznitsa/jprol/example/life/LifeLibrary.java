@@ -18,13 +18,13 @@ import java.util.Objects;
 })
 public class LifeLibrary extends AbstractJProlLibrary {
 
-  private static final TermLong WIDTH = Terms.newLong(LifeField.WIDTH);
-  private static final TermLong HEIGHT = Terms.newLong(LifeField.HEIGHT);
+  private static final TermLong WIDTH = Terms.newLong(LifeGameField.WIDTH);
+  private static final TermLong HEIGHT = Terms.newLong(LifeGameField.HEIGHT);
   private static final Term CELL_LIVE = Terms.newAtom("live");
   private static final Term CELL_DEAD = Terms.newAtom("dead");
-  private final LifeField field;
+  private final LifeGameField field;
 
-  public LifeLibrary(final LifeField field) {
+  public LifeLibrary(final LifeGameField field) {
     super("jprol-examples-life");
     this.field = Objects.requireNonNull(field);
   }

@@ -6,11 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-public class LifeFieldTest {
+public class LifeGameFieldTest {
 
   @Test
   public void testNegativeCoords() {
-    final LifeField container = new LifeField();
+    final LifeGameField container = new LifeGameField();
     assertFalse(container.get(-5, -1034));
     container.set(-5, -1034, true);
     assertTrue(container.get(-5, -1034));
@@ -20,7 +20,7 @@ public class LifeFieldTest {
 
   @Test
   public void testPositiveCoords() {
-    final LifeField container = new LifeField();
+    final LifeGameField container = new LifeGameField();
     assertFalse(container.get(5824, 3345));
     container.set(5824, 3345, true);
     assertTrue(container.get(5824, 3345));

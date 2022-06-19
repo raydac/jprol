@@ -1,8 +1,7 @@
-package com.igormaznitsa.jprol.example.life;
-
+import com.igormaznitsa.jprol.example.life.MainForm;
 import javax.swing.SwingUtilities;
 
-public class Main {
+public class JProlElife {
 
   public static void main(final String... args) {
     SwingUtilities.invokeLater(() -> new MainForm().setVisible(true));
