@@ -54,7 +54,7 @@
                         <artifactId>macosappbundler-maven-plugin</artifactId>
                         <configuration>
                             <plist>
-                                <CFBundleIconFile>src/assembly/mac/JProlGui.app/Contents/Resources/jprol.icns</CFBundleIconFile>
+                                <CFBundleIconFile>src/assembly/mac-common/Contents/Resources/appicon.icns</CFBundleIconFile>
                                 <CFBundleDisplayName>JProl Notepad</CFBundleDisplayName>
                                 <CFBundleDevelopmentRegion>English</CFBundleDevelopmentRegion>
                                 <CFBundleURLTypes>

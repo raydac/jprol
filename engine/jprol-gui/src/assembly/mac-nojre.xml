@@ -23,9 +23,8 @@
             <filtered>true</filtered>
         </fileSet>
         <fileSet>
-            <directory>${project.basedir}${file.separator}src${file.separator}assembly${file.separator}common
-            </directory>
-            <outputDirectory>JProlGui.app${file.separator}Contents${file.separator}MacOS</outputDirectory>
+            <directory>${project.basedir}${file.separator}src${file.separator}assembly${file.separator}mac-common</directory>
+            <outputDirectory>JProlGui.app</outputDirectory>
             <includes>
                 <include>*/**</include>
             </includes>
