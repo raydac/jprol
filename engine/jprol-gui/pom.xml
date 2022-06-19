@@ -16,6 +16,7 @@
         <app.name>jprol-gui-${project.version}</app.name>
         <jre.provider>BELLSOFT</jre.provider>
         <jre.version>17.0.3.1+2</jre.version>
+        <start-class>JProlApp</start-class>
     </properties>
 
     <dependencies>
@@ -61,7 +62,7 @@
                                     <string>msa</string>
                                 </CFBundleURLTypes>
                                 <JVMVersion>8+</JVMVersion>
-                                <JVMMainClassName>com.igormaznitsa.jprol.easygui.Main</JVMMainClassName>
+                                <JVMMainClassName>JProlApp</JVMMainClassName>
                             </plist>
                             <dmg>
                                 <generate>true</generate>
@@ -271,7 +272,7 @@
                             <outfile>${project.build.directory}/${app.name}.exe</outfile>
                             <downloadUrl>http://www.oracle.com/technetwork/java/javase/downloads</downloadUrl>
                             <classPath>
-                                <mainClass>com.igormaznitsa.jprol.easygui.Main</mainClass>
+                                <mainClass>JProlApp</mainClass>
                                 <preCp>anything</preCp>
                             </classPath>
                             <icon>
@@ -663,7 +664,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.igormaznitsa.jprol.easygui.Main</mainClass>
+                            <mainClass>JProlApp</mainClass>
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                             <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                         </manifest>

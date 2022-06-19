@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-package com.igormaznitsa.jprol.easygui;
-
+import com.igormaznitsa.jprol.easygui.MainFrame;
 import com.igormaznitsa.jprol.easygui.tokenizer.JProlTokenMaker;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;
@@ -31,7 +30,7 @@ import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
  *
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com
  */
-public class Main {
+public class JProlApp {
 
   /**
    * The main method starts the IDE.
