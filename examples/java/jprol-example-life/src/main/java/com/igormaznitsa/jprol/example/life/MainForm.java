@@ -73,13 +73,13 @@ public class MainForm extends JFrame implements LifeGameFieldRender.ClickCellLis
         new GridBagConstraints(GridBagConstraints.RELATIVE, 0, 1, 1, 1, 1, GridBagConstraints.WEST,
             GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0);
 
-    controlPanel.add(new JLabel(" FASTEST"), gbc);
+    controlPanel.add(new JLabel(" FASTER"), gbc);
 
     gbc.weightx = 10000;
     controlPanel.add(timeSlider, gbc);
 
     gbc.weightx = 1;
-    controlPanel.add(new JLabel("SLOWEST "), gbc);
+    controlPanel.add(new JLabel("SLOWER "), gbc);
 
 
     controlPanel.add(clearButton, gbc);
