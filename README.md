@@ -7,7 +7,7 @@
 
 
 # Introduction
-I liked to buy and collect books about computer tehcnololgies since my childhood and in 1990 I bought a book titled as "Prolog programming for Artificial Intelligence" by Ivan Bratko but didn't have enough time to read it for about 20 years. In 2009 I found some free time to read the book and was amazed by the power of the computer language. To learn it better I wrote small Java based Prolog embeddable engine and called it JProl.   
+I used to buy and collect books about computer tehcnololgies since my childhood and in 1990 I bought a book titled as "Prolog programming for Artificial Intelligence" by Ivan Bratko but didn't have enough time to read it for about 20 years. In 2009 I found some free time to read the book and was amazed by the power of the computer language. To learn it better I wrote small Java based Prolog embeddable engine and called it JProl.   
 
 JProl is a small Prolog engine developed with several libraries provided out of the box. It supports Edinburgh Prolog style and its GUI version provides way to learn Prolog and develop interactive programs and experiments. The engine is written in not very optimal way and I can't recommend it to use in hi-performance or very complex cases but if you need to resolve easy learning purposes or implementation small Prolog-based DSL solutions then it can help.   
 
@@ -88,17 +88,6 @@ The bootstrap library of the engine has two predicates `set_prolog_flag/2` and `
     - __verify__
     - __version_data__ (read only)
 
-### Prolog and Graphics
-JProl GUI editor module has predicates to work with graphics and even can save images. As an example, below you can find a program to draw a Koch snowflake fractal.
-```Prolog
-kochsnowflake(N,L) :- settitle('Koch snowflake'), brushcolor(white), graphics(300,300), pencolor(red), time((fractal(N,30,80,L,0,X1,Y1), fractal(N,X1,Y1,L,2.0943951024,X2,Y2), fractal(N,X2,Y2,L,4.1887902048,_,_))).
-
-fractal(0,X,Y,L,A,XN,YN):- !, XN is X+L*cos(A), YN is Y+L*sin(A), XX is round(X),XXN is round(XN), YY is round(Y),YYN is round(YN), plot(XX,YY,XXN,YYN).
-fractal(I,X,Y,L,A,XN,YN):- II is I-1, LL is L/3, A2 is A-1.0471975512, A3 is A+1.0471975512, fractal(II,X,Y,LL,A,X1,Y1), fractal(II,X1,Y1,LL,A2,X2,Y2), fractal(II,X2,Y2,LL,A3,X3,Y3), fractal(II,X3,Y3,LL,A,XN,YN).
-
-?-kochsnowflake(5,300).
-```
-![KochSnowflake](https://github.com/raydac/jprol/blob/master/jprolgui.png)
 
 ## Multi-threads
 Because Prolog is a declarative language, it is well prepared for multi-threading. I have added pair predicates to span new threads (`fork/1` and `async/1`), also the engine provides special predicate `waitasync/0` to make inter-process synchronization to wait completion of all spawned threads. The `waitasync/0` predicate can be used only from the main thread (the root goal). Also there is support for locks. You can create critical sections with `lock/1`, `unlock/1` and `trylock/1` predicates. Take a look at the prolog program below, it draws 3000000 color dots through three threads.
@@ -118,3 +107,14 @@ For my prolog learning purposes I maded small GUI script editor which allows to 
 
 Its pre-built version for misc OS can be downloaded from [the release page](https://github.com/raydac/java-prolog-parser/releases/latest). It contains as standcalone versions as versions with embedded JDK.
 
+## Prolog and Graphics
+JProl GUI editor module provides predicates to work with graphics and save generated images. As an example, below you can find a program to draw a Koch snowflake fractal.
+```Prolog
+kochsnowflake(N,L) :- settitle('Koch snowflake'), brushcolor(white), graphics(300,300), pencolor(red), time((fractal(N,30,80,L,0,X1,Y1), fractal(N,X1,Y1,L,2.0943951024,X2,Y2), fractal(N,X2,Y2,L,4.1887902048,_,_))).
+
+fractal(0,X,Y,L,A,XN,YN):- !, XN is X+L*cos(A), YN is Y+L*sin(A), XX is round(X),XXN is round(XN), YY is round(Y),YYN is round(YN), plot(XX,YY,XXN,YYN).
+fractal(I,X,Y,L,A,XN,YN):- II is I-1, LL is L/3, A2 is A-1.0471975512, A3 is A+1.0471975512, fractal(II,X,Y,LL,A,X1,Y1), fractal(II,X1,Y1,LL,A2,X2,Y2), fractal(II,X2,Y2,LL,A3,X3,Y3), fractal(II,X3,Y3,LL,A,XN,YN).
+
+?-kochsnowflake(5,300).
+```
+![KochSnowflake](https://github.com/raydac/jprol/blob/master/jprolgui.png)
