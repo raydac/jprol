@@ -9,11 +9,12 @@
 # Introduction
 I used to buy and collect books about computer tehcnololgies since my childhood and in 1990 I bought a book titled as "Prolog programming for Artificial Intelligence" by Ivan Bratko but didn't have enough time to read it for about 20 years. In 2009 I found some free time to read the book and was amazed by the power of the computer language. To learn it better I wrote small Java based Prolog embeddable engine and called it JProl.   
 
-JProl is a small Prolog engine developed with several libraries provided out of the box. It supports Edinburgh Prolog style and its GUI version provides way to learn Prolog and develop interactive programs and experiments. The engine is written in not very optimal way and I can't recommend it to use in hi-performance or very complex cases but if you need to resolve easy learning purposes or implementation small Prolog-based DSL solutions then it can help.   
-
 In 2014 I was asked by [Yuki Katsura](http://iprolog.appstor.io/) to open the sources of the engine under Apache License 2.0 and he made iPad version and the project.
 
 Initially the engine was a mono-block with embedded GUI part, but later it was reworked ane split to the engine and the GUI editor.
+
+![GUIEditor](https://github.com/raydac/jprol/blob/master/jprolguieditor.png)   
+
 
 # The engine
 
@@ -25,7 +26,7 @@ The engine is published in [the maven central](https://search.maven.org/artifact
     <version>2.1.0</version>
 </dependency>
 ```   
-The engine uses another my project [java-prolog-parser](https://github.com/raydac/java-prolog-parser) which initially was a part of the jprol engine but lately I extracted it into separated project because it is usefult sometime to have only parser for prolog syntax. 
+The engine uses another my project [java-prolog-parser](https://github.com/raydac/java-prolog-parser) which initially was a part of the jprol engine but then it was extracted as an autonomous project because sometime it is usefult to have only prolog parser for data files. 
 
 ## Java method can play a predicate
 
@@ -109,8 +110,6 @@ I have writtern some small exampleto show how to use the engine in bounds of a J
 # The GUI editor
 
 For my prolog learning purposes I maded small GUI script editor which allows to execute prolog scripts and even make some graphics. It is not very strong in debugging but can be used for start of small scripts and test programs.
-
-![GUIEditor](https://github.com/raydac/jprol/blob/master/jprolguieditor.png)
 
 Its pre-built version for misc OS can be downloaded from [the release page](https://github.com/raydac/java-prolog-parser/releases/latest). It contains as standcalone versions as versions with embedded JDK.
 
