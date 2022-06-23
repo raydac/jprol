@@ -32,7 +32,7 @@ public class MainForm extends JFrame implements LifeGameFieldRender.ClickCellLis
   private Optional<TimerTask> currentTimerTask = Optional.empty();
 
   public MainForm() {
-    super("Life");
+    super("Conway's Life (a JProl engine use example)");
     this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
     this.lifeGameField = new LifeGameField();
