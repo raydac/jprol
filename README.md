@@ -99,6 +99,13 @@ threadRed(P) :- for(_, 0, P), rnd(500, X), rnd(400, Y), lock(gfx), pencolor(red)
     ?- P = 1000000, time((graphics(500,400), fork([threadRed(P), threadGreen(P), threadBlue(P)]))).
 ```
 
+## Example application
+
+I have writtern some small exampleto show how to use the engine in bounds of a Java application. It is a GUI version of Conway's Life game where [all business rules for colony described in prolog](/examples/java/jprol-example-life/src/main/java/com/igormaznitsa/jprol/example/life/LifeLibrary.java).   
+
+![Conway's life with JProl](/art/jprol-example-life.png)   
+
+
 # The GUI editor
 
 For my prolog learning purposes I maded small GUI script editor which allows to execute prolog scripts and even make some graphics. It is not very strong in debugging but can be used for start of small scripts and test programs.
