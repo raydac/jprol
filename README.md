@@ -9,9 +9,9 @@
 # Introduction
 I used to buy and collect books about computer tehcnololgies since my childhood and in 1990 I bought a book titled as "Prolog programming for Artificial Intelligence" by Ivan Bratko but didn't have enough time to read it for about 20 years. In 2009 I found some free time to read the book and was amazed by the power of the computer language. To learn it better I wrote small Java based Prolog embeddable engine and called it JProl.   
 
-In 2014 I was asked by [Yuki Katsura](http://iprolog.appstor.io/) to open the sources of the engine under Apache License 2.0 and he made iPad version and the project.
+In 2014 [Yuki Katsura](http://iprolog.appstor.io/) made iPad version.
 
-Initially the engine was a mono-block with embedded GUI part, but later it was reworked ane split to the engine and the GUI editor.
+Initially the engine was a mono-block with embedded GUI part, but later it reworked and split solid-module into two modules: the engine and the GUI editor.
 
 ![GUIEditor](https://github.com/raydac/jprol/blob/master/jprolguieditor.png)   
 
@@ -19,6 +19,7 @@ Initially the engine was a mono-block with embedded GUI part, but later it was r
 # The engine
 
 The engine is published in [the maven central](https://search.maven.org/artifact/com.igormaznitsa/jprol-core/2.1.0/jar) and can be used in maven projects as a dependency. It supports JDK 1.8+ and also I keep it compatible with Android API.   
+
 ```xml
 <dependency>
     <groupId>com.igormaznitsa</groupId>
@@ -26,12 +27,15 @@ The engine is published in [the maven central](https://search.maven.org/artifact
     <version>2.1.0</version>
 </dependency>
 ```   
-The engine uses another my project [java-prolog-parser](https://github.com/raydac/java-prolog-parser) which initially was a part of the jprol engine but then it was extracted as an autonomous project because sometime it is usefult to have only prolog parser for data files. 
+
+It uses another project [java-prolog-parser](https://github.com/raydac/java-prolog-parser) which initially was a part of the JPprol engine but then it was extracted into autonomous module because sometime it is useful to have only prolog parser for data files. 
 
 ## Java method can play a predicate
 
-The engine allows communicate with Java methods and use them as predicates through special annotations.
-For instance, below I show how implemented the `<</2` predicate of the core JProl library. As you can see, the method is just marked by `@JProlPredicate` annotation. Of course it is impossible to mark just any method because a marked method has to have special signature among arguments: `JProlChoicePoint` and `TermStruct`.
+The engine communicates with Java methods marked by special annotationas and having special signature.
+
+For instance, below I show how implemented the `<</2` predicate of the core JProl library. As you can see, the method is just marked by `@JProlPredicate` annotation. It is imp[ossible just mark any method but only methods with special signature and arguments `JProlChoicePoint` and `TermStruct` because they provided during a call.
+
 ```Java
 @JProlPredicate(evaluable = true, signature = "<</2", args = {
   "+evaluable,+evaluable"}, reference = "Bitwise left shift")
@@ -47,7 +51,9 @@ public static Term predicateSHIFTL2(final JProlChoicePoint goal, final TermStruc
 ```
 
 ## Call the Engine from Java
-Example below shows how easily define Eight Queens puzzle and find all its solutions.
+
+Sample below shows how it is easy to inject a prolog based Eight Queens puzzle resolver into Java and get all solutions.
+
 ```Java
 JProlContext context = new JProlContext(
     "test-context",
@@ -70,6 +76,7 @@ while((result = goal.prove()) != null) {
 ### Flags
 
 The bootstrap library of the engine has two predicates `set_prolog_flag/2` and `current_prolog_flag/2`. They can be used to tune work of the engine or get extra info. Not all of them still supported.
+
 - Flags:
     - __address_bit__ (read only) address size of the hosting machine. Typically 32 or 64.
     - __allow_variable_name_as_functor__ (read only)
@@ -91,7 +98,8 @@ The bootstrap library of the engine has two predicates `set_prolog_flag/2` and `
 
 
 ## Multi-threads
-Because Prolog is a declarative language, it is well prepared for multi-threading. I have added pair predicates to span new threads (`fork/1` and `async/1`), also the engine provides special predicate `waitasync/0` to make inter-process synchronization to wait completion of all spawned threads. The `waitasync/0` predicate can be used only from the main thread (the root goal). Also there is support for locks. You can create critical sections with `lock/1`, `unlock/1` and `trylock/1` predicates. Take a look at the prolog program below, it draws 3000000 color dots through three threads.
+
+Prolog is a declarative language and it is well for multi-threading. I have added pair predicates to span new threads (`fork/1` and `async/1`), also the engine provides special predicate `waitasync/0` to make inter-process synchronization to wait completion of all spawned threads. The `waitasync/0` predicate can be used only from the main thread (the root goal). Also there is support for locks. You can create critical sections with `lock/1`, `unlock/1` and `trylock/1` predicates. Take a look at the prolog program below, it draws 3000000 color dots through three threads.
 ```Prolog
 threadRed(P) :- for(_, 0, P), rnd(500, X), rnd(400, Y), lock(gfx), pencolor(red), dot(X, Y), unlock(gfx), fail.
     threadGreen(P) :- for(_, 0, P), rnd(500,X), rnd(400, Y), lock(gfx), pencolor(green), dot(X, Y), unlock(gfx), fail.
@@ -102,7 +110,7 @@ threadRed(P) :- for(_, 0, P), rnd(500, X), rnd(400, Y), lock(gfx), pencolor(red)
 
 ## Example application
 
-I have writtern some small exampleto show how to use the engine in bounds of a Java application. It is a GUI version of Conway's Life game where [all business rules for colony described in prolog](/examples/java/jprol-example-life/src/main/java/com/igormaznitsa/jprol/example/life/LifeLibrary.java).   
+For demo I have written a small GUI application. It is a version of Conway's Life game where [all business rules for colony described in prolog part](/examples/java/jprol-example-life/src/main/java/com/igormaznitsa/jprol/example/life/LifeLibrary.java).   
 
 ![Conway's life with JProl](/art/jprol-example-life.png)   
 
