@@ -106,8 +106,7 @@ public final class PredicateInvoker {
 
   public Term executeEvaluable(final JProlChoicePoint goal, final TermStruct predicate) {
     try {
-      final Object result = this.methodHandle.invoke(goal, predicate);
-      return (Term) result;
+      return (Term)this.methodHandle.invokeExact(goal, predicate);
     } catch (IllegalAccessException ex) {
       throw new ProlCriticalError("Illegal access exception at " + predicate, ex);
     } catch (Throwable thr) {
