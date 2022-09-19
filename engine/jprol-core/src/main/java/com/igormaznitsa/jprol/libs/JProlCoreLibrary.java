@@ -16,10 +16,47 @@
 
 package com.igormaznitsa.jprol.libs;
 
+import static com.igormaznitsa.jprol.data.TermType.ATOM;
+import static com.igormaznitsa.jprol.data.TermType.LIST;
+import static com.igormaznitsa.jprol.data.TermType.STRUCT;
+import static com.igormaznitsa.jprol.data.TermType.VAR;
+import static com.igormaznitsa.jprol.data.Terms.LIST_FUNCTOR;
+import static com.igormaznitsa.jprol.data.Terms.NULL_LIST;
+import static com.igormaznitsa.jprol.data.Terms.newAtom;
+import static com.igormaznitsa.jprol.data.Terms.newDouble;
+import static com.igormaznitsa.jprol.data.Terms.newList;
+import static com.igormaznitsa.jprol.data.Terms.newLong;
+import static com.igormaznitsa.jprol.data.Terms.newStruct;
+import static com.igormaznitsa.jprol.data.Terms.newVar;
+import static com.igormaznitsa.jprol.utils.Utils.createOrAppendToList;
+import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.FX;
+import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.FY;
+import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.XFX;
+import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.XFY;
+import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.YFX;
+
 import com.igormaznitsa.jprol.annotations.JProlOperator;
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
-import com.igormaznitsa.jprol.data.*;
-import com.igormaznitsa.jprol.exceptions.*;
+import com.igormaznitsa.jprol.data.NumericTerm;
+import com.igormaznitsa.jprol.data.Term;
+import com.igormaznitsa.jprol.data.TermDouble;
+import com.igormaznitsa.jprol.data.TermList;
+import com.igormaznitsa.jprol.data.TermLong;
+import com.igormaznitsa.jprol.data.TermOperator;
+import com.igormaznitsa.jprol.data.TermStruct;
+import com.igormaznitsa.jprol.data.TermVar;
+import com.igormaznitsa.jprol.data.Terms;
+import com.igormaznitsa.jprol.exceptions.ProlAbstractCatchableException;
+import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
+import com.igormaznitsa.jprol.exceptions.ProlCustomErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
+import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlKnowledgeBaseException;
+import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlRepresentationErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
@@ -33,17 +70,20 @@ import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.Utils;
 import com.igormaznitsa.prologparser.exceptions.PrologParserException;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
-
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
-
-import static com.igormaznitsa.jprol.data.TermType.*;
-import static com.igormaznitsa.jprol.data.Terms.*;
-import static com.igormaznitsa.jprol.utils.Utils.createOrAppendToList;
-import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.*;
 
 @SuppressWarnings({"EmptyMethod", "unused", "checkstyle:AbbreviationAsWordInName"})
 @JProlOperator(priority = 1050, type = XFY, name = "->")
@@ -1667,7 +1707,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
-      throw new ProlPermissionErrorException("modify", "static_procedure", newAtom(signature));
+      throw new ProlPermissionErrorException("modify", "static_procedure",
+          "Predicate signature '" + signature + "'is presented in library", newAtom(signature));
     }
 
     base.abolish(goal.getContext(), signature);
@@ -2039,7 +2080,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
     // check that it doesn't overload any static system predicate
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
-      throw new ProlPermissionErrorException("modify", "static_procedure", newAtom(signature));
+      throw new ProlPermissionErrorException("modify", "static_procedure",
+          "Predicate signature '" + signature + "'is presented in library", newAtom(signature));
     }
 
     base.assertA(goal.getContext(), (TermStruct) termToAdd.makeCloneAndVarBound());
@@ -2063,7 +2105,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
             ((TermStruct) termToRemove).getElement(0).getSignature() : termToRemove.getSignature();
 
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
-      throw new ProlPermissionErrorException("modify", "static_procedure", newAtom(signature));
+      throw new ProlPermissionErrorException("modify", "static_procedure",
+          "Predicate signature '" + signature + "'is presented in library", newAtom(signature));
     }
 
     base.assertZ(goal.getContext(), (TermStruct) termToRemove.makeCloneAndVarBound());
@@ -2089,7 +2132,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
     // check that it doesn't overload any static system predicate
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
-      throw new ProlPermissionErrorException("modify", "static_procedure", newAtom(signature));
+      throw new ProlPermissionErrorException("modify", "static_procedure",
+          "Predicate signature '" + signature + "'is presented in library", newAtom(signature));
     }
 
     return base.retractA(goal.getContext(), (TermStruct) atom.makeCloneAndVarBound());
@@ -2114,7 +2158,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
     // check that it doesn't overload any static system predicate
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
-      throw new ProlPermissionErrorException("modify", "static_procedure", newAtom(signature));
+      throw new ProlPermissionErrorException("modify", "static_procedure",
+          "Predicate signature '" + signature + "'is presented in library", newAtom(signature));
     }
 
     return base.retractZ(goal.getContext(), (TermStruct) atom);
@@ -2140,7 +2185,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
     // check that it doesn't overload any static system predicate
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
-      throw new ProlPermissionErrorException("modify", "static_procedure", newAtom(signature));
+      throw new ProlPermissionErrorException("modify", "static_procedure",
+          "Predicate signature '" + signature + "'is presented in library", newAtom(signature));
     }
 
     return base.retractAll(goal.getContext(), (TermStruct) atom);

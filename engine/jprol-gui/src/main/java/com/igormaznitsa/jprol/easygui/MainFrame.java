@@ -26,6 +26,7 @@ import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.exceptions.ProlChoicePointInterruptedException;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlInterruptException;
+import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
 import com.igormaznitsa.jprol.libs.JProlGfxLibrary;
@@ -1275,6 +1276,13 @@ public final class MainFrame extends javax.swing.JFrame
         // wait for async threads
         context.getContextExecutorService().shutdown();
         context.getContextExecutorService().awaitTermination(60, TimeUnit.SECONDS);
+      } catch (ProlPermissionErrorException ex) {
+        LOG.log(Level.WARNING, "Permission error", ex);
+        this.messageEditor.addErrorText(
+            "Permission error [" + ex.getMessage() + ']');
+        JOptionPane.showMessageDialog(this, "Out of Memory exception  detected!", "Error",
+            JOptionPane.ERROR_MESSAGE);
+        return;
       } catch (PrologParserException ex) {
         LOG.log(Level.WARNING, "ExecutionThread.run()", ex);
         parserException = ex;
