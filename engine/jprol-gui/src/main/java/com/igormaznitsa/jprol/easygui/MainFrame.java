@@ -1275,7 +1275,9 @@ public final class MainFrame extends javax.swing.JFrame
         context.consult(new StringReader(sourceEditor.getText()), this);
         // wait for async threads
         context.getContextExecutorService().shutdown();
-        context.getContextExecutorService().awaitTermination(60, TimeUnit.SECONDS);
+        if (!context.getContextExecutorService().awaitTermination(15, TimeUnit.SECONDS)) {
+          context.getContextExecutorService().shutdownNow();
+        }
       } catch (ProlPermissionErrorException ex) {
         LOG.log(Level.WARNING, "Permission error", ex);
         this.messageEditor.addErrorText(
