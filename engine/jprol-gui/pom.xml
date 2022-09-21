@@ -15,7 +15,7 @@
     <properties>
         <app.name>jprol-gui-${project.version}</app.name>
         <jre.provider>BELLSOFT</jre.provider>
-        <jre.version>17.0.4.1+1</jre.version>
+        <jre.version>19+37</jre.version>
         <start-class>JProlApp</start-class>
     </properties>
 
