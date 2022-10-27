@@ -7,7 +7,7 @@
 
 
 # Introduction
-I used to buy and collect books about computer tehcnololgies since my childhood and in 1990 I bought a book titled as "Prolog programming for Artificial Intelligence" by Ivan Bratko but didn't have enough time to read it for about 20 years. In 2009 I found some free time to read the book and was amazed by the power of the computer language. To learn it better I wrote small Java based Prolog embeddable engine and called it JProl.   
+I used to buy and collect books about computer technologies since my childhood and in 1990 I bought a book titled as "Prolog programming for Artificial Intelligence" by Ivan Bratko but didn't have enough time to read it for about 20 years. In 2009 I found some free time to read the book and was amazed by the power of the computer language. To learn it better I wrote small Java based Prolog embeddable engine and called it JProl.   
 
 In 2014 [Yuki Katsura](http://iprolog.appstor.io/) made iPad version.
 
