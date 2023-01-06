@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.1
+Type=Application
+Name=JProl editor
+GenericName=JProl editor
+Icon=icon
+Comment=GUI editor for JProl interprter
+Categories=Office;Utility;Education;Development;
+Keywords=jprol;prolog;
+Terminal=false
+StartupWMClass=jprol-editor
