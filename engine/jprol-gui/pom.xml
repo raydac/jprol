@@ -313,6 +313,7 @@
                                     <dontWrapJar>true</dontWrapJar>
                                     <jar>jprol-gui.jar</jar>
                                     <jre>
+                                        <path>%VAR%</path>
                                         <minVersion>1.8</minVersion>
                                     </jre>
                                 </configuration>
