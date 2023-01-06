@@ -15,7 +15,7 @@
     <properties>
         <app.name>jprol-gui-${project.version}</app.name>
         <jre.provider>BELLSOFT</jre.provider>
-        <jre.version>19+37</jre.version>
+        <jre.version>19.0.1+11</jre.version>
         <start-class>JProlApp</start-class>
     </properties>
 
@@ -33,7 +33,7 @@
         <dependency>
             <groupId>com.fifesoft</groupId>
             <artifactId>rsyntaxtextarea</artifactId>
-            <version>3.3.0</version>
+            <version>3.3.1</version>
         </dependency>
     </dependencies>
 
@@ -277,7 +277,7 @@
                                 <fileVersion>2.1.1.0</fileVersion>
                                 <txtFileVersion>${project.version}</txtFileVersion>
                                 <fileDescription>JProl GUI editor</fileDescription>
-                                <copyright>2010-2022 Igor Maznitsa</copyright>
+                                <copyright>2010-2023 Igor Maznitsa</copyright>
                                 <productVersion>2.1.1.0</productVersion>
                                 <txtProductVersion>${project.version}</txtProductVersion>
                                 <productName>${project.name}</productName>
@@ -570,7 +570,7 @@
                     <plugin>
                         <artifactId>exec-maven-plugin</artifactId>
                         <groupId>org.codehaus.mojo</groupId>
-                        <version>3.0.0</version>
+                        <version>3.1.0</version>
                         <executions>
                             <execution>
                                 <id>make-sh</id>
