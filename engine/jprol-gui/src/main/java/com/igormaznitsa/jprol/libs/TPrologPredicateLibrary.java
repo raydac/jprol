@@ -48,7 +48,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
   /**
    * Inside logger, the canonical class name is used as the logger identifier.
    */
-  protected static final Logger LOG = Logger.getLogger(TPrologPredicateLibrary.class.getCanonicalName());
+  protected static final Logger LOG = Logger.getLogger(TPrologPredicateLibrary.class.getName());
   private static volatile File path = new File(System.getProperty("user.home"));
 
   public TPrologPredicateLibrary() {

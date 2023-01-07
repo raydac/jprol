@@ -127,7 +127,7 @@ public final class MainFrame extends javax.swing.JFrame
       TPrologPredicateLibrary.class.getCanonicalName()
   };
 
-  private static final Logger LOG = Logger.getLogger("PROL_NOTE_PAD");
+  private static final Logger LOG = Logger.getLogger(MainFrame.class.getName());
   private static final FileFilter PROL_FILE_FILTER = new FileFilter() {
 
     @Override

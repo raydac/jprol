@@ -56,7 +56,7 @@ import static java.util.Objects.requireNonNull;
 
 public final class JProlGfxLibrary extends AbstractJProlLibrary implements WindowListener, ActionListener {
 
-  protected static final Logger LOG = Logger.getLogger(JProlGfxLibrary.class.getCanonicalName());
+  protected static final Logger LOG = Logger.getLogger(JProlGfxLibrary.class.getName());
   private final WeakHashMap<JMenuItem, RegisteredAction> registeredActions = new WeakHashMap<>();
   private final JFrame graphicFrame;
   private final JLabel label;
