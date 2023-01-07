@@ -1,4 +1,4 @@
 #!/bin/sh
 BASEDIR=`dirname "$0"`
-
-exec "$BASEDIR"/jre/bin/java -jar "$BASEDIR"/jprol-gui-*.jar
+JAVA_FLAGS="-client -Xss25M -Xmx2G"
+exec "$BASEDIR"/jre/bin/java $JAVA_FLAGS -jar "$BASEDIR"/jprol-gui-*.jar

@@ -6,4 +6,6 @@ if [ -z "$JAVA_HOME" ]; then
     if [ -d "$JAVA_HOME" ]; then export JAVA_HOME; fi
 fi
 
-exec java -jar "$BASEDIR"/jprol-gui-*.jar
+JAVA_FLAGS="-client -Xss25M -Xmx2G"
+
+exec java $JAVA_FLAGS -jar "$BASEDIR"/jprol-gui-*.jar
