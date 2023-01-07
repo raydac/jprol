@@ -23,7 +23,6 @@ import static com.igormaznitsa.jprol.trace.TraceEvent.EXIT;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
 
-
 import com.igormaznitsa.jprol.data.CompoundTerm;
 import com.igormaznitsa.jprol.data.NumericTerm;
 import com.igormaznitsa.jprol.data.Term;

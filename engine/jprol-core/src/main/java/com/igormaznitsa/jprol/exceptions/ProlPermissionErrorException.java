@@ -18,7 +18,6 @@ package com.igormaznitsa.jprol.exceptions;
 
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 
-
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermStruct;

@@ -3,7 +3,6 @@ package com.igormaznitsa.jprol.logic;
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static java.util.Arrays.stream;
 
-
 import com.igormaznitsa.jprol.data.Term;
 import java.util.Optional;
 

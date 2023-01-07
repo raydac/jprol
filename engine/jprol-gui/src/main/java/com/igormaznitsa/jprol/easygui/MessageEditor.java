@@ -16,11 +16,11 @@
 
 package com.igormaznitsa.jprol.easygui;
 
-import javax.swing.*;
+import java.awt.Color;
+import java.util.prefs.Preferences;
+import javax.swing.JEditorPane;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
-import java.awt.*;
-import java.util.prefs.Preferences;
 
 /**
  * The class implements the message pane for the IDE because it is a very

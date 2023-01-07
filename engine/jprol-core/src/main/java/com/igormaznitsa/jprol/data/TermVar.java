@@ -19,7 +19,6 @@ package com.igormaznitsa.jprol.data;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.newVar;
 
-
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import java.util.HashMap;
 import java.util.Map;

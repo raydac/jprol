@@ -20,12 +20,9 @@ import com.igormaznitsa.jprol.annotations.JProlOperator;
 import com.igormaznitsa.jprol.annotations.JProlOperators;
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Desktop;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.Closeable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -34,6 +31,9 @@ import java.net.URL;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.SwingUtilities;
 
 /**
  * Misc auxiliary methods for UI operations.
@@ -46,14 +46,6 @@ public final class UiUtils {
 
   }
 
-  public static void closeQuietly(final Closeable closeable) {
-    if (closeable != null) {
-      try {
-        closeable.close();
-      } catch (Exception ex) {
-      }
-    }
-  }
 
   public static void printPredicatesForLibrary(final PrintStream out, final Class<?> libraryClass) {
     if (!AbstractJProlLibrary.class.isAssignableFrom(libraryClass)) {

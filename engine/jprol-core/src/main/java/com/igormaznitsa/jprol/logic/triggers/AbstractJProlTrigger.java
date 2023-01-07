@@ -20,7 +20,6 @@ import static com.igormaznitsa.jprol.utils.Utils.normalizeSignature;
 import static com.igormaznitsa.jprol.utils.Utils.validateSignature;
 import static java.util.Objects.requireNonNull;
 
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;

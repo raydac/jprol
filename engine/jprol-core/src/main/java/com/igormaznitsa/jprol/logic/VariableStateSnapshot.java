@@ -18,7 +18,6 @@ package com.igormaznitsa.jprol.logic;
 
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 
-
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermStruct;

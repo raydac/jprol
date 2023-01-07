@@ -16,6 +16,9 @@
 
 package com.igormaznitsa.jprol.libs;
 
+import static com.igormaznitsa.jprol.data.TermType.VAR;
+import static java.util.Objects.requireNonNull;
+
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermLong;
@@ -27,11 +30,11 @@ import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
-
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -50,13 +53,22 @@ import java.util.WeakHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static com.igormaznitsa.jprol.data.TermType.VAR;
-import static java.util.Objects.requireNonNull;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileFilter;
 
 public final class JProlGfxLibrary extends AbstractJProlLibrary implements WindowListener, ActionListener {
 
-  protected static final Logger LOG = Logger.getLogger(JProlGfxLibrary.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(JProlGfxLibrary.class.getName());
   private final WeakHashMap<JMenuItem, RegisteredAction> registeredActions = new WeakHashMap<>();
   private final JFrame graphicFrame;
   private final JLabel label;
@@ -185,7 +197,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     } catch (NoSuchFieldException ex) {
       colorAsInteger = true;
     } catch (Exception ex) {
-      LOG.log(Level.WARNING, "textToColor(" + text + ")", ex);
+      LOGGER.log(Level.WARNING, "textToColor(" + text + ")", ex);
       return null;
     }
 
@@ -194,6 +206,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
       try {
         return new Color(Integer.parseInt(text, 16) & 0xFF000000);
       } catch (NumberFormatException ex) {
+        // ignore
       }
     }
     return null;
@@ -236,8 +249,10 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
             throw new IOException("Can't find the png encoder");
           }
         } catch (Exception ex) {
-          LOG.log(Level.WARNING, "Can't save an image file", ex);
-          JOptionPane.showMessageDialog(this.graphicFrame, "Can't save the image as a file [" + ex.getMessage() + ']', "Error", JOptionPane.ERROR_MESSAGE);
+          LOGGER.log(Level.WARNING, "Can't save an image file", ex);
+          JOptionPane.showMessageDialog(this.graphicFrame,
+              "Can't save the image as a file [" + ex.getMessage() + ']', "Error",
+              JOptionPane.ERROR_MESSAGE);
         }
       }
     }
@@ -680,7 +695,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
       color = getColorForName(text);
 
     } catch (Exception ex) {
-      LOG.log(Level.WARNING, "brushcolor/1", ex);
+      LOGGER.log(Level.WARNING, "brushcolor/1", ex);
       return false;
     }
 
@@ -731,7 +746,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
       color = getColorForName(text);
 
     } catch (Exception ex) {
-      LOG.log(Level.WARNING, "pencolor/1", ex);
+      LOGGER.log(Level.WARNING, "pencolor/1", ex);
       return false;
     }
 
@@ -833,14 +848,14 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
       outStream.close();
       outStream = null;
     } catch (Exception ex) {
-      LOG.log(Level.WARNING, "saveCurrentBuffer()", ex);
+      LOGGER.log(Level.WARNING, "saveCurrentBuffer()", ex);
       throw new ProlPermissionErrorException("write", "image_output", predicate, ex);
     } finally {
       if (outStream != null) {
         try {
           outStream.close();
         } catch (Exception ex) {
-          LOG.log(Level.WARNING, "saveCurrentBuffer().close()", ex);
+          LOGGER.log(Level.WARNING, "saveCurrentBuffer().close()", ex);
         }
       }
     }
@@ -1053,7 +1068,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
         this.contextForTheAction.proveAllAsync(action, true);
         return true;
       } catch (Throwable thr) {
-        LOG.log(Level.SEVERE, "Can't execute registered action " + this.menuText, thr);
+        LOGGER.log(Level.SEVERE, "Can't execute registered action " + this.menuText, thr);
       }
       return false;
     }

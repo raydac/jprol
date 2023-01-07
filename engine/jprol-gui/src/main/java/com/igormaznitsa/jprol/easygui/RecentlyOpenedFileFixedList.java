@@ -16,7 +16,11 @@
 
 package com.igormaznitsa.jprol.easygui;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * An auxiliary class to make fixed length queue

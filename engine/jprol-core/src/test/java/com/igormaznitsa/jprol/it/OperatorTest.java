@@ -1,14 +1,14 @@
 package com.igormaznitsa.jprol.it;
 
+import static com.igormaznitsa.jprol.data.TermType.ATOM;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PreparedGoal;
 import org.junit.jupiter.api.Test;
-
-import static com.igormaznitsa.jprol.data.TermType.ATOM;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class OperatorTest extends AbstractJProlTest {
 

@@ -16,12 +16,14 @@
 
 package com.igormaznitsa.jprol.easygui;
 
-import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import java.awt.*;
+import java.awt.Dialog;
+import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 /**
  * The class implements a small dialog windows to give possibility to custom
@@ -54,10 +56,10 @@ public class FontChooserDialog extends javax.swing.JDialog implements ActionList
   /**
    * Creates new form FontChooserDialog
    *
-   * @param parent
-   * @param title
-   * @param font
-   * @param testText
+   * @param parent   parent component
+   * @param title    dialog title
+   * @param font     font to be processed
+   * @param testText test text string
    */
   @SuppressWarnings( {"unchecked"})
   public FontChooserDialog(final Dialog parent, final String title, Font font, String testText) {

@@ -18,7 +18,6 @@ package com.igormaznitsa.jprol.easygui;
 
 import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.logic.JProlContext;
-
 import java.io.CharArrayWriter;
 import java.io.PrintWriter;
 import java.util.Objects;

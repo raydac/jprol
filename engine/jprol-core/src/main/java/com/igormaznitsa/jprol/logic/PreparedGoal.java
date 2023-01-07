@@ -19,7 +19,6 @@ package com.igormaznitsa.jprol.logic;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Objects.requireNonNull;
 
-
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.Terms;
 import java.io.StringReader;

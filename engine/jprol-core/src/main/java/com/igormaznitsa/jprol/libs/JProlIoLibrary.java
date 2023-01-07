@@ -3,7 +3,6 @@ package com.igormaznitsa.jprol.libs;
 import static com.igormaznitsa.jprol.data.TermType.LIST;
 import static com.igormaznitsa.jprol.libs.JProlCoreLibrary.predicateCALL;
 
-
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;

@@ -16,11 +16,12 @@
 
 package com.igormaznitsa.jprol.easygui;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import javax.swing.JPopupMenu;
+import javax.swing.JTextPane;
 
 /**
  * The class implements the Editor pane for the IDE.

@@ -2,7 +2,6 @@ package com.igormaznitsa.jprol.libs;
 
 import static com.igormaznitsa.jprol.utils.Utils.extractErrors;
 
-
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;

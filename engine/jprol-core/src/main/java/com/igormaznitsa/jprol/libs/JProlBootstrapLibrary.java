@@ -1,5 +1,10 @@
 package com.igormaznitsa.jprol.libs;
 
+import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.FX;
+import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.XF;
+import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.XFX;
+import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.XFY;
+
 import com.igormaznitsa.jprol.annotations.JProlOperator;
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.NumericTerm;
@@ -10,11 +15,8 @@ import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlSystemFlag;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
-
 import java.util.Iterator;
 import java.util.stream.Stream;
-
-import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.*;
 
 @SuppressWarnings({"EmptyMethod", "unused", "checkstyle:AbbreviationAsWordInName"})
 @JProlOperator(priority = 700, type = XFX, name = "is")

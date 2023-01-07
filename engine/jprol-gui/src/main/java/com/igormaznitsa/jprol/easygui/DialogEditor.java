@@ -15,13 +15,9 @@
  */
 package com.igormaznitsa.jprol.easygui;
 
-import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleConstants.CharacterConstants;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -29,11 +25,22 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.*;
+import java.io.IOException;
+import java.io.PipedReader;
+import java.io.PipedWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.prefs.Preferences;
+import javax.swing.JTextPane;
+import javax.swing.SwingUtilities;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleConstants.CharacterConstants;
 
 /**
  * The class implements the Dialog editor for the IDE because it is a very
@@ -233,6 +240,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
       try {
         inputWriter.append(e.getKeyChar());
       } catch (Exception ex) {
+        // ignore
       }
     }
   }
@@ -325,7 +333,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
 
   public final static class NonClosableWriter extends PipedWriter {
 
-    protected final List<Character> buffer;
+    private final List<Character> buffer;
     private final boolean waitEnter;
     private final AtomicInteger foundNextLineCounter = new AtomicInteger();
 

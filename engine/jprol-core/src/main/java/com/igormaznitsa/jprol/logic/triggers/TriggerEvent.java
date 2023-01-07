@@ -18,7 +18,6 @@ package com.igormaznitsa.jprol.logic.triggers;
 
 import static java.util.Objects.requireNonNull;
 
-
 import com.igormaznitsa.jprol.logic.JProlContext;
 
 public class TriggerEvent {

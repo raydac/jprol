@@ -16,9 +16,8 @@
 
 package com.igormaznitsa.jprol.easygui;
 
-import org.fife.ui.rtextarea.RTextScrollPane;
-
 import java.util.Objects;
+import org.fife.ui.rtextarea.RTextScrollPane;
 
 /**
  * The class implements the dialog window contains the help about the IDE

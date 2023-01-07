@@ -1,11 +1,11 @@
 package com.igormaznitsa.jprol.it;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class MapColorTest extends AbstractJProlTest {
 

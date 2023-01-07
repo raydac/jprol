@@ -69,7 +69,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -115,7 +114,7 @@ public final class MainFrame extends javax.swing.JFrame
     implements ConsultInteract, IoResourceProvider, Runnable, UndoableEditListener, WindowListener,
     DocumentListener, HyperlinkListener, JProlContextListener {
 
-  protected static final String PROL_EXTENSION = ".prl";
+  private static final String PROL_EXTENSION = ".prl";
   private static final long serialVersionUID = 72348723421332L;
 
   private static final String[] PROL_LIBRARIES = new String[] {
@@ -148,23 +147,23 @@ public final class MainFrame extends javax.swing.JFrame
   };
   private static final int MAX_RECENT_FILES = 10;
   public static volatile WeakReference<MainFrame> MAIN_FRAME_INSTANCE;
-  protected final LogLibrary logLibrary;
-  protected final AtomicReference<Thread> currentExecutedScriptThread = new AtomicReference<>();
-  protected final AtomicBoolean startedInTracing = new AtomicBoolean();
+  private final LogLibrary logLibrary;
+  private final AtomicReference<Thread> currentExecutedScriptThread = new AtomicReference<>();
+  private final AtomicBoolean startedInTracing = new AtomicBoolean();
   /**
    * The version of the IDE
    */
   private final String VERSION =
-      getString(this.getClass().getPackage().getImplementationVersion(), "<Development>");
+      this.getClass().getPackage().getImplementationVersion() == null ? "<Development>"
+          : this.getClass().getPackage().getImplementationVersion();
   private final ThreadGroup executingScripts = new ThreadGroup("ProlExecutingScripts");
-  private final String PROPERTY_PROL_STACK_DEPTH = "prol.stack.depth";
   private final RecentlyOpenedFileFixedList recentFiles =
       new RecentlyOpenedFileFixedList(MAX_RECENT_FILES);
-  protected Map<String, LookAndFeelInfo> lookAndFeelMap;
-  protected File currentOpenedFile;
-  protected File lastOpenedFile;
-  protected boolean documentHasBeenChangedFlag;
-  protected volatile JProlContext lastContext;
+  private Map<String, LookAndFeelInfo> lookAndFeelMap;
+  private File currentOpenedFile;
+  private File lastOpenedFile;
+  private boolean documentHasBeenChangedFlag;
+  private volatile JProlContext lastContext;
   // Variables declaration - do not modify
   private javax.swing.JButton buttonCloseFind;
   private javax.swing.JButton buttonStopExecuting;
@@ -299,10 +298,6 @@ public final class MainFrame extends javax.swing.JFrame
   public MainFrame(final GraphicsConfiguration config, final File initFile) {
     this(config);
     loadFile(initFile, true);
-  }
-
-  private static String getString(final String str, final String def) {
-    return str == null ? def : str;
   }
 
   public void addErrorText(final String msg) {
@@ -842,6 +837,7 @@ public final class MainFrame extends javax.swing.JFrame
     try {
       this.sourceEditor.getUndoManager().undo();
     } catch (CannotUndoException ex) {
+      // ignore
     }
     UndoManager undo = sourceEditor.getUndoManager();
     this.menuUndo.setEnabled(undo.canUndo());
@@ -853,6 +849,7 @@ public final class MainFrame extends javax.swing.JFrame
     try {
       this.sourceEditor.getUndoManager().redo();
     } catch (CannotRedoException ex) {
+      // ignore
     }
     UndoManager undo = this.sourceEditor.getUndoManager();
     this.menuUndo.setEnabled(undo.canUndo());
@@ -998,32 +995,6 @@ public final class MainFrame extends javax.swing.JFrame
     }
   }
 
-  private long extractStackDepth() {
-    final long MINIMAL_STACK = 5 * 1024 * 1024;
-
-    long stackSize = MINIMAL_STACK;
-    final String definedProlStackDepth = System.getProperty(PROPERTY_PROL_STACK_DEPTH);
-    if (definedProlStackDepth != null) {
-      int scale = 1;
-      final String trimmed = definedProlStackDepth.trim().toLowerCase(Locale.ENGLISH);
-      String text = trimmed;
-      if (trimmed.endsWith("m")) {
-        scale = 1024 * 1024;
-        text = trimmed.substring(0, trimmed.length() - 1);
-      } else if (trimmed.endsWith("k")) {
-        scale = 1024;
-        text = trimmed.substring(0, trimmed.length() - 1);
-      }
-      try {
-        stackSize = Math.max(MINIMAL_STACK, Long.parseLong(text) * scale);
-      } catch (NumberFormatException ex) {
-        LOG.log(Level.SEVERE, "Can't extract stack depth value [" + definedProlStackDepth + ']',
-            ex);
-      }
-    }
-    return stackSize;
-  }
-
   private void startExecution(final boolean tracing) {
     final Thread executingThread = this.currentExecutedScriptThread.get();
 
@@ -1035,16 +1006,8 @@ public final class MainFrame extends javax.swing.JFrame
         return;
       }
 
-      final long stackSize = extractStackDepth();
-      if (tracing) {
-        LOG.info("Start TRACING with the stack depth " + stackSize + " bytes");
-      } else {
-        LOG.info("Start execution with the stack depth " + stackSize + " bytes");
-      }
-
       final Thread newThread =
-          new Thread(this.executingScripts, this, tracing ? "JPROL_TRACING_EXEC" : "JPROL_EXEC",
-              stackSize);
+          new Thread(this.executingScripts, this, tracing ? "JPROL_TRACING_EXEC" : "JPROL_EXEC");
       newThread.setDaemon(false);
 
       if (this.currentExecutedScriptThread.compareAndSet(null, newThread)) {
@@ -1394,7 +1357,7 @@ public final class MainFrame extends javax.swing.JFrame
 
     if (this.currentExecutedScriptThread.get() != null) {
       if (JOptionPane.showConfirmDialog(this,
-          "Task is under execution. Do you really want to exit?", "Confirmation",
+          "Detected active task. Do you really want to force exit?", "Confirmation",
           JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 
         this.dialogEditor.cancelRead();
@@ -1421,8 +1384,7 @@ public final class MainFrame extends javax.swing.JFrame
     try {
       this.dispose();
     } catch (Exception ex) {
-    } finally {
-      System.exit(0);
+      LOG.log(Level.SEVERE, "Error during close", ex);
     }
   }
 
@@ -1482,11 +1444,7 @@ public final class MainFrame extends javax.swing.JFrame
     this.sourceEditor.getEditor().setText(text);
     this.sourceEditor.setCaretPosition(0);
 
-    if (this.currentOpenedFile != null) {
-      this.menuFileSave.setEnabled(true);
-    } else {
-      this.menuFileSave.setEnabled(false);
-    }
+    this.menuFileSave.setEnabled(this.currentOpenedFile != null);
 
     this.sourceEditor.getUndoManager().discardAllEdits();
     this.menuUndo.setEnabled(false);

@@ -19,10 +19,10 @@
 
 package com.igormaznitsa.jprol.easygui;
 
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-
-import java.awt.*;
+import java.awt.Container;
+import java.awt.Font;
 import java.awt.event.MouseWheelEvent;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
 public final class ScalableRsyntaxTextArea extends RSyntaxTextArea {
 

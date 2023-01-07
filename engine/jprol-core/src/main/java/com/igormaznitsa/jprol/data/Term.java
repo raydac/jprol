@@ -37,7 +37,6 @@ import static com.igormaznitsa.jprol.utils.Utils.escapeSrc;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
 
-
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import java.util.HashMap;
 import java.util.Map;

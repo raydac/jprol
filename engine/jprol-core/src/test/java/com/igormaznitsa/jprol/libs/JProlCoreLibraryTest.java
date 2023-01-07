@@ -1,14 +1,26 @@
 package com.igormaznitsa.jprol.libs;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.data.TermVar;
-import com.igormaznitsa.jprol.exceptions.*;
+import com.igormaznitsa.jprol.exceptions.ProlCustomErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlRepresentationErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.it.AbstractJProlTest;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class JProlCoreLibraryTest extends AbstractJProlTest {
 
@@ -296,7 +308,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   @Test
   void testAbs1() {
     checkVarValues("X is abs(3.14).", "X", String.valueOf(Math.abs(3.14D)));
-    checkVarValues("X is abs(0).", "X", String.valueOf(Math.abs(0)));
+    checkVarValues("X is abs(0).", "X", String.valueOf(0));
     checkVarValues("X is abs(-33.2).", "X", String.valueOf(Math.abs(-33.2D)));
   }
 

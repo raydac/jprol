@@ -23,7 +23,6 @@ import static com.igormaznitsa.jprol.utils.Utils.makeCloseableIterator;
 import static java.lang.Integer.parseInt;
 import static java.util.Objects.requireNonNull;
 
-
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermOperator;
 import com.igormaznitsa.jprol.data.TermOperatorContainer;

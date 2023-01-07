@@ -16,6 +16,8 @@
 
 package com.igormaznitsa.jprol.libs;
 
+import static com.igormaznitsa.jprol.data.TermType.VAR;
+
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
@@ -26,16 +28,13 @@ import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.Utils;
-
-import javax.swing.filechooser.FileFilter;
 import java.io.CharArrayWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Objects;
 import java.util.logging.Logger;
-
-import static com.igormaznitsa.jprol.data.TermType.VAR;
+import javax.swing.filechooser.FileFilter;
 
 /**
  * The class implements some predicates to increase compatibility with Borland
@@ -48,7 +47,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
   /**
    * Inside logger, the canonical class name is used as the logger identifier.
    */
-  protected static final Logger LOG = Logger.getLogger(TPrologPredicateLibrary.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(TPrologPredicateLibrary.class.getName());
   private static volatile File path = new File(System.getProperty("user.home"));
 
   public TPrologPredicateLibrary() {

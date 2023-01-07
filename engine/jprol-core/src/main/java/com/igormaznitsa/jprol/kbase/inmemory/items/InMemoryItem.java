@@ -2,7 +2,6 @@ package com.igormaznitsa.jprol.kbase.inmemory.items;
 
 import static java.util.Objects.requireNonNull;
 
-
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermType;

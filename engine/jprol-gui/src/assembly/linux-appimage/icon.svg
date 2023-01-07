@@ -1,29 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="1025.3" height="1025.3" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xlink="http://www.w3.org/1999/xlink">
- <defs>
-  <linearGradient id="linearGradient3153" x1="114.29" x2="500" y1="43.791" y2="995.22" gradientUnits="userSpaceOnUse">
-   <stop stop-color="#0052ff" offset="0"/>
-   <stop stop-color="#00c1ff" offset="1"/>
-  </linearGradient>
-  <filter id="filter3987" color-interpolation-filters="sRGB">
-   <feFlood flood-color="rgb(0,0,0)" flood-opacity=".766" result="flood"/>
-   <feComposite in="flood" in2="SourceGraphic" operator="in" result="composite1"/>
-   <feGaussianBlur result="blur" stdDeviation="15"/>
-   <feOffset dx="16" dy="16" result="offset"/>
-   <feComposite in="SourceGraphic" in2="offset" result="composite2"/>
-  </filter>
- </defs>
- <metadata>
-  <rdf:RDF>
-   <cc:Work rdf:about="">
-    <dc:format>image/svg+xml</dc:format>
-    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:title/>
-   </cc:Work>
-  </rdf:RDF>
- </metadata>
- <g transform="translate(184.08 -8.2861)">
-  <rect x="-171.43" y="20.934" width="1e3" height="1e3" fill="url(#linearGradient3153)" stroke="#0000b3" stroke-linecap="round" stroke-linejoin="round" stroke-width="25.295"/>
-  <text transform="scale(.92659 1.0792)" x="-142.74973" y="848.25012" fill="#ffffff" filter="url(#filter3987)" font-family="'Shaston 320'" letter-spacing="0px" word-spacing="0px" style="line-height:0%" xml:space="preserve"><tspan x="-142.74973" y="848.25012" fill="#ffffff" font-family="sans-serif" font-size="985.09px" font-weight="bold" style="line-height:1.25">?-</tspan></text>
- </g>
+<svg xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" width="1025.3"
+     height="1025.3" version="1.1"
+     xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="linearGradient3153" x1="114.29" x2="500" y1="43.791" y2="995.22"
+                        gradientUnits="userSpaceOnUse">
+            <stop stop-color="#0052ff" offset="0"/>
+            <stop stop-color="#00c1ff" offset="1"/>
+        </linearGradient>
+        <filter id="filter3987" color-interpolation-filters="sRGB">
+            <feFlood flood-color="rgb(0,0,0)" flood-opacity=".766" result="flood"/>
+            <feComposite in="flood" in2="SourceGraphic" operator="in" result="composite1"/>
+            <feGaussianBlur result="blur" stdDeviation="15"/>
+            <feOffset dx="16" dy="16" result="offset"/>
+            <feComposite in="SourceGraphic" in2="offset" result="composite2"/>
+        </filter>
+    </defs>
+    <metadata>
+        <rdf:RDF>
+            <cc:Work rdf:about="">
+                <dc:format>image/svg+xml</dc:format>
+                <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+                <dc:title/>
+            </cc:Work>
+        </rdf:RDF>
+    </metadata>
+    <g transform="translate(184.08 -8.2861)">
+        <rect x="-171.43" y="20.934" width="1e3" height="1e3" fill="url(#linearGradient3153)" stroke="#0000b3"
+              stroke-linecap="round" stroke-linejoin="round" stroke-width="25.295"/>
+        <text transform="scale(.92659 1.0792)" x="-142.74973" y="848.25012" fill="#ffffff" filter="url(#filter3987)"
+              font-family="'Shaston 320'" letter-spacing="0px" word-spacing="0px" style="line-height:0%"
+              xml:space="preserve"><tspan x="-142.74973" y="848.25012" fill="#ffffff" font-family="sans-serif" font-size="985.09px" font-weight="bold" style="line-height:1.25">?-</tspan></text>
+    </g>
 </svg>

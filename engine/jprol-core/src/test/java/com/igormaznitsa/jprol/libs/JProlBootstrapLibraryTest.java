@@ -1,5 +1,10 @@
 package com.igormaznitsa.jprol.libs;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
@@ -9,8 +14,6 @@ import com.igormaznitsa.jprol.it.AbstractJProlTest;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlSystemFlag;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class JProlBootstrapLibraryTest extends AbstractJProlTest {
   @Test
@@ -22,7 +25,7 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
     assertNull(point.prove());
 
     final JProlChoicePoint all = prepareGoal("current_prolog_flag(A,B).");
-    for (final JProlSystemFlag f : JProlSystemFlag.values()) {
+    for (final JProlSystemFlag f : JProlSystemFlag.VALUES) {
       assertNotNull(all.prove());
       assertTrue(f.getNameTerm().dryUnifyTo(all.findVar("A").get()));
       assertTrue(f.getDefaultValue().dryUnifyTo(all.findVar("B").get()));

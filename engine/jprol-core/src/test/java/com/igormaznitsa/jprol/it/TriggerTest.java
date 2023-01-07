@@ -1,16 +1,15 @@
 package com.igormaznitsa.jprol.it;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.triggers.AbstractJProlTrigger;
 import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
 import com.igormaznitsa.jprol.logic.triggers.TriggerEvent;
-import org.junit.jupiter.api.Test;
-
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 class TriggerTest extends AbstractJProlTest {
 

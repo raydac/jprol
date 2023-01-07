@@ -634,7 +634,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(signature = "repeat/0", reference = "repeat is true. It just places a choice point every call.")
   public static void predicateREPEAT0(final JProlChoicePoint goal, final TermStruct predicate) {
-    // we just make a choose point
+    // we just make choose point
   }
 
   @JProlPredicate(signature = "clause/2", args = {
@@ -695,7 +695,6 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(signature = "current_op/3", args = "?integer,?operator_specifier,?atom", reference = "current_op(Priority, Op_specifier, TermOperator) is true if and only if TermOperator is an operator with properties given by  Op_specifier and Priority")
-  @SuppressWarnings("unchecked")
   public static boolean predicateCURRENTOP3(final JProlChoicePoint goal,
                                             final TermStruct predicate) {
     final Term priority = predicate.getElement(0).findNonVarOrSame();

@@ -16,22 +16,31 @@
 
 package com.igormaznitsa.jprol.easygui;
 
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rtextarea.RTextScrollPane;
-
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Font;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.event.ActionEvent;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.prefs.Preferences;
+import javax.swing.JEditorPane;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.TransferHandler;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.event.TreeModelListener;
 import javax.swing.text.JTextComponent;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
-import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.event.ActionEvent;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.prefs.Preferences;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rtextarea.RTextScrollPane;
 
 /**
  * The class extends a Scroll pane and is used as the ancestor for all text

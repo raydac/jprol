@@ -3,7 +3,6 @@ package com.igormaznitsa.jprol.utils;
 import static com.igormaznitsa.jprol.data.TermType.STRUCT;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 
-
 import com.igormaznitsa.jprol.data.NumericTerm;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermDouble;
@@ -79,12 +78,12 @@ public final class ProlAssertions {
       break;
       case LIST: {
         TermList lst = (TermList) t;
-        error = false;
         if (lst.isNullList()) {
           break;
         }
 
-        while (!error) {
+        error = false;
+        while (true) {
           Term head = lst.getHead();
           if (head.getTermType() == VAR) {
             head = ((TermVar) head).getValue();
@@ -435,7 +434,7 @@ public final class ProlAssertions {
     boolean error;
     if (t.getTermType() == TermType.ATOM && !(t instanceof NumericTerm)) {
       final String text = t.getText();
-      error = !OpAssoc.findForName(text).isPresent();
+      error = !OpAssoc.findForName(text).isPresent(); // don't change for Android API compatibility
     } else {
       error = true;
     }

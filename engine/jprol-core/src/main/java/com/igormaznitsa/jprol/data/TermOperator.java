@@ -18,7 +18,6 @@ package com.igormaznitsa.jprol.data;
 
 import static com.igormaznitsa.jprol.data.TermType.OPERATOR;
 
-
 import com.igormaznitsa.prologparser.tokenizer.Op;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 import java.io.PrintWriter;

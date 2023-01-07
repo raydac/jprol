@@ -23,7 +23,6 @@ import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.utils.Utils.SIGNATURE_OPERATOR;
 import static java.lang.Integer.parseInt;
 
-
 import com.igormaznitsa.jprol.annotations.JProlOperator;
 import com.igormaznitsa.jprol.annotations.JProlOperators;
 import com.igormaznitsa.jprol.annotations.JProlPredicate;

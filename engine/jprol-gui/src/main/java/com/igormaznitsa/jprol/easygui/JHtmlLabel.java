@@ -16,12 +16,8 @@
 
 package com.igormaznitsa.jprol.easygui;
 
-import javax.swing.*;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.View;
-import javax.swing.text.html.HTML;
-import javax.swing.text.html.HTMLDocument;
-import java.awt.*;
+import java.awt.Cursor;
+import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -29,6 +25,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
+import javax.swing.Icon;
+import javax.swing.JLabel;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.View;
+import javax.swing.text.html.HTML;
+import javax.swing.text.html.HTMLDocument;
 
 /**
  * Small adaptation of javax.swing.JLabel to catch clicks on HTML links in the
@@ -36,7 +38,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * <b>The Component supports only HTML text and if the text is not into
  * &lt;html&gt; tags then such tags will be added automatically.</b>
  *
- * @author Igor Maznitsa (http://www.igormaznitsa.com)
+ * @author Igor Maznitsa
  * @version 1.00
  */
 public class JHtmlLabel extends JLabel {
