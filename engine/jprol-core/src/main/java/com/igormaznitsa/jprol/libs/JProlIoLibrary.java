@@ -284,6 +284,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }).orElseThrow(() -> new ProlPermissionErrorException("close", "text_stream", predicate));
   }
 
+
   @JProlPredicate(determined = true, signature = "see/1", args = "+atom", reference = "Open source for reading and make it the current input")
   public final void predicateSEE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
@@ -338,7 +339,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }).orElseThrow(() -> new ProlPermissionErrorException("write", "text_output", predicate));
   }
 
-  @JProlPredicate(determined = true, signature = "seeing/1", args = "?term", reference = "Return the current input stream name.")
+  @JProlPredicate(determined = true, signature = "seeing/1", synonyms = "current_input/1", args = "?term", reference = "Return the current input stream name.")
   public final boolean predicateSEEING(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     final InternalReader current = this.getIoReaders(goal.getContext()).get(CURRENT_STREAM_ID);
@@ -346,9 +347,9 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     return arg.unifyTo(result);
   }
 
-  @JProlPredicate(determined = true, signature = "telling/1", args = "?term", reference = "Return the current output stream name.")
+  @JProlPredicate(determined = true, signature = "telling/1", synonyms = "current_output/1", args = "?term", reference = "Return the current output stream name.")
   public final boolean predicateTELLING(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term arg = predicate.getElement(0).findNonVarOrDefault(null);
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
     final InternalWriter current = this.getIoWriters(goal.getContext()).get(CURRENT_STREAM_ID);
     final Term result = current == null ? Terms.NULL_LIST : current.getStreamId();
     return arg.unifyTo(result);
