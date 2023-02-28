@@ -16,9 +16,18 @@ import com.igormaznitsa.jprol.logic.JProlSystemFlag;
 import org.junit.jupiter.api.Test;
 
 class JProlBootstrapLibraryTest extends AbstractJProlTest {
+
+  @Test
+  void testEvaluablePredicateProcessorNotCalled() {
+    final JProlChoicePoint point = prepareGoal("round(abc).", "round(X).");
+    assertNotNull(point.prove());
+    assertEquals("abc", point.findVar("X").get().findNonVarOrSame().getText());
+  }
+
   @Test
   void testCurrentPrologFlag2() {
-    final JProlChoicePoint point = prepareGoal("current_prolog_flag(" + JProlSystemFlag.VERIFY.getNameTerm().getText() + ",X).");
+    final JProlChoicePoint point = prepareGoal(
+        "current_prolog_flag(" + JProlSystemFlag.VERIFY.getNameTerm().getText() + ",X).");
     assertNotNull(point.prove());
     final TermVar xVar = point.findVar("X").get();
     assertTrue(JProlSystemFlag.VERIFY.getDefaultValue().unifyTo(xVar.getValue()));

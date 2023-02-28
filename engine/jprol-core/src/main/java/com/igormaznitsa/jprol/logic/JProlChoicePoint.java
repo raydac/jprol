@@ -415,7 +415,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
             if (nonConsumed) {
               final PredicateInvoker foundProcessor = findProcessorInLibraries(struct);
-              if (foundProcessor == PredicateInvoker.NULL_PROCESSOR) {
+              if (foundProcessor == PredicateInvoker.NULL_PROCESSOR ||
+                  foundProcessor.isEvaluable()) {
                 this.clauseIterator = this.context.getKnowledgeBase().iterate(
                     IteratorType.ANY,
                     struct,
@@ -427,7 +428,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                   result = JProlChoicePointResult.FAIL;
                 }
               } else {
-                if (foundProcessor.isEvaluable() || foundProcessor.isDetermined()) {
+                if (foundProcessor.isDetermined()) {
                   this.cutVariants();
                 }
 
