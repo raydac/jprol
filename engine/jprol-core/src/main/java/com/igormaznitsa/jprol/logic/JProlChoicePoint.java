@@ -17,6 +17,7 @@
 package com.igormaznitsa.jprol.logic;
 
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
+import static com.igormaznitsa.jprol.data.TermType.OPERATOR;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.trace.TraceEvent.EXIT;
@@ -420,7 +421,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
                 this.clauseIterator = this.context.getKnowledgeBase().iterate(
                     IteratorType.ANY,
                     struct,
-                    unknownPredicateConsumer
+                    struct.getFunctor().getTermType() == OPERATOR ?
+                        NULL_UNDEFINED_PREDICATE_CONSUMER : unknownPredicateConsumer
                 );
                 if (!this.clauseIterator.hasNext()) {
                   doLoop = false;
