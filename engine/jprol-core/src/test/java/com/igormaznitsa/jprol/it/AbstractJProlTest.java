@@ -34,10 +34,33 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.function.Consumer;
 
 public abstract class AbstractJProlTest {
 
+  public static String getVarAsText(final JProlChoicePoint cp, final String varName) {
+    final TermVar variable = cp.findVar(varName).orElseThrow(
+        () -> new IllegalArgumentException("Unknown variable for name '" + varName + '\''));
+    final Term value = variable.getValue();
+    if (value == null) {
+      return null;
+    } else {
+      return value.toSrcString();
+    }
+  }
+
   public JProlContext makeTestContext(final IoResourceProvider... ioProviders) {
+    return this.makeTestContext(a -> {
+    }, ioProviders);
+  }
+
+  public static Number getVarAsNumber(final JProlChoicePoint cp, final String varName) {
+    final TermVar variable = cp.findVar(varName).orElseThrow(() -> new IllegalArgumentException("Unknown variable for name '" + varName + '\''));
+    return variable.toNumber();
+  }
+
+  public JProlContext makeTestContext(Consumer<JProlContext> contextPostprocessor,
+                                      final IoResourceProvider... ioProviders) {
     final JProlContext context = new JProlContext(
         "test-context",
         new JProlCoreLibrary(),
@@ -53,7 +76,8 @@ public abstract class AbstractJProlTest {
         }
 
         @Override
-        public Writer findWriter(final JProlContext context, final String writerId, final boolean append) {
+        public Writer findWriter(final JProlContext context, final String writerId,
+                                 final boolean append) {
           return new StringWriter();
         }
       });
@@ -62,29 +86,22 @@ public abstract class AbstractJProlTest {
         context.addIoResourceProvider(p);
       }
     }
+
+    contextPostprocessor.accept(context);
+
     return context;
   }
 
-  public static Number getVarAsNumber(final JProlChoicePoint cp, final String varName) {
-    final TermVar variable = cp.findVar(varName).orElseThrow(() -> new IllegalArgumentException("Unknown variable for name '" + varName + '\''));
-    return variable.toNumber();
-  }
-
-  public static String getVarAsText(final JProlChoicePoint cp, final String varName) {
-    final TermVar variable = cp.findVar(varName).orElseThrow(() -> new IllegalArgumentException("Unknown variable for name '" + varName + '\''));
-    final Term value = variable.getValue();
-    if (value == null) {
-      return null;
-    } else {
-      return value.toSrcString();
-    }
-  }
-
-
-  public JProlContext makeContextAndConsult(final String knowledgeBase) {
-    final JProlContext context = this.makeTestContext();
+  public JProlContext makeContextAndConsult(final Consumer<JProlContext> contextPostProcessor,
+                                            final String knowledgeBase) {
+    final JProlContext context = this.makeTestContext(contextPostProcessor);
     context.consult(new StringReader(knowledgeBase));
     return context;
+  }
+
+  public JProlContext makeContextAndConsult(final String knowledgeBase) {
+    return this.makeContextAndConsult(ctx -> {
+    }, knowledgeBase);
   }
 
   protected JProlChoicePoint prepareGoal(String goal) {
