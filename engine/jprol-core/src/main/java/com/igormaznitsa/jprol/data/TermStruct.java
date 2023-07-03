@@ -27,7 +27,11 @@ import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import com.igormaznitsa.jprol.utils.Utils;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.stream.Stream;
 
 public class TermStruct extends CompoundTerm {
@@ -69,6 +73,32 @@ public class TermStruct extends CompoundTerm {
 
   public void setElement(final int index, final Term element) {
     this.terms[index] = element;
+  }
+
+  @Override
+  public Spliterator<Term> spliteratorChildren() {
+    return Spliterators.spliterator(this.terms, Spliterator.SIZED);
+  }
+
+  @Override
+  public Iterator<Term> iterator() {
+    return new Iterator<Term>() {
+      int index = 0;
+
+      @Override
+      public boolean hasNext() {
+        return this.index < TermStruct.this.terms.length;
+      }
+
+      @Override
+      public Term next() {
+        if (this.index < TermStruct.this.terms.length) {
+          return TermStruct.this.terms[this.index++];
+        } else {
+          throw new NoSuchElementException();
+        }
+      }
+    };
   }
 
   @Override

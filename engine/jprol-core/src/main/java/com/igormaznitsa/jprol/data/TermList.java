@@ -25,8 +25,12 @@ import static com.igormaznitsa.jprol.utils.Utils.createOrAppendToList;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.stream.Stream;
 
 public final class TermList extends TermStruct {
@@ -44,6 +48,51 @@ public final class TermList extends TermStruct {
 
   TermList(final Term head, final Term tail) {
     super(Terms.LIST_FUNCTOR, new Term[] {head, tail});
+  }
+
+  @Override
+  public Spliterator<Term> spliteratorChildren() {
+    return Spliterators.spliteratorUnknownSize(this.iterator(), 0);
+  }
+
+  @Override
+  public Iterator<Term> iterator() {
+    return new Iterator<Term>() {
+      Term current = TermList.this;
+
+      void findNext() {
+        if (current == null) {
+          throw new NoSuchElementException();
+        }
+        if (current.getTermType() == LIST) {
+          final TermList asList = (TermList) current;
+          current = asList.isNullList() ? null : asList.getTail();
+        } else {
+          current = null;
+        }
+      }
+
+      @Override
+      public boolean hasNext() {
+        return current != null &&
+            (current.getTermType() == LIST && !((TermList) current).isNullList());
+      }
+
+      @Override
+      public Term next() {
+        final Term result = this.current;
+        this.findNext();
+        if (result.getTermType() == LIST) {
+          final TermList asList = (TermList) result;
+          if (asList.isNullList()) {
+            throw new NoSuchElementException();
+          }
+          return asList.getHead();
+        } else {
+          return result;
+        }
+      }
+    };
   }
 
   public static TermList asTermList(final Term... elements) {
@@ -339,7 +388,7 @@ public final class TermList extends TermStruct {
 
   public Term[] toArray() {
     if (this.isNullList()) {
-      return new Term[0];
+      return EMPTY_ARRAY;
     }
 
     final ArrayList<Term> arraylist = new ArrayList<>();
@@ -357,7 +406,7 @@ public final class TermList extends TermStruct {
         break;
       }
     }
-    return arraylist.toArray(new Term[0]);
+    return arraylist.toArray(EMPTY_ARRAY);
   }
 
   public Term toAtom() {

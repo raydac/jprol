@@ -1,5 +1,7 @@
 package com.igormaznitsa.jprol.data;
 
+import static com.igormaznitsa.jprol.data.TermStruct.EMPTY_ARRAY;
+
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import com.igormaznitsa.prologparser.terms.PrologFloat;
@@ -100,7 +102,7 @@ public final class Terms {
         } else {
           final String text = term.getText();
           if (context.hasZeroArityPredicateForName(text)) {
-            final TermStruct result = newStruct(text, new Term[0]);
+            final TermStruct result = newStruct(text, EMPTY_ARRAY);
             result.setPredicateProcessor(context.findProcessor(result));
             return result;
           } else {
