@@ -18,6 +18,8 @@ class CompoundTermTest {
     );
     assertEquals("'a';'b';s(['true','false']);'c'",
         list.streamChildren().map(Term::toSrcString).collect(Collectors.joining(";")));
+    assertEquals("",
+        Terms.NULL_LIST.streamChildren().map(Term::toSrcString).collect(Collectors.joining(";")));
   }
 
   @Test

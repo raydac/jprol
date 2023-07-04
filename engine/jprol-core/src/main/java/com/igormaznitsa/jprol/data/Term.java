@@ -109,6 +109,15 @@ public class Term {
     return (T) this;
   }
 
+  /**
+   * Stream for all (!) internal terms, in case of a list term it will stream even functor.
+   * Do not use the method to iterate only children in compound terms. Use special methods in CompoundTerm
+   *
+   * @return stream of all terms
+   * @see CompoundTerm#streamChildren()
+   * @see CompoundTerm#spliteratorChildren()
+   * @see CompoundTerm#iterator()
+   */
   public Stream<Term> stream() {
     return Stream.of(this);
   }
