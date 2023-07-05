@@ -31,6 +31,7 @@ import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
 import com.igormaznitsa.jprol.libs.JProlGfxLibrary;
 import com.igormaznitsa.jprol.libs.JProlIoLibrary;
+import com.igormaznitsa.jprol.libs.JProlJsonLibrary;
 import com.igormaznitsa.jprol.libs.JProlStrLibrary;
 import com.igormaznitsa.jprol.libs.JProlThreadLibrary;
 import com.igormaznitsa.jprol.libs.TPrologPredicateLibrary;
@@ -122,6 +123,7 @@ public final class MainFrame extends javax.swing.JFrame
       JProlThreadLibrary.class.getCanonicalName(),
       JProlIoLibrary.class.getCanonicalName(),
       JProlStrLibrary.class.getCanonicalName(),
+      JProlJsonLibrary.class.getCanonicalName(),
       JProlGfxLibrary.class.getCanonicalName(),
       TPrologPredicateLibrary.class.getCanonicalName()
   };
