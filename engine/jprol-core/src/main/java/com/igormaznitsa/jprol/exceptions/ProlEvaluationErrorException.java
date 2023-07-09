@@ -66,6 +66,6 @@ public class ProlEvaluationErrorException extends ProlAbstractCatchableException
   @Override
   public TermStruct getAsStruct() {
     return this
-        .makeErrorStruct(TERM_ERROR, TermList.asTermList(newAtom(this.error), this.getCulprit()));
+        .makeErrorStruct(TERM_ERROR, TermList.asList(newAtom(this.error), this.getCulprit()));
   }
 }

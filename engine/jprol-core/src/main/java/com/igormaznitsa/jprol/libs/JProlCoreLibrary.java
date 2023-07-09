@@ -1094,7 +1094,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
 
     if (argRight.getTermType() == VAR) {
-      TermList list = TermList.asTermList(argLeft);
+      TermList list = TermList.makeListFromElementWothSplitStructure(argLeft);
       return argRight.unifyTo(list);
     } else {
       final Term atom = ((TermList) argRight).toAtom();
@@ -1740,9 +1740,10 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
           }
         }
         sortedList =
-                TermList.asTermList(Arrays.stream(terms).filter(Objects::nonNull).toArray(Term[]::new));
+            TermList.asList(
+                Arrays.stream(terms).filter(Objects::nonNull).collect(Collectors.toList()));
       } else {
-        sortedList = TermList.asTermList(terms);
+        sortedList = TermList.asList(Arrays.asList(terms));
       }
       return termSorted.unifyTo(sortedList);
     } else {
@@ -2033,10 +2034,9 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       preparedMap.forEach((key, value) -> {
         final Term[] tmpArray = value.toArray();
         Arrays.sort(tmpArray, choicePoint);
-        final TermList sortedList = TermList.asTermList(
-                Arrays.stream(tmpArray)
-                        .distinct().toArray(Term[]::new)
-        );
+        final TermList sortedList = TermList.asList(
+            Arrays.stream(tmpArray)
+                .distinct().collect(Collectors.toList()));
 
         sortedMap.put(key, sortedList);
       });

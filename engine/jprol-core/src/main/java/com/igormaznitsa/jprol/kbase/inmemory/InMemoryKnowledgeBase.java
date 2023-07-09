@@ -126,7 +126,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
   @Override
   public TermOperatorContainer findOperatorForName(final JProlContext context, final String name) {
-    final TermOperatorContainer systemOperator = context.getSystemOperatorForName(name);
+    final TermOperatorContainer systemOperator = context.findSystemOperatorForName(name);
     TermOperatorContainer result;
 
     if (systemOperator == null) {

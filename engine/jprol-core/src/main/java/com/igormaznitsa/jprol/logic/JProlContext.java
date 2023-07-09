@@ -154,8 +154,8 @@ public final class JProlContext implements AutoCloseable {
     this.contextListeners.addAll(contextListeners);
 
     Arrays.stream(JProlSystemFlag.values())
-            .filter(x -> !x.isReadOnly())
-            .forEach(x -> this.systemFlags.put(x, x.getDefaultValue()));
+        .filter(x -> !x.isReadOnly())
+        .forEach(x -> this.systemFlags.put(x, x.getDefaultValue()));
 
     this.systemFlags.putAll(systemFlags);
     this.onSystemFlagsUpdated();
@@ -165,6 +165,12 @@ public final class JProlContext implements AutoCloseable {
     this.libraries.add(new JProlBootstrapLibrary());
 
     asList(additionalLibraries).forEach(this::addLibrary);
+
+    this.callInConstructorEnd();
+  }
+
+  private void callInConstructorEnd() {
+    this.libraries.forEach(x -> x.onRegisteredInContext(this));
   }
 
   public boolean isTemplateValidate() {
@@ -442,7 +448,11 @@ public final class JProlContext implements AutoCloseable {
     if (library == null) {
       throw new IllegalArgumentException("Library must not be null");
     }
-    return libraries.remove(library);
+    final boolean result = libraries.remove(library);
+    if (result) {
+      library.onLibraryRemove(this);
+    }
+    return result;
   }
 
   public PredicateInvoker findProcessor(final TermStruct predicate) {
@@ -472,14 +482,24 @@ public final class JProlContext implements AutoCloseable {
 
   public boolean isSystemOperator(final String name) {
     return this.libraries.stream()
-            .anyMatch(lib -> lib.isSystemOperator(name));
+        .anyMatch(lib -> lib.isSystemOperator(name));
   }
 
-  public TermOperatorContainer getSystemOperatorForName(final String name) {
+  public TermOperatorContainer findSystemOperatorForName(final String name) {
     return this.libraries.stream()
-            .map(lib -> lib.findSystemOperatorForName(name))
-            .filter(Objects::nonNull)
-            .findFirst().orElse(null);
+        .map(lib -> lib.findSystemOperatorForName(name))
+        .filter(Objects::nonNull)
+        .findFirst().orElse(null);
+  }
+
+  public TermOperator findSystemOperatorForNameAndAssociativity(final String name,
+                                                                final OpAssoc associativity) {
+    return this.libraries.stream()
+        .map(lib -> lib.findSystemOperatorForName(name))
+        .filter(Objects::nonNull)
+        .map(x -> x.getForTypePrecisely(associativity))
+        .filter(Objects::nonNull)
+        .findFirst().orElse(null);
   }
 
   public Iterator<AbstractJProlLibrary> makeLibraryIterator() {
@@ -488,7 +508,7 @@ public final class JProlContext implements AutoCloseable {
 
   public boolean hasSystemOperatorStartsWith(final String str) {
     return this.libraries.stream()
-            .anyMatch(lib -> lib.isSystemOperatorStartsWith(str));
+        .anyMatch(lib -> lib.isSystemOperatorStartsWith(str));
   }
 
   public void dispose() {

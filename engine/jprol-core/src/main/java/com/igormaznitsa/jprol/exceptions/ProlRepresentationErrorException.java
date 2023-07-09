@@ -64,6 +64,6 @@ public class ProlRepresentationErrorException extends ProlAbstractCatchableExcep
   @Override
   public TermStruct getAsStruct() {
     return this.makeErrorStruct(TERM_ERROR,
-        TermList.asTermList(newAtom(this.errorCode), this.getCulprit()));
+        TermList.asList(newAtom(this.errorCode), this.getCulprit()));
   }
 }

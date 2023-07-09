@@ -61,7 +61,7 @@ public class ProlExistenceErrorException extends ProlAbstractCatchableException 
   @Override
   public TermStruct getAsStruct() {
     return this
-        .makeErrorStruct(ERROR_TERM, TermList.asTermList(newAtom(this.objectType), getCulprit()));
+        .makeErrorStruct(ERROR_TERM, TermList.asList(newAtom(this.objectType), getCulprit()));
   }
 
 }

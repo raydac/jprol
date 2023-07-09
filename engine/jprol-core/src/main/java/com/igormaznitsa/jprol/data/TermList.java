@@ -18,14 +18,17 @@ package com.igormaznitsa.jprol.data;
 
 import static com.igormaznitsa.jprol.data.TermType.LIST;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
+import static com.igormaznitsa.jprol.data.Terms.NULL_LIST;
 import static com.igormaznitsa.jprol.data.Terms.newList;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.utils.Utils.createOrAppendToList;
 
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -95,35 +98,42 @@ public final class TermList extends TermStruct {
     };
   }
 
-  public static TermList asTermList(final Term... elements) {
-    if (elements.length == 0) {
-      return Terms.NULL_LIST;
-    } else if (elements.length == 1) {
-      final Term element = elements[0];
-      switch (element.getTermType()) {
-        case LIST:
-          return (TermList) element;
-        case STRUCT: {
-          final TermStruct struct = (TermStruct) element;
-          final TermList result = newList(struct.getFunctor());
-          TermList curResult = result;
-          final int arity = struct.getArity();
-          for (int li = 0; li < arity; li++) {
-            curResult = createOrAppendToList(curResult, struct.getElement(li));
-          }
-          return result;
-        }
-        default:
-          return newList(element);
-      }
+  public static TermList asList(final Term... elements) {
+    return asList(Arrays.asList(elements));
+  }
+
+  public static TermList asList(final List<Term> elements) {
+    if (elements.isEmpty()) {
+      return NULL_LIST;
+    } else if (elements.size() == 1) {
+      return Terms.newList(elements.get(0), NULL_LIST);
     } else {
-      final TermList result = newList(elements[0]);
+      final TermList result = newList(elements.get(0));
       TermList next = result;
-      final int length = elements.length;
-      for (int li = 1; li < length; li++) {
-        next = createOrAppendToList(next, elements[li]);
+      final int length = elements.size();
+      for (int i = 1; i < length; i++) {
+        next = createOrAppendToList(next, elements.get(i));
       }
       return result;
+    }
+  }
+
+  public static TermList makeListFromElementWothSplitStructure(final Term element) {
+    switch (element.getTermType()) {
+      case LIST:
+        return (TermList) element;
+      case STRUCT: {
+        final TermStruct struct = (TermStruct) element;
+        final TermList result = newList(struct.getFunctor());
+        TermList curResult = result;
+        final int arity = struct.getArity();
+        for (int li = 0; li < arity; li++) {
+          curResult = createOrAppendToList(curResult, struct.getElement(li));
+        }
+        return result;
+      }
+      default:
+        return newList(element);
     }
   }
 

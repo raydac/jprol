@@ -77,6 +77,14 @@ public abstract class AbstractJProlLibrary {
     this.zeroArityPredicateNames = Collections.unmodifiableSet(zeroArityPredicates);
   }
 
+  public void onRegisteredInContext(final JProlContext context) {
+
+  }
+
+  public void onLibraryRemove(final JProlContext context) {
+
+  }
+
   protected static boolean assertUnify(final Term a, final Term b) {
     if (!a.unifyTo(b)) {
       throw new ProlCriticalError(

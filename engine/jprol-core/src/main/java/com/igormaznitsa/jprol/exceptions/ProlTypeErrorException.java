@@ -16,10 +16,10 @@
 
 package com.igormaznitsa.jprol.exceptions;
 
-import static com.igormaznitsa.jprol.data.TermList.asTermList;
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 
 import com.igormaznitsa.jprol.data.Term;
+import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermStruct;
 
 public class ProlTypeErrorException extends ProlAbstractCatchableException {
@@ -63,7 +63,8 @@ public class ProlTypeErrorException extends ProlAbstractCatchableException {
 
   @Override
   public TermStruct getAsStruct() {
-    return this.makeErrorStruct(TERM_ERROR, asTermList(newAtom(this.validType), getCulprit()));
+    return this.makeErrorStruct(TERM_ERROR, TermList.asList(
+        TermList.asList(newAtom(this.validType), getCulprit())));
   }
 
 }

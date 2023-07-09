@@ -195,6 +195,9 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   @Test
   void testTermAsList3() {
     checkVarValues("foo(hello, X)=..List.", "List", "['foo','hello',X]");
+    checkVarValues("alpha=..List.", "List", "['alpha']");
+    checkVarValues("[1,2,3]=..List.", "List", "[1,2,3]");
+    checkVarValues("[]=..List.", "List", "[]");
     checkVarValues("Term=..[baz, foo(1)].", "Term", "baz(foo(1))");
     assertProlException("a()=..L.", ProlDomainErrorException.class);
   }
