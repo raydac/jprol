@@ -61,8 +61,8 @@ class JProlJsonLibraryTest extends AbstractJProlTest {
     assertFromJson("{\"hello\":3}", "json(['hello' = 3])");
     assertFromJson("{\"hello\":\"world\"}", "json(['hello' = 'world'])");
     assertFromJson("{\"a\":null,\"b\":true,\"c\":false}", "json([a=@null,b=@true,c=@false])");
-    assertFromJson("{\"a\":[1,2,3,{\"h\":[3,2,4]},[]],\"b\":[{\"ss\":[33.2,44.11,32323]}]}",
-        "json([a=[1,2,3,json([h=[3,2,4]]),[]],b=[json([ss=[33.2,44.11,32323]])]])");
+    assertFromJson("{\"a\":[1,2,-3,{\"h\":[3,2,4]},[]],\"b\":[{\"ss\":[33.2,44.11,32323]}]}",
+        "json([a=[1,2,-3,json([h=[3,2,4]]),[]],b=[json([ss=[33.2,44.11,32323]])]])");
   }
 
   @Test
@@ -109,8 +109,8 @@ class JProlJsonLibraryTest extends AbstractJProlTest {
   }
 
   private void assertFromJson(final String json, final String expectedTerm) {
-    JProlContext context = prepareContext("", new JProlJsonLibrary());
-    final String prepared = String.format("from_json('%s', X), X=%s.",
+    JProlContext context = prepareContext("", new JProlCoreLibrary(), new JProlJsonLibrary());
+    final String prepared = String.format("from_json('%s', X), X=%s .",
         escapeSrc(json), expectedTerm);
     JProlChoicePoint cp = new JProlChoicePoint(prepared, context);
     assertNotNull(cp.prove(), "Can't prove goal or not expected value");
