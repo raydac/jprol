@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@SuppressWarnings({"EmptyMethod", "unused", "checkstyle:AbbreviationAsWordInName"})
 @JProlOperator(priority = 1200, type = OpAssoc.FY, name = "@")
 public class JProlJsonLibrary extends AbstractJProlLibrary {
 
