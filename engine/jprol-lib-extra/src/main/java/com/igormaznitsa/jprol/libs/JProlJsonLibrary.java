@@ -408,7 +408,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "from_json/2", args = {
-      "+compound,?atom"}, reference = "Create term on base of a JSON string. The result structure is formatted as json([]).")
+      "+atom,?compound"}, reference = "Create term on base of a JSON string. The result structure is formatted as structure json([..]).")
   public static boolean predicateFROM_JSON(final JProlChoicePoint goal,
                                            final TermStruct predicate) {
     final Term argLeft = predicate.getElement(0).findNonVarOrSame();
