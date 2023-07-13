@@ -28,9 +28,12 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
@@ -58,18 +61,14 @@ public final class UiUtils {
     out.println("===============================================");
 
     final JProlOperators operators = libraryClass.getAnnotation(JProlOperators.class);
-    if (operators != null) {
-      // there is defined operators
-      final JProlOperator[] ops = operators.value();
-      if (ops.length > 0) {
-        out.println("Operators\n-----------------------");
-        for (final JProlOperator oper : ops) {
-          if (oper.priority() > 0) {
-            out.println(":-op(" + oper.priority() + "," + oper.type().getText() + ",'" + oper.name() + "').");
-          }
-        }
-        out.println("-----------------------");
-      }
+    final JProlOperator operator = libraryClass.getAnnotation(JProlOperator.class);
+    if (operators != null || operator != null) {
+      out.println("Operators\n-----------------------");
+      Stream.concat(operators == null ? Stream.empty() : Arrays.stream(operators.value()),
+              operator == null ? Stream.empty() : Stream.of(operator))
+          .filter(op -> op.priority() > 0)
+          .sorted(Comparator.comparingInt(JProlOperator::priority))
+          .forEach(op -> out.printf(":-op(%d,%s,%s).%n", op.priority(), op.type(), op.name()));
     }
 
     for (final Method method : methods) {
