@@ -27,7 +27,7 @@ class JProlJsonLibraryTest extends AbstractJProlTest {
 
   @Test
   void test_ToJson_noUnify() {
-    JProlContext context = prepareContext("", new JProlJsonLibrary());
+    JProlContext context = makeTestContext();
     JProlChoicePoint cp = new JProlChoicePoint("X = 1,  to_json(json([a=1,b=2,c=3]), X).", context);
     assertNull(cp.prove());
   }
@@ -79,7 +79,7 @@ class JProlJsonLibraryTest extends AbstractJProlTest {
 
   private void assertToJsonException(final String term,
                                      final Class<? extends Throwable> expectedException) {
-    final JProlContext context = prepareContext("", new JProlJsonLibrary());
+    final JProlContext context = makeTestContext();
     final JProlChoicePoint cp =
         new JProlChoicePoint(String.format("to_json(%s, X).", term), context);
     Assertions.assertThrowsExactly(expectedException, () -> {
@@ -90,7 +90,7 @@ class JProlJsonLibraryTest extends AbstractJProlTest {
 
   private void assertFromJsonException(final String json,
                                        final Class<? extends Throwable> expectedException) {
-    final JProlContext context = prepareContext("", new JProlJsonLibrary());
+    final JProlContext context = makeTestContext();
     final JProlChoicePoint cp =
         new JProlChoicePoint(String.format("from_json('%s', X).", json), context);
     Assertions.assertThrowsExactly(expectedException, () -> {
@@ -100,7 +100,7 @@ class JProlJsonLibraryTest extends AbstractJProlTest {
   }
 
   private void assertToJson(final String term, final String expectedJson) {
-    JProlContext context = prepareContext("", new JProlJsonLibrary());
+    JProlContext context = makeTestContext();
     JProlChoicePoint cp = new JProlChoicePoint(String.format("to_json(%s, X).", term), context);
     assertNotNull(cp.prove());
     assertEquals(
@@ -109,10 +109,14 @@ class JProlJsonLibraryTest extends AbstractJProlTest {
   }
 
   private void assertFromJson(final String json, final String expectedTerm) {
-    JProlContext context = prepareContext("", new JProlCoreLibrary(), new JProlJsonLibrary());
+    JProlContext context = makeTestContext();
     final String prepared = String.format("from_json('%s', X), X=%s .",
         escapeSrc(json), expectedTerm);
     JProlChoicePoint cp = new JProlChoicePoint(prepared, context);
     assertNotNull(cp.prove(), "Can't prove goal or not expected value");
+  }
+
+  private JProlContext makeTestContext() {
+    return this.prepareContext("", new JProlCoreLibrary(), new JProlJsonLibrary());
   }
 }

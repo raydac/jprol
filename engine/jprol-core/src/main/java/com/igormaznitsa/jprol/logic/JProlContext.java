@@ -466,18 +466,24 @@ public final class JProlContext implements AutoCloseable {
 
   public boolean hasZeroArityPredicateForName(final String name) {
     return this.libraries.stream()
-            .anyMatch(lib -> lib.hasZeroArityPredicate(name));
+        .anyMatch(lib -> lib.hasZeroArityPredicate(name));
   }
 
   public List<TermStruct> findAllForPredicateIndicatorInLibs(final Term predicateIndicator) {
     return this.libraries.stream()
-            .flatMap(lib -> lib.findAllForPredicateIndicator(predicateIndicator).stream())
-            .collect(toList());
+        .flatMap(lib -> lib.findAllForPredicateIndicator(predicateIndicator).stream())
+        .collect(toList());
+  }
+
+  public List<PredicateInvoker> findAllPredicateInvokersForSignature(final String signature) {
+    return this.libraries.stream()
+        .flatMap(lib -> lib.findAllPredicateInvokersForSignature(signature).stream())
+        .collect(toList());
   }
 
   public boolean hasPredicateAtLibraryForSignature(final String signature) {
     return this.libraries.stream()
-            .anyMatch(lib -> lib.hasPredicateForSignature(signature));
+        .anyMatch(lib -> lib.hasPredicateForSignature(signature));
   }
 
   public boolean isSystemOperator(final String name) {

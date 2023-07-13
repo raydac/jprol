@@ -184,6 +184,13 @@ public abstract class AbstractJProlLibrary {
     return this.contextNamedObjects.computeIfAbsent(context, ctx -> new ConcurrentHashMap<>());
   }
 
+  public List<PredicateInvoker> findAllPredicateInvokersForSignature(final String signature) {
+    return this.predicateMethodsMap.entrySet().stream()
+        .filter(e -> e.getKey().equals(signature))
+        .map(Map.Entry::getValue)
+        .collect(Collectors.toList());
+  }
+
   public List<TermStruct> findAllForPredicateIndicator(final Term predicateIndicator) {
     return this.predicateMethodsMap.keySet()
         .stream()

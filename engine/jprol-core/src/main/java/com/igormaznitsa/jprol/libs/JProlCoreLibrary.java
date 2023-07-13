@@ -1094,7 +1094,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
 
     if (argRight.getTermType() == VAR) {
-      TermList list = TermList.makeListFromElementWothSplitStructure(argLeft);
+      TermList list = TermList.makeListFromElementWithSplitStructure(argLeft);
       return argRight.unifyTo(list);
     } else {
       final Term atom = ((TermList) argRight).toAtom();

@@ -118,7 +118,7 @@ public final class TermList extends TermStruct {
     }
   }
 
-  public static TermList makeListFromElementWothSplitStructure(final Term element) {
+  public static TermList makeListFromElementWithSplitStructure(final Term element) {
     switch (element.getTermType()) {
       case LIST:
         return (TermList) element;
