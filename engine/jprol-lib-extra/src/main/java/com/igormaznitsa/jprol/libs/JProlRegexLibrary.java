@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -52,37 +53,37 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     int compileFlags = 0;
     if (flags instanceof TermList) {
       for (final Term a : ((TermList) flags)) {
-        switch (a.getText().toUpperCase(Locale.ENGLISH)) {
-          case "CASE_INSENSITIVE":
+        switch (a.getText().toLowerCase(Locale.ENGLISH)) {
+          case "case_insensitive":
             compileFlags |= Pattern.CASE_INSENSITIVE;
             break;
-          case "MULTILINE":
+          case "multiline":
             compileFlags |= Pattern.MULTILINE;
             break;
-          case "DOTALL":
+          case "dotall":
             compileFlags |= Pattern.DOTALL;
             break;
-          case "UNICODE_CASE":
+          case "unicode_case":
             compileFlags |= Pattern.UNICODE_CASE;
             break;
-          case "CANON_EQ":
+          case "canon_eq":
             compileFlags |= Pattern.CANON_EQ;
             break;
-          case "UNIX_LINES":
+          case "unix_lines":
             compileFlags |= Pattern.UNIX_LINES;
             break;
-          case "LITERAL":
+          case "literal":
             compileFlags |= Pattern.LITERAL;
             break;
-          case "UNICODE_CHARACTER_CLASS":
+          case "unicode_character_class":
             compileFlags |= Pattern.UNICODE_CHARACTER_CLASS;
             break;
-          case "COMMENTS":
+          case "comments":
             compileFlags |= Pattern.COMMENTS;
             break;
           default:
             throw new ProlDomainErrorException(
-                "[CASE_INSENSITIVE, MULTILINE, DOTALL, UNICODE_CASE, CANON_EQ, UNIX_LINES, LITERAL, UNICODE_CHARACTER_CLASS, COMMENTS]",
+                "[case_insensitive, multiline, dotall, unicode_case, canon_eq, unix_lines, literal, unicode_character_class, comments]",
                 a);
         }
       }
@@ -92,7 +93,7 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = "regex_split/4", args = {
       "+atom,+atom,?list,+list"},
-      reference = "Splits the given input sequence around matches of this pattern, it uses Java Pattern.split(). Format is regex_split(regex, text, Target, [options]).")
+      reference = "Splits the given input sequence around matches of this pattern, it uses Java Pattern.split(). Format is regex_split(regex, text, TargetList, [options]).")
   public static boolean predicateREGEX_SPLIT(final JProlChoicePoint goal,
                                              final TermStruct predicate) {
     final Term argRegex = predicate.getElement(0).findNonVarOrSame();
@@ -104,8 +105,8 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
       ProlAssertions.assertAtom(argRegex);
       ProlAssertions.assertAtom(argString);
       ProlAssertions.assertList(argListOptions);
-      if (argListOptions.getTermType() != VAR) {
-        ProlAssertions.assertList(argListOptions);
+      if (argTargetList.getTermType() != VAR) {
+        ProlAssertions.assertList(argTargetList);
       }
     }
     final int compileFlags = makePatternCompileFlags(argListOptions);
@@ -119,7 +120,73 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     final TermList resultList = TermList.asList(
         Arrays.stream(pattern.split(argString.getText())).map(Terms::newAtom)
             .collect(Collectors.toList()));
-    return resultList.unifyTo(argTargetList);
+    return argTargetList.unifyTo(resultList);
+  }
+
+  @JProlPredicate(determined = true, signature = "regex_find/4", args = {
+      "+atom,+atom,?list,+list"},
+      reference = "Attempts to find the next subsequence of the input sequence that matches the pattern, it uses Java Matcher.find(). Format is regex_find(regex, text, TargetList, [options]).")
+  public static boolean predicateREGEX_FIND(final JProlChoicePoint goal,
+                                            final TermStruct predicate) {
+    final Term argRegex = predicate.getElement(0).findNonVarOrSame();
+    final Term argString = predicate.getElement(1).findNonVarOrSame();
+    final Term argTargetList = predicate.getElement(2).findNonVarOrSame();
+    final Term argListOptions = predicate.getElement(3).findNonVarOrSame();
+
+    if (goal.isArgsValidate()) {
+      ProlAssertions.assertAtom(argRegex);
+      ProlAssertions.assertAtom(argString);
+      ProlAssertions.assertList(argListOptions);
+      if (argTargetList.getTermType() != VAR) {
+        ProlAssertions.assertList(argTargetList);
+      }
+    }
+    final int compileFlags = makePatternCompileFlags(argListOptions);
+    final Pattern pattern;
+    try {
+      pattern = Pattern.compile(argRegex.getText(), compileFlags);
+    } catch (Exception ex) {
+      throw new ProlDomainErrorException("Java Regular expression pattern", argRegex, ex);
+    }
+
+    final List<Term> foundGroups = new ArrayList<>();
+    final Matcher matcher = pattern.matcher(argString.getText());
+    while (matcher.find()) {
+      if (matcher.groupCount() == 0) {
+        foundGroups.add(Terms.newAtom(matcher.group(0)));
+      } else {
+        for (int g = 1; g < matcher.groupCount() + 1; g++) {
+          final String groupValue = matcher.group(g);
+          foundGroups.add(groupValue == null ? Terms.EMPTY_ATOM : Terms.newAtom(groupValue));
+        }
+      }
+    }
+    return argTargetList.unifyTo(TermList.asList(foundGroups));
+  }
+
+  @JProlPredicate(determined = true, signature = "regex_matches/3", args = {
+      "+atom,+atom,+list"},
+      reference = "Attempts to match the entire region against the pattern., it uses Java Matcher.matches(). Format is regex_matches(regex, text, [options]).")
+  public static boolean predicateREGEX_MATCH(final JProlChoicePoint goal,
+                                             final TermStruct predicate) {
+    final Term argRegex = predicate.getElement(0).findNonVarOrSame();
+    final Term argString = predicate.getElement(1).findNonVarOrSame();
+    final Term argListOptions = predicate.getElement(2).findNonVarOrSame();
+
+    if (goal.isArgsValidate()) {
+      ProlAssertions.assertAtom(argRegex);
+      ProlAssertions.assertAtom(argString);
+      ProlAssertions.assertList(argListOptions);
+    }
+    final int compileFlags = makePatternCompileFlags(argListOptions);
+    final Pattern pattern;
+    try {
+      pattern = Pattern.compile(argRegex.getText(), compileFlags);
+    } catch (Exception ex) {
+      throw new ProlDomainErrorException("Java Regular expression pattern", argRegex, ex);
+    }
+
+    return pattern.matcher(argString.getText()).matches();
   }
 
 }

@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class Terms {
+  public static final Term EMPTY_ATOM = new Term("");
   public static final Term TRUE = new Term("true");
   public static final Term FALSE = new Term("false");
   public static final TermLong INT_ONE = new TermLong(1L);

@@ -5,6 +5,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 import com.igormaznitsa.jprol.data.Term;
@@ -21,7 +22,40 @@ import org.junit.jupiter.api.Test;
 class JProlRegexLibraryTest extends AbstractJProlTest {
 
   @Test
-  void testRegexSplitOk() {
+  void testRegexFind() {
+    assertRegexFind("(a*b)(foo)", "aabfooaabfooabfoob",
+        emptyList(), asList("aab", "foo", "aab", "foo", "ab", "foo"));
+    assertRegexFind("(foo)", "aabdsasdasdfdfsdf",
+        emptyList(), emptyList());
+    assertRegexFind("hello", "djaskhaadfashellofsdfdsfsd",
+        emptyList(), singletonList("hello"));
+    assertRegexFind("hello", "djaskhaadfasHellofsdfdsfsd",
+        emptyList(), emptyList());
+    assertRegexFind("hello", "djaskhaadfasHellofsdfdsfsd",
+        singletonList("case_insensitive"), singletonList("Hello"));
+
+    assertThrowsExactly(ProlDomainErrorException.class,
+        () -> assertRegexFind("hello", "djaskhaadfasHellofsdfdsfsd",
+            singletonList("case"), singletonList("Hello")));
+  }
+
+  @Test
+  void testRegexMatches() {
+    assertRegexMatches("\\d", "abc", emptyList(), false);
+    assertRegexMatches("\\d", "1", emptyList(), true);
+    assertRegexMatches("\\d", "4443", emptyList(), false);
+    assertRegexMatches("\\d", "2233abc", emptyList(), false);
+    assertRegexMatches("\\D*", "nondigit", emptyList(), true);
+    assertRegexMatches(".*Homini.*", "homa homini lupus est", singletonList("case_insensitive"),
+        true);
+
+    assertThrowsExactly(ProlDomainErrorException.class,
+        () -> assertRegexMatches(".*Homini.*", "homa homini lupus est", singletonList("case"),
+            true));
+  }
+
+  @Test
+  void testRegexSplit() {
     assertRegexSplit("\\s*[a-zA-Z]+\\s*", "a + b - c * d / e < f > g >= h <= i == j",
         emptyList(), asList("", "+", "-", "*", "/", "<", ">", ">=", "<=", "=="));
     assertRegexSplit("-", "016-78967",
@@ -32,10 +66,7 @@ class JProlRegexLibraryTest extends AbstractJProlTest {
         emptyList(), asList("1", "2", "3", "4", "5a6"));
     assertRegexSplit("A", "1A2A3A4A5a6",
         singletonList("CASE_INSENSITIVE"), asList("1", "2", "3", "4", "5", "6"));
-  }
 
-  @Test
-  void testRegexSplitError() {
     assertThrowsExactly(ProlDomainErrorException.class,
         () -> assertRegexSplit("+++++", "abc", emptyList(), emptyList()));
     assertThrowsExactly(ProlDomainErrorException.class,
@@ -49,6 +80,45 @@ class JProlRegexLibraryTest extends AbstractJProlTest {
         context.findAllPredicateInvokersForSignature("regex_split/4").stream().findFirst()
             .orElseThrow(() -> new IllegalStateException("Can't find regex_split/4 in libraries"));
     final Term goal = Terms.newStruct(Terms.newAtom("regex_split"),
+        new Term[] {Terms.newAtom(regex), Terms.newAtom(text), Terms.newVar("X"),
+            TermList.asList(flags.stream().map(Terms::newAtom).collect(Collectors.toList()))},
+        invoker);
+    final JProlChoicePoint choicePoint = new JProlChoicePoint(goal, context);
+    final Term result = choicePoint.prove();
+    assertNotNull(result, "Must have prove result");
+    final TermList splitResult = choicePoint.findVar("X").get().findNonVarOrSame();
+    final List<String> splitAsList = splitResult.streamChildren().map(Term::getText).collect(
+        Collectors.toList());
+    assertEquals(expected, splitAsList);
+  }
+
+  private void assertRegexMatches(final String regex, final String text, final List<String> flags,
+                                  final boolean expected) {
+    final JProlContext context = this.makeTestContext();
+    final PredicateInvoker invoker =
+        context.findAllPredicateInvokersForSignature("regex_matches/3").stream().findFirst()
+            .orElseThrow(
+                () -> new IllegalStateException("Can't find regex_matches/3 in libraries"));
+    final Term goal = Terms.newStruct(Terms.newAtom("regex_matches"),
+        new Term[] {Terms.newAtom(regex), Terms.newAtom(text),
+            TermList.asList(flags.stream().map(Terms::newAtom).collect(Collectors.toList()))},
+        invoker);
+    final JProlChoicePoint choicePoint = new JProlChoicePoint(goal, context);
+    final Term result = choicePoint.prove();
+    if (expected) {
+      assertNotNull(result);
+    } else {
+      assertNull(result);
+    }
+  }
+
+  private void assertRegexFind(final String regex, final String text, final List<String> flags,
+                               final List<String> expected) {
+    final JProlContext context = this.makeTestContext();
+    final PredicateInvoker invoker =
+        context.findAllPredicateInvokersForSignature("regex_find/4").stream().findFirst()
+            .orElseThrow(() -> new IllegalStateException("Can't find regex_find/4 in libraries"));
+    final Term goal = Terms.newStruct(Terms.newAtom("regex_find"),
         new Term[] {Terms.newAtom(regex), Terms.newAtom(text), Terms.newVar("X"),
             TermList.asList(flags.stream().map(Terms::newAtom).collect(Collectors.toList()))},
         invoker);
