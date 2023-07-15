@@ -1071,8 +1071,46 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   }
 
+  @JProlPredicate(determined = true, signature = "ll2r/2", args = {"+list,+list"},
+      reference = "Unify each element of the left list with each element of the right list till first non-processed successful one.")
+  public static boolean predicateLL2R(final JProlChoicePoint goal, final TermStruct predicate) {
+    final Term argLeft = predicate.getElement(0).findNonVarOrSame();
+    final Term argRight = predicate.getElement(1).findNonVarOrSame();
+
+    if (goal.isArgsValidate()) {
+      ProlAssertions.assertList(argLeft);
+      ProlAssertions.assertList(argRight);
+    }
+
+    final TermList lleft = (TermList) argLeft;
+    final TermList lright = (TermList) argRight;
+
+    Set<Integer> freeIndex = new HashSet<>();
+    int index = 0;
+    for (final Term r : lright) {
+      freeIndex.add(index++);
+    }
+
+    for (final Term l : lleft) {
+      index = 0;
+      for (final Term r : lright) {
+        if (freeIndex.contains(index)) {
+          if (l.unifyTo(r)) {
+            freeIndex.remove(index);
+            break;
+          }
+        }
+        index++;
+      }
+      if (freeIndex.isEmpty()) {
+        break;
+      }
+    }
+    return freeIndex.isEmpty();
+  }
+
   @JProlPredicate(determined = true, signature = "=../2", args = {"+nonvar,?non_empty_list",
-          "-nonvar,+non_empty_list"}, reference = "Term =.. List is true if and only if\n* Term is an atomic term and List is the list whose only element is Term, or\n* Term is a compound term and List is the list whose head is the functor name of Term and whose tail is the list of the arguments of Term. ")
+      "-nonvar,+non_empty_list"}, reference = "Term =.. List is true if and only if\n* Term is an atomic term and List is the list whose only element is Term, or\n* Term is a compound term and List is the list whose head is the functor name of Term and whose tail is the list of the arguments of Term. ")
   public static boolean predicateUNIV(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = predicate.getElement(0).findNonVarOrSame();
     final Term argRight = predicate.getElement(1).findNonVarOrSame();
