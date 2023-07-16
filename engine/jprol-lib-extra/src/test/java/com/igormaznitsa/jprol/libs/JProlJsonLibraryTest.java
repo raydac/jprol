@@ -36,7 +36,7 @@ class JProlJsonLibraryTest extends AbstractJProlTest {
   void test_FromJson_noUnify() {
     JProlContext context = prepareContext("", new JProlJsonLibrary());
     JProlChoicePoint cp =
-        new JProlChoicePoint("X = 1,  from_json('{\"hello\":\"woeld\"}', X).", context);
+        new JProlChoicePoint("X = 1,  from_json('{\"hello\":\"world\"}', X).", context);
     assertNull(cp.prove());
   }
 
@@ -63,6 +63,39 @@ class JProlJsonLibraryTest extends AbstractJProlTest {
     assertFromJson("{\"a\":null,\"b\":true,\"c\":false}", "json([a=@null,b=@true,c=@false])");
     assertFromJson("{\"a\":[1,2,-3,{\"h\":[3,2,4]},[]],\"b\":[{\"ss\":[33.2,44.11,32323]}]}",
         "json([a=[1,2,-3,json([h=[3,2,4]]),[]],b=[json([ss=[33.2,44.11,32323]])]])");
+    assertFromJson("{\"hello\":\"w\\\"sss\\u0020\"}",
+        "json([hello='w\\\"sss '])");
+    assertFromJson("{\n" +
+        "  \"name\": \"John Doe\",\n" +
+        "  \"age\": 30,\n" +
+        "  \"email\": \"john.doe@example.com\",\n" +
+        "  \"address\": {\n" +
+        "    \"street\": \"123 Main St\",\n" +
+        "    \"city\": \"New York\",\n" +
+        "    \"country\": \"United States\"\n" +
+        "  },\n" +
+        "  \"phone_numbers\": [\n" +
+        "    \"+1 (555) 123-4567\",\n" +
+        "    \"+1 (555) 987-6543\"\n" +
+        "  ],\n" +
+        "  \"favorite_quotes\": [\n" +
+        "    \"Life is what happens\\nwhen you're busy making other plans.\",\n" +
+        "    \"The only way to do great work\\nis to love what you do.\"\n" +
+        "  ],\n" +
+        "  \"bank_balance\": 15000.25\n" +
+        "}\n", "json([" +
+        "name='John Doe'," +
+        "age=30," +
+        "email='john.doe@example.com'," +
+        "address=json([" +
+        "street='123 Main St',city='New York',country='United States'" +
+        "])," +
+        "phone_numbers=['+1 (555) 123-4567','+1 (555) 987-6543']," +
+        "favorite_quotes=['Life is what happens\\nwhen you\\'re busy making other plans.'," +
+        "'The only way to do great work\\nis to love what you do.']," +
+        "bank_balance=15000.25" +
+        "])");
+
   }
 
   @Test

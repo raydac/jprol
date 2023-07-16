@@ -85,30 +85,37 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
           switch (c) {
             case 'b': {
               result.append('\b');
+              state = STATE_CHAR;
             }
             break;
             case 'f': {
               result.append('\f');
+              state = STATE_CHAR;
             }
             break;
             case 'n': {
               result.append('\n');
+              state = STATE_CHAR;
             }
             break;
             case 'r': {
               result.append('\r');
+              state = STATE_CHAR;
             }
             break;
             case 't': {
               result.append('\t');
+              state = STATE_CHAR;
             }
             break;
             case '"': {
               result.append('\"');
+              state = STATE_CHAR;
             }
             break;
             case '\\': {
               result.append('\\');
+              state = STATE_CHAR;
             }
             break;
             case 'u': {
@@ -116,8 +123,11 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
               codeChar.setLength(0);
             }
             break;
+            default:
+              throw new IllegalArgumentException("Unexpected special char: " + c);
           }
         }
+        break;
         case STATE_CODE: {
           codeChar.append(c);
           if (codeChar.length() == 4) {
@@ -127,6 +137,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
               throw new IllegalArgumentException(
                   "Wrong control code value: " + codeChar);
             }
+            state = STATE_CHAR;
           }
         }
         break;
