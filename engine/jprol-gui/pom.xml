@@ -15,7 +15,7 @@
     <properties>
         <app.name>jprol-gui-${project.version}</app.name>
         <jre.provider>BELLSOFT</jre.provider>
-        <jre.version>19.0.2+9</jre.version>
+        <jre.version>20.0.1+10</jre.version>
         <start-class>JProlApp</start-class>
     </properties>
 
@@ -274,11 +274,11 @@
                                 <mutexName>jprolgui</mutexName>
                             </singleInstance>
                             <versionInfo>
-                                <fileVersion>2.2.0.0</fileVersion>
+                                <fileVersion>2.1.2.0</fileVersion>
                                 <txtFileVersion>${project.version}</txtFileVersion>
                                 <fileDescription>JProl GUI editor</fileDescription>
                                 <copyright>2010-2023 Igor Maznitsa</copyright>
-                                <productVersion>2.2.0.0</productVersion>
+                                <productVersion>2.1.2.0</productVersion>
                                 <txtProductVersion>${project.version}</txtProductVersion>
                                 <productName>${project.name}</productName>
                                 <companyName>igormaznitsa.com</companyName>
