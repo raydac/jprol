@@ -87,6 +87,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings({"EmptyMethod", "unused", "checkstyle:AbbreviationAsWordInName"})
 @JProlOperator(priority = 1050, type = XFY, name = "->")
@@ -1194,6 +1195,34 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
       return argLeft.unifyTo(atom);
     }
+  }
+
+  @JProlPredicate(determined = true, signature = "append/2", args = {"+list,?list"},
+      reference = "Concatenate a list of lists. Is true if the left argumens is a list of lists, and the right one is the concatenation of these lists.")
+  public static boolean predicateAPPEND(final JProlChoicePoint goal,
+                                        final TermStruct predicate) {
+    Term left = predicate.getElement(0).findNonVarOrSame();
+    Term right = predicate.getElement(1).findNonVarOrSame();
+
+    if (goal.isArgsValidate()) {
+      ProlAssertions.assertList(left);
+      if (right.getTermType() != VAR) {
+        ProlAssertions.assertList(right);
+      }
+    }
+
+    if (left.getTermType() != LIST) {
+      return false;
+    }
+
+    final List<Term> concatenated = ((TermList) left).streamChildren()
+        .flatMap(x -> {
+          final Term xx = x.findNonVarOrSame();
+          return xx.getTermType() == LIST ? ((TermList) xx).streamChildren() : Stream.of(xx);
+        })
+        .collect(Collectors.toList());
+
+    return right.unifyTo(TermList.asList(concatenated));
   }
 
   @JProlPredicate(determined = true, signature = "atom_chars/2", args = {"+atom,?character_list",
