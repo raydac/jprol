@@ -1198,7 +1198,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "append/2", args = {"+list,?list"},
-      reference = "Concatenate a list of lists. Is true if the left argumens is a list of lists, and the right one is the concatenation of these lists.")
+      reference = "Concatenate a list of lists. Is true if the left argument is a list of lists, and the right one is the concatenation of these lists.")
   public static boolean predicateAPPEND(final JProlChoicePoint goal,
                                         final TermStruct predicate) {
     Term left = predicate.getElement(0).findNonVarOrSame();
