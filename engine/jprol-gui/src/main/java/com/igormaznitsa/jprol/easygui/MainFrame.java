@@ -30,6 +30,7 @@ import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
 import com.igormaznitsa.jprol.libs.JProlGfxLibrary;
+import com.igormaznitsa.jprol.libs.JProlHttpLibrary;
 import com.igormaznitsa.jprol.libs.JProlIoLibrary;
 import com.igormaznitsa.jprol.libs.JProlJsonLibrary;
 import com.igormaznitsa.jprol.libs.JProlRegexLibrary;
@@ -127,6 +128,7 @@ public final class MainFrame extends javax.swing.JFrame
       JProlJsonLibrary.class.getCanonicalName(),
       JProlRegexLibrary.class.getCanonicalName(),
       JProlGfxLibrary.class.getCanonicalName(),
+      JProlHttpLibrary.class.getCanonicalName(),
       TPrologPredicateLibrary.class.getCanonicalName()
   };
 
@@ -1457,26 +1459,28 @@ public final class MainFrame extends javax.swing.JFrame
     this.documentHasBeenChangedFlag = false;
   }
 
-  private void saveFile(final boolean saveAs) {
+  private void saveFile(final boolean saveAsAction) {
     File file = this.currentOpenedFile;
-    if (saveAs || this.currentOpenedFile == null) {
+    if (saveAsAction || this.currentOpenedFile == null) {
       JFileChooser fileChooser = new JFileChooser(file);
       fileChooser.addChoosableFileFilter(PROL_FILE_FILTER);
+      fileChooser.setAcceptAllFileFilterUsed(true);
       fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
       fileChooser.setDragEnabled(false);
       fileChooser.setMultiSelectionEnabled(false);
+      fileChooser.setFileFilter(PROL_FILE_FILTER);
 
       if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
         file = fileChooser.getSelectedFile();
 
         if (!file.exists() && fileChooser.getFileFilter().equals(PROL_FILE_FILTER)) {
-          // ake auto extension
+          // auto extension
           if (!file.getName().toLowerCase().endsWith(PROL_EXTENSION)) {
             file = new File(file.getAbsolutePath() + PROL_EXTENSION);
           }
         }
 
-        if (saveAs || !file.equals(this.currentOpenedFile)) {
+        if (saveAsAction || !file.equals(this.currentOpenedFile)) {
           if (file.exists()) {
             if (JOptionPane.showConfirmDialog(this,
                 format("File '%s' exists, to overwrite it?", file.getAbsolutePath()), "File exists",
