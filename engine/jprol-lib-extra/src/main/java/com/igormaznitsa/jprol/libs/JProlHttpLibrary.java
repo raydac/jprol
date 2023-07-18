@@ -227,7 +227,7 @@ public class JProlHttpLibrary extends AbstractJProlLibrary {
           "Expected request method: ['GET', 'POST', 'HEAD', 'OPTIONS', 'PUT', 'DELETE', 'TRACE']",
           arequest);
     } catch (MalformedURLException ex) {
-      throw new ProlDomainErrorException("Malformed URL", arequest);
+      throw new ProlDomainErrorException("Expected URL in correct syntax", arequest);
     } catch (IOException ex) {
       throw new ProlPermissionErrorException("write", "text_output", predicate, ex);
     } catch (Exception ex) {

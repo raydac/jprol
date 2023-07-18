@@ -38,7 +38,9 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     super("jprol-str-lib");
   }
 
-  @JProlPredicate(determined = true, signature = "concat/3", args = {"+atom,+atom,?atom", "+atom,?atom,+atom", "?atom,+atom,+atom"}, reference = "Concat two strings.")
+  @JProlPredicate(determined = true, signature = "concat/3", args = {"+atom,+atom,?atom",
+      "+atom,?atom,+atom", "?atom,+atom,+atom"},
+      reference = "Concat two strings.")
   public static boolean predicateCONCAT(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term argFIRST = predicate.getElement(0).findNonVarOrSame();
     final Term argSECOND = predicate.getElement(1).findNonVarOrSame();

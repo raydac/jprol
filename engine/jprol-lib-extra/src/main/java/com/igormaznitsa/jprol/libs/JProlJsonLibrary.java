@@ -307,7 +307,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
         } else if ("false".equalsIgnoreCase(text)) {
           return "false";
         } else {
-          throw new ProlDomainErrorException("[null,true,false]",
+          throw new ProlDomainErrorException("[@null,@true,@false]",
               struct.getElement(0).findNonVarOrSame());
         }
       } else {
