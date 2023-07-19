@@ -43,6 +43,8 @@ class JProlRegexLibraryTest extends AbstractJProlTest {
   void testRegexReplaceAll() {
     assertRegexReplaceAll("\"\"\\]", "[\"aaa\",\"bbb\"\"]", "\"]", "[\"aaa\",\"bbb\"]");
     assertRegexReplaceAll("(?<=\")\\d+\\.\\s*", "[\"1.aaa\",\"2.bbb\"]", "", "[\"aaa\",\"bbb\"]");
+    assertRegexReplaceAll("(?<=\")\"(?=\\])|(?<=\")\\d+\\.\\s*", "[\"1.aaa\",\"2.bbb\"\"]", "",
+        "[\"aaa\",\"bbb\"]");
   }
 
   @Test
