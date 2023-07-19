@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 @SuppressWarnings({"EmptyMethod", "unused", "checkstyle:AbbreviationAsWordInName"})
@@ -114,7 +115,7 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     try {
       pattern = Pattern.compile(argRegex.getText(), compileFlags);
     } catch (Exception ex) {
-      throw new ProlDomainErrorException("Java Regular expression pattern", argRegex, ex);
+      throw new ProlDomainErrorException("Expected valid Java regular expression", argRegex, ex);
     }
 
     final TermList resultList = TermList.asList(
@@ -146,7 +147,7 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     try {
       pattern = Pattern.compile(argRegex.getText(), compileFlags);
     } catch (Exception ex) {
-      throw new ProlDomainErrorException("Java Regular expression pattern", argRegex, ex);
+      throw new ProlDomainErrorException("Expected valid Java regular expression", argRegex, ex);
     }
 
     final List<Term> foundGroups = new ArrayList<>();
@@ -162,6 +163,32 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
       }
     }
     return argTargetList.unifyTo(TermList.asList(foundGroups));
+  }
+
+  @JProlPredicate(determined = true, signature = "regex_replace_all/4", args = {
+      "+atom,+atom,?atom"},
+      reference = "Replace all text for Java regex. Example: regex_replace_all('\\\\s+','my-url-with-spaces','-',Result).")
+  public static boolean predicateREGEX_REPLACE_ALL(final JProlChoicePoint goal,
+                                                   final TermStruct predicate) {
+    final Term argRegex = predicate.getElement(0).findNonVarOrSame();
+    final Term argSource = predicate.getElement(1).findNonVarOrSame();
+    final Term argReplacement = predicate.getElement(2).findNonVarOrSame();
+    final Term argTarget = predicate.getElement(3).findNonVarOrSame();
+
+    if (goal.isArgsValidate()) {
+      ProlAssertions.assertAtom(argSource);
+      ProlAssertions.assertAtom(argRegex);
+      ProlAssertions.assertAtom(argReplacement);
+    }
+
+    final String processed;
+    try {
+      processed =
+          argSource.getText().replaceAll(argRegex.getText(), argReplacement.getText());
+    } catch (PatternSyntaxException ex) {
+      throw new ProlDomainErrorException("Expected valid Java regular expression", argRegex, ex);
+    }
+    return argTarget.unifyTo(Terms.newAtom(processed));
   }
 
   @JProlPredicate(determined = true, signature = "regex_matches/3", args = {
@@ -183,7 +210,7 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     try {
       pattern = Pattern.compile(argRegex.getText(), compileFlags);
     } catch (Exception ex) {
-      throw new ProlDomainErrorException("Java Regular expression pattern", argRegex, ex);
+      throw new ProlDomainErrorException("Expected valid Java regular expression", argRegex, ex);
     }
 
     return pattern.matcher(argString.getText()).matches();

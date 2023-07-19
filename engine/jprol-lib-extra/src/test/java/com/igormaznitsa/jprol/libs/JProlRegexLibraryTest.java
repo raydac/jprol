@@ -40,6 +40,12 @@ class JProlRegexLibraryTest extends AbstractJProlTest {
   }
 
   @Test
+  void testRegexReplaceAll() {
+    assertRegexReplaceAll("\"\"\\]", "[\"aaa\",\"bbb\"\"]", "\"]", "[\"aaa\",\"bbb\"]");
+    assertRegexReplaceAll("(?<=\")\\d+\\.\\s*", "[\"1.aaa\",\"2.bbb\"]", "", "[\"aaa\",\"bbb\"]");
+  }
+
+  @Test
   void testRegexMatches() {
     assertRegexMatches("\\d", "abc", emptyList(), false);
     assertRegexMatches("\\d", "1", emptyList(), true);
@@ -129,6 +135,25 @@ class JProlRegexLibraryTest extends AbstractJProlTest {
     final List<String> splitAsList = splitResult.streamChildren().map(Term::getText).collect(
         Collectors.toList());
     assertEquals(expected, splitAsList);
+  }
+
+  private void assertRegexReplaceAll(final String regex, final String text,
+                                     final String replacement,
+                                     final String expectedResult) {
+    final JProlContext context = this.makeTestContext();
+    final PredicateInvoker invoker =
+        context.findAllPredicateInvokersForSignature("regex_replace_all/4").stream().findFirst()
+            .orElseThrow(
+                () -> new IllegalStateException("Can't find regex_replace_all/4 in libraries"));
+    final Term goal = Terms.newStruct(Terms.newAtom("regex_replace_all"),
+        new Term[] {Terms.newAtom(regex), Terms.newAtom(text), Terms.newAtom(replacement),
+            Terms.newVar("X")},
+        invoker);
+    final JProlChoicePoint choicePoint = new JProlChoicePoint(goal, context);
+    final Term result = choicePoint.prove();
+    assertNotNull(result, "Must have prove result");
+    final Term foundResult = choicePoint.findVar("X").get().findNonVarOrSame();
+    assertEquals(expectedResult, foundResult.getText());
   }
 
   private JProlContext makeTestContext() {
