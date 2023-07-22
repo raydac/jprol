@@ -9,9 +9,7 @@ import com.igormaznitsa.jprol.data.TermVar;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.Data;
 
-@Data
 public abstract class InMemoryItem {
   protected final TermStruct clause;
   protected final Term rightHandSide;
@@ -43,6 +41,18 @@ public abstract class InMemoryItem {
     }
 
     return complex ? new RhsItemComplex(clause) : new RhsItemSimple(clause);
+  }
+
+  public boolean isLeftHandSidePresented() {
+    return this.leftHandSidePresented;
+  }
+
+  public Term getRightHandSide() {
+    return this.rightHandSide;
+  }
+
+  public TermStruct getClause() {
+    return this.clause;
   }
 
   public abstract boolean matches(final Term rightHandSide);
