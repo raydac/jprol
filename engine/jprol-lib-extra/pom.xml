@@ -12,6 +12,7 @@
     <artifactId>jprol-lib-extra</artifactId>
     <packaging>jar</packaging>
 
+    <name>JProl extra libraries</name>
     <description>Set of additional useful libraries for JProl engine</description>
 
     <licenses>
