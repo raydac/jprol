@@ -169,6 +169,13 @@
                     <rules>
                         <dependencyConvergence/>
                         <banDuplicateClasses/>
+                        <banCircularDependencies/>
+                        <enforceBytecodeVersion>
+                            <maxJdkVersion>1.8</maxJdkVersion>
+                            <ignoredScopes>
+                                <ignoredScope>test</ignoredScope>
+                            </ignoredScopes>
+                        </enforceBytecodeVersion>
                     </rules>
                 </configuration>
                 <dependencies>
