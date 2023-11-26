@@ -16,6 +16,7 @@
 
 package com.igormaznitsa.jprol.it;
 
+import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -30,10 +31,14 @@ import com.igormaznitsa.jprol.libs.JProlThreadLibrary;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 
 public abstract class AbstractJProlTest {
@@ -49,14 +54,15 @@ public abstract class AbstractJProlTest {
     }
   }
 
+  public static Number getVarAsNumber(final JProlChoicePoint cp, final String varName) {
+    final TermVar variable = cp.findVar(varName).orElseThrow(
+        () -> new IllegalArgumentException("Unknown variable for name '" + varName + '\''));
+    return variable.toNumber();
+  }
+
   public JProlContext makeTestContext(final IoResourceProvider... ioProviders) {
     return this.makeTestContext(a -> {
     }, ioProviders);
-  }
-
-  public static Number getVarAsNumber(final JProlChoicePoint cp, final String varName) {
-    final TermVar variable = cp.findVar(varName).orElseThrow(() -> new IllegalArgumentException("Unknown variable for name '" + varName + '\''));
-    return variable.toNumber();
   }
 
   public JProlContext makeTestContext(Consumer<JProlContext> contextPostprocessor,
@@ -104,6 +110,20 @@ public abstract class AbstractJProlTest {
     }, knowledgeBase);
   }
 
+  public JProlContext makeContextAndConsultFromResource(final String resource) throws IOException {
+    final StringBuilder knowledgeBase = new StringBuilder();
+    try (final BufferedReader reader = new BufferedReader(new InputStreamReader(
+        requireNonNull(this.getClass().getResourceAsStream(resource),
+            () -> "Can't find " + resource), StandardCharsets.UTF_8))) {
+      String line;
+      while ((line = reader.readLine()) != null) {
+        knowledgeBase.append(line).append('\n');
+      }
+    }
+    return this.makeContextAndConsult(ctx -> {
+    }, knowledgeBase.toString());
+  }
+
   protected JProlChoicePoint prepareGoal(String goal) {
     return prepareGoal(goal, makeTestContext());
   }
@@ -116,7 +136,8 @@ public abstract class AbstractJProlTest {
     return new JProlChoicePoint(goal, makeContextAndConsult(consult));
   }
 
-  protected void assertProlException(final String goal, final Class<? extends ProlException> exceptionClass) {
+  protected void assertProlException(final String goal,
+                                     final Class<? extends ProlException> exceptionClass) {
     final JProlContext context = makeTestContext();
     final JProlChoicePoint thisGoal = new JProlChoicePoint(goal, context);
     assertThrows(exceptionClass, thisGoal::prove);
@@ -128,7 +149,8 @@ public abstract class AbstractJProlTest {
     return thisGoal;
   }
 
-  protected void consultAndCheckVar(final String consult, final String goal, final String varName, final Object... results) {
+  protected void consultAndCheckVar(final String consult, final String goal, final String varName,
+                                    final Object... results) {
     final JProlContext context = makeTestContext();
     context.consult(new StringReader(consult));
     this.checkVarValues(context, goal, varName, results);
@@ -138,7 +160,8 @@ public abstract class AbstractJProlTest {
     this.checkVarValues(makeTestContext(), goal, var, result);
   }
 
-  protected void checkVarValues(JProlContext context, String goal, String varName, Object... results) {
+  protected void checkVarValues(JProlContext context, String goal, String varName,
+                                Object... results) {
     final JProlChoicePoint thisGoal = new JProlChoicePoint(goal, context);
 
     for (final Object res : results) {
@@ -177,7 +200,8 @@ public abstract class AbstractJProlTest {
       assertEquals(names.length, values.length);
       for (int v = 0; v < names.length; v++) {
         final String varName = names[v];
-        final TermVar thevar = thisGoal.findVar(varName).orElseThrow(() -> new IllegalArgumentException("Can't find var: " + varName));
+        final TermVar thevar = thisGoal.findVar(varName)
+            .orElseThrow(() -> new IllegalArgumentException("Can't find var: " + varName));
         assertEquals(values[v], thevar.getValue().getText(), i + ": Var=" + varName);
       }
     }
