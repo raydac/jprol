@@ -128,11 +128,6 @@ public final class TermOperator extends Term {
   }
 
   @Override
-  public String forWrite() {
-    return getText();
-  }
-
-  @Override
   public boolean unifyTo(final Term atom) {
     if (this == atom) {
       return true;
