@@ -100,7 +100,7 @@
                 <plugin>
                     <groupId>com.igormaznitsa</groupId>
                     <artifactId>mvn-jlink-wrapper</artifactId>
-                    <version>1.2.2</version>
+                    <version>1.2.3</version>
                 </plugin>    
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -125,7 +125,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>animal-sniffer-maven-plugin</artifactId>
-                    <version>1.23</version>
+                    <version>1.24</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
