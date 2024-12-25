@@ -68,9 +68,9 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
 
     isWorking = true;
 
-    removePropertyFromList("EdForeground");
-    addPropertyToList(new PropertyLink(this, "Output color", "EdOutputColor"));
-    addPropertyToList(new PropertyLink(this, "Input color", "EdInputColor"));
+    removePropertyLink(PROPERTY_ED_FOREGROUND);
+    addPropertyLink(new PropertyLink(this, "Output color", "EdOutputColor"));
+    addPropertyLink(new PropertyLink(this, "Input color", "EdInputColor"));
 
     consoleAttribute = new SimpleAttributeSet();
     consoleAttribute.addAttribute(CharacterConstants.Foreground, Color.ORANGE);

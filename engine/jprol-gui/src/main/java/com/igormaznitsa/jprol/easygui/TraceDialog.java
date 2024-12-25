@@ -48,14 +48,14 @@ public class TraceDialog extends AbstractProlEditor implements ActionListener {
 
     this.editor.setEditable(false);
 
-    removePropertyFromList("EdForeground");
-    removePropertyFromList("EdCaretColor");
+    removePropertyLink("EdForeground");
+    removePropertyLink("EdCaretColor");
 
-    addPropertyToList(new PropertyLink(this, "Call color", "EdCallColor"));
-    addPropertyToList(new PropertyLink(this, "Redo color", "EdRedoColor"));
-    addPropertyToList(new PropertyLink(this, "Fail color", "EdFailColor"));
-    addPropertyToList(new PropertyLink(this, "Exit color", "EdExitColor"));
-    addPropertyToList(new PropertyLink(this, "Other color", "EdOtherColor"));
+    addPropertyLink(new PropertyLink(this, "Call color", "EdCallColor"));
+    addPropertyLink(new PropertyLink(this, "Redo color", "EdRedoColor"));
+    addPropertyLink(new PropertyLink(this, "Fail color", "EdFailColor"));
+    addPropertyLink(new PropertyLink(this, "Exit color", "EdExitColor"));
+    addPropertyLink(new PropertyLink(this, "Other color", "EdOtherColor"));
 
     setEnabled(false);
     setContentType("text/rtf");

@@ -46,13 +46,13 @@ public class MessageEditor extends AbstractProlEditor {
     this.editor.setEditable(false);
     this.editor.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
 
-    removePropertyFromList("EdForeground");
-    removePropertyFromList("EdCaretColor");
-    removePropertyFromList("EdWordWrap");
+    removePropertyLink("EdForeground");
+    removePropertyLink("EdCaretColor");
+    removePropertyLink("EdWordWrap");
 
-    addPropertyToList(new PropertyLink(this, "Info color", "EdInfoColor"));
-    addPropertyToList(new PropertyLink(this, "Warning color", "EdWarningColor"));
-    addPropertyToList(new PropertyLink(this, "Error color", "EdErrorColor"));
+    addPropertyLink(new PropertyLink(this, "Info color", "EdInfoColor"));
+    addPropertyLink(new PropertyLink(this, "Warning color", "EdWarningColor"));
+    addPropertyLink(new PropertyLink(this, "Error color", "EdErrorColor"));
 
     setContentType("text/html");
 

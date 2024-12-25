@@ -52,22 +52,30 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 public abstract class AbstractProlEditor extends JPanel implements TreeModel {
 
   private static final long serialVersionUID = -3683279049571011888L;
+  public static final String PROPERTY_ED_FONT = "EdFont";
+  public static final String PROPERTY_ED_BACKGROUND = "EdBackground";
+  public static final String PROPERTY_ED_FOREGROUND = "EdForeground";
+  public static final String PROPERTY_ED_CARET_COLOR = "EdCaretColor";
+  public static final String PROPERTY_ED_WORD_WRAP = "EdWordWrap";
   protected final ArrayList<PropertyLink> editableProperties;
   protected final JTextComponent editor;
   protected final JScrollPane scrollPane;
   protected final JPopupMenu POPUP_MENU = new JPopupMenu();
-  protected final JMenuItem POPUP_CLEARTEXT = new JMenuItem("Clear text", UiUtils.loadIcon("page_delete"));
+  protected final JMenuItem POPUP_CLEARTEXT =
+      new JMenuItem("Clear text", UiUtils.loadIcon("page_delete"));
   protected final JMenuItem POPUP_COPY = new JMenuItem("Copy", UiUtils.loadIcon("page_copy"));
   protected final JMenuItem POPUP_CUT = new JMenuItem("Cut", UiUtils.loadIcon("cut"));
   protected final JMenuItem POPUP_PASTE = new JMenuItem("Paste", UiUtils.loadIcon("page_paste"));
   private final String nameID;
   private boolean wordWrap;
 
-  public AbstractProlEditor(final String title, final boolean scalable, final boolean lineNumeration) {
+  public AbstractProlEditor(final String title, final boolean scalable,
+                            final boolean lineNumeration) {
     this(title, new EditorPane(scalable), lineNumeration);
   }
 
-  public AbstractProlEditor(final String title, final JTextComponent editor, final boolean lineNumeration) {
+  public AbstractProlEditor(final String title, final JTextComponent editor,
+                            final boolean lineNumeration) {
     super();
     this.editableProperties = new ArrayList<>();
     this.editor = editor;
@@ -75,7 +83,8 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     if (this.editor instanceof RSyntaxTextArea) {
       this.scrollPane = new RTextScrollPane(this.editor, lineNumeration);
     } else {
-      this.scrollPane = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+      this.scrollPane = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+          JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     }
 
     this.setEdWordWrap(false);
@@ -88,11 +97,11 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     add(this.scrollPane, BorderLayout.CENTER);
 
     // add properties
-    addPropertyToList(new PropertyLink(this, "Font", "EdFont"));
-    addPropertyToList(new PropertyLink(this, "Background color", "EdBackground"));
-    addPropertyToList(new PropertyLink(this, "Foreground color", "EdForeground"));
-    addPropertyToList(new PropertyLink(this, "Caret color", "EdCaretColor"));
-    addPropertyToList(new PropertyLink(this, "Word wrap", "EdWordWrap"));
+    addPropertyLink(new PropertyLink(this, "Font", PROPERTY_ED_FONT));
+    addPropertyLink(new PropertyLink(this, "Background color", PROPERTY_ED_BACKGROUND));
+    addPropertyLink(new PropertyLink(this, "Foreground color", PROPERTY_ED_FOREGROUND));
+    addPropertyLink(new PropertyLink(this, "Caret color", PROPERTY_ED_CARET_COLOR));
+    addPropertyLink(new PropertyLink(this, "Word wrap", PROPERTY_ED_WORD_WRAP));
 
     this.POPUP_CLEARTEXT.addActionListener((ActionEvent e) -> clearText());
 
@@ -120,7 +129,8 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     return value == 0xFFFFFFFF ? null : new Color(value & 0xFFFFFF);
   }
 
-  protected static Color extractColor(final Preferences prefs, final String name, final Color dflt) {
+  protected static Color extractColor(final Preferences prefs, final String name,
+                                      final Color dflt) {
     final int value = prefs.getInt(name, 0xFFFFFFFF);
     return value == 0xFFFFFFFF ? dflt : new Color(value & 0xFFFFFF);
   }
@@ -373,18 +383,33 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     editor.setCaretColor(val);
   }
 
-  protected final void removePropertyFromList(final String propertyName) {
+  protected final void removePropertyLink(final String propertyName) {
     for (int li = 0; li < editableProperties.size(); li++) {
       final PropertyLink link = editableProperties.get(li);
-      if (link.property.equals(propertyName)) {
+      if (link.propertyName.equals(propertyName)) {
         editableProperties.remove(li);
         return;
       }
     }
   }
 
-  protected final void addPropertyToList(final PropertyLink link) {
+  protected final void addPropertyLink(final PropertyLink link) {
     this.editableProperties.add(link);
+  }
+
+  protected final void replacePropertyLink(final String propertyName, final PropertyLink link) {
+    int index = -1;
+    for (int i = 0; i < this.editableProperties.size(); i++) {
+      if (this.editableProperties.get(i).getPropertyName().equals(propertyName)) {
+        index = i;
+        break;
+      }
+    }
+    if (index >= 0) {
+      this.editableProperties.set(index, link);
+    } else {
+      this.editableProperties.add(link);
+    }
   }
 
   @Override
@@ -525,13 +550,17 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     private final Object ownerObject;
     private final Class<?> ownerClass;
     private final String name;
-    private final String property;
+    private final String propertyName;
 
-    public PropertyLink(final Object object, final String name, final String property) {
+    public PropertyLink(final Object object, final String name, final String propertyName) {
       this.name = name;
       this.ownerObject = object;
       this.ownerClass = object.getClass();
-      this.property = property;
+      this.propertyName = propertyName;
+    }
+
+    public String getPropertyName() {
+      return this.propertyName;
     }
 
     public Object getOwner() {
@@ -540,7 +569,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
 
     public Object getProperty() {
       try {
-        Method meth = ownerClass.getMethod("get" + property, (Class<?>[]) null);
+        Method meth = ownerClass.getMethod("get" + propertyName, (Class<?>[]) null);
         return meth.invoke(ownerObject);
       } catch (Throwable thr) {
         throw new RuntimeException("Can't read property", thr);
@@ -549,7 +578,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
 
     public void setProperty(final Object obj) {
       try {
-        ownerClass.getMethod("set" + property, obj.getClass()).invoke(ownerObject, obj);
+        ownerClass.getMethod("set" + propertyName, obj.getClass()).invoke(ownerObject, obj);
       } catch (Throwable thr) {
         throw new RuntimeException("Can't set property", thr);
       }

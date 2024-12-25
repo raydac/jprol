@@ -19,21 +19,28 @@ import org.fife.ui.rtextarea.RUndoManager;
  */
 public class PrologSourceEditor extends AbstractProlEditor {
 
+  public static final String SOURCE_WORDWRAP = "sourcewordwrap";
+  public static final String SOURCE_FOREGROUND_COLOR = "sourceforegroundcolor";
+  public static final String SOURCE_CARET_COLOR = "sourcecaretcolor";
+  public static final String SOURCE_BACK_COLOR = "sourceedbackcolor";
+  public static final String SOURCE_FONT = "sourcefont";
   /**
    * Inside logger, the logger id = "PROL_NOTE_PAD"
    */
-  protected static final Logger LOG = Logger.getLogger(PrologSourceEditor.class.getName());
+  protected static final Logger LOGGER = Logger.getLogger(PrologSourceEditor.class.getName());
   private static final long serialVersionUID = -2223529439306867844L;
   protected RUndoManager undoManager;
 
   public PrologSourceEditor() {
     super("Editor", new ScalableRsyntaxTextArea(), true);
+    replacePropertyLink(PROPERTY_ED_FONT, new PropertyLink(this, "Font", "EdAndBaseFont"));
 
     final RSyntaxTextArea theEditor = (RSyntaxTextArea) this.editor;
     theEditor.setTabsEmulated(true);
     theEditor.setSyntaxEditingStyle("text/jprol");
     theEditor.getSyntaxScheme().getStyle(Token.VARIABLE).foreground = Color.RED.darker();
-    theEditor.getSyntaxScheme().getStyle(Token.VARIABLE).font = theEditor.getFont().deriveFont(Font.BOLD);
+    theEditor.getSyntaxScheme().getStyle(Token.VARIABLE).font =
+        theEditor.getFont().deriveFont(Font.BOLD);
 
     theEditor.getInputMap().put(KeyStroke.getKeyStroke("control Z"), "none");
     theEditor.getInputMap().put(KeyStroke.getKeyStroke("control Y"), "none");
@@ -42,7 +49,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
     theEditor.setBracketMatchingEnabled(true);
     theEditor.setCodeFoldingEnabled(true);
 
-    removePropertyFromList("EdWordWrap");
+    removePropertyLink("EdWordWrap");
 
     editor.setForeground(Color.BLACK);
     editor.setBackground(Color.WHITE);
@@ -56,32 +63,42 @@ public class PrologSourceEditor extends AbstractProlEditor {
     this.undoManager = new RUndoManager(theEditor);
   }
 
-  public synchronized String getText() {
+  public Font getEdAndBaseFont() {
+    return ((ScalableRsyntaxTextArea) this.editor).getBaseFont();
+  }
+
+  public void setEdAndBaseFont(final Font font) {
+    final ScalableRsyntaxTextArea scalableRsyntaxTextArea = (ScalableRsyntaxTextArea) this.editor;
+    scalableRsyntaxTextArea.setBaseFont(font);
+    scalableRsyntaxTextArea.setFont(font);
+  }
+
+  public String getText() {
     return editor.getText();
   }
 
-  public synchronized UndoManager getUndoManager() {
+  public UndoManager getUndoManager() {
     return undoManager;
   }
 
-  public synchronized void addUndoableEditListener(final UndoableEditListener listener) {
+  public void addUndoableEditListener(final UndoableEditListener listener) {
     editor.getDocument().addUndoableEditListener(listener);
   }
 
-  public synchronized void addDocumentListener(final DocumentListener listener) {
+  public void addDocumentListener(final DocumentListener listener) {
     editor.getDocument().addDocumentListener(listener);
   }
 
-  public synchronized int getCaretPosition() {
+  public int getCaretPosition() {
     return this.editor.getCaretPosition();
   }
 
-  public synchronized void setCaretPosition(final int pos) {
+  public void setCaretPosition(final int pos) {
     this.editor.setCaretPosition(pos);
     this.editor.getCaret().setVisible(true);
   }
 
-  public synchronized void setCaretPosition(final int line, final int pos) {
+  public void setCaretPosition(final int line, final int pos) {
     try {
       final Element rootelement = editor.getDocument().getDefaultRootElement();
 
@@ -91,15 +108,15 @@ public class PrologSourceEditor extends AbstractProlEditor {
       editor.setCaretPosition(offset);
       editor.requestFocus();
     } catch (Exception ex) {
-      LOG.throwing(this.getClass().getCanonicalName(), "setCaretPosition()", ex);
+      LOGGER.throwing(this.getClass().getCanonicalName(), "setCaretPosition()", ex);
     }
   }
 
   @Override
-  public void loadPreferences(final Preferences prefs) {
-    final Color backColor = extractColor(prefs, "sourceedbackcolor");
-    final Color caretColor = extractColor(prefs, "sourcecaretcolor");
-    final Color fgColor = extractColor(prefs, "sourceforegroundcolor");
+  public void loadPreferences(final Preferences preferences) {
+    final Color backColor = extractColor(preferences, SOURCE_BACK_COLOR);
+    final Color caretColor = extractColor(preferences, SOURCE_CARET_COLOR);
+    final Color fgColor = extractColor(preferences, SOURCE_FOREGROUND_COLOR);
 
     if (backColor != null) {
       setEdBackground(backColor);
@@ -110,17 +127,20 @@ public class PrologSourceEditor extends AbstractProlEditor {
     if (fgColor != null) {
       setEdForeground(fgColor);
     }
-    setEdWordWrap(prefs.getBoolean("sourcewordwrap", true));
-    setEdFont(loadFontFromPrefs(prefs, "sourcefont", this.editor.getFont()));
+    this.setEdWordWrap(preferences.getBoolean(SOURCE_WORDWRAP, true));
+    final Font sourceEditorFont =
+        loadFontFromPrefs(preferences, SOURCE_FONT, this.editor.getFont());
+    ((ScalableRsyntaxTextArea) this.getEditor()).setBaseFont(sourceEditorFont);
+    this.setEdFont(sourceEditorFont);
   }
 
   @Override
-  public void savePreferences(final Preferences prefs) {
-    prefs.putInt("sourceedbackcolor", getEdBackground().getRGB());
-    prefs.putInt("sourcecaretcolor", getEdCaretColor().getRGB());
-    prefs.putInt("sourceforegroundcolor", getEdForeground().getRGB());
-    prefs.putBoolean("sourcewordwrap", getEdWordWrap());
-    saveFontToPrefs(prefs, "sourcefont", ((ScalableRsyntaxTextArea) editor).getBaseFont());
+  public void savePreferences(final Preferences preferences) {
+    preferences.putInt(SOURCE_BACK_COLOR, getEdBackground().getRGB());
+    preferences.putInt(SOURCE_CARET_COLOR, getEdCaretColor().getRGB());
+    preferences.putInt(SOURCE_FOREGROUND_COLOR, getEdForeground().getRGB());
+    preferences.putBoolean(SOURCE_WORDWRAP, getEdWordWrap());
+    saveFontToPrefs(preferences, SOURCE_FONT, ((ScalableRsyntaxTextArea) editor).getBaseFont());
   }
 
   public boolean uncommentSelectedLines() {
@@ -145,7 +165,8 @@ public class PrologSourceEditor extends AbstractProlEditor {
     for (int i = startElement; i <= endElement; i++) {
       final Element elem = root.getElement(i);
       try {
-        final String elementtext = elem.getDocument().getText(elem.getStartOffset(), elem.getEndOffset() - elem.getStartOffset());
+        final String elementtext = elem.getDocument()
+            .getText(elem.getStartOffset(), elem.getEndOffset() - elem.getStartOffset());
         if (elementtext.trim().startsWith("%")) {
           final int indexofcomment = elementtext.indexOf('%');
           if (indexofcomment >= 0) {
@@ -154,7 +175,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
           }
         }
       } catch (BadLocationException ex) {
-        LOG.throwing(this.getClass().getCanonicalName(), "uncommentSelectedLines()", ex);
+        LOGGER.throwing(this.getClass().getCanonicalName(), "uncommentSelectedLines()", ex);
       }
     }
     editor.revalidate();
@@ -183,13 +204,14 @@ public class PrologSourceEditor extends AbstractProlEditor {
     for (int i = startElement; i <= endElement; i++) {
       final Element elem = root.getElement(i);
       try {
-        final String elementtext = elem.getDocument().getText(elem.getStartOffset(), elem.getEndOffset() - elem.getStartOffset());
+        final String elementtext = elem.getDocument()
+            .getText(elem.getStartOffset(), elem.getEndOffset() - elem.getStartOffset());
         if (!elementtext.trim().startsWith("%")) {
           elem.getDocument().insertString(elem.getStartOffset(), "%", null);
           result = true;
         }
       } catch (BadLocationException ex) {
-        LOG.throwing(this.getClass().getCanonicalName(), "commentSelectedLines()", ex);
+        LOGGER.throwing(this.getClass().getCanonicalName(), "commentSelectedLines()", ex);
       }
     }
     editor.revalidate();
