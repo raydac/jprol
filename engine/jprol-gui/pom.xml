@@ -33,7 +33,6 @@
         <dependency>
             <groupId>com.fifesoft</groupId>
             <artifactId>rsyntaxtextarea</artifactId>
-            <version>3.5.3</version>
         </dependency>
     </dependencies>
 
@@ -262,7 +261,7 @@
                         <configuration>
                             <headerType>gui</headerType>
                             <outfile>${project.build.directory}/${app.name}.exe</outfile>
-                            <downloadUrl>http://www.oracle.com/technetwork/java/javase/downloads</downloadUrl>
+                            <downloadUrl>https://bell-sw.com/pages/downloads</downloadUrl>
                             <classPath>
                                 <mainClass>JProlApp</mainClass>
                                 <preCp>anything</preCp>
@@ -674,7 +673,6 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
-                        <version>3.3.0</version>
                         <executions>
                             <execution>
                                 <id>make-sh</id>
