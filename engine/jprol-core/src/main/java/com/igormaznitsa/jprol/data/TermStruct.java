@@ -474,7 +474,7 @@ public class TermStruct extends CompoundTerm {
   }
 
   @Override
-  protected Term makeCloneAndVarBound(final Map<Integer, TermVar> vars) {
+  public Term makeCloneAndVarBound(final Map<Integer, TermVar> vars) {
     final Term result;
     if (this.getArity() == 0) {
       result = this;

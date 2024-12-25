@@ -724,7 +724,7 @@ public final class JProlContext implements AutoCloseable {
                           .onSolution(this, termGoal, variableMap,
                               solutionCounter.incrementAndGet());
                       if (!doFindNextSolution) {
-                        throw new ProlHaltExecutionException("search halted", 1);
+                        throw new ProlHaltExecutionException("search halted or stopped", 1);
                       }
                     } else {
                       iterator.onFail(this, termGoal, solutionCounter.get());
@@ -745,6 +745,8 @@ public final class JProlContext implements AutoCloseable {
                 "Such element can't be saved at knowledge base [" + nextItem + ']');
           }
         }
+      } catch (ProlHaltExecutionException ex) {
+        throw ex;
       } catch (ProlAbstractCatchableException ex) {
         final SourcePosition errorPosition = ex.getCulprit().getSourcePosition();
         throw new PrologParserException(

@@ -13,7 +13,7 @@ class EightQueensTest extends AbstractJProlTest {
 
   @Test
   void testEightQueens() throws Exception {
-    final String[] etal = new String[] {
+    final String[] etalonResults = new String[] {
         "[4,2,7,3,6,8,5,1]",
         "[5,2,4,7,3,8,6,1]",
         "[3,5,2,8,6,4,7,1]",
@@ -114,7 +114,7 @@ class EightQueensTest extends AbstractJProlTest {
 
     final JProlChoicePoint goal = new JProlChoicePoint("solution([1/Y1,2/Y2,3/Y3,4/Y4,5/Y5,6/Y6,7/Y7,8/Y8]),Res = [Y1,Y2,Y3,Y4,Y5,Y6,Y7,Y8].", context);
 
-    for (final String e : etal) {
+    for (final String e : etalonResults) {
       assertNotNull(goal.prove());
       assertEquals(e, getVarAsText(goal, "Res"));
     }

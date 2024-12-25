@@ -96,7 +96,7 @@ public final class TermVar extends Term {
   }
 
   @Override
-  protected Term makeCloneAndVarBound(final Map<Integer, TermVar> vars) {
+  public Term makeCloneAndVarBound(final Map<Integer, TermVar> vars) {
     Term value = this.getValue();
     if (value == null) {
       final Term result;
@@ -309,16 +309,18 @@ public final class TermVar extends Term {
 
   @Override
   public boolean unifyTo(final Term atom) {
-    boolean result = true;
-    if (this != atom) {
+    if (this == atom) {
+      return true;
+    } else {
       final Term val = getValue();
+      final boolean result;
       if (val == null) {
         result = setValue(atom);
       } else {
         result = val.unifyTo(atom);
       }
+      return result;
     }
-    return result;
   }
 
   @Override

@@ -192,7 +192,7 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  protected Term makeCloneAndVarBound(final Map<Integer, TermVar> vars) {
+  public Term makeCloneAndVarBound(final Map<Integer, TermVar> vars) {
     return this.isNullList() ? Terms.NULL_LIST : newList(this.getHead().makeCloneAndVarBound(vars),
         this.getTail().makeCloneAndVarBound(vars));
   }

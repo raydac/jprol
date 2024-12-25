@@ -78,6 +78,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -2215,7 +2216,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
           newAtom(signature, UNKNOWN));
     }
 
-    base.assertA(goal.getContext(), (TermStruct) termToAdd.makeCloneAndVarBound());
+    base.assertA(goal.getContext(), (TermStruct) termToAdd.makeCloneAndVarBound(new HashMap<>()));
     return true;
   }
 
@@ -2241,7 +2242,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
           newAtom(signature, UNKNOWN));
     }
 
-    base.assertZ(goal.getContext(), (TermStruct) termToRemove.makeCloneAndVarBound());
+    base.assertZ(goal.getContext(),
+        (TermStruct) termToRemove.makeCloneAndVarBound(new HashMap<>()));
 
     return true;
   }
@@ -2269,7 +2271,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
           newAtom(signature, UNKNOWN));
     }
 
-    return base.retractA(goal.getContext(), (TermStruct) atom.makeCloneAndVarBound());
+    return base.retractA(goal.getContext(),
+        (TermStruct) atom.makeCloneAndVarBound(new HashMap<>()));
   }
 
   @JProlPredicate(determined = true, signature = "retractz/1", args = {

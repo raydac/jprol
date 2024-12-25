@@ -22,6 +22,7 @@ import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
+import java.util.HashMap;
 import java.util.Objects;
 
 public abstract class ProlAbstractCatchableException extends ProlException {
@@ -37,18 +38,18 @@ public abstract class ProlAbstractCatchableException extends ProlException {
 
   public ProlAbstractCatchableException(final String message, final Term culprit) {
     super(message);
-    this.culprit = culprit == null ? UNDEFINED : culprit.makeCloneAndVarBound();
+    this.culprit = culprit == null ? UNDEFINED : culprit.makeCloneAndVarBound(new HashMap<>());
   }
 
   public ProlAbstractCatchableException(final String message, final Term culprit,
                                         final Throwable cause) {
     super(message, cause);
-    this.culprit = culprit == null ? UNDEFINED : culprit.makeCloneAndVarBound();
+    this.culprit = culprit == null ? UNDEFINED : culprit.makeCloneAndVarBound(new HashMap<>());
   }
 
   public ProlAbstractCatchableException(final Term culprit, final Throwable cause) {
     super(cause);
-    this.culprit = culprit == null ? UNDEFINED : culprit.makeCloneAndVarBound();
+    this.culprit = culprit == null ? UNDEFINED : culprit.makeCloneAndVarBound(new HashMap<>());
   }
 
   public abstract Term getErrorTerm();

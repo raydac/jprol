@@ -250,11 +250,7 @@ public class Term {
     return this;
   }
 
-  public final Term makeCloneAndVarBound() {
-    return this.makeCloneAndVarBound(new HashMap<>());
-  }
-
-  protected Term makeCloneAndVarBound(final Map<Integer, TermVar> vars) {
+  public Term makeCloneAndVarBound(final Map<Integer, TermVar> vars) {
     return this;
   }
 
