@@ -203,7 +203,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
     boolean loop = true;
 
-    while (loop && !Thread.currentThread().isInterrupted()) {
+    while (loop) {
       if (this.context.isDisposed()) {
         throw new ProlHaltExecutionException();
       }
@@ -272,9 +272,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
     boolean doLoop = true;
 
     while (doLoop) {
-      if (Thread.currentThread().isInterrupted() || this.context.isDisposed()) {
-        Thread.currentThread().interrupt();
-        throw new ProlChoicePointInterruptedException("Thread interrupted", this);
+      if (this.context.isDisposed()) {
+        throw new ProlChoicePointInterruptedException("context disposed", this);
       }
 
       // reset variables to their initial state

@@ -258,7 +258,7 @@ public final class JProlContext implements AutoCloseable {
   }
 
   public void waitAllAsyncTasks() {
-    while (this.asyncTaskCounter.get() > 0 && !Thread.currentThread().isInterrupted()) {
+    while (this.asyncTaskCounter.get() > 0 && !this.isDisposed()) {
       synchronized (this.asyncTaskCounter) {
         try {
           this.asyncTaskCounter.wait();
@@ -285,7 +285,7 @@ public final class JProlContext implements AutoCloseable {
       try(final JProlContext contextCopy = this.makeCopy()) {
         final JProlChoicePoint asyncGoal =
                 new JProlChoicePoint(requireNonNull(goal), this.makeCopy());
-        while (asyncGoal.prove() != null && !Thread.currentThread().isInterrupted()) {
+        while (asyncGoal.prove() != null && !this.isDisposed()) {
           // do nothing
         }
         if (contextCopy.isDisposed()) {
@@ -422,7 +422,7 @@ public final class JProlContext implements AutoCloseable {
                 final StringBuilder buffer = new StringBuilder();
                 try (final Reader reader = new InputStreamReader(new BufferedInputStream(x),
                         StandardCharsets.UTF_8)) {
-                  while (!Thread.currentThread().isInterrupted()) {
+                  while (!this.isDisposed()) {
                     final int value = reader.read();
                     if (value < 0) {
                       break;
@@ -730,7 +730,7 @@ public final class JProlContext implements AutoCloseable {
                       iterator.onFail(this, termGoal, solutionCounter.get());
                       doFindNextSolution = false;
                     }
-                  } while (doFindNextSolution && !Thread.currentThread().isInterrupted());
+                  } while (doFindNextSolution);
                 }
               } else {
                 this.knowledgeBase.assertZ(this, struct);
@@ -757,7 +757,7 @@ public final class JProlContext implements AutoCloseable {
             ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage(),
             sourcePosition.getLine(), sourcePosition.getPosition(), ex);
       }
-    } while (!Thread.currentThread().isInterrupted());
+    } while (!this.isDisposed());
   }
 
   private boolean solveGoal(final JProlChoicePoint goal, final Map<String, TermVar> varTable) {
