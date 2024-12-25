@@ -3,8 +3,8 @@ package com.igormaznitsa.jprol.data;
 import java.util.stream.Stream;
 
 public abstract class SpecialTerm extends Term {
-  public SpecialTerm(final String text) {
-    super(text);
+  public SpecialTerm(final String text, final SourcePosition sourcePosition) {
+    super(text, sourcePosition);
   }
 
   @Override

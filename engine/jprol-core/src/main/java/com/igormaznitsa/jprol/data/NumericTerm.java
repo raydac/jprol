@@ -20,8 +20,8 @@ import static com.igormaznitsa.jprol.data.TermType.VAR;
 
 public abstract class NumericTerm extends Term {
 
-  NumericTerm(final String text) {
-    super(text);
+  NumericTerm(final String text, final SourcePosition sourcePosition) {
+    super(text, sourcePosition);
   }
 
   public abstract int compare(NumericTerm term);

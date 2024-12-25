@@ -64,7 +64,7 @@ public final class PreparedGoal {
 
     this.paramNames = unmodifiableList(orderedVarNames);
     this.preparedGoalTerm = new JProlTreeBuilder(context)
-        .readPhraseAndMakeTree(new StringReader(builder.toString())).term;
+        .readPhraseAndMakeTree(new StringReader(builder.toString()));
   }
 
   public List<String> getParamNames() {

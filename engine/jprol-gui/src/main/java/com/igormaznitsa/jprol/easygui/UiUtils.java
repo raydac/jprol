@@ -98,7 +98,7 @@ public final class UiUtils {
         }
 
         final String reference = predicate.reference();
-        if (reference != null && reference.length() > 0) {
+        if (reference != null && !reference.isEmpty()) {
           out.println();
           out.println(reference);
         }

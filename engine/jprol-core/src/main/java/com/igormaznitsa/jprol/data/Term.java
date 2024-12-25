@@ -45,9 +45,15 @@ import java.util.stream.Stream;
 public class Term {
 
   private final String text;
+  private final SourcePosition sourcePosition;
 
-  Term(final String text) {
+  Term(final String text, final SourcePosition sourcePosition) {
     this.text = requireNonNull(text);
+    this.sourcePosition = requireNonNull(sourcePosition);
+  }
+
+  public SourcePosition getSourcePosition() {
+    return this.sourcePosition;
   }
 
   public int getPriority() {
@@ -213,13 +219,19 @@ public class Term {
     }
   }
 
+  public boolean canContainVariables() {
+    return false;
+  }
+
   protected void doArrangeVars(final Map<String, TermVar> variables) {
   }
 
   public final void arrangeVariablesInsideTerms(final Term termTwo) {
-    final Map<String, TermVar> varMap = new HashMap<>();
-    this.doArrangeVars(varMap);
-    termTwo.doArrangeVars(varMap);
+    if (this.canContainVariables() && termTwo.canContainVariables()) {
+      final Map<String, TermVar> varMap = new HashMap<>();
+      this.doArrangeVars(varMap);
+      termTwo.doArrangeVars(varMap);
+    }
   }
 
   public int getTextLength() {

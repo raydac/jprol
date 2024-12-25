@@ -27,6 +27,7 @@ import com.igormaznitsa.jprol.annotations.JProlOperator;
 import com.igormaznitsa.jprol.annotations.JProlOperators;
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.NumericTerm;
+import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermOperator;
 import com.igormaznitsa.jprol.data.TermOperatorContainer;
@@ -70,19 +71,44 @@ public abstract class AbstractJProlLibrary {
 
     this.libraryUid = libraryUid;
 
-    this.systemOperators = Collections.unmodifiableMap(loadStaticOperators(this.getClass()));
+    this.systemOperators =
+        Collections.unmodifiableMap(loadStaticOperators(this.getClass(), SourcePosition.UNKNOWN));
     final Set<String> zeroArityPredicates = new HashSet<>();
     this.predicateMethodsMap = Collections
         .unmodifiableMap(extractAnnotatedMethodsAsPredicates(libraryUid, zeroArityPredicates));
     this.zeroArityPredicateNames = Collections.unmodifiableSet(zeroArityPredicates);
   }
 
-  public void onRegisteredInContext(final JProlContext context) {
-
+  private static void registerStaticOperator(final Map<String, TermOperatorContainer> operatorMap,
+                                             final JProlOperator operator,
+                                             final SourcePosition sourcePosition) {
+    TermOperator newOperator =
+        new TermOperator(operator.priority(), operator.type(), operator.name(), sourcePosition);
+    TermOperatorContainer container = operatorMap.get(operator.name());
+    if (container == null) {
+      container = new TermOperatorContainer(newOperator, sourcePosition);
+      operatorMap.put(operator.name(), container);
+    } else {
+      container.setOperator(newOperator);
+    }
   }
 
-  public void onLibraryRemove(final JProlContext context) {
+  private static Map<String, TermOperatorContainer> loadStaticOperators(final Class<?> targetClass,
+                                                                        final SourcePosition sourcePosition) {
+    final Map<String, TermOperatorContainer> result = new HashMap<>();
+    final JProlOperators operators = targetClass.getAnnotation(JProlOperators.class);
+    if (operators != null) {
+      JProlOperator[] operatorList = operators.value();
+      for (final JProlOperator lst : operatorList) {
+        registerStaticOperator(result, lst, sourcePosition);
+      }
+    }
 
+    final JProlOperator operator = targetClass.getAnnotation(JProlOperator.class);
+    if (operator != null) {
+      registerStaticOperator(result, operator, sourcePosition);
+    }
+    return result;
   }
 
   protected static boolean assertUnify(final Term a, final Term b) {
@@ -93,34 +119,14 @@ public abstract class AbstractJProlLibrary {
     return true;
   }
 
-  private static void registerStaticOperator(final Map<String, TermOperatorContainer> operatorMap,
-                                             final JProlOperator operator) {
-    TermOperator newOperator =
-        new TermOperator(operator.priority(), operator.type(), operator.name());
-    TermOperatorContainer container = operatorMap.get(operator.name());
-    if (container == null) {
-      container = new TermOperatorContainer(newOperator);
-      operatorMap.put(operator.name(), container);
-    } else {
-      container.setOperator(newOperator);
-    }
+  @SuppressWarnings("EmptyMethod")
+  public void onRegisteredInContext(final JProlContext context) {
+
   }
 
-  private static Map<String, TermOperatorContainer> loadStaticOperators(final Class<?> targetClass) {
-    final Map<String, TermOperatorContainer> result = new HashMap<>();
-    final JProlOperators operators = targetClass.getAnnotation(JProlOperators.class);
-    if (operators != null) {
-      JProlOperator[] operatorList = operators.value();
-      for (final JProlOperator lst : operatorList) {
-        registerStaticOperator(result, lst);
-      }
-    }
+  @SuppressWarnings("EmptyMethod")
+  public void onLibraryRemove(final JProlContext context) {
 
-    final JProlOperator operator = targetClass.getAnnotation(JProlOperator.class);
-    if (operator != null) {
-      registerStaticOperator(result, operator);
-    }
-    return result;
   }
 
   protected static NumericTerm calcEvaluable(final JProlChoicePoint choicePoint, final Term term) {
@@ -198,8 +204,9 @@ public abstract class AbstractJProlLibrary {
           final int index = key.lastIndexOf('/');
           return newStruct(SIGNATURE_OPERATOR,
               new Term[] {
-                  newAtom(key.substring(0, index)),
-                  newLong(parseInt(key.substring(index + 1)))
+                  newAtom(key.substring(0, index), predicateIndicator.getSourcePosition()),
+                  newLong(parseInt(key.substring(index + 1)),
+                      predicateIndicator.getSourcePosition())
               });
         })
         .filter(predicateIndicator::dryUnifyTo)

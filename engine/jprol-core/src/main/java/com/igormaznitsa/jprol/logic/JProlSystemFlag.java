@@ -8,6 +8,7 @@ import static com.igormaznitsa.jprol.data.Terms.newLong;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static java.util.Collections.unmodifiableList;
 
+import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.data.Terms;
@@ -18,8 +19,10 @@ import java.util.Locale;
 import java.util.Optional;
 
 public enum JProlSystemFlag {
-  ADDRESS_BIT(true, Terms.newAtom("address_bit"), Terms.newLong(Utils.getJvmBitness())),
-  ALLOW_VARIABLE_NAME_AS_FUNCTOR(true, Terms.newAtom("allow_variable_name_as_functor"), FALSE),
+  ADDRESS_BIT(true, Terms.newAtom("address_bit", SourcePosition.UNKNOWN),
+      Terms.newLong(Utils.getJvmBitness(), SourcePosition.UNKNOWN)),
+  ALLOW_VARIABLE_NAME_AS_FUNCTOR(true,
+      Terms.newAtom("allow_variable_name_as_functor", SourcePosition.UNKNOWN), FALSE),
   OS(true, Terms.newAtom("os"), Terms.newAtom(System.getProperty("os.name", "unknown"))),
   ARCH(true, Terms.newAtom("arch"), Terms.newAtom(System.getProperty("os.arch", "unknown"))),
   BOUNDED(true, Terms.newAtom("bounded"), TRUE),
@@ -33,10 +36,13 @@ public enum JProlSystemFlag {
   CPU_COUNT(true, Terms.newAtom("cpu_count"),
       Terms.newLong(Runtime.getRuntime().availableProcessors())),
   UNKNOWN(false, Terms.newAtom("unknown"), UndefinedPredicateBehavior.ERROR.getTerm()),
-  HOME(true, Terms.newAtom("home"), Terms.newAtom(System.getProperty("user.home", ""))),
-  VERIFY(false, Terms.newAtom("verify"), TRUE),
-  VERSION_DATA(true, Terms.newAtom("version_data"),
-      newStruct(newAtom("jprol"), new Term[] {newLong(2), newLong(0), newLong(1), NULL_LIST}));
+  HOME(true, Terms.newAtom("home"),
+      Terms.newAtom(System.getProperty("user.home", ""), SourcePosition.UNKNOWN)),
+  VERIFY(false, Terms.newAtom("verify", SourcePosition.UNKNOWN), TRUE),
+  VERSION_DATA(true, Terms.newAtom("version_data", SourcePosition.UNKNOWN),
+      newStruct(newAtom("jprol", SourcePosition.UNKNOWN),
+          new Term[] {newLong(2, SourcePosition.UNKNOWN), newLong(0, SourcePosition.UNKNOWN),
+              newLong(1, SourcePosition.UNKNOWN), NULL_LIST}));
 
   private final Term nameTerm;
   private final Term defaultValue;

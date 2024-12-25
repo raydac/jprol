@@ -31,8 +31,9 @@ public final class TermOperatorContainer extends SpecialTerm {
   private volatile TermOperator opZF;
   private volatile TermOperator opZFZ;
 
-  private TermOperatorContainer(final TermOperatorContainer sample) {
-    super(sample.getText());
+  private TermOperatorContainer(final TermOperatorContainer sample,
+                                final SourcePosition sourcePosition) {
+    super(sample.getText(), sourcePosition);
     this.opContainer = OpContainer.make(sample.getText(),
         sample.opFZ == null ? null : sample.opFZ.asOp(),
         sample.opZF == null ? null : sample.opZF.asOp(),
@@ -42,8 +43,8 @@ public final class TermOperatorContainer extends SpecialTerm {
     opZFZ = sample.opZFZ;
   }
 
-  public TermOperatorContainer(final TermOperator operator) {
-    super(operator.getText());
+  public TermOperatorContainer(final TermOperator operator, final SourcePosition sourcePosition) {
+    super(operator.getText(), sourcePosition);
     this.opContainer = OpContainer.make(operator.asOp());
     setOperator(operator);
   }
@@ -197,6 +198,6 @@ public final class TermOperatorContainer extends SpecialTerm {
   }
 
   public TermOperatorContainer makeCopy() {
-    return new TermOperatorContainer(this);
+    return new TermOperatorContainer(this, this.getSourcePosition());
   }
 }

@@ -1643,7 +1643,7 @@ public final class MainFrame extends javax.swing.JFrame
     this.splitPaneTop.setDividerLocation(prefs.getInt("splitpanetoppos", 300));
 
     final String lastFile = prefs.get("lastfile", "");
-    if (lastFile.length() > 0) {
+    if (!lastFile.isEmpty()) {
       this.lastOpenedFile = new File(lastFile);
     } else {
       this.lastOpenedFile = null;

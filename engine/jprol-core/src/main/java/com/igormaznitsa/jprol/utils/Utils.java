@@ -20,6 +20,7 @@ import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.data.Terms.newList;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
 
+import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermLong;
@@ -45,7 +46,8 @@ import java.util.concurrent.CompletableFuture;
 
 public final class Utils {
 
-  public static final TermOperator SIGNATURE_OPERATOR = new TermOperator(400, OpAssoc.YFX, "/");
+  public static final TermOperator SIGNATURE_OPERATOR =
+      new TermOperator(400, OpAssoc.YFX, "/", SourcePosition.UNKNOWN);
 
   private Utils() {
   }
@@ -56,10 +58,11 @@ public final class Utils {
     if (text == null || text.isEmpty()) {
       return Terms.NULL_LIST;
     } else {
-      final TermList result = createOrAppendToList(null, newLong(text.charAt(0)));
+      final TermList result =
+          createOrAppendToList(null, newLong(text.charAt(0), term.getSourcePosition()));
       TermList current = result;
       for (int i = 1; i < text.length(); i++) {
-        current = createOrAppendToList(current, newLong(text.charAt(i)));
+        current = createOrAppendToList(current, newLong(text.charAt(i), term.getSourcePosition()));
       }
       return result;
     }
@@ -85,10 +88,10 @@ public final class Utils {
 
     for (int li = 0; li < len; li++) {
       buff.append(text.charAt(li));
-      final Term newAtom = Terms.newAtom(buff.toString());
+      final Term newAtom = Terms.newAtom(buff.toString(), term.getSourcePosition());
       buff.setLength(0);
       if (li == 0) {
-        resultList = newList(newAtom);
+        resultList = newList(newAtom, term.getSourcePosition());
         curList = resultList;
       } else {
         curList = createOrAppendToList(curList, newAtom);
@@ -161,7 +164,7 @@ public final class Utils {
   }
 
   public static TermList createOrAppendToList(final TermList nullableList, final Term term) {
-    final TermList newList = Terms.newList(term);
+    final TermList newList = Terms.newList(term, term.getSourcePosition());
 
     if (nullableList != null && !nullableList.isNullList()) {
       newList.setTail(nullableList.getTail());
@@ -173,7 +176,7 @@ public final class Utils {
 
   public static String escapeSrc(final String string) {
 
-    if (string.length() == 0) {
+    if (string.isEmpty()) {
       return string;
     }
 
@@ -241,7 +244,7 @@ public final class Utils {
     }
     String sig = signature.trim();
 
-    if (sig.length() > 0 && sig.charAt(0) == '\'') {
+    if (!sig.isEmpty() && sig.charAt(0) == '\'') {
       sig = sig.substring(1);
       final int lastIndex = sig.lastIndexOf('/');
       if (lastIndex < 0) {
@@ -249,7 +252,7 @@ public final class Utils {
       } else {
         final String arity = sig.substring(lastIndex + 1).trim();
         String name = sig.substring(0, lastIndex - 1).trim();
-        if (name.length() > 0 && name.charAt(name.length() - 1) == '\'') {
+        if (!name.isEmpty() && name.charAt(name.length() - 1) == '\'') {
           name = name.substring(0, name.length() - 1);
           sig = name + '/' + arity;
         } else {
@@ -266,11 +269,11 @@ public final class Utils {
     if (parsed.length == 2) {
       String str = parsed[0].trim();
       boolean quoted = false;
-      if (str.length() != 0) {
+      if (!str.isEmpty()) {
         if (str.charAt(0) == '\'') {
           if (str.length() > 1 && str.charAt(str.length() - 1) == '\'') {
             str = str.substring(1, str.length() - 1);
-            if (str.length() == 0) {
+            if (str.isEmpty()) {
               return null;
             }
             quoted = true;

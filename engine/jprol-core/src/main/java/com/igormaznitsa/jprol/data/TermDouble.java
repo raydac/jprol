@@ -20,8 +20,8 @@ public final class TermDouble extends NumericTerm {
 
   private final Double value;
 
-  TermDouble(final String name) {
-    super(name);
+  TermDouble(final String name, final SourcePosition sourcePosition) {
+    super(name, sourcePosition);
 
     int len = name.length() - 1;
     while (len >= 0) {
@@ -33,8 +33,8 @@ public final class TermDouble extends NumericTerm {
     value = Double.parseDouble(name);
   }
 
-  TermDouble(final double value) {
-    super("");
+  TermDouble(final double value, final SourcePosition sourcePosition) {
+    super("", sourcePosition);
     this.value = value;
   }
 

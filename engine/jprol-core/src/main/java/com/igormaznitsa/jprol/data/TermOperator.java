@@ -30,8 +30,9 @@ public final class TermOperator extends Term {
   private final Op op;
   private final String signature;
 
-  public TermOperator(final int priority, final OpAssoc type, final String name) {
-    super(name);
+  public TermOperator(final int priority, final OpAssoc type, final String name,
+                      final SourcePosition sourcePosition) {
+    super(name, sourcePosition);
 
     if (priority < PRIORITY_MAX || priority > PRIORITY_MIN) {
       throw new IllegalArgumentException("Wrong priority value");

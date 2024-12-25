@@ -42,25 +42,31 @@ public class TermStruct extends CompoundTerm {
   private final String structureSignature;
   private volatile PredicateInvoker predicateProcessor;
 
-  TermStruct(final Term functor) {
-    this(functor, EMPTY_ARRAY);
+  TermStruct(final Term functor, final SourcePosition sourcePosition) {
+    this(functor, EMPTY_ARRAY, sourcePosition);
   }
 
-  TermStruct(final String functor, final Term[] elements) {
-    this(new Term(functor), elements);
+  TermStruct(final String functor, final Term[] elements, final SourcePosition sourcePosition) {
+    this(new Term(functor, sourcePosition), elements, sourcePosition);
   }
 
-  TermStruct(final Term functor, final Term[] elements) {
-    super(functor.getText());
+  TermStruct(final Term functor, final Term[] elements, final SourcePosition sourcePosition) {
+    super(functor.getText(), sourcePosition);
     this.functor = functor;
     this.terms = elements == null ? EMPTY_ARRAY : elements;
     this.structureSignature = functor.getText() + '/' + getArity();
     this.predicateProcessor = PredicateInvoker.NULL_PROCESSOR;
   }
 
-  TermStruct(final Term functor, final Term[] elements, final PredicateInvoker processor) {
-    this(functor, elements);
+  TermStruct(final Term functor, final Term[] elements, final PredicateInvoker processor,
+             final SourcePosition sourcePosition) {
+    this(functor, elements, sourcePosition);
     this.predicateProcessor = requireNonNull(processor);
+  }
+
+  @Override
+  public boolean canContainVariables() {
+    return true;
   }
 
   public final Term getFunctor() {

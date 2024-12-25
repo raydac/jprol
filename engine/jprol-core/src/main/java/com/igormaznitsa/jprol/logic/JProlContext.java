@@ -28,12 +28,14 @@ import static java.util.stream.Stream.concat;
 import com.igormaznitsa.jprol.annotations.JProlConsultClasspath;
 import com.igormaznitsa.jprol.annotations.JProlConsultFile;
 import com.igormaznitsa.jprol.annotations.JProlConsultText;
+import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermOperator;
 import com.igormaznitsa.jprol.data.TermOperatorContainer;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.data.TermVar;
+import com.igormaznitsa.jprol.exceptions.ProlAbstractCatchableException;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
@@ -383,7 +385,7 @@ public final class JProlContext implements AutoCloseable {
     final JProlConsultText consultText = library.getClass().getAnnotation(JProlConsultText.class);
     if (consultText != null) {
       final String text = String.join("\n", consultText.value());
-      if (text.length() > 0) {
+      if (!text.isEmpty()) {
         this.consult(new StringReader(text), null);
       }
     }
@@ -605,15 +607,16 @@ public final class JProlContext implements AutoCloseable {
   }
 
   public void notifyAboutUndefinedPredicate(final JProlChoicePoint choicePoint,
-                                            final String signature) {
+                                            final String signature, final Term term) {
     switch (this.getUndefinedPredicateBehavior()) {
       case ERROR: {
-        throw new ProlExistenceErrorException("predicate", "Undefined predicate: " + signature,
-                choicePoint.getGoalTerm());
+        throw new ProlExistenceErrorException("predicate",
+            "Undefined predicate: " + term.getSignature(),
+            term);
       }
       case WARNING: {
         this.contextListeners
-                .forEach(x -> x.onUndefinedPredicateWarning(this, choicePoint, signature));
+            .forEach(x -> x.onUndefinedPredicateWarning(this, choicePoint, term.getSignature()));
       }
       break;
       case FAIL: {
@@ -665,15 +668,12 @@ public final class JProlContext implements AutoCloseable {
   public void consult(final Reader source, final ConsultInteract iterator) {
     final JProlTreeBuilder treeBuilder = new JProlTreeBuilder(this);
     do {
-      final JProlTreeBuilder.Result parseResult = treeBuilder.readPhraseAndMakeTree(source);
-      if (parseResult == null) {
+      final Term nextItem = treeBuilder.readPhraseAndMakeTree(source);
+      if (nextItem == null) {
         break;
       }
 
-      final int line = parseResult.line;
-      final int stringPos = parseResult.pos;
-
-      final Term nextItem = parseResult.term;
+      final SourcePosition sourcePosition = nextItem.getSourcePosition();
 
       try {
         switch (nextItem.getTermType()) {
@@ -721,7 +721,8 @@ public final class JProlContext implements AutoCloseable {
                     variableMap.clear();
                     if (solveGoal(thisGoal, variableMap)) {
                       doFindNextSolution = iterator
-                              .onSolution(this, termGoal, variableMap, solutionCounter.incrementAndGet());
+                          .onSolution(this, termGoal, variableMap,
+                              solutionCounter.incrementAndGet());
                       if (!doFindNextSolution) {
                         throw new ProlHaltExecutionException("search halted", 1);
                       }
@@ -741,12 +742,18 @@ public final class JProlContext implements AutoCloseable {
           break;
           default: {
             throw new ProlKnowledgeBaseException(
-                    "Such element can't be saved at knowledge base [" + nextItem + ']');
+                "Such element can't be saved at knowledge base [" + nextItem + ']');
           }
         }
+      } catch (ProlAbstractCatchableException ex) {
+        final SourcePosition errorPosition = ex.getCulprit().getSourcePosition();
+        throw new PrologParserException(
+            ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage(),
+            errorPosition.getLine(), errorPosition.getPosition(), ex);
       } catch (Exception ex) {
         throw new PrologParserException(
-                ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage(), line, stringPos, ex);
+            ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage(),
+            sourcePosition.getLine(), sourcePosition.getPosition(), ex);
       }
     } while (!Thread.currentThread().isInterrupted());
   }

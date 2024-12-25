@@ -16,12 +16,14 @@
 
 package com.igormaznitsa.jprol.kbase;
 
+import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermOperator;
 import com.igormaznitsa.jprol.data.TermOperatorContainer;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public interface KnowledgeBase {
@@ -37,10 +39,10 @@ public interface KnowledgeBase {
   boolean hasOperatorStartsWith(JProlContext context, String str);
 
   CloseableIterator<TermStruct> iterate(IteratorType type, TermStruct template,
-                                        Consumer<String> unknownPredicateConsumer);
+                                        BiConsumer<String, Term> unknownSignatureConsumer);
 
   CloseableIterator<TermStruct> iterate(String signature,
-                                        Consumer<String> unknownPredicateConsumer);
+                                        Consumer<String> unknownSignatureConsumer);
 
   CloseableIterator<TermStruct> iterateSignatures(TermStruct indicator);
 

@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -114,7 +115,7 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
     TermOperatorContainer list = this.operatorTable.get(operatorName);
     if (list == null) {
-      list = new TermOperatorContainer(operator);
+      list = new TermOperatorContainer(operator, operator.getSourcePosition());
       this.operatorTable.put(operatorName, list);
     } else {
       if (!list.setOperator(operator)) {
@@ -211,12 +212,12 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
   public CloseableIterator<TermStruct> iterate(
       final IteratorType type,
       final TermStruct template,
-      final Consumer<String> unknownPredicateConsumer
+      final BiConsumer<String, Term> unknownPredicateConsumer
   ) {
     final String uid = template.getSignature();
     final List<InMemoryItem> list = this.predicateTable.get(uid);
     if (list == null) {
-      unknownPredicateConsumer.accept(uid);
+      unknownPredicateConsumer.accept(uid, template);
     }
     return new InMemoryClauseIterator(type, list == null ? Collections.emptyList() : list,
         template);

@@ -41,11 +41,12 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 public final class JProlChoicePoint implements Comparator<Term> {
 
-  private static final Consumer<String> NULL_UNDEFINED_PREDICATE_CONSUMER = x -> {
+  private static final BiConsumer<String, Term> NULL_UNDEFINED_PREDICATE_CONSUMER =
+      (signature, term) -> {
   };
   private final Map<String, TermVar> variables;
   private final VariableStateSnapshot varSnapshot;
@@ -112,7 +113,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public JProlChoicePoint(final String goal, final JProlContext context) {
-    this(new JProlTreeBuilder(context).readPhraseAndMakeTree(new StringReader(goal)).term, context,
+    this(new JProlTreeBuilder(context).readPhraseAndMakeTree(new StringReader(goal)), context,
         null);
   }
 
@@ -190,14 +191,14 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public Term prove() {
-    return this.proveNext(x -> this.context.notifyAboutUndefinedPredicate(this, x));
+    return this.proveNext((s, t) -> this.context.notifyAboutUndefinedPredicate(this, s, t));
   }
 
   public Term proveWithFailForUnknown() {
     return this.proveNext(NULL_UNDEFINED_PREDICATE_CONSUMER);
   }
 
-  private Term proveNext(final Consumer<String> unknownPredicateConsumer) {
+  private Term proveNext(final BiConsumer<String, Term> unknownPredicateConsumer) {
     Term result = null;
 
     boolean loop = true;
@@ -254,7 +255,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
     return result;
   }
 
-  private JProlChoicePointResult resolve(final Consumer<String> unknownPredicateConsumer) {
+  private JProlChoicePointResult resolve(final BiConsumer<String, Term> unknownPredicateConsumer) {
     final TraceEvent traceEvent;
     if (this.firstResolveCall) {
       traceEvent = TraceEvent.CALL;
@@ -346,7 +347,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
           if (this.context.hasZeroArityPredicateForName(text)) {
             result = JProlChoicePointResult.SUCCESS;
           } else {
-            this.context.notifyAboutUndefinedPredicate(this, this.goalTerm.getSignature());
+            this.context.notifyAboutUndefinedPredicate(this, this.goalTerm.getSignature(),
+                this.goalTerm);
             result = JProlChoicePointResult.FAIL;
           }
           cutVariants();

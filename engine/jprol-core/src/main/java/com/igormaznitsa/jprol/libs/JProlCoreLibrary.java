@@ -16,6 +16,7 @@
 
 package com.igormaznitsa.jprol.libs;
 
+import static com.igormaznitsa.jprol.data.SourcePosition.UNKNOWN;
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.data.TermType.LIST;
 import static com.igormaznitsa.jprol.data.TermType.STRUCT;
@@ -232,7 +233,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       ProlAssertions.assertInteger(left);
       ProlAssertions.assertInteger(right);
     }
-    return newLong(left.toNumber().longValue() ^ right.toNumber().longValue());
+    return newLong(left.toNumber().longValue() ^ right.toNumber().longValue(), UNKNOWN);
   }
 
   @JProlPredicate(evaluable = true, signature = "\\/1", args = {
@@ -242,7 +243,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     if (goal.isArgsValidate()) {
       ProlAssertions.assertInteger(arg);
     }
-    return newLong(~arg.toNumber().longValue());
+    return newLong(~arg.toNumber().longValue(), UNKNOWN);
   }
 
   @JProlPredicate(evaluable = true, signature = "\\//2", args = {
@@ -255,7 +256,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       ProlAssertions.assertInteger(left);
       ProlAssertions.assertInteger(right);
     }
-    return newLong(left.toNumber().longValue() | right.toNumber().longValue());
+    return newLong(left.toNumber().longValue() | right.toNumber().longValue(), UNKNOWN);
   }
 
   @JProlPredicate(evaluable = true, signature = "/\\/2", args = {
@@ -268,7 +269,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       ProlAssertions.assertInteger(left);
       ProlAssertions.assertInteger(right);
     }
-    return newLong(left.toNumber().longValue() & right.toNumber().longValue());
+    return newLong(left.toNumber().longValue() & right.toNumber().longValue(), UNKNOWN);
   }
 
   @JProlPredicate(evaluable = true, signature = "mod/2", args = {
@@ -285,7 +286,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     if (rightNum == 0L) {
       throw new ProlEvaluationErrorException("zero divisor", predicate);
     }
-    return newLong(left.toNumber().longValue() % rightNum);
+    return newLong(left.toNumber().longValue() % rightNum, UNKNOWN);
   }
 
   @JProlPredicate(evaluable = true, signature = "rem/2", args = {
@@ -304,7 +305,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     if (rightNum == 0L) {
       throw new ProlEvaluationErrorException("zero divisor", predicate);
     }
-    return newLong(leftNum - (leftNum / rightNum) * rightNum);
+    return newLong(leftNum - (leftNum / rightNum) * rightNum, UNKNOWN);
   }
 
   @JProlPredicate(evaluable = true, signature = "**/2", args = {
@@ -316,7 +317,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final double valueLeft = left.toNumber().doubleValue();
     final double valueRight = right.toNumber().doubleValue();
 
-    return newDouble(Math.pow(valueLeft, valueRight));
+    return newDouble(Math.pow(valueLeft, valueRight), UNKNOWN);
   }
 
   @JProlPredicate(evaluable = true, signature = "+/2", args = {
@@ -330,7 +331,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   @JProlPredicate(evaluable = true, signature = "sin/1", args = {"+evaluable"}, reference = "Sine")
   public static Term predicateSIN(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
-    return newDouble(Math.sin(arg.toNumber().doubleValue()));
+    return newDouble(Math.sin(arg.toNumber().doubleValue()), UNKNOWN);
   }
 
   @JProlPredicate(evaluable = true, signature = "float_integer_part/1", args = {
@@ -338,7 +339,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static Term predicateFLOATINTEGERPART(final JProlChoicePoint goal,
                                                final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
-    return newLong(arg.toNumber().longValue());
+    return newLong(arg.toNumber().longValue(), UNKNOWN);
   }
 
   @JProlPredicate(evaluable = true, signature = "float_fractional_part/1", args = {
@@ -348,7 +349,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
     final long valueInt = (long) value;
-    return newDouble(value - (double) valueInt);
+    return newDouble(value - (double) valueInt, UNKNOWN);
   }
 
   @JProlPredicate(evaluable = true, signature = "floor/1", args = {
@@ -356,7 +357,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static Term predicateFLOOR(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
-    return newLong((long) Math.floor(value));
+    return newLong((long) Math.floor(value), UNKNOWN);
   }
 
   @JProlPredicate(evaluable = true, signature = "truncate/1", args = {
@@ -364,7 +365,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static Term predicateTRUNCATE(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
-    return newLong(value < 0 ? (long) Math.ceil(value) : (long) Math.floor(value));
+    return newLong(value < 0 ? (long) Math.ceil(value) : (long) Math.floor(value), UNKNOWN);
   }
 
   @JProlPredicate(evaluable = true, signature = "round/1", args = {
@@ -372,7 +373,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static Term predicateROUND(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
-    return newLong(Math.round(value));
+    return newLong(Math.round(value), UNKNOWN);
   }
 
   @JProlPredicate(evaluable = true, signature = "ceiling/1", args = {
@@ -380,7 +381,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static Term predicateCEILING(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
-    return newLong((long) Math.ceil(value));
+    return newLong((long) Math.ceil(value), UNKNOWN);
   }
 
   @JProlPredicate(evaluable = true, signature = "cos/1", args = {
@@ -388,7 +389,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static Term predicateCOS(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
-    return newDouble(Math.cos(value));
+    return newDouble(Math.cos(value), UNKNOWN);
   }
 
   @JProlPredicate(evaluable = true, signature = "atan/1", args = {
@@ -396,7 +397,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static Term predicateATAN(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
-    return newDouble(Math.atan(value));
+    return newDouble(Math.atan(value), UNKNOWN);
   }
 
   @JProlPredicate(evaluable = true, signature = "exp/1", args = {
@@ -404,14 +405,14 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static Term predicateEXP(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
-    return newDouble(Math.exp(value));
+    return newDouble(Math.exp(value), UNKNOWN);
   }
 
   @JProlPredicate(evaluable = true, signature = "log/1", args = {"+evaluable"}, reference = "Log")
   public static Term predicateLOG(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
-    return newDouble(Math.log(value));
+    return newDouble(Math.log(value), UNKNOWN);
   }
 
   @JProlPredicate(evaluable = true, signature = "sqrt/1", args = {
@@ -419,7 +420,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static Term predicateSQRT(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
-    return newDouble(Math.sqrt(value));
+    return newDouble(Math.sqrt(value), UNKNOWN);
   }
 
   @JProlPredicate(evaluable = true, signature = "abs/1", args = {
@@ -484,9 +485,9 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         final String currentSub =
             this.atom.substring(this.currentBefore, this.currentBefore + this.currentLength);
 
-        final boolean result = before.unifyTo(Terms.newLong(this.currentBefore))
-            && length.unifyTo(Terms.newLong(this.currentLength))
-            && after.unifyTo(Terms.newLong(this.currentAfter))
+        final boolean result = before.unifyTo(Terms.newLong(this.currentBefore, UNKNOWN))
+            && length.unifyTo(Terms.newLong(this.currentLength, UNKNOWN))
+            && after.unifyTo(Terms.newLong(this.currentAfter, UNKNOWN))
             && sub.unifyTo(Terms.newAtom(currentSub));
 
         if (this.theSub == null) {
@@ -621,7 +622,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final long value = left.toNumber().longValue();
     final long shift = right.toNumber().longValue();
 
-    return newLong(value << shift);
+    return newLong(value << shift, UNKNOWN);
   }
 
   @JProlPredicate(evaluable = true, signature = ">>/2", args = {
@@ -633,7 +634,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final long value = left.toNumber().longValue();
     final long shift = right.toNumber().longValue();
 
-    return newLong(value >> shift);
+    return newLong(value >> shift, UNKNOWN);
   }
 
   @JProlPredicate(signature = "repeat/0", reference = "repeat is true. It just places a choice point every call.")
@@ -665,7 +666,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       clIterator = goal.getContext().getKnowledgeBase().iterate(
           IteratorType.ANY,
           head.getTermType() == STRUCT ? (TermStruct) head : newStruct(head),
-          x -> {
+          (signature, term) -> {
           }
       );
       if (!clIterator.hasNext()) {
@@ -798,7 +799,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         names.forEach((name) -> base.removeOperator(name, opType));
       } else {
         names.forEach((name) -> base
-            .addOperator(goal.getContext(), new TermOperator(priority, opType, name)));
+            .addOperator(goal.getContext(), new TermOperator(priority, opType, name, UNKNOWN)));
       }
     } catch (SecurityException ex) {
       throw new ProlPermissionErrorException("create", "operator",
@@ -1396,7 +1397,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       try (final CloseableIterator<TermStruct> knowledgeBaseIterator = choicePoint.getContext()
           .getKnowledgeBase().iterateSignatures(
               predicateIndicator.getTermType() == VAR ?
-                  Terms.newStruct("/", new Term[] {Terms.newVar(), Terms.newVar()}) :
+                  Terms.newStruct("/", new Term[] {Terms.newVar(), Terms.newVar()}, UNKNOWN) :
                   (TermStruct) predicateIndicator)) {
         while (knowledgeBaseIterator.hasNext()) {
           list.add(knowledgeBaseIterator.next());
@@ -1432,7 +1433,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       try (final CloseableIterator<TermStruct> knowledgeBaseIterator = choicePoint.getContext()
           .getKnowledgeBase().iterateSignatures(
               predicateIndicator.getTermType() == VAR ?
-                  Terms.newStruct("/", new Term[] {Terms.newVar(), Terms.newVar()}) :
+                  Terms.newStruct("/", new Term[] {Terms.newVar(), Terms.newVar()}, UNKNOWN) :
                   (TermStruct) predicateIndicator)) {
         while (knowledgeBaseIterator.hasNext()) {
           list.add(knowledgeBaseIterator.next());
@@ -1495,11 +1496,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
 
       Term getSeq1AsTerm() {
-        return newAtom(this.seq1.toString());
+        return newAtom(this.seq1.toString(), UNKNOWN);
       }
 
       Term getSeq2AsTerm() {
-        return newAtom(this.seq2.toString());
+        return newAtom(this.seq2.toString(), UNKNOWN);
       }
     }
 
@@ -1510,20 +1511,21 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       if (state == null) {
         if (atom1.isGround() && atom2.isGround()) {
           goal.cutVariants();
-          return atom3.unifyTo(newAtom(atom1.getText() + atom2.getText()));
+          return atom3.unifyTo(newAtom(atom1.getText() + atom2.getText(), UNKNOWN));
         } else if (atom1.isGround()) {
           goal.cutVariants();
           final String text1 = atom1.getText();
           final String text3 = atom3.getText();
           if (text3.startsWith(text1)) {
-            return atom2.unifyTo(newAtom(text3.substring(text1.length())));
+            return atom2.unifyTo(newAtom(text3.substring(text1.length()), UNKNOWN));
           }
         } else if (atom2.isGround()) {
           goal.cutVariants();
           final String text2 = atom2.getText();
           final String text3 = atom3.getText();
           if (text3.endsWith(text2)) {
-            return atom1.unifyTo(newAtom(text3.substring(0, text3.length() - text2.length())));
+            return atom1.unifyTo(
+                newAtom(text3.substring(0, text3.length() - text2.length()), UNKNOWN));
           }
         } else {
           final String wholeText = atom3.getText();
@@ -1599,7 +1601,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         for (int i = 0; i < text.length(); i++) {
           final char chr = text.charAt(i);
           if (Character.isISOControl(chr) || Character.isWhitespace(chr)) {
-            throw new ProlCustomErrorException(Terms.newAtom("syntax_error"), right);
+            throw new ProlCustomErrorException(Terms.newAtom("syntax_error", UNKNOWN), right);
           }
         }
       }
@@ -1607,9 +1609,9 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       final Term term;
       try {
         term = new JProlTreeBuilder(goal.getContext())
-            .readPhraseAndMakeTree(new StringReader(builder.append('.').toString())).term;
+            .readPhraseAndMakeTree(new StringReader(builder.append('.').toString()));
       } catch (PrologParserException ex) {
-        throw new ProlCustomErrorException(Terms.newAtom("syntax_error"), right);
+        throw new ProlCustomErrorException(Terms.newAtom("syntax_error", UNKNOWN), right);
       }
 
       if (term instanceof NumericTerm) {
@@ -1682,7 +1684,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       choicePoint.cutVariants();
       return false;
     } else {
-      return term.unifyTo(Terms.newLong(value));
+      return term.unifyTo(Terms.newLong(value, UNKNOWN));
     }
   }
 
@@ -1711,7 +1713,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         result = array[ThreadLocalRandom.current().nextInt(array.length)];
       }
     } else {
-      result = Terms.newLong(ThreadLocalRandom.current().nextLong(first.toNumber().longValue()));
+      result = Terms.newLong(ThreadLocalRandom.current().nextLong(first.toNumber().longValue()),
+          UNKNOWN);
     }
     return second.unifyTo(result);
   }
@@ -1730,7 +1733,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
     }
 
-    left = newLong(left.getTextLength());
+    left = newLong(left.getTextLength(), UNKNOWN);
     return left.unifyTo(right);
   }
 
@@ -1761,7 +1764,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
       case LIST: {
         if (((TermList) left).isNullList()) {
-          return Utils.toCharCodeList(newAtom("[]")).unifyTo(right);
+          return Utils.toCharCodeList(newAtom("[]", UNKNOWN)).unifyTo(right);
         } else {
           throw new ProlTypeErrorException("atom", predicate);
         }
@@ -1793,7 +1796,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         }
       }
 
-      right = newAtom(builder.toString());
+      right = newAtom(builder.toString(), UNKNOWN);
       return left.unifyTo(right);
     }
 
@@ -1829,7 +1832,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final KnowledgeBase base = goal.getContext().getKnowledgeBase();
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
       throw new ProlPermissionErrorException("modify", "static_procedure",
-          "Predicate signature '" + signature + "'is presented in library", newAtom(signature));
+          "Predicate signature '" + signature + "'is presented in library",
+          newAtom(signature, UNKNOWN));
     }
 
     base.abolish(goal.getContext(), signature);
@@ -2207,7 +2211,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     // check that it doesn't overload any static system predicate
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
       throw new ProlPermissionErrorException("modify", "static_procedure",
-          "Predicate signature '" + signature + "'is presented in library", newAtom(signature));
+          "Predicate signature '" + signature + "'is presented in library",
+          newAtom(signature, UNKNOWN));
     }
 
     base.assertA(goal.getContext(), (TermStruct) termToAdd.makeCloneAndVarBound());
@@ -2232,7 +2237,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
       throw new ProlPermissionErrorException("modify", "static_procedure",
-          "Predicate signature '" + signature + "'is presented in library", newAtom(signature));
+          "Predicate signature '" + signature + "'is presented in library",
+          newAtom(signature, UNKNOWN));
     }
 
     base.assertZ(goal.getContext(), (TermStruct) termToRemove.makeCloneAndVarBound());
@@ -2259,7 +2265,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     // check that it doesn't overload any static system predicate
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
       throw new ProlPermissionErrorException("modify", "static_procedure",
-          "Predicate signature '" + signature + "'is presented in library", newAtom(signature));
+          "Predicate signature '" + signature + "'is presented in library",
+          newAtom(signature, UNKNOWN));
     }
 
     return base.retractA(goal.getContext(), (TermStruct) atom.makeCloneAndVarBound());
@@ -2285,7 +2292,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     // check that it doesn't overload any static system predicate
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
       throw new ProlPermissionErrorException("modify", "static_procedure",
-          "Predicate signature '" + signature + "'is presented in library", newAtom(signature));
+          "Predicate signature '" + signature + "'is presented in library",
+          newAtom(signature, UNKNOWN));
     }
 
     return base.retractZ(goal.getContext(), (TermStruct) atom);
@@ -2312,7 +2320,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     // check that it doesn't overload any static system predicate
     if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
       throw new ProlPermissionErrorException("modify", "static_procedure",
-          "Predicate signature '" + signature + "'is presented in library", newAtom(signature));
+          "Predicate signature '" + signature + "'is presented in library",
+          newAtom(signature, UNKNOWN));
     }
 
     return base.retractAll(goal.getContext(), (TermStruct) atom);

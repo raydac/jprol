@@ -42,15 +42,15 @@ public final class TermList extends TermStruct {
   private static final int INDEX_TAIL = 1;
 
   TermList() {
-    super(Terms.LIST_FUNCTOR, null);
+    super(Terms.LIST_FUNCTOR, null, SourcePosition.UNKNOWN);
   }
 
-  TermList(final Term term) {
-    super(Terms.LIST_FUNCTOR, new Term[] {term, Terms.NULL_LIST});
+  TermList(final Term term, final SourcePosition sourcePosition) {
+    super(Terms.LIST_FUNCTOR, new Term[] {term, Terms.NULL_LIST}, sourcePosition);
   }
 
-  TermList(final Term head, final Term tail) {
-    super(Terms.LIST_FUNCTOR, new Term[] {head, tail});
+  TermList(final Term head, final Term tail, final SourcePosition sourcePosition) {
+    super(Terms.LIST_FUNCTOR, new Term[] {head, tail}, sourcePosition);
   }
 
   @Override
@@ -421,7 +421,7 @@ public final class TermList extends TermStruct {
 
   public Term toAtom() {
     if (this.isNullList()) {
-      return new Term("<empty>");
+      return new Term("<empty>", this.getSourcePosition());
     }
     if (this.getTail() == Terms.NULL_LIST) {
       return this.getHead();

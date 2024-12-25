@@ -17,7 +17,7 @@ public class JProlTreeBuilder {
     this.context = context;
   }
 
-  public Result readPhraseAndMakeTree(final Reader reader) {
+  public Term readPhraseAndMakeTree(final Reader reader) {
     PrologParser parser = parsers.get();
     if (parser == null) {
       parser = new GenericPrologParser(reader, this.context.getParserContext());
@@ -26,22 +26,10 @@ public class JProlTreeBuilder {
 
     try {
       final PrologTerm result = parser.next();
-      return new Result(Terms.fromParsed(this.context, result), result.getLine(), result.getPos());
+      return Terms.fromParsed(this.context, result);
     } catch (NoSuchElementException ex) {
       parsers.remove();
       return null;
-    }
-  }
-
-  public static final class Result {
-    public final Term term;
-    public final int line;
-    public final int pos;
-
-    Result(final Term term, final int line, final int pos) {
-      this.term = term;
-      this.line = line;
-      this.pos = pos;
     }
   }
 }

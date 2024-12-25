@@ -184,7 +184,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
    */
   private static Color textToColor(String text) {
     boolean colorAsInteger;
-    if (text.length() == 0) {
+    if (text.isEmpty()) {
       return null;
     }
     try {

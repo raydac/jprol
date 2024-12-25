@@ -19,6 +19,7 @@ package com.igormaznitsa.jprol.exceptions;
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 
+import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 import java.util.Objects;
@@ -57,7 +58,7 @@ public abstract class ProlAbstractCatchableException extends ProlException {
   }
 
   protected TermStruct makeErrorStruct(final Term formal, final Term context) {
-    return newStruct(ERROR_FUNCTOR, new Term[] {formal, context});
+    return newStruct(ERROR_FUNCTOR, new Term[] {formal, context}, SourcePosition.UNKNOWN);
   }
 
   public abstract TermStruct getAsStruct();

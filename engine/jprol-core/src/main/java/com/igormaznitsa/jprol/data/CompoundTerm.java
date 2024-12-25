@@ -5,8 +5,8 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public abstract class CompoundTerm extends Term implements Iterable<Term> {
-  CompoundTerm(String text) {
-    super(text);
+  CompoundTerm(final String text, final SourcePosition sourcePosition) {
+    super(text, sourcePosition);
   }
 
   public Stream<Term> streamChildren() {
