@@ -339,6 +339,19 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }).orElseThrow(() -> new ProlPermissionErrorException("write", "text_output", predicate));
   }
 
+  @JProlPredicate(determined = true, signature = "writeln/1", reference = "Write a term and next line into the current output stream.")
+  public final boolean predicateWriteln(final JProlChoicePoint goal, final TermStruct predicate) {
+    return findCurrentOutput(goal.getContext(), predicate).map(writer -> {
+      try {
+        writer.write(predicate.getElement(0).forWrite());
+        writer.write('\n');
+        return true;
+      } catch (IOException ex) {
+        throw new ProlPermissionErrorException("writeln", "text_output", predicate, ex);
+      }
+    }).orElseThrow(() -> new ProlPermissionErrorException("writeln", "text_output", predicate));
+  }
+
   @JProlPredicate(determined = true, signature = "seeing/1", synonyms = "current_input/1", args = "?term", reference = "Return the current input stream name.")
   public final boolean predicateSEEING(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
