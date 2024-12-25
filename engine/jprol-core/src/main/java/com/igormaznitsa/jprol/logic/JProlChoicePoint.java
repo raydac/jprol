@@ -32,7 +32,6 @@ import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.exceptions.ProlChoicePointInterruptedException;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
-import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.trace.TraceEvent;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
@@ -205,7 +204,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
     while (loop) {
       if (this.context.isDisposed()) {
-        throw new ProlHaltExecutionException();
+        throw new ProlChoicePointInterruptedException("context disposed", this);
       }
 
       JProlChoicePoint goalToProcess = this.rootChoicePoint.rootLastGoalAtChain;
