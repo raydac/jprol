@@ -99,7 +99,7 @@ public final class LibraryInfoDialog extends javax.swing.JDialog {
       }
     }
 
-    return new String(baos.toByteArray(), StandardCharsets.UTF_8);
+    return baos.toString(StandardCharsets.UTF_8);
   }
 
   private void initComponents() {

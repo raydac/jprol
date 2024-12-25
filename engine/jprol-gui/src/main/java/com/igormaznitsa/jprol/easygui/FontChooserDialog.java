@@ -275,7 +275,7 @@ public class FontChooserDialog extends javax.swing.JDialog implements ActionList
     updateSampleFont();
   }
 
-  private synchronized void updateSampleFont() {
+  private void updateSampleFont() {
     final String fontName = (String) ComboBoxFont.getSelectedItem();
     final String fontStyle = (String) ComboBoxStyle.getSelectedItem();
     final int fontSize = (Integer) SpinnerSize.getValue();

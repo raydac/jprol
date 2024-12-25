@@ -19,10 +19,16 @@
 
 package com.igormaznitsa.jprol.easygui;
 
-import java.awt.Container;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.MouseWheelEvent;
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.Style;
+import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
+import org.fife.ui.rtextarea.Gutter;
+import org.fife.ui.rtextarea.RTextScrollPane;
 
 public final class ScalableRsyntaxTextArea extends RSyntaxTextArea {
 
@@ -38,10 +44,13 @@ public final class ScalableRsyntaxTextArea extends RSyntaxTextArea {
     this.baseFont = this.getFont();
 
     this.addMouseWheelListener((final MouseWheelEvent e) -> {
-      final int allModifiers = MouseWheelEvent.CTRL_DOWN_MASK | MouseWheelEvent.ALT_DOWN_MASK | MouseWheelEvent.META_DOWN_MASK | MouseWheelEvent.SHIFT_DOWN_MASK;
-      if (!e.isConsumed() && !e.isPopupTrigger() && (e.getModifiersEx() & allModifiers) == MouseWheelEvent.CTRL_DOWN_MASK) {
+      final int allModifiers = MouseWheelEvent.CTRL_DOWN_MASK | MouseWheelEvent.ALT_DOWN_MASK |
+          MouseWheelEvent.META_DOWN_MASK | MouseWheelEvent.SHIFT_DOWN_MASK;
+      if (!e.isConsumed() && !e.isPopupTrigger() &&
+          (e.getModifiersEx() & allModifiers) == MouseWheelEvent.CTRL_DOWN_MASK) {
         e.consume();
-        this.fontScale = Math.max(SCALE_MIN, Math.min(SCALE_MAX, this.fontScale + SCALE_STEP * -e.getWheelRotation()));
+        this.fontScale = Math.max(SCALE_MIN,
+            Math.min(SCALE_MAX, this.fontScale + SCALE_STEP * -e.getWheelRotation()));
         updateFontForScale();
       } else {
         this.getParent().dispatchEvent(e);
@@ -49,10 +58,6 @@ public final class ScalableRsyntaxTextArea extends RSyntaxTextArea {
     });
 
     updateFontForScale();
-  }
-
-  public void setFont(final Font font) {
-    this.setBaseFont(font);
   }
 
   public Font getBaseFont() {
@@ -67,21 +72,41 @@ public final class ScalableRsyntaxTextArea extends RSyntaxTextArea {
   }
 
   private void updateFontForScale() {
-    final Font newFont = this.getFont().deriveFont(this.fontScale * this.baseFont.getSize2D());
-    if (newFont.getSize() > 0) {
-      super.setFont(newFont);
-    } else {
-      super.setFont(this.getFont().deriveFont(1.0f));
-    }
-    this.invalidate();
+    float fontSize = this.fontScale * this.baseFont.getSize2D();
 
-    final Container parent = this.getParent();
-    if (parent != null) {
-      parent.invalidate();
-      parent.repaint();
+    if (fontSize < 1.0f) {
+      fontSize = 1.0f;
     }
 
-    this.repaint();
+    SyntaxScheme scheme = this.getSyntaxScheme();
+    int count = scheme.getStyleCount();
+    for (int i = 0; i < count; i++) {
+      Style ss = scheme.getStyle(i);
+      if (ss != null) {
+        Font font = ss.font;
+        if (font != null) {
+          ss.font = font.deriveFont(fontSize);
+        }
+      }
+    }
+
+    this.setFont(this.getFont().deriveFont(fontSize));
+
+    this.setSyntaxScheme(scheme);
+
+    Component parent = this.getParent();
+    if (parent instanceof JViewport) {
+      parent = parent.getParent();
+      if (parent instanceof RTextScrollPane) {
+        final Gutter gutter = ((RTextScrollPane) parent).getGutter();
+        gutter.setLineNumberFont(gutter.getLineNumberFont().deriveFont(fontSize));
+      }
+
+      if (parent instanceof JScrollPane) {
+        parent.repaint();
+      }
+    }
   }
+
 
 }

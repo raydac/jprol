@@ -88,7 +88,7 @@ public class HelpDialog extends javax.swing.JDialog {
     pack();
   }
 
-  private void buttonCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCloseActionPerformed
+  private void buttonCloseActionPerformed(java.awt.event.ActionEvent evt) {
     dispose();
   }
 }

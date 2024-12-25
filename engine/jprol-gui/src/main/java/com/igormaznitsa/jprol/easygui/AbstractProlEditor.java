@@ -298,8 +298,15 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     return editor.getFont();
   }
 
+  private void updatedEditorLook() {
+    editor.invalidate();
+    scrollPane.invalidate();
+    scrollPane.repaint();
+  }
+
   public void setEdFont(final Font val) {
     editor.setFont(val);
+    this.updatedEditorLook();
   }
 
   public void setPopupMenu(final JPopupMenu menu) {
@@ -313,6 +320,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
   public void setEdBackground(final Color val) {
     editor.setBackground(val);
     scrollPane.getViewport().setBackground(val);
+    this.updatedEditorLook();
   }
 
   public boolean getEdWordWrap() {
@@ -354,6 +362,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
 
   public void setEdForeground(final Color val) {
     editor.setForeground(val);
+    this.updatedEditorLook();
   }
 
   public Color getEdCaretColor() {
@@ -364,7 +373,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     editor.setCaretColor(val);
   }
 
-  protected synchronized final void removePropertyFromList(final String propertyName) {
+  protected final void removePropertyFromList(final String propertyName) {
     for (int li = 0; li < editableProperties.size(); li++) {
       final PropertyLink link = editableProperties.get(li);
       if (link.property.equals(propertyName)) {
@@ -374,7 +383,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     }
   }
 
-  protected final synchronized void addPropertyToList(final PropertyLink link) {
+  protected final void addPropertyToList(final PropertyLink link) {
     this.editableProperties.add(link);
   }
 
@@ -383,7 +392,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     return this.nameID;
   }
 
-  public synchronized void setTitle(String title) {
+  public void setTitle(String title) {
     ((TitledBorder) getBorder()).setTitle(title);
   }
 
@@ -403,27 +412,27 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     }
   }
 
-  public synchronized JTextComponent getEditor() {
+  public JTextComponent getEditor() {
     return editor;
   }
 
-  public synchronized void clearText() {
+  public void clearText() {
     editor.setText("");
   }
 
-  public synchronized void copyText() {
+  public void copyText() {
     Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
     TransferHandler transferHandler = editor.getTransferHandler();
     transferHandler.exportToClipboard(editor, clipboard, TransferHandler.COPY);
   }
 
-  public synchronized void pasteText() {
+  public void pasteText() {
     Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
     TransferHandler transferHandler = editor.getTransferHandler();
     transferHandler.importData(editor, clipboard.getContents(null));
   }
 
-  public synchronized void cutText() {
+  public void cutText() {
     copyText();
     editor.replaceSelection("");
   }

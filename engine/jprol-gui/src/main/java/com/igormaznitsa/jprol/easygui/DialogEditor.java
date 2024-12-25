@@ -151,13 +151,13 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
     saveFontToPrefs(prefs, "dialogoutputfont", ((EditorPane) editor).getBaseFont());
   }
 
-  public synchronized void initBeforeSession() {
+  public void initBeforeSession() {
     cancelCurrentRead = false;
     inputWriter.clearBuffer();
     outputWriter.clearBuffer();
   }
 
-  public synchronized void cancelRead() {
+  public void cancelRead() {
     cancelCurrentRead = true;
     inputWriter.clearBuffer();
     outputWriter.clearBuffer();

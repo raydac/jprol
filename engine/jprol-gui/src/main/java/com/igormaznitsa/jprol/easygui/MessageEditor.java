@@ -17,6 +17,8 @@
 package com.igormaznitsa.jprol.easygui;
 
 import java.awt.Color;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.prefs.Preferences;
 import javax.swing.JEditorPane;
 import javax.swing.text.SimpleAttributeSet;
@@ -115,61 +117,69 @@ public class MessageEditor extends AbstractProlEditor {
     });
   }
 
-  public synchronized void addText(String text, int type, String linkRef, String linkText) {
+  private final Lock addTextLocker = new ReentrantLock();
 
-    text = escapeHTML(text);
+  public void addText(String text, int type, String linkRef, String linkText) {
+    addTextLocker.lock();
+    try {
+      text = escapeHTML(text);
 
-    String color;
+      String color;
 
-    boolean bold;
-    boolean italic = false;
+      boolean bold;
+      boolean italic = false;
 
-    switch (type) {
-      case TYPE_INFO: {
-        color = colorToHtml(StyleConstants.getForeground(ATTRSET_INFO));
-        bold = true;
+      switch (type) {
+        case TYPE_INFO: {
+          color = colorToHtml(StyleConstants.getForeground(ATTRSET_INFO));
+          bold = true;
+        }
+        break;
+        case TYPE_ERROR: {
+          color = colorToHtml(StyleConstants.getForeground(ATTRSET_ERROR));
+          bold = true;
+        }
+        break;
+        case TYPE_WARNING: {
+          color = colorToHtml(StyleConstants.getForeground(ATTRSET_WARNING));
+          bold = true;
+          italic = true;
+        }
+        break;
+        default:
+          throw new IllegalArgumentException("Unsupported message type");
       }
-      break;
-      case TYPE_ERROR: {
-        color = colorToHtml(StyleConstants.getForeground(ATTRSET_ERROR));
-        bold = true;
+
+      final StringBuilder bldr = new StringBuilder();
+
+      if (italic) {
+        bldr.append("<i>");
       }
-      break;
-      case TYPE_WARNING: {
-        color = colorToHtml(StyleConstants.getForeground(ATTRSET_WARNING));
-        bold = true;
-        italic = true;
+      if (bold) {
+        bldr.append("<b>");
       }
-      break;
-      default:
-        throw new IllegalArgumentException("Unsupported message type");
-    }
 
-    final StringBuilder bldr = new StringBuilder();
+      bldr.append("<span style=\"color:").append(color).append("\">").append(text);
+      if (linkRef != null) {
+        bldr.append("&nbsp;<a href=\"").append(linkRef).append("\">");
+        bldr.append(linkText == null ? escapeHTML(linkRef) : escapeHTML(linkText));
+        bldr.append("</a>");
+      }
+      bldr.append("</span><br>");
+      if (italic) {
+        bldr.append("</i>");
+      }
+      if (bold) {
+        bldr.append("</b>");
+      }
 
-    if (italic) {
-      bldr.append("<i>");
+      insideBuffer += bldr.toString();
+      editor.setText(
+          "<html><body bgcolor=\"" + colorToHtml(editor.getBackground()) + "\">" + insideBuffer +
+              "</body><html>");
+    } finally {
+      this.addTextLocker.unlock();
     }
-    if (bold) {
-      bldr.append("<b>");
-    }
-
-    bldr.append("<span style=\"color:").append(color).append("\">").append(text);
-    if (linkRef != null) {
-      bldr.append("&nbsp;<a href=\"").append(linkRef).append("\">");
-      bldr.append(linkText == null ? escapeHTML(linkRef) : escapeHTML(linkText));
-      bldr.append("</a>");
-    }
-    bldr.append("</span><br>");
-    if (italic) {
-      bldr.append("</i>");
-    }
-    if (bold) {
-      bldr.append("</b>");
-    }
-
-    insideBuffer += bldr.toString();
-    editor.setText("<html><body bgcolor=\"" + colorToHtml(editor.getBackground()) + "\">" + insideBuffer + "</body><html>");
   }
 
   @Override
