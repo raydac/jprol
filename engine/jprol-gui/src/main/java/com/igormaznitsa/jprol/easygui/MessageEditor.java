@@ -17,6 +17,7 @@
 package com.igormaznitsa.jprol.easygui;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.prefs.Preferences;
@@ -60,6 +61,8 @@ public class MessageEditor extends AbstractProlEditor {
 
     editor.setBackground(Color.BLUE.darker().darker().darker().darker());
     editor.setForeground(Color.WHITE);
+
+    editor.setFont(LocalFont.LOCAL_NOTO_SANS_MONO.getFont().deriveFont(Font.BOLD, 8));
   }
 
   private static String colorToHtml(Color color) {

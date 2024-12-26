@@ -16,11 +16,24 @@
 
 package com.igormaznitsa.jprol.easygui;
 
+import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Stream;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JTextArea;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -33,25 +46,26 @@ import javax.swing.event.ChangeListener;
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 @SuppressWarnings("rawtypes")
-public class FontChooserDialog extends javax.swing.JDialog implements ActionListener, ChangeListener {
+public class FontChooserDialog extends javax.swing.JDialog
+    implements ActionListener, ChangeListener {
 
   private static final long serialVersionUID = -1141137262767344186L;
 
-  private static final String[] STYLES = new String[] {"PLAIN", "BOLD", "ITALIC", "BOLDI+TALIC"};
+  private static final String[] STYLES = new String[] {"PLAIN", "BOLD", "ITALIC", "BOLD+ITALIC"};
   private Font result;
-  // Variables declaration - do not modify//GEN-BEGIN:variables
-  private javax.swing.JComboBox ComboBoxFont;
-  private javax.swing.JComboBox ComboBoxStyle;
-  private javax.swing.JTextArea LabelPreview;
-  private javax.swing.JSpinner SpinnerSize;
-  private javax.swing.JButton buttonCancel;
-  private javax.swing.JButton buttonOk;
-  private javax.swing.JLabel jLabel1;
-  private javax.swing.JLabel jLabel2;
-  private javax.swing.JLabel jLabel3;
-  private javax.swing.JPanel jPanel1;
-  private javax.swing.JPanel jPanel2;
-  private javax.swing.JScrollPane jScrollPane1;
+
+  private JComboBox<Font> comboBoxFont;
+  private JComboBox<String> comboBoxStyle;
+  private JTextArea labelPreview;
+  private JSpinner spinnerSize;
+  private JButton buttonCancel;
+  private JButton buttonOk;
+  private JLabel jLabel1;
+  private JLabel jLabel2;
+  private JLabel jLabel3;
+  private JPanel jPanel1;
+  private JPanel jPanel2;
+  private JScrollPane labelScrollPane;
 
   /**
    * Creates new form FontChooserDialog
@@ -61,7 +75,7 @@ public class FontChooserDialog extends javax.swing.JDialog implements ActionList
    * @param font     font to be processed
    * @param testText test text string
    */
-  @SuppressWarnings( {"unchecked"})
+  @SuppressWarnings({"unchecked"})
   public FontChooserDialog(final Dialog parent, final String title, Font font, String testText) {
     super(parent, true);
     initComponents();
@@ -72,54 +86,62 @@ public class FontChooserDialog extends javax.swing.JDialog implements ActionList
       testText = "Sample text. <?!;:,.>";
     }
 
-    LabelPreview.setText(testText);
+    labelPreview.setText(testText);
 
     if (font == null) {
       font = Font.decode(null);
     }
 
-    ComboBoxFont.removeAllItems();
+    comboBoxFont.removeAllItems();
 
-    final String[] fonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
-    for (final String name : fonts) {
-      ComboBoxFont.addItem(name);
-    }
+    LocalFont.VALUES.forEach(x -> {
+      comboBoxFont.addItem(x.getFont());
+    });
 
-    SpinnerSize.setModel(new SpinnerNumberModel(12, 4, 100, 1));
+    final Set<String> duplicationSet = new HashSet<>();
 
-    ComboBoxStyle.removeAllItems();
+    Stream.of(GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames())
+        .map(Font::decode)
+        .forEach(x -> {
+          final String family = x.getFamily();
+          if (duplicationSet.add(family)) {
+            comboBoxFont.addItem(x);
+          }
+        });
+
+    comboBoxFont.setRenderer(new DefaultListCellRenderer() {
+      @Override
+      public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                    boolean isSelected, boolean cellHasFocus) {
+        final JLabel label =
+            (JLabel) super.getListCellRendererComponent(list, value, index, isSelected,
+                cellHasFocus);
+        final Font font = (Font) value;
+        if (font instanceof LocalFont.LocallyLoadedFont) {
+          label.setFont(label.getFont().deriveFont(Font.BOLD));
+          label.setText(((LocalFont.LocallyLoadedFont) font).getLocalFont().getTitle());
+        } else {
+          label.setText(font.getFontName());
+        }
+        return label;
+      }
+    });
+
+    spinnerSize.setModel(new SpinnerNumberModel(12, 4, 100, 1));
+
+    comboBoxStyle.removeAllItems();
     for (final String style : STYLES) {
-      ComboBoxStyle.addItem(style);
+      comboBoxStyle.addItem(style);
     }
 
-    ComboBoxFont.setSelectedItem(font.getFamily());
-    SpinnerSize.setValue(font.getSize());
+    comboBoxFont.setSelectedItem(font instanceof LocalFont.LocallyLoadedFont ?
+        ((LocalFont.LocallyLoadedFont) font).getLocalFont().getTitle() : font.getFamily());
+    spinnerSize.setValue(font.getSize());
+    comboBoxStyle.setSelectedItem(LocalFont.styleAsString(font));
 
-    String style;
-    switch (font.getStyle()) {
-      case Font.BOLD: {
-        style = "BOLD";
-      }
-      break;
-      case Font.ITALIC: {
-        style = "ITALIC";
-      }
-      break;
-      case (Font.BOLD | Font.ITALIC): {
-        style = "BOLDITALIC";
-      }
-      break;
-      default: {
-        style = "PLAIN";
-      }
-      break;
-    }
-
-    ComboBoxStyle.setSelectedItem(style);
-
-    ComboBoxFont.addActionListener(this);
-    ComboBoxStyle.addActionListener(this);
-    SpinnerSize.addChangeListener(this);
+    comboBoxFont.addActionListener(this);
+    comboBoxStyle.addActionListener(this);
+    spinnerSize.addChangeListener(this);
 
     updateSampleFont();
 
@@ -137,23 +159,23 @@ public class FontChooserDialog extends javax.swing.JDialog implements ActionList
    * WARNING: Do NOT modify this code. The content of this method is always
    * regenerated by the Form Editor.
    */
-  @SuppressWarnings( {"unchecked"})
+  @SuppressWarnings({"unchecked"})
   // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
   private void initComponents() {
     java.awt.GridBagConstraints gridBagConstraints;
 
-    jPanel1 = new javax.swing.JPanel();
-    jScrollPane1 = new javax.swing.JScrollPane();
-    LabelPreview = new javax.swing.JTextArea();
-    SpinnerSize = new javax.swing.JSpinner();
-    ComboBoxFont = new javax.swing.JComboBox();
-    ComboBoxStyle = new javax.swing.JComboBox();
-    jLabel1 = new javax.swing.JLabel();
-    jLabel2 = new javax.swing.JLabel();
-    jLabel3 = new javax.swing.JLabel();
-    jPanel2 = new javax.swing.JPanel();
-    buttonOk = new javax.swing.JButton();
-    buttonCancel = new javax.swing.JButton();
+    jPanel1 = new JPanel();
+    labelScrollPane = new JScrollPane();
+    labelPreview = new JTextArea();
+    spinnerSize = new JSpinner();
+    comboBoxFont = new JComboBox<Font>();
+    comboBoxStyle = new JComboBox<String>();
+    jLabel1 = new JLabel();
+    jLabel2 = new JLabel();
+    jLabel3 = new JLabel();
+    jPanel2 = new JPanel();
+    buttonOk = new JButton();
+    buttonCancel = new JButton();
 
     setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
     setTitle("Font");
@@ -164,11 +186,11 @@ public class FontChooserDialog extends javax.swing.JDialog implements ActionList
     jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Preview"));
     jPanel1.setLayout(new java.awt.BorderLayout());
 
-    LabelPreview.setColumns(20);
-    LabelPreview.setRows(5);
-    jScrollPane1.setViewportView(LabelPreview);
+    labelPreview.setColumns(20);
+    labelPreview.setRows(5);
+    labelScrollPane.setViewportView(labelPreview);
 
-    jPanel1.add(jScrollPane1, java.awt.BorderLayout.CENTER);
+    jPanel1.add(labelScrollPane, java.awt.BorderLayout.CENTER);
 
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 0;
@@ -186,25 +208,27 @@ public class FontChooserDialog extends javax.swing.JDialog implements ActionList
     gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
     gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
     gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 8);
-    getContentPane().add(SpinnerSize, gridBagConstraints);
+    getContentPane().add(spinnerSize, gridBagConstraints);
 
-    ComboBoxFont.setModel(new javax.swing.DefaultComboBoxModel(new String[] {"Item 1", "Item 2", "Item 3", "Item 4"}));
+    comboBoxFont.setModel(new javax.swing.DefaultComboBoxModel(
+        new String[] {"Item 1", "Item 2", "Item 3", "Item 4"}));
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 0;
     gridBagConstraints.gridy = 1;
     gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
     gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
     gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 16);
-    getContentPane().add(ComboBoxFont, gridBagConstraints);
+    getContentPane().add(comboBoxFont, gridBagConstraints);
 
-    ComboBoxStyle.setModel(new javax.swing.DefaultComboBoxModel(new String[] {"Item 1", "Item 2", "Item 3", "Item 4"}));
+    comboBoxStyle.setModel(new javax.swing.DefaultComboBoxModel(
+        new String[] {"Item 1", "Item 2", "Item 3", "Item 4"}));
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 1;
     gridBagConstraints.gridy = 1;
     gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
     gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
     gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 16);
-    getContentPane().add(ComboBoxStyle, gridBagConstraints);
+    getContentPane().add(comboBoxStyle, gridBagConstraints);
 
     jLabel1.setText("Font");
     gridBagConstraints = new java.awt.GridBagConstraints();
@@ -250,16 +274,15 @@ public class FontChooserDialog extends javax.swing.JDialog implements ActionList
     pack();
   }// </editor-fold>//GEN-END:initComponents
 
-  private void buttonOkActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonOkActionPerformed
-    result = LabelPreview.getFont();
+  private void buttonOkActionPerformed(java.awt.event.ActionEvent evt) {
+    result = labelPreview.getFont();
     dispose();
-  }//GEN-LAST:event_buttonOkActionPerformed
+  }
 
-  private void buttonCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonCancelActionPerformed
+  private void buttonCancelActionPerformed(java.awt.event.ActionEvent evt) {
     result = null;
     dispose();
-  }//GEN-LAST:event_buttonCancelActionPerformed
-  // End of variables declaration//GEN-END:variables
+  }
 
   public Font getResult() {
     return result;
@@ -276,12 +299,12 @@ public class FontChooserDialog extends javax.swing.JDialog implements ActionList
   }
 
   private void updateSampleFont() {
-    final String fontName = (String) ComboBoxFont.getSelectedItem();
-    final String fontStyle = (String) ComboBoxStyle.getSelectedItem();
-    final int fontSize = (Integer) SpinnerSize.getValue();
-
-    LabelPreview.setFont(Font.decode(fontName + ' ' + fontStyle + ' ' + fontSize));
-    LabelPreview.invalidate();
-    LabelPreview.repaint();
+    final Font selectedFont = (Font) comboBoxFont.getSelectedItem();
+    final String fontStyle = (String) comboBoxStyle.getSelectedItem();
+    final int fontSize = (Integer) spinnerSize.getValue();
+    final Font font = selectedFont.deriveFont(LocalFont.dscodeStyle(fontStyle), fontSize);
+    labelPreview.setFont(font);
+    labelPreview.invalidate();
+    labelPreview.repaint();
   }
 }

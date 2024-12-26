@@ -99,7 +99,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
     setEdBackground(Color.BLUE.darker().darker().darker().darker());
     editor.setForeground(Color.WHITE);
     editor.setCaretColor(Color.YELLOW);
-    editor.setFont(new Font("Arial", Font.BOLD, 18));
+    editor.setFont(LocalFont.LOCAL_NOTO_SANS_MONO.getFont().deriveFont(Font.BOLD, 18));
 
     ((EditorPane) this.editor).setCharacterAttributes(userAttribute, false);
   }

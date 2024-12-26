@@ -40,7 +40,6 @@ public class EditorPane extends JTextPane {
   public EditorPane(final boolean scalable) {
     super();
     this.baseFont = this.getFont();
-
     this.setOpaque(true);
 
     if (scalable) {

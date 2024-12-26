@@ -40,7 +40,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
     theEditor.setSyntaxEditingStyle("text/jprol");
     theEditor.getSyntaxScheme().getStyle(Token.VARIABLE).foreground = Color.RED.darker();
     theEditor.getSyntaxScheme().getStyle(Token.VARIABLE).font =
-        theEditor.getFont().deriveFont(Font.BOLD);
+        theEditor.getFont().deriveFont(Font.PLAIN);
 
     theEditor.getInputMap().put(KeyStroke.getKeyStroke("control Z"), "none");
     theEditor.getInputMap().put(KeyStroke.getKeyStroke("control Y"), "none");
@@ -54,7 +54,8 @@ public class PrologSourceEditor extends AbstractProlEditor {
     editor.setForeground(Color.BLACK);
     editor.setBackground(Color.WHITE);
     editor.setCaretColor(Color.BLACK);
-    editor.setFont(new Font("Courier", Font.BOLD, 18));
+
+    editor.setFont(LocalFont.LOCAL_NOTO_SANS_MONO.getFont().deriveFont(Font.PLAIN, 18));
 
     editor.setVisible(true);
 

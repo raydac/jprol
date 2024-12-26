@@ -515,26 +515,20 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
   public abstract void savePreferences(Preferences prefs);
 
   public void saveFontToPrefs(final Preferences prefs, final String key, final Font font) {
-    String style = "PLAIN";
-    switch (font.getStyle()) {
-      case Font.BOLD: {
-        style = "BOLD";
-      }
-      break;
-      case Font.ITALIC: {
-        style = "ITALIC";
-      }
-      break;
-      case Font.BOLD | Font.ITALIC: {
-        style = "BOLDITALIC";
-      }
-      break;
+    if (font == null) {
+      prefs.remove(key);
+    } else {
+      prefs.put(key, LocalFont.makeFontDescriptor(font));
     }
-    prefs.put(key, font.getFamily() + " " + style + " " + font.getSize());
   }
 
   public Font loadFontFromPrefs(Preferences prefs, String key, final Font defaultFont) {
-    return prefs.get(key, null) == null ? defaultFont : Font.decode(prefs.get(key, null));
+    final String fontData = prefs.get(key, null);
+    if (fontData == null) {
+      return defaultFont;
+    } else {
+      return LocalFont.decodeFont(fontData);
+    }
   }
 
   public boolean doesSupportTextPaste() {
@@ -578,7 +572,8 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
 
     public void setProperty(final Object obj) {
       try {
-        ownerClass.getMethod("set" + propertyName, obj.getClass()).invoke(ownerObject, obj);
+        final Class<?> targetClass = obj instanceof Font ? Font.class : obj.getClass();
+        ownerClass.getMethod("set" + propertyName, targetClass).invoke(ownerObject, obj);
       } catch (Throwable thr) {
         throw new RuntimeException("Can't set property", thr);
       }
