@@ -1,5 +1,8 @@
 package com.igormaznitsa.jprol.libs;
 
+import static com.igormaznitsa.jprol.utils.ProlAssertions.assertAtom;
+import static com.igormaznitsa.jprol.utils.ProlAssertions.assertStruct;
+
 import com.igormaznitsa.jprol.annotations.JProlOperator;
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.NumericTerm;
@@ -14,7 +17,6 @@ import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
-import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 import java.util.ArrayList;
 import java.util.List;
@@ -406,7 +408,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
     final Term argRight = predicate.getElement(1).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      ProlAssertions.assertStruct(argLeft);
+      assertStruct(argLeft);
     }
 
     try {
@@ -427,7 +429,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
     final Term argRight = predicate.getElement(1).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      ProlAssertions.assertAtom(argLeft);
+      assertAtom(argLeft);
     }
 
     try {

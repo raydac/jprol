@@ -1,5 +1,6 @@
 package com.igormaznitsa.jprol.libs;
 
+import static com.igormaznitsa.jprol.utils.ProlAssertions.assertList;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.util.Objects.requireNonNull;
 
@@ -16,7 +17,6 @@ import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
-import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 import java.io.IOException;
 import java.io.InputStream;
@@ -104,9 +104,9 @@ public class JProlHttpLibrary extends AbstractJProlLibrary {
     final Term argResponse = predicate.getElement(1).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      ProlAssertions.assertList(arequest);
+      assertList(arequest);
       if (argResponse.getTermType() != TermType.VAR) {
-        ProlAssertions.assertList(arequest);
+        assertList(arequest);
       }
     }
 
@@ -133,7 +133,7 @@ public class JProlHttpLibrary extends AbstractJProlLibrary {
 
       final Term headers = findValue(HttpRequestParameters.HEADERS.name(), requestList);
       if (headers != null) {
-        ProlAssertions.assertList(headers);
+        assertList(headers);
         for (final Term h : (TermList) headers) {
           if (h.getTermType() == TermType.STRUCT
               && ((TermStruct) h).getFunctor().getText().equals("=")

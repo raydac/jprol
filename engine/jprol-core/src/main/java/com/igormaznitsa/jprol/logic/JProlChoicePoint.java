@@ -56,7 +56,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
   private final boolean debug;
   private boolean thereAreVariants;
   private Object payload;
-  private JProlChoicePoint prevCp;
+  private JProlChoicePoint prevChoicePoint;
   private JProlChoicePoint rootLastGoalAtChain;
   private JProlChoicePoint subChoicePoint;
   private Term subChoicePointConnector;
@@ -98,7 +98,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
         this.varSnapshot = new VariableStateSnapshot(goal, presetVarValues);
       }
       this.rootLastGoalAtChain = this;
-      this.prevCp = null;
+      this.prevChoicePoint = null;
     } else {
       this.variables = null;
       if (goal.getTermType() == ATOM) {
@@ -106,7 +106,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
       } else {
         this.varSnapshot = new VariableStateSnapshot(rootChoicePoint.varSnapshot);
       }
-      this.prevCp = rootChoicePoint.rootLastGoalAtChain;
+      this.prevChoicePoint = rootChoicePoint.rootLastGoalAtChain;
       rootChoicePoint.rootLastGoalAtChain = this;
     }
   }
@@ -163,9 +163,9 @@ public final class JProlChoicePoint implements Comparator<Term> {
     final JProlChoicePoint newGoal =
         new JProlChoicePoint(this.rootChoicePoint, goal, this.context, this.debug, this.validate,
             null);
-    final JProlChoicePoint prevGoal = newGoal.prevCp;
+    final JProlChoicePoint prevGoal = newGoal.prevChoicePoint;
     if (prevGoal != null) {
-      newGoal.prevCp = prevGoal.prevCp;
+      newGoal.prevChoicePoint = prevGoal.prevChoicePoint;
       newGoal.nextAndTerm = prevGoal.nextAndTerm;
       newGoal.nextAndTermForNextGoal = prevGoal.nextAndTermForNextGoal;
     }
@@ -218,7 +218,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                 this.context.fireTraceEvent(TraceEvent.FAIL, goalToProcess);
                 this.context.fireTraceEvent(EXIT, goalToProcess);
               }
-              this.rootChoicePoint.rootLastGoalAtChain = goalToProcess.prevCp;
+              this.rootChoicePoint.rootLastGoalAtChain = goalToProcess.prevChoicePoint;
             }
             break;
             case SUCCESS: {
@@ -246,7 +246,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
           if (this.debug) {
             this.context.fireTraceEvent(EXIT, goalToProcess);
           }
-          this.rootChoicePoint.rootLastGoalAtChain = goalToProcess.prevCp;
+          this.rootChoicePoint.rootLastGoalAtChain = goalToProcess.prevChoicePoint;
         }
       }
     }
@@ -470,11 +470,11 @@ public final class JProlChoicePoint implements Comparator<Term> {
   public void cut() {
     this.rootChoicePoint.cutMeet = true;
     this.rootChoicePoint.clauseIterator = null;
-    this.prevCp = null;
+    this.prevChoicePoint = null;
   }
 
   public void cutLocally() {
-    this.prevCp = null;
+    this.prevChoicePoint = null;
   }
 
   private PredicateInvoker findProcessorInLibraries(final TermStruct structure) {

@@ -531,7 +531,8 @@ public class TermStruct extends CompoundTerm {
         final Term element = elements[li];
         destElements[li] = element.doMakeClone(vars);
       }
-      result = Terms.newStruct(this.getFunctor(), destElements, this.getPredicateProcessor());
+      result = Terms.newStruct(this.getFunctor(), destElements, this.getPredicateProcessor(),
+          this.getSourcePosition());
     }
     return result;
   }

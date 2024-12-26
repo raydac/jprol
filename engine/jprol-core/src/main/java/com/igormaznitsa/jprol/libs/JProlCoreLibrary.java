@@ -48,6 +48,7 @@ import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.exceptions.ProlAbstractCatchableException;
+import com.igormaznitsa.jprol.exceptions.ProlChoicePointInterruptedException;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlCustomErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
@@ -2441,15 +2442,18 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = "pause/1", args = {
       "+number"}, reference = "Make pause for defined milliseconds.")
-  public static void predicatePAUSE(final JProlChoicePoint goal, final TermStruct predicate)
-      throws InterruptedException {
+  public static void predicatePAUSE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term term = predicate.getElement(0).findNonVarOrSame();
     if (goal.isArgsValidate()) {
       ProlAssertions.assertNumber(term);
     }
     final long milliseconds = term.toNumber().longValue();
     if (milliseconds > 0) {
-      Thread.sleep(milliseconds);
+      try {
+        Thread.sleep(milliseconds);
+      } catch (InterruptedException ex) {
+        throw new ProlChoicePointInterruptedException("thread interrupted", goal);
+      }
     }
   }
 

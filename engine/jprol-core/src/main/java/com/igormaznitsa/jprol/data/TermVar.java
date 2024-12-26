@@ -43,9 +43,13 @@ public final class TermVar extends Term {
     this(name, false, sourcePosition);
   }
 
-  TermVar() {
+  TermVar(final SourcePosition sourcePosition) {
     this("_$" + Long.toHexString(ANONYMITY_GENERATOR.incrementAndGet()), true,
-        SourcePosition.UNKNOWN);
+        sourcePosition);
+  }
+
+  TermVar() {
+    this(SourcePosition.UNKNOWN);
   }
 
   public int getVarUid() {

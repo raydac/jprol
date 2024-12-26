@@ -101,6 +101,10 @@ public final class Terms {
     return new TermVar(name, SourcePosition.UNKNOWN);
   }
 
+  public static TermVar newVar(final SourcePosition sourcePosition) {
+    return new TermVar(sourcePosition);
+  }
+
   public static TermVar newVar() {
     return new TermVar();
   }
@@ -109,7 +113,12 @@ public final class Terms {
     return new TermStruct(functor, functor.getSourcePosition());
   }
 
-  public static TermStruct newStruct(final String functor, final Term[] elements,
+  public static TermStruct newStruct(final Term functor, final SourcePosition sourcePosition) {
+    return new TermStruct(functor, sourcePosition);
+  }
+
+  public static TermStruct newStruct(final String functor,
+                                     final Term[] elements,
                                      final SourcePosition sourcePosition) {
     return new TermStruct(functor, elements, sourcePosition);
   }
@@ -118,9 +127,24 @@ public final class Terms {
     return new TermStruct(functor, elements, functor.getSourcePosition());
   }
 
-  public static TermStruct newStruct(final Term functor, final Term[] elements,
-                                     final PredicateInvoker processor) {
+  public static TermStruct newStruct(final Term functor,
+                                     final Term[] elements,
+                                     final PredicateInvoker processor
+  ) {
     return new TermStruct(functor, elements, processor, functor.getSourcePosition());
+  }
+
+  public static TermStruct newStruct(final Term functor,
+                                     final Term[] elements,
+                                     final SourcePosition sourcePosition
+  ) {
+    return new TermStruct(functor, elements, sourcePosition);
+  }
+
+  public static TermStruct newStruct(final Term functor, final Term[] elements,
+                                     final PredicateInvoker processor,
+                                     final SourcePosition sourcePosition) {
+    return new TermStruct(functor, elements, processor, sourcePosition);
   }
 
   private static Term convert(final JProlContext context, final PrologTerm term,
@@ -164,13 +188,13 @@ public final class Terms {
           final TermStruct result;
           final int arity = struct.getArity();
           if (arity == 0) {
-            result = newStruct(convert(context, struct.getFunctor(), vars));
+            result = newStruct(convert(context, struct.getFunctor(), vars), sourcePosition);
           } else {
             final Term[] terms = new Term[arity];
             for (int i = 0; i < arity; i++) {
               terms[i] = convert(context, struct.getTermAt(i), vars);
             }
-            result = newStruct(convert(context, struct.getFunctor(), vars), terms);
+            result = newStruct(convert(context, struct.getFunctor(), vars), terms, sourcePosition);
           }
           result.setPredicateProcessor(context.findProcessor(result));
           return result;
@@ -178,7 +202,7 @@ public final class Terms {
       }
       case VAR: {
         if (((PrologVar) term).isAnonymous()) {
-          return newVar();
+          return newVar(sourcePosition);
         } else {
           return vars.computeIfAbsent(term.getText(), name -> new TermVar(name, sourcePosition));
         }

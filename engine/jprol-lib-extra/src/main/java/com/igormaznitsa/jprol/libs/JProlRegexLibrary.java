@@ -17,6 +17,8 @@
 package com.igormaznitsa.jprol.libs;
 
 import static com.igormaznitsa.jprol.data.TermType.VAR;
+import static com.igormaznitsa.jprol.utils.ProlAssertions.assertAtom;
+import static com.igormaznitsa.jprol.utils.ProlAssertions.assertList;
 
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.Term;
@@ -25,7 +27,6 @@ import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
-import com.igormaznitsa.jprol.utils.ProlAssertions;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -103,11 +104,11 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     final Term argListOptions = predicate.getElement(3).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      ProlAssertions.assertAtom(argRegex);
-      ProlAssertions.assertAtom(argString);
-      ProlAssertions.assertList(argListOptions);
+      assertAtom(argRegex);
+      assertAtom(argString);
+      assertList(argListOptions);
       if (argTargetList.getTermType() != VAR) {
-        ProlAssertions.assertList(argTargetList);
+        assertList(argTargetList);
       }
     }
     final int compileFlags = makePatternCompileFlags(argListOptions);
@@ -135,11 +136,11 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     final Term argListOptions = predicate.getElement(3).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      ProlAssertions.assertAtom(argRegex);
-      ProlAssertions.assertAtom(argString);
-      ProlAssertions.assertList(argListOptions);
+      assertAtom(argRegex);
+      assertAtom(argString);
+      assertList(argListOptions);
       if (argTargetList.getTermType() != VAR) {
-        ProlAssertions.assertList(argTargetList);
+        assertList(argTargetList);
       }
     }
     final int compileFlags = makePatternCompileFlags(argListOptions);
@@ -176,9 +177,9 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     final Term argTarget = predicate.getElement(3).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      ProlAssertions.assertAtom(argSource);
-      ProlAssertions.assertAtom(argRegex);
-      ProlAssertions.assertAtom(argReplacement);
+      assertAtom(argSource);
+      assertAtom(argRegex);
+      assertAtom(argReplacement);
     }
 
     final String processed;
@@ -201,9 +202,9 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     final Term argListOptions = predicate.getElement(2).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      ProlAssertions.assertAtom(argRegex);
-      ProlAssertions.assertAtom(argString);
-      ProlAssertions.assertList(argListOptions);
+      assertAtom(argRegex);
+      assertAtom(argString);
+      assertList(argListOptions);
     }
     final int compileFlags = makePatternCompileFlags(argListOptions);
     final Pattern pattern;

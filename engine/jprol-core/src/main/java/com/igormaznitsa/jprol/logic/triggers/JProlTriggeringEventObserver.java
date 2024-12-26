@@ -17,6 +17,7 @@
 package com.igormaznitsa.jprol.logic.triggers;
 
 import com.igormaznitsa.jprol.data.Term;
+import com.igormaznitsa.jprol.exceptions.ProlChoicePointInterruptedException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PreparedGoal;
@@ -35,10 +36,9 @@ public class JProlTriggeringEventObserver extends AbstractJProlTrigger {
     if (this.goal != null) {
       final JProlChoicePoint choicePoint = this.goal.makeChoicePoint(event.getContext());
 
-      while (!Thread.currentThread().isInterrupted()) {
-        final Term result = choicePoint.proveWithFailForUnknown();
-        if (result == null) {
-          break;
+      while (choicePoint.proveWithFailForUnknown() != null) {
+        if (event.getContext().isDisposed()) {
+          throw new ProlChoicePointInterruptedException("context disposed", choicePoint);
         }
       }
     }

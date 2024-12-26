@@ -903,7 +903,7 @@ public final class MainFrame extends javax.swing.JFrame
         } finally {
           hideTaskControlPanel();
         }
-        messageEditor.addWarningText("Execution is canceled.");
+        messageEditor.addWarningText("Execution has been canceled.");
       }
     });
 

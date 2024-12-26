@@ -22,6 +22,12 @@ import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.data.Terms.newDouble;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
+import static com.igormaznitsa.jprol.utils.ProlAssertions.assertAtom;
+import static com.igormaznitsa.jprol.utils.ProlAssertions.assertInteger;
+import static com.igormaznitsa.jprol.utils.ProlAssertions.assertList;
+import static com.igormaznitsa.jprol.utils.ProlAssertions.assertNumber;
+import static com.igormaznitsa.jprol.utils.ProlAssertions.assertVar;
+import static com.igormaznitsa.jprol.utils.ProlAssertions.isAtom;
 
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.NumericTerm;
@@ -34,7 +40,6 @@ import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
-import com.igormaznitsa.jprol.utils.ProlAssertions;
 import java.util.IllegalFormatException;
 
 @SuppressWarnings({"EmptyMethod", "unused", "checkstyle:AbbreviationAsWordInName"})
@@ -53,22 +58,22 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term argTHIRD = predicate.getElement(2).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      final boolean firstAtom = ProlAssertions.isAtom(argFIRST);
-      final boolean secondAtom = ProlAssertions.isAtom(argSECOND);
+      final boolean firstAtom = isAtom(argFIRST);
+      final boolean secondAtom = isAtom(argSECOND);
       if (firstAtom && secondAtom) {
         if (argTHIRD.getTermType() != VAR) {
-          ProlAssertions.assertAtom(argTHIRD);
+          assertAtom(argTHIRD);
         }
       } else if (firstAtom) {
         if (argSECOND.getTermType() != VAR) {
-          ProlAssertions.assertAtom(argSECOND);
+          assertAtom(argSECOND);
         }
-        ProlAssertions.assertAtom(argTHIRD);
+        assertAtom(argTHIRD);
       } else if (secondAtom) {
         if (argFIRST.getTermType() != VAR) {
-          ProlAssertions.assertAtom(argFIRST);
+          assertAtom(argFIRST);
         }
-        ProlAssertions.assertAtom(argTHIRD);
+        assertAtom(argTHIRD);
       } else {
         throw new ProlTypeErrorException("Illegal arguments: " + predicate, predicate);
       }
@@ -110,9 +115,9 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term argRight = predicate.getElement(1).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      ProlAssertions.assertAtom(argLeft);
+      assertAtom(argLeft);
       if (argRight.getTermType() != VAR) {
-        ProlAssertions.assertAtom(argRight);
+        assertAtom(argRight);
       }
     }
 
@@ -131,13 +136,13 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term arg4 = predicate.getElement(3).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      ProlAssertions.assertInteger(arg1);
-      ProlAssertions.assertAtom(arg2);
+      assertInteger(arg1);
+      assertAtom(arg2);
       if (arg3.getTermType() != VAR) {
-        ProlAssertions.assertAtom(arg3);
+        assertAtom(arg3);
       }
       if (arg4.getTermType() != VAR) {
-        ProlAssertions.assertAtom(arg4);
+        assertAtom(arg4);
       }
     }
 
@@ -163,8 +168,8 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term target = predicate.getElement(2).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      ProlAssertions.assertAtom(template);
-      ProlAssertions.assertList(list);
+      assertAtom(template);
+      assertList(list);
     }
 
     if (list.getTermType() != LIST) {
@@ -201,13 +206,13 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term argRight = predicate.getElement(1).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      if (ProlAssertions.isAtom(argLeft)) {
+      if (isAtom(argLeft)) {
         if (argRight.getTermType() != VAR) {
-          ProlAssertions.assertAtom(argRight);
+          assertAtom(argRight);
         }
       } else {
-        ProlAssertions.assertVar(argLeft);
-        ProlAssertions.assertAtom(argRight);
+        assertVar(argLeft);
+        assertAtom(argRight);
       }
     }
 
@@ -229,9 +234,9 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term argRight = predicate.getElement(1).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      ProlAssertions.assertAtom(argLeft);
+      assertAtom(argLeft);
       if (argRight.getTermType() != VAR) {
-        ProlAssertions.assertInteger(argRight);
+        assertInteger(argRight);
       }
     }
 
@@ -247,13 +252,13 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term argRight = predicate.getElement(1).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      if (ProlAssertions.isAtom(argLeft)) {
+      if (isAtom(argLeft)) {
         if (argRight.getTermType() != VAR) {
-          ProlAssertions.assertInteger(argRight);
+          assertInteger(argRight);
         }
       } else {
-        ProlAssertions.assertVar(argLeft);
-        ProlAssertions.assertInteger(argRight);
+        assertVar(argLeft);
+        assertInteger(argRight);
       }
     }
 
@@ -280,13 +285,13 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term argRight = predicate.getElement(1).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      if (ProlAssertions.isAtom(argLeft)) {
+      if (isAtom(argLeft)) {
         if (argLeft.getTermType() != VAR) {
-          ProlAssertions.assertNumber(argRight);
+          assertNumber(argRight);
         }
       } else {
-        ProlAssertions.assertVar(argLeft);
-        ProlAssertions.assertNumber(argRight);
+        assertVar(argLeft);
+        assertNumber(argRight);
       }
     }
 
