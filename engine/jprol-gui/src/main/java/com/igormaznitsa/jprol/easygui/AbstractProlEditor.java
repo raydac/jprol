@@ -69,6 +69,9 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
   private final String nameID;
   private boolean wordWrap;
 
+  public static final Font DEFAULT_FONT =
+      LocalFont.LOCAL_NOTO_SANS_MONO.getFont().deriveFont(Font.PLAIN, 12);
+
   public AbstractProlEditor(final String title, final boolean scalable,
                             final boolean lineNumeration) {
     this(title, new EditorPane(scalable), lineNumeration);

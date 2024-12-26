@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.igormaznitsa.jprol.easygui;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
@@ -48,7 +48,8 @@ import javax.swing.text.StyleConstants.CharacterConstants;
  *
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
-public class DialogEditor extends AbstractProlEditor implements KeyListener, FocusListener, Runnable, EditorPane.EventReplacer {
+public class DialogEditor extends AbstractProlEditor
+    implements KeyListener, FocusListener, Runnable, EditorPane.EventReplacer {
 
   private static final long serialVersionUID = 5005224218702033782L;
   private final NonClosableReader inputReader;
@@ -99,7 +100,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
     setEdBackground(Color.BLUE.darker().darker().darker().darker());
     editor.setForeground(Color.WHITE);
     editor.setCaretColor(Color.YELLOW);
-    editor.setFont(LocalFont.LOCAL_NOTO_SANS_MONO.getFont().deriveFont(Font.BOLD, 18));
+    editor.setFont(DEFAULT_FONT);
 
     ((EditorPane) this.editor).setCharacterAttributes(userAttribute, false);
   }
@@ -110,7 +111,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
     final SimpleAttributeSet background = new SimpleAttributeSet();
     StyleConstants.setBackground(background, val);
     textPane.getStyledDocument().setParagraphAttributes(0,
-            textPane.getDocument().getLength(), background, false);
+        textPane.getDocument().getLength(), background, false);
     consoleAttribute.addAttribute(CharacterConstants.Background, val);
     userAttribute.addAttribute(CharacterConstants.Background, val);
     super.setEdBackground(val);
@@ -138,7 +139,7 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
       setEdCaretColor(caretColor);
     }
     setEdWordWrap(prefs.getBoolean("dialogwordwrap", true));
-    setEdFont(loadFontFromPrefs(prefs, "dialogoutputfont", this.editor.getFont()));
+    setEdFont(loadFontFromPrefs(prefs, "dialogoutputfont", DEFAULT_FONT));
   }
 
   @Override
@@ -417,15 +418,15 @@ public class DialogEditor extends AbstractProlEditor implements KeyListener, Foc
       int result = -1;
       if (!Thread.currentThread().isInterrupted()) {
         synchronized (this.buffer) {
-            if (!this.buffer.isEmpty()) {
-              result = buffer.remove(0);
-              if (result == '\n') {
-                this.foundNextLineCounter.decrementAndGet();
-              }
-              if (Character.isISOControl(result) || Character.isWhitespace(result)) {
-                result = -1;
-              }
+          if (!this.buffer.isEmpty()) {
+            result = buffer.remove(0);
+            if (result == '\n') {
+              this.foundNextLineCounter.decrementAndGet();
             }
+            if (Character.isISOControl(result) || Character.isWhitespace(result)) {
+              result = -1;
+            }
+          }
         }
       }
       return result;

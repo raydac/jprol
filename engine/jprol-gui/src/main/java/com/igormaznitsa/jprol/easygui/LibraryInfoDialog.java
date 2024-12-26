@@ -24,8 +24,13 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import javax.swing.AbstractAction;
+import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
@@ -40,13 +45,13 @@ import org.fife.ui.rtextarea.SearchEngine;
  *
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
-public final class LibraryInfoDialog extends javax.swing.JDialog {
+public final class LibraryInfoDialog extends JDialog {
 
   private static final long serialVersionUID = 8821096803790541482L;
-  private javax.swing.JButton ButtonClose;
-  private javax.swing.JScrollPane textPaneScroll;
-  private javax.swing.JLabel labelTextToSearch;
-  private javax.swing.JTextField textFieldTextToSearch;
+  private JButton buttonClose;
+  private JScrollPane textPaneScroll;
+  private JLabel labelTextToSearch;
+  private JTextField textFieldTextToSearch;
   private ScalableRsyntaxTextArea textPaneLibText;
 
   /**
@@ -60,13 +65,14 @@ public final class LibraryInfoDialog extends javax.swing.JDialog {
     textPaneLibText.setCaretPosition(0);
     textFieldTextToSearch.requestFocus();
 
-    this.ButtonClose.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CloseForm");
-    this.ButtonClose.getActionMap().put("CloseForm", new AbstractAction() {
+    this.buttonClose.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+        .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CloseForm");
+    this.buttonClose.getActionMap().put("CloseForm", new AbstractAction() {
       private static final long serialVersionUID = -5644390861803492172L;
 
       @Override
       public void actionPerformed(final ActionEvent e) {
-        ButtonClose.doClick();
+        buttonClose.doClick();
       }
     });
   }
@@ -110,9 +116,9 @@ public final class LibraryInfoDialog extends javax.swing.JDialog {
     textPaneLibText.setEditable(false);
     textPaneLibText.setHighlightCurrentLine(false);
 
-    ButtonClose = new javax.swing.JButton();
-    textFieldTextToSearch = new javax.swing.JTextField();
-    labelTextToSearch = new javax.swing.JLabel();
+    buttonClose = new JButton();
+    textFieldTextToSearch = new JTextField();
+    labelTextToSearch = new JLabel();
 
     setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
     setTitle("Information about libraries");
@@ -133,17 +139,18 @@ public final class LibraryInfoDialog extends javax.swing.JDialog {
     gridBagConstraints.weighty = 1000.0;
     getContentPane().add(textPaneScroll, gridBagConstraints);
 
-    ButtonClose.setIcon(new javax.swing.ImageIcon(Objects.requireNonNull(getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cross.png")))); // NOI18N
-    ButtonClose.setText("Close");
-    ButtonClose.setToolTipText("Close the dialog");
-    ButtonClose.addActionListener(this::ButtonCloseActionPerformed);
+    buttonClose.setIcon(new javax.swing.ImageIcon(Objects.requireNonNull(
+        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cross.png")))); // NOI18N
+    buttonClose.setText("Close");
+    buttonClose.setToolTipText("Close the dialog");
+    buttonClose.addActionListener(this::ButtonCloseActionPerformed);
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 2;
     gridBagConstraints.gridy = 1;
     gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
     gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
     gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
-    getContentPane().add(ButtonClose, gridBagConstraints);
+    getContentPane().add(buttonClose, gridBagConstraints);
 
     textFieldTextToSearch.setFont(new java.awt.Font("Dialog", Font.BOLD, 12)); // NOI18N
     textFieldTextToSearch.setToolTipText("Enter word to find and press enter (? and * wildcard characters are supported)");

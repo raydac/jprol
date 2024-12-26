@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditListener;
@@ -35,7 +36,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
     super("Editor", new ScalableRsyntaxTextArea(), true);
     replacePropertyLink(PROPERTY_ED_FONT, new PropertyLink(this, "Font", "EdAndBaseFont"));
 
-    final RSyntaxTextArea theEditor = (RSyntaxTextArea) this.editor;
+    final ScalableRsyntaxTextArea theEditor = (ScalableRsyntaxTextArea) this.editor;
     theEditor.setTabsEmulated(true);
     theEditor.setSyntaxEditingStyle("text/jprol");
     theEditor.getSyntaxScheme().getStyle(Token.VARIABLE).foreground = Color.RED.darker();
@@ -51,11 +52,12 @@ public class PrologSourceEditor extends AbstractProlEditor {
 
     removePropertyLink("EdWordWrap");
 
-    editor.setForeground(Color.BLACK);
-    editor.setBackground(Color.WHITE);
-    editor.setCaretColor(Color.BLACK);
+    theEditor.setForeground(Color.BLACK);
+    theEditor.setBackground(Color.WHITE);
+    theEditor.setCaretColor(Color.BLACK);
 
-    editor.setFont(LocalFont.LOCAL_NOTO_SANS_MONO.getFont().deriveFont(Font.PLAIN, 18));
+    theEditor.setFont(DEFAULT_FONT);
+    theEditor.setBaseFont(DEFAULT_FONT);
 
     editor.setVisible(true);
 
@@ -130,7 +132,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
     }
     this.setEdWordWrap(preferences.getBoolean(SOURCE_WORDWRAP, true));
     final Font sourceEditorFont =
-        loadFontFromPrefs(preferences, SOURCE_FONT, this.editor.getFont());
+        loadFontFromPrefs(preferences, SOURCE_FONT, DEFAULT_FONT);
     ((ScalableRsyntaxTextArea) this.getEditor()).setBaseFont(sourceEditorFont);
     this.setEdFont(sourceEditorFont);
   }
@@ -181,6 +183,41 @@ public class PrologSourceEditor extends AbstractProlEditor {
     }
     editor.revalidate();
     return result;
+  }
+
+  public int getLine() {
+    if (this.editor instanceof RSyntaxTextArea) {
+      final RSyntaxTextArea rSyntaxTextArea = (RSyntaxTextArea) this.editor;
+      return rSyntaxTextArea.getCaretLineNumber();
+    } else if (this.editor instanceof JTextArea) {
+      try {
+        final JTextArea textArea = (JTextArea) this.editor;
+        int caretPos = textArea.getCaretPosition();
+        return textArea.getLineOfOffset(caretPos);
+      } catch (Exception ex) {
+        return -1;
+      }
+    } else {
+      return -1;
+    }
+  }
+
+  public int getPos() {
+    if (this.editor instanceof RSyntaxTextArea) {
+      final RSyntaxTextArea rSyntaxTextArea = (RSyntaxTextArea) this.editor;
+      return rSyntaxTextArea.getCaretOffsetFromLineStart();
+    } else if (this.editor instanceof JTextArea) {
+      try {
+        final JTextArea textArea = (JTextArea) this.editor;
+        int caretPos = textArea.getCaretPosition();
+        int lineNum = textArea.getLineOfOffset(caretPos);
+        return caretPos - textArea.getLineStartOffset(lineNum);
+      } catch (Exception ex) {
+        return -1;
+      }
+    } else {
+      return -1;
+    }
   }
 
   public boolean commentSelectedLines() {

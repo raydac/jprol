@@ -22,6 +22,9 @@ import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import java.io.CharArrayWriter;
 import java.io.PrintWriter;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 
 /**
  * The class implements the dialog window which allows user to take a look at
@@ -30,21 +33,20 @@ import java.io.PrintWriter;
  *
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
-public class KnowledgeBaseSnapshotViewDialog extends javax.swing.JDialog {
+public class KnowledgeBaseSnapshotViewDialog extends JDialog {
 
   private static final long serialVersionUID = -4927120918645871928L;
-  // Variables declaration - do not modify//GEN-BEGIN:variables
-  private javax.swing.JButton ButtonClose;
-  private com.igormaznitsa.jprol.easygui.PrologSourceEditor SnapshotViewer;
+  private JButton buttonClose;
+  private PrologSourceEditor textViewer;
 
   /**
    * Creates new form KnowledgeBaseSnapshotViewDialog
    */
-  public KnowledgeBaseSnapshotViewDialog(final java.awt.Frame parent, final JProlContext context) {
+  public KnowledgeBaseSnapshotViewDialog(final JFrame parent, final JProlContext context) {
     super(parent, true);
     initComponents();
-    SnapshotViewer.getEditor().setEditable(false);
-    SnapshotViewer.setTitle("Knowledge base");
+    textViewer.getEditor().setEditable(false);
+    textViewer.setTitle("Knowledge base");
 
     if (context != null) {
       final InMemoryKnowledgeBase inMemoryBase = (InMemoryKnowledgeBase) context.getKnowledgeBase();
@@ -52,10 +54,10 @@ public class KnowledgeBaseSnapshotViewDialog extends javax.swing.JDialog {
       try (PrintWriter writer = new PrintWriter(charArray, true)) {
         inMemoryBase.printStateAsSrc(writer);
       }
-      SnapshotViewer.getEditor().setText(charArray.toString());
+      textViewer.getEditor().setText(charArray.toString());
     }
 
-    this.getRootPane().setDefaultButton(this.ButtonClose);
+    this.getRootPane().setDefaultButton(this.buttonClose);
   }
 
   /**
@@ -66,8 +68,8 @@ public class KnowledgeBaseSnapshotViewDialog extends javax.swing.JDialog {
   private void initComponents() {
     java.awt.GridBagConstraints gridBagConstraints;
 
-    SnapshotViewer = new com.igormaznitsa.jprol.easygui.PrologSourceEditor();
-    ButtonClose = new javax.swing.JButton();
+    textViewer = new PrologSourceEditor();
+    buttonClose = new JButton();
 
     setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
     setTitle("Current or last knowledge base snapshot");
@@ -79,19 +81,19 @@ public class KnowledgeBaseSnapshotViewDialog extends javax.swing.JDialog {
     gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
     gridBagConstraints.weightx = 1000.0;
     gridBagConstraints.weighty = 1000.0;
-    getContentPane().add(SnapshotViewer, gridBagConstraints);
+    getContentPane().add(textViewer, gridBagConstraints);
 
-    ButtonClose.setIcon(new javax.swing.ImageIcon(requireNonNull(
+    buttonClose.setIcon(new javax.swing.ImageIcon(requireNonNull(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cross.png")))); // NOI18N
-    ButtonClose.setText("Close");
-    ButtonClose.addActionListener(this::ButtonCloseActionPerformed);
+    buttonClose.setText("Close");
+    buttonClose.addActionListener(this::ButtonCloseActionPerformed);
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 0;
     gridBagConstraints.gridy = 1;
     gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
     gridBagConstraints.ipadx = 8;
     gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-    getContentPane().add(ButtonClose, gridBagConstraints);
+    getContentPane().add(buttonClose, gridBagConstraints);
 
     pack();
   }

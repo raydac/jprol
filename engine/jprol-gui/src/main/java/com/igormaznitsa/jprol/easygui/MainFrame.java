@@ -17,6 +17,7 @@
 package com.igormaznitsa.jprol.easygui;
 
 import static java.lang.String.format;
+import static javax.swing.Box.Filler;
 
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.SourcePosition;
@@ -47,13 +48,18 @@ import com.igormaznitsa.jprol.trace.JProlContextListener;
 import com.igormaznitsa.jprol.trace.TraceEvent;
 import com.igormaznitsa.jprol.utils.Utils;
 import com.igormaznitsa.prologparser.exceptions.PrologParserException;
+import java.awt.BorderLayout;
 import java.awt.Desktop;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -88,25 +94,39 @@ import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu.Separator;
+import javax.swing.JProgressBar;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JSplitPane;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.Painter;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.border.BevelBorder;
+import javax.swing.border.SoftBevelBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.event.MenuEvent;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.filechooser.FileFilter;
@@ -173,68 +193,60 @@ public final class MainFrame extends javax.swing.JFrame
   private boolean documentHasBeenChangedFlag;
   private volatile JProlContext lastContext;
   // Variables declaration - do not modify
-  private javax.swing.JButton buttonCloseFind;
-  private javax.swing.JButton buttonStopExecuting;
+  private JButton buttonCloseFind;
+  private JButton buttonStopExecuting;
   private com.igormaznitsa.jprol.easygui.DialogEditor dialogEditor;
-  private javax.swing.JPanel editorPanel;
-  private javax.swing.Box.Filler filler1;
-  private javax.swing.JMenuBar jMenuBar1;
-  private javax.swing.JPopupMenu.Separator jSeparator1;
-  private javax.swing.JPopupMenu.Separator jSeparator2;
-  private javax.swing.JPopupMenu.Separator jSeparator3;
-  private javax.swing.JPopupMenu.Separator jSeparator4;
-  private javax.swing.JPopupMenu.Separator jSeparator5;
-  private javax.swing.JLabel labelFind;
-  private javax.swing.JMenuItem menuAbout;
-  private javax.swing.JMenuItem menuClearText;
-  private javax.swing.JMenu menuEdit;
-  private javax.swing.JMenuItem menuEditCommentSelected;
-  private javax.swing.JMenuItem menuEditOptions;
-  private javax.swing.JMenuItem menuEditUncommentSelected;
-  private javax.swing.JMenuItem menuExit;
-  private javax.swing.JMenu menuFile;
-  private javax.swing.JMenuItem menuFileNew;
-  private javax.swing.JMenuItem menuFileOpen;
-  private javax.swing.JMenu menuFileRecentFiles;
-  private javax.swing.JMenuItem menuFileSave;
-  private javax.swing.JMenuItem menuFileSaveAs;
-  private javax.swing.JMenu menuHelp;
-  private javax.swing.JMenuItem menuHelpHelp;
-  private javax.swing.JMenuItem menuItemFullScreen;
-  private javax.swing.JMenuItem menuItemLibraryInfo;
-  private javax.swing.JCheckBoxMenuItem menuItemWordWrapSources;
-  private javax.swing.JMenu menuLookAndFeel;
-  private javax.swing.JMenuItem menuRedo;
-  private javax.swing.JMenu menuRun;
-  private javax.swing.JMenuItem menuRunScript;
-  private javax.swing.JMenuItem menuRunStop;
-  private javax.swing.JMenuItem menuTraceScript;
-  private javax.swing.JMenuItem menuUndo;
-  private javax.swing.JMenu menuView;
-  private javax.swing.JMenuItem menuViewKnowledgeBase;
-  private javax.swing.JMenuItem menuitemFindText;
-  private com.igormaznitsa.jprol.easygui.MessageEditor messageEditor;
-  private javax.swing.JPanel panelFindText;
-  private javax.swing.JPanel panelProgress;
-  private javax.swing.JProgressBar progressBarTask;
-  private com.igormaznitsa.jprol.easygui.PrologSourceEditor sourceEditor;
-  private javax.swing.JSplitPane splitPaneMain;
-  private javax.swing.JSplitPane splitPaneTop;
-  private javax.swing.JSplitPane splitPanelDown;
-  private javax.swing.JTextField textFind;
-  private com.igormaznitsa.jprol.easygui.TraceDialog traceEditor;
-
-  private void setAppIcon(final Image icon) {
-    try {
-      Class<?> taskbarClass = Class.forName("java.awt.Taskbar");
-      Object taskbarInstance = taskbarClass.getMethod("getTaskbar").invoke(null);
-      taskbarClass.getMethod("setIconImage", Image.class).invoke(taskbarInstance, icon);
-    } catch (Exception ex) {
-      // ignore
-    }
-
-    this.setIconImage(icon);
-  }
+  private JPanel editorPanel;
+  private Filler filler1;
+  private JMenuBar jMenuBar1;
+  private Separator jSeparator1;
+  private Separator jSeparator2;
+  private Separator jSeparator3;
+  private Separator jSeparator4;
+  private Separator jSeparator5;
+  private JLabel labelFind;
+  private JMenuItem menuAbout;
+  private JMenuItem menuClearText;
+  private JMenu menuEdit;
+  private JMenuItem menuEditCommentSelected;
+  private JMenuItem menuEditOptions;
+  private JMenuItem menuEditUncommentSelected;
+  private JMenuItem menuExit;
+  private JMenu menuFile;
+  private JMenuItem menuFileNew;
+  private JMenuItem menuFileOpen;
+  private JMenu menuFileRecentFiles;
+  private JMenuItem menuFileSave;
+  private JMenuItem menuFileSaveAs;
+  private JMenu menuHelp;
+  private JMenuItem menuHelpHelp;
+  private JMenuItem menuItemFullScreen;
+  private JMenuItem menuItemLibraryInfo;
+  private JCheckBoxMenuItem menuItemWordWrapSources;
+  private JMenu menuLookAndFeel;
+  private JMenuItem menuRedo;
+  private JMenu menuRun;
+  private JMenuItem menuRunScript;
+  private JMenuItem menuRunStop;
+  private JMenuItem menuTraceScript;
+  private JMenuItem menuUndo;
+  private JMenu menuView;
+  private JMenuItem menuViewKnowledgeBase;
+  private JMenuItem menuitemFindText;
+  private MessageEditor messageEditor;
+  private JPanel panelFindText;
+  private JPanel panelProgress;
+  private JProgressBar progressBarTask;
+  private PrologSourceEditor sourceEditor;
+  private JSplitPane splitPaneMain;
+  private JSplitPane splitPaneTop;
+  private JSplitPane splitPanelDown;
+  private JTextField textFind;
+  private TraceDialog traceEditor;
+  private JPanel editorIndicationPanel;
+  private JLabel labelEditorLine;
+  private JLabel labelEditorCol;
+  private JLabel labelOpenedFile;
 
   /**
    * Creates new form MainFrame
@@ -243,6 +255,9 @@ public final class MainFrame extends javax.swing.JFrame
     super(graphicsConfiguration);
     try {
       initComponents();
+
+      this.sourceEditor.getEditor().addCaretListener(e -> this.updateCaretPositionIndication());
+      this.updateCaretPositionIndication();
 
       Rectangle screenBounds =
           graphicsConfiguration == null ? null : graphicsConfiguration.getBounds();
@@ -303,9 +318,37 @@ public final class MainFrame extends javax.swing.JFrame
     }
   }
 
+  private static Throwable findRootCause(final Throwable throwable) {
+    if (throwable == null) {
+      return null;
+    } else if (throwable.getCause() == null) {
+      return throwable;
+    } else {
+      final Throwable thatError = findRootCause(throwable.getCause());
+      return thatError == null ? throwable : thatError;
+    }
+  }
+
   public MainFrame(final GraphicsConfiguration config, final File initFile) {
     this(config);
     loadFile(initFile, true);
+  }
+
+  private void updateCaretPositionIndication() {
+    this.labelEditorLine.setText(Integer.toString(this.sourceEditor.getLine() + 1));
+    this.labelEditorCol.setText(Integer.toString(this.sourceEditor.getPos() + 1));
+  }
+
+  private void setAppIcon(final Image icon) {
+    try {
+      Class<?> taskbarClass = Class.forName("java.awt.Taskbar");
+      Object taskbarInstance = taskbarClass.getMethod("getTaskbar").invoke(null);
+      taskbarClass.getMethod("setIconImage", Image.class).invoke(taskbarInstance, icon);
+    } catch (Exception ex) {
+      // ignore
+    }
+
+    this.setIconImage(icon);
   }
 
   public void addErrorText(final String msg) {
@@ -435,66 +478,73 @@ public final class MainFrame extends javax.swing.JFrame
   private void initComponents() {
     java.awt.GridBagConstraints gridBagConstraints;
 
-    splitPaneMain = new javax.swing.JSplitPane();
-    splitPaneTop = new javax.swing.JSplitPane();
+    splitPaneMain = new JSplitPane();
+    splitPaneTop = new JSplitPane();
     try {
       dialogEditor = new com.igormaznitsa.jprol.easygui.DialogEditor();
     } catch (java.io.IOException e1) {
       e1.printStackTrace();
     }
-    editorPanel = new javax.swing.JPanel();
-    sourceEditor = new com.igormaznitsa.jprol.easygui.PrologSourceEditor();
-    panelFindText = new javax.swing.JPanel();
-    labelFind = new javax.swing.JLabel();
-    textFind = new javax.swing.JTextField();
-    buttonCloseFind = new javax.swing.JButton();
-    filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0),
-        new java.awt.Dimension(32767, 0));
-    splitPanelDown = new javax.swing.JSplitPane();
-    messageEditor = new com.igormaznitsa.jprol.easygui.MessageEditor();
-    traceEditor = new com.igormaznitsa.jprol.easygui.TraceDialog();
-    panelProgress = new javax.swing.JPanel();
-    progressBarTask = new javax.swing.JProgressBar();
-    buttonStopExecuting = new javax.swing.JButton();
-    jMenuBar1 = new javax.swing.JMenuBar();
-    menuFile = new javax.swing.JMenu();
-    menuFileNew = new javax.swing.JMenuItem();
-    menuFileOpen = new javax.swing.JMenuItem();
-    menuFileSaveAs = new javax.swing.JMenuItem();
-    menuFileSave = new javax.swing.JMenuItem();
-    jSeparator1 = new javax.swing.JPopupMenu.Separator();
-    menuFileRecentFiles = new javax.swing.JMenu();
-    jSeparator4 = new javax.swing.JPopupMenu.Separator();
-    menuExit = new javax.swing.JMenuItem();
-    menuEdit = new javax.swing.JMenu();
-    menuUndo = new javax.swing.JMenuItem();
-    menuRedo = new javax.swing.JMenuItem();
-    jSeparator2 = new javax.swing.JPopupMenu.Separator();
-    menuClearText = new javax.swing.JMenuItem();
-    menuEditCommentSelected = new javax.swing.JMenuItem();
-    menuEditUncommentSelected = new javax.swing.JMenuItem();
-    jSeparator3 = new javax.swing.JPopupMenu.Separator();
-    menuitemFindText = new javax.swing.JMenuItem();
-    menuItemWordWrapSources = new javax.swing.JCheckBoxMenuItem();
-    menuItemFullScreen = new javax.swing.JMenuItem();
-    jSeparator5 = new javax.swing.JPopupMenu.Separator();
-    menuEditOptions = new javax.swing.JMenuItem();
-    menuRun = new javax.swing.JMenu();
-    menuRunScript = new javax.swing.JMenuItem();
-    menuTraceScript = new javax.swing.JMenuItem();
-    menuRunStop = new javax.swing.JMenuItem();
-    menuView = new javax.swing.JMenu();
-    menuViewKnowledgeBase = new javax.swing.JMenuItem();
-    menuItemLibraryInfo = new javax.swing.JMenuItem();
-    menuLookAndFeel = new javax.swing.JMenu();
-    menuHelp = new javax.swing.JMenu();
-    menuHelpHelp = new javax.swing.JMenuItem();
-    menuAbout = new javax.swing.JMenuItem();
+    editorPanel = new JPanel();
+    sourceEditor = new PrologSourceEditor();
+    panelFindText = new JPanel();
+    labelFind = new JLabel();
+    textFind = new JTextField();
+    buttonCloseFind = new JButton();
+    filler1 = new Filler(new Dimension(0, 0), new Dimension(0, 0),
+        new Dimension(32767, 0));
+    splitPanelDown = new JSplitPane();
+    messageEditor = new MessageEditor();
+    traceEditor = new TraceDialog();
+    panelProgress = new JPanel();
+    progressBarTask = new JProgressBar();
+    editorIndicationPanel = new JPanel();
+    labelEditorCol = new JLabel();
+    labelEditorCol.setAlignmentX(JLabel.LEFT);
+    labelEditorLine = new JLabel();
+    labelEditorLine.setAlignmentX(JLabel.LEFT);
+    labelOpenedFile = new JLabel();
+    labelOpenedFile.setAlignmentX(JLabel.LEFT);
+    buttonStopExecuting = new JButton();
+    jMenuBar1 = new JMenuBar();
+    menuFile = new JMenu();
+    menuFileNew = new JMenuItem();
+    menuFileOpen = new JMenuItem();
+    menuFileSaveAs = new JMenuItem();
+    menuFileSave = new JMenuItem();
+    jSeparator1 = new Separator();
+    menuFileRecentFiles = new JMenu();
+    jSeparator4 = new Separator();
+    menuExit = new JMenuItem();
+    menuEdit = new JMenu();
+    menuUndo = new JMenuItem();
+    menuRedo = new JMenuItem();
+    jSeparator2 = new Separator();
+    menuClearText = new JMenuItem();
+    menuEditCommentSelected = new JMenuItem();
+    menuEditUncommentSelected = new JMenuItem();
+    jSeparator3 = new Separator();
+    menuitemFindText = new JMenuItem();
+    menuItemWordWrapSources = new JCheckBoxMenuItem();
+    menuItemFullScreen = new JMenuItem();
+    jSeparator5 = new Separator();
+    menuEditOptions = new JMenuItem();
+    menuRun = new JMenu();
+    menuRunScript = new JMenuItem();
+    menuTraceScript = new JMenuItem();
+    menuRunStop = new JMenuItem();
+    menuView = new JMenu();
+    menuViewKnowledgeBase = new JMenuItem();
+    menuItemLibraryInfo = new JMenuItem();
+    menuLookAndFeel = new JMenu();
+    menuHelp = new JMenu();
+    menuHelpHelp = new JMenuItem();
+    menuAbout = new JMenuItem();
 
-    setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
+    setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
     splitPaneMain.setDividerLocation(350);
-    splitPaneMain.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
+    splitPaneMain.setOrientation(JSplitPane.VERTICAL_SPLIT);
     splitPaneMain.setResizeWeight(0.8);
     splitPaneMain.setOneTouchExpandable(true);
 
@@ -505,13 +555,33 @@ public final class MainFrame extends javax.swing.JFrame
     dialogEditor.setToolTipText("The window allows to communicate with a user");
     splitPaneTop.setRightComponent(dialogEditor);
 
-    editorPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Editor"));
-    editorPanel.setLayout(new java.awt.BorderLayout());
+    editorPanel.setBorder(BorderFactory.createTitledBorder("Editor"));
+    editorPanel.setLayout(new BorderLayout());
+
+    editorIndicationPanel.setLayout(new GridBagLayout());
+    final GridBagConstraints editorIndicationGbc =
+        new GridBagConstraints(0, 0, 1, 1, 1, 1, GridBagConstraints.WEST,
+            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 4, 0), 0, 0);
+    editorIndicationPanel.add(new JLabel("Line"), editorIndicationGbc);
+    editorIndicationGbc.gridx = 1;
+    editorIndicationPanel.add(labelEditorLine, editorIndicationGbc);
+    editorIndicationGbc.gridx = 2;
+    editorIndicationPanel.add(new JLabel("Col"), editorIndicationGbc);
+    editorIndicationGbc.gridx = 3;
+    editorIndicationPanel.add(labelEditorCol, editorIndicationGbc);
+    editorIndicationGbc.gridx = 4;
+    editorIndicationGbc.weightx = 50;
+    editorIndicationPanel.add(Box.createGlue(), editorIndicationGbc);
+    editorIndicationGbc.gridx = 5;
+    editorIndicationGbc.weightx = 1;
+    editorIndicationGbc.anchor = GridBagConstraints.EAST;
+    editorIndicationPanel.add(labelOpenedFile, editorIndicationGbc);
 
     sourceEditor.setBorder(null);
     sourceEditor.setToolTipText("The editor allows to enter and edit text of a program");
-    sourceEditor.setFont(new java.awt.Font("DejaVu Sans", Font.BOLD, 13)); // NOI18N
-    editorPanel.add(sourceEditor, java.awt.BorderLayout.CENTER);
+    sourceEditor.setFont(new Font("DejaVu Sans", Font.BOLD, 13)); // NOI18N
+    editorPanel.add(sourceEditor, BorderLayout.CENTER);
+    editorPanel.add(editorIndicationPanel, BorderLayout.NORTH);
 
     panelFindText.setLayout(new java.awt.GridBagLayout());
 
@@ -524,7 +594,7 @@ public final class MainFrame extends javax.swing.JFrame
     textFind.setToolTipText("Enter text for search (wildcard chars ? and * are supported)");
     textFind.addKeyListener(new java.awt.event.KeyAdapter() {
       @Override
-      public void keyReleased(java.awt.event.KeyEvent evt) {
+      public void keyReleased(KeyEvent evt) {
         textFindKeyReleased(evt);
       }
     });
@@ -535,10 +605,10 @@ public final class MainFrame extends javax.swing.JFrame
     gridBagConstraints.ipadx = 300;
     panelFindText.add(textFind, gridBagConstraints);
 
-    buttonCloseFind.setIcon(new javax.swing.ImageIcon(
+    buttonCloseFind.setIcon(new ImageIcon(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cross.png"))); // NOI18N
     buttonCloseFind.setToolTipText("Hide the find text panel (ESC)");
-    buttonCloseFind.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+    buttonCloseFind.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
     buttonCloseFind.setIconTextGap(0);
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.gridx = 3;
@@ -550,7 +620,7 @@ public final class MainFrame extends javax.swing.JFrame
     gridBagConstraints.weightx = 1000.0;
     panelFindText.add(filler1, gridBagConstraints);
 
-    editorPanel.add(panelFindText, java.awt.BorderLayout.PAGE_END);
+    editorPanel.add(panelFindText, BorderLayout.PAGE_END);
 
     splitPaneTop.setLeftComponent(editorPanel);
 
@@ -569,62 +639,62 @@ public final class MainFrame extends javax.swing.JFrame
 
     splitPaneMain.setBottomComponent(splitPanelDown);
 
-    getContentPane().add(splitPaneMain, java.awt.BorderLayout.CENTER);
+    getContentPane().add(splitPaneMain, BorderLayout.CENTER);
 
-    panelProgress.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+    panelProgress.setBorder(BorderFactory.createEtchedBorder());
     panelProgress.setLayout(new java.awt.GridBagLayout());
 
-    progressBarTask.setMaximumSize(new java.awt.Dimension(100, 20));
-    progressBarTask.setPreferredSize(new java.awt.Dimension(40, 20));
+    progressBarTask.setMaximumSize(new Dimension(100, 20));
+    progressBarTask.setPreferredSize(new Dimension(40, 20));
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
     gridBagConstraints.weightx = 1000.0;
     panelProgress.add(progressBarTask, gridBagConstraints);
 
     buttonStopExecuting.setBackground(new java.awt.Color(255, 156, 156));
-    buttonStopExecuting.setFont(new java.awt.Font("DejaVu Sans", Font.BOLD, 13)); // NOI18N
-    buttonStopExecuting.setIcon(new javax.swing.ImageIcon(
+    buttonStopExecuting.setFont(new Font("DejaVu Sans", Font.BOLD, 13)); // NOI18N
+    buttonStopExecuting.setIcon(new ImageIcon(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/flag_red.png"))); // NOI18N
     buttonStopExecuting.setText("STOP");
     buttonStopExecuting.setBorder(
-        new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
-    buttonStopExecuting.setMaximumSize(new java.awt.Dimension(100, 23));
-    buttonStopExecuting.setMinimumSize(new java.awt.Dimension(60, 23));
+        new SoftBevelBorder(BevelBorder.RAISED));
+    buttonStopExecuting.setMaximumSize(new Dimension(100, 23));
+    buttonStopExecuting.setMinimumSize(new Dimension(60, 23));
     buttonStopExecuting.addActionListener(this::buttonStopExecutingActionPerformed);
     gridBagConstraints = new java.awt.GridBagConstraints();
     gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
     panelProgress.add(buttonStopExecuting, gridBagConstraints);
 
-    getContentPane().add(panelProgress, java.awt.BorderLayout.SOUTH);
+    getContentPane().add(panelProgress, BorderLayout.SOUTH);
 
     menuFile.setText("File");
 
-    menuFileNew.setIcon(new javax.swing.ImageIcon(
+    menuFileNew.setIcon(new ImageIcon(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/page.png"))); // NOI18N
     menuFileNew.setText("New");
     menuFileNew.setToolTipText("Create new document");
     menuFileNew.addActionListener(this::menuFileNewActionPerformed);
     menuFile.add(menuFileNew);
 
-    menuFileOpen.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O,
+    menuFileOpen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O,
         InputEvent.CTRL_DOWN_MASK));
-    menuFileOpen.setIcon(new javax.swing.ImageIcon(
+    menuFileOpen.setIcon(new ImageIcon(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/page_edit.png"))); // NOI18N
     menuFileOpen.setText("Open");
     menuFileOpen.setToolTipText("Open a saved document");
     menuFileOpen.addActionListener(this::menuFileOpenActionPerformed);
     menuFile.add(menuFileOpen);
 
-    menuFileSaveAs.setIcon(new javax.swing.ImageIcon(
+    menuFileSaveAs.setIcon(new ImageIcon(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/page_save.png"))); // NOI18N
     menuFileSaveAs.setText("Save As..");
     menuFileSaveAs.setToolTipText("Save the current document as a file");
     menuFileSaveAs.addActionListener(this::menuFileSaveAsActionPerformed);
     menuFile.add(menuFileSaveAs);
 
-    menuFileSave.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S,
+    menuFileSave.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
         InputEvent.CTRL_DOWN_MASK));
-    menuFileSave.setIcon(new javax.swing.ImageIcon(
+    menuFileSave.setIcon(new ImageIcon(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/page_go.png"))); // NOI18N
     menuFileSave.setText("Save");
     menuFileSave.setToolTipText("Save the current document");
@@ -632,30 +702,30 @@ public final class MainFrame extends javax.swing.JFrame
     menuFile.add(menuFileSave);
     menuFile.add(jSeparator1);
 
-    menuFileRecentFiles.setIcon(new javax.swing.ImageIcon(
+    menuFileRecentFiles.setIcon(new ImageIcon(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/folder.png"))); // NOI18N
     menuFileRecentFiles.setText("Recent files...");
     menuFileRecentFiles.setToolTipText("List of files opened early");
     menuFileRecentFiles.addMenuListener(new javax.swing.event.MenuListener() {
       @Override
-      public void menuSelected(javax.swing.event.MenuEvent evt) {
+      public void menuSelected(MenuEvent evt) {
         menuFileRecentFilesMenuSelected(evt);
       }
 
       @Override
-      public void menuDeselected(javax.swing.event.MenuEvent evt) {
+      public void menuDeselected(MenuEvent evt) {
       }
 
       @Override
-      public void menuCanceled(javax.swing.event.MenuEvent evt) {
+      public void menuCanceled(MenuEvent evt) {
       }
     });
     menuFile.add(menuFileRecentFiles);
     menuFile.add(jSeparator4);
 
-    menuExit.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F4,
+    menuExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4,
         InputEvent.ALT_DOWN_MASK));
-    menuExit.setIcon(new javax.swing.ImageIcon(
+    menuExit.setIcon(new ImageIcon(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/door_in.png"))); // NOI18N
     menuExit.setText("Exit");
     menuExit.setToolTipText("Close the editor");
@@ -666,9 +736,9 @@ public final class MainFrame extends javax.swing.JFrame
 
     menuEdit.setText("Edit");
 
-    menuUndo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z,
+    menuUndo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z,
         InputEvent.CTRL_DOWN_MASK));
-    menuUndo.setIcon(new javax.swing.ImageIcon(getClass().getResource(
+    menuUndo.setIcon(new ImageIcon(getClass().getResource(
         "/com/igormaznitsa/jprol/easygui/icons/book_previous.png"))); // NOI18N
     menuUndo.setText("Undo");
     menuUndo.setToolTipText("Undo last changes in the document");
@@ -676,9 +746,9 @@ public final class MainFrame extends javax.swing.JFrame
     menuUndo.addActionListener(this::menuUndoActionPerformed);
     menuEdit.add(menuUndo);
 
-    menuRedo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Y,
+    menuRedo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y,
         InputEvent.CTRL_DOWN_MASK));
-    menuRedo.setIcon(new javax.swing.ImageIcon(
+    menuRedo.setIcon(new ImageIcon(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/book_next.png"))); // NOI18N
     menuRedo.setText("Redo");
     menuRedo.setToolTipText("Redo canceled changes in the document");
@@ -687,9 +757,9 @@ public final class MainFrame extends javax.swing.JFrame
     menuEdit.add(menuRedo);
     menuEdit.add(jSeparator2);
 
-    menuClearText.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R,
+    menuClearText.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R,
         InputEvent.CTRL_DOWN_MASK));
-    menuClearText.setIcon(new javax.swing.ImageIcon(
+    menuClearText.setIcon(new ImageIcon(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/page_white.png"))); // NOI18N
     menuClearText.setText("Clear");
     menuClearText.setToolTipText("Just clear text in the current document");
@@ -697,9 +767,9 @@ public final class MainFrame extends javax.swing.JFrame
     menuEdit.add(menuClearText);
 
     menuEditCommentSelected.setAccelerator(
-        javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_5,
+        KeyStroke.getKeyStroke(KeyEvent.VK_5,
             InputEvent.CTRL_DOWN_MASK));
-    menuEditCommentSelected.setIcon(new javax.swing.ImageIcon(
+    menuEditCommentSelected.setIcon(new ImageIcon(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/comment_add.png"))); // NOI18N
     menuEditCommentSelected.setText("Comment selection");
     menuEditCommentSelected.setToolTipText(
@@ -708,9 +778,9 @@ public final class MainFrame extends javax.swing.JFrame
     menuEdit.add(menuEditCommentSelected);
 
     menuEditUncommentSelected.setAccelerator(
-        javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_U,
+        KeyStroke.getKeyStroke(KeyEvent.VK_U,
             InputEvent.CTRL_DOWN_MASK));
-    menuEditUncommentSelected.setIcon(new javax.swing.ImageIcon(getClass().getResource(
+    menuEditUncommentSelected.setIcon(new ImageIcon(getClass().getResource(
         "/com/igormaznitsa/jprol/easygui/icons/comment_delete.png"))); // NOI18N
     menuEditUncommentSelected.setText("Uncomment selection");
     menuEditUncommentSelected.setToolTipText(
@@ -719,29 +789,29 @@ public final class MainFrame extends javax.swing.JFrame
     menuEdit.add(menuEditUncommentSelected);
     menuEdit.add(jSeparator3);
 
-    menuitemFindText.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F,
+    menuitemFindText.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F,
         InputEvent.CTRL_DOWN_MASK));
-    menuitemFindText.setIcon(new javax.swing.ImageIcon(
+    menuitemFindText.setIcon(new ImageIcon(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/zoom.png"))); // NOI18N
     menuitemFindText.setText("Find text");
     menuitemFindText.addActionListener(this::menuitemFindTextActionPerformed);
     menuEdit.add(menuitemFindText);
 
     menuItemWordWrapSources.setAccelerator(
-        javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_W,
+        KeyStroke.getKeyStroke(KeyEvent.VK_W,
             InputEvent.CTRL_DOWN_MASK));
     menuItemWordWrapSources.setSelected(true);
     menuItemWordWrapSources.setText("Word wrap (editor)");
     menuItemWordWrapSources.setToolTipText("Word-wrap mode for the document editor");
-    menuItemWordWrapSources.setIcon(new javax.swing.ImageIcon(getClass().getResource(
+    menuItemWordWrapSources.setIcon(new ImageIcon(getClass().getResource(
         "/com/igormaznitsa/jprol/easygui/icons/text_align_justify.png"))); // NOI18N
     menuItemWordWrapSources.addActionListener(this::menuItemWordWrapSourcesActionPerformed);
     menuEdit.add(menuItemWordWrapSources);
 
     menuItemFullScreen.setAccelerator(
-        javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F,
-            java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
-    menuItemFullScreen.setIcon(new javax.swing.ImageIcon(getClass().getResource(
+        KeyStroke.getKeyStroke(KeyEvent.VK_F,
+            InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK));
+    menuItemFullScreen.setIcon(new ImageIcon(getClass().getResource(
         "/com/igormaznitsa/jprol/easygui/icons/shape_move_forwards.png"))); // NOI18N
     menuItemFullScreen.setText("Full screen");
     menuItemFullScreen.setToolTipText(
@@ -750,7 +820,7 @@ public final class MainFrame extends javax.swing.JFrame
     menuEdit.add(menuItemFullScreen);
     menuEdit.add(jSeparator5);
 
-    menuEditOptions.setIcon(new javax.swing.ImageIcon(
+    menuEditOptions.setIcon(new ImageIcon(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cog.png"))); // NOI18N
     menuEditOptions.setText("Options");
     menuEditOptions.setToolTipText("Open editor options");
@@ -762,22 +832,22 @@ public final class MainFrame extends javax.swing.JFrame
     menuRun.setText("Run");
 
     menuRunScript.setAccelerator(
-        javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F5, 0));
-    menuRunScript.setIcon(new javax.swing.ImageIcon(
+        KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
+    menuRunScript.setIcon(new ImageIcon(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/flag_green.png"))); // NOI18N
     menuRunScript.setText("Start");
     menuRunScript.setToolTipText("Execute the current document");
     menuRunScript.addActionListener(this::menuRunScriptActionPerformed);
     menuRun.add(menuRunScript);
 
-    menuTraceScript.setIcon(new javax.swing.ImageIcon(
+    menuTraceScript.setIcon(new ImageIcon(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/flag_blue.png"))); // NOI18N
     menuTraceScript.setText("Trace");
     menuTraceScript.setToolTipText("Execute the current document with tracing");
     menuTraceScript.addActionListener(this::menuTraceScriptActionPerformed);
     menuRun.add(menuTraceScript);
 
-    menuRunStop.setIcon(new javax.swing.ImageIcon(
+    menuRunStop.setIcon(new ImageIcon(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/flag_red.png"))); // NOI18N
     menuRunStop.setText("Stop");
     menuRunStop.setToolTipText("Stop the current execution");
@@ -790,8 +860,8 @@ public final class MainFrame extends javax.swing.JFrame
     menuView.setText("View");
 
     menuViewKnowledgeBase.setAccelerator(
-        javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F12, 0));
-    menuViewKnowledgeBase.setIcon(new javax.swing.ImageIcon(
+        KeyStroke.getKeyStroke(KeyEvent.VK_F12, 0));
+    menuViewKnowledgeBase.setIcon(new ImageIcon(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/eye.png"))); // NOI18N
     menuViewKnowledgeBase.setText("Show Knowledge base");
     menuViewKnowledgeBase.setToolTipText(
@@ -801,8 +871,8 @@ public final class MainFrame extends javax.swing.JFrame
     menuView.add(menuViewKnowledgeBase);
 
     menuItemLibraryInfo.setAccelerator(
-        javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F1, 0));
-    menuItemLibraryInfo.setIcon(new javax.swing.ImageIcon(
+        KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0));
+    menuItemLibraryInfo.setIcon(new ImageIcon(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/table.png"))); // NOI18N
     menuItemLibraryInfo.setText("Library info");
     menuItemLibraryInfo.setToolTipText("Show all predicates found in embedded libraries");
@@ -816,14 +886,14 @@ public final class MainFrame extends javax.swing.JFrame
 
     menuHelp.setText("Help");
 
-    menuHelpHelp.setIcon(new javax.swing.ImageIcon(
+    menuHelpHelp.setIcon(new ImageIcon(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/information.png"))); // NOI18N
     menuHelpHelp.setText("Help");
     menuHelpHelp.setToolTipText("Show information about usage of the utility");
     menuHelpHelp.addActionListener(this::menuHelpHelpActionPerformed);
     menuHelp.add(menuHelpHelp);
 
-    menuAbout.setIcon(new javax.swing.ImageIcon(getClass().getResource(
+    menuAbout.setIcon(new ImageIcon(getClass().getResource(
         "/com/igormaznitsa/jprol/easygui/icons/emoticon_smile.png"))); // NOI18N
     menuAbout.setText("About");
     menuAbout.setToolTipText("Show the information about the application and license");
@@ -837,11 +907,11 @@ public final class MainFrame extends javax.swing.JFrame
     pack();
   }
 
-  private void menuRunScriptActionPerformed(java.awt.event.ActionEvent evt) {
+  private void menuRunScriptActionPerformed(ActionEvent evt) {
     startExecution(false);
   }
 
-  private void menuUndoActionPerformed(java.awt.event.ActionEvent evt) {
+  private void menuUndoActionPerformed(ActionEvent evt) {
     try {
       this.sourceEditor.getUndoManager().undo();
     } catch (CannotUndoException ex) {
@@ -853,7 +923,7 @@ public final class MainFrame extends javax.swing.JFrame
 
   }
 
-  private void menuRedoActionPerformed(java.awt.event.ActionEvent evt) {
+  private void menuRedoActionPerformed(ActionEvent evt) {
     try {
       this.sourceEditor.getUndoManager().redo();
     } catch (CannotRedoException ex) {
@@ -865,11 +935,11 @@ public final class MainFrame extends javax.swing.JFrame
 
   }
 
-  private void menuExitActionPerformed(java.awt.event.ActionEvent evt) {
+  private void menuExitActionPerformed(ActionEvent evt) {
     windowClosing(null);
   }
 
-  private void menuClearTextActionPerformed(java.awt.event.ActionEvent evt) {
+  private void menuClearTextActionPerformed(ActionEvent evt) {
     if (this.sourceEditor.getEditor().getDocument().getLength() > 10) {
       if (JOptionPane.showConfirmDialog(this, "Do you really want to clean?", "Confirmation",
           JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
@@ -879,19 +949,19 @@ public final class MainFrame extends javax.swing.JFrame
     }
   }
 
-  private void menuFileOpenActionPerformed(java.awt.event.ActionEvent evt) {
+  private void menuFileOpenActionPerformed(ActionEvent evt) {
     loadFile(this.lastOpenedFile, false);
   }
 
-  private void menuFileSaveActionPerformed(java.awt.event.ActionEvent evt) {
+  private void menuFileSaveActionPerformed(ActionEvent evt) {
     saveFile(false);
   }
 
-  private void menuFileSaveAsActionPerformed(java.awt.event.ActionEvent evt) {
+  private void menuFileSaveAsActionPerformed(ActionEvent evt) {
     saveFile(true);
   }
 
-  private void buttonStopExecutingActionPerformed(java.awt.event.ActionEvent evt) {
+  private void buttonStopExecutingActionPerformed(ActionEvent evt) {
     final Thread executingThread = this.currentExecutedScriptThread.get();
 
     SwingUtilities.invokeLater(() -> {
@@ -911,7 +981,7 @@ public final class MainFrame extends javax.swing.JFrame
 
   }
 
-  private void menuAboutActionPerformed(java.awt.event.ActionEvent evt) {
+  private void menuAboutActionPerformed(ActionEvent evt) {
     final JHtmlLabel label = new JHtmlLabel(
         "<html><body><h1>JProl Notepad</h1><b>Version:</b> " + VERSION +
             "<br><b>Project page:</b> <a href=\"https://github.com/raydac/jprol\">https://github.com/raydac/jprol</a><br><b>Author:</b> Igor Maznitsa (<a href=\"https://www.igormaznitsa.com\">https://www.igormaznitsa.com</a>)<br><br>(C)2010-2025 Igor A. Maznitsa. <a href=\"https://www.apache.org/licenses/LICENSE-2.0\">Apache 2.0 License</a><br>Icons provided by free icon set <a href=\"http://www.famfamfam.com/lab/icons/silk/\">http://www.famfamfam.com/lab/icons/silk/</a><br><br>If you like the application you could make some donation:<br><ul><li><a href=\"https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AHWJHJFBAWGL2\">PayPal</a></li><li><a href=\"https://yoomoney.ru/to/41001158080699\">YooMoney</a></li></ul><hr>Editor with third party libraries:<ul><li><a href=\"https://github.com/bobbylight/RSyntaxTextArea\"><b>RSyntaxTextArea</b></a> <a href=\"https://raw.githubusercontent.com/bobbylight/RSyntaxTextArea/master/src/main/dist/RSyntaxTextArea.License.txt\">under modified BSD license</a></li></ul></body></html>");
@@ -929,7 +999,7 @@ public final class MainFrame extends javax.swing.JFrame
         new ImageIcon(this.getIconImage()));
   }
 
-  private void menuViewKnowledgeBaseActionPerformed(java.awt.event.ActionEvent evt) {
+  private void menuViewKnowledgeBaseActionPerformed(ActionEvent evt) {
     if (lastContext == null) {
       return;
     }
@@ -944,21 +1014,21 @@ public final class MainFrame extends javax.swing.JFrame
     dialog.setVisible(true);
   }
 
-  private void menuRunStopActionPerformed(java.awt.event.ActionEvent evt) {
+  private void menuRunStopActionPerformed(ActionEvent evt) {
     buttonStopExecutingActionPerformed(evt);
   }
 
-  private void menuHelpHelpActionPerformed(java.awt.event.ActionEvent evt) {
+  private void menuHelpHelpActionPerformed(ActionEvent evt) {
     new HelpDialog(this).setVisible(true);
   }
 
-  private void menuEditOptionsActionPerformed(java.awt.event.ActionEvent evt) {
+  private void menuEditOptionsActionPerformed(ActionEvent evt) {
     OptionsDialog dialog = new OptionsDialog(this,
         new TreeModel[] {sourceEditor, dialogEditor, messageEditor, traceEditor});
     dialog.setVisible(true);
   }
 
-  private void menuItemLibraryInfoActionPerformed(java.awt.event.ActionEvent evt) {
+  private void menuItemLibraryInfoActionPerformed(ActionEvent evt) {
     final java.util.List<String> list = new ArrayList<>();
     list.add(JProlCoreLibrary.class.getCanonicalName());
     list.addAll(Arrays.asList(PROL_LIBRARIES));
@@ -982,11 +1052,11 @@ public final class MainFrame extends javax.swing.JFrame
     infoDialog.dispose();
   }
 
-  private void menuItemWordWrapSourcesActionPerformed(java.awt.event.ActionEvent evt) {
+  private void menuItemWordWrapSourcesActionPerformed(ActionEvent evt) {
     this.sourceEditor.setEdWordWrap(this.menuItemWordWrapSources.isSelected());
   }
 
-  private void menuFileNewActionPerformed(java.awt.event.ActionEvent evt) {
+  private void menuFileNewActionPerformed(ActionEvent evt) {
     final Thread executingThread = this.currentExecutedScriptThread.get();
     if (executingThread != null && executingThread.isAlive()) {
       JOptionPane.showMessageDialog(this, "Wait until current Prolog application is completed.",
@@ -1031,11 +1101,11 @@ public final class MainFrame extends javax.swing.JFrame
     }
   }
 
-  private void menuTraceScriptActionPerformed(java.awt.event.ActionEvent evt) {
+  private void menuTraceScriptActionPerformed(ActionEvent evt) {
     startExecution(true);
   }
 
-  private void menuFileRecentFilesMenuSelected(javax.swing.event.MenuEvent evt) {
+  private void menuFileRecentFilesMenuSelected(MenuEvent evt) {
     JMenu menu = (JMenu) evt.getSource();
     menu.removeAll();
     for (final String path : this.recentFiles.getCollection()) {
@@ -1062,19 +1132,19 @@ public final class MainFrame extends javax.swing.JFrame
     }
   }
 
-  private void menuEditCommentSelectedActionPerformed(java.awt.event.ActionEvent evt) {
+  private void menuEditCommentSelectedActionPerformed(ActionEvent evt) {
     if (this.sourceEditor.commentSelectedLines()) {
       documentChanged();
     }
   }
 
-  private void menuEditUncommentSelectedActionPerformed(java.awt.event.ActionEvent evt) {
+  private void menuEditUncommentSelectedActionPerformed(ActionEvent evt) {
     if (this.sourceEditor.uncommentSelectedLines()) {
       documentChanged();
     }
   }
 
-  private void menuItemFullScreenActionPerformed(java.awt.event.ActionEvent evt) {
+  private void menuItemFullScreenActionPerformed(ActionEvent evt) {
     final GraphicsDevice gd =
         GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
     if (gd != null && gd.isFullScreenSupported()) {
@@ -1086,7 +1156,7 @@ public final class MainFrame extends javax.swing.JFrame
     }
   }
 
-  private void menuitemFindTextActionPerformed(java.awt.event.ActionEvent evt) {
+  private void menuitemFindTextActionPerformed(ActionEvent evt) {
     this.panelFindText.setVisible(true);
     this.textFind.setText("");
     this.textFind.requestFocus();
@@ -1104,7 +1174,7 @@ public final class MainFrame extends javax.swing.JFrame
     return -1;
   }
 
-  private void textFindKeyReleased(java.awt.event.KeyEvent evt) {
+  private void textFindKeyReleased(KeyEvent evt) {
     if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
       final Pattern patternToFind = UiUtils.makePattern(textFind.getText());
       final String text = this.sourceEditor.getText();
@@ -1178,17 +1248,6 @@ public final class MainFrame extends javax.swing.JFrame
           this.messageEditor.addWarningText(format("Writer for '%s' can't be opened.", id));
         }
       }
-    }
-  }
-
-  private static Throwable findRootCause(final Throwable throwable) {
-    if (throwable == null) {
-      return null;
-    } else if (throwable.getCause() == null) {
-      return throwable;
-    } else {
-      final Throwable thatError = findRootCause(throwable.getCause());
-      return thatError == null ? throwable : thatError;
     }
   }
 
@@ -1461,7 +1520,7 @@ public final class MainFrame extends javax.swing.JFrame
       if (this.currentOpenedFile != null) {
         this.menuFileSave.setEnabled(true);
       }
-      setTitle("*" + getTitle());
+      this.labelOpenedFile.setText("*" + this.labelOpenedFile.getText());
     }
   }
 
@@ -1529,7 +1588,8 @@ public final class MainFrame extends javax.swing.JFrame
 
     this.currentOpenedFile = file;
     this.lastOpenedFile = currentOpenedFile;
-    setTitle(this.currentOpenedFile.getAbsolutePath());
+
+    this.labelOpenedFile.setText(this.currentOpenedFile.getAbsolutePath());
 
     this.sourceEditor.getUndoManager().discardAllEdits();
     this.menuFileSave.setEnabled(true);
@@ -1583,7 +1643,7 @@ public final class MainFrame extends javax.swing.JFrame
       try {
         setTextToDocument(Utils.readAsUtf8(fileToOpen));
         this.currentOpenedFile = fileToOpen;
-        setTitle(this.currentOpenedFile.getCanonicalPath());
+        this.labelOpenedFile.setText(this.currentOpenedFile.getCanonicalPath());
         this.repaint();
 
         this.recentFiles.put(fileToOpen.getAbsolutePath());
