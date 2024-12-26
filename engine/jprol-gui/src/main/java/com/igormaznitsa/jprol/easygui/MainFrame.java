@@ -1314,7 +1314,7 @@ public final class MainFrame extends javax.swing.JFrame
         LOGGER.log(Level.WARNING, "Permission error", ex);
         this.messageEditor.addErrorText(
             "Permission error [" + ex.getMessage() + ']');
-        JOptionPane.showMessageDialog(this, "Out of Memory exception  detected!", "Error",
+        JOptionPane.showMessageDialog(this, "Out of memory error detected!", "Error",
             JOptionPane.ERROR_MESSAGE);
         return;
       } catch (PrologParserException ex) {
@@ -1325,12 +1325,12 @@ public final class MainFrame extends javax.swing.JFrame
 
         if (cause instanceof StackOverflowError) {
           this.messageEditor.addErrorText("Stack Overflow!");
-          JOptionPane.showMessageDialog(this, "Stack overflow exception detected!", "Error",
+          JOptionPane.showMessageDialog(this, "Stack overflow error detected!", "Error",
               JOptionPane.ERROR_MESSAGE);
           return;
         } else if (cause instanceof OutOfMemoryError) {
           this.messageEditor.addErrorText("Out of Memory!");
-          JOptionPane.showMessageDialog(this, "Out of Memory exception  detected!", "Error",
+          JOptionPane.showMessageDialog(this, "Out of memory error detected!", "Error",
               JOptionPane.ERROR_MESSAGE);
           return;
         }
