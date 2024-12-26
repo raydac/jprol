@@ -36,6 +36,7 @@ import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.exceptions.ProlAbstractCatchableException;
+import com.igormaznitsa.jprol.exceptions.ProlChoicePointInterruptedException;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
@@ -745,7 +746,7 @@ public final class JProlContext implements AutoCloseable {
                 "Such element can't be saved at knowledge base [" + nextItem + ']');
           }
         }
-      } catch (ProlHaltExecutionException ex) {
+      } catch (ProlChoicePointInterruptedException | ProlHaltExecutionException ex) {
         throw ex;
       } catch (ProlAbstractCatchableException ex) {
         final SourcePosition errorPosition = ex.getCulprit().getSourcePosition();

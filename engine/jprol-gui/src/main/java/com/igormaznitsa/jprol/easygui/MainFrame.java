@@ -19,6 +19,7 @@ package com.igormaznitsa.jprol.easygui;
 import static java.lang.String.format;
 
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
+import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermVar;
@@ -1307,7 +1308,7 @@ public final class MainFrame extends javax.swing.JFrame
         this.messageEditor.addInfoText(
             "Total time " + ((System.currentTimeMillis() - startTime) / 1000f) + " sec.");
 
-        if (haltException == null) {
+        if (haltException == null && parserException == null) {
           if (!canceled) {
             if (successfully) {
               this.messageEditor.addInfoText("Completed successfully.");
@@ -1317,13 +1318,28 @@ public final class MainFrame extends javax.swing.JFrame
             }
           }
         } else {
-          this.messageEditor.addText("Halted [" + haltException.getMessage() + ']',
-              MessageEditor.TYPE_WARNING, parserException != null ?
-                  ("source://" + parserException.getLine() + ';' + parserException.getPos()) : null,
-              parserException != null ?
-                  ("line " + parserException.getLine() + ":" + parserException.getPos()) : null);
+          final SourcePosition sourcePosition;
+          final String message;
+
+          if (parserException != null) {
+            sourcePosition =
+                SourcePosition.positionOf(parserException.getLine(), parserException.getPos());
+            message = String.format("Halted [%s]", parserException.getMessage());
+          } else if (haltException != null) {
+            sourcePosition = haltException.getSourcePosition();
+            message = String.format("Halted [%s]", haltException.getMessage());
+          } else {
+            message = "Error";
+            sourcePosition = SourcePosition.UNKNOWN;
+          }
+
+          this.messageEditor.addText(message,
+              MessageEditor.TYPE_WARNING, sourcePosition.isUnknown() ? null
+                  : ("source://" + sourcePosition.getLine() + ';' + sourcePosition.getPosition()),
+              sourcePosition.isUnknown() ? null :
+                  ("line " + sourcePosition.getLine() + ":" + sourcePosition.getPosition()));
           this.dialogEditor.addText(
-              format("%nScript execution stopped: %s%n", haltException.getMessage()));
+              format("%nScript execution stopped: %s%n", message));
         }
         this.dialogEditor.setEnabled(false);
         this.currentExecutedScriptThread.compareAndSet(executing, null);
@@ -1606,7 +1622,7 @@ public final class MainFrame extends javax.swing.JFrame
           int line = Integer.parseInt(parsed[0].trim());
           int pos = Integer.parseInt(parsed[1].trim());
 
-          this.sourceEditor.setCaretPosition(line, pos + 1);
+          this.sourceEditor.setCaretPosition(line, pos);
         } catch (Exception ex) {
           ex.printStackTrace();
         }
