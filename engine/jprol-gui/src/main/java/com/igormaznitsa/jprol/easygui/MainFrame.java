@@ -70,6 +70,7 @@ import java.io.StringReader;
 import java.io.Writer;
 import java.lang.ref.WeakReference;
 import java.net.URI;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -133,7 +134,7 @@ public final class MainFrame extends javax.swing.JFrame
       TPrologPredicateLibrary.class.getCanonicalName()
   };
 
-  private static final Logger LOG = Logger.getLogger(MainFrame.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(MainFrame.class.getName());
   private static final FileFilter PROL_FILE_FILTER = new FileFilter() {
 
     @Override
@@ -260,7 +261,7 @@ public final class MainFrame extends javax.swing.JFrame
         this.setAppIcon(ImageIO.read(
             this.getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/appico.png")));
       } catch (Exception ex) {
-        LOG.throwing(this.getClass().getCanonicalName(), "MainFrame", ex);
+        LOGGER.throwing(this.getClass().getCanonicalName(), "MainFrame", ex);
       }
 
       fillLFMenuItem();
@@ -416,7 +417,7 @@ public final class MainFrame extends javax.swing.JFrame
             });
       } catch (ClassNotFoundException | IllegalAccessException | InstantiationException |
                UnsupportedLookAndFeelException ex) {
-        LOG.throwing(thisFrame.getClass().getCanonicalName(), "L&F", ex);
+        LOGGER.throwing(thisFrame.getClass().getCanonicalName(), "L&F", ex);
       }
 
       SwingUtilities.updateComponentTreeUI(this);
@@ -921,7 +922,7 @@ public final class MainFrame extends javax.swing.JFrame
           desktop.browse(new URI(link));
         }
       } catch (Exception ex) {
-        LOG.log(Level.SEVERE, "Can't open URL : " + link, ex);
+        LOGGER.log(Level.SEVERE, "Can't open URL : " + link, ex);
       }
     });
     JOptionPane.showMessageDialog(this, label, "About", JOptionPane.INFORMATION_MESSAGE,
@@ -967,7 +968,8 @@ public final class MainFrame extends javax.swing.JFrame
     try {
       infoDialog = new LibraryInfoDialog(this, list.toArray(new String[0]));
     } catch (Exception ex) {
-      LOG.throwing(this.getClass().getCanonicalName(), "MenuItemLibraryInfoActionPerformed()", ex);
+      LOGGER.throwing(this.getClass().getCanonicalName(), "MenuItemLibraryInfoActionPerformed()",
+          ex);
       this.messageEditor.addErrorText("Can't show library info dialog [" + ex.getMessage() + ']');
       return;
     }
@@ -1049,7 +1051,8 @@ public final class MainFrame extends javax.swing.JFrame
               loadFile(new File(text), true);
             } catch (Exception ex) {
 
-              LOG.throwing(this.getClass().getCanonicalName(), "MenuFileRecentFilesMenuSelected()",
+              LOGGER.throwing(this.getClass().getCanonicalName(),
+                  "MenuFileRecentFilesMenuSelected()",
                   ex);
             }
           }
@@ -1231,7 +1234,7 @@ public final class MainFrame extends javax.swing.JFrame
 
         setLastContext(context);
       } catch (Throwable ex) {
-        LOG.log(Level.WARNING, "ExecutionThread.run()", ex);
+        LOGGER.log(Level.WARNING, "ExecutionThread.run()", ex);
         this.messageEditor.addErrorText(
             "Can't create context for exception [" + ex.getMessage() + ']');
         return;
@@ -1249,14 +1252,14 @@ public final class MainFrame extends javax.swing.JFrame
           context.getContextExecutorService().shutdownNow();
         }
       } catch (ProlPermissionErrorException ex) {
-        LOG.log(Level.WARNING, "Permission error", ex);
+        LOGGER.log(Level.WARNING, "Permission error", ex);
         this.messageEditor.addErrorText(
             "Permission error [" + ex.getMessage() + ']');
         JOptionPane.showMessageDialog(this, "Out of Memory exception  detected!", "Error",
             JOptionPane.ERROR_MESSAGE);
         return;
       } catch (PrologParserException ex) {
-        LOG.log(Level.WARNING, "ExecutionThread.run()", ex);
+        LOGGER.log(Level.WARNING, "ExecutionThread.run()", ex);
         parserException = ex;
 
         final Throwable cause = findRootCause(ex);
@@ -1287,7 +1290,7 @@ public final class MainFrame extends javax.swing.JFrame
       } catch (ThreadDeath death) {
         canceled = true;
       } catch (Throwable ex) {
-        LOG.log(Level.WARNING, "ExecutionThread.run()", ex);
+        LOGGER.log(Level.WARNING, "ExecutionThread.run()", ex);
 
         if (ex instanceof ProlInterruptException ||
             ex.getCause() instanceof ProlInterruptException) {
@@ -1306,7 +1309,8 @@ public final class MainFrame extends javax.swing.JFrame
     } finally {
       try {
         this.messageEditor.addInfoText(
-            "Total time " + ((System.currentTimeMillis() - startTime) / 1000f) + " sec.");
+            "Spent time " +
+                Utils.asTimeString(Duration.ofMillis(System.currentTimeMillis() - startTime)));
 
         if (haltException == null && parserException == null) {
           if (!canceled) {
@@ -1406,7 +1410,7 @@ public final class MainFrame extends javax.swing.JFrame
     try {
       this.dispose();
     } catch (Exception ex) {
-      LOG.log(Level.SEVERE, "Error during close", ex);
+      LOGGER.log(Level.SEVERE, "Error during close", ex);
     }
   }
 
@@ -1516,7 +1520,7 @@ public final class MainFrame extends javax.swing.JFrame
       Utils.writeAsUtf8(file, textFromEditor);
       this.recentFiles.put(file.getAbsolutePath());
     } catch (Throwable thr) {
-      LOG.throwing(this.getClass().getCanonicalName(), "saveFile()", thr);
+      LOGGER.throwing(this.getClass().getCanonicalName(), "saveFile()", thr);
       JOptionPane.showMessageDialog(this, format("Can't save file for error '%s'",
           (thr.getMessage() == null ? thr.getClass().getCanonicalName() :
               thr.getLocalizedMessage())), "Can't save file", JOptionPane.ERROR_MESSAGE);
@@ -1585,7 +1589,7 @@ public final class MainFrame extends javax.swing.JFrame
         this.recentFiles.put(fileToOpen.getAbsolutePath());
 
       } catch (Throwable thr) {
-        LOG.throwing(this.getClass().getCanonicalName(), "loadFile()", thr);
+        LOGGER.throwing(this.getClass().getCanonicalName(), "loadFile()", thr);
         JOptionPane.showMessageDialog(this,
             format("Can't load file %s ! [%s]", fileToOpen.getAbsolutePath(), thr.getMessage()));
         this.recentFiles.remove(fileToOpen.getAbsolutePath());
@@ -1788,7 +1792,7 @@ public final class MainFrame extends javax.swing.JFrame
     public void predicateMSGERROR(final JProlChoicePoint goal, final TermStruct struct) {
       final Term term = struct.getElement(0).findNonVarOrSame();
       final String text = term.forWrite();
-      LOG.log(Level.SEVERE, "msgerror/1 : {0}", text);
+      LOGGER.log(Level.SEVERE, "msgerror/1 : {0}", text);
       messageEditor.addErrorText(text);
     }
 
@@ -1796,7 +1800,7 @@ public final class MainFrame extends javax.swing.JFrame
     public void predicateMSGWARNING(final JProlChoicePoint goal, final TermStruct struct) {
       final Term term = struct.getElement(0).findNonVarOrSame();
       final String text = term.forWrite();
-      LOG.log(Level.WARNING, "msgwarning/1 : {0}", text);
+      LOGGER.log(Level.WARNING, "msgwarning/1 : {0}", text);
       messageEditor.addWarningText(text);
     }
 
@@ -1804,7 +1808,7 @@ public final class MainFrame extends javax.swing.JFrame
     public void predicateMSGINFO(final JProlChoicePoint goal, final TermStruct struct) {
       final Term term = struct.getElement(0).findNonVarOrSame();
       final String text = term.forWrite();
-      LOG.log(Level.INFO, "msginfo/1 : {0}", text);
+      LOGGER.log(Level.INFO, "msginfo/1 : {0}", text);
       messageEditor.addInfoText(text);
     }
   }

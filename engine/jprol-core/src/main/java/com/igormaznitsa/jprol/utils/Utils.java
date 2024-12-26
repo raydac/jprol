@@ -38,6 +38,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -69,11 +70,13 @@ public final class Utils {
   }
 
   public static int getJvmBitness() {
-    String data = System.getProperty("sun.arch.data.model","");
-    if (data.contains("32")) return 32;
+    String data = System.getProperty("sun.arch.data.model", "");
+    if (data.contains("32")) {
+      return 32;
+    }
     return 64;
   }
-  
+
   public static TermList toCharList(final Term term) {
     final String text = term.getText();
     final int len = text.length();
@@ -261,6 +264,17 @@ public final class Utils {
       }
     }
     return sig;
+  }
+
+  public static String asTimeString(final Duration duration) {
+    if (duration == null) {
+      return null;
+    }
+    final int hours = duration.toHoursPart();
+    final int minutes = duration.toMinutesPart();
+    final int seconds = duration.toSecondsPart();
+    final int milliseconds = duration.toMillisPart();
+    return String.format("%02d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds);
   }
 
   public static String validateSignature(final String signature) {
