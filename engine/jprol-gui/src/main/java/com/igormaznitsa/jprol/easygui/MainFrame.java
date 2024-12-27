@@ -1790,7 +1790,9 @@ public final class MainFrame extends javax.swing.JFrame
   public boolean onSolution(final JProlContext context, final Term goal,
                             final Map<String, TermVar> varValues, final int solutionCounter) {
     final String varText = varValues.values().stream()
-        .map(termVar -> termVar.getText() + '=' + termVar.getValue().forWrite())
+        .map(termVar ->
+            termVar.getText() + '=' +
+                (termVar.isFree() ? termVar.getText() : termVar.getValue().forWrite()))
         .collect(Collectors.joining("\n"));
 
     context.findResourceWriter("user", true)

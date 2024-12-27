@@ -11,6 +11,7 @@ import com.igormaznitsa.prologparser.terms.PrologNumeric;
 import com.igormaznitsa.prologparser.terms.PrologStruct;
 import com.igormaznitsa.prologparser.terms.PrologTerm;
 import com.igormaznitsa.prologparser.terms.PrologVar;
+import com.igormaznitsa.prologparser.terms.TermType;
 import com.igormaznitsa.prologparser.tokenizer.Op;
 import java.util.HashMap;
 import java.util.Map;
@@ -190,11 +191,19 @@ public final class Terms {
           if (arity == 0) {
             result = newStruct(convert(context, struct.getFunctor(), vars), sourcePosition);
           } else {
-            final Term[] terms = new Term[arity];
-            for (int i = 0; i < arity; i++) {
-              terms[i] = convert(context, struct.getTermAt(i), vars);
+            final PrologTerm functor = struct.getFunctor();
+            if (arity == 2 && functor.getType() == TermType.ATOM && functor.getText().equals(".")) {
+              // list
+              result = new TermList(convert(context, struct.getTermAt(0), vars),
+                  convert(context, struct.getTermAt(1), vars), sourcePosition);
+            } else {
+              final Term[] terms = new Term[arity];
+              for (int i = 0; i < arity; i++) {
+                terms[i] = convert(context, struct.getTermAt(i), vars);
+              }
+              result =
+                  newStruct(convert(context, struct.getFunctor(), vars), terms, sourcePosition);
             }
-            result = newStruct(convert(context, struct.getFunctor(), vars), terms, sourcePosition);
           }
           result.setPredicateProcessor(context.findProcessor(result));
           return result;
