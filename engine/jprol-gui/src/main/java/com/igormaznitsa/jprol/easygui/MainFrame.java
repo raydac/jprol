@@ -548,12 +548,12 @@ public final class MainFrame extends javax.swing.JFrame
 
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-    splitPaneMain.setDividerLocation(350);
+    splitPaneMain.setDividerLocation(0.7d);
     splitPaneMain.setOrientation(JSplitPane.VERTICAL_SPLIT);
-    splitPaneMain.setResizeWeight(0.8);
+    splitPaneMain.setResizeWeight(0.7);
     splitPaneMain.setOneTouchExpandable(true);
 
-    splitPaneTop.setDividerLocation(500);
+    splitPaneTop.setDividerLocation(0.5d);
     splitPaneTop.setResizeWeight(0.9);
     splitPaneTop.setOneTouchExpandable(true);
 
@@ -635,7 +635,7 @@ public final class MainFrame extends javax.swing.JFrame
 
     splitPaneMain.setTopComponent(splitPaneTop);
 
-    splitPanelDown.setDividerLocation(500);
+    splitPanelDown.setDividerLocation(0.5d);
     splitPanelDown.setResizeWeight(0.8);
     splitPanelDown.setOneTouchExpandable(true);
 
@@ -1728,9 +1728,6 @@ public final class MainFrame extends javax.swing.JFrame
       setLocation(prefs.getInt("mainx", 0), prefs.getInt("mainy", 0));
     }
 
-    this.splitPaneMain.setDividerLocation(prefs.getInt("splitpanemainpos", 400));
-    this.splitPaneTop.setDividerLocation(prefs.getInt("splitpanetoppos", 300));
-
     final String lastFile = prefs.get("lastfile", "");
     if (!lastFile.isEmpty()) {
       this.lastOpenedFile = new File(lastFile);
@@ -1763,9 +1760,6 @@ public final class MainFrame extends javax.swing.JFrame
 
     prefs.putInt("mainx", getX());
     prefs.putInt("mainy", getY());
-
-    prefs.putInt("splitpanemainpos", splitPaneMain.getDividerLocation());
-    prefs.putInt("splitpanetoppos", splitPaneTop.getDividerLocation());
 
     prefs.put("lastfile", this.lastOpenedFile == null ? "" : this.lastOpenedFile.getAbsolutePath());
 
