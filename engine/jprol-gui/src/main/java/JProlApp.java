@@ -40,9 +40,6 @@ public class JProlApp {
    */
   public static void main(final String... args) {
 
-    ((AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance())
-        .putMapping("text/jprol", JProlTokenMaker.class.getName());
-
     File fileToLoad = null;
     if (args != null && args.length > 0) {
       try {
@@ -60,6 +57,9 @@ public class JProlApp {
     final File initFile = fileToLoad;
 
     SwingUtilities.invokeLater(() -> {
+      ((AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance())
+          .putMapping(JProlTokenMaker.MIME, JProlTokenMaker.class.getCanonicalName());
+
       final GraphicsConfiguration config =
           GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice()
               .getDefaultConfiguration();

@@ -1,7 +1,9 @@
 package com.igormaznitsa.jprol.easygui;
 
+import com.igormaznitsa.jprol.easygui.tokenizer.JProlTokenMaker;
 import java.awt.Color;
 import java.awt.Font;
+import java.io.IOException;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.JTextArea;
@@ -12,7 +14,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
 import javax.swing.undo.UndoManager;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rsyntaxtextarea.Token;
+import org.fife.ui.rsyntaxtextarea.Theme;
 import org.fife.ui.rtextarea.RUndoManager;
 
 /**
@@ -37,11 +39,10 @@ public class PrologSourceEditor extends AbstractProlEditor {
     replacePropertyLink(PROPERTY_ED_FONT, new PropertyLink(this, "Font", "EdAndBaseFont"));
 
     final ScalableRsyntaxTextArea theEditor = (ScalableRsyntaxTextArea) this.editor;
+    theEditor.setSyntaxEditingStyle(JProlTokenMaker.MIME);
     theEditor.setTabsEmulated(true);
-    theEditor.setSyntaxEditingStyle("text/jprol");
-    theEditor.getSyntaxScheme().getStyle(Token.VARIABLE).foreground = Color.RED.darker();
-    theEditor.getSyntaxScheme().getStyle(Token.VARIABLE).font =
-        theEditor.getFont().deriveFont(Font.PLAIN);
+
+    this.applyScheme(theEditor, true);
 
     theEditor.getInputMap().put(KeyStroke.getKeyStroke("control Z"), "none");
     theEditor.getInputMap().put(KeyStroke.getKeyStroke("control Y"), "none");
@@ -52,10 +53,6 @@ public class PrologSourceEditor extends AbstractProlEditor {
 
     removePropertyLink("EdWordWrap");
 
-    theEditor.setForeground(Color.BLACK);
-    theEditor.setBackground(Color.WHITE);
-    theEditor.setCaretColor(Color.BLACK);
-
     theEditor.setFont(DEFAULT_FONT);
     theEditor.setBaseFont(DEFAULT_FONT);
 
@@ -64,6 +61,21 @@ public class PrologSourceEditor extends AbstractProlEditor {
     setEnabled(true);
 
     this.undoManager = new RUndoManager(theEditor);
+  }
+
+  private void applyScheme(final RSyntaxTextArea editor, final boolean light) {
+    final String resource;
+    if (light) {
+      resource = "/themes/jprol_light.xml";
+    } else {
+      resource = "/org/fife/ui/rsyntaxtextarea/themes/dark.xml";
+    }
+    try {
+      Theme theme = Theme.load(getClass().getResourceAsStream(resource));
+      theme.apply(editor);
+    } catch (IOException ioe) {
+      // do nothing
+    }
   }
 
   public Font getEdAndBaseFont() {

@@ -8,9 +8,12 @@ import org.fife.ui.rsyntaxtextarea.TokenMap;
 
 public class JProlTokenMaker extends AbstractTokenMaker {
 
+  public static final String MIME = "text/jprol";
+
   protected final String operators = ",.;!|^/";
   protected final String separators = "()[]";
-  protected final String separators2 = "+-^"; // Characters you don't want syntax highlighted but separate identifiers.
+  protected final String separators2 = "+-^";
+  // Characters you don't want syntax highlighted but separate identifiers.
 
   private int currentTokenStart;
   private int currentTokenType;
@@ -176,7 +179,8 @@ public class JProlTokenMaker extends AbstractTokenMaker {
 
             case '\'':
               if (backslash) { // Escaped double quote => call '"' an identifier..
-                addToken(text, currentTokenStart, i, Token.IDENTIFIER, newStartOffset + currentTokenStart);
+                addToken(text, currentTokenStart, i, Token.IDENTIFIER,
+                    newStartOffset + currentTokenStart);
                 backslash = false;
               } else {
                 currentTokenType = Token.LITERAL_STRING_DOUBLE_QUOTE;
@@ -184,14 +188,16 @@ public class JProlTokenMaker extends AbstractTokenMaker {
               break;
 
             case '\\':
-              addToken(text, currentTokenStart, i, Token.IDENTIFIER, newStartOffset + currentTokenStart);
+              addToken(text, currentTokenStart, i, Token.IDENTIFIER,
+                  newStartOffset + currentTokenStart);
               currentTokenType = Token.NULL;
               backslash = !backslash;
               break;
 
             case '_':
               if (backslash) { // Escaped dollar sign => call '$' an identifier..
-                addToken(text, currentTokenStart, i, Token.IDENTIFIER, newStartOffset + currentTokenStart);
+                addToken(text, currentTokenStart, i, Token.IDENTIFIER,
+                    newStartOffset + currentTokenStart);
                 backslash = false;
               } else {
                 currentTokenType = Token.VARIABLE;
@@ -217,19 +223,22 @@ public class JProlTokenMaker extends AbstractTokenMaker {
               }
               int indexOf = operators.indexOf(c);
               if (indexOf > -1) {
-                addToken(text, currentTokenStart, i, Token.OPERATOR, newStartOffset + currentTokenStart);
+                addToken(text, currentTokenStart, i, Token.OPERATOR,
+                    newStartOffset + currentTokenStart);
                 currentTokenType = Token.NULL;
                 break;
               }
               indexOf = separators.indexOf(c);
               if (indexOf > -1) {
-                addToken(text, currentTokenStart, i, Token.SEPARATOR, newStartOffset + currentTokenStart);
+                addToken(text, currentTokenStart, i, Token.SEPARATOR,
+                    newStartOffset + currentTokenStart);
                 currentTokenType = Token.NULL;
                 break;
               }
               indexOf = separators2.indexOf(c);
               if (indexOf > -1) {
-                addToken(text, currentTokenStart, i, Token.IDENTIFIER, newStartOffset + currentTokenStart);
+                addToken(text, currentTokenStart, i, Token.IDENTIFIER,
+                    newStartOffset + currentTokenStart);
                 currentTokenType = Token.NULL;
               } else {
                 currentTokenType = Token.IDENTIFIER;
@@ -249,35 +258,40 @@ public class JProlTokenMaker extends AbstractTokenMaker {
               break;    // Still whitespace.
 
             case '\\':
-              addToken(text, currentTokenStart, i - 1, Token.WHITESPACE, newStartOffset + currentTokenStart);
+              addToken(text, currentTokenStart, i - 1, Token.WHITESPACE,
+                  newStartOffset + currentTokenStart);
               addToken(text, i, i, Token.IDENTIFIER, newStartOffset + i);
               currentTokenType = Token.NULL;
               backslash = true; // Previous char whitespace => this must be first backslash.
               break;
 
             case '\'': // Don't need to worry about backslashes as previous char is space.
-              addToken(text, currentTokenStart, i - 1, Token.WHITESPACE, newStartOffset + currentTokenStart);
+              addToken(text, currentTokenStart, i - 1, Token.WHITESPACE,
+                  newStartOffset + currentTokenStart);
               currentTokenStart = i;
               currentTokenType = Token.LITERAL_STRING_DOUBLE_QUOTE;
               backslash = false;
               break;
 
             case '_': // Don't need to worry about backslashes as previous char is space.
-              addToken(text, currentTokenStart, i - 1, Token.WHITESPACE, newStartOffset + currentTokenStart);
+              addToken(text, currentTokenStart, i - 1, Token.WHITESPACE,
+                  newStartOffset + currentTokenStart);
               currentTokenStart = i;
               currentTokenType = Token.VARIABLE;
               backslash = false;
               break;
 
             case '%':
-              addToken(text, currentTokenStart, i - 1, Token.WHITESPACE, newStartOffset + currentTokenStart);
+              addToken(text, currentTokenStart, i - 1, Token.WHITESPACE,
+                  newStartOffset + currentTokenStart);
               currentTokenStart = i;
               currentTokenType = Token.COMMENT_EOL;
               break;
 
             default:    // Add the whitespace token and start anew.
 
-              addToken(text, currentTokenStart, i - 1, Token.WHITESPACE, newStartOffset + currentTokenStart);
+              addToken(text, currentTokenStart, i - 1, Token.WHITESPACE,
+                  newStartOffset + currentTokenStart);
               currentTokenStart = i;
 
               if (RSyntaxUtilities.isLetter(c) && Character.isUpperCase(c)) {
@@ -324,26 +338,30 @@ public class JProlTokenMaker extends AbstractTokenMaker {
 
             case ' ':
             case '\t':
-              addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER, newStartOffset + currentTokenStart);
+              addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER,
+                  newStartOffset + currentTokenStart);
               currentTokenStart = i;
               currentTokenType = Token.WHITESPACE;
               break;
 
             case '/': // Special-case to colorize commands like "echo" in "/bin/echo"
-              addToken(text, currentTokenStart, i, Token.IDENTIFIER, newStartOffset + currentTokenStart);
+              addToken(text, currentTokenStart, i, Token.IDENTIFIER,
+                  newStartOffset + currentTokenStart);
               currentTokenStart = i + 1;
               currentTokenType = Token.NULL;
               break;
 
             case '\'': // Don't need to worry about backslashes as previous char is non-backslash.
-              addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER, newStartOffset + currentTokenStart);
+              addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER,
+                  newStartOffset + currentTokenStart);
               currentTokenStart = i;
               currentTokenType = Token.LITERAL_STRING_DOUBLE_QUOTE;
               backslash = false;
               break;
 
             case '\\':
-              addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER, newStartOffset + currentTokenStart);
+              addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER,
+                  newStartOffset + currentTokenStart);
               addToken(text, i, i, Token.IDENTIFIER, newStartOffset + i);
               currentTokenType = Token.NULL;
               backslash = true;
@@ -355,21 +373,24 @@ public class JProlTokenMaker extends AbstractTokenMaker {
               }
               int indexOf = operators.indexOf(c);
               if (indexOf > -1) {
-                addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER, newStartOffset + currentTokenStart);
+                addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER,
+                    newStartOffset + currentTokenStart);
                 addToken(text, i, i, Token.OPERATOR, newStartOffset + i);
                 currentTokenType = Token.NULL;
                 break;
               }
               indexOf = separators.indexOf(c);
               if (indexOf > -1) {
-                addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER, newStartOffset + currentTokenStart);
+                addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER,
+                    newStartOffset + currentTokenStart);
                 addToken(text, i, i, Token.SEPARATOR, newStartOffset + i);
                 currentTokenType = Token.NULL;
                 break;
               }
               indexOf = separators2.indexOf(c);
               if (indexOf > -1) {
-                addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER, newStartOffset + currentTokenStart);
+                addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER,
+                    newStartOffset + currentTokenStart);
                 addToken(text, i, i, Token.IDENTIFIER, newStartOffset + i);
                 currentTokenType = Token.NULL;
                 break;
@@ -386,27 +407,31 @@ public class JProlTokenMaker extends AbstractTokenMaker {
 
             case ' ':
             case '\t':
-              addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT, newStartOffset + currentTokenStart);
+              addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT,
+                  newStartOffset + currentTokenStart);
               currentTokenStart = i;
               currentTokenType = Token.WHITESPACE;
               break;
 
             case '\'': // Don't need to worry about backslashes as previous char is non-backslash.
-              addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT, newStartOffset + currentTokenStart);
+              addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT,
+                  newStartOffset + currentTokenStart);
               currentTokenStart = i;
               currentTokenType = Token.LITERAL_STRING_DOUBLE_QUOTE;
               backslash = false;
               break;
 
             case '_': // Don't need to worry about backslashes as previous char is non-backslash.
-              addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT, newStartOffset + currentTokenStart);
+              addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT,
+                  newStartOffset + currentTokenStart);
               currentTokenStart = i;
               currentTokenType = Token.VARIABLE;
               backslash = false;
               break;
 
             case '\\':
-              addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT, newStartOffset + currentTokenStart);
+              addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT,
+                  newStartOffset + currentTokenStart);
               addToken(text, i, i, Token.IDENTIFIER, newStartOffset + i);
               currentTokenType = Token.NULL;
               backslash = true;
@@ -419,28 +444,32 @@ public class JProlTokenMaker extends AbstractTokenMaker {
               }
               int indexOf = operators.indexOf(c);
               if (indexOf > -1) {
-                addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT, newStartOffset + currentTokenStart);
+                addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT,
+                    newStartOffset + currentTokenStart);
                 addToken(text, i, i, Token.OPERATOR, newStartOffset + i);
                 currentTokenType = Token.NULL;
                 break;
               }
               indexOf = separators.indexOf(c);
               if (indexOf > -1) {
-                addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT, newStartOffset + currentTokenStart);
+                addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT,
+                    newStartOffset + currentTokenStart);
                 addToken(text, i, i, Token.SEPARATOR, newStartOffset + i);
                 currentTokenType = Token.NULL;
                 break;
               }
               indexOf = separators2.indexOf(c);
               if (indexOf > -1) {
-                addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT, newStartOffset + currentTokenStart);
+                addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT,
+                    newStartOffset + currentTokenStart);
                 addToken(text, i, i, Token.IDENTIFIER, newStartOffset + i);
                 currentTokenType = Token.NULL;
                 break;
               }
 
               // Otherwise, remember this was a number and start over.
-              addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT, newStartOffset + currentTokenStart);
+              addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT,
+                  newStartOffset + currentTokenStart);
               i--;
               currentTokenType = Token.NULL;
 
@@ -452,9 +481,11 @@ public class JProlTokenMaker extends AbstractTokenMaker {
 
           // If we didn't find the '{' character, find the end of the variable...
           while (i < end) {
-            c = array[i];    // Not needed the first iteration, but can't think of a better way to do it...
+            c =
+                array[i];    // Not needed the first iteration, but can't think of a better way to do it...
             if (!RSyntaxUtilities.isLetterOrDigit(c) && c != '_') {
-              addToken(text, currentTokenStart, i - 1, Token.VARIABLE, newStartOffset + currentTokenStart);
+              addToken(text, currentTokenStart, i - 1, Token.VARIABLE,
+                  newStartOffset + currentTokenStart);
               i--;
               currentTokenType = Token.NULL;
               break;
@@ -464,7 +495,8 @@ public class JProlTokenMaker extends AbstractTokenMaker {
 
           // This only happens if we never found the end of the variable in the loop above.
           if (i == end) {
-            addToken(text, currentTokenStart, i - 1, Token.VARIABLE, newStartOffset + currentTokenStart);
+            addToken(text, currentTokenStart, i - 1, Token.VARIABLE,
+                newStartOffset + currentTokenStart);
             currentTokenType = Token.NULL;
           }
 
@@ -472,7 +504,8 @@ public class JProlTokenMaker extends AbstractTokenMaker {
 
         case Token.COMMENT_EOL:
           i = end - 1;
-          addToken(text, currentTokenStart, i, currentTokenType, newStartOffset + currentTokenStart);
+          addToken(text, currentTokenStart, i, currentTokenType,
+              newStartOffset + currentTokenStart);
           // We need to set token type to null so at the bottom we don't add one more token.
           currentTokenType = Token.NULL;
 
@@ -481,10 +514,12 @@ public class JProlTokenMaker extends AbstractTokenMaker {
         case Token.LITERAL_CHAR:
 
           if (c == '\\') {
-            backslash = !backslash; // Okay because if we got in here, backslash was initially false.
+            backslash =
+                !backslash; // Okay because if we got in here, backslash was initially false.
           } else {
             if (c == '\'' && !backslash) {
-              addToken(text, currentTokenStart, i, Token.LITERAL_CHAR, newStartOffset + currentTokenStart);
+              addToken(text, currentTokenStart, i, Token.LITERAL_CHAR,
+                  newStartOffset + currentTokenStart);
               currentTokenStart = i + 1;
               currentTokenType = Token.NULL;
               // backslash is definitely false when we leave.
@@ -507,7 +542,8 @@ public class JProlTokenMaker extends AbstractTokenMaker {
 
             case '\'':
               if (!backslash) {
-                addToken(text, currentTokenStart, i, Token.LITERAL_STRING_DOUBLE_QUOTE, newStartOffset + currentTokenStart);
+                addToken(text, currentTokenStart, i, Token.LITERAL_STRING_DOUBLE_QUOTE,
+                    newStartOffset + currentTokenStart);
                 currentTokenType = Token.NULL;
                 // backslash is definitely false when we leave.
                 break;
@@ -532,7 +568,8 @@ public class JProlTokenMaker extends AbstractTokenMaker {
       // Remember what token type to begin the next line with.
       case Token.LITERAL_STRING_DOUBLE_QUOTE:
       case Token.LITERAL_CHAR:
-        addToken(text, currentTokenStart, end - 1, currentTokenType, newStartOffset + currentTokenStart);
+        addToken(text, currentTokenStart, end - 1, currentTokenType,
+            newStartOffset + currentTokenStart);
         break;
 
       // Do nothing if everything was okay.
@@ -542,7 +579,8 @@ public class JProlTokenMaker extends AbstractTokenMaker {
 
       // All other token types don't continue to the next line...
       default:
-        addToken(text, currentTokenStart, end - 1, currentTokenType, newStartOffset + currentTokenStart);
+        addToken(text, currentTokenStart, end - 1, currentTokenType,
+            newStartOffset + currentTokenStart);
         addNullToken();
 
     }
