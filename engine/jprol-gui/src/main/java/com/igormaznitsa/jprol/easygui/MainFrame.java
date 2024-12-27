@@ -74,7 +74,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.Writer;
-import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -142,6 +141,8 @@ public final class MainFrame extends javax.swing.JFrame
   private static final String PROL_EXTENSION = ".prl";
   private static final long serialVersionUID = 72348723421332L;
 
+  public static final AtomicReference<MainFrame> MAIN_FRAME_INSTANCE = new AtomicReference<>();
+
   private static final String[] PROL_LIBRARIES = new String[] {
       JProlCoreLibrary.class.getCanonicalName(),
       JProlThreadLibrary.class.getCanonicalName(),
@@ -174,7 +175,8 @@ public final class MainFrame extends javax.swing.JFrame
     }
   };
   private static final int MAX_RECENT_FILES = 10;
-  public static volatile WeakReference<MainFrame> MAIN_FRAME_INSTANCE;
+  private static final Font FONT_INDICATOR_PANEL =
+      LocalFont.LOCAL_NOTO_SANS_MONO.getFont().deriveFont(12.0f);
   private final LogLibrary logLibrary;
   private final AtomicReference<Thread> currentExecutedScriptThread = new AtomicReference<>();
   private final AtomicBoolean startedInTracing = new AtomicBoolean();
@@ -307,7 +309,7 @@ public final class MainFrame extends javax.swing.JFrame
 
       this.panelFindText.setVisible(false);
     } finally {
-      MAIN_FRAME_INSTANCE = new WeakReference<>(this);
+      MAIN_FRAME_INSTANCE.set(this);
       if (graphicsConfiguration != null) {
         final Rectangle rect = graphicsConfiguration.getBounds();
         if (rect != null) {
@@ -501,9 +503,12 @@ public final class MainFrame extends javax.swing.JFrame
     editorIndicationPanel = new JPanel();
     labelEditorCol = new JLabel();
     labelEditorCol.setAlignmentX(JLabel.LEFT);
+    labelEditorCol.setFont(FONT_INDICATOR_PANEL);
     labelEditorLine = new JLabel();
+    labelEditorLine.setFont(FONT_INDICATOR_PANEL);
     labelEditorLine.setAlignmentX(JLabel.LEFT);
     labelOpenedFile = new JLabel();
+    labelOpenedFile.setFont(FONT_INDICATOR_PANEL);
     labelOpenedFile.setAlignmentX(JLabel.LEFT);
     buttonStopExecuting = new JButton();
     jMenuBar1 = new JMenuBar();
@@ -562,11 +567,15 @@ public final class MainFrame extends javax.swing.JFrame
     final GridBagConstraints editorIndicationGbc =
         new GridBagConstraints(0, 0, 1, 1, 1, 1, GridBagConstraints.WEST,
             GridBagConstraints.HORIZONTAL, new Insets(0, 0, 4, 0), 0, 0);
-    editorIndicationPanel.add(new JLabel("Line"), editorIndicationGbc);
+    final JLabel editorIndicatorLabelLine = new JLabel("Line");
+    editorIndicatorLabelLine.setFont(FONT_INDICATOR_PANEL);
+    editorIndicationPanel.add(editorIndicatorLabelLine, editorIndicationGbc);
     editorIndicationGbc.gridx = 1;
     editorIndicationPanel.add(labelEditorLine, editorIndicationGbc);
     editorIndicationGbc.gridx = 2;
-    editorIndicationPanel.add(new JLabel("Col"), editorIndicationGbc);
+    final JLabel editorIndicatorLabelCol = new JLabel("Col");
+    editorIndicatorLabelCol.setFont(FONT_INDICATOR_PANEL);
+    editorIndicationPanel.add(editorIndicatorLabelCol, editorIndicationGbc);
     editorIndicationGbc.gridx = 3;
     editorIndicationPanel.add(labelEditorCol, editorIndicationGbc);
     editorIndicationGbc.gridx = 4;
