@@ -42,7 +42,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
     theEditor.setSyntaxEditingStyle(JProlTokenMaker.MIME);
     theEditor.setTabsEmulated(true);
 
-    this.applyScheme(theEditor, true);
+    this.applyScheme(theEditor);
 
     theEditor.getInputMap().put(KeyStroke.getKeyStroke("control Z"), "none");
     theEditor.getInputMap().put(KeyStroke.getKeyStroke("control Y"), "none");
@@ -63,12 +63,12 @@ public class PrologSourceEditor extends AbstractProlEditor {
     this.undoManager = new RUndoManager(theEditor);
   }
 
-  private void applyScheme(final RSyntaxTextArea editor, final boolean light) {
+  private void applyScheme(final RSyntaxTextArea editor) {
     final String resource;
-    if (light) {
-      resource = "/themes/jprol_light.xml";
+    if (UiUtils.isDarkTheme()) {
+      resource = "/themes/jprol_dark.xml";
     } else {
-      resource = "/org/fife/ui/rsyntaxtextarea/themes/dark.xml";
+      resource = "/themes/jprol_light.xml";
     }
     try {
       Theme theme = Theme.load(getClass().getResourceAsStream(resource));

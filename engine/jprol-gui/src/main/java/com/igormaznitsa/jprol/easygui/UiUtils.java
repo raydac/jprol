@@ -20,6 +20,7 @@ import com.igormaznitsa.jprol.annotations.JProlOperator;
 import com.igormaznitsa.jprol.annotations.JProlOperators;
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
+import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -37,6 +38,7 @@ import java.util.stream.Stream;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 
 /**
  * Misc auxiliary methods for UI operations.
@@ -49,6 +51,20 @@ public final class UiUtils {
 
   }
 
+  public static boolean isDarkTheme() {
+    final Color panelBack = UIManager.getColor("Panel.background");
+    if (panelBack == null) {
+      return false;
+    } else {
+      return calculateColorBrightness(panelBack) < 150;
+    }
+  }
+
+  public static int calculateColorBrightness(final Color color) {
+    return (int) Math.sqrt(
+        color.getRed() * color.getRed() * .241d + color.getGreen() * color.getGreen() * .691d +
+            color.getBlue() * color.getBlue() * .068d);
+  }
 
   public static void printPredicatesForLibrary(final PrintStream out, final Class<?> libraryClass) {
     if (!AbstractJProlLibrary.class.isAssignableFrom(libraryClass)) {
