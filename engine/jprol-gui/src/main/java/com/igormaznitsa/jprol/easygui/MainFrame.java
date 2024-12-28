@@ -1655,16 +1655,13 @@ public final class MainFrame extends javax.swing.JFrame
   }
 
   private void newFile() {
-    // make new
-
     this.sourceEditor.clearText();
-
     clearTextAtAllWindowsExcludeSource();
 
     this.currentOpenedFile = null;
     this.documentHasBeenChangedFlag = false;
 
-    setTitle("JProl Notepad " + VERSION);
+    this.setFileNameTitle("", false);
 
     repaint();
   }
