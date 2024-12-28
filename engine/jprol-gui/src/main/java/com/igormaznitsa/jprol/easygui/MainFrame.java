@@ -193,7 +193,7 @@ public final class MainFrame extends javax.swing.JFrame
   private File currentOpenedFile;
   private File lastOpenedFile;
   private boolean documentHasBeenChangedFlag;
-  private volatile JProlContext lastContext;
+  private final AtomicReference<JProlContext> currentContext = new AtomicReference<>();
   // Variables declaration - do not modify
   private JButton buttonCloseFind;
   private JButton buttonStopExecuting;
@@ -971,12 +971,17 @@ public final class MainFrame extends javax.swing.JFrame
   }
 
   private void buttonStopExecutingActionPerformed(ActionEvent evt) {
-    final Thread executingThread = this.currentExecutedScriptThread.get();
+    final Thread executingThread = this.currentExecutedScriptThread.getAndSet(null);
+
+    if (executingThread != null) {
+      executingThread.interrupt();
+    }
 
     SwingUtilities.invokeLater(() -> {
       if (executingThread != null) {
+        this.releaseContext();
+
         try {
-          executingThread.interrupt();
           dialogEditor.cancelRead();
           executingThread.join();
         } catch (Throwable tr) {
@@ -1009,12 +1014,13 @@ public final class MainFrame extends javax.swing.JFrame
   }
 
   private void menuViewKnowledgeBaseActionPerformed(ActionEvent evt) {
-    if (lastContext == null) {
+    final JProlContext context = currentContext.get();
+    if (context == null) {
       return;
     }
 
     final KnowledgeBaseSnapshotViewDialog dialog =
-        new KnowledgeBaseSnapshotViewDialog(this, lastContext);
+        new KnowledgeBaseSnapshotViewDialog(this, context);
 
     dialog.setSize(600, 400);
 
@@ -1198,9 +1204,20 @@ public final class MainFrame extends javax.swing.JFrame
     }
   }
 
-  private void setLastContext(JProlContext context) {
-    this.lastContext = context;
-    this.menuViewKnowledgeBase.setEnabled(lastContext != null);
+  private void releaseContext() {
+    final JProlContext context = this.currentContext.getAndSet(null);
+    if (context != null && !context.isDisposed()) {
+      context.dispose();
+    }
+  }
+
+  private boolean setCurrentContext(final JProlContext context) {
+    if (this.currentContext.compareAndSet(null, context)) {
+      this.menuViewKnowledgeBase.setEnabled(context != null);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @Override
@@ -1291,27 +1308,32 @@ public final class MainFrame extends javax.swing.JFrame
 
       try {
         context = new JProlContext("prol-script", currentFolder).addIoResourceProvider(this);
-        context.addContextListener(this);
-        if (this.startedInTracing.get()) {
-          context.setSystemFlag(JProlSystemFlag.DEBUG, Terms.TRUE);
-        } else {
-          context.setSystemFlag(JProlSystemFlag.DEBUG, Terms.FALSE);
-        }
+        if (setCurrentContext(context)) {
+          context.addContextListener(this);
+          if (this.startedInTracing.get()) {
+            context.setSystemFlag(JProlSystemFlag.DEBUG, Terms.TRUE);
+          } else {
+            context.setSystemFlag(JProlSystemFlag.DEBUG, Terms.FALSE);
+          }
 
-        for (final String str : PROL_LIBRARIES) {
-          final AbstractJProlLibrary lib =
-              (AbstractJProlLibrary) Class.forName(str).getDeclaredConstructor().newInstance();
+          for (final String str : PROL_LIBRARIES) {
+            final AbstractJProlLibrary lib =
+                (AbstractJProlLibrary) Class.forName(str).getDeclaredConstructor().newInstance();
 
-          context.addLibrary(lib);
+            context.addLibrary(lib);
+            this.messageEditor.addInfoText(
+                format("Library '%s' has been added...", lib.getLibraryUid()));
+          }
+
+          context.addLibrary(logLibrary);
           this.messageEditor.addInfoText(
-              format("Library '%s' has been added...", lib.getLibraryUid()));
+              format("Library '%s' has been added...", logLibrary.getLibraryUid()));
+        } else {
+          context.dispose();
+          JOptionPane.showMessageDialog(this, "Can't create new context, may be started already",
+              "Error", JOptionPane.ERROR_MESSAGE);
+          return;
         }
-
-        context.addLibrary(logLibrary);
-        this.messageEditor.addInfoText(
-            format("Library '%s' has been added...", logLibrary.getLibraryUid()));
-
-        setLastContext(context);
       } catch (Throwable ex) {
         LOGGER.log(Level.WARNING, "ExecutionThread.run()", ex);
         this.messageEditor.addErrorText(
@@ -1320,7 +1342,6 @@ public final class MainFrame extends javax.swing.JFrame
       }
 
       this.messageEditor.addInfoText("Consult with the script... ");
-
       startTime = System.currentTimeMillis();
 
       try {
@@ -1428,9 +1449,7 @@ public final class MainFrame extends javax.swing.JFrame
         this.currentExecutedScriptThread.compareAndSet(executing, null);
       } finally {
         try {
-          if (context != null) {
-            context.dispose();
-          }
+          this.releaseContext();
         } finally {
           hideTaskControlPanel();
         }

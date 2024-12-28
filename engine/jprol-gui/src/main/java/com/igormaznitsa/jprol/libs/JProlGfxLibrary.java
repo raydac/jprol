@@ -53,10 +53,14 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.SourceDataLine;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -822,9 +826,71 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     }
   }
 
-  @Override
-  public void release() {
-    this.imageSpriteMap.clear();
+  private final AtomicReference<SourceDataLine> soundDataLine = new AtomicReference<>();
+  private final Lock soundAccessLocker = new ReentrantLock();
+
+  @JProlPredicate(determined = true, signature = "playsound/2", args = {
+      "+number,+number"}, reference = "Arguments (frequency_hz,length_ms). Generate sound tone with frequency in hertz and length in milliseconds.")
+  public void predicatePLAYSOUND(final JProlChoicePoint goal, final TermStruct predicate) {
+    final Term freqHz = predicate.getElement(0).findNonVarOrSame();
+    final Term lengthMs = predicate.getElement(1).findNonVarOrSame();
+
+    if (goal.isArgsValidate()) {
+      ProlAssertions.assertNumber(freqHz);
+      ProlAssertions.assertNumber(lengthMs);
+    }
+
+    final int frequency = 44100;
+
+    this.soundAccessLocker.lock();
+    try {
+      SourceDataLine sourceDataLine = this.soundDataLine.get();
+      if (sourceDataLine == null) {
+        try {
+          final AudioFormat audioFormat;
+          audioFormat = new AudioFormat((float) frequency, 16, 1, true, false);
+
+          sourceDataLine = AudioSystem.getSourceDataLine(audioFormat);
+          sourceDataLine.open();
+          sourceDataLine.start();
+
+          this.soundDataLine.set(sourceDataLine);
+        } catch (Exception ex) {
+          LOGGER.log(Level.SEVERE, "Can't open sound channel in PLAYSOUND/2", ex);
+          try {
+            Thread.sleep(Math.max(1, lengthMs.toNumber().intValue()));
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+          }
+          return;
+        }
+      }
+
+      if (sourceDataLine != null) {
+        try {
+          final byte[] buf = new byte[2];
+          final int durationMs = Math.max(lengthMs.toNumber().intValue(), 0);
+          final int numberOfTimesFullSinFuncPerSec = Math.max(1, freqHz.toNumber().intValue());
+
+          final int iterations = Math.round(durationMs * 44100.0f / 1000.0f);
+
+          for (int i = 0; i < iterations && !goal.getContext().isDisposed(); i++) {
+            float numberOfSamplesToRepresentFullSin =
+                (float) frequency / numberOfTimesFullSinFuncPerSec;
+            double angle = i / (numberOfSamplesToRepresentFullSin / 2.0) * Math.PI;
+            short a = (short) (Math.sin(angle) *
+                32767);
+            buf[0] = (byte) (a & 0xFF);
+            buf[1] = (byte) (a >> 8);
+            sourceDataLine.write(buf, 0, 2);
+          }
+        } catch (Exception ex) {
+          LOGGER.log(Level.SEVERE, "Error duringPLAYSOUND/2", ex);
+        }
+      }
+    } finally {
+      this.soundAccessLocker.unlock();
+    }
   }
 
   @JProlPredicate(determined = true, signature = "drawsprite/3", args = {"+atom", "+number",
@@ -954,15 +1020,26 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @Override
   public void onContextDispose(final JProlContext context) {
     super.onContextDispose(context);
-
-    gfxBufferLocker.lock();
     try {
-      if (this.graphicFrame != null) {
-        SwingUtilities.invokeLater(graphicFrame::dispose);
-        this.bufferedImage = null;
+      this.imageSpriteMap.clear();
+      final SourceDataLine sourceDataLine = this.soundDataLine.getAndSet(null);
+      if (sourceDataLine != null) {
+        try {
+          sourceDataLine.stop();
+        } catch (Exception ex) {
+          // do nothing
+        }
       }
     } finally {
-      gfxBufferLocker.unlock();
+      gfxBufferLocker.lock();
+      try {
+        if (this.graphicFrame != null) {
+          SwingUtilities.invokeLater(graphicFrame::dispose);
+          this.bufferedImage = null;
+        }
+      } finally {
+        gfxBufferLocker.unlock();
+      }
     }
   }
 
