@@ -51,15 +51,13 @@ import com.igormaznitsa.prologparser.exceptions.PrologParserException;
 import java.awt.BorderLayout;
 import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.Image;
-import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -94,7 +92,6 @@ import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -337,8 +334,18 @@ public final class MainFrame extends javax.swing.JFrame
   }
 
   private void updateCaretPositionIndication() {
-    this.labelEditorLine.setText(Integer.toString(this.sourceEditor.getLine() + 1));
-    this.labelEditorCol.setText(Integer.toString(this.sourceEditor.getPos() + 1));
+    final String lineStr = Integer.toString(this.sourceEditor.getLine() + 1);
+
+    final String spaces = "    ";
+    final String lineTxt =
+        spaces.substring(0, Math.max(0, spaces.length() - lineStr.length())) + lineStr;
+
+    final String posStr = Integer.toString(this.sourceEditor.getPos() + 1);
+    final String posTxt =
+        spaces.substring(0, Math.max(0, spaces.length() - posStr.length())) + posStr;
+
+    this.labelEditorLine.setText(lineTxt);
+    this.labelEditorCol.setText(posTxt);
   }
 
   private void setAppIcon(final Image icon) {
@@ -509,7 +516,7 @@ public final class MainFrame extends javax.swing.JFrame
     labelEditorLine.setAlignmentX(JLabel.LEFT);
     labelOpenedFile = new JLabel();
     labelOpenedFile.setFont(FONT_INDICATOR_PANEL);
-    labelOpenedFile.setAlignmentX(JLabel.LEFT);
+    labelOpenedFile.setAlignmentX(JLabel.RIGHT);
     buttonStopExecuting = new JButton();
     jMenuBar1 = new JMenuBar();
     menuFile = new JMenu();
@@ -563,28 +570,18 @@ public final class MainFrame extends javax.swing.JFrame
     editorPanel.setBorder(BorderFactory.createTitledBorder("Editor"));
     editorPanel.setLayout(new BorderLayout());
 
-    editorIndicationPanel.setLayout(new GridBagLayout());
-    final GridBagConstraints editorIndicationGbc =
-        new GridBagConstraints(0, 0, 1, 1, 1, 1, GridBagConstraints.WEST,
-            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 4, 0), 0, 0);
+    editorIndicationPanel.setLayout(new BorderLayout());
+    final JPanel leftIndicator = new JPanel(new FlowLayout(FlowLayout.LEFT));
     final JLabel editorIndicatorLabelLine = new JLabel("Line");
     editorIndicatorLabelLine.setFont(FONT_INDICATOR_PANEL);
-    editorIndicationPanel.add(editorIndicatorLabelLine, editorIndicationGbc);
-    editorIndicationGbc.gridx = 1;
-    editorIndicationPanel.add(labelEditorLine, editorIndicationGbc);
-    editorIndicationGbc.gridx = 2;
-    final JLabel editorIndicatorLabelCol = new JLabel("Col");
+    leftIndicator.add(editorIndicatorLabelLine);
+    leftIndicator.add(labelEditorLine);
+    final JLabel editorIndicatorLabelCol = new JLabel("   Col");
     editorIndicatorLabelCol.setFont(FONT_INDICATOR_PANEL);
-    editorIndicationPanel.add(editorIndicatorLabelCol, editorIndicationGbc);
-    editorIndicationGbc.gridx = 3;
-    editorIndicationPanel.add(labelEditorCol, editorIndicationGbc);
-    editorIndicationGbc.gridx = 4;
-    editorIndicationGbc.weightx = 50;
-    editorIndicationPanel.add(Box.createGlue(), editorIndicationGbc);
-    editorIndicationGbc.gridx = 5;
-    editorIndicationGbc.weightx = 1;
-    editorIndicationGbc.anchor = GridBagConstraints.EAST;
-    editorIndicationPanel.add(labelOpenedFile, editorIndicationGbc);
+    leftIndicator.add(editorIndicatorLabelCol);
+    leftIndicator.add(labelEditorCol);
+    editorIndicationPanel.add(leftIndicator, BorderLayout.WEST);
+    editorIndicationPanel.add(labelOpenedFile, BorderLayout.EAST);
 
     sourceEditor.setBorder(null);
     sourceEditor.setToolTipText("The editor allows to enter and edit text of a program");
