@@ -112,46 +112,55 @@ public final class JProlContext implements AutoCloseable {
     @Override
     public OpContainer findOpForName(final PrologParser prologParser, final String s) {
       final TermOperatorContainer container =
-              JProlContext.this.knowledgeBase.findOperatorForName(JProlContext.this, s);
+          JProlContext.this.knowledgeBase.findOperatorForName(JProlContext.this, s);
       return container == null ? null : container.asOpContainer();
     }
 
     @Override
     public int getFlags() {
       return ParserContext.FLAG_ZERO_STRUCT
-              | ParserContext.FLAG_ZERO_QUOTATION_CHARCODE
-              | ParserContext.FLAG_ZERO_QUOTATION_ALLOWS_WHITESPACE_CHAR
-              | ParserContext.FLAG_BLOCK_COMMENTS;
+          | ParserContext.FLAG_ZERO_QUOTATION_CHARCODE
+          | ParserContext.FLAG_ZERO_QUOTATION_ALLOWS_WHITESPACE_CHAR
+          | ParserContext.FLAG_BLOCK_COMMENTS;
     }
   };
 
   private final List<IoResourceProvider> ioProviders = new CopyOnWriteArrayList<>();
+  private final File currentFolder;
   private boolean templateValidate;
   private boolean debug;
   private UndefinedPredicateBehavior undefinedPredicateBehaviour;
 
-  public JProlContext(final String name, final AbstractJProlLibrary... libs) {
+  public JProlContext(final String name, final File currentFolder,
+                      final AbstractJProlLibrary... libs) {
     this(
-            name,
-            new InMemoryKnowledgeBase(name + "_kbase"),
-            ForkJoinPool.commonPool(),
-            emptyMap(),
-            emptyList(),
-            emptyList(),
-            libs
+        name,
+        currentFolder,
+        new InMemoryKnowledgeBase(name + "_kbase"),
+        ForkJoinPool.commonPool(),
+        emptyMap(),
+        emptyList(),
+        emptyList(),
+        libs
     );
   }
 
+  public JProlContext(final String name, final AbstractJProlLibrary... libs) {
+    this(name, new File(System.getProperty("user.home")), libs);
+  }
+
   private JProlContext(
-          final String contextId,
-          final KnowledgeBase base,
-          final ExecutorService executorService,
-          final Map<JProlSystemFlag, Term> systemFlags,
-          final List<JProlContextListener> contextListeners,
-          final List<IoResourceProvider> ioProviders,
-          final AbstractJProlLibrary... additionalLibraries
+      final String contextId,
+      final File currentFolder,
+      final KnowledgeBase base,
+      final ExecutorService executorService,
+      final Map<JProlSystemFlag, Term> systemFlags,
+      final List<JProlContextListener> contextListeners,
+      final List<IoResourceProvider> ioProviders,
+      final AbstractJProlLibrary... additionalLibraries
   ) {
     this.contextId = requireNonNull(contextId, "Context Id is null");
+    this.currentFolder = requireNonNull(currentFolder);
     this.knowledgeBase = requireNonNull(base, "Knowledge base is null");
     this.executorService = requireNonNull(executorService);
     this.contextListeners.addAll(contextListeners);
@@ -170,6 +179,10 @@ public final class JProlContext implements AutoCloseable {
     asList(additionalLibraries).forEach(this::addLibrary);
 
     this.callInConstructorEnd();
+  }
+
+  public File getCurrentFolder() {
+    return this.currentFolder;
   }
 
   private void callInConstructorEnd() {
@@ -204,14 +217,14 @@ public final class JProlContext implements AutoCloseable {
 
   private void onSystemFlagsUpdated() {
     this.templateValidate =
-            Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.VERIFY).getText());
+        Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.VERIFY).getText());
     this.debug = Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.DEBUG).getText());
     this.undefinedPredicateBehaviour = UndefinedPredicateBehavior
-            .find(this.systemFlags.get(JProlSystemFlag.UNKNOWN).getText())
-            .orElseThrow(() -> new ProlDomainErrorException(
-                    Arrays.toString(UndefinedPredicateBehavior.values()),
-                    this.systemFlags.get(JProlSystemFlag.UNKNOWN))
-            );
+        .find(this.systemFlags.get(JProlSystemFlag.UNKNOWN).getText())
+        .orElseThrow(() -> new ProlDomainErrorException(
+            Arrays.toString(UndefinedPredicateBehavior.values()),
+            this.systemFlags.get(JProlSystemFlag.UNKNOWN))
+        );
   }
 
   public JProlContext addContextListener(final JProlContextListener listener) {
@@ -236,12 +249,12 @@ public final class JProlContext implements AutoCloseable {
 
   public Optional<Reader> findResourceReader(final String readerId) {
     return this.ioProviders.stream().map(x -> x.findReader(this, readerId)).filter(Objects::nonNull)
-            .findFirst();
+        .findFirst();
   }
 
   public Optional<Writer> findResourceWriter(final String writerId, final boolean append) {
     return this.ioProviders.stream().map(x -> x.findWriter(this, writerId, append))
-            .filter(Objects::nonNull).findFirst();
+        .filter(Objects::nonNull).findFirst();
   }
 
   public String getName() {
@@ -283,9 +296,9 @@ public final class JProlContext implements AutoCloseable {
     this.assertNotDisposed();
     this.asyncTaskCounter.incrementAndGet();
     return CompletableFuture.runAsync(() -> {
-      try(final JProlContext contextCopy = this.makeCopy()) {
+      try (final JProlContext contextCopy = this.makeCopy()) {
         final JProlChoicePoint asyncGoal =
-                new JProlChoicePoint(requireNonNull(goal), this.makeCopy());
+            new JProlChoicePoint(requireNonNull(goal), this.makeCopy());
         while (asyncGoal.prove() != null && !this.isDisposed()) {
           // do nothing
         }
@@ -301,19 +314,20 @@ public final class JProlContext implements AutoCloseable {
             this.dispose();
           }
         } else {
-          throw new ProlForkExecutionException("Error during async/1", goal, new Throwable[]{e});
+          throw new ProlForkExecutionException("Error during async/1", goal, new Throwable[] {e});
         }
       }
       return x;
     });
   }
 
-  public CompletableFuture<Term> proveOnceAsync(final Term goal, final boolean allowDisposeContext) {
+  public CompletableFuture<Term> proveOnceAsync(final Term goal,
+                                                final boolean allowDisposeContext) {
     this.assertNotDisposed();
     this.asyncTaskCounter.incrementAndGet();
     return CompletableFuture.supplyAsync(() -> {
       final JProlChoicePoint asyncGoal =
-              new JProlChoicePoint(requireNonNull(goal), this.makeCopy());
+          new JProlChoicePoint(requireNonNull(goal), this.makeCopy());
       final Term result = asyncGoal.prove();
       asyncGoal.cutVariants();
       return result;
@@ -325,7 +339,7 @@ public final class JProlContext implements AutoCloseable {
             this.dispose();
           }
         } else {
-          throw new ProlForkExecutionException("Error during async/1", goal, new Throwable[]{e});
+          throw new ProlForkExecutionException("Error during async/1", goal, new Throwable[] {e});
         }
       }
       return x;
@@ -348,9 +362,9 @@ public final class JProlContext implements AutoCloseable {
   public void lockFor(final String lockId) {
     try {
       this.findLockerForId(lockId, true)
-              .orElseThrow(
-                      () -> new IllegalArgumentException("Named locker is not presented: " + lockId))
-              .lockInterruptibly();
+          .orElseThrow(
+              () -> new IllegalArgumentException("Named locker is not presented: " + lockId))
+          .lockInterruptibly();
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
       throw new RuntimeException("Locker wait has been interrupted: " + lockId, ex);
@@ -359,7 +373,7 @@ public final class JProlContext implements AutoCloseable {
 
   public boolean tryLockFor(final String lockId) {
     return this.findLockerForId(lockId, true).orElseThrow(
-            () -> new IllegalArgumentException("Named locker is not presented: " + lockId)).tryLock();
+        () -> new IllegalArgumentException("Named locker is not presented: " + lockId)).tryLock();
   }
 
   public void unlockFor(final String lockId) {
@@ -394,48 +408,48 @@ public final class JProlContext implements AutoCloseable {
     final JProlConsultFile consultFile = library.getClass().getAnnotation(JProlConsultFile.class);
     if (consultFile != null) {
       final String resourceText = Arrays.stream(consultFile.value())
-              .filter(x -> !(x == null || x.trim().isEmpty()))
-              .map(File::new)
-              .map(x -> {
-                try {
-                  return Utils.readAsUtf8(x);
-                } catch (IOException ex) {
-                  throw new Error("Can't read file: " + x);
-                }
-              })
-              .collect(Collectors.joining("\n"));
+          .filter(x -> !(x == null || x.trim().isEmpty()))
+          .map(File::new)
+          .map(x -> {
+            try {
+              return Utils.readAsUtf8(x);
+            } catch (IOException ex) {
+              throw new Error("Can't read file: " + x);
+            }
+          })
+          .collect(Collectors.joining("\n"));
       this.consult(new StringReader(resourceText), null);
     }
 
     final JProlConsultClasspath consultClasspath =
-            library.getClass().getAnnotation(JProlConsultClasspath.class);
+        library.getClass().getAnnotation(JProlConsultClasspath.class);
     if (consultClasspath != null) {
       final String resourceText = Arrays.stream(consultClasspath.value())
-              .filter(x -> !(x == null || x.trim().isEmpty()))
-              .map(x -> {
-                final InputStream inStream = ClassLoader.getSystemClassLoader().getResourceAsStream(x);
-                if (inStream == null) {
-                  throw new Error("Can't find resource: " + x);
+          .filter(x -> !(x == null || x.trim().isEmpty()))
+          .map(x -> {
+            final InputStream inStream = ClassLoader.getSystemClassLoader().getResourceAsStream(x);
+            if (inStream == null) {
+              throw new Error("Can't find resource: " + x);
+            }
+            return inStream;
+          })
+          .map(x -> {
+            final StringBuilder buffer = new StringBuilder();
+            try (final Reader reader = new InputStreamReader(new BufferedInputStream(x),
+                StandardCharsets.UTF_8)) {
+              while (!this.isDisposed()) {
+                final int value = reader.read();
+                if (value < 0) {
+                  break;
                 }
-                return inStream;
-              })
-              .map(x -> {
-                final StringBuilder buffer = new StringBuilder();
-                try (final Reader reader = new InputStreamReader(new BufferedInputStream(x),
-                        StandardCharsets.UTF_8)) {
-                  while (!this.isDisposed()) {
-                    final int value = reader.read();
-                    if (value < 0) {
-                      break;
-                    }
-                    buffer.append((char) value);
-                  }
-                } catch (IOException ex) {
-                  throw new Error("Can't read resource", ex);
-                }
-                return buffer.toString();
-              })
-              .collect(Collectors.joining("\n"));
+                buffer.append((char) value);
+              }
+            } catch (IOException ex) {
+              throw new Error("Can't read resource", ex);
+            }
+            return buffer.toString();
+          })
+          .collect(Collectors.joining("\n"));
       this.consult(new StringReader(resourceText), null);
     }
 
@@ -460,11 +474,11 @@ public final class JProlContext implements AutoCloseable {
 
   public PredicateInvoker findProcessor(final TermStruct predicate) {
     return this.libraries
-            .stream()
-            .map(lib -> lib.findProcessorForPredicate(predicate))
-            .filter(Objects::nonNull)
-            .findFirst()
-            .orElse(NULL_PROCESSOR);
+        .stream()
+        .map(lib -> lib.findProcessorForPredicate(predicate))
+        .filter(Objects::nonNull)
+        .findFirst()
+        .orElse(NULL_PROCESSOR);
   }
 
   public boolean hasZeroArityPredicateForName(final String name) {
@@ -525,9 +539,9 @@ public final class JProlContext implements AutoCloseable {
       this.executorService.shutdownNow();
 
       concat(this.triggersOnAssert.entrySet().stream(), this.triggersOnRetract.entrySet().stream())
-              .flatMap(x -> x.getValue().stream())
-              .distinct()
-              .forEach(x -> x.onContextHalting(this));
+          .flatMap(x -> x.getValue().stream())
+          .distinct()
+          .forEach(x -> x.onContextHalting(this));
 
       this.triggersOnAssert.clear();
       this.triggersOnRetract.clear();
@@ -553,22 +567,22 @@ public final class JProlContext implements AutoCloseable {
       signature = Utils.normalizeSignature(signature);
 
       if (triggerType == JProlTriggerType.TRIGGER_ASSERT ||
-              triggerType == JProlTriggerType.TRIGGER_ASSERT_RETRACT) {
+          triggerType == JProlTriggerType.TRIGGER_ASSERT_RETRACT) {
         this.triggersOnAssert.computeIfAbsent(signature, k -> new CopyOnWriteArrayList<>())
-                .add(trigger);
+            .add(trigger);
       }
 
       if (triggerType == JProlTriggerType.TRIGGER_RETRACT ||
-              triggerType == JProlTriggerType.TRIGGER_ASSERT_RETRACT) {
+          triggerType == JProlTriggerType.TRIGGER_ASSERT_RETRACT) {
         this.triggersOnRetract.computeIfAbsent(signature, k -> new CopyOnWriteArrayList<>())
-                .add(trigger);
+            .add(trigger);
       }
     });
   }
 
   public void unregisterTrigger(final JProlTrigger trigger) {
     Stream.of(this.triggersOnAssert.entrySet().iterator(),
-            this.triggersOnRetract.entrySet().iterator()).forEach(iterator -> {
+        this.triggersOnRetract.entrySet().iterator()).forEach(iterator -> {
       while (iterator.hasNext()) {
         final Entry<String, List<JProlTrigger>> entry = iterator.next();
         final List<JProlTrigger> lst = entry.getValue();
@@ -600,7 +614,7 @@ public final class JProlContext implements AutoCloseable {
       break;
       default: {
         throw new IllegalArgumentException(
-                "Unsupported observed event [" + observedEvent.name() + ']');
+            "Unsupported observed event [" + observedEvent.name() + ']');
       }
     }
 
@@ -644,11 +658,11 @@ public final class JProlContext implements AutoCloseable {
       break;
       case TRIGGER_ASSERT_RETRACT: {
         final List<JProlTrigger> triggersAssert =
-                this.triggersOnAssert.getOrDefault(normalizedSignature, emptyList());
+            this.triggersOnAssert.getOrDefault(normalizedSignature, emptyList());
         final List<JProlTrigger> triggersRetract =
-                this.triggersOnRetract.getOrDefault(normalizedSignature, emptyList());
+            this.triggersOnRetract.getOrDefault(normalizedSignature, emptyList());
         listOfTriggers = triggersRetract.isEmpty() && triggersAssert.isEmpty() ? emptyList() :
-                concat(triggersAssert.stream(), triggersRetract.stream()).collect(toList());
+            concat(triggersAssert.stream(), triggersRetract.stream()).collect(toList());
       }
       break;
       default: {
@@ -784,12 +798,13 @@ public final class JProlContext implements AutoCloseable {
 
   public JProlContext makeCopy() {
     return new JProlContext(
-            this.contextId + "_copy",
-            this.knowledgeBase.makeCopy(),
-            this.executorService,
-            this.systemFlags,
-            this.contextListeners,
-            this.ioProviders
+        this.contextId + "_copy",
+        this.currentFolder,
+        this.knowledgeBase.makeCopy(),
+        this.executorService,
+        this.systemFlags,
+        this.contextListeners,
+        this.ioProviders
     );
   }
 

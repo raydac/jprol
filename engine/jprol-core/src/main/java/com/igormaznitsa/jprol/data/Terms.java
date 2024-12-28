@@ -94,6 +94,11 @@ public final class Terms {
     return new TermList(head, tail, head.getSourcePosition());
   }
 
+  public static TermList newList(final Term head, final Term tail,
+                                 final SourcePosition sourcePosition) {
+    return new TermList(head, tail, sourcePosition);
+  }
+
   public static TermVar newVar(final String name, final SourcePosition sourcePosition) {
     return new TermVar(name, sourcePosition);
   }

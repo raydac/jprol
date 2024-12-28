@@ -1278,8 +1278,19 @@ public final class MainFrame extends javax.swing.JFrame
 
       this.messageEditor.addInfoText("Creating Context...");
 
+      final File currentFolder;
+      if (this.currentOpenedFile == null) {
+        currentFolder = new File(System.getProperty("user.home"));
+        this.messageEditor.addWarningText(
+            "Current file folder for script: " + currentFolder.getAbsolutePath());
+      } else {
+        currentFolder = this.currentOpenedFile.getParentFile();
+        this.messageEditor.addInfoText(
+            "Current file folder for script: " + currentFolder.getAbsolutePath());
+      }
+
       try {
-        context = new JProlContext("prol-script").addIoResourceProvider(this);
+        context = new JProlContext("prol-script", currentFolder).addIoResourceProvider(this);
         context.addContextListener(this);
         if (this.startedInTracing.get()) {
           context.setSystemFlag(JProlSystemFlag.DEBUG, Terms.TRUE);

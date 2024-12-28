@@ -481,13 +481,14 @@ public class TermStruct extends CompoundTerm {
     } else {
       final Term[] elements = this.getElementArray();
       final int arity = elements.length;
-      final Term[] destElements = new Term[arity];
+      final Term[] targetElements = new Term[arity];
 
       for (int li = 0; li < arity; li++) {
         final Term element = elements[li];
-        destElements[li] = element.makeCloneAndVarBound(vars);
+        targetElements[li] = element.makeCloneAndVarBound(vars);
       }
-      result = Terms.newStruct(this.getFunctor(), destElements, this.getPredicateProcessor());
+      result = Terms.newStruct(this.getFunctor(), targetElements, this.getPredicateProcessor(),
+          this.getSourcePosition());
     }
     return result;
   }

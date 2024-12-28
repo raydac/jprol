@@ -49,7 +49,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -66,20 +69,22 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 
-public final class JProlGfxLibrary extends AbstractJProlLibrary implements WindowListener, ActionListener {
+public final class JProlGfxLibrary extends AbstractJProlLibrary
+    implements WindowListener, ActionListener {
 
   private static final Logger LOGGER = Logger.getLogger(JProlGfxLibrary.class.getName());
   private final WeakHashMap<JMenuItem, RegisteredAction> registeredActions = new WeakHashMap<>();
   private final JFrame graphicFrame;
   private final JLabel label;
-  private final ReentrantLock internalLocker = new ReentrantLock();
-  private final JMenu bindedMenu = new JMenu("Actions");
+  private final ReentrantLock gfxBufferLocker = new ReentrantLock();
+  private final JMenu boundActionsMenu = new JMenu("Actions");
   private final JMenuBar menuBar = new JMenuBar();
+  private final Map<String, BufferedImage> imageSpriteMap = new ConcurrentHashMap<>();
   private File lastSavedImage = null;
   private BufferedImage bufferedImage;
   private Graphics bufferGraphics;
-  private Color penColor;
-  private Color brushColor;
+  private final AtomicReference<Color> penColor = new AtomicReference<>();
+  private final AtomicReference<Color> brushColor = new AtomicReference<>();
   private int lastPointX;
   private int lastPointY;
 
@@ -91,8 +96,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     this.graphicFrame.setResizable(false);
     this.graphicFrame.addWindowListener(this);
 
-    this.penColor = Color.green;
-    this.brushColor = Color.black;
+    this.penColor.set(Color.green);
+    this.brushColor.set(Color.black);
 
     label = new JLabel();
 
@@ -105,12 +110,14 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     menuItemSaveImage.setActionCommand("DISK");
     menuItemSaveImage.addActionListener(this);
 
-    final JMenuItem menuItemCopyToClipboard = new JMenuItem("To Clipboard", UiUtils.loadIcon("page_copy"));
+    final JMenuItem menuItemCopyToClipboard =
+        new JMenuItem("To Clipboard", UiUtils.loadIcon("page_copy"));
     menuItemCopyToClipboard.addActionListener(this);
     menuItemCopyToClipboard.setActionCommand("CLIPBOARD");
 
     menuItemSaveImage.setToolTipText("Save graphics in PNG file");
-    menuItemCopyToClipboard.setToolTipText("Save current screenshot from the graphics window into system clipboard");
+    menuItemCopyToClipboard.setToolTipText(
+        "Save current screenshot from the graphics window into system clipboard");
 
     saveMenu.add(menuItemSaveImage);
     saveMenu.add(menuItemCopyToClipboard);
@@ -136,6 +143,41 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     if (mainFrame != null) {
       this.graphicFrame.setLocationRelativeTo(mainFrame);
     }
+  }
+
+  /**
+   * Inside function to convert a string representation of a color (as an
+   * example 'red' or '#FF0000') into its Color object representation
+   *
+   * @param text the text to be decoded, must not be null
+   * @return the Color object or null if it is impossible to decode the text
+   * value
+   */
+  private static Color textToColor(String text) {
+    if (text.isEmpty()) {
+      return null;
+    }
+    try {
+      final Field field = Color.class.getField(text);
+      if (field.getType() == Color.class && Modifier.isStatic(field.getModifiers())) {
+        return (Color) field.get(null);
+      }
+    } catch (NoSuchFieldException ex) {
+      // do nothing
+    } catch (Exception ex) {
+      LOGGER.log(Level.WARNING, "textToColor(" + text + ")", ex);
+      return null;
+    }
+
+    if (text.charAt(0) == '#') {
+      text = text.substring(1);
+      try {
+        return new Color(Integer.parseInt(text, 16) & 0xFF000000);
+      } catch (NumberFormatException ex) {
+        // ignore
+      }
+    }
+    return null;
   }
 
   private static Color getColorForName(final String color) {
@@ -174,42 +216,12 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     return Terms.newAtom(bldr.toString());
   }
 
-  /**
-   * Inside function to convert a string representation of a color (as an
-   * example 'red' or '#FF0000') into its Color object representation
-   *
-   * @param text the text to be decoded, must not be null
-   * @return the Color object or null if it is impossible to decode the text
-   * value
-   */
-  private static Color textToColor(String text) {
-    boolean colorAsInteger;
-    if (text.isEmpty()) {
-      return null;
+  private void doLabelRepaint() {
+    if (SwingUtilities.isEventDispatchThread()) {
+      this.label.repaint();
+    } else {
+      SwingUtilities.invokeLater(this.label::repaint);
     }
-    try {
-      final Field field = Color.class.getField(text);
-      if (field.getType() == Color.class && Modifier.isStatic(field.getModifiers())) {
-        return (Color) field.get(null);
-      } else {
-        colorAsInteger = true;
-      }
-    } catch (NoSuchFieldException ex) {
-      colorAsInteger = true;
-    } catch (Exception ex) {
-      LOGGER.log(Level.WARNING, "textToColor(" + text + ")", ex);
-      return null;
-    }
-
-    if (text.charAt(0) == '#') {
-      text = text.substring(1);
-      try {
-        return new Color(Integer.parseInt(text, 16) & 0xFF000000);
-      } catch (NumberFormatException ex) {
-        // ignore
-      }
-    }
-    return null;
   }
 
   @JProlPredicate(determined = true, signature = "beep/0", reference = "Make a short sound. It depends on the OS.")
@@ -266,7 +278,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
 
     // make snapshot of current buffer
     BufferedImage bufferCopy;
-    internalLocker.lock();
+    gfxBufferLocker.lock();
     try {
       if (bufferedImage == null) {
         return;
@@ -281,7 +293,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
       bufferCopy = new BufferedImage(imgw, imgh, BufferedImage.TYPE_INT_RGB);
       bufferCopy.getGraphics().drawImage(bufferedImage, 0, 0, null);
     } finally {
-      internalLocker.unlock();
+      gfxBufferLocker.unlock();
     }
     final String command = e.getActionCommand();
     if ("DISK".equals(command)) {
@@ -293,115 +305,112 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
         try {
           clipboard.setContents(new ImageToClipboard(bufferCopy), null);
         } catch (IllegalStateException ex) {
-          JOptionPane.showMessageDialog(graphicFrame, "Clippoard is unavailable", "Error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(graphicFrame, "Clippoard is unavailable", "Error",
+              JOptionPane.ERROR_MESSAGE);
         }
       }
     }
   }
 
-  @JProlPredicate(determined = true, signature = "dot/2", args = {"+number,+number"}, reference = "Draw a point in the coordinates (X,Y) with the current pen color.")
+  @JProlPredicate(determined = true, signature = "dot/2", args = {
+      "+number,+number"}, reference = "Draw a point in the coordinates (X,Y) with the current pen color.")
   public void predicateDOT(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term targx = predicate.getElement(0).findNonVarOrSame();
-    final Term targy = predicate.getElement(1).findNonVarOrSame();
+    final Term termArgX = predicate.getElement(0).findNonVarOrSame();
+    final Term termArgY = predicate.getElement(1).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      ProlAssertions.assertNumber(targx);
-      ProlAssertions.assertNumber(targy);
+      ProlAssertions.assertNumber(termArgX);
+      ProlAssertions.assertNumber(termArgY);
     }
 
-    final int argx = targx.toNumber().intValue();
-    final int argy = targy.toNumber().intValue();
+    final int argX = termArgX.toNumber().intValue();
+    final int argY = termArgY.toNumber().intValue();
 
-    final ReentrantLock locker = internalLocker;
-
-    locker.lock();
+    gfxBufferLocker.lock();
     try {
-      lastPointX = argx;
-      lastPointY = argy;
+      lastPointX = argX;
+      lastPointY = argY;
 
       if (bufferedImage != null) {
-        bufferGraphics.setColor(penColor);
-        bufferGraphics.drawLine(argx, argy, argx, argy);
+        bufferGraphics.setColor(penColor.get());
+        bufferGraphics.drawLine(argX, argY, argX, argY);
       }
     } finally {
-      locker.unlock();
+      gfxBufferLocker.unlock();
     }
 
-    label.repaint();
+    this.doLabelRepaint();
   }
 
-  @JProlPredicate(determined = true, signature = "removeaction/1", args = {"+term"}, reference = "Remove an action from the action menu for its name.")
+  @JProlPredicate(determined = true, signature = "removeaction/1", args = {
+      "+term"}, reference = "Remove an action from the action menu for its name.")
   public void predicateREMOVEACTION(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term menuitem = predicate.getElement(0).findNonVarOrSame();
+    final Term menuItem = predicate.getElement(0).findNonVarOrSame();
     if (goal.isArgsValidate()) {
-      ProlAssertions.assertNonVar(menuitem);
+      ProlAssertions.assertNonVar(menuItem);
     }
-    final String menuItemName = menuitem.forWrite();
+    final String menuItemName = menuItem.forWrite();
 
-    JMenuItem removedItem = null;
+    SwingUtilities.invokeLater(() -> {
+      JMenuItem removedItem = null;
 
-    synchronized (menuBar) {
       // remove registered action for the name
-      final Component[] components = bindedMenu.getMenuComponents();
+      final Component[] components = boundActionsMenu.getMenuComponents();
       for (final Component compo : components) {
         final JMenuItem item = (JMenuItem) compo;
         if (item.getText().equals(menuItemName)) {
           removedItem = item;
-          bindedMenu.remove(item);
+          boundActionsMenu.remove(item);
           break;
         }
       }
 
-      if (bindedMenu.getMenuComponents().length == 0) {
-        menuBar.remove(bindedMenu);
+      if (boundActionsMenu.getMenuComponents().length == 0) {
+        menuBar.remove(boundActionsMenu);
       }
 
       if (removedItem != null) {
-        synchronized (registeredActions) {
-          registeredActions.remove(removedItem);
-        }
+        registeredActions.remove(removedItem);
       }
 
-      bindedMenu.revalidate();
+      boundActionsMenu.revalidate();
       menuBar.revalidate();
-    }
 
-    graphicFrame.repaint();
+      graphicFrame.repaint();
+    });
   }
 
   @JProlPredicate(determined = true, signature = "removeallactions/0", reference = "Remove all actions from the action menu")
   public void predicateREMOVEALLACTIONS0(final JProlChoicePoint goal, final TermStruct predicate) {
-    synchronized (menuBar) {
-      bindedMenu.removeAll();
-      menuBar.remove(bindedMenu);
-
-      synchronized (registeredActions) {
-        registeredActions.clear();
-      }
-    }
-
-    graphicFrame.repaint();
+    SwingUtilities.invokeLater(() -> {
+      boundActionsMenu.removeAll();
+      menuBar.remove(boundActionsMenu);
+      registeredActions.clear();
+      graphicFrame.repaint();
+    });
   }
 
-  @JProlPredicate(determined = true, signature = "bindaction/2", args = {"+term,+callable"}, reference = "Bind a goal to an action menu item (menu_item_name, action) which can be selected by user.")
+  @JProlPredicate(determined = true, signature = "bindaction/2", args = {
+      "+term,+callable"}, reference = "Bind a goal to an action menu item (menu_item_name, action) which can be selected by user.")
   public void predicateBINDACTION(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term menuitem = predicate.getElement(0).findNonVarOrSame();
+    final Term menuItem = predicate.getElement(0).findNonVarOrSame();
     final Term action = predicate.getElement(1).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      ProlAssertions.assertNonVar(menuitem);
+      ProlAssertions.assertNonVar(menuItem);
       ProlAssertions.assertCallable(action);
     }
 
-    final String menuItemName = menuitem.forWrite();
+    final String menuItemName = menuItem.forWrite();
 
-    final RegisteredAction registeredAction = new RegisteredAction(menuItemName, action, goal.getContext());
+    final RegisteredAction registeredAction =
+        new RegisteredAction(menuItemName, action, goal.getContext());
 
-    synchronized (menuBar) {
-      menuBar.remove(bindedMenu);
+    SwingUtilities.invokeLater(() -> {
+      menuBar.remove(boundActionsMenu);
 
       // remove already registered action for the name
-      final Component[] components = bindedMenu.getMenuComponents();
+      final Component[] components = boundActionsMenu.getMenuComponents();
       for (final Component compo : components) {
         final JMenuItem item = (JMenuItem) compo;
         if (item.getText().equals(menuItemName)) {
@@ -411,42 +420,31 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
       }
 
       final JMenuItem newItem = new JMenuItem(menuItemName);
+
       newItem.addActionListener((ActionEvent e) -> {
         RegisteredAction foundAction;
-        synchronized (registeredActions) {
-          foundAction = registeredActions.get(e.getSource());
-        }
+        foundAction = registeredActions.get(e.getSource());
         if (foundAction != null) {
           if (!foundAction.execute()) {
             //remove registered menu item
-            synchronized (bindedMenu) {
-              bindedMenu.remove((JMenuItem) e.getSource());
-              bindedMenu.revalidate();
-            }
+            boundActionsMenu.remove((JMenuItem) e.getSource());
+            boundActionsMenu.revalidate();
           }
         } else {
-          synchronized (menuBar) {
-            menuBar.remove((JMenuItem) e.getSource());
-            menuBar.revalidate();
-          }
+          menuBar.remove((JMenuItem) e.getSource());
+          menuBar.revalidate();
         }
       });
-
-      synchronized (registeredActions) {
-        registeredActions.put(newItem, registeredAction);
-      }
-
-      bindedMenu.add(newItem);
-
-      menuBar.add(bindedMenu);
-
+      registeredActions.put(newItem, registeredAction);
+      boundActionsMenu.add(newItem);
+      menuBar.add(boundActionsMenu);
       menuBar.revalidate();
-    }
-
-    graphicFrame.repaint();
+      graphicFrame.repaint();
+    });
   }
 
-  @JProlPredicate(determined = true, signature = "rectangle/4", args = {"+number,+number,+number,+number"}, reference = "Draw a rectangle in the coordinates (X,Y,Width,Height) with the current pen color.")
+  @JProlPredicate(determined = true, signature = "rectangle/4", args = {
+      "+number,+number,+number,+number"}, reference = "Draw a rectangle in the coordinates (X,Y,Width,Height) with the current pen color.")
   public void predicateRECTANGLE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term targx = predicate.getElement(0).findNonVarOrSame();
     final Term targy = predicate.getElement(1).findNonVarOrSame();
@@ -465,24 +463,24 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     final int argw = targw.toNumber().intValue();
     final int argh = targh.toNumber().intValue();
 
-    final ReentrantLock locker = internalLocker;
-
-    locker.lock();
+    gfxBufferLocker.lock();
     try {
       lastPointX = argx;
       lastPointY = argy;
 
       if (bufferedImage != null) {
-        bufferGraphics.setColor(penColor);
+        bufferGraphics.setColor(penColor.get());
         bufferGraphics.drawRect(argx, argy, argw, argh);
       }
     } finally {
-      locker.unlock();
+      gfxBufferLocker.unlock();
     }
-    label.repaint();
+
+    this.doLabelRepaint();
   }
 
-  @JProlPredicate(determined = true, signature = "fillrectangle/4", args = {"+number,+number,+number,+number"}, reference = "Fill a rectangle in the coordinates (X,Y,Width,Height) with the current brush color.")
+  @JProlPredicate(determined = true, signature = "fillrectangle/4", args = {
+      "+number,+number,+number,+number"}, reference = "Fill a rectangle in the coordinates (X,Y,Width,Height) with the current brush color.")
   public void predicateFILLRECTANGLE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term targx = predicate.getElement(0).findNonVarOrSame();
     final Term targy = predicate.getElement(1).findNonVarOrSame();
@@ -501,24 +499,23 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     final int argw = targw.toNumber().intValue();
     final int argh = targh.toNumber().intValue();
 
-    final ReentrantLock locker = internalLocker;
-
-    locker.lock();
+    gfxBufferLocker.lock();
     try {
       lastPointX = argx;
       lastPointY = argy;
 
       if (bufferedImage != null) {
-        bufferGraphics.setColor(brushColor);
+        bufferGraphics.setColor(brushColor.get());
         bufferGraphics.fillRect(argx, argy, argw, argh);
       }
     } finally {
-      locker.unlock();
+      gfxBufferLocker.unlock();
     }
-    label.repaint();
+    this.doLabelRepaint();
   }
 
-  @JProlPredicate(determined = true, signature = "plot/4", args = {"+number,+number,+number,+number"}, reference = "Draw a line (X1,Y1,X2,Y2) with the current pen color.")
+  @JProlPredicate(determined = true, signature = "plot/4", args = {
+      "+number,+number,+number,+number"}, reference = "Draw a line (X1,Y1,X2,Y2) with the current pen color.")
   public void predicatePLOT(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term targx = predicate.getElement(0).findNonVarOrSame();
     final Term targy = predicate.getElement(1).findNonVarOrSame();
@@ -537,24 +534,24 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     final int argxx = targxx.toNumber().intValue();
     final int argyy = targyy.toNumber().intValue();
 
-    final ReentrantLock locker = internalLocker;
-
-    locker.lock();
+    gfxBufferLocker.lock();
     try {
       lastPointX = argxx;
       lastPointY = argyy;
 
       if (bufferedImage != null) {
-        bufferGraphics.setColor(penColor);
+        bufferGraphics.setColor(penColor.get());
         bufferGraphics.drawLine(argx, argy, argxx, argyy);
       }
     } finally {
-      locker.unlock();
+      gfxBufferLocker.unlock();
     }
-    label.repaint();
+
+    this.doLabelRepaint();
   }
 
-  @JProlPredicate(determined = true, signature = "plot/2", args = {"+number,+number"}, reference = "Draw a line from the last point to (X,Y) with the current pen color.")
+  @JProlPredicate(determined = true, signature = "plot/2", args = {
+      "+number,+number"}, reference = "Draw a line from the last point to (X,Y) with the current pen color.")
   public void predicatePLOT2(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term targx = predicate.getElement(0).findNonVarOrSame();
     final Term targy = predicate.getElement(1).findNonVarOrSame();
@@ -567,23 +564,23 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     final int argx = targx.toNumber().intValue();
     final int argy = targy.toNumber().intValue();
 
-    final ReentrantLock locker = internalLocker;
-    locker.lock();
+    gfxBufferLocker.lock();
     try {
       if (bufferedImage != null) {
-        bufferGraphics.setColor(penColor);
+        bufferGraphics.setColor(penColor.get());
         bufferGraphics.drawLine(lastPointX, lastPointY, argx, argy);
       }
 
       lastPointX = argx;
       lastPointY = argy;
     } finally {
-      locker.unlock();
+      gfxBufferLocker.unlock();
     }
-    label.repaint();
+    this.doLabelRepaint();
   }
 
-  @JProlPredicate(determined = true, signature = "oval/4", args = {"+number,+number,+number,+number"}, reference = "Draw an oval into a rectangle area with coords (X,Y,Width,Height) with the current pen color.")
+  @JProlPredicate(determined = true, signature = "oval/4", args = {
+      "+number,+number,+number,+number"}, reference = "Draw an oval into a rectangle area with coords (X,Y,Width,Height) with the current pen color.")
   public void predicateOVAL(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term targx = predicate.getElement(0).findNonVarOrSame();
     final Term targy = predicate.getElement(1).findNonVarOrSame();
@@ -602,23 +599,23 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     final int argw = targw.toNumber().intValue();
     final int argh = targh.toNumber().intValue();
 
-    final ReentrantLock locker = internalLocker;
-    locker.lock();
+    gfxBufferLocker.lock();
     try {
       if (bufferedImage != null) {
-        bufferGraphics.setColor(penColor);
+        bufferGraphics.setColor(penColor.get());
         bufferGraphics.drawOval(argx, argy, argw, argh);
       }
 
       lastPointX = argx;
       lastPointY = argy;
     } finally {
-      locker.unlock();
+      gfxBufferLocker.unlock();
     }
-    label.repaint();
+    this.doLabelRepaint();
   }
 
-  @JProlPredicate(determined = true, signature = "filloval/4", args = {"+number,+number,+number,+number"}, reference = "Fill an oval into a rectangle area with coords (X,Y,Width,Height) with the current pen color.")
+  @JProlPredicate(determined = true, signature = "filloval/4", args = {
+      "+number,+number,+number,+number"}, reference = "Fill an oval into a rectangle area with coords (X,Y,Width,Height) with the current pen color.")
   public void predicateFILLOVAL(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term targx = predicate.getElement(0).findNonVarOrSame();
     final Term targy = predicate.getElement(1).findNonVarOrSame();
@@ -637,38 +634,38 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     final int argw = targw.toNumber().intValue();
     final int argh = targh.toNumber().intValue();
 
-    final ReentrantLock locker = internalLocker;
-    locker.lock();
+    gfxBufferLocker.lock();
     try {
       if (bufferedImage != null) {
-        bufferGraphics.setColor(brushColor);
+        bufferGraphics.setColor(brushColor.get());
         bufferGraphics.fillOval(argx, argy, argw, argh);
       }
 
       lastPointX = argx;
       lastPointY = argy;
     } finally {
-      locker.unlock();
+      gfxBufferLocker.unlock();
     }
-    label.repaint();
+    this.doLabelRepaint();
+    ;
   }
 
   @JProlPredicate(determined = true, signature = "fillscreen/0", reference = "Fill all screen by the brush color.")
   public void predicateFILLSCREEN(final JProlChoicePoint goal, final TermStruct predicate) {
-    final ReentrantLock locker = internalLocker;
-    locker.lock();
+    gfxBufferLocker.lock();
     try {
       if (bufferedImage != null) {
-        bufferGraphics.setColor(brushColor);
+        bufferGraphics.setColor(brushColor.get());
         bufferGraphics.fillRect(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight());
       }
     } finally {
-      locker.unlock();
+      gfxBufferLocker.unlock();
     }
-    label.repaint();
+    this.doLabelRepaint();
   }
 
-  @JProlPredicate(signature = "brushcolor/1", args = {"?atom"}, reference = "Change or get the current brush color. If it can't set color then it will return false")
+  @JProlPredicate(signature = "brushcolor/1", args = {
+      "?atom"}, reference = "Change or get the current brush color. If it can't set color then it will return false")
   public boolean predicateBRUSHCOLOR(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     if (goal.isArgsValidate()) {
@@ -677,15 +674,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
       }
     }
 
-    final ReentrantLock locker = internalLocker;
-
     if (arg.getTermType() == VAR) {
-      locker.lock();
-      try {
-        return arg.unifyTo(getColorAsTerm(brushColor));
-      } finally {
-        locker.unlock();
-      }
+      return arg.unifyTo(getColorAsTerm(brushColor.get()));
     }
 
     final String text = arg.getText();
@@ -698,18 +688,12 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
       LOGGER.log(Level.WARNING, "brushcolor/1", ex);
       return false;
     }
-
-    locker.lock();
-    try {
-      brushColor = color;
-    } finally {
-      locker.unlock();
-    }
-
+    brushColor.set(color);
     return true;
   }
 
-  @JProlPredicate(determined = true, signature = "settitle/1", args = {"+atom"}, reference = "Set the title for the current graphic screen")
+  @JProlPredicate(determined = true, signature = "settitle/1", args = {
+      "+atom"}, reference = "Set the title for the current graphic screen")
   public void predicateSETTITLE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term term = predicate.getElement(0).findNonVarOrSame();
     if (goal.isArgsValidate()) {
@@ -719,10 +703,11 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     SwingUtilities.invokeLater(() -> graphicFrame.setTitle(title));
   }
 
-  @JProlPredicate(determined = true, signature = "pencolor/1", args = {"?atom"}, reference = "Change or get the current pen color. If it can't set color then it will return false")
+  @JProlPredicate(determined = true, signature = "pencolor/1", args = {
+      "?atom"}, reference = "Change or get the current pen color. If it can't set color then it will return false")
   public boolean predicatePENCOLOR(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
-    final ReentrantLock locker = internalLocker;
+    final ReentrantLock locker = gfxBufferLocker;
 
     if (goal.isArgsValidate()) {
       if (arg.getTermType() != VAR) {
@@ -731,12 +716,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     }
 
     if (arg.getTermType() == VAR) {
-      locker.lock();
-      try {
-        return arg.unifyTo(getColorAsTerm(penColor));
-      } finally {
-        locker.unlock();
-      }
+      return arg.unifyTo(getColorAsTerm(penColor.get()));
     }
 
     final String text = arg.getText();
@@ -744,23 +724,18 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     final Color color;
     try {
       color = getColorForName(text);
-
     } catch (Exception ex) {
       LOGGER.log(Level.WARNING, "pencolor/1", ex);
       return false;
     }
 
-    locker.lock();
-    try {
-      penColor = color;
-    } finally {
-      locker.unlock();
-    }
+    penColor.set(color);
 
     return true;
   }
 
-  @JProlPredicate(determined = true, signature = "cursor/2", args = {"?number,?number"}, reference = "Set or get the current cursor position (X,Y).")
+  @JProlPredicate(determined = true, signature = "cursor/2", args = {
+      "?number,?number"}, reference = "Set or get the current cursor position (X,Y).")
   public boolean predicateCURSOR(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term elemX = predicate.getElement(0).findNonVarOrSame();
     final Term elemY = predicate.getElement(1).findNonVarOrSame();
@@ -774,7 +749,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
       }
     }
 
-    final ReentrantLock locker = internalLocker;
+    final ReentrantLock locker = gfxBufferLocker;
 
     locker.lock();
     try {
@@ -803,7 +778,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     return true;
   }
 
-  @JProlPredicate(determined = true, signature = "print/1", args = {"+term"}, reference = "Print the text representation of the term with the current pen color. The baseline of the leftmost character is at the cursor position.")
+  @JProlPredicate(determined = true, signature = "print/1", args = {
+      "+term"}, reference = "Print the text representation of the term with the current pen color. The baseline of the leftmost character is at the cursor position.")
   public void predicatePRINT(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term elem = predicate.getElement(0).findNonVarOrSame();
     if (goal.isArgsValidate()) {
@@ -811,11 +787,11 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     }
 
     final String text = elem.forWrite();
-    final ReentrantLock locker = internalLocker;
+    final ReentrantLock locker = gfxBufferLocker;
 
     locker.lock();
     try {
-      bufferGraphics.setColor(penColor);
+      bufferGraphics.setColor(penColor.get());
       bufferGraphics.drawString(text, lastPointX, lastPointY);
     } finally {
       locker.unlock();
@@ -826,42 +802,89 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
   /**
    * Inside function to save current graphic buffer state
    *
+   * @param folder    base folder
    * @param name      the image file name
    * @param type      the type of the image format (jpg, png or gif, remember that
    *                  it relates to possibilities of the ImageIO API from JRE)
    * @param predicate the predicate which is calling the operation
    */
-  private void saveCurrentBuffer(final String name, final String type, final TermStruct predicate) {
-    FileOutputStream outStream = null;
-
-    try {
-      final File file = new File(name);
-      outStream = new FileOutputStream(file);
-
-      internalLocker.lock();
-      try {
-        ImageIO.write(bufferedImage, type, outStream);
-      } finally {
-        internalLocker.unlock();
-      }
-      outStream.flush();
-      outStream.close();
-      outStream = null;
-    } catch (Exception ex) {
-      LOGGER.log(Level.WARNING, "saveCurrentBuffer()", ex);
-      throw new ProlPermissionErrorException("write", "image_output", predicate, ex);
+  private void saveCurrentBuffer(final File folder, final String name, final String type,
+                                 final TermStruct predicate) {
+    gfxBufferLocker.lock();
+    try (final FileOutputStream fileOutputStream = new FileOutputStream(new File(folder, name),
+        false)) {
+      ImageIO.write(bufferedImage, type, fileOutputStream);
+    } catch (IOException e) {
+      LOGGER.log(Level.WARNING, "saveCurrentBuffer()", e);
+      throw new ProlPermissionErrorException("write", "image_output", predicate, e);
     } finally {
-      if (outStream != null) {
-        try {
-          outStream.close();
-        } catch (Exception ex) {
-          LOGGER.log(Level.WARNING, "saveCurrentBuffer().close()", ex);
-        }
-      }
+      gfxBufferLocker.unlock();
     }
   }
 
-  @JProlPredicate(determined = true, signature = "saveimage/2", args = {"+atom,+atom"}, reference = "Arguments (image_name,format_name). Format can be 'png','jpg' or 'gif'. Save the current graphic buffer state as a named image with the type. It can throw 'permission_error' exception if it is not possible to write the image.")
+  @Override
+  public void release() {
+    this.imageSpriteMap.clear();
+  }
+
+  @JProlPredicate(determined = true, signature = "drawsprite/3", args = {"+atom", "+number",
+      "+number"}, reference = "Arguments (sprite_id, x, y). Draw a sprite by its sprite id at coordinates.")
+  public boolean predicateDRAWSPRITE(final JProlChoicePoint goal, final TermStruct predicate) {
+    final Term path = predicate.getElement(0).findNonVarOrSame();
+    final Term x = predicate.getElement(1).findNonVarOrSame();
+    final Term y = predicate.getElement(2).findNonVarOrSame();
+
+    if (goal.isArgsValidate()) {
+      ProlAssertions.assertAtom(path);
+      ProlAssertions.assertNumber(x);
+      ProlAssertions.assertNumber(y);
+    }
+
+    final BufferedImage sprite = this.imageSpriteMap.get(path.getText());
+    if (sprite == null) {
+      return false;
+    } else {
+      gfxBufferLocker.lock();
+      try {
+        if (bufferedImage != null) {
+          bufferGraphics.drawImage(sprite, x.toNumber().intValue(), y.toNumber().intValue(), null);
+        }
+      } finally {
+        gfxBufferLocker.unlock();
+      }
+      label.repaint();
+      return true;
+    }
+  }
+
+  @JProlPredicate(determined = true, signature = "loadsprite/2", args = {
+      "+atom",
+      "+atom"}, reference = "Arguments (sprite_id, image_path). Format can be 'png','jpg' or 'gif'. Load sprite from file and keep it as named by sprite id. It can throw 'permission_error' exception if it is not possible to read the image.")
+  public boolean predicateLOADSPRITE(final JProlChoicePoint goal, final TermStruct predicate) {
+    final Term spriteId = predicate.getElement(0).findNonVarOrSame();
+    final Term path = predicate.getElement(1).findNonVarOrSame();
+
+    if (goal.isArgsValidate()) {
+      ProlAssertions.assertAtom(path);
+      ProlAssertions.assertAtom(spriteId);
+    }
+
+    final File spriteFile = new File(goal.getContext().getCurrentFolder(), path.getText());
+    if (spriteFile.isFile() && spriteFile.canRead()) {
+      try {
+        final BufferedImage image = ImageIO.read(spriteFile);
+        this.imageSpriteMap.put(spriteId.getText(), image);
+        return true;
+      } catch (Exception ex) {
+        return false;
+      }
+    } else {
+      throw new ProlPermissionErrorException("read", "image_input", predicate);
+    }
+  }
+
+  @JProlPredicate(determined = true, signature = "saveimage/2", args = {
+      "+atom,+atom"}, reference = "Arguments (image_name,format_name). Format can be 'png','jpg' or 'gif'. Save the current graphic buffer state as a named image with the type. It can throw 'permission_error' exception if it is not possible to write the image.")
   public void predicateSAVEIMAGE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     final Term format = predicate.getElement(1).findNonVarOrSame();
@@ -871,10 +894,12 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
       ProlAssertions.assertAtom(format);
     }
 
-    saveCurrentBuffer(arg.getText(), format.getText().trim().toLowerCase(), predicate);
+    saveCurrentBuffer(goal.getContext().getCurrentFolder(), arg.getText(),
+        format.getText().trim().toLowerCase(), predicate);
   }
 
-  @JProlPredicate(determined = true, signature = "graphics/2", args = {"?integer,?integer"}, reference = "Change or get the graphic screen size (width,heigh) and fill it with the curren background color. Pay attention, the predicate creates the new offscreen buffer so don't use it to clear screen.")
+  @JProlPredicate(determined = true, signature = "graphics/2", args = {
+      "?integer,?integer"}, reference = "Change or get the graphic screen size (width,heigh) and fill it with the curren background color. Pay attention, the predicate creates the new offscreen buffer so don't use it to clear screen.")
   public boolean predicateGRAPHICS(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term width = predicate.getElement(0).findNonVarOrSame();
     final Term height = predicate.getElement(1).findNonVarOrSame();
@@ -888,7 +913,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
       }
     }
 
-    internalLocker.lock();
+    gfxBufferLocker.lock();
     try {
       final int widthOrig = bufferedImage.getWidth();
       final int heightOrig = bufferedImage.getHeight();
@@ -920,7 +945,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
 
       activateFrame();
     } finally {
-      internalLocker.unlock();
+      gfxBufferLocker.unlock();
     }
 
     return true;
@@ -930,14 +955,14 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
   public void onContextDispose(final JProlContext context) {
     super.onContextDispose(context);
 
-    internalLocker.lock();
+    gfxBufferLocker.lock();
     try {
       if (this.graphicFrame != null) {
         SwingUtilities.invokeLater(graphicFrame::dispose);
         this.bufferedImage = null;
       }
     } finally {
-      internalLocker.unlock();
+      gfxBufferLocker.unlock();
     }
   }
 
@@ -958,11 +983,9 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
     final BufferedImage newImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     final Graphics gfx = newImage.getGraphics();
 
-    final ReentrantLock locker = this.internalLocker;
-
-    locker.lock();
+    this.gfxBufferLocker.lock();
     try {
-      gfx.setColor(this.brushColor);
+      gfx.setColor(this.brushColor.get());
       gfx.fillRect(0, 0, width, height);
 
       this.bufferedImage = newImage;
@@ -971,7 +994,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary implements Windo
       this.label.setIcon(new ImageIcon(this.bufferedImage));
       this.label.invalidate();
     } finally {
-      locker.unlock();
+      this.gfxBufferLocker.unlock();
     }
     this.graphicFrame.invalidate();
     this.graphicFrame.pack();
