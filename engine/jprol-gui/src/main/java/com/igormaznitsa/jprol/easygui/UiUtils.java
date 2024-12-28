@@ -60,6 +60,15 @@ public final class UiUtils {
     }
   }
 
+  public static String ellipseLeft(final String text, final int max, final String ellipse) {
+    if (text.length() > max) {
+      final String substring = text.substring(text.length() - max);
+      return ellipse + substring;
+    } else {
+      return text;
+    }
+  }
+
   public static int calculateColorBrightness(final Color color) {
     return (int) Math.sqrt(
         color.getRed() * color.getRed() * .241d + color.getGreen() * color.getGreen() * .691d +

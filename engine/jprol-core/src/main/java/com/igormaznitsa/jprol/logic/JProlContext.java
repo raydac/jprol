@@ -535,6 +535,10 @@ public final class JProlContext implements AutoCloseable {
   }
 
   public void dispose() {
+    this.dispose(false);
+  }
+
+  public void dispose(final boolean releaseLibraries) {
     if (this.disposed.compareAndSet(false, true)) {
       this.executorService.shutdownNow();
 
@@ -545,7 +549,12 @@ public final class JProlContext implements AutoCloseable {
 
       this.triggersOnAssert.clear();
       this.triggersOnRetract.clear();
-      this.libraries.forEach(library -> library.onContextDispose(this));
+      this.libraries.forEach(library -> {
+        library.onContextDispose(this);
+        if (releaseLibraries) {
+          library.release();
+        }
+      });
       this.contextListeners.forEach(listener -> listener.onContextDispose(this));
       this.contextListeners.clear();
     }

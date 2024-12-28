@@ -1204,7 +1204,7 @@ public final class MainFrame extends javax.swing.JFrame
   private void releaseContext() {
     final JProlContext context = this.currentContext.getAndSet(null);
     if (context != null && !context.isDisposed()) {
-      context.dispose();
+      context.dispose(true);
     }
   }
 
@@ -1556,7 +1556,8 @@ public final class MainFrame extends javax.swing.JFrame
       if (this.currentOpenedFile != null) {
         this.menuFileSave.setEnabled(true);
       }
-      this.labelOpenedFile.setText("*" + this.labelOpenedFile.getText());
+      this.setFileNameTitle(
+          this.currentOpenedFile == null ? "" : this.currentOpenedFile.getAbsolutePath(), true);
     }
   }
 
@@ -1625,11 +1626,28 @@ public final class MainFrame extends javax.swing.JFrame
     this.currentOpenedFile = file;
     this.lastOpenedFile = currentOpenedFile;
 
-    this.labelOpenedFile.setText(this.currentOpenedFile.getAbsolutePath());
+    this.setFileNameTitle(this.currentOpenedFile.getAbsolutePath(), false);
 
     this.sourceEditor.getUndoManager().discardAllEdits();
     this.menuFileSave.setEnabled(true);
     this.documentHasBeenChangedFlag = false;
+  }
+
+  private void setFileNameTitle(final String text, final boolean changed) {
+    String title;
+
+    if (changed) {
+      title = "*";
+      this.labelOpenedFile.setFont(this.labelOpenedFile.getFont().deriveFont(Font.BOLD));
+    } else {
+      title = "";
+      this.labelOpenedFile.setFont(this.labelOpenedFile.getFont().deriveFont(Font.PLAIN));
+    }
+
+    if (text != null) {
+      title += UiUtils.ellipseLeft(text, 128, "...");
+    }
+    this.labelOpenedFile.setText(title);
   }
 
   private void newFile() {
@@ -1679,7 +1697,7 @@ public final class MainFrame extends javax.swing.JFrame
       try {
         setTextToDocument(Utils.readAsUtf8(fileToOpen));
         this.currentOpenedFile = fileToOpen;
-        this.labelOpenedFile.setText(this.currentOpenedFile.getCanonicalPath());
+        this.setFileNameTitle(this.currentOpenedFile.getAbsolutePath(), false);
         this.repaint();
 
         this.recentFiles.put(fileToOpen.getAbsolutePath());
