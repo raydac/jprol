@@ -1,0 +1,8 @@
+% Just draw sprites of Java Duke and Java Logo asynchronously in random positions
+
+threadSprite(P,Sprite):-for(I,0,P),rnd(640,X),rnd(480,Y),X1 is X - 48, Y1 is Y - 48, drawsprite(Sprite,X1,Y1),fail.
+
+?- loadsprite(spriteJava,'spriteJava94x94.png'),
+    loadsprite(spriteDuke,'spriteDuke96x96.png'),
+   time((P=100000, graphics(640,480), async(threadSprite(P,spriteJava)),async(threadSprite(P,spriteDuke)),waitasync)).
+
