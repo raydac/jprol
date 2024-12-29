@@ -22,11 +22,13 @@ import org.fife.ui.rtextarea.RUndoManager;
  */
 public class PrologSourceEditor extends AbstractProlEditor {
 
-  public static final String SOURCE_WORDWRAP = "sourcewordwrap";
-  public static final String SOURCE_FOREGROUND_COLOR = "sourceforegroundcolor";
-  public static final String SOURCE_CARET_COLOR = "sourcecaretcolor";
-  public static final String SOURCE_BACK_COLOR = "sourceedbackcolor";
-  public static final String SOURCE_FONT = "sourcefont";
+  public static final String PROPERTY_SOURCE_WORDWRAP = "sourcewordwrap";
+  public static final String PROPERTY_SOURCE_FOREGROUND_COLOR = "sourceforegroundcolor";
+  public static final String PROPERTY_SOURCE_CARET_COLOR = "sourcecaretcolor";
+  public static final String PROPERTY_SOURCE_BACK_COLOR = "sourceedbackcolor";
+  public static final String PROPERTY_SOURCE_FONT = "sourcefont";
+  public static final Font DEFAULT_SORCE_FONT =
+      LocalFont.LOCAL_JET_BRAINS_MONO.getFont().deriveFont(Font.PLAIN, 12);
   /**
    * Inside logger, the logger id = "PROL_NOTE_PAD"
    */
@@ -53,8 +55,8 @@ public class PrologSourceEditor extends AbstractProlEditor {
 
     removePropertyLink("EdWordWrap");
 
-    theEditor.setFont(DEFAULT_FONT);
-    theEditor.setBaseFont(DEFAULT_FONT);
+    theEditor.setFont(DEFAULT_SORCE_FONT);
+    theEditor.setBaseFont(DEFAULT_SORCE_FONT);
 
     editor.setVisible(true);
 
@@ -129,9 +131,9 @@ public class PrologSourceEditor extends AbstractProlEditor {
 
   @Override
   public void loadPreferences(final Preferences preferences) {
-    final Color backColor = extractColor(preferences, SOURCE_BACK_COLOR);
-    final Color caretColor = extractColor(preferences, SOURCE_CARET_COLOR);
-    final Color fgColor = extractColor(preferences, SOURCE_FOREGROUND_COLOR);
+    final Color backColor = extractColor(preferences, PROPERTY_SOURCE_BACK_COLOR);
+    final Color caretColor = extractColor(preferences, PROPERTY_SOURCE_CARET_COLOR);
+    final Color fgColor = extractColor(preferences, PROPERTY_SOURCE_FOREGROUND_COLOR);
 
     if (backColor != null) {
       setEdBackground(backColor);
@@ -142,20 +144,21 @@ public class PrologSourceEditor extends AbstractProlEditor {
     if (fgColor != null) {
       setEdForeground(fgColor);
     }
-    this.setEdWordWrap(preferences.getBoolean(SOURCE_WORDWRAP, true));
+    this.setEdWordWrap(preferences.getBoolean(PROPERTY_SOURCE_WORDWRAP, true));
     final Font sourceEditorFont =
-        loadFontFromPrefs(preferences, SOURCE_FONT, DEFAULT_FONT);
+        loadFontFromPrefs(preferences, PROPERTY_SOURCE_FONT, DEFAULT_SORCE_FONT);
     ((ScalableRsyntaxTextArea) this.getEditor()).setBaseFont(sourceEditorFont);
     this.setEdFont(sourceEditorFont);
   }
 
   @Override
   public void savePreferences(final Preferences preferences) {
-    preferences.putInt(SOURCE_BACK_COLOR, getEdBackground().getRGB());
-    preferences.putInt(SOURCE_CARET_COLOR, getEdCaretColor().getRGB());
-    preferences.putInt(SOURCE_FOREGROUND_COLOR, getEdForeground().getRGB());
-    preferences.putBoolean(SOURCE_WORDWRAP, getEdWordWrap());
-    saveFontToPrefs(preferences, SOURCE_FONT, ((ScalableRsyntaxTextArea) editor).getBaseFont());
+    preferences.putInt(PROPERTY_SOURCE_BACK_COLOR, getEdBackground().getRGB());
+    preferences.putInt(PROPERTY_SOURCE_CARET_COLOR, getEdCaretColor().getRGB());
+    preferences.putInt(PROPERTY_SOURCE_FOREGROUND_COLOR, getEdForeground().getRGB());
+    preferences.putBoolean(PROPERTY_SOURCE_WORDWRAP, getEdWordWrap());
+    saveFontToPrefs(preferences, PROPERTY_SOURCE_FONT,
+        ((ScalableRsyntaxTextArea) editor).getBaseFont());
   }
 
   public boolean uncommentSelectedLines() {
@@ -254,9 +257,9 @@ public class PrologSourceEditor extends AbstractProlEditor {
     for (int i = startElement; i <= endElement; i++) {
       final Element elem = root.getElement(i);
       try {
-        final String elementtext = elem.getDocument()
+        final String elementText = elem.getDocument()
             .getText(elem.getStartOffset(), elem.getEndOffset() - elem.getStartOffset());
-        if (!elementtext.trim().startsWith("%")) {
+        if (!elementText.trim().startsWith("%")) {
           elem.getDocument().insertString(elem.getStartOffset(), "%", null);
           result = true;
         }
