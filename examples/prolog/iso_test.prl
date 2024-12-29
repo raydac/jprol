@@ -1,0 +1,105 @@
+% Edinburgh Prolog program to test ISO Prolog syntax and operators
+
+% Arithmetic operators
+test_arithmetic :-
+    X is 3 + 4 * 2 - 5 / 2 + 2 ^ 3,
+    Y is -X,
+    Z is abs(Y),
+    write('OK').
+
+% Comparison operators
+test_comparison :-
+    5 =:= 5,
+    5 =\= 4,
+    5 < 10,
+    10 > 5,
+    5 =< 5,
+    10 >= 5,
+    write('OK').
+
+% Term comparison operators
+test_term_comparison :-
+    a @< b,
+    b @> a,
+    a @=< a,
+    b @>= a,
+    write('OK').
+
+% Unification and negation
+test_unification :-
+    X = Y,
+    \+ (X \= Y),
+    write('OK').
+
+% Control operators
+test_control :-
+    (true -> write('True branch executed...'); write('False branch executed')),
+    (fail; write('Alternative executed...')),
+    (true ; fail),
+    write('OK').
+
+% Logical operators
+test_logical :-
+    true,
+    \+ false,
+    (true, true),
+    (true ; false),
+    write('OK').
+
+% Bitwise operators
+test_bitwise :-
+    X is 5 /\ 3,
+    Y is 5 \/ 3,
+    Z is \ 5,
+    write('OK').
+
+% List operators
+test_lists :-
+    [H|T] = [1, 2, 3],
+    append([1, 2], [3, 4], L),
+    member(2, [1, 2, 3]),
+    write('OK').
+
+% Miscellaneous operators
+test_misc :-
+    var(X),
+    nonvar(1),
+    atomic(atom),
+    compound(f(a, b)),
+    write('OK').
+
+% Clause operators
+test_clauses :-
+    (A = 5, B = 10 -> Result is A + B ; Result is 0),
+    Result =:= 15,
+    write('OK').
+
+% Dynamic predicates
+test_dynamic :-
+    assertz(temp(10)),
+    retract(temp(10)),
+    write('OK').
+
+% Call operators
+test_call :-
+    call(write('Calling a goal dynamically...')),
+    once(member(X, [1, 2, 3])),
+    write('OK').
+
+% Run all tests
+run_tests :-
+    write('Testing arithmetic...'), test_arithmetic, nl,
+    write('Testing comparison...'), test_comparison, nl,
+    write('Testing term comparison...'), test_term_comparison, nl,
+    write('Testing unification...'), test_unification, nl,
+    write('Testing control...'), test_control, nl,
+    write('Testing logical...'), test_logical, nl,
+    write('Testing bitwise...'), test_bitwise, nl,
+    write('Testing lists...'), test_lists, nl,
+    write('Testing miscellaneous...'), test_misc, nl,
+    write('Testing clauses...'), test_clauses, nl,
+    write('Testing dynamic...'), test_dynamic, nl,
+    write('Testing call...'), test_call,nl,
+    writeln('All tests passed.').
+
+?- time(run_tests).    
