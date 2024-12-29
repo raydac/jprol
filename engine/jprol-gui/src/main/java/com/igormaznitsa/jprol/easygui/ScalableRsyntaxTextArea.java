@@ -100,7 +100,7 @@ public final class ScalableRsyntaxTextArea extends RSyntaxTextArea {
         }
       }
 
-      super.setFont(this.getFont().deriveFont(fontSize));
+      super.setFont(this.baseFont.deriveFont(fontSize));
 
       this.setSyntaxScheme(scheme);
 
