@@ -158,30 +158,30 @@ public final class TermVar extends Term {
 
   public Term getValue() {
     Term result = this.value;
-    if (result != null && result.getTermType() == VAR) {
-      final TermVar nextVar = (TermVar) result;
-      result = nextVar.getValue();
+    while (result != null && result.getTermType() == VAR) {
+      final Term prev = result;
+      result = ((TermVar) result).value;
       if (result == null) {
-        result = nextVar;
+        result = prev;
+        break;
       }
     }
     return result;
   }
 
   public boolean setValue(final Term value) {
-    boolean result = true;
-
-    if (value != this) {
-
+    if (value == this) {
+      return true;
+    } else {
       if (value.getTermType() == VAR) {
-        // check for loop
         TermVar curVar = ((TermVar) value);
-        while (!Thread.currentThread().isInterrupted()) {
+        int watchDogLoop = 16384;
+        while (watchDogLoop > 0) {
+          watchDogLoop--;
           if (curVar == this) {
-            // loop detected, just return
             return true;
           } else {
-            final Term nextValue = curVar.getThisValue();
+            final Term nextValue = curVar.value;
             if (nextValue != null && nextValue.getTermType() == VAR) {
               curVar = (TermVar) nextValue;
             } else {
@@ -189,20 +189,25 @@ public final class TermVar extends Term {
             }
           }
         }
+
+        if (watchDogLoop <= 0) {
+          throw new IllegalStateException(
+              "Detected too deep variable chain, may be it is for a loop");
+        }
       }
 
       if (this.value == null) {
         this.value = value;
+        return true;
       } else {
         final Term curValue = getValue();
         if (curValue == null) {
-          ((TermVar) this.value).setValue(value);
+          return ((TermVar) this.value).setValue(value);
         } else {
-          result = curValue.unifyTo(value);
+          return curValue.unifyTo(value);
         }
       }
     }
-    return result;
   }
 
   @Override
