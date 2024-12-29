@@ -36,6 +36,7 @@ import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.XFX;
 import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.XFY;
 import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.YFX;
 
+import com.igormaznitsa.jprol.annotations.JProlConsultText;
 import com.igormaznitsa.jprol.annotations.JProlOperator;
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.NumericTerm;
@@ -124,6 +125,10 @@ import java.util.stream.Stream;
 @JProlOperator(priority = 200, type = FY, name = "\\")
 @JProlOperator(priority = 200, type = XFX, name = "**")
 @JProlOperator(priority = 200, type = XFY, name = "^")
+@JProlConsultText({
+    "append([], Z, Z).",
+    "append([A|B], Z, [A|Z2]) :- append(B, Z, Z2)."
+})
 public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   public JProlCoreLibrary() {
@@ -310,7 +315,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return newLong(leftNum - (leftNum / rightNum) * rightNum, UNKNOWN);
   }
 
-  @JProlPredicate(evaluable = true, signature = "**/2", args = {
+  @JProlPredicate(evaluable = true, synonyms = "^/2", signature = "**/2", args = {
       "+evaluable,+evaluable"}, reference = "Power")
   public static Term predicatePOWER(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
