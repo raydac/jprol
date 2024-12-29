@@ -1689,23 +1689,22 @@ public final class MainFrame extends javax.swing.JFrame
     }
 
     if (justLoadFile || fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-      File fileToOpen = justLoadFile ? file : fileChooser.getSelectedFile();
+      final File fileToOpen = justLoadFile ? file : fileChooser.getSelectedFile();
+      if (fileToOpen != null) {
+        this.lastOpenedFile = fileToOpen;
+        try {
+          setTextToDocument(Utils.readAsUtf8(fileToOpen));
+          this.currentOpenedFile = fileToOpen;
+          this.setFileNameTitle(this.currentOpenedFile.getAbsolutePath(), false);
+          this.repaint();
 
-      this.lastOpenedFile = fileToOpen;
-
-      try {
-        setTextToDocument(Utils.readAsUtf8(fileToOpen));
-        this.currentOpenedFile = fileToOpen;
-        this.setFileNameTitle(this.currentOpenedFile.getAbsolutePath(), false);
-        this.repaint();
-
-        this.recentFiles.put(fileToOpen.getAbsolutePath());
-
-      } catch (Throwable thr) {
-        LOGGER.throwing(this.getClass().getCanonicalName(), "loadFile()", thr);
-        JOptionPane.showMessageDialog(this,
-            format("Can't load file %s ! [%s]", fileToOpen.getAbsolutePath(), thr.getMessage()));
-        this.recentFiles.remove(fileToOpen.getAbsolutePath());
+          this.recentFiles.put(fileToOpen.getAbsolutePath());
+        } catch (Throwable thr) {
+          LOGGER.throwing(this.getClass().getCanonicalName(), "loadFile()", thr);
+          JOptionPane.showMessageDialog(this,
+              format("Can't load file %s ! [%s]", fileToOpen.getAbsolutePath(), thr.getMessage()));
+          this.recentFiles.remove(fileToOpen.getAbsolutePath());
+        }
       }
     }
   }

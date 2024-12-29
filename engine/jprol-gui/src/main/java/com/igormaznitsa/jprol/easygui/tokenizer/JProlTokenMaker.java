@@ -95,12 +95,15 @@ public class JProlTokenMaker extends AbstractTokenMaker {
 
     int reservedWord = Token.RESERVED_WORD;
     tokenMap.put("not", reservedWord);
+    tokenMap.put("as", reservedWord);
     tokenMap.put("is", reservedWord);
+    tokenMap.put("xor", reservedWord);
     tokenMap.put("fail", reservedWord);
     tokenMap.put("repeat", reservedWord);
     tokenMap.put("true", reservedWord);
     tokenMap.put("false", reservedWord);
     tokenMap.put("div", reservedWord);
+    tokenMap.put("rdiv", reservedWord);
     tokenMap.put("mod", reservedWord);
     tokenMap.put("quot", reservedWord);
     tokenMap.put("rem", reservedWord);
@@ -110,6 +113,8 @@ public class JProlTokenMaker extends AbstractTokenMaker {
     tokenMap.put("op", function);
 
     int operator = Token.OPERATOR;
+    tokenMap.put("#", operator);
+    tokenMap.put("@", operator);
     tokenMap.put("?-", operator);
     tokenMap.put("^", operator);
     tokenMap.put(";", operator);
@@ -135,16 +140,18 @@ public class JProlTokenMaker extends AbstractTokenMaker {
     tokenMap.put(">=", operator);
     tokenMap.put("=:=", operator);
     tokenMap.put("=\\=", operator);
-    tokenMap.put("is", operator);
     tokenMap.put("*", operator);
     tokenMap.put("/", operator);
     tokenMap.put("**", operator);
     tokenMap.put("//", operator);
     tokenMap.put(":-", operator);
+    tokenMap.put("->", operator);
+    tokenMap.put("*->", operator);
     tokenMap.put("-->", operator);
     tokenMap.put("/\\", operator);
     tokenMap.put("\\/", operator);
     tokenMap.put("\\/", operator);
+    tokenMap.put("#", operator);
 
     return tokenMap;
 
@@ -222,14 +229,14 @@ public class JProlTokenMaker extends AbstractTokenMaker {
             }
             break;
             default: {
-              if (RSyntaxUtilities.isLetter(c) && Character.isUpperCase(c)) {
-                currentTokenType = Token.VARIABLE;
+              if (RSyntaxUtilities.isLetter(c)) {
+                currentTokenType = Character.isUpperCase(c) ? Token.VARIABLE : Token.IDENTIFIER;
                 break;
               }
               if (RSyntaxUtilities.isDigit(c)) {
                 currentTokenType = Token.LITERAL_NUMBER_DECIMAL_INT;
                 break;
-              } else if (RSyntaxUtilities.isLetter(c) || c == '/') {
+              } else if (c == '/') {
                 currentTokenType = Token.IDENTIFIER;
                 break;
               }
@@ -368,6 +375,12 @@ public class JProlTokenMaker extends AbstractTokenMaker {
                   addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER,
                       newStartOffset + currentTokenStart);
                   addToken(text, i, i, Token.SEPARATOR, newStartOffset + i);
+                  currentTokenType = Token.NULL;
+                  break;
+                } else {
+                  addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER,
+                      newStartOffset + currentTokenStart);
+                  i--;
                   currentTokenType = Token.NULL;
                   break;
                 }
