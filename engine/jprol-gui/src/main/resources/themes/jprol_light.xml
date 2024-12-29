@@ -54,7 +54,7 @@
         <style token="MARKUP_CDATA" fg="cc6600"/>
         <style token="MARKUP_CDATA_DELIMITER" fg="008080"/>
         <style token="MARKUP_ENTITY_REFERENCE" fg="008000"/>
-        <style token="OPERATOR" fg="000080" bold="true"/>
+        <style token="OPERATOR" fg="500080" bold="true"/>
         <style token="PREPROCESSOR" fg="808080"/>
         <style token="REGEX" fg="008040"/>
         <style token="SEPARATOR" fg="000000"/>

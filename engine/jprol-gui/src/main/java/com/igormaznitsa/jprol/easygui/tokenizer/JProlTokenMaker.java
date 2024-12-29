@@ -104,6 +104,7 @@ public class JProlTokenMaker extends AbstractTokenMaker {
     tokenMap.put("mod", reservedWord);
     tokenMap.put("quot", reservedWord);
     tokenMap.put("rem", reservedWord);
+    tokenMap.put("!", reservedWord);
 
     int function = Token.FUNCTION;
     tokenMap.put("op", function);
@@ -238,8 +239,9 @@ public class JProlTokenMaker extends AbstractTokenMaker {
                     newStartOffset + currentTokenStart);
                 currentTokenType = Token.NULL;
                 break;
+              } else {
+                currentTokenType = Token.FUNCTION;
               }
-              currentTokenType = Token.IDENTIFIER;
             }
             break;
           }
@@ -250,14 +252,6 @@ public class JProlTokenMaker extends AbstractTokenMaker {
             case ' ':
             case '\t':
               break;
-            case '\\': {
-              addToken(text, currentTokenStart, i - 1, Token.WHITESPACE,
-                  newStartOffset + currentTokenStart);
-              addToken(text, i, i, Token.IDENTIFIER, newStartOffset + i);
-              currentTokenType = Token.NULL;
-              backslash = true; // Previous char whitespace => this must be first backslash.
-            }
-            break;
             case '\'': {// Don't need to worry about backslashes as previous char is space.
               addToken(text, currentTokenStart, i - 1, Token.WHITESPACE,
                   newStartOffset + currentTokenStart);
@@ -303,12 +297,14 @@ public class JProlTokenMaker extends AbstractTokenMaker {
                 addToken(text, i, i, Token.SEPARATOR, newStartOffset + i);
                 currentTokenType = Token.NULL;
                 break;
+              } else {
+                currentTokenType = Token.FUNCTION;
               }
-              currentTokenType = Token.IDENTIFIER;
             }
           }
         }
         break;
+        case Token.FUNCTION:
         case Token.IDENTIFIER: {
           switch (c) {
             case ' ':
@@ -320,10 +316,12 @@ public class JProlTokenMaker extends AbstractTokenMaker {
             }
             break;
             case '/': {
-              addToken(text, currentTokenStart, i, Token.IDENTIFIER,
-                  newStartOffset + currentTokenStart);
-              currentTokenStart = i + 1;
-              currentTokenType = Token.NULL;
+              if (currentTokenType != Token.FUNCTION) {
+                addToken(text, currentTokenStart, i, Token.IDENTIFIER,
+                    newStartOffset + currentTokenStart);
+                currentTokenStart = i + 1;
+                currentTokenType = Token.NULL;
+              }
             }
             break;
             case '\'': {
@@ -335,25 +333,44 @@ public class JProlTokenMaker extends AbstractTokenMaker {
             }
             break;
             case '\\': {
-              addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER,
-                  newStartOffset + currentTokenStart);
-              addToken(text, i, i, Token.IDENTIFIER, newStartOffset + i);
-              currentTokenType = Token.NULL;
-              backslash = true;
-            }
-            break;
-
-            default: {
-              if (RSyntaxUtilities.isLetterOrDigit(c) || c == '_') {
-                break;    // Still an identifier of some type.
-              }
-              int indexOf = separators.indexOf(c);
-              if (indexOf > -1) {
+              if (currentTokenType != Token.FUNCTION) {
                 addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER,
                     newStartOffset + currentTokenStart);
-                addToken(text, i, i, Token.SEPARATOR, newStartOffset + i);
+                addToken(text, i, i, Token.IDENTIFIER, newStartOffset + i);
                 currentTokenType = Token.NULL;
-                break;
+                backslash = true;
+              }
+            }
+            break;
+            default: {
+              if (currentTokenType == Token.FUNCTION) {
+                if (RSyntaxUtilities.isLetterOrDigit(c) || c == '_') {
+                  addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER,
+                      newStartOffset + currentTokenStart);
+                  i--;
+                  currentTokenType = Token.NULL;
+                  break;
+                }
+                int indexOf = separators.indexOf(c);
+                if (indexOf > -1) {
+                  addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER,
+                      newStartOffset + currentTokenStart);
+                  addToken(text, i, i, Token.SEPARATOR, newStartOffset + i);
+                  currentTokenType = Token.NULL;
+                  break;
+                }
+              } else {
+                if (RSyntaxUtilities.isLetterOrDigit(c) || c == '_') {
+                  break;
+                }
+                int indexOf = separators.indexOf(c);
+                if (indexOf > -1) {
+                  addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER,
+                      newStartOffset + currentTokenStart);
+                  addToken(text, i, i, Token.SEPARATOR, newStartOffset + i);
+                  currentTokenType = Token.NULL;
+                  break;
+                }
               }
             }
           }
