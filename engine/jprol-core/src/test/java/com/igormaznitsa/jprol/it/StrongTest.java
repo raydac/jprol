@@ -19,7 +19,6 @@ class StrongTest extends AbstractJProlTest {
         + "flyday(Day,Daylist):-member(Day,Daylist).flyday(Day,alldays):-member(Day,[mo,tu,we,th,fr,sa,su])."
         + "deptime([_/_/_/Dep|_],Dep)."
         + "transfer(Hours1:Mins1,Hours2:Mins2):-60*(Hours2-Hours1)+Mins2-Mins1>=40."
-        + "member(X,[X|_]).member(X,[_|L]):-member(X,L)."
         + "conc([],L,L).conc([X|L1],L2,[X|L3]):-conc(L1,L2,L3)."
         + "permutation([],[]).permutation(L,[X|P]):-del( X,L,L1),permutation(L1,P)."
         + "del(X,[X|L],L).del(X,[Y|L],[Y|L1]):-del(X,L,L1)."
@@ -60,7 +59,8 @@ class StrongTest extends AbstractJProlTest {
 
   @Test
   void testColoring() {
-    final JProlContext context = makeContextAndConsult("member(X,[X|L]).member(X,[Y|L]):-member(X,L).adjacent(X,Y,Map):-member([X,Y],Map);member([Y,X],Map)."
+    final JProlContext context =
+        makeContextAndConsult("adjacent(X,Y,Map):-member([X,Y],Map);member([Y,X],Map)."
         + "find_regions([],R,R).find_regions([[X,Y]|S],R,A):-(member(X,R)->(member(Y,R)->find_regions(S,R,A);find_regions(S,[Y|R],A));(member(Y,R)->find_regions(S,[X|R],A);find_regions(S,[X,Y|R],A)))."
         + "color(Map,Colors,Coloring) :- find_regions(Map,[],Regions), color_all(Regions,Colors,Coloring), \\+ conflict(Map,Coloring)."
         + "color_all([R|Rs],Colors,[[R,C]|A]):-member(C,Colors),color_all(Rs,Colors,A).color_all([],_,[]).conflict(Map,Coloring):-member([R1,C],Coloring), member([R2,C],Coloring), adjacent(R1,R2,Map).");

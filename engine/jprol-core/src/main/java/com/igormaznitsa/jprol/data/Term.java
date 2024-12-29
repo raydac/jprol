@@ -92,7 +92,12 @@ public class Term {
 
   public Map<String, TermVar> allNamedVarsAsMap() {
     return this.variables()
-        .collect(toMap(TermVar::getText, e -> e, (v1, v2) -> v2));
+        .collect(
+            toMap(TermVar::getText,
+                e -> e,
+                (v1, v2) -> v2
+            )
+        );
   }
 
   public Map<String, Term> allNamedVarValuesAsMap() {

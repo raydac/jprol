@@ -31,10 +31,7 @@ class MapColorTest extends AbstractJProlTest {
         + "ngb(switzerland, [france,w_germany,austria,italy]).\n"
         + "ngb(austria, [w_germany,switzerland,italy]).\n"
         + "ngb(italy, [france,switzerland,austria]).\n"
-        + "ngb(denmark, [w_germany]).\n"
-        + "member(X, [X|_]).\n"
-        + "member(X, [_|T]):-\n"
-        + "        member(X, T).");
+        + "ngb(denmark, [w_germany]).\n");
 
     final JProlChoicePoint goal = new JProlChoicePoint("colour_countries(X).", context);
     int counter = 0;

@@ -316,12 +316,13 @@ public final class TermList extends TermStruct {
             this.getTail().unifyTo(thatList.getTail());
       }
       case VAR: {
-        final TermVar var = (TermVar) atom;
-        final Term value = var.getValue();
+        final TermVar thatVariable = (TermVar) atom;
+        final Term value = thatVariable.getThisValue();
         if (value == null) {
-          return ((TermVar) atom).setValue(this);
+          thatVariable.setThisValue(this);
+          return true;
         } else {
-          return unifyTo(value);
+          return thatVariable.unifyTo(this);
         }
       }
     }

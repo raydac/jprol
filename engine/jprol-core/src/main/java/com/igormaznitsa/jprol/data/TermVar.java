@@ -63,13 +63,13 @@ public final class TermVar extends Term {
 
   @Override
   public Term makeClone() {
-    final Term value = this.getThisValue();
+    final Term thisValue = this.getThisValue();
     TermVar result =
         this.isAnonymous() ? newVar() : newVar(this.getText(), this.getSourcePosition());
-    if (value != null) {
-      final Map<Integer, TermVar> vars = new HashMap<>();
-      vars.put(this.getVarUid(), result);
-      result.setThisValue(doMakeClone(vars));
+    if (thisValue != null) {
+      final Map<Integer, TermVar> variableMap = new HashMap<>();
+      variableMap.put(this.getVarUid(), result);
+      result.setThisValue(this.doMakeClone(variableMap));
     }
     return result;
   }
@@ -130,27 +130,21 @@ public final class TermVar extends Term {
   }
 
   @Override
-  protected Term doMakeClone(Map<Integer, TermVar> vars) {
+  protected Term doMakeClone(final Map<Integer, TermVar> mapVariables) {
     final Term result;
 
-    final Term val = this.getThisValue();
-    if (val == null) {
+    final Term thisValue = this.getThisValue();
+    if (thisValue == null) {
       final String varName = this.getText();
       final int varId = this.getVarUid();
-      TermVar newVar = vars.get(varId);
-      if (newVar == null) {
-        newVar = this.isAnonymous() ? newVar() : newVar(varName, this.getSourcePosition());
-        vars.put(varId, newVar);
-
-        final Term thisVal = this.getThisValue();
-
-        if (thisVal != null) {
-          newVar.setThisValue(thisVal.doMakeClone(vars));
-        }
+      TermVar newVariable = mapVariables.get(varId);
+      if (newVariable == null) {
+        newVariable = this.isAnonymous() ? newVar() : newVar(varName, this.getSourcePosition());
+        mapVariables.put(varId, newVariable);
       }
-      result = newVar;
+      result = newVariable;
     } else {
-      result = val.doMakeClone(vars);
+      result = thisValue.doMakeClone(mapVariables);
     }
 
     return result;
@@ -258,7 +252,7 @@ public final class TermVar extends Term {
   }
 
   public Term getThisValue() {
-    return value;
+    return this.value;
   }
 
   public void setThisValue(final Term value) {

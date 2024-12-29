@@ -30,7 +30,7 @@ class ListTest extends AbstractJProlTest {
   }
 
   @Test
-  void testRomenum() {
+  void testRomeNumbers() {
     final JProlContext context = makeContextAndConsult("rome(1,'I'). rome(2,'II'). rome(3,'III'). rome(4,'IV'). rome(5,'V'). rome(6,'VI'). rome(7,'VII'). rome(8,'VIII'). rome(9,'IX'). rome(_,'_'). romenum([],[]). romenum([X|Xt],[S|St]):-rome(X,S), romenum(Xt,St).");
     final JProlChoicePoint testgoal = new JProlChoicePoint("romenum([1,2,3],X).", context);
 
@@ -120,7 +120,8 @@ class ListTest extends AbstractJProlTest {
 
   @Test
   void testReverse() {
-    final JProlContext context = makeContextAndConsult("reverse([], []). reverse([A|B], Z) :- reverse(B, Brev), append(Brev, [A], Z). append([], Z, Z).append([A|B], Z, [A|Z2]) :- append(B, Z, Z2).");
+    final JProlContext context = makeContextAndConsult(
+        "reverse([], []). reverse([A|B], Z) :- reverse(B, Brev), append(Brev, [A], Z).");
     final JProlChoicePoint testgoal = new JProlChoicePoint("reverse([1,2,3,4,5,6],X).", context);
 
     assertNotNull(testgoal.prove());
@@ -130,10 +131,10 @@ class ListTest extends AbstractJProlTest {
 
   @Test
   void testAppend() {
-    final JProlContext context = makeContextAndConsult("append([], Z, Z).append([A|B], Z, [A|Z2]) :- append(B, Z, Z2).");
-    final JProlChoicePoint testgoal = new JProlChoicePoint("append(X,Y,[1,2,3,4,5,6]).", context);
+    final JProlContext context = makeContextAndConsult("");
+    final JProlChoicePoint testGoal = new JProlChoicePoint("append(X,Y,[1,2,3,4,5,6]).", context);
 
-    final String[] etalon = new String[] {
+    final String[] expectedValues = new String[] {
         "[]", "[1,2,3,4,5,6]",
         "[1]", "[2,3,4,5,6]",
         "[1,2]", "[3,4,5,6]",
@@ -143,12 +144,28 @@ class ListTest extends AbstractJProlTest {
         "[1,2,3,4,5,6]", "[]"
     };
 
-    for (int li = 0; li < etalon.length; li += 2) {
-      assertNotNull(testgoal.prove());
-      assertEquals(etalon[li], getVarAsText(testgoal, "X"));
-      assertEquals(etalon[li + 1], getVarAsText(testgoal, "Y"));
+    for (int li = 0; li < expectedValues.length; li += 2) {
+      assertNotNull(testGoal.prove());
+      assertEquals(expectedValues[li], getVarAsText(testGoal, "X"));
+      assertEquals(expectedValues[li + 1], getVarAsText(testGoal, "Y"));
     }
-    assertNull(testgoal.prove());
+    assertNull(testGoal.prove());
+
+    JProlChoicePoint cp = new JProlChoicePoint("append([a,b], [c], X).", context);
+    assertNotNull(cp.prove());
+    assertEquals("['a','b','c']", getVarAsText(cp, "X"));
+    assertNull(cp.prove());
+
+    cp = new JProlChoicePoint("append(X, [Last], [a,b,c]).", context);
+    assertNotNull(cp.prove());
+    assertEquals("['a','b']", getVarAsText(cp, "X"));
+    assertEquals("'c'", getVarAsText(cp, "Last"));
+    assertNull(cp.prove());
+
+    cp = new JProlChoicePoint("append([a,b], More, List).", context);
+    assertNotNull(cp.prove());
+    assertEquals("['a','b'|Z]", getVarAsText(cp, "List"));
+    assertNull(cp.prove());
 
   }
 

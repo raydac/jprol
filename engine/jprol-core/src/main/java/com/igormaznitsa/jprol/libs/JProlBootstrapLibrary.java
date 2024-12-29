@@ -130,7 +130,8 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
   public static void predicateTRUE(final JProlChoicePoint choicePoint, final TermStruct predicate) {
   }
 
-  @JProlPredicate(determined = true, signature = "fail/0", reference = "The predicate is always false.")
+  @JProlPredicate(determined = true, synonyms = {
+      "false/0"}, signature = "fail/0", reference = "The predicate is always false.")
   public static boolean predicateFAIL(final JProlChoicePoint choicePoint, final TermStruct predicate) {
     return false;
   }

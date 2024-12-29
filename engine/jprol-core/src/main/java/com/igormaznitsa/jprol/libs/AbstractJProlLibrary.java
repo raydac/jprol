@@ -131,34 +131,38 @@ public abstract class AbstractJProlLibrary {
 
   protected static NumericTerm calcEvaluable(final JProlChoicePoint choicePoint, final Term term) {
     try {
-      if (term.getTermType() == VAR) {
-        throw new ProlInstantiationErrorException("Non-instantiated var: " + term, term);
+      final Term thatTerm = term.findNonVarOrSame();
+      if (thatTerm.getTermType() == VAR) {
+        throw new ProlInstantiationErrorException("Non-instantiated var: " + term,
+            choicePoint.getGoalTerm());
       }
 
       final NumericTerm result;
 
-      switch (term.getTermType()) {
+      switch (thatTerm.getTermType()) {
         case ATOM: {
-          ProlAssertions.assertNumber(term);
-          result = (NumericTerm) term;
+          ProlAssertions.assertNumber(thatTerm);
+          result = (NumericTerm) thatTerm;
         }
         break;
         case STRUCT: {
-          final PredicateInvoker processor = ((TermStruct) term).getPredicateProcessor();
+          final PredicateInvoker processor = ((TermStruct) thatTerm).getPredicateProcessor();
           if (processor.isEvaluable()) {
-            result = (NumericTerm) processor.executeEvaluable(choicePoint, (TermStruct) term);
+            result = (NumericTerm) processor.executeEvaluable(choicePoint, (TermStruct) thatTerm);
           } else {
-            throw new ProlTypeErrorException("evaluable", "Non-evaluable item found: " + term,
-                term);
+            throw new ProlTypeErrorException("evaluable", "Non-evaluable item found: " + thatTerm,
+                choicePoint.getGoalTerm());
           }
         }
         break;
         default:
-          throw new ProlTypeErrorException("evaluable", "Can't evaluate item: " + term, term);
+          throw new ProlTypeErrorException("evaluable", "Can't evaluate item: " + term,
+              choicePoint.getGoalTerm());
       }
       return result;
     } catch (final ArithmeticException ex) {
-      throw new ProlEvaluationErrorException(ex.getMessage(), "Arithmetic exception", term, ex);
+      throw new ProlEvaluationErrorException(ex.getMessage(), "Arithmetic exception",
+          choicePoint.getGoalTerm(), ex);
     }
   }
 

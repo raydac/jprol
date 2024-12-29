@@ -199,7 +199,6 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
   private Term proveNext(final BiConsumer<String, Term> unknownPredicateConsumer) {
     Term result = null;
-
     boolean loop = true;
 
     while (loop) {
@@ -403,9 +402,9 @@ public final class JProlChoicePoint implements Comparator<Term> {
                         new JProlChoicePoint(this.rootChoicePoint, struct.getElement(0),
                             this.context, this.debug, this.validate, null);
                     leftSubbranch.nextAndTerm = this.nextAndTerm;
-                    setPayload(leftSubbranch);
+                    this.setPayload(leftSubbranch);
                   } else {
-                    replaceLastGoalAtChain(struct.getElement(1));
+                    this.replaceLastGoalAtChain(struct.getElement(1));
                   }
                   result = JProlChoicePointResult.STACK_CHANGED;
                   nonConsumed = false;
