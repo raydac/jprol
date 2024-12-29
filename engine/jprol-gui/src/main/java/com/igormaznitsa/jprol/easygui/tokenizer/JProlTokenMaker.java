@@ -9,11 +9,7 @@ import org.fife.ui.rsyntaxtextarea.TokenMap;
 public class JProlTokenMaker extends AbstractTokenMaker {
 
   public static final String MIME = "text/jprol";
-
-  protected final String operators = ",.;!|^/";
-  protected final String separators = "()[]";
-  protected final String separators2 = "+-^";
-  // Characters you don't want syntax highlighted but separate identifiers.
+  protected final String separators = "()[]{}|,.";
 
   private int currentTokenStart;
   private int currentTokenType;
@@ -100,32 +96,54 @@ public class JProlTokenMaker extends AbstractTokenMaker {
     int reservedWord = Token.RESERVED_WORD;
     tokenMap.put("not", reservedWord);
     tokenMap.put("is", reservedWord);
-    tokenMap.put(":-", reservedWord);
-    tokenMap.put("?-", reservedWord);
     tokenMap.put("fail", reservedWord);
     tokenMap.put("repeat", reservedWord);
     tokenMap.put("true", reservedWord);
     tokenMap.put("false", reservedWord);
-    tokenMap.put("::", reservedWord);
     tokenMap.put("div", reservedWord);
     tokenMap.put("mod", reservedWord);
     tokenMap.put("quot", reservedWord);
     tokenMap.put("rem", reservedWord);
-    tokenMap.put("^", reservedWord);
 
     int function = Token.FUNCTION;
     tokenMap.put("op", function);
 
     int operator = Token.OPERATOR;
+    tokenMap.put("?-", operator);
+    tokenMap.put("^", operator);
+    tokenMap.put(";", operator);
+    tokenMap.put("|", operator);
+    tokenMap.put("::", operator);
+    tokenMap.put("+", operator);
+    tokenMap.put("\\", operator);
+    tokenMap.put("-", operator);
     tokenMap.put("=", operator);
-    tokenMap.put("<", operator);
-    tokenMap.put(">", operator);
-    tokenMap.put("<>", operator);
-    tokenMap.put("><", operator);
-    tokenMap.put("<=", operator);
-    tokenMap.put(">=", operator);
-    tokenMap.put(":=", operator);
+    tokenMap.put("\\=", operator);
+    tokenMap.put("=..", operator);
+    tokenMap.put("<<", operator);
+    tokenMap.put(">>", operator);
     tokenMap.put("==", operator);
+    tokenMap.put("\\==", operator);
+    tokenMap.put("@<", operator);
+    tokenMap.put("@=<", operator);
+    tokenMap.put("@>", operator);
+    tokenMap.put("@>=", operator);
+    tokenMap.put("<", operator);
+    tokenMap.put("=<", operator);
+    tokenMap.put(">", operator);
+    tokenMap.put(">=", operator);
+    tokenMap.put("=:=", operator);
+    tokenMap.put("=\\=", operator);
+    tokenMap.put("is", operator);
+    tokenMap.put("*", operator);
+    tokenMap.put("/", operator);
+    tokenMap.put("**", operator);
+    tokenMap.put("//", operator);
+    tokenMap.put(":-", operator);
+    tokenMap.put("-->", operator);
+    tokenMap.put("/\\", operator);
+    tokenMap.put("\\/", operator);
+    tokenMap.put("\\/", operator);
 
     return tokenMap;
 
@@ -152,64 +170,57 @@ public class JProlTokenMaker extends AbstractTokenMaker {
     // See, when we find a token, its starting position is always of the form:
     // 'startOffset + (currentTokenStart-offset)'; but since startOffset and
     // offset are constant, tokens' starting positions become:
-    // 'newStartOffset+currentTokenStart' for one less subraction operation.
+    // 'newStartOffset+currentTokenStart' for one less subtraction operation.
     int newStartOffset = startOffset - offset;
 
     currentTokenStart = offset;
     currentTokenType = startTokenType;
     boolean backslash = false;
 
-//beginning:
     for (int i = offset; i < end; i++) {
-
       char c = array[i];
-
       switch (currentTokenType) {
-
-        case Token.NULL:
-
-          currentTokenStart = i;    // Starting a new token here.
-
+        case Token.NULL: {
+          currentTokenStart = i;
           switch (c) {
-
             case ' ':
-            case '\t':
+            case '\t': {
               currentTokenType = Token.WHITESPACE;
-              break;
-
-            case '\'':
-              if (backslash) { // Escaped double quote => call '"' an identifier..
+            }
+            break;
+            case '\'': {
+              if (backslash) {
                 addToken(text, currentTokenStart, i, Token.IDENTIFIER,
                     newStartOffset + currentTokenStart);
                 backslash = false;
               } else {
                 currentTokenType = Token.LITERAL_STRING_DOUBLE_QUOTE;
               }
-              break;
-
-            case '\\':
+            }
+            break;
+            case '\\': {
               addToken(text, currentTokenStart, i, Token.IDENTIFIER,
                   newStartOffset + currentTokenStart);
               currentTokenType = Token.NULL;
               backslash = !backslash;
-              break;
-
-            case '_':
-              if (backslash) { // Escaped dollar sign => call '$' an identifier..
+            }
+            break;
+            case '_': {
+              if (backslash) {
                 addToken(text, currentTokenStart, i, Token.IDENTIFIER,
                     newStartOffset + currentTokenStart);
                 backslash = false;
               } else {
                 currentTokenType = Token.VARIABLE;
               }
-              break;
-
-            case '%':
+            }
+            break;
+            case '%': {
               backslash = false;
               currentTokenType = Token.COMMENT_EOL;
-              break;
-
-            default:
+            }
+            break;
+            default: {
               if (RSyntaxUtilities.isLetter(c) && Character.isUpperCase(c)) {
                 currentTokenType = Token.VARIABLE;
                 break;
@@ -221,75 +232,56 @@ public class JProlTokenMaker extends AbstractTokenMaker {
                 currentTokenType = Token.IDENTIFIER;
                 break;
               }
-              int indexOf = operators.indexOf(c);
-              if (indexOf > -1) {
-                addToken(text, currentTokenStart, i, Token.OPERATOR,
-                    newStartOffset + currentTokenStart);
-                currentTokenType = Token.NULL;
-                break;
-              }
-              indexOf = separators.indexOf(c);
+              int indexOf = separators.indexOf(c);
               if (indexOf > -1) {
                 addToken(text, currentTokenStart, i, Token.SEPARATOR,
                     newStartOffset + currentTokenStart);
                 currentTokenType = Token.NULL;
                 break;
               }
-              indexOf = separators2.indexOf(c);
-              if (indexOf > -1) {
-                addToken(text, currentTokenStart, i, Token.IDENTIFIER,
-                    newStartOffset + currentTokenStart);
-                currentTokenType = Token.NULL;
-              } else {
-                currentTokenType = Token.IDENTIFIER;
-              }
-              break;
-
-          } // End of switch (c).
-
-          break;
-
-        case Token.WHITESPACE:
-
+              currentTokenType = Token.IDENTIFIER;
+            }
+            break;
+          }
+        }
+        break;
+        case Token.WHITESPACE: {
           switch (c) {
-
             case ' ':
             case '\t':
-              break;    // Still whitespace.
-
-            case '\\':
+              break;
+            case '\\': {
               addToken(text, currentTokenStart, i - 1, Token.WHITESPACE,
                   newStartOffset + currentTokenStart);
               addToken(text, i, i, Token.IDENTIFIER, newStartOffset + i);
               currentTokenType = Token.NULL;
               backslash = true; // Previous char whitespace => this must be first backslash.
-              break;
-
-            case '\'': // Don't need to worry about backslashes as previous char is space.
+            }
+            break;
+            case '\'': {// Don't need to worry about backslashes as previous char is space.
               addToken(text, currentTokenStart, i - 1, Token.WHITESPACE,
                   newStartOffset + currentTokenStart);
               currentTokenStart = i;
               currentTokenType = Token.LITERAL_STRING_DOUBLE_QUOTE;
               backslash = false;
-              break;
-
-            case '_': // Don't need to worry about backslashes as previous char is space.
+            }
+            break;
+            case '_': { // Don't need to worry about backslashes as previous char is space.
               addToken(text, currentTokenStart, i - 1, Token.WHITESPACE,
                   newStartOffset + currentTokenStart);
               currentTokenStart = i;
               currentTokenType = Token.VARIABLE;
               backslash = false;
-              break;
-
-            case '%':
+            }
+            break;
+            case '%': {
               addToken(text, currentTokenStart, i - 1, Token.WHITESPACE,
                   newStartOffset + currentTokenStart);
               currentTokenStart = i;
               currentTokenType = Token.COMMENT_EOL;
-              break;
-
-            default:    // Add the whitespace token and start anew.
-
+            }
+            break;
+            default: {    // Add the whitespace token and start anew.
               addToken(text, currentTokenStart, i - 1, Token.WHITESPACE,
                   newStartOffset + currentTokenStart);
               currentTokenStart = i;
@@ -306,80 +298,56 @@ public class JProlTokenMaker extends AbstractTokenMaker {
                 currentTokenType = Token.IDENTIFIER;
                 break;
               }
-              int indexOf = operators.indexOf(c);
-              if (indexOf > -1) {
-                addToken(text, i, i, Token.OPERATOR, newStartOffset + i);
-                currentTokenType = Token.NULL;
-                break;
-              }
-              indexOf = separators.indexOf(c);
+              int indexOf = separators.indexOf(c);
               if (indexOf > -1) {
                 addToken(text, i, i, Token.SEPARATOR, newStartOffset + i);
                 currentTokenType = Token.NULL;
                 break;
               }
-              indexOf = separators2.indexOf(c);
-              if (indexOf > -1) {
-                addToken(text, i, i, Token.IDENTIFIER, newStartOffset + i);
-                currentTokenType = Token.NULL;
-                break;
-              } else {
-                currentTokenType = Token.IDENTIFIER;
-              }
-
-          } // End of switch (c).
-
-          break;
-
-        default: // Should never happen
-        case Token.IDENTIFIER:
-
+              currentTokenType = Token.IDENTIFIER;
+            }
+          }
+        }
+        break;
+        case Token.IDENTIFIER: {
           switch (c) {
-
             case ' ':
-            case '\t':
+            case '\t': {
               addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER,
                   newStartOffset + currentTokenStart);
               currentTokenStart = i;
               currentTokenType = Token.WHITESPACE;
-              break;
-
-            case '/': // Special-case to colorize commands like "echo" in "/bin/echo"
+            }
+            break;
+            case '/': {
               addToken(text, currentTokenStart, i, Token.IDENTIFIER,
                   newStartOffset + currentTokenStart);
               currentTokenStart = i + 1;
               currentTokenType = Token.NULL;
-              break;
-
-            case '\'': // Don't need to worry about backslashes as previous char is non-backslash.
+            }
+            break;
+            case '\'': {
               addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER,
                   newStartOffset + currentTokenStart);
               currentTokenStart = i;
               currentTokenType = Token.LITERAL_STRING_DOUBLE_QUOTE;
               backslash = false;
-              break;
-
-            case '\\':
+            }
+            break;
+            case '\\': {
               addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER,
                   newStartOffset + currentTokenStart);
               addToken(text, i, i, Token.IDENTIFIER, newStartOffset + i);
               currentTokenType = Token.NULL;
               backslash = true;
-              break;
+            }
+            break;
 
-            default:
+            default: {
               if (RSyntaxUtilities.isLetterOrDigit(c) || c == '_') {
                 break;    // Still an identifier of some type.
               }
-              int indexOf = operators.indexOf(c);
-              if (indexOf > -1) {
-                addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER,
-                    newStartOffset + currentTokenStart);
-                addToken(text, i, i, Token.OPERATOR, newStartOffset + i);
-                currentTokenType = Token.NULL;
-                break;
-              }
-              indexOf = separators.indexOf(c);
+              int indexOf = separators.indexOf(c);
               if (indexOf > -1) {
                 addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER,
                     newStartOffset + currentTokenStart);
@@ -387,70 +355,49 @@ public class JProlTokenMaker extends AbstractTokenMaker {
                 currentTokenType = Token.NULL;
                 break;
               }
-              indexOf = separators2.indexOf(c);
-              if (indexOf > -1) {
-                addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER,
-                    newStartOffset + currentTokenStart);
-                addToken(text, i, i, Token.IDENTIFIER, newStartOffset + i);
-                currentTokenType = Token.NULL;
-                break;
-              }
-              // Otherwise, we're still an identifier (?).
-
-          } // End of switch (c).
-
-          break;
-
-        case Token.LITERAL_NUMBER_DECIMAL_INT:
-
+            }
+          }
+        }
+        break;
+        case Token.LITERAL_NUMBER_DECIMAL_INT: {
           switch (c) {
-
             case ' ':
-            case '\t':
+            case '\t': {
               addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT,
                   newStartOffset + currentTokenStart);
               currentTokenStart = i;
               currentTokenType = Token.WHITESPACE;
-              break;
-
-            case '\'': // Don't need to worry about backslashes as previous char is non-backslash.
+            }
+            break;
+            case '\'': {
               addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT,
                   newStartOffset + currentTokenStart);
               currentTokenStart = i;
               currentTokenType = Token.LITERAL_STRING_DOUBLE_QUOTE;
               backslash = false;
-              break;
-
-            case '_': // Don't need to worry about backslashes as previous char is non-backslash.
+            }
+            break;
+            case '_': {
               addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT,
                   newStartOffset + currentTokenStart);
               currentTokenStart = i;
               currentTokenType = Token.VARIABLE;
               backslash = false;
-              break;
-
-            case '\\':
+            }
+            break;
+            case '\\': {
               addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT,
                   newStartOffset + currentTokenStart);
               addToken(text, i, i, Token.IDENTIFIER, newStartOffset + i);
               currentTokenType = Token.NULL;
               backslash = true;
-              break;
-
-            default:
-
+            }
+            break;
+            default: {
               if (RSyntaxUtilities.isDigit(c)) {
-                break;    // Still a literal number.
-              }
-              int indexOf = operators.indexOf(c);
-              if (indexOf > -1) {
-                addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT,
-                    newStartOffset + currentTokenStart);
-                addToken(text, i, i, Token.OPERATOR, newStartOffset + i);
-                currentTokenType = Token.NULL;
                 break;
               }
-              indexOf = separators.indexOf(c);
+              int indexOf = separators.indexOf(c);
               if (indexOf > -1) {
                 addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT,
                     newStartOffset + currentTokenStart);
@@ -458,32 +405,18 @@ public class JProlTokenMaker extends AbstractTokenMaker {
                 currentTokenType = Token.NULL;
                 break;
               }
-              indexOf = separators2.indexOf(c);
-              if (indexOf > -1) {
-                addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT,
-                    newStartOffset + currentTokenStart);
-                addToken(text, i, i, Token.IDENTIFIER, newStartOffset + i);
-                currentTokenType = Token.NULL;
-                break;
-              }
-
-              // Otherwise, remember this was a number and start over.
               addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT,
                   newStartOffset + currentTokenStart);
               i--;
               currentTokenType = Token.NULL;
-
-          } // End of switch (c).
-
-          break;
-
-        case Token.VARIABLE:
-
-          // If we didn't find the '{' character, find the end of the variable...
+            }
+          }
+        }
+        break;
+        case Token.VARIABLE: {
           while (i < end) {
-            c =
-                array[i];    // Not needed the first iteration, but can't think of a better way to do it...
-            if (!RSyntaxUtilities.isLetterOrDigit(c) && c != '_') {
+            c = array[i];
+            if (!RSyntaxUtilities.isLetterOrDigit(c) && c != '_' || separators.indexOf(c) >= 0) {
               addToken(text, currentTokenStart, i - 1, Token.VARIABLE,
                   newStartOffset + currentTokenStart);
               i--;
@@ -492,101 +425,79 @@ public class JProlTokenMaker extends AbstractTokenMaker {
             }
             i++;
           }
-
-          // This only happens if we never found the end of the variable in the loop above.
           if (i == end) {
             addToken(text, currentTokenStart, i - 1, Token.VARIABLE,
                 newStartOffset + currentTokenStart);
             currentTokenType = Token.NULL;
           }
-
-          break;
-
-        case Token.COMMENT_EOL:
+        }
+        break;
+        case Token.COMMENT_EOL: {
           i = end - 1;
           addToken(text, currentTokenStart, i, currentTokenType,
               newStartOffset + currentTokenStart);
-          // We need to set token type to null so at the bottom we don't add one more token.
           currentTokenType = Token.NULL;
-
-          break;
-
-        case Token.LITERAL_CHAR:
-
+        }
+        break;
+        case Token.LITERAL_CHAR: {
           if (c == '\\') {
-            backslash =
-                !backslash; // Okay because if we got in here, backslash was initially false.
+            backslash = !backslash;
           } else {
             if (c == '\'' && !backslash) {
               addToken(text, currentTokenStart, i, Token.LITERAL_CHAR,
                   newStartOffset + currentTokenStart);
               currentTokenStart = i + 1;
               currentTokenType = Token.NULL;
-              // backslash is definitely false when we leave.
             }
-
-            backslash = false; // Need to set backslash to false here as a character was typed.
-
+            backslash = false;
           }
-          // Otherwise, we're still an unclosed char literal...
-
-          break;
-
-        case Token.LITERAL_STRING_DOUBLE_QUOTE:
-
+        }
+        break;
+        case Token.LITERAL_STRING_DOUBLE_QUOTE: {
           switch (c) {
-
-            case '\\':
+            case '\\': {
               backslash = !backslash;
-              break;
-
-            case '\'':
+            }
+            break;
+            case '\'': {
               if (!backslash) {
                 addToken(text, currentTokenStart, i, Token.LITERAL_STRING_DOUBLE_QUOTE,
                     newStartOffset + currentTokenStart);
                 currentTokenType = Token.NULL;
-                // backslash is definitely false when we leave.
                 break;
               }
               backslash = false;
-              break;
-
-            // Otherwise, we're still in an unclosed string...
-            default:
-              backslash = false; // Need to set backslash to false here as a character was typed.
-
-          } // End of switch (c).
-
-          break;
-
-      } // End of switch (currentTokenType).
-
-    } // End of for (int i=offset; i<end; i++).
-
-    switch (currentTokenType) {
-
-      // Remember what token type to begin the next line with.
-      case Token.LITERAL_STRING_DOUBLE_QUOTE:
-      case Token.LITERAL_CHAR:
-        addToken(text, currentTokenStart, end - 1, currentTokenType,
-            newStartOffset + currentTokenStart);
+            }
+            break;
+            default: {
+              backslash = false;
+            }
+          }
+        }
         break;
-
-      // Do nothing if everything was okay.
-      case Token.NULL:
-        addNullToken();
-        break;
-
-      // All other token types don't continue to the next line...
-      default:
-        addToken(text, currentTokenStart, end - 1, currentTokenType,
-            newStartOffset + currentTokenStart);
-        addNullToken();
-
+        default: {
+          throw new Error("Must not be called");
+        }
+      }
     }
 
-    // Return the first token in our linked list.
+    switch (currentTokenType) {
+      case Token.LITERAL_STRING_DOUBLE_QUOTE:
+      case Token.LITERAL_CHAR: {
+        addToken(text, currentTokenStart, end - 1, currentTokenType,
+            newStartOffset + currentTokenStart);
+      }
+      break;
+      case Token.NULL: {
+        addNullToken();
+      }
+      break;
+      default: {
+        addToken(text, currentTokenStart, end - 1, currentTokenType,
+            newStartOffset + currentTokenStart);
+        addNullToken();
+      }
+    }
     return firstToken;
-
   }
 }
