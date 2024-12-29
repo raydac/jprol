@@ -127,7 +127,9 @@ import java.util.stream.Stream;
 @JProlOperator(priority = 200, type = XFY, name = "^")
 @JProlConsultText({
     "append([], Z, Z).",
-    "append([A|B], Z, [A|Z2]) :- append(B, Z, Z2)."
+    "append([A|B], Z, [A|Z2]) :- append(B, Z, Z2).",
+    "member(X,[X|_]).",
+    "member(X,[A|Rest]):-member(X,Rest)."
 })
 public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
