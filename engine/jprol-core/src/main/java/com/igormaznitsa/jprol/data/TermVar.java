@@ -321,10 +321,10 @@ public final class TermVar extends Term {
     if (this == atom) {
       return true;
     } else {
-      final Term val = getValue();
+      final Term val = this.getValue();
       final boolean result;
       if (val == null) {
-        result = setValue(atom);
+        result = this.setValue(atom);
       } else {
         result = val.unifyTo(atom);
       }
