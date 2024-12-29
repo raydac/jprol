@@ -344,8 +344,11 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     final Component c = this.scrollPane.getViewport().getView();
 
     if (c instanceof RSyntaxTextArea) {
+      this.wordWrap = value;
       ((RSyntaxTextArea) c).setLineWrap(value);
     } else {
+      this.wordWrap = value;
+
       if (c != null) {
         this.scrollPane.getViewport().remove(c);
       }
@@ -354,8 +357,6 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
       if (editorParent != null) {
         editorParent.remove(this.editor);
       }
-
-      this.wordWrap = value;
 
       if (value) {
         this.scrollPane.getViewport().setView(this.editor);

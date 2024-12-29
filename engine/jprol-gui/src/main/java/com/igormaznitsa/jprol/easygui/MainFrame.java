@@ -418,28 +418,26 @@ public final class MainFrame extends javax.swing.JFrame
   }
 
   private void fillLFMenuItem() {
-    final LookAndFeelInfo[] plaf = UIManager.getInstalledLookAndFeels();
+    final LookAndFeelInfo[] installedLafs = UIManager.getInstalledLookAndFeels();
     this.lookAndFeelMap = new HashMap<>();
-    final ButtonGroup lfGroup = new ButtonGroup();
+    final ButtonGroup lafGroup = new ButtonGroup();
 
-    final ActionListener lfListener = (final ActionEvent e) -> {
+    final ActionListener lafChangeListener = (final ActionEvent e) -> {
       final JLFRadioButtonItem item = (JLFRadioButtonItem) e.getSource();
-      setSelectedLookAndFeel(item.getLfClassName());
+      this.setSelectedLookAndFeel(item.getLfClassName());
     };
 
-    for (LookAndFeelInfo aPlaf : plaf) {
-      lookAndFeelMap.put(aPlaf.getClassName(), aPlaf);
-      JRadioButtonMenuItem menuItem = new JLFRadioButtonItem(aPlaf.getName(), aPlaf.getClassName());
-
-      menuItem.addActionListener(lfListener);
-
-      lfGroup.add(menuItem);
-      menuLookAndFeel.add(menuItem);
+    for (final LookAndFeelInfo laf : installedLafs) {
+      this.lookAndFeelMap.put(laf.getClassName(), laf);
+      final JRadioButtonMenuItem menuItem =
+          new JLFRadioButtonItem(laf.getName(), laf.getClassName());
+      menuItem.addActionListener(lafChangeListener);
+      lafGroup.add(menuItem);
+      this.menuLookAndFeel.add(menuItem);
     }
   }
 
   private void setSelectedLookAndFeel(String lookAndFeelClassName) {
-
     if (lookAndFeelClassName != null) {
       if (!this.lookAndFeelMap.containsKey(lookAndFeelClassName)) {
         lookAndFeelClassName = null;
@@ -1785,6 +1783,8 @@ public final class MainFrame extends javax.swing.JFrame
     this.messageEditor.loadPreferences(prefs);
     this.dialogEditor.loadPreferences(prefs);
     this.traceEditor.loadPreferences(prefs);
+
+    this.menuItemWordWrapSources.setState(this.sourceEditor.getEdWordWrap());
   }
 
   private void savePreferences() {

@@ -28,7 +28,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
   public static final String PROPERTY_SOURCE_BACK_COLOR = "sourceedbackcolor";
   public static final String PROPERTY_SOURCE_FONT = "sourcefont";
   public static final Font DEFAULT_SORCE_FONT =
-      LocalFont.LOCAL_JET_BRAINS_MONO.getFont().deriveFont(Font.PLAIN, 12);
+      LocalFont.LOCAL_JET_BRAINS_MONO.getFont().deriveFont(Font.PLAIN, 18);
   /**
    * Inside logger, the logger id = "PROL_NOTE_PAD"
    */
@@ -136,19 +136,16 @@ public class PrologSourceEditor extends AbstractProlEditor {
     final Color fgColor = extractColor(preferences, PROPERTY_SOURCE_FOREGROUND_COLOR);
 
     if (backColor != null) {
-      setEdBackground(backColor);
+      this.setEdBackground(backColor);
     }
     if (caretColor != null) {
-      setEdCaretColor(caretColor);
+      this.setEdCaretColor(caretColor);
     }
     if (fgColor != null) {
-      setEdForeground(fgColor);
+      this.setEdForeground(fgColor);
     }
     this.setEdWordWrap(preferences.getBoolean(PROPERTY_SOURCE_WORDWRAP, true));
-    final Font sourceEditorFont =
-        loadFontFromPrefs(preferences, PROPERTY_SOURCE_FONT, DEFAULT_SORCE_FONT);
-    ((ScalableRsyntaxTextArea) this.getEditor()).setBaseFont(sourceEditorFont);
-    this.setEdFont(sourceEditorFont);
+    this.setEdAndBaseFont(loadFontFromPrefs(preferences, PROPERTY_SOURCE_FONT, DEFAULT_SORCE_FONT));
   }
 
   @Override

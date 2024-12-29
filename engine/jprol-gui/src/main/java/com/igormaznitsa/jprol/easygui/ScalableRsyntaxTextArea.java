@@ -60,6 +60,15 @@ public final class ScalableRsyntaxTextArea extends RSyntaxTextArea {
     updateFontForScale();
   }
 
+  @Override
+  public void setFont(final Font font) {
+    if (this.baseFont == null) {
+      super.setFont(font);
+    } else {
+      this.updateFontForScale();
+    }
+  }
+
   public Font getBaseFont() {
     return this.baseFont;
   }
@@ -72,38 +81,40 @@ public final class ScalableRsyntaxTextArea extends RSyntaxTextArea {
   }
 
   private void updateFontForScale() {
-    float fontSize = this.fontScale * this.baseFont.getSize2D();
+    if (this.baseFont != null) {
+      float fontSize = this.fontScale * this.baseFont.getSize2D();
 
-    if (fontSize < 1.0f) {
-      fontSize = 1.0f;
-    }
+      if (fontSize < 1.0f) {
+        fontSize = 1.0f;
+      }
 
-    SyntaxScheme scheme = this.getSyntaxScheme();
-    int count = scheme.getStyleCount();
-    for (int i = 0; i < count; i++) {
-      Style ss = scheme.getStyle(i);
-      if (ss != null) {
-        Font font = ss.font;
-        if (font != null) {
-          ss.font = font.deriveFont(fontSize);
+      SyntaxScheme scheme = this.getSyntaxScheme();
+      int count = scheme.getStyleCount();
+      for (int i = 0; i < count; i++) {
+        Style ss = scheme.getStyle(i);
+        if (ss != null) {
+          Font font = ss.font;
+          if (font != null) {
+            ss.font = font.deriveFont(fontSize);
+          }
         }
       }
-    }
 
-    this.setFont(this.getFont().deriveFont(fontSize));
+      super.setFont(this.getFont().deriveFont(fontSize));
 
-    this.setSyntaxScheme(scheme);
+      this.setSyntaxScheme(scheme);
 
-    Component parent = this.getParent();
-    if (parent instanceof JViewport) {
-      parent = parent.getParent();
-      if (parent instanceof RTextScrollPane) {
-        final Gutter gutter = ((RTextScrollPane) parent).getGutter();
-        gutter.setLineNumberFont(gutter.getLineNumberFont().deriveFont(fontSize));
-      }
+      Component parent = this.getParent();
+      if (parent instanceof JViewport) {
+        parent = parent.getParent();
+        if (parent instanceof RTextScrollPane) {
+          final Gutter gutter = ((RTextScrollPane) parent).getGutter();
+          gutter.setLineNumberFont(gutter.getLineNumberFont().deriveFont(fontSize));
+        }
 
-      if (parent instanceof JScrollPane) {
-        parent.repaint();
+        if (parent instanceof JScrollPane) {
+          parent.repaint();
+        }
       }
     }
   }
