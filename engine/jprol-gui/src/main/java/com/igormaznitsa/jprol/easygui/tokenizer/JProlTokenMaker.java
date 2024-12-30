@@ -407,14 +407,6 @@ public class JProlTokenMaker extends AbstractTokenMaker {
               backslash = false;
             }
             break;
-            case '_': {
-              addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT,
-                  newStartOffset + currentTokenStart);
-              currentTokenStart = i;
-              currentTokenType = Token.VARIABLE;
-              backslash = false;
-            }
-            break;
             case '\\': {
               addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT,
                   newStartOffset + currentTokenStart);
@@ -424,7 +416,7 @@ public class JProlTokenMaker extends AbstractTokenMaker {
             }
             break;
             default: {
-              if (RSyntaxUtilities.isDigit(c)) {
+              if (RSyntaxUtilities.isDigit(c) || c == '_') {
                 break;
               }
               int indexOf = separators.indexOf(c);
