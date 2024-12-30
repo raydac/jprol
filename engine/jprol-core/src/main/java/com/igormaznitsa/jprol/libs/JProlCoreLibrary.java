@@ -125,11 +125,17 @@ import java.util.stream.Stream;
 @JProlOperator(priority = 200, type = FY, name = "\\")
 @JProlOperator(priority = 200, type = XFX, name = "**")
 @JProlOperator(priority = 200, type = XFY, name = "^")
-@JProlConsultText({
-    "append([], Z, Z).",
-    "append([A|B], Z, [A|Z2]) :- append(B, Z, Z2).",
+@JProlConsultText(value = {
+    "append([], Zs, Zs).",
+    "append([X|Xs], Ys, [X|Zs]) :- append(Xs, Ys, Zs).",
     "member(X,[X|_]).",
     "member(X,[A|Rest]):-member(X,Rest)."
+},
+    declaredPredicates = {
+        @JProlPredicate(signature = "append/3", args = {"?term", "?term",
+            "?term"}, reference = "append(Xs, Ys, Zs) is true if Zs is the concatenation of the lists Xs and Ys. More precisely, append(Xs, Ys, Zs) is true iff the list Xs is a list prefix of Zs and Ys is Zs with prefix Xs removed."),
+        @JProlPredicate(signature = "member/2", args = {"?term",
+            "?list"}, reference = "member(X, List) is true if and only if X is an element contained in List. If X is not instantiated, it will be instantiated with all the values in List.")
 })
 public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
