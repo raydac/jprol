@@ -16,6 +16,7 @@
 
 package com.igormaznitsa.jprol.easygui;
 
+import com.igormaznitsa.jprol.annotations.JProlConsultText;
 import com.igormaznitsa.jprol.annotations.JProlOperator;
 import com.igormaznitsa.jprol.annotations.JProlOperators;
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
@@ -75,62 +76,67 @@ public final class UiUtils {
             color.getBlue() * color.getBlue() * .068d);
   }
 
-  public static void printPredicatesForLibrary(final PrintStream out, final Class<?> libraryClass) {
+  public static void printPredicatesForLibrary(final PrintStream targetPrintStream,
+                                               final Class<?> libraryClass) {
     if (!AbstractJProlLibrary.class.isAssignableFrom(libraryClass)) {
-      out.println(libraryClass.getCanonicalName() + " is not an AbstractLibrary class");
+      targetPrintStream.println(
+          libraryClass.getCanonicalName() + " is not an AbstractLibrary class");
       return;
     }
 
     final Method[] methods = libraryClass.getMethods();
-    out.println(libraryClass.getCanonicalName());
-    out.println("===============================================");
+    targetPrintStream.println(libraryClass.getCanonicalName());
+    targetPrintStream.println("===============================================");
 
+    final JProlConsultText consult = libraryClass.getAnnotation(JProlConsultText.class);
     final JProlOperators operators = libraryClass.getAnnotation(JProlOperators.class);
     final JProlOperator operator = libraryClass.getAnnotation(JProlOperator.class);
     if (operators != null || operator != null) {
-      out.println("Operators\n-----------------------");
+      targetPrintStream.println("Operators\n-----------------------");
       Stream.concat(operators == null ? Stream.empty() : Arrays.stream(operators.value()),
               operator == null ? Stream.empty() : Stream.of(operator))
           .filter(op -> op.priority() > 0)
           .sorted(Comparator.comparingInt(JProlOperator::priority))
-          .forEach(op -> out.printf(":-op(%d,%s,%s).%n", op.priority(), op.type(), op.name()));
+          .forEach(op -> targetPrintStream.printf(":-op(%d,%s,%s).%n", op.priority(), op.type(),
+              op.name()));
     }
 
-    for (final Method method : methods) {
-      final JProlPredicate predicate = method.getAnnotation(JProlPredicate.class);
-      if (predicate != null) {
-        final boolean determined = predicate.determined();
-        out.print(predicate.signature());
-        if (predicate.synonyms().length > 0) {
-          out.print(" {");
-          final String[] signatures = predicate.synonyms();
-          for (int ls = 0; ls < signatures.length; ls++) {
-            if (ls > 0) {
-              out.print(", ");
+    Stream.concat(Arrays.stream(methods).filter(x -> x.getAnnotation(JProlPredicate.class) != null)
+                .map(x -> x.getAnnotation(JProlPredicate.class))
+            , consult == null ? Stream.empty() : Arrays.stream(consult.declaredPredicates())).sorted(
+            Comparator.comparing(JProlPredicate::signature))
+        .forEach(predicate -> {
+          final boolean determined = predicate.determined();
+          targetPrintStream.print(predicate.signature());
+          if (predicate.synonyms().length > 0) {
+            targetPrintStream.print(" {");
+            final String[] signatures = predicate.synonyms();
+            for (int ls = 0; ls < signatures.length; ls++) {
+              if (ls > 0) {
+                targetPrintStream.print(", ");
+              }
+              targetPrintStream.print(signatures[ls]);
             }
-            out.print(signatures[ls]);
+            targetPrintStream.print("}");
           }
-          out.print("}");
-        }
-        if (determined) {
-          out.print(" [DETERMINED]");
-        }
-        out.println();
+          if (determined) {
+            targetPrintStream.print(" [DETERMINED]");
+          }
+          targetPrintStream.println();
 
-        final String[] templates = predicate.args();
-        for (String template : templates) {
-          out.println('[' + template + ']');
-        }
+          final String[] templates = predicate.args();
+          for (String template : templates) {
+            targetPrintStream.println('[' + template + ']');
+          }
 
-        final String reference = predicate.reference();
-        if (reference != null && !reference.isEmpty()) {
-          out.println();
-          out.println(reference);
-        }
+          final String reference = predicate.reference();
+          if (reference != null && !reference.isEmpty()) {
+            targetPrintStream.println();
+            targetPrintStream.println(reference);
+          }
 
-        out.println("---------------------\r\n");
-      }
-    }
+          targetPrintStream.println("---------------------\r\n");
+        });
   }
 
   public static void doInSwingThread(final Runnable runnable) {

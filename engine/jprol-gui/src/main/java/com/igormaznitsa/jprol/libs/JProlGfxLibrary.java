@@ -893,8 +893,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     }
   }
 
-  @JProlPredicate(determined = true, signature = "drawsprite/3", args = {"+atom", "+number",
-      "+number"}, reference = "Arguments (sprite_id, x, y). Draw a sprite by its sprite id at coordinates.")
+  @JProlPredicate(determined = true, signature = "drawsprite/3", args = {
+      "+atom, +number, +number"}, reference = "Arguments (sprite_id, x, y). Draw a sprite by its sprite id at coordinates.")
   public boolean predicateDRAWSPRITE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term path = predicate.getElement(0).findNonVarOrSame();
     final Term x = predicate.getElement(1).findNonVarOrSame();
@@ -924,8 +924,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   }
 
   @JProlPredicate(determined = true, signature = "loadsprite/2", args = {
-      "+atom",
-      "+atom"}, reference = "Arguments (sprite_id, image_path). Format can be 'png','jpg' or 'gif'. Load sprite from file and keep it as named by sprite id. It can throw 'permission_error' exception if it is not possible to read the image.")
+      "+atom,+atom"}, reference = "Arguments (sprite_id, image_path). Format can be 'png','jpg' or 'gif'. Load sprite from file and keep it as named by sprite id. It can throw 'permission_error' exception if it is not possible to read the image.")
   public boolean predicateLOADSPRITE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term spriteId = predicate.getElement(0).findNonVarOrSame();
     final Term path = predicate.getElement(1).findNonVarOrSame();

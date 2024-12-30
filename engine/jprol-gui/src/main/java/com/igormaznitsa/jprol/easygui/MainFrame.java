@@ -1052,7 +1052,7 @@ public final class MainFrame extends javax.swing.JFrame
     try {
       infoDialog = new LibraryInfoDialog(this, list.toArray(new String[0]));
     } catch (Exception ex) {
-      LOGGER.throwing(this.getClass().getCanonicalName(), "MenuItemLibraryInfoActionPerformed()",
+      LOGGER.log(Level.SEVERE, "MenuItemLibraryInfoActionPerformed()",
           ex);
       this.messageEditor.addErrorText("Can't show library info dialog [" + ex.getMessage() + ']');
       return;
