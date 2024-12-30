@@ -44,6 +44,8 @@ public class JProlTokenMaker extends AbstractTokenMaker {
       case Token.SEPARATOR:
       case Token.OPERATOR:
       case Token.LITERAL_NUMBER_DECIMAL_INT:
+      case Token.LITERAL_NUMBER_HEXADECIMAL:
+      case Token.LITERAL_NUMBER_FLOAT:
       case Token.LITERAL_STRING_DOUBLE_QUOTE:
       case Token.LITERAL_CHAR:
       case Token.COMMENT_EOL:
@@ -419,6 +421,17 @@ public class JProlTokenMaker extends AbstractTokenMaker {
               if (RSyntaxUtilities.isDigit(c) || c == '_') {
                 break;
               }
+
+              if (c == '.') {
+                currentTokenType = Token.LITERAL_NUMBER_FLOAT;
+                break;
+              }
+
+              if (c == 'x' || c == 'X') {
+                currentTokenType = Token.LITERAL_NUMBER_HEXADECIMAL;
+                break;
+              }
+
               int indexOf = separators.indexOf(c);
               if (indexOf > -1) {
                 addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT,
@@ -428,6 +441,101 @@ public class JProlTokenMaker extends AbstractTokenMaker {
                 break;
               }
               addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_DECIMAL_INT,
+                  newStartOffset + currentTokenStart);
+              i--;
+              currentTokenType = Token.NULL;
+            }
+          }
+        }
+        break;
+        case Token.LITERAL_NUMBER_FLOAT: {
+          switch (c) {
+            case ' ':
+            case '\t': {
+              addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_FLOAT,
+                  newStartOffset + currentTokenStart);
+              currentTokenStart = i;
+              currentTokenType = Token.WHITESPACE;
+            }
+            break;
+            case '\'': {
+              addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_FLOAT,
+                  newStartOffset + currentTokenStart);
+              currentTokenStart = i;
+              currentTokenType = Token.LITERAL_STRING_DOUBLE_QUOTE;
+              backslash = false;
+            }
+            break;
+            case '\\': {
+              addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_FLOAT,
+                  newStartOffset + currentTokenStart);
+              addToken(text, i, i, Token.IDENTIFIER, newStartOffset + i);
+              currentTokenType = Token.NULL;
+              backslash = true;
+            }
+            break;
+            default: {
+              if (RSyntaxUtilities.isDigit(c) || c == '_') {
+                break;
+              }
+
+              int indexOf = separators.indexOf(c);
+              if (indexOf > -1) {
+                addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_FLOAT,
+                    newStartOffset + currentTokenStart);
+                addToken(text, i, i, Token.SEPARATOR, newStartOffset + i);
+                currentTokenType = Token.NULL;
+                break;
+              }
+              addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_FLOAT,
+                  newStartOffset + currentTokenStart);
+              i--;
+              currentTokenType = Token.NULL;
+            }
+          }
+        }
+        break;
+        case Token.LITERAL_NUMBER_HEXADECIMAL: {
+          switch (c) {
+            case ' ':
+            case '\t': {
+              addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_HEXADECIMAL,
+                  newStartOffset + currentTokenStart);
+              currentTokenStart = i;
+              currentTokenType = Token.WHITESPACE;
+            }
+            break;
+            case '\'': {
+              addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_HEXADECIMAL,
+                  newStartOffset + currentTokenStart);
+              currentTokenStart = i;
+              currentTokenType = Token.LITERAL_STRING_DOUBLE_QUOTE;
+              backslash = false;
+            }
+            break;
+            case '\\': {
+              addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_HEXADECIMAL,
+                  newStartOffset + currentTokenStart);
+              addToken(text, i, i, Token.IDENTIFIER, newStartOffset + i);
+              currentTokenType = Token.NULL;
+              backslash = true;
+            }
+            break;
+            default: {
+              if (RSyntaxUtilities.isDigit(c) || c == '_' || (c >= 'a' && c <= 'f') ||
+                  (c >= 'A' && c <= 'F')) {
+                break;
+              }
+
+              int indexOf = separators.indexOf(c);
+              if (indexOf > -1) {
+                addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_HEXADECIMAL,
+                    newStartOffset + currentTokenStart);
+                addToken(text, i, i, Token.SEPARATOR, newStartOffset + i);
+                currentTokenType = Token.NULL;
+                break;
+              }
+              addToken(text, currentTokenStart, i - 1, Token.LITERAL_NUMBER_HEXADECIMAL,
                   newStartOffset + currentTokenStart);
               i--;
               currentTokenType = Token.NULL;
