@@ -164,7 +164,7 @@ class ListTest extends AbstractJProlTest {
 
     cp = new JProlChoicePoint("append([a,b], More, List).", context);
     assertNotNull(cp.prove());
-    assertEquals("['a','b'|Z]", getVarAsText(cp, "List"));
+    assertEquals("['a','b'|Zs]", getVarAsText(cp, "List"));
     assertNull(cp.prove());
 
   }
