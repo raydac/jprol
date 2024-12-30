@@ -49,6 +49,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -84,6 +85,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   private final JMenu boundActionsMenu = new JMenu("Actions");
   private final JMenuBar menuBar = new JMenuBar();
   private final Map<String, BufferedImage> imageSpriteMap = new ConcurrentHashMap<>();
+  private final Map<String, SoundClip> soundClipMap = new ConcurrentHashMap<>();
   private File lastSavedImage = null;
   private BufferedImage bufferedImage;
   private Graphics bufferGraphics;
@@ -206,8 +208,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
    * color as #RRGGBB
    */
   private static Term getColorAsTerm(final Color color) {
-    final String colorhex = Integer.toHexString(color.getRGB() & 0xFFFFFF).toUpperCase();
-    final int len = colorhex.length();
+    final String colorHex = Integer.toHexString(color.getRGB() & 0xFFFFFF).toUpperCase();
+    final int len = colorHex.length();
 
     final StringBuilder bldr = new StringBuilder(7);
     bldr.append('#');
@@ -215,7 +217,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     if (len < 6) {
       bldr.append("00000".substring(len - 1));
     }
-    bldr.append(colorhex);
+    bldr.append(colorHex);
 
     return Terms.newAtom(bldr.toString());
   }
@@ -829,7 +831,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   private final AtomicReference<SourceDataLine> soundDataLine = new AtomicReference<>();
   private final Lock soundAccessLocker = new ReentrantLock();
 
-  @JProlPredicate(determined = true, signature = "playsound/2", args = {
+  @JProlPredicate(determined = true, signature = "play_sound/2", args = {
       "+number,+number"}, reference = "Arguments (frequency_hz,length_ms). Generate sound tone with frequency in hertz and length in milliseconds.")
   public void predicatePLAYSOUND(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term freqHz = predicate.getElement(0).findNonVarOrSame();
@@ -856,7 +858,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
           this.soundDataLine.set(sourceDataLine);
         } catch (Exception ex) {
-          LOGGER.log(Level.SEVERE, "Can't open sound channel in PLAYSOUND/2", ex);
+          LOGGER.log(Level.SEVERE, "Can't open sound channel in PLAY_SOUND/2", ex);
           try {
             Thread.sleep(Math.max(1, lengthMs.toNumber().intValue()));
           } catch (InterruptedException e) {
@@ -866,7 +868,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         }
       }
 
-      if (sourceDataLine != null) {
         try {
           final byte[] buf = new byte[2];
           final int durationMs = Math.max(lengthMs.toNumber().intValue(), 0);
@@ -885,15 +886,14 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
             sourceDataLine.write(buf, 0, 2);
           }
         } catch (Exception ex) {
-          LOGGER.log(Level.SEVERE, "Error duringPLAYSOUND/2", ex);
+          LOGGER.log(Level.SEVERE, "Error during PLAY_SOUND/2", ex);
         }
-      }
     } finally {
       this.soundAccessLocker.unlock();
     }
   }
 
-  @JProlPredicate(determined = true, signature = "drawsprite/3", args = {
+  @JProlPredicate(determined = true, signature = "draw_sprite/3", args = {
       "+atom, +number, +number"}, reference = "Arguments (sprite_id, x, y). Draw a sprite by its sprite id at coordinates.")
   public boolean predicateDRAWSPRITE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term path = predicate.getElement(0).findNonVarOrSame();
@@ -923,7 +923,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     }
   }
 
-  @JProlPredicate(determined = true, signature = "loadsprite/2", args = {
+  @JProlPredicate(determined = true, signature = "load_sprite/2", args = {
       "+atom,+atom"}, reference = "Arguments (sprite_id, image_path). Format can be 'png','jpg' or 'gif'. Load sprite from file and keep it as named by sprite id. It can throw 'permission_error' exception if it is not possible to read the image.")
   public boolean predicateLOADSPRITE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term spriteId = predicate.getElement(0).findNonVarOrSame();
@@ -933,7 +933,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       ProlAssertions.assertAtom(path);
       ProlAssertions.assertAtom(spriteId);
     }
-
     final File spriteFile = new File(goal.getContext().getCurrentFolder(), path.getText());
     if (spriteFile.isFile() && spriteFile.canRead()) {
       try {
@@ -945,6 +944,105 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       }
     } else {
       throw new ProlPermissionErrorException("read", "image_input", predicate);
+    }
+  }
+
+  @JProlPredicate(determined = true, signature = "play_soundclip/2", args = {
+      "+atom, +number"}, reference = "Arguments (soundclip_id, loop). Play sound clip.")
+  public boolean predicatePLAYSOUNDCLIP2(final JProlChoicePoint goal, final TermStruct predicate) {
+    final Term soundClipId = predicate.getElement(0).findNonVarOrSame();
+    final Term loop = predicate.getElement(1).findNonVarOrSame();
+
+    if (goal.isArgsValidate()) {
+      ProlAssertions.assertAtom(soundClipId);
+      ProlAssertions.assertNumber(loop);
+    }
+
+    final SoundClip soundClip = this.soundClipMap.get(soundClipId.getText());
+    if (soundClip == null) {
+      return false;
+    } else {
+      soundClip.play(loop.toNumber().intValue());
+      return true;
+    }
+  }
+
+  @JProlPredicate(determined = true, signature = "play_soundclip/1", args = {
+      "+atom"}, reference = "Arguments (soundclip_id). Play sound clip.")
+  public boolean predicatePLAYSOUNDCLIP1(final JProlChoicePoint goal, final TermStruct predicate) {
+    final Term soundClipId = predicate.getElement(0).findNonVarOrSame();
+
+    if (goal.isArgsValidate()) {
+      ProlAssertions.assertAtom(soundClipId);
+    }
+
+    final SoundClip soundClip = this.soundClipMap.get(soundClipId.getText());
+    if (soundClip == null) {
+      return false;
+    } else {
+      soundClip.play();
+      return true;
+    }
+  }
+
+  @JProlPredicate(determined = true, signature = "stop_soundclip/1", args = {
+      "+atom"}, reference = "Arguments (soundclip_id). Stop play sound clip.")
+  public boolean predicateSTOPSOUNDCLIP(final JProlChoicePoint goal, final TermStruct predicate) {
+    final Term soundClipId = predicate.getElement(0).findNonVarOrSame();
+
+    if (goal.isArgsValidate()) {
+      ProlAssertions.assertAtom(soundClipId);
+    }
+
+    final SoundClip soundClip = this.soundClipMap.get(soundClipId.getText());
+    if (soundClip == null) {
+      return false;
+    } else {
+      soundClip.stop();
+      return true;
+    }
+  }
+
+  @JProlPredicate(determined = true, signature = "is_soundclip_playing/1", args = {
+      "+atom"}, reference = "Arguments (soundclip_id). Check sound clip play status.")
+  public boolean predicateISSOUNDCLIPPLAYING(final JProlChoicePoint goal,
+                                             final TermStruct predicate) {
+    final Term soundClipId = predicate.getElement(0).findNonVarOrSame();
+
+    if (goal.isArgsValidate()) {
+      ProlAssertions.assertAtom(soundClipId);
+    }
+
+    final SoundClip soundClip = this.soundClipMap.get(soundClipId.getText());
+    if (soundClip == null) {
+      return false;
+    } else {
+      return soundClip.isPlaying();
+    }
+  }
+
+  @JProlPredicate(determined = true, signature = "load_soundclip/2", args = {
+      "+atom,+atom"}, reference = "Arguments (soundclip_id, soundclip_path). Format can be AIFF, AU or WAV. Load sound clip from file and keep it as named by sound clip id. It can throw 'permission_error' exception if it is not possible to read the file.")
+  public boolean predicateLOADSOUNDCLIP(final JProlChoicePoint goal, final TermStruct predicate) {
+    final Term soundClipId = predicate.getElement(0).findNonVarOrSame();
+    final Term path = predicate.getElement(1).findNonVarOrSame();
+
+    if (goal.isArgsValidate()) {
+      ProlAssertions.assertAtom(path);
+      ProlAssertions.assertAtom(soundClipId);
+    }
+
+    final File soundClipFile = new File(goal.getContext().getCurrentFolder(), path.getText());
+    if (soundClipFile.isFile() && soundClipFile.canRead()) {
+      try {
+        final byte[] fileData = Files.readAllBytes(soundClipFile.toPath());
+        this.soundClipMap.put(soundClipId.getText(), new SoundClip(fileData));
+        return true;
+      } catch (Exception ex) {
+        return false;
+      }
+    } else {
+      throw new ProlPermissionErrorException("read", "soundclip_input", predicate);
     }
   }
 
@@ -1030,6 +1128,15 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         }
       }
     } finally {
+      this.soundClipMap.values().forEach(soundClip -> {
+        try {
+          soundClip.close();
+        } catch (Exception ex) {
+          // ignore
+        }
+      });
+      this.soundClipMap.clear();
+
       gfxBufferLocker.lock();
       try {
         if (this.graphicFrame != null) {
@@ -1040,6 +1147,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         gfxBufferLocker.unlock();
       }
     }
+
   }
 
   /**

@@ -773,8 +773,14 @@ public final class JProlContext implements AutoCloseable {
         throw ex;
       } catch (ProlAbstractCatchableException ex) {
         final SourcePosition errorPosition = ex.getCulprit().getSourcePosition();
+
+        String message = ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage();
+        if (message == null) {
+          message = ex.getClass().getSimpleName();
+        }
+
         throw new PrologParserException(
-            ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage(),
+            message,
             errorPosition.getLine(), errorPosition.getPosition(), ex);
       } catch (Exception ex) {
         throw new PrologParserException(
