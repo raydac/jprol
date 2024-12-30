@@ -301,16 +301,19 @@ public final class JProlChoicePoint implements Comparator<Term> {
         }
       }
 
+      final Term theTerm = this.goalTerm.findNonVarOrDefault(this.goalTerm);
+
+
       if (this.clauseIterator != null) {
         // next clause
         if (this.clauseIterator.hasNext()) {
           final TermStruct nextClause = this.clauseIterator.next();
 
           final Term goalTermForEqu;
-          if (((TermStruct) this.goalTerm).isClause()) {
-            goalTermForEqu = ((TermStruct) this.goalTerm).getElement(0).makeClone();
+          if (((TermStruct) theTerm).isClause()) {
+            goalTermForEqu = ((TermStruct) theTerm).getElement(0).makeClone();
           } else {
-            goalTermForEqu = this.goalTerm.makeClone();
+            goalTermForEqu = theTerm.makeClone();
           }
 
           if (!goalTermForEqu
@@ -320,12 +323,12 @@ public final class JProlChoicePoint implements Comparator<Term> {
           }
 
           if (nextClause.isClause()) {
-            this.thisConnector = goalTerm;
+            this.thisConnector = theTerm;
             this.subChoicePointConnector = nextClause.getElement(0);
             this.subChoicePoint = new JProlChoicePoint(nextClause.getElement(1), this.context);
             continue;
           } else {
-            if (!this.goalTerm.unifyTo(nextClause)) {
+            if (!theTerm.unifyTo(nextClause)) {
               throw new ProlCriticalError("Impossible situation #0009824");
             }
             result = JProlChoicePointResult.SUCCESS;
@@ -338,14 +341,14 @@ public final class JProlChoicePoint implements Comparator<Term> {
         }
       }
 
-      switch (this.goalTerm.getTermType()) {
+      switch (theTerm.getTermType()) {
         case ATOM: {
-          final String text = this.goalTerm.getText();
+          final String text = theTerm.getText();
           if (this.context.hasZeroArityPredicateForName(text)) {
             result = JProlChoicePointResult.SUCCESS;
           } else {
-            this.context.notifyAboutUndefinedPredicate(this, this.goalTerm.getSignature(),
-                this.goalTerm);
+            this.context.notifyAboutUndefinedPredicate(this, theTerm.getSignature(),
+                theTerm);
             result = JProlChoicePointResult.FAIL;
           }
           cutVariants();
@@ -353,7 +356,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
         }
         break;
         case STRUCT: {
-          final TermStruct struct = (TermStruct) goalTerm;
+          final TermStruct struct = (TermStruct) theTerm;
           final int arity = struct.getArity();
 
           if (struct.isClause()) {
