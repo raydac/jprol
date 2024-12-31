@@ -274,12 +274,12 @@ public final class InMemoryKnowledgeBase implements KnowledgeBase {
 
   @Override
   public boolean assertZ(final JProlContext context, final TermStruct clause) {
-    return assertClause(context, clause, false);
+    return this.assertClause(context, clause, false);
   }
 
   @Override
   public boolean assertA(final JProlContext context, final TermStruct clause) {
-    return assertClause(context, clause, true);
+    return this.assertClause(context, clause, true);
   }
 
   @Override

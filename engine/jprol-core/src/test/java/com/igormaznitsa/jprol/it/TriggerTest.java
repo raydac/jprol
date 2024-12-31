@@ -21,10 +21,15 @@ class TriggerTest extends AbstractJProlTest {
     trigger.addSignature("testboth/1", JProlTriggerType.TRIGGER_ASSERT_RETRACT);
 
     JProlContext context = makeTestContext();
+    new JProlChoicePoint(":- dynamic([testassert/1,testretract/1,testboth/1]).", context).prove();
 
     context.registerTrigger(trigger);
 
-    JProlChoicePoint goal = new JProlChoicePoint("assert(testassert(1000)),asserta(testassert(1)),assertz(testassert(2)).", context);
+    JProlChoicePoint goal = new JProlChoicePoint(
+        "assert(testassert(1000))," +
+            "asserta(testassert(1))," +
+            "assertz(testassert(2))."
+        , context);
 
     int decisionnum = 0;
     while (goal.prove() != null) {
@@ -33,7 +38,14 @@ class TriggerTest extends AbstractJProlTest {
 
     assertEquals(1, decisionnum);
 
-    goal = new JProlChoicePoint("retracta(testassert(_)),retractz(testassert(_)),testassert(X),assert(testretract(test)),retract(testretract(_)),assert(testretract(world)),abolish(testretract/1).", context);
+    goal = new JProlChoicePoint(
+        "retracta(testassert(_))," +
+            "retractz(testassert(_))," +
+            "testassert(X)," +
+            "assert(testretract(test))," +
+            "retract(testretract(_))," +
+            "assert(testretract(world))," +
+            "abolish(testretract/1).", context);
 
     int result = -1;
 

@@ -16,6 +16,9 @@
 
 package com.igormaznitsa.jprol.logic;
 
+import static com.igormaznitsa.jprol.data.SourcePosition.UNKNOWN;
+import static com.igormaznitsa.jprol.data.TermType.STRUCT;
+import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.logic.PredicateInvoker.NULL_PROCESSOR;
 import static java.util.Arrays.asList;
@@ -44,6 +47,7 @@ import com.igormaznitsa.jprol.exceptions.ProlForkExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlInterruptException;
 import com.igormaznitsa.jprol.exceptions.ProlKnowledgeBaseException;
+import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
 import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
@@ -54,6 +58,7 @@ import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
 import com.igormaznitsa.jprol.logic.triggers.TriggerEvent;
 import com.igormaznitsa.jprol.trace.JProlContextListener;
 import com.igormaznitsa.jprol.trace.TraceEvent;
+import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.Utils;
 import com.igormaznitsa.prologparser.ParserContext;
 import com.igormaznitsa.prologparser.PrologParser;
@@ -71,21 +76,25 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -102,6 +111,7 @@ public final class JProlContext implements AutoCloseable {
   private final List<JProlContextListener> contextListeners = new CopyOnWriteArrayList<>();
   private final Map<JProlSystemFlag, Term> systemFlags = new ConcurrentHashMap<>();
   private final AtomicInteger asyncTaskCounter = new AtomicInteger();
+  private final Set<String> dynamicSignatures = new ConcurrentSkipListSet<>();
 
   private final ParserContext parserContext = new ParserContext() {
     @Override
@@ -689,6 +699,85 @@ public final class JProlContext implements AutoCloseable {
     this.consult(source, null);
   }
 
+  public Set<String> findDynamicSignatures() {
+    this.assertNotDisposed();
+    return new HashSet<>(this.dynamicSignatures);
+  }
+
+  public void addDynamicSignatures(final Set<String> signatures,
+                                   final SourcePosition sourcePosition) {
+    this.assertNotDisposed();
+
+    for (final String signature : signatures) {
+      if (signature == null) {
+        throw new NullPointerException();
+      }
+      if (this.hasPredicateAtLibraryForSignature(signature)) {
+        throw new ProlPermissionErrorException("modify", "static_procedure",
+            "Signature '" + signature + "'is statically presented in a registered library",
+            newAtom(signature, Objects.requireNonNullElse(sourcePosition, UNKNOWN)));
+      }
+    }
+
+    this.dynamicSignatures.addAll(signatures);
+  }
+
+  public void clearDynamicSignatures() {
+    this.assertNotDisposed();
+    this.dynamicSignatures.clear();
+  }
+
+  public boolean isDynamicSignature(final String termSignature) {
+    return this.dynamicSignatures.contains(termSignature);
+  }
+
+  private boolean doClauseInKnowledgeBase(final Term term,
+                                          final Function<TermStruct, Boolean> assertFunction) {
+    this.assertNotDisposed();
+
+    final TermStruct termStruct;
+    if (term.getTermType() == STRUCT) {
+      termStruct = (TermStruct) term;
+    } else {
+      ProlAssertions.assertCallable(term);
+      termStruct = newStruct(term);
+    }
+
+    final boolean operationResult;
+
+    final String signature = termStruct.isClause() ?
+        termStruct.getElement(0).getSignature() : termStruct.getSignature();
+    if (this.dynamicSignatures.contains(signature)) {
+      operationResult = assertFunction.apply(termStruct);
+    } else {
+      throw new ProlPermissionErrorException("modify", "static_procedure",
+          "Allowed only for dynamic predicates " + signature,
+          newAtom(signature, term.getSourcePosition()));
+    }
+    return operationResult;
+  }
+
+  public boolean assertA(final Term term) {
+    return this.doClauseInKnowledgeBase(term, struct -> this.knowledgeBase.assertA(this, struct));
+  }
+
+  public boolean assertZ(final Term term) {
+    return this.doClauseInKnowledgeBase(term, struct -> this.knowledgeBase.assertZ(this, struct));
+  }
+
+  public boolean retractAll(final Term term) {
+    return this.doClauseInKnowledgeBase(term,
+        struct -> this.knowledgeBase.retractAll(this, struct));
+  }
+
+  public boolean retractA(final Term term) {
+    return this.doClauseInKnowledgeBase(term, struct -> this.knowledgeBase.retractA(this, struct));
+  }
+
+  public boolean retractZ(final Term term) {
+    return this.doClauseInKnowledgeBase(term, struct -> this.knowledgeBase.retractZ(this, struct));
+  }
+
   public void consult(final Reader source, final ConsultInteract iterator) {
     final JProlTreeBuilder treeBuilder = new JProlTreeBuilder(this);
     do {
@@ -723,7 +812,7 @@ public final class JProlContext implements AutoCloseable {
                   break;
                   case FX: {
                     // directive
-                    if (!processDirective(struct.getElement(0))) {
+                    if (!this.processDirective(struct.getElement(0))) {
                       throw new ProlHaltExecutionException(2);
                     }
                   }

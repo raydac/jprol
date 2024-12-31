@@ -65,6 +65,14 @@ public abstract class AbstractJProlTest {
     }, ioProviders);
   }
 
+  public JProlContext makeTestContext(final String consult,
+                                      final IoResourceProvider... ioProviders) {
+    final JProlContext context = this.makeTestContext(a -> {
+    }, ioProviders);
+    context.consult(new StringReader(consult));
+    return context;
+  }
+
   public JProlContext makeTestContext(Consumer<JProlContext> contextPostprocessor,
                                       final IoResourceProvider... ioProviders) {
     final JProlContext context = new JProlContext(
@@ -143,6 +151,16 @@ public abstract class AbstractJProlTest {
     assertThrows(exceptionClass, thisGoal::prove);
   }
 
+  protected void assertProlException(
+      final String consult,
+      final String goal,
+      final Class<? extends ProlException> exceptionClass) {
+    final JProlContext context = makeTestContext();
+    context.consult(new StringReader(consult));
+    final JProlChoicePoint thisGoal = new JProlChoicePoint(goal, context);
+    assertThrows(exceptionClass, thisGoal::prove);
+  }
+
   protected JProlChoicePoint proveGoal(String goal) {
     final JProlChoicePoint thisGoal = this.prepareGoal(goal);
     assertNotNull(thisGoal.prove());
@@ -158,6 +176,11 @@ public abstract class AbstractJProlTest {
 
   protected void checkVarValues(final String goal, final String var, final Object... result) {
     this.checkVarValues(makeTestContext(), goal, var, result);
+  }
+
+  protected void consultAndCheckVarValues(final String consult, final String goal, final String var,
+                                          final Object... result) {
+    this.checkVarValues(makeTestContext(consult), goal, var, result);
   }
 
   protected void checkVarValues(JProlContext context, String goal, String varName,

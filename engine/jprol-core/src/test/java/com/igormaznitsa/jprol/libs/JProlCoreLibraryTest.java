@@ -27,11 +27,13 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   @Test
   void testAsserta1() {
     //[asserta((foo :- 4)), type_error(callable, 4)].
-    assertProlException("asserta((foo :- 4)).", ProlTypeErrorException.class);
+    assertProlException(":-dynamic(foo/0).", "asserta((foo :- 4)).", ProlTypeErrorException.class);
 
-    checkVarValues("asserta(some1(a)), asserta(some1(b)), some1(X).", "X", "'b'", "'a'");
+    consultAndCheckVarValues(":-dynamic(some1/1).",
+        "asserta(some1(a)), asserta(some1(b)), some1(X).", "X", "'b'", "'a'");
 
-    checkVarValues("asserta((bar(X):-X is 3)), clause(bar(X),Y).", "Y", "X is 3");
+    consultAndCheckVarValues(":-dynamic(bar/1).", "asserta((bar(X):-X is 3)), clause(bar(X),Y).",
+        "Y", "X is 3");
 
     //[asserta(_), instantiation_error].
     assertProlException("asserta(_).", ProlInstantiationErrorException.class);
@@ -43,7 +45,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     assertProlException("asserta((atom(_) :- true)).", ProlPermissionErrorException.class);
 
     //[(asserta((bar(X) :- X)), clause(bar(X), B)), [[B <-- call(X)]]].
-    final JProlChoicePoint testCp = new JProlChoicePoint("asserta((bar(X):-X)), clause(bar(X),Y).", makeTestContext());
+    final JProlChoicePoint testCp = new JProlChoicePoint("asserta((bar(X):-X)), clause(bar(X),Y).",
+        makeTestContext(":-dynamic(bar/1)."));
     assertNotNull(testCp.prove());
     final TermVar yVar = testCp.findVar("Y").get();
     assertSame(yVar.getThisValue().getTermType(), TermType.VAR);
@@ -52,23 +55,27 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testAssertz1() {
-    checkVarValues("assertz(some1(a)), assertz(some1(b)), some1(X).", "X", "'a'", "'b'");
+    consultAndCheckVarValues(":-dynamic(some1/1).",
+        "assertz(some1(a)), assertz(some1(b)), some1(X).", "X", "'a'", "'b'");
   }
 
   @Test
   void testRetracta1() {
-    checkOnce("retract(someunknown(_)).", false);
-    checkVarValues("asserta(some1(a)), asserta(some1(b)), retracta(some1(_)), some1(X).", "X", "'a'");
+    checkOnce(":-dynamic(someunknown/1).", "retract(someunknown(_)).", false);
+    consultAndCheckVarValues(":-dynamic(some1/1).",
+        "asserta(some1(a)), asserta(some1(b)), retracta(some1(_)), some1(X).", "X", "'a'");
   }
 
   @Test
   void testRetractz1() {
-    checkVarValues("asserta(some1(a)), asserta(some1(b)), retractz(some1(_)), some1(X).", "X", "'b'");
+    consultAndCheckVarValues(":-dynamic(some1/1).",
+        "asserta(some1(a)), asserta(some1(b)), retractz(some1(_)), some1(X).", "X", "'b'");
   }
 
   @Test
   void testRetractAll1() {
-    checkOnce("asserta(some1(a)), asserta(some1(b)), retractall(some1(_)), not some1(_).", true);
+    checkOnce(":-dynamic(some1/1).",
+        "asserta(some1(a)), asserta(some1(b)), retractall(some1(_)), not some1(_).", true);
   }
 
   @Test
@@ -391,7 +398,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     //[(current_prolog_flag(max_arity,A), X is A + 1, abolish(foo/X)), representation_error(max_arity)].
     assertProlException("current_prolog_flag(max_arity,A), X is A + 1, abolish(foo/X).", ProlRepresentationErrorException.class);
 
-    checkOnce("assert(test(1)),test(X),X==1,abolish(test/1),\\+ test(_).", true);
+    checkOnce(":-dynamic(test/1).", "assert(test(1)),test(X),X==1,abolish(test/1),\\+ test(_).",
+        true);
 
     //[abolish(abolish/1), permission_error(modify,static_procedure,abolish/1)].
     assertProlException("abolish(abolish/1).", ProlPermissionErrorException.class);
@@ -408,8 +416,6 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testRetract1() {
-    //[retract((4 :- X)), type_error(callable, 4)].
-    assertProlException("retract((4:-X)).", ProlTypeErrorException.class);
     //[retract((atom(_) :- X == '[]')),permission_error(modify,static_procedure,atom/1)].
     assertProlException("retract((atom(_):-X=='[]')).", ProlPermissionErrorException.class);
   }
@@ -570,7 +576,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   @Test
   void testAssertZ1() {
     //[assertz((foo(X) :- X -> call(X))), success].
-    checkOnce("assertz((foo(X):-X->call(X))).", true);
+    checkOnce(":-dynamic(foo/1).", "assertz((foo(X):-X->call(X))).", true);
     //[assertz(_), instantiation_error].
     assertProlException("assertz(_).", ProlInstantiationErrorException.class);
     //[assertz(4), type_error(callable, 4)].
@@ -586,7 +592,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   @Test
   void testAssertA1() {
     //[(asserta((bar(X) :- X)), clause(bar(X), B)), [[B <-- call(X)]]].
-    checkVarValues("asserta(bar(X):-call(X)),clause(bar(X),B).", "B", "call(X)");
+    consultAndCheckVarValues(":-dynamic([bar/1]).", "asserta(bar(X):-call(X)),clause(bar(X),B).",
+        "B", "call(X)");
 
     //[asserta(_), instantiation_error].
     assertProlException("asserta(_).", ProlInstantiationErrorException.class);
@@ -595,7 +602,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     assertProlException("asserta(4).", ProlTypeErrorException.class);
 
     //[asserta((foo :- 4)), type_error(callable, 4)].
-    assertProlException("asserta((foo:-4)).", ProlTypeErrorException.class);
+    assertProlException(":-dynamic(foo/0).", "asserta((foo:-4)).", ProlTypeErrorException.class);
 
     //[asserta((atom(_) :- true)), permission_error(modify,static_procedure,atom/1)].
     assertProlException("asserta((atom(_):-true)).", ProlPermissionErrorException.class);

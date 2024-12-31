@@ -80,7 +80,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -90,6 +89,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -2212,139 +2212,59 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   @JProlPredicate(determined = true, signature = "asserta/1", args = {
       "+callable"}, reference = "Addition of a clause into the knowlwde base before all other clauses.")
   public static boolean predicateASSERTA1(final JProlChoicePoint goal, final TermStruct predicate) {
-    final KnowledgeBase base = goal.getContext().getKnowledgeBase();
-
-    Term termToAdd = predicate.getElement(0).findNonVarOrSame();
-    if (goal.isArgsValidate()) {
-      ProlAssertions.assertCallable(termToAdd);
-    }
-
-    if (termToAdd.getTermType() != STRUCT) {
-      termToAdd = newStruct(termToAdd);
-    }
-
-    final String signature = ((TermStruct) termToAdd).isClause() ?
-        ((TermStruct) termToAdd).getElement(0).getSignature() : termToAdd.getSignature();
-
-    // check that it doesn't overload any static system predicate
-    if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
-      throw new ProlPermissionErrorException("modify", "static_procedure",
-          "Predicate signature '" + signature + "'is presented in library",
-          newAtom(signature, UNKNOWN));
-    }
-
-    base.assertA(goal.getContext(), (TermStruct) termToAdd.makeCloneAndVarBound(new HashMap<>()));
-    return true;
+    return goal.getContext().assertA(predicate.getElement(0).findNonVarOrSame());
   }
 
   @JProlPredicate(determined = true, signature = "assertz/1", synonyms = {"assert/1"}, args = {
       "+callable"}, reference = "Addition of a clause into the knowlwde base after all other clauses.")
   public static boolean predicateASSERTZ1(final JProlChoicePoint goal, final TermStruct predicate) {
-    final KnowledgeBase base = goal.getContext().getKnowledgeBase();
-    Term termToRemove = predicate.getElement(0).findNonVarOrSame();
-    if (goal.isArgsValidate()) {
-      ProlAssertions.assertCallable(termToRemove);
-    }
-
-    if (termToRemove.getTermType() != STRUCT) {
-      termToRemove = newStruct(termToRemove);
-    }
-
-    final String signature = ((TermStruct) termToRemove).isClause() ?
-        ((TermStruct) termToRemove).getElement(0).getSignature() : termToRemove.getSignature();
-
-    if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
-      throw new ProlPermissionErrorException("modify", "static_procedure",
-          "Predicate signature '" + signature + "'is presented in library",
-          newAtom(signature, UNKNOWN));
-    }
-
-    base.assertZ(goal.getContext(),
-        (TermStruct) termToRemove.makeCloneAndVarBound(new HashMap<>()));
-
-    return true;
+    return goal.getContext().assertZ(predicate.getElement(0).findNonVarOrSame());
   }
 
   @JProlPredicate(determined = true, signature = "retract/1", synonyms = {"retracta/1"}, args = {
       "+callable"}, reference = "Retract the first clause which can be unified with argument. True if there is such clause in the knowledge base.")
   public static boolean predicateRETRACT1(final JProlChoicePoint goal, final TermStruct predicate) {
-    final KnowledgeBase base = goal.getContext().getKnowledgeBase();
-    Term atom = predicate.getElement(0).findNonVarOrSame();
-    if (goal.isArgsValidate()) {
-      ProlAssertions.assertCallable(atom);
-    }
-    if (atom.getTermType() != STRUCT) {
-      atom = newStruct(atom);
-    }
-
-    final String signature =
-        ((TermStruct) atom).isClause() ? ((TermStruct) atom).getElement(0).getSignature() :
-            atom.getSignature();
-
-    // check that it doesn't overload any static system predicate
-    if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
-      throw new ProlPermissionErrorException("modify", "static_procedure",
-          "Predicate signature '" + signature + "'is presented in library",
-          newAtom(signature, UNKNOWN));
-    }
-
-    return base.retractA(goal.getContext(),
-        (TermStruct) atom.makeCloneAndVarBound(new HashMap<>()));
+    return goal.getContext().retractA(predicate.getElement(0).findNonVarOrSame());
   }
 
   @JProlPredicate(determined = true, signature = "retractz/1", args = {
       "+callable"}, reference = "Retract the last clause which can be unified with argument. True if there is such clause in the knowledge base.")
   public static boolean predicateRETRACTZ(final JProlChoicePoint goal, final TermStruct predicate) {
-    final KnowledgeBase base = goal.getContext().getKnowledgeBase();
-    Term atom = predicate.getElement(0).findNonVarOrSame();
-    if (goal.isArgsValidate()) {
-      ProlAssertions.assertCallable(atom);
-    }
-
-    if (atom.getTermType() != STRUCT) {
-      atom = newStruct(atom);
-    }
-
-    final String signature =
-        ((TermStruct) atom).isClause() ? ((TermStruct) atom).getElement(0).getSignature() :
-            atom.getSignature();
-
-    // check that it doesn't overload any static system predicate
-    if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
-      throw new ProlPermissionErrorException("modify", "static_procedure",
-          "Predicate signature '" + signature + "'is presented in library",
-          newAtom(signature, UNKNOWN));
-    }
-
-    return base.retractZ(goal.getContext(), (TermStruct) atom);
+    return goal.getContext().retractZ(predicate.getElement(0).findNonVarOrSame());
   }
 
   @JProlPredicate(determined = true, signature = "retractall/1", args = {
       "+callable"}, reference = "Retract all clauses which can be unified with argument. True if there is as minimum one clause in the knowledge base.")
   public static boolean predicateRETRACTALL(final JProlChoicePoint goal,
                                             final TermStruct predicate) {
-    final KnowledgeBase base = goal.getContext().getKnowledgeBase();
-    Term atom = predicate.getElement(0).findNonVarOrSame();
-    if (goal.isArgsValidate()) {
-      ProlAssertions.assertCallable(atom);
+    return goal.getContext().retractAll(predicate.getElement(0).findNonVarOrSame());
+  }
+
+  @JProlPredicate(determined = true, signature = "dynamic/1", args = {
+      "+term"}, reference = "Informs the interpreter that the definition of the predicate(s) may change during execution.")
+  public static void predicateDYNAMIC(final JProlChoicePoint goal,
+                                      final TermStruct predicate) {
+    final Term term = predicate.getElement(0).findNonVarOrSame();
+    final Set<String> indicators = new HashSet<>();
+
+    final Consumer<Term> termConsumer = x -> {
+      ProlAssertions.assertIndicator(x);
+      final TermStruct struct = (TermStruct) x;
+      final String name = struct.getElement(0).getText();
+      final String arity = struct.getElement(1).getText();
+      indicators.add(name + '/' + arity);
+    };
+
+    if (term.getTermType() == LIST) {
+      final TermList list = (TermList) term;
+      for (final Term value : list) {
+        termConsumer.accept(value);
+      }
+    } else {
+      termConsumer.accept(term);
     }
 
-    if (atom.getTermType() != STRUCT) {
-      atom = newStruct(atom);
-    }
-
-    final String signature =
-        ((TermStruct) atom).isClause() ? ((TermStruct) atom).getElement(0).getSignature() :
-            atom.getSignature();
-
-    // check that it doesn't overload any static system predicate
-    if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
-      throw new ProlPermissionErrorException("modify", "static_procedure",
-          "Predicate signature '" + signature + "'is presented in library",
-          newAtom(signature, UNKNOWN));
-    }
-
-    return base.retractAll(goal.getContext(), (TermStruct) atom);
+    goal.getContext().addDynamicSignatures(indicators, goal.getGoalTerm().getSourcePosition());
   }
 
   @JProlPredicate(signature = "catch/3", args = "+callable,?term,+callable", reference = "A goal catch(Goal, Catcher, Handler) is true if\n1. call(Goal) is true, or\n2. An exception is raised which throws a Ball that is caught by Catcher and Handler then succeeds ")
