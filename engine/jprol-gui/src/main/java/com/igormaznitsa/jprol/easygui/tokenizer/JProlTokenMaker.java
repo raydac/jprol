@@ -427,7 +427,7 @@ public class JProlTokenMaker extends AbstractTokenMaker {
                 break;
               }
 
-              if (c == 'x' || c == 'X') {
+              if (c == 'x' || c == 'X' || c == 'b' || c == 'B') {
                 currentTokenType = Token.LITERAL_NUMBER_HEXADECIMAL;
                 break;
               }

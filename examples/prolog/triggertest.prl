@@ -1,3 +1,4 @@
+:-dynamic(planet/1).
 :-regtrigger(planet/1,onassert,planetasserthandler).
 :-regtrigger(planet/1,onretract,planetretracthandler).
 
