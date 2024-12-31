@@ -74,6 +74,8 @@ test_clauses :-
     Result =:= 15,
     write('OK').
 
+:-dynamic(temp/1).
+
 % Dynamic predicates
 test_dynamic :-
     assertz(temp(10)),
