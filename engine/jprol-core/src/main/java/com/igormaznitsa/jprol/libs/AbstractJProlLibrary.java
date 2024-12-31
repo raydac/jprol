@@ -274,8 +274,24 @@ public abstract class AbstractJProlLibrary {
     return this.systemOperators.get(operatorName);
   }
 
-  public void onContextDispose(final JProlContext context) {
-    this.contextNamedObjects.remove(context);
+  public final void onContextDispose(final JProlContext context) {
+    this.onCallContextDispose(context, this.contextNamedObjects.remove(context));
+  }
+
+  protected void onCallContextDispose(final JProlContext context,
+                                      final Map<String, Object> contextNamedObjects) {
+    if (contextNamedObjects != null) {
+      contextNamedObjects.values().stream()
+          .filter(x -> x instanceof AutoCloseable)
+          .map(x -> (AutoCloseable) x)
+          .forEach(x -> {
+            try {
+              x.close();
+            } catch (Exception ex) {
+              // ignore
+            }
+          });
+    }
   }
 
   private Map<String, PredicateInvoker> extractAnnotatedMethodsAsPredicates(final String libraryUID,

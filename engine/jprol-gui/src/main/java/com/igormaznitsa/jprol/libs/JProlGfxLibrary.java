@@ -26,6 +26,7 @@ import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.easygui.MainFrame;
 import com.igormaznitsa.jprol.easygui.UiUtils;
+import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
@@ -868,26 +869,26 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         }
       }
 
-        try {
-          final byte[] buf = new byte[2];
-          final int durationMs = Math.max(lengthMs.toNumber().intValue(), 0);
-          final int numberOfTimesFullSinFuncPerSec = Math.max(1, freqHz.toNumber().intValue());
+      try {
+        final byte[] buf = new byte[2];
+        final int durationMs = Math.max(lengthMs.toNumber().intValue(), 0);
+        final int numberOfTimesFullSinFuncPerSec = Math.max(1, freqHz.toNumber().intValue());
 
-          final int iterations = Math.round(durationMs * 44100.0f / 1000.0f);
+        final int iterations = Math.round(durationMs * 44100.0f / 1000.0f);
 
-          for (int i = 0; i < iterations && !goal.getContext().isDisposed(); i++) {
-            float numberOfSamplesToRepresentFullSin =
-                (float) frequency / numberOfTimesFullSinFuncPerSec;
-            double angle = i / (numberOfSamplesToRepresentFullSin / 2.0) * Math.PI;
-            short a = (short) (Math.sin(angle) *
-                32767);
-            buf[0] = (byte) (a & 0xFF);
-            buf[1] = (byte) (a >> 8);
-            sourceDataLine.write(buf, 0, 2);
-          }
-        } catch (Exception ex) {
-          LOGGER.log(Level.SEVERE, "Error during PLAY_SOUND/2", ex);
+        for (int i = 0; i < iterations && !goal.getContext().isDisposed(); i++) {
+          float numberOfSamplesToRepresentFullSin =
+              (float) frequency / numberOfTimesFullSinFuncPerSec;
+          double angle = i / (numberOfSamplesToRepresentFullSin / 2.0) * Math.PI;
+          short a = (short) (Math.sin(angle) *
+              32767);
+          buf[0] = (byte) (a & 0xFF);
+          buf[1] = (byte) (a >> 8);
+          sourceDataLine.write(buf, 0, 2);
         }
+      } catch (Exception ex) {
+        LOGGER.log(Level.SEVERE, "Error during PLAY_SOUND/2", ex);
+      }
     } finally {
       this.soundAccessLocker.unlock();
     }
@@ -934,16 +935,22 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       ProlAssertions.assertAtom(spriteId);
     }
     final File spriteFile = new File(goal.getContext().getCurrentFolder(), path.getText());
-    if (spriteFile.isFile() && spriteFile.canRead()) {
-      try {
-        final BufferedImage image = ImageIO.read(spriteFile);
-        this.imageSpriteMap.put(spriteId.getText(), image);
-        return true;
-      } catch (Exception ex) {
-        return false;
-      }
-    } else {
+
+    if (!spriteFile.isFile()) {
+      throw new ProlExistenceErrorException("file",
+          "Can't find file: " + spriteFile.getAbsolutePath(), predicate);
+    }
+
+    if (!spriteFile.canRead()) {
       throw new ProlPermissionErrorException("read", "image_input", predicate);
+    }
+
+    try {
+      final BufferedImage image = ImageIO.read(spriteFile);
+      this.imageSpriteMap.put(spriteId.getText(), image);
+      return true;
+    } catch (Exception ex) {
+      return false;
     }
   }
 
@@ -1033,16 +1040,22 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     }
 
     final File soundClipFile = new File(goal.getContext().getCurrentFolder(), path.getText());
-    if (soundClipFile.isFile() && soundClipFile.canRead()) {
-      try {
-        final byte[] fileData = Files.readAllBytes(soundClipFile.toPath());
-        this.soundClipMap.put(soundClipId.getText(), new SoundClip(fileData));
-        return true;
-      } catch (Exception ex) {
-        return false;
-      }
-    } else {
+
+    if (!soundClipFile.isFile()) {
+      throw new ProlExistenceErrorException("file",
+          "Can't find file: " + soundClipFile.getAbsolutePath(), predicate);
+    }
+
+    if (!soundClipFile.canRead()) {
       throw new ProlPermissionErrorException("read", "soundclip_input", predicate);
+    }
+
+    try {
+      final byte[] fileData = Files.readAllBytes(soundClipFile.toPath());
+      this.soundClipMap.put(soundClipId.getText(), new SoundClip(fileData));
+      return true;
+    } catch (Exception ex) {
+      return false;
     }
   }
 
@@ -1115,8 +1128,9 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   }
 
   @Override
-  public void onContextDispose(final JProlContext context) {
-    super.onContextDispose(context);
+  protected void onCallContextDispose(final JProlContext context,
+                                      final Map<String, Object> contextNamedObjects) {
+    super.onCallContextDispose(context, contextNamedObjects);
     try {
       this.imageSpriteMap.clear();
       final SourceDataLine sourceDataLine = this.soundDataLine.getAndSet(null);

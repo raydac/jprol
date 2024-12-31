@@ -1,6 +1,7 @@
 package com.igormaznitsa.jprol.libs;
 
 import static com.igormaznitsa.jprol.data.TermType.LIST;
+import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.libs.JProlCoreLibrary.predicateCALL;
 
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
@@ -34,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class JProlIoLibrary extends AbstractJProlLibrary {
 
   public static final String CURRENT_STREAM_ID = "#current#";
-  public static final Term END_OF_FILE = Terms.newAtom("end_of_file");
+  public static final Term END_OF_FILE = newAtom("end_of_file");
 
   private static final String WRITERS_MAP = "_io_writers_map_";
   private static final String READERS_MAP = "_io_readers_map_";
@@ -97,9 +98,9 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
         .orElseThrow(() -> new FileNotFoundException(resourceId));
 
     if (reader != null) {
-      return new InternalReader(Terms.newAtom(resourceId), reader, true);
+      return new InternalReader(newAtom(resourceId), reader, true);
     } else if ("user".equals(resourceId)) {
-      return new InternalReader(Terms.newAtom("user"),
+      return new InternalReader(newAtom("user"),
           new InputStreamReader(System.in, Charset.defaultCharset()), false);
     } else {
       throw new FileNotFoundException(resourceId);
@@ -111,13 +112,13 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     final Writer writer = context.findResourceWriter(resourceId, append).orElse(null);
 
     if (writer != null) {
-      return new InternalWriter(Terms.newAtom(resourceId), writer, true);
+      return new InternalWriter(newAtom(resourceId), writer, true);
     } else if ("user".equals(resourceId)) {
-      return new InternalWriter(Terms.newAtom("user"),
+      return new InternalWriter(newAtom("user"),
           new OutputStreamWriter(System.out, Charset.defaultCharset()),
           false);
     } else if ("error".equals(resourceId)) {
-      return new InternalWriter(Terms.newAtom("error"),
+      return new InternalWriter(newAtom("error"),
           new OutputStreamWriter(System.err, Charset.defaultCharset()), false);
     } else {
       throw new FileNotFoundException(resourceId);
@@ -131,7 +132,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     } else {
       final Optional<Writer> userWriter = context.findResourceWriter("user", append);
       return userWriter.map(writer -> {
-        final InternalWriter result = new InternalWriter(Terms.newAtom("user"), writer, false);
+        final InternalWriter result = new InternalWriter(newAtom("user"), writer, false);
         getIoWriters(context).put("user", result);
         return Optional.of(result);
       }).orElse(Optional.empty());
@@ -144,7 +145,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     } else {
       final Optional<Reader> userReader = context.findResourceReader("user");
       return userReader.map(reader -> {
-        final InternalReader result = new InternalReader(Terms.newAtom("user"), reader, false);
+        final InternalReader result = new InternalReader(newAtom("user"), reader, false);
         getIoReaders(context).put("user", result);
         return Optional.of(result);
       }).orElse(Optional.empty());
@@ -224,7 +225,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }).orElseThrow(() -> new ProlPermissionErrorException("read", "text_input", predicate));
   }
 
-  @JProlPredicate(determined = true, signature = "read/1", reference = " Read  the next Prolog term from the current input stream.")
+  @JProlPredicate(determined = true, signature = "read/1", reference = "Read  the next Prolog term from the current input stream.")
   public final boolean predicateRead(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     final Optional<InternalReader> current = findCurrentInput(goal.getContext(), arg);
@@ -245,6 +246,35 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
       return arg.unifyTo(asTerm);
     } else {
       throw new ProlPermissionErrorException("read", "text_input", predicate);
+    }
+  }
+
+  @JProlPredicate(determined = true, signature = "read_line_to_string/2", reference = "Read line of chars from input as atom.")
+  public final boolean predicateReadLineToString(final JProlChoicePoint goal,
+                                                 final TermStruct predicate) throws IOException {
+    final Term readerId = predicate.getElement(0).findNonVarOrSame();
+    final Term stringTerm = predicate.getElement(1).findNonVarOrSame();
+
+    final Optional<InternalReader> current = this.findCurrentInput(goal.getContext(), readerId);
+
+    if (current.isPresent()) {
+      final InternalReader internalReader = current.get();
+      final StringBuilder buffer = new StringBuilder();
+
+      while (!Thread.currentThread().isInterrupted()) {
+        try {
+          final int nextChar = internalReader.read();
+          if (nextChar < 0 || nextChar == '\n') {
+            break;
+          }
+          buffer.append((char) nextChar);
+        } catch (IOException ex) {
+          throw new ProlPermissionErrorException("read", "text_input", goal.getGoalTerm());
+        }
+      }
+      return stringTerm.unifyTo(newAtom(buffer.toString()));
+    } else {
+      throw new ProlPermissionErrorException("read", "text_input", goal.getGoalTerm());
     }
   }
 
