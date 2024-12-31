@@ -1,0 +1,97 @@
+% Helper predicate to check floating-point equality with tolerance
+float_equals(A, B) :-
+    abs(A - B) < 1e-10.
+
+% Arithmetic operator tests
+test_addition :-
+    X is 2 + 3,
+    (X =:= 5 -> writeln('test_addition passed'); writeln('test_addition failed')).
+
+test_subtraction :-
+    X is 7 - 4,
+    (X =:= 3 -> writeln('test_subtraction passed'); writeln('test_subtraction failed')).
+
+test_multiplication :-
+    X is 6 * 7,
+    (X =:= 42 -> writeln('test_multiplication passed'); writeln('test_multiplication failed')).
+
+test_division :-
+    X is 9 / 3,
+    (X =:= 3.0 -> writeln('test_division passed'); writeln('test_division failed')).
+
+test_integer_division :-
+    X is 9 // 4,
+    (X =:= 2 -> writeln('test_integer_division passed'); writeln('test_integer_division failed')).
+
+test_modulus :-
+    X is 9 mod 4,
+    (X =:= 1 -> writeln('test_modulus passed'); writeln('test_modulus failed')).
+
+test_power :-
+    X is 2 ** 3,
+    (X =:= 8 -> writeln('test_power passed'); writeln('test_power failed')).
+
+% Float calculations
+test_float_addition :-
+    X is 1.1 + 2.2,
+    (float_equals(X, 3.3) -> writeln('test_float_addition passed'); writeln('test_float_addition failed')).
+
+test_float_subtraction :-
+    X is 5.5 - 2.2,
+    (float_equals(X, 3.3) -> writeln('test_float_subtraction passed'); writeln('test_float_subtraction failed')).
+
+test_float_multiplication :-
+    X is 1.5 * 2.0,
+    (float_equals(X, 3.0) -> writeln('test_float_multiplication passed'); writeln('test_float_multiplication failed')).
+
+test_float_division :-
+    X is 7.5 / 2.5,
+    (float_equals(X, 3.0) -> writeln('test_float_division passed'); writeln('test_float_division failed')).
+
+test_float_power :-
+    X is 2.0 ** 0.5,
+    (float_equals(X, sqrt(2)) -> writeln('test_float_power passed'); writeln('test_float_power failed')).
+
+test_float_precision :-
+    X is 0.1 + 0.2,
+    (float_equals(X, 0.3) -> writeln('test_float_precision passed'); writeln('test_float_precision failed')).
+
+% Bitwise operator tests
+test_bitwise_and :-
+    X is 0b1101 /\ 0b1011,
+    (X =:= 0b1001 -> writeln('test_bitwise_and passed'); writeln('test_bitwise_and failed')).
+
+test_bitwise_or :-
+    X is 0b1101 \/ 0b1011,
+    (X =:= 0b1111 -> writeln('test_bitwise_or passed'); writeln('test_bitwise_or failed')).
+
+test_bitwise_xor :-
+    X is 0b1101 xor 0b1011,
+    (X =:= 0b0110 -> writeln('test_bitwise_xor passed'); writeln('test_bitwise_xor failed')).
+
+test_bitwise_not :-
+    X is \ 0b1101 /\ 0xFFFF, % Mask for 16-bit integers
+    (X =:= 0b1111111111110010 -> writeln('test_bitwise_not passed'); writeln('test_bitwise_not failed')).
+
+% Run all tests
+run_tests :-
+    test_addition,
+    test_subtraction,
+    test_multiplication,
+    test_division,
+    test_integer_division,
+    test_modulus,
+    test_power,
+    test_float_addition,
+    test_float_subtraction,
+    test_float_multiplication,
+    test_float_division,
+    test_float_power,
+    test_float_precision,
+    test_bitwise_and,
+    test_bitwise_or,
+    test_bitwise_xor,
+    test_bitwise_not.
+
+% Run the test suite
+?- run_tests, writeln('End'), !, fail.
