@@ -1,0 +1,3 @@
+play_snd :- load_soundclip(speech, 'gettysburg10.wav'), play_soundclip(speech), pause(5000), stop_soundclip(speech), !.
+
+?- time(play_snd), fail.

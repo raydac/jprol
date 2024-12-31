@@ -1,0 +1,64 @@
+% Test cases for \+/1 predicate
+
+% Test \+/1 when the argument succeeds
+test_failure_case :-
+    \+ member(1, [1, 2, 3]),
+    write('Test failure_case: Failed (unexpected success)'), nl, fail.
+test_failure_case :-
+    write('Test failure_case: Passed'), nl.
+
+% Test \+/1 when the argument fails
+test_success_case :-
+    \+ member(4, [1, 2, 3]),
+    write('Test success_case: Passed'), nl.
+test_success_case :-
+    write('Test success_case: Failed (unexpected failure)'), nl, fail.
+
+% Test double negation
+test_double_negation :-
+    \+ (\+ member(2, [1, 2, 3])),
+    write('Test double_negation: Passed'), nl.
+test_double_negation :-
+    write('Test double_negation: Failed (unexpected failure)'), nl, fail.
+
+% Test \+/1 with a goal that always succeeds
+test_always_fail :-
+    \+ true,
+    write('Test always_fail: Failed (unexpected success)'), nl, fail.
+test_always_fail :-
+    write('Test always_fail: Passed'), nl.
+
+% Test \+/1 with a goal that always fails
+test_always_succeed :-
+    \+ fail,
+    write('Test always_succeed: Passed'), nl.
+test_always_succeed :-
+    write('Test always_succeed: Failed (unexpected failure)'), nl, fail.
+
+% Test \+/1 with a complex goal
+test_complex_goal :-
+    \+ (member(X, [1, 2, 3]), X > 3),
+    write('Test complex_goal: Passed'), nl.
+test_complex_goal :-
+    write('Test complex_goal: Failed (unexpected failure)'), nl, fail.
+
+% Test \+/1 with variables to demonstrate caution
+test_variable_case :-
+    \+ (X = 1, X = 2),
+    write('Test variable_case: Passed'), nl.
+test_variable_case :-
+    write('Test variable_case: Failed (unexpected failure)'), nl, fail.
+
+% Run all tests
+run_all_tests :-
+    test_failure_case,
+    test_success_case,
+    test_double_negation,
+    test_always_fail,
+    test_always_succeed,
+    test_complex_goal,
+    test_variable_case,
+    write('All tests completed.'), nl.
+
+?- time(run_all_tests),!,fail.
+    

@@ -1,12 +1,12 @@
-jingleBells :- playsound(659, 300), playsound(659, 300), playsound(659, 600), pause(200),
-playsound(659, 300), playsound(659, 300), playsound(659, 600), pause(200),
-playsound(659, 300), playsound(784, 300), playsound(523, 300), playsound(587, 300),
-playsound(659, 900), pause(400),
+jingleBells :- play_sound(659, 300), play_sound(659, 300), play_sound(659, 600), pause(200),
+play_sound(659, 300), play_sound(659, 300), play_sound(659, 600), pause(200),
+play_sound(659, 300), play_sound(784, 300), play_sound(523, 300), play_sound(587, 300),
+play_sound(659, 900), pause(400),
 
-playsound(698, 300), playsound(698, 300), playsound(698, 300), playsound(698, 300), pause(200),
-playsound(659, 300), playsound(659, 300), playsound(659, 300), playsound(659, 300), pause(200),
-playsound(784, 300), playsound(784, 300), playsound(698, 300), playsound(587, 300),
-playsound(523, 1200).
+play_sound(698, 300), play_sound(698, 300), play_sound(698, 300), play_sound(698, 300), pause(200),
+play_sound(659, 300), play_sound(659, 300), play_sound(659, 300), play_sound(659, 300), pause(200),
+play_sound(784, 300), play_sound(784, 300), play_sound(698, 300), play_sound(587, 300),
+play_sound(523, 1200).
 
 
-?- jingleBells.
+?- jingleBells, fail.

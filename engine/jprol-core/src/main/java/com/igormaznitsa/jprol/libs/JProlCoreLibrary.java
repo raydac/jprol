@@ -126,12 +126,15 @@ import java.util.stream.Stream;
 @JProlOperator(priority = 200, type = XFX, name = "**")
 @JProlOperator(priority = 200, type = XFY, name = "^")
 @JProlConsultText(value = {
+    "forall(Generator, Test) :- \\+ (Generator, \\+ Test).",
     "append([], Zs, Zs).",
     "append([X|Xs], Ys, [X|Zs]) :- append(Xs, Ys, Zs).",
     "member(X,[X|_]).",
     "member(X,[A|Rest]):-member(X,Rest)."
 },
     declaredPredicates = {
+        @JProlPredicate(signature = "forall/2", args = {
+            "+callable, +callable"}, reference = "forall(Cond, Action) For all alternative bindings of Cond, Action can be proven."),
         @JProlPredicate(signature = "append/3", args = {
             "?term, ?term, ?term"}, reference = "append(Xs, Ys, Zs) is true if Zs is the concatenation of the lists Xs and Ys. More precisely, append(Xs, Ys, Zs) is true iff the list Xs is a list prefix of Zs and Ys is Zs with prefix Xs removed."),
         @JProlPredicate(signature = "member/2", args = {
