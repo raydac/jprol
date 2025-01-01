@@ -144,7 +144,7 @@ import java.util.stream.Stream;
             "?term, ?term, ?term"}, reference = "append(Xs, Ys, Zs) is true if Zs is the concatenation of the lists Xs and Ys. More precisely, append(Xs, Ys, Zs) is true iff the list Xs is a list prefix of Zs and Ys is Zs with prefix Xs removed."),
         @JProlPredicate(signature = "member/2", args = {
             "?term, ?list"}, reference = "member(X, List) is true if and only if X is an element contained in List. If X is not instantiated, it will be instantiated with all the values in List.")
-})
+    })
 public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   public JProlCoreLibrary() {
@@ -2249,6 +2249,38 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static boolean predicateRETRACTALL(final JProlChoicePoint goal,
                                             final TermStruct predicate) {
     return goal.getContext().retractAll(predicate.getElement(0).findNonVarOrSame());
+  }
+
+  @JProlPredicate(determined = true, signature = "length/2", args = {
+      "?list,?number"}, reference = "True if Length represents the number of elements in List. This predicate is a true relation and can be used to find the length of a list or produce a list (holding variables) of length Length.")
+  public static boolean predicateLENGTH(final JProlChoicePoint goal,
+                                        final TermStruct predicate) {
+    final Term list = predicate.getElement(0).findNonVarOrSame();
+    final Term length = predicate.getElement(1).findNonVarOrSame();
+
+    if (list.getTermType() == VAR) {
+      if (length.getTermType() == VAR) {
+        return list.unifyTo(NULL_LIST) && length.unifyTo(Terms.newLong(0));
+      } else if (length instanceof NumericTerm) {
+        final int expectedLength = length.toNumber().intValue();
+        TermList result = NULL_LIST;
+        for (int i = 0; i < expectedLength; i++) {
+          result = Terms.newList(Terms.newVar(), result);
+        }
+        return list.unifyTo(result);
+      } else {
+        throw new ProlTypeErrorException("numeric", length);
+      }
+    } else if (list.getTermType() == LIST) {
+      final NumericTerm calculatedLength = Terms.newLong(((TermList) list).calculateLength());
+      if (length.getTermType() == VAR || length instanceof NumericTerm) {
+        return length.unifyTo(calculatedLength);
+      } else {
+        throw new ProlTypeErrorException("numeric", length);
+      }
+    } else {
+      throw new ProlTypeErrorException("numeric", list);
+    }
   }
 
   @JProlPredicate(determined = true, signature = "dynamic/1", args = {
