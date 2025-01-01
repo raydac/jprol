@@ -1955,35 +1955,40 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   @JProlPredicate(signature = "bagof/3", args = {
       "?term,+callable,?list"}, reference = "Unify Bag with the alternatives of Template. If Goal has free variables besides the one sharing with Template, bagof/3 will backtrack over the alternatives of these free variables, unifying Bag with the corresponding alternatives of Template. The construct +TermVar^Goal tells bagof/3 not to bind TermVar in Goal. bagof/3 fails if Goal has no solutions.")
   public static boolean predicateBAGOF(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term template = predicate.getElement(0).findNonVarOrSame();
-    final Term scopeGoal = predicate.getElement(1).findNonVarOrSame();
-    final Term instances = predicate.getElement(2).findNonVarOrSame();
+    final Term templateTerm = predicate.getElement(0).findNonVarOrSame();
+    final Term goalTerm = predicate.getElement(1).findNonVarOrSame();
+    final Term bagTerm = predicate.getElement(2).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      ProlAssertions.assertCallable(scopeGoal);
-      if (instances.getTermType() != VAR) {
-        ProlAssertions.assertList(instances);
+      ProlAssertions.assertCallable(goalTerm);
+      if (bagTerm.getTermType() != VAR) {
+        ProlAssertions.assertList(bagTerm);
       }
     }
 
-    final class BofKey {
+    final class BagOfKey {
 
-      private final Map<String, Term> vars;
+      private final Map<String, Term> variables;
       private final int hash;
 
-      BofKey(final JProlChoicePoint goal, final Set<String> excludedVariables) {
-        final Map<String, Term> varSnapshot = goal.findAllGroundedVars();
-        excludedVariables.forEach(varSnapshot::remove);
-        final List<String> orderedNames = new ArrayList<>(varSnapshot.keySet());
+      BagOfKey(final JProlChoicePoint goal, final Set<String> excludedVariables) {
+        final Map<String, Term> variablesSnapshot = goal.findAllGroundedVars();
+        excludedVariables.forEach(variablesSnapshot::remove);
+        final List<String> orderedNames = new ArrayList<>(variablesSnapshot.keySet());
         Collections.sort(orderedNames);
-        this.hash = orderedNames.stream().map(n -> varSnapshot.get(n).getText())
+        this.hash = orderedNames.stream().map(n -> variablesSnapshot.get(n).getText())
             .collect(Collectors.joining(":")).hashCode();
-        this.vars = varSnapshot;
+        this.variables = variablesSnapshot;
       }
 
       public void restoreVarValues(final JProlChoicePoint goal) {
-        this.vars.keySet()
-            .forEach(name -> goal.findVar(name).ifPresent(v -> v.unifyTo(this.vars.get(name))));
+        final Term goalTerm = goal.getGoalTerm();
+        goalTerm.variables().forEach(v -> {
+          final Term variableValue = this.variables.get(v.getText());
+          if (variableValue != null && !v.unifyTo(variableValue)) {
+            throw new Error("Unexpectedly can't unify data");
+          }
+        });
       }
 
       @Override
@@ -1998,25 +2003,26 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         }
         boolean result = false;
 
-        if (that instanceof BofKey && ((BofKey) that).vars.size() == this.vars.size()) {
-          final BofKey thatKey = (BofKey) that;
-          result = this.vars.entrySet().stream()
-              .allMatch(e -> thatKey.vars.containsKey(e.getKey()) &&
-                  thatKey.vars.get(e.getKey()).dryUnifyTo(e.getValue()));
+        if (that instanceof BagOfKey &&
+            ((BagOfKey) that).variables.size() == this.variables.size()) {
+          final BagOfKey thatKey = (BagOfKey) that;
+          result = this.variables.entrySet().stream()
+              .allMatch(e -> thatKey.variables.containsKey(e.getKey()) &&
+                  thatKey.variables.get(e.getKey()).dryUnifyTo(e.getValue()));
         }
         return result;
       }
 
     }
 
-    Map<BofKey, TermList> preparedMap = goal.getPayload();
+    Map<BagOfKey, TermList> bagOfMap = goal.getPayload();
 
-    if (preparedMap == null) {
-      preparedMap = new LinkedHashMap<>();
+    if (bagOfMap == null) {
+      bagOfMap = new LinkedHashMap<>();
 
-      final Set<String> excludedVars = new HashSet<>(template.allNamedVarsAsMap().keySet());
+      final Set<String> excludedVars = new HashSet<>(templateTerm.allNamedVarsAsMap().keySet());
 
-      Term processingGoal = scopeGoal;
+      Term processingGoal = goalTerm;
       while (processingGoal.getTermType() == STRUCT
           && ((TermStruct) processingGoal).getArity() == 2
           && "^".equals(((TermStruct) processingGoal).getFunctor().getText())) {
@@ -2033,42 +2039,42 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         processingGoal = theStruct.getElement(1);
       }
 
-      final JProlChoicePoint find_goal =
+      final JProlChoicePoint findGoal =
           new JProlChoicePoint(processingGoal.makeClone(), goal.getContext());
 
       while (true) {
-        final Term nextTemplate = find_goal.proveWithFailForUnknown();
+        final Term nextTemplate = findGoal.proveWithFailForUnknown();
 
         if (nextTemplate == null) {
           break;
         }
 
-        final Term templateCopy = template.makeClone();
+        final Term templateCopy = templateTerm.makeClone();
         final Term scopeGoalCopy = processingGoal.makeClone();
         templateCopy.arrangeVariablesInsideTerms(scopeGoalCopy);
 
         assertUnify(scopeGoalCopy, nextTemplate);
-        final BofKey key = new BofKey(find_goal, excludedVars);
+        final BagOfKey key = new BagOfKey(findGoal, excludedVars);
         final TermList resultList;
-        if (preparedMap.containsKey(key)) {
-          resultList = preparedMap.get(key);
+        if (bagOfMap.containsKey(key)) {
+          resultList = bagOfMap.get(key);
           createOrAppendToList(resultList, templateCopy.findNonVarOrSame().makeClone());
         } else {
           resultList = newList(templateCopy.findNonVarOrSame().makeClone());
-          preparedMap.put(key, resultList);
+          bagOfMap.put(key, resultList);
         }
       }
 
-      goal.setPayload(preparedMap);
+      goal.setPayload(bagOfMap);
     }
 
-    if (preparedMap.isEmpty()) {
+    if (bagOfMap.isEmpty()) {
       return false;
     } else {
-      final BofKey firstKey = preparedMap.keySet().stream().findFirst().get();
-      final TermList list = preparedMap.remove(firstKey);
-      if (instances.unifyTo(list)) {
-        firstKey.restoreVarValues(goal);
+      final BagOfKey firstFoundKey = bagOfMap.keySet().stream().findFirst().get();
+      final TermList list = bagOfMap.remove(firstFoundKey);
+      if (bagTerm.unifyTo(list)) {
+        firstFoundKey.restoreVarValues(goal);
         return true;
       } else {
         return false;
