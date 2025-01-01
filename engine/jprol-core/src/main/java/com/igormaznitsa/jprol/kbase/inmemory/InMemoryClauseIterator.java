@@ -119,6 +119,6 @@ public final class InMemoryClauseIterator implements CloseableIterator<TermStruc
 
   @Override
   public String toString() {
-    return "ClauseIterator{template=" + this.search + '}';
+    return InMemoryClauseIterator.class.getSimpleName() + "{template=" + this.search + '}';
   }
 }
