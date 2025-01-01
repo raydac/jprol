@@ -388,10 +388,11 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
   @JProlPredicate(determined = true, signature = "removeallactions/0", reference = "Remove all actions from the action menu")
   public void predicateREMOVEALLACTIONS0(final JProlChoicePoint goal, final TermStruct predicate) {
+    this.registeredActions.clear();
     SwingUtilities.invokeLater(() -> {
       boundActionsMenu.removeAll();
       menuBar.remove(boundActionsMenu);
-      registeredActions.clear();
+      menuBar.invalidate();
       graphicFrame.repaint();
     });
   }
