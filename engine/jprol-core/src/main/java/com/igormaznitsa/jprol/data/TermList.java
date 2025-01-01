@@ -26,6 +26,7 @@ import static com.igormaznitsa.jprol.utils.Utils.createOrAppendToList;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -34,6 +35,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class TermList extends TermStruct {
@@ -51,6 +53,51 @@ public final class TermList extends TermStruct {
 
   TermList(final Term head, final Term tail, final SourcePosition sourcePosition) {
     super(Terms.LIST_FUNCTOR, new Term[] {head, tail}, sourcePosition);
+  }
+
+  public TermList sort(final Comparator<Term> comparator, final boolean removeDuplication) {
+    final Term[] terms = this.toArray(false);
+    Arrays.sort(terms, comparator);
+    final TermList sortedList;
+    if (terms.length > 1) {
+      for (int i = terms.length - 1; i > 0; i--) {
+        final Term term = terms[i];
+        final Term termPrev = terms[i - 1];
+        if (removeDuplication) {
+          if (comparator.compare(term, termPrev) == 0) {
+            terms[i] = null;
+          }
+        }
+      }
+      sortedList =
+          TermList.asList(
+              Arrays.stream(terms).filter(Objects::nonNull).collect(Collectors.toList()));
+    } else {
+      sortedList = TermList.asList(Arrays.asList(terms));
+    }
+    return sortedList;
+  }
+
+  public TermList reverse() {
+    if (this.isNullList()) {
+      return this;
+    } else {
+      TermList result = new TermList(this.getHead(), NULL_LIST, this.getSourcePosition());
+      Term tail = this.getTail().findNonVarOrSame();
+      while (true) {
+        if (tail.getTermType() == LIST) {
+          final TermList thatList = (TermList) tail;
+          if (thatList.isNullList()) {
+            break;
+          }
+          result = new TermList(thatList.getHead(), result, result.getSourcePosition());
+          tail = thatList.getTail();
+        } else {
+          break;
+        }
+      }
+      return result;
+    }
   }
 
   @Override
@@ -287,7 +334,7 @@ public final class TermList extends TermStruct {
       throw new ProlCriticalError("Attempt to change Null list");
     }
     TermList curList = this;
-    while (!Thread.currentThread().isInterrupted()) {
+    while (true) {
       Term tail = curList.getTail();
       if (tail == Terms.NULL_LIST || tail.getTermType() != LIST) {
         curList.setTail(newLastElement);
@@ -397,14 +444,14 @@ public final class TermList extends TermStruct {
     return builder.toString();
   }
 
-  public Term[] toArray() {
+  public Term[] toArray(final boolean includeNonListTail) {
     if (this.isNullList()) {
       return EMPTY_ARRAY;
     }
 
     final ArrayList<Term> arraylist = new ArrayList<>();
     TermList currentList = this;
-    while (!Thread.currentThread().isInterrupted()) {
+    while (true) {
       if (currentList.isNullList()) {
         break;
       }
@@ -413,7 +460,9 @@ public final class TermList extends TermStruct {
       if (nextList.getTermType() == LIST) {
         currentList = (TermList) nextList;
       } else {
-        arraylist.add(nextList);
+        if (includeNonListTail) {
+          arraylist.add(nextList);
+        }
         break;
       }
     }

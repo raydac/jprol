@@ -86,7 +86,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
@@ -1732,7 +1731,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       if (list.isNullList()) {
         result = Terms.NULL_LIST;
       } else {
-        final Term[] array = list.toArray();
+        final Term[] array = list.toArray(false);
         result = array[ThreadLocalRandom.current().nextInt(array.length)];
       }
     } else {
@@ -1867,38 +1866,46 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       "+list,?list"}, reference = "True if Sorted can be unified with a list holding the elements of List, sorted to the standard order of terms")
   public static boolean predicateSORT2(final JProlChoicePoint choicePoint,
                                        final TermStruct predicate) {
-    final Term termList = predicate.getElement(0).findNonVarOrSame();
-    final Term termSorted = predicate.getElement(1).findNonVarOrSame();
+    final Term sourceList = predicate.getElement(0).findNonVarOrSame();
+    final Term targetList = predicate.getElement(1).findNonVarOrSame();
 
     if (choicePoint.isArgsValidate()) {
-      ProlAssertions.assertList(termList);
-      if (termSorted.getTermType() != VAR) {
-        ProlAssertions.assertList(termSorted);
+      ProlAssertions.assertList(sourceList);
+      if (targetList.getTermType() != VAR) {
+        ProlAssertions.assertList(targetList);
       }
     }
 
-    if (termSorted.getTermType() == VAR) {
-      final Term[] terms = ((TermList) termList).toArray();
-      Arrays.sort(terms, choicePoint);
-      final TermList sortedList;
-      if (terms.length > 1) {
-        for (int i = terms.length - 1; i > 0; i--) {
-          final Term term = terms[i];
-          final Term termPrev = terms[i - 1];
-          if (choicePoint.compare(term, termPrev) == 0) {
-            terms[i] = null;
-          }
-        }
-        sortedList =
-            TermList.asList(
-                Arrays.stream(terms).filter(Objects::nonNull).collect(Collectors.toList()));
-      } else {
-        sortedList = TermList.asList(Arrays.asList(terms));
-      }
-      return termSorted.unifyTo(sortedList);
+    final TermList sourceListAsList;
+    if (sourceList.getTermType() == LIST) {
+      sourceListAsList = (TermList) sourceList;
     } else {
-      return termList.unifyTo(termSorted);
+      throw new ProlInstantiationErrorException("list", choicePoint.getGoalTerm());
     }
+    return targetList.unifyTo(sourceListAsList.sort(choicePoint, true));
+  }
+
+  @JProlPredicate(determined = true, signature = "msort/2", args = {
+      "+list,?list"}, reference = "Equivalent to sort/2, but does not remove duplicates. Raises a type_error if List is a cyclic list or not a list.")
+  public static boolean predicateMSORT2(final JProlChoicePoint choicePoint,
+                                        final TermStruct predicate) {
+    final Term sourceList = predicate.getElement(0).findNonVarOrSame();
+    final Term targetList = predicate.getElement(1).findNonVarOrSame();
+
+    if (choicePoint.isArgsValidate()) {
+      ProlAssertions.assertList(sourceList);
+      if (targetList.getTermType() != VAR) {
+        ProlAssertions.assertList(targetList);
+      }
+    }
+
+    final TermList sourceListAsList;
+    if (sourceList.getTermType() == LIST) {
+      sourceListAsList = (TermList) sourceList;
+    } else {
+      throw new ProlInstantiationErrorException("list", choicePoint.getGoalTerm());
+    }
+    return targetList.unifyTo(sourceListAsList.sort(choicePoint, false));
   }
 
   @JProlPredicate(determined = true, signature = "findall/3", args = {
@@ -2192,7 +2199,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
       final Map<SofKey, TermList> sortedMap = new LinkedHashMap<>();
       preparedMap.forEach((key, value) -> {
-        final Term[] tmpArray = value.toArray();
+        final Term[] tmpArray = value.toArray(true);
         Arrays.sort(tmpArray, choicePoint);
         final TermList sortedList = TermList.asList(
             Arrays.stream(tmpArray)
@@ -2280,6 +2287,38 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
     } else {
       throw new ProlTypeErrorException("numeric", list);
+    }
+  }
+
+  @JProlPredicate(determined = true, signature = "reverse/2", args = {
+      "?list,?list"}, reference = "Is true when the elements of List2 are in reverse order compared to List1.")
+  public static boolean predicateREVERSE(final JProlChoicePoint goal,
+                                         final TermStruct predicate) {
+    final Term list1 = predicate.getElement(0).findNonVarOrSame();
+    final Term list2 = predicate.getElement(1).findNonVarOrSame();
+
+    if (list1.getTermType() == VAR) {
+      if (list2.getTermType() == LIST) {
+        return list1.unifyTo(((TermList) list2).reverse());
+      } else if (list2.getTermType() == VAR) {
+        return list1.unifyTo(list2) && list2.unifyTo(NULL_LIST);
+      } else {
+        throw new ProlTypeErrorException("list", list2);
+      }
+    } else if (list2.getTermType() == VAR) {
+      if (list1.getTermType() == LIST) {
+        return list2.unifyTo(((TermList) list1).reverse());
+      } else if (list1.getTermType() == VAR) {
+        return list2.unifyTo(list1) && list1.unifyTo(NULL_LIST);
+      } else {
+        throw new ProlTypeErrorException("list", list1);
+      }
+    } else if (list1.getTermType() == LIST) {
+      return list2.unifyTo(((TermList) list1).reverse());
+    } else if (list2.getTermType() == LIST) {
+      return list1.unifyTo(((TermList) list2).reverse());
+    } else {
+      throw new ProlTypeErrorException("list", list1);
     }
   }
 

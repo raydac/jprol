@@ -1,0 +1,96 @@
+% Test Suite: List Operations
+
+% Helper to check test results
+check_test(Goal, TestName) :-
+    write('Test: '), write(TestName), write(' - '),
+    (   call(Goal) ->
+        writeln(ok)
+    ;   writeln(fail)
+    ).
+
+% 1. Test empty list detection
+test_empty_list :-
+    check_test(([] = []), 'empty_list').
+
+% 2. Test head/tail extraction
+test_head_tail :-
+    check_test(
+        ([H|T] = [1, 2, 3], H == 1, T == [2, 3]),
+        'head_tail_extraction'
+    ).
+
+% 3. Test membership
+test_membership :-
+    check_test((member(2, [1, 2, 3])), 'membership_present'),
+    check_test((\+ member(4, [1, 2, 3])), 'membership_absent').
+
+% 4. Test concatenation
+test_concatenation :-
+    check_test((append([1, 2], [3, 4], [1, 2, 3, 4])), 'concatenation_normal'),
+    check_test((append([], [1, 2], [1, 2])), 'concatenation_empty').
+
+% 5. Test list length
+test_length :-
+    check_test((length([1, 2, 3], 3)), 'length_normal'),
+    check_test((length([], 0)), 'length_empty').
+
+% 6. Test list reversal
+test_reverse :-
+    check_test((reverse([1, 2, 3], [3, 2, 1])), 'reverse_normal'),
+    check_test((reverse([], [])), 'reverse_empty').
+
+% 7. Test sublist checks
+test_sublist :-
+    check_test(
+        (sublist([2, 3], [1, 2, 3, 4])),
+        'sublist_present'
+    ),
+    check_test(
+        (\+ sublist([3, 5], [1, 2, 3, 4])),
+        'sublist_absent'
+    ).
+
+% Define sublist predicate
+sublist(Sub, List) :-
+    append(_, L, List),
+    append(Sub, _, L).
+
+% 8. Test sorting
+test_sorting :-
+    check_test((msort([3, 1, 2], [1, 2, 3])), 'sorting_normal'),
+    check_test((msort([], [])), 'sorting_empty').
+
+% 9. Test nested lists
+test_nested_lists :-
+    check_test(
+        (member([2, 3], [[1], [2, 3], [4, 5]])),
+        'nested_list_present'
+    ),
+    check_test(
+        (\+ member([6], [[1], [2, 3], [4, 5]])),
+        'nested_list_absent'
+    ).
+
+% 10. Edge case: Non-list argument
+test_non_list :-
+    check_test(
+        (\+ member(1, not_a_list)),
+        'non_list_argument'
+    ).
+
+% Run all tests
+run_tests :-
+    writeln('Running List Operations Tests...'),
+    test_empty_list,
+    test_head_tail,
+    test_membership,
+    test_concatenation,
+    test_length,
+    test_reverse,
+    test_sublist,
+    test_sorting,
+    test_nested_lists,
+    test_non_list,
+    writeln('All tests completed.').
+
+?- time(run_tests),!,fail.

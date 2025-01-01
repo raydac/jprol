@@ -27,7 +27,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
   private static List<CompletableFuture<Term>> asyncProveOnce(final JProlChoicePoint choicePoint,
                                                               final TermList list,
                                                               final boolean allowContextDispose) {
-    final Term[] terms = list.toArray();
+    final Term[] terms = list.toArray(false);
     Arrays.stream(terms).forEach(x -> ProlAssertions.assertCallable(x.findNonVarOrSame()));
     return Arrays.stream(terms)
         .map(x -> choicePoint.getContext().proveOnceAsync(x.makeClone(), allowContextDispose))

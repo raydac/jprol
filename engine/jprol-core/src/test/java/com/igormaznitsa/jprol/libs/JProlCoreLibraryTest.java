@@ -121,7 +121,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testSort2() {
-    checkVarsAfterCall("sort([B,A,1], [2,3,1]).", new String[][] {new String[] {"A", "B"}, new String[] {"3", "2"}});
+    checkVarsAfterCall("sort([B,A,1], [2,3,1]).",
+        new String[][] {new String[] {"A", "B"}, new String[] {"2", "3"}});
     checkVarValues("sort([4,2,5,1,4,7,8,2,6,5,3,5,9,1,0],X).", "X", "[0,1,2,3,4,5,6,7,8,9]");
   }
 
