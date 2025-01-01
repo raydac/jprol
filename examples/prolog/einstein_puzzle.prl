@@ -2,10 +2,10 @@ next_to(X,Y,List) :- iright(X,Y,List).
                 next_to(X,Y,List) :- iright(Y,X,List).
  
                einstein(Houses,Fish_Owner) :-
-                   Houses=[ [house,norwegian,_,_,_,_] , _ , [house,_,_,_,milk,_] , _ , _ ],
-                  member2([house,brit,_,_,_,red] , Houses),
-                  member2([house,swede,dog,_,_,_] , Houses),
-                  member2([house,dane,_,_,tea,_] , Houses),
+                 Houses=[ [house,norwegian,_,_,_,_] , _ , [house,_,_,_,milk,_] , _ , _ ],
+                 member2([house,brit,_,_,_,red] , Houses),
+                 member2([house,swede,dog,_,_,_] , Houses),
+                 member2([house,dane,_,_,tea,_] , Houses),
                  iright([house,_,_,_,_,green] , [house,_,_,_,_,white], Houses),
                  member2([house,_,_,_,coffee,green] , Houses),
                  member2([house,_,bird,pallmall,_,_] , Houses),
