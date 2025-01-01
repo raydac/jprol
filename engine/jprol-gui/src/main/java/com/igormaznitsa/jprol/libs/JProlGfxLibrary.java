@@ -49,6 +49,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.util.Map;
@@ -79,7 +80,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
   private static final Logger LOGGER = Logger.getLogger(JProlGfxLibrary.class.getName());
   private final Map<String, RegisteredAction> registeredActions = new ConcurrentHashMap<>();
-  private final JFrame graphicFrame;
+  private final AtomicReference<JFrame> graphicFrame = new AtomicReference<>();
   private final JLabel label;
   private final ReentrantLock gfxBufferLocker = new ReentrantLock();
   private final JMenu boundActionsMenu = new JMenu("Actions");
@@ -97,57 +98,67 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   public JProlGfxLibrary() {
     super("ProlGfxLib");
 
-    this.graphicFrame = new JFrame("JProl Graphics");
-    this.graphicFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-    this.graphicFrame.setResizable(false);
-    this.graphicFrame.addWindowListener(this);
-
     this.penColor.set(Color.green);
     this.brushColor.set(Color.black);
 
     label = new JLabel();
 
-    final JPanel rootPanel = new JPanel(new BorderLayout(0, 0));
-    rootPanel.add(label, BorderLayout.CENTER);
+    try {
+      SwingUtilities.invokeAndWait(() -> {
+        final JFrame frame = new JFrame("JProl Graphics");
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        frame.setResizable(false);
+        frame.addWindowListener(this);
 
-    final JMenu saveMenu = new JMenu("Save");
+        final JPanel rootPanel = new JPanel(new BorderLayout(0, 0));
+        rootPanel.add(label, BorderLayout.CENTER);
 
-    final JMenuItem menuItemSaveImage = new JMenuItem("To Disk", UiUtils.loadIcon("disk"));
-    menuItemSaveImage.setActionCommand("DISK");
-    menuItemSaveImage.addActionListener(this);
+        final JMenu saveMenu = new JMenu("Save");
 
-    final JMenuItem menuItemCopyToClipboard =
-        new JMenuItem("To Clipboard", UiUtils.loadIcon("page_copy"));
-    menuItemCopyToClipboard.addActionListener(this);
-    menuItemCopyToClipboard.setActionCommand("CLIPBOARD");
+        final JMenuItem menuItemSaveImage = new JMenuItem("To Disk", UiUtils.loadIcon("disk"));
+        menuItemSaveImage.setActionCommand("DISK");
+        menuItemSaveImage.addActionListener(this);
 
-    menuItemSaveImage.setToolTipText("Save graphics in PNG file");
-    menuItemCopyToClipboard.setToolTipText(
-        "Save current screenshot from the graphics window into system clipboard");
+        final JMenuItem menuItemCopyToClipboard =
+            new JMenuItem("To Clipboard", UiUtils.loadIcon("page_copy"));
+        menuItemCopyToClipboard.addActionListener(this);
+        menuItemCopyToClipboard.setActionCommand("CLIPBOARD");
 
-    saveMenu.add(menuItemSaveImage);
-    saveMenu.add(menuItemCopyToClipboard);
+        menuItemSaveImage.setToolTipText("Save graphics in PNG file");
+        menuItemCopyToClipboard.setToolTipText(
+            "Save current screenshot from the graphics window into system clipboard");
 
-    this.menuBar.add(saveMenu);
-    this.graphicFrame.setJMenuBar(this.menuBar);
+        saveMenu.add(menuItemSaveImage);
+        saveMenu.add(menuItemCopyToClipboard);
 
-    this.graphicFrame.setContentPane(rootPanel);
+        this.menuBar.add(saveMenu);
+        frame.setJMenuBar(this.menuBar);
 
-    this.lastPointX = 0;
-    this.lastPointY = 0;
+        frame.setContentPane(rootPanel);
 
-    changeResolution(128, 128);
+        this.lastPointX = 0;
+        this.lastPointY = 0;
 
-    this.graphicFrame.setAlwaysOnTop(true);
-    this.graphicFrame.setVisible(false);
+        changeResolution(128, 128);
 
-    this.graphicFrame.setIconImage(UiUtils.loadIcon("appico").getImage());
+        frame.setAlwaysOnTop(true);
+        frame.setVisible(false);
 
-    this.graphicFrame.pack();
+        frame.setIconImage(UiUtils.loadIcon("appico").getImage());
 
-    final JFrame mainFrame = MainFrame.MAIN_FRAME_INSTANCE.get();
-    if (mainFrame != null) {
-      this.graphicFrame.setLocationRelativeTo(mainFrame);
+        frame.pack();
+
+        final JFrame mainFrame = MainFrame.MAIN_FRAME_INSTANCE.get();
+        if (mainFrame != null) {
+          frame.setLocationRelativeTo(mainFrame);
+        }
+
+        this.graphicFrame.set(frame);
+      });
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
+    } catch (InvocationTargetException ex) {
+      throw new RuntimeException(ex);
     }
   }
 
@@ -211,15 +222,15 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final String colorHex = Integer.toHexString(color.getRGB() & 0xFFFFFF).toUpperCase();
     final int len = colorHex.length();
 
-    final StringBuilder bldr = new StringBuilder(7);
-    bldr.append('#');
+    final StringBuilder buffer = new StringBuilder(7);
+    buffer.append('#');
 
     if (len < 6) {
-      bldr.append("00000".substring(len - 1));
+      buffer.append("00000".substring(len - 1));
     }
-    bldr.append(colorHex);
+    buffer.append(colorHex);
 
-    return Terms.newAtom(bldr.toString());
+    return Terms.newAtom(buffer.toString());
   }
 
   private void doLabelRepaint() {
@@ -254,23 +265,27 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       }
     });
 
-    if (fileChooser.showSaveDialog(this.graphicFrame) == JFileChooser.APPROVE_OPTION) {
-      File selectedFile = fileChooser.getSelectedFile();
-      if (selectedFile != null) {
-        this.lastSavedImage = selectedFile;
-        try {
-          if (!selectedFile.getName().toLowerCase().endsWith(".png")) {
-            selectedFile = new File(selectedFile.getParentFile(), selectedFile.getName() + ".png");
-          }
+    final JFrame frame = this.graphicFrame.get();
+    if (frame != null) {
+      if (fileChooser.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION) {
+        File selectedFile = fileChooser.getSelectedFile();
+        if (selectedFile != null) {
+          this.lastSavedImage = selectedFile;
+          try {
+            if (!selectedFile.getName().toLowerCase().endsWith(".png")) {
+              selectedFile =
+                  new File(selectedFile.getParentFile(), selectedFile.getName() + ".png");
+            }
 
-          if (!ImageIO.write(image, "png", selectedFile)) {
-            throw new IOException("Can't find the png encoder");
+            if (!ImageIO.write(image, "png", selectedFile)) {
+              throw new IOException("Can't find the png encoder");
+            }
+          } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "Can't save an image file", ex);
+            JOptionPane.showMessageDialog(frame,
+                "Can't save the image as a file [" + ex.getMessage() + ']', "Error",
+                JOptionPane.ERROR_MESSAGE);
           }
-        } catch (Exception ex) {
-          LOGGER.log(Level.WARNING, "Can't save an image file", ex);
-          JOptionPane.showMessageDialog(this.graphicFrame,
-              "Can't save the image as a file [" + ex.getMessage() + ']', "Error",
-              JOptionPane.ERROR_MESSAGE);
         }
       }
     }
@@ -289,14 +304,14 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       if (bufferedImage == null) {
         return;
       }
-      final int imgw = bufferedImage.getWidth();
-      final int imgh = bufferedImage.getHeight();
+      final int imageWidth = bufferedImage.getWidth();
+      final int imageHeight = bufferedImage.getHeight();
 
-      if (imgw <= 0 || imgh <= 0) {
+      if (imageWidth <= 0 || imageHeight <= 0) {
         return;
       }
 
-      bufferCopy = new BufferedImage(imgw, imgh, BufferedImage.TYPE_INT_RGB);
+      bufferCopy = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
       bufferCopy.getGraphics().drawImage(bufferedImage, 0, 0, null);
     } finally {
       gfxBufferLocker.unlock();
@@ -311,8 +326,11 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         try {
           clipboard.setContents(new ImageToClipboard(bufferCopy), null);
         } catch (IllegalStateException ex) {
-          JOptionPane.showMessageDialog(graphicFrame, "Clippoard is unavailable", "Error",
-              JOptionPane.ERROR_MESSAGE);
+          final JFrame frame = this.graphicFrame.get();
+          if (frame != null) {
+            JOptionPane.showMessageDialog(frame, "Clipboard is unavailable", "Error",
+                JOptionPane.ERROR_MESSAGE);
+          }
         }
       }
     }
@@ -355,7 +373,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       boundActionsMenu.removeAll();
       menuBar.remove(boundActionsMenu);
       menuBar.invalidate();
-      graphicFrame.repaint();
+      menuBar.repaint();
     });
   }
 
@@ -441,42 +459,43 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       if (boundActionsMenu.getParent() == null) {
         menuBar.add(boundActionsMenu);
       }
-      menuBar.revalidate();
-      graphicFrame.repaint();
+      menuBar.invalidate();
+      menuBar.repaint();
     });
   }
 
   @JProlPredicate(determined = true, signature = "rectangle/4", args = {
       "+number,+number,+number,+number"}, reference = "Draw a rectangle in the coordinates (X,Y,Width,Height) with the current pen color.")
   public void predicateRECTANGLE(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term targx = predicate.getElement(0).findNonVarOrSame();
-    final Term targy = predicate.getElement(1).findNonVarOrSame();
-    final Term targw = predicate.getElement(2).findNonVarOrSame();
-    final Term targh = predicate.getElement(3).findNonVarOrSame();
+    final Term term0 = predicate.getElement(0).findNonVarOrSame();
+    final Term term1 = predicate.getElement(1).findNonVarOrSame();
+    final Term term2 = predicate.getElement(2).findNonVarOrSame();
+    final Term term3 = predicate.getElement(3).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      ProlAssertions.assertNumber(targx);
-      ProlAssertions.assertNumber(targy);
-      ProlAssertions.assertNumber(targw);
-      ProlAssertions.assertNumber(targh);
+      ProlAssertions.assertNumber(term0);
+      ProlAssertions.assertNumber(term1);
+      ProlAssertions.assertNumber(term2);
+      ProlAssertions.assertNumber(term3);
     }
 
-    final int argx = targx.toNumber().intValue();
-    final int argy = targy.toNumber().intValue();
-    final int argw = targw.toNumber().intValue();
-    final int argh = targh.toNumber().intValue();
+    final int argumentTargetX = term0.toNumber().intValue();
+    final int argumentTargetY = term1.toNumber().intValue();
+    final int argumentTargetWidth = term2.toNumber().intValue();
+    final int argumentTargetHeight = term3.toNumber().intValue();
 
-    gfxBufferLocker.lock();
+    this.gfxBufferLocker.lock();
     try {
-      lastPointX = argx;
-      lastPointY = argy;
+      this.lastPointX = argumentTargetX;
+      this.lastPointY = argumentTargetY;
 
-      if (bufferedImage != null) {
-        bufferGraphics.setColor(penColor.get());
-        bufferGraphics.drawRect(argx, argy, argw, argh);
+      if (this.bufferGraphics != null) {
+        this.bufferGraphics.setColor(penColor.get());
+        this.bufferGraphics.drawRect(argumentTargetX, argumentTargetY, argumentTargetWidth,
+            argumentTargetHeight);
       }
     } finally {
-      gfxBufferLocker.unlock();
+      this.gfxBufferLocker.unlock();
     }
 
     this.doLabelRepaint();
@@ -485,31 +504,32 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "fillrectangle/4", args = {
       "+number,+number,+number,+number"}, reference = "Fill a rectangle in the coordinates (X,Y,Width,Height) with the current brush color.")
   public void predicateFILLRECTANGLE(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term targx = predicate.getElement(0).findNonVarOrSame();
-    final Term targy = predicate.getElement(1).findNonVarOrSame();
-    final Term targw = predicate.getElement(2).findNonVarOrSame();
-    final Term targh = predicate.getElement(3).findNonVarOrSame();
+    final Term term0 = predicate.getElement(0).findNonVarOrSame();
+    final Term term1 = predicate.getElement(1).findNonVarOrSame();
+    final Term term2 = predicate.getElement(2).findNonVarOrSame();
+    final Term term3 = predicate.getElement(3).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      ProlAssertions.assertNumber(targx);
-      ProlAssertions.assertNumber(targy);
-      ProlAssertions.assertNumber(targw);
-      ProlAssertions.assertNumber(targh);
+      ProlAssertions.assertNumber(term0);
+      ProlAssertions.assertNumber(term1);
+      ProlAssertions.assertNumber(term2);
+      ProlAssertions.assertNumber(term3);
     }
 
-    final int argx = targx.toNumber().intValue();
-    final int argy = targy.toNumber().intValue();
-    final int argw = targw.toNumber().intValue();
-    final int argh = targh.toNumber().intValue();
+    final int argumentTargetX = term0.toNumber().intValue();
+    final int argumentTargetY = term1.toNumber().intValue();
+    final int argumentTargetWidth = term2.toNumber().intValue();
+    final int argumentTargetHeight = term3.toNumber().intValue();
 
-    gfxBufferLocker.lock();
+    this.gfxBufferLocker.lock();
     try {
-      lastPointX = argx;
-      lastPointY = argy;
+      this.lastPointX = argumentTargetX;
+      this.lastPointY = argumentTargetY;
 
-      if (bufferedImage != null) {
-        bufferGraphics.setColor(brushColor.get());
-        bufferGraphics.fillRect(argx, argy, argw, argh);
+      if (this.bufferGraphics != null) {
+        this.bufferGraphics.setColor(brushColor.get());
+        this.bufferGraphics.fillRect(argumentTargetX, argumentTargetY, argumentTargetWidth,
+            argumentTargetHeight);
       }
     } finally {
       gfxBufferLocker.unlock();
@@ -556,26 +576,26 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "plot/2", args = {
       "+number,+number"}, reference = "Draw a line from the last point to (X,Y) with the current pen color.")
   public void predicatePLOT2(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term targx = predicate.getElement(0).findNonVarOrSame();
-    final Term targy = predicate.getElement(1).findNonVarOrSame();
+    final Term targetX = predicate.getElement(0).findNonVarOrSame();
+    final Term targetY = predicate.getElement(1).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      ProlAssertions.assertNumber(targx);
-      ProlAssertions.assertNumber(targy);
+      ProlAssertions.assertNumber(targetX);
+      ProlAssertions.assertNumber(targetY);
     }
 
-    final int argx = targx.toNumber().intValue();
-    final int argy = targy.toNumber().intValue();
+    final int argumentX = targetX.toNumber().intValue();
+    final int argumentY = targetY.toNumber().intValue();
 
     gfxBufferLocker.lock();
     try {
       if (bufferedImage != null) {
         bufferGraphics.setColor(penColor.get());
-        bufferGraphics.drawLine(lastPointX, lastPointY, argx, argy);
+        bufferGraphics.drawLine(lastPointX, lastPointY, argumentX, argumentY);
       }
 
-      lastPointX = argx;
-      lastPointY = argy;
+      lastPointX = argumentX;
+      lastPointY = argumentY;
     } finally {
       gfxBufferLocker.unlock();
     }
@@ -650,7 +670,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       gfxBufferLocker.unlock();
     }
     this.doLabelRepaint();
-    ;
   }
 
   @JProlPredicate(determined = true, signature = "fillscreen/0", reference = "Fill all screen by the brush color.")
@@ -691,7 +710,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       LOGGER.log(Level.WARNING, "brushcolor/1", ex);
       return false;
     }
-    brushColor.set(color);
+    this.brushColor.set(color);
     return true;
   }
 
@@ -703,15 +722,18 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       ProlAssertions.assertAtom(term);
     }
     final String title = term.getText();
-    SwingUtilities.invokeLater(() -> graphicFrame.setTitle(title));
+    SwingUtilities.invokeLater(() -> {
+      final JFrame frame = this.graphicFrame.get();
+      if (frame != null) {
+        frame.setTitle(title);
+      }
+    });
   }
 
   @JProlPredicate(determined = true, signature = "pencolor/1", args = {
       "?atom"}, reference = "Change or get the current pen color. If it can't set color then it will return false")
   public boolean predicatePENCOLOR(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
-    final ReentrantLock locker = gfxBufferLocker;
-
     if (goal.isArgsValidate()) {
       if (arg.getTermType() != VAR) {
         ProlAssertions.assertAtom(arg);
@@ -732,7 +754,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       return false;
     }
 
-    penColor.set(color);
+    this.penColor.set(color);
 
     return true;
   }
@@ -1147,18 +1169,25 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         }
       });
       this.soundClipMap.clear();
-
-      gfxBufferLocker.lock();
-      try {
-        if (this.graphicFrame != null) {
-          SwingUtilities.invokeLater(graphicFrame::dispose);
+      final JFrame frame = this.graphicFrame.getAndSet(null);
+      SwingUtilities.invokeLater(() -> {
+        try {
+          if (this.bufferGraphics != null) {
+            this.bufferGraphics.dispose();
+          }
+        } finally {
+          this.bufferGraphics = null;
           this.bufferedImage = null;
+          if (frame != null) {
+            try {
+              frame.dispose();
+            } catch (Exception ex) {
+              // do nothing
+            }
+          }
         }
-      } finally {
-        gfxBufferLocker.unlock();
-      }
+      });
     }
-
   }
 
   /**
@@ -1191,18 +1220,20 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     } finally {
       this.gfxBufferLocker.unlock();
     }
-    this.graphicFrame.invalidate();
-    this.graphicFrame.pack();
-    this.graphicFrame.repaint();
+
+    final JFrame frame = this.graphicFrame.get();
+    if (frame != null) {
+      frame.invalidate();
+      frame.pack();
+      frame.repaint();
+    }
   }
 
-  /**
-   * Inside function to make inside frame visible.
-   */
   private void activateFrame() {
-    if (this.graphicFrame != null) {
-      this.graphicFrame.setVisible(true);
-      this.graphicFrame.toFront();
+    final JFrame frame = this.graphicFrame.get();
+    if (frame != null) {
+      frame.setVisible(true);
+      frame.toFront();
     }
   }
 
@@ -1212,7 +1243,10 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
   @Override
   public void windowClosing(WindowEvent e) {
-    graphicFrame.setExtendedState(JFrame.ICONIFIED);
+    final JFrame frame = this.graphicFrame.get();
+    if (frame != null) {
+      frame.setExtendedState(JFrame.ICONIFIED);
+    }
   }
 
   @Override
