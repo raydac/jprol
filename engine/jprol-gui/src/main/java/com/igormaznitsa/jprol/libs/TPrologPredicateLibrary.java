@@ -24,7 +24,7 @@ import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.easygui.MainFrame;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
-import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeBase;
+import com.igormaznitsa.jprol.kbase.inmemory.AbstractInMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.Utils;
@@ -204,10 +204,11 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
 
     Objects.requireNonNull(MainFrame.MAIN_FRAME_INSTANCE.get()).addInfoText("Save data base as file '" + filePath + '\'');
 
-    final InMemoryKnowledgeBase base = (InMemoryKnowledgeBase) goal.getContext().getKnowledgeBase();
+    final AbstractInMemoryKnowledgeBase
+        base = (AbstractInMemoryKnowledgeBase) goal.getContext().getKnowledgeBase();
     final CharArrayWriter charArray = new CharArrayWriter(8096);
     try (PrintWriter writer = new PrintWriter(charArray, true)) {
-      base.printStateAsSrc(writer);
+      base.printStateAsSource(writer);
     }
     final String dbtext = charArray.toString();
 

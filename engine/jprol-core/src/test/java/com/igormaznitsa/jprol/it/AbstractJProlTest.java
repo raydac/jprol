@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.exceptions.ProlException;
+import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
 import com.igormaznitsa.jprol.libs.JProlIoLibrary;
 import com.igormaznitsa.jprol.libs.JProlThreadLibrary;
@@ -77,6 +78,7 @@ public abstract class AbstractJProlTest {
                                       final IoResourceProvider... ioProviders) {
     final JProlContext context = new JProlContext(
         "test-context",
+        InMemoryKnowledgeBase::new,
         new JProlCoreLibrary(),
         new JProlIoLibrary(),
         new JProlThreadLibrary()

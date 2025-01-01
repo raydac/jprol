@@ -49,7 +49,7 @@ import com.igormaznitsa.jprol.exceptions.ProlInterruptException;
 import com.igormaznitsa.jprol.exceptions.ProlKnowledgeBaseException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
-import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeBase;
+import com.igormaznitsa.jprol.kbase.inmemory.ConcurrentInMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.libs.JProlBootstrapLibrary;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
@@ -141,12 +141,24 @@ public final class JProlContext implements AutoCloseable {
   private boolean debug;
   private UndefinedPredicateBehavior undefinedPredicateBehaviour;
 
-  public JProlContext(final String name, final File currentFolder,
-                      final AbstractJProlLibrary... libs) {
+  public JProlContext(
+      final String name,
+      final File currentFolder,
+      final AbstractJProlLibrary... libs
+  ) {
+    this(name, currentFolder, ConcurrentInMemoryKnowledgeBase::new, libs);
+  }
+
+  public JProlContext(
+      final String name,
+      final File currentFolder,
+      final Function<String, KnowledgeBase> knowledgeBaseSupplier,
+      final AbstractJProlLibrary... libs
+  ) {
     this(
         name,
         currentFolder,
-        new InMemoryKnowledgeBase(name + "_kbase"),
+        knowledgeBaseSupplier.apply(name + "_kbase"),
         ForkJoinPool.commonPool(),
         emptyMap(),
         emptyList(),
@@ -156,7 +168,13 @@ public final class JProlContext implements AutoCloseable {
   }
 
   public JProlContext(final String name, final AbstractJProlLibrary... libs) {
-    this(name, new File(System.getProperty("user.home")), libs);
+    this(name, ConcurrentInMemoryKnowledgeBase::new, libs);
+  }
+
+  public JProlContext(final String name,
+                      final Function<String, KnowledgeBase> knowledgeBaseSupplier,
+                      final AbstractJProlLibrary... libs) {
+    this(name, new File(System.getProperty("user.home")), knowledgeBaseSupplier, libs);
   }
 
   private JProlContext(

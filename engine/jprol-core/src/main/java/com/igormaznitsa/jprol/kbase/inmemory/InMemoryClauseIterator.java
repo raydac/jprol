@@ -18,7 +18,6 @@ package com.igormaznitsa.jprol.kbase.inmemory;
 
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
-import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.kbase.inmemory.items.InMemoryItem;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
@@ -33,7 +32,7 @@ public final class InMemoryClauseIterator implements CloseableIterator<TermStruc
   private final IteratorType type;
   private InMemoryItem next;
 
-  InMemoryClauseIterator(
+  public InMemoryClauseIterator(
       final IteratorType type,
       final List<InMemoryItem> list,
       final TermStruct search
@@ -41,14 +40,7 @@ public final class InMemoryClauseIterator implements CloseableIterator<TermStruc
     this(type, list, search.makeClone());
   }
 
-  InMemoryClauseIterator(
-      final IteratorType type,
-      final List<InMemoryItem> list
-  ) {
-    this(type, list, Terms.newVar());
-  }
-
-  private InMemoryClauseIterator(
+  public InMemoryClauseIterator(
       final IteratorType type,
       final List<InMemoryItem> list,
       final Term search
