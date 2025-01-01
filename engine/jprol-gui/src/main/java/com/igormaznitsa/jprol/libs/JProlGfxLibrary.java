@@ -52,7 +52,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.util.Map;
-import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
@@ -79,7 +78,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     implements WindowListener, ActionListener {
 
   private static final Logger LOGGER = Logger.getLogger(JProlGfxLibrary.class.getName());
-  private final WeakHashMap<JMenuItem, RegisteredAction> registeredActions = new WeakHashMap<>();
+  private final Map<String, RegisteredAction> registeredActions = new ConcurrentHashMap<>();
   private final JFrame graphicFrame;
   private final JLabel label;
   private final ReentrantLock gfxBufferLocker = new ReentrantLock();
@@ -397,9 +396,37 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     });
   }
 
+  @JProlPredicate(determined = true, signature = "bindaction/1", args = {
+      "+term"}, reference = "Remove a goal bound to an action menu item.")
+  public void predicateBINDACTION1(final JProlChoicePoint goal, final TermStruct predicate) {
+    final Term menuItem = predicate.getElement(0).findNonVarOrSame();
+
+    if (goal.isArgsValidate()) {
+      ProlAssertions.assertNonVar(menuItem);
+    }
+
+    final String menuItemName = menuItem.forWrite();
+    final RegisteredAction registeredAction = this.registeredActions.remove(menuItemName);
+
+    if (registeredAction != null) {
+      SwingUtilities.invokeLater(() -> {
+        final Component[] components = boundActionsMenu.getMenuComponents();
+        for (final Component compo : components) {
+          final JMenuItem item = (JMenuItem) compo;
+          if (item.getClientProperty("jprol-action") != null) {
+            if (item.getText().equals(menuItemName)) {
+              boundActionsMenu.remove(item);
+              break;
+            }
+          }
+        }
+      });
+    }
+  }
+
   @JProlPredicate(determined = true, signature = "bindaction/2", args = {
       "+term,+callable"}, reference = "Bind a goal to an action menu item (menu_item_name, action) which can be selected by user.")
-  public void predicateBINDACTION(final JProlChoicePoint goal, final TermStruct predicate) {
+  public void predicateBINDACTION2(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term menuItem = predicate.getElement(0).findNonVarOrSame();
     final Term action = predicate.getElement(1).findNonVarOrSame();
 
@@ -413,38 +440,44 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final RegisteredAction registeredAction =
         new RegisteredAction(menuItemName, action, goal.getContext());
 
-    SwingUtilities.invokeLater(() -> {
-      menuBar.remove(boundActionsMenu);
+    this.registeredActions.put(menuItemName, registeredAction);
 
-      // remove already registered action for the name
+    SwingUtilities.invokeLater(() -> {
+      JMenuItem foundItem = null;
+
       final Component[] components = boundActionsMenu.getMenuComponents();
       for (final Component compo : components) {
         final JMenuItem item = (JMenuItem) compo;
-        if (item.getText().equals(menuItemName)) {
-          menuBar.remove(item);
-          break;
+        if (item.getClientProperty("jprol-action") != null) {
+          if (item.getText().equals(menuItemName)) {
+            foundItem = item;
+            break;
+          }
         }
       }
 
-      final JMenuItem newItem = new JMenuItem(menuItemName);
+      if (foundItem == null) {
+        foundItem = new JMenuItem(menuItemName);
+        foundItem.putClientProperty("jprol-action", true);
+        boundActionsMenu.add(foundItem);
+      } else {
+        for (final ActionListener l : foundItem.getActionListeners()) {
+          foundItem.removeActionListener(l);
+        }
+      }
 
-      newItem.addActionListener((ActionEvent e) -> {
-        RegisteredAction foundAction;
-        foundAction = registeredActions.get(e.getSource());
-        if (foundAction != null) {
-          if (!foundAction.execute()) {
-            //remove registered menu item
-            boundActionsMenu.remove((JMenuItem) e.getSource());
-            boundActionsMenu.revalidate();
-          }
+      foundItem.addActionListener((ActionEvent e) -> {
+        if (registeredAction.execute()) {
+          menuBar.revalidate();
         } else {
+          registeredActions.remove(registeredAction.menuText);
           menuBar.remove((JMenuItem) e.getSource());
           menuBar.revalidate();
         }
       });
-      registeredActions.put(newItem, registeredAction);
-      boundActionsMenu.add(newItem);
-      menuBar.add(boundActionsMenu);
+      if (boundActionsMenu.getParent() == null) {
+        menuBar.add(boundActionsMenu);
+      }
       menuBar.revalidate();
       graphicFrame.repaint();
     });
@@ -1131,6 +1164,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   protected void onCallContextDispose(final JProlContext context,
                                       final Map<String, Object> contextNamedObjects) {
     super.onCallContextDispose(context, contextNamedObjects);
+    this.registeredActions.clear();
     try {
       this.imageSpriteMap.clear();
       final SourceDataLine sourceDataLine = this.soundDataLine.getAndSet(null);
