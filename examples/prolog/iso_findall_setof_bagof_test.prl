@@ -1,0 +1,67 @@
+% Facts for testing
+parent(john, mary).
+parent(john, mike).
+parent(jane, mary).
+parent(jane, mike).
+parent(susan, ann).
+parent(susan, bob).
+
+% Helper predicate to print test results
+run_test(TestName, Goal) :-
+    (   Goal
+    ->  write(TestName), write(': ok'), nl
+    ;   write(TestName), write(': fail'), nl
+    ).
+
+% Test Suite
+test_findall :-
+    run_test('test_findall', 
+             (findall(Child, parent(john, Child), Children),
+              Children == [mary, mike])).
+
+test_findall_empty :-
+    run_test('test_findall_empty', 
+             (findall(Child, parent(nonexistent, Child), Children),
+              Children == [])).
+
+test_bagof_group :-
+    run_test('test_bagof_group', 
+             (bagof(Child, parent(Parent, Child), Children),
+              (Parent == john -> Children == [mary, mike];
+               Parent == jane -> Children == [mary, mike];
+               Parent == susan -> Children == [ann, bob]))).
+
+test_bagof_john :-
+    run_test('test_bagof_john', 
+             (bagof(Child, parent(john, Child), Children),
+              Children == [mary, mike])).
+
+test_setof_all :-
+    run_test('test_setof_all', 
+             (setof(Child, Parent^parent(Parent, Child), Children),
+              Children == [ann, bob, mary, mike])).
+
+test_setof_john :-
+    run_test('test_setof_john', 
+             (setof(Child, parent(john, Child), Children),
+              Children == [mary, mike])).
+
+test_setof_pairs :-
+    run_test('test_setof_pairs', 
+             (setof((Parent, Child), parent(Parent, Child), Results),
+              Results == [(jane, mary), (jane, mike), 
+                          (john, mary), (john, mike), 
+                          (susan, ann), (susan, bob)])).
+
+% Run all tests
+run_tests :-
+    test_findall,
+    test_findall_empty,
+    test_bagof_group,
+    test_bagof_john,
+    test_setof_all,
+    test_setof_john,
+    test_setof_pairs.
+
+
+?- time(run_tests),!,fail.    
