@@ -265,51 +265,64 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     Toolkit.getDefaultToolkit().beep();
   }
 
-  private void doMouseAction(final int x, final int y, final int clicks, final String actionId) {
+  private static String decodeMouseButton(final MouseEvent event) {
+    if (SwingUtilities.isLeftMouseButton(event)) {
+      return "left";
+    } else if (SwingUtilities.isRightMouseButton(event)) {
+      return "right";
+    } else if (SwingUtilities.isMiddleMouseButton(event)) {
+      return "middle";
+    } else {
+      return "none";
+    }
+  }
+
+  private void doMouseAction(final int x, final int y, final String button, final int clicks,
+                             final String actionId) {
     final List<JProlMouseAction> actions = this.registeredMouseActions.get(actionId);
     if (actions != null) {
-      actions.forEach(action -> action.execute(x, y, clicks, actionId));
+      actions.forEach(action -> action.execute(x, y, button, clicks, actionId));
     }
   }
 
   @Override
   public void mouseClicked(final MouseEvent e) {
-    this.doMouseAction(e.getX(), e.getY(), e.getClickCount(), "clicked");
+    this.doMouseAction(e.getX(), e.getY(), decodeMouseButton(e), e.getClickCount(), "clicked");
   }
 
   @Override
   public void mousePressed(MouseEvent e) {
-    this.doMouseAction(e.getX(), e.getY(), e.getClickCount(), "pressed");
+    this.doMouseAction(e.getX(), e.getY(), decodeMouseButton(e), e.getClickCount(), "pressed");
   }
 
   @Override
   public void mouseReleased(MouseEvent e) {
-    this.doMouseAction(e.getX(), e.getY(), e.getClickCount(), "released");
+    this.doMouseAction(e.getX(), e.getY(), decodeMouseButton(e), e.getClickCount(), "released");
   }
 
   @Override
   public void mouseEntered(MouseEvent e) {
-    this.doMouseAction(e.getX(), e.getY(), e.getClickCount(), "entered");
+    this.doMouseAction(e.getX(), e.getY(), decodeMouseButton(e), e.getClickCount(), "entered");
   }
 
   @Override
   public void mouseExited(MouseEvent e) {
-    this.doMouseAction(e.getX(), e.getY(), e.getClickCount(), "exited");
+    this.doMouseAction(e.getX(), e.getY(), decodeMouseButton(e), e.getClickCount(), "exited");
   }
 
   @Override
   public void mouseDragged(MouseEvent e) {
-    this.doMouseAction(e.getX(), e.getY(), e.getClickCount(), "dragged");
+    this.doMouseAction(e.getX(), e.getY(), decodeMouseButton(e), e.getClickCount(), "dragged");
   }
 
   @Override
   public void mouseMoved(MouseEvent e) {
-    this.doMouseAction(e.getX(), e.getY(), e.getClickCount(), "moved");
+    this.doMouseAction(e.getX(), e.getY(), decodeMouseButton(e), e.getClickCount(), "moved");
   }
 
   @Override
   public void mouseWheelMoved(MouseWheelEvent e) {
-    this.doMouseAction(e.getX(), e.getY(), e.getWheelRotation(), "wheel");
+    this.doMouseAction(e.getX(), e.getY(), decodeMouseButton(e), e.getWheelRotation(), "wheel");
   }
 
   private void saveImageAsFile(final BufferedImage image) {
@@ -365,18 +378,18 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
     // make snapshot of current buffer
     BufferedImage bufferCopy;
-      if (bufferedImage == null) {
-        return;
-      }
-      final int imageWidth = bufferedImage.getWidth();
-      final int imageHeight = bufferedImage.getHeight();
+    if (bufferedImage == null) {
+      return;
+    }
+    final int imageWidth = bufferedImage.getWidth();
+    final int imageHeight = bufferedImage.getHeight();
 
-      if (imageWidth <= 0 || imageHeight <= 0) {
-        return;
-      }
+    if (imageWidth <= 0 || imageHeight <= 0) {
+      return;
+    }
 
-      bufferCopy = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
-      bufferCopy.getGraphics().drawImage(bufferedImage, 0, 0, null);
+    bufferCopy = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
+    bufferCopy.getGraphics().drawImage(bufferedImage, 0, 0, null);
 
     final String command = e.getActionCommand();
     if ("DISK".equals(command)) {
@@ -452,8 +465,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
           callable);
     }
 
-    if (callable.getTermType() != STRUCT || ((TermStruct) callable).getArity() != 4) {
-      throw new ProlInstantiationErrorException("Expected callable structure with arity 4",
+    if (callable.getTermType() != STRUCT || ((TermStruct) callable).getArity() != 5) {
+      throw new ProlInstantiationErrorException("Expected callable structure with arity 5",
           callable);
     }
 
@@ -768,7 +781,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final Color color;
     try {
       color = getColorForName(text);
-
     } catch (Exception ex) {
       LOGGER.log(Level.WARNING, "brushcolor/1", ex);
       return false;
@@ -1380,19 +1392,21 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     JProlMouseAction(final TermStruct action, final JProlContext context) {
       this.action = requireNonNull(action);
       this.context = requireNonNull(context);
-      if (action.getArity() != 4) {
+      if (action.getArity() != 5) {
         throw new IllegalArgumentException("Unsupported action term: " + action);
       }
     }
 
-    boolean execute(final int x, final int y, final int clicksOrWheel, final String actionId) {
+    boolean execute(final int x, final int y, final String button, final int clicksOrWheel,
+                    final String actionId) {
       if (this.context.isDisposed()) {
         return false;
       }
 
       final TermStruct clone = (TermStruct) this.action.makeClone();
       final TermStruct args = Terms.newStruct(clone.getFunctor(),
-          new Term[] {Terms.newLong(x), Terms.newLong(y), Terms.newLong(clicksOrWheel),
+          new Term[] {Terms.newLong(x), Terms.newLong(y), Terms.newAtom(button),
+              Terms.newLong(clicksOrWheel),
               Terms.newAtom(actionId)});
       if (clone.unifyTo(args)) {
         try {
