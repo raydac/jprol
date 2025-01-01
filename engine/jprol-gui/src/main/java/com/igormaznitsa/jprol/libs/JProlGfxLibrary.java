@@ -16,6 +16,8 @@
 
 package com.igormaznitsa.jprol.libs;
 
+import static com.igormaznitsa.jprol.data.TermType.ATOM;
+import static com.igormaznitsa.jprol.data.TermType.STRUCT;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static java.util.Objects.requireNonNull;
 
@@ -26,7 +28,9 @@ import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.easygui.MainFrame;
 import com.igormaznitsa.jprol.easygui.UiUtils;
+import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
@@ -42,6 +46,11 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
@@ -52,8 +61,12 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -76,22 +89,30 @@ import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 
 public final class JProlGfxLibrary extends AbstractJProlLibrary
-    implements WindowListener, ActionListener {
+    implements WindowListener, ActionListener, MouseListener, MouseMotionListener,
+    MouseWheelListener {
+
+  private static final Set<String> allowedMouseActions =
+      Set.of("clicked", "pressed", "released", "entered", "exited", "wheel", "moved", "dragged");
 
   private static final Logger LOGGER = Logger.getLogger(JProlGfxLibrary.class.getName());
-  private final Map<String, RegisteredAction> registeredActions = new ConcurrentHashMap<>();
+  private final Map<String, JProlMenuRegisteredAction> registeredActions =
+      new ConcurrentHashMap<>();
+  private final Map<String, List<JProlMouseAction>> registeredMouseActions =
+      new ConcurrentHashMap<>();
   private final AtomicReference<JFrame> graphicFrame = new AtomicReference<>();
-  private final JLabel label;
-  private final ReentrantLock gfxBufferLocker = new ReentrantLock();
+  private final AtomicReference<JLabel> label = new AtomicReference<>();
   private final JMenu boundActionsMenu = new JMenu("Actions");
   private final JMenuBar menuBar = new JMenuBar();
   private final Map<String, BufferedImage> imageSpriteMap = new ConcurrentHashMap<>();
   private final Map<String, SoundClip> soundClipMap = new ConcurrentHashMap<>();
+  private final AtomicReference<Color> penColor = new AtomicReference<>();
+  private final AtomicReference<Color> brushColor = new AtomicReference<>();
+  private final AtomicReference<SourceDataLine> soundDataLine = new AtomicReference<>();
+  private final Lock soundAccessLocker = new ReentrantLock();
   private File lastSavedImage = null;
   private BufferedImage bufferedImage;
   private Graphics bufferGraphics;
-  private final AtomicReference<Color> penColor = new AtomicReference<>();
-  private final AtomicReference<Color> brushColor = new AtomicReference<>();
   private int lastPointX;
   private int lastPointY;
 
@@ -101,17 +122,23 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     this.penColor.set(Color.green);
     this.brushColor.set(Color.black);
 
-    label = new JLabel();
-
     try {
       SwingUtilities.invokeAndWait(() -> {
+        final JLabel theLabel = new JLabel();
+
+        theLabel.addMouseListener(this);
+        theLabel.addMouseMotionListener(this);
+        theLabel.addMouseWheelListener(this);
+
+        this.label.set(theLabel);
+
         final JFrame frame = new JFrame("JProl Graphics");
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         frame.setResizable(false);
         frame.addWindowListener(this);
 
         final JPanel rootPanel = new JPanel(new BorderLayout(0, 0));
-        rootPanel.add(label, BorderLayout.CENTER);
+        rootPanel.add(theLabel, BorderLayout.CENTER);
 
         final JMenu saveMenu = new JMenu("Save");
 
@@ -233,17 +260,56 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     return Terms.newAtom(buffer.toString());
   }
 
-  private void doLabelRepaint() {
-    if (SwingUtilities.isEventDispatchThread()) {
-      this.label.repaint();
-    } else {
-      SwingUtilities.invokeLater(this.label::repaint);
-    }
-  }
-
   @JProlPredicate(determined = true, signature = "beep/0", reference = "Make a short sound. It depends on the OS.")
   public static void predicateBEEP(final JProlChoicePoint goal, final TermStruct predicate) {
     Toolkit.getDefaultToolkit().beep();
+  }
+
+  private void doMouseAction(final int x, final int y, final int clicks, final String actionId) {
+    final List<JProlMouseAction> actions = this.registeredMouseActions.get(actionId);
+    if (actions != null) {
+      actions.forEach(action -> action.execute(x, y, clicks, actionId));
+    }
+  }
+
+  @Override
+  public void mouseClicked(final MouseEvent e) {
+    this.doMouseAction(e.getX(), e.getY(), e.getClickCount(), "clicked");
+  }
+
+  @Override
+  public void mousePressed(MouseEvent e) {
+    this.doMouseAction(e.getX(), e.getY(), e.getClickCount(), "pressed");
+  }
+
+  @Override
+  public void mouseReleased(MouseEvent e) {
+    this.doMouseAction(e.getX(), e.getY(), e.getClickCount(), "released");
+  }
+
+  @Override
+  public void mouseEntered(MouseEvent e) {
+    this.doMouseAction(e.getX(), e.getY(), e.getClickCount(), "entered");
+  }
+
+  @Override
+  public void mouseExited(MouseEvent e) {
+    this.doMouseAction(e.getX(), e.getY(), e.getClickCount(), "exited");
+  }
+
+  @Override
+  public void mouseDragged(MouseEvent e) {
+    this.doMouseAction(e.getX(), e.getY(), e.getClickCount(), "dragged");
+  }
+
+  @Override
+  public void mouseMoved(MouseEvent e) {
+    this.doMouseAction(e.getX(), e.getY(), e.getClickCount(), "moved");
+  }
+
+  @Override
+  public void mouseWheelMoved(MouseWheelEvent e) {
+    this.doMouseAction(e.getX(), e.getY(), e.getWheelRotation(), "wheel");
   }
 
   private void saveImageAsFile(final BufferedImage image) {
@@ -299,8 +365,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
     // make snapshot of current buffer
     BufferedImage bufferCopy;
-    gfxBufferLocker.lock();
-    try {
       if (bufferedImage == null) {
         return;
       }
@@ -313,9 +377,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
       bufferCopy = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
       bufferCopy.getGraphics().drawImage(bufferedImage, 0, 0, null);
-    } finally {
-      gfxBufferLocker.unlock();
-    }
+
     final String command = e.getActionCommand();
     if ("DISK".equals(command)) {
       saveImageAsFile(bufferCopy);
@@ -347,11 +409,10 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       ProlAssertions.assertNumber(termArgY);
     }
 
-    final int argX = termArgX.toNumber().intValue();
-    final int argY = termArgY.toNumber().intValue();
+    this.safeSwingSynchroCall(() -> {
+      final int argX = termArgX.toNumber().intValue();
+      final int argY = termArgY.toNumber().intValue();
 
-    gfxBufferLocker.lock();
-    try {
       lastPointX = argX;
       lastPointY = argY;
 
@@ -359,22 +420,46 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         bufferGraphics.setColor(penColor.get());
         bufferGraphics.drawLine(argX, argY, argX, argY);
       }
-    } finally {
-      gfxBufferLocker.unlock();
-    }
-
-    this.doLabelRepaint();
+      this.repaintLabel();
+    });
   }
 
   @JProlPredicate(determined = true, signature = "bindaction/0", reference = "Remove all actions from the action menu")
   public void predicateBINDACTION0(final JProlChoicePoint goal, final TermStruct predicate) {
     this.registeredActions.clear();
-    SwingUtilities.invokeLater(() -> {
+    this.safeSwingCall(() -> {
       boundActionsMenu.removeAll();
       menuBar.remove(boundActionsMenu);
       menuBar.invalidate();
       menuBar.repaint();
     });
+  }
+
+  @JProlPredicate(determined = true, signature = "bindmouse/2", reference = "List in format [x,y,clicksOrWheel,mouseAction]. Bind mouse actions.")
+  public void predicateBINDMOUSE(final JProlChoicePoint goal, final TermStruct predicate) {
+    final Term action = predicate.getElement(0).findNonVarOrSame();
+    final Term callable = predicate.getElement(1).findNonVarOrSame();
+
+    if (goal.isArgsValidate()) {
+      ProlAssertions.assertAtom(action);
+      ProlAssertions.assertCallable(callable);
+    }
+
+    final String actionType = action.getTermType() == ATOM ? action.getText() : "";
+
+    if (!allowedMouseActions.contains(actionType)) {
+      throw new ProlInstantiationErrorException("Not-allowed mouse action: " + actionType,
+          callable);
+    }
+
+    if (callable.getTermType() != STRUCT || ((TermStruct) callable).getArity() != 4) {
+      throw new ProlInstantiationErrorException("Expected callable structure with arity 4",
+          callable);
+    }
+
+    final List<JProlMouseAction> list = this.registeredMouseActions.computeIfAbsent(actionType,
+        name -> new CopyOnWriteArrayList<>());
+    list.add(new JProlMouseAction((TermStruct) callable, goal.getContext()));
   }
 
   @JProlPredicate(determined = true, signature = "bindaction/1", args = {
@@ -387,10 +472,10 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     }
 
     final String menuItemName = menuItem.forWrite();
-    final RegisteredAction registeredAction = this.registeredActions.remove(menuItemName);
+    final JProlMenuRegisteredAction registeredAction = this.registeredActions.remove(menuItemName);
 
     if (registeredAction != null) {
-      SwingUtilities.invokeLater(() -> {
+      this.safeSwingCall(() -> {
         final Component[] components = boundActionsMenu.getMenuComponents();
         for (final Component compo : components) {
           final JMenuItem item = (JMenuItem) compo;
@@ -418,12 +503,12 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
     final String menuItemName = menuItem.forWrite();
 
-    final RegisteredAction registeredAction =
-        new RegisteredAction(menuItemName, action, goal.getContext());
+    final JProlMenuRegisteredAction registeredAction =
+        new JProlMenuRegisteredAction(menuItemName, action, goal.getContext());
 
     this.registeredActions.put(menuItemName, registeredAction);
 
-    SwingUtilities.invokeLater(() -> {
+    this.safeSwingCall(() -> {
       JMenuItem foundItem = null;
 
       final Component[] components = boundActionsMenu.getMenuComponents();
@@ -484,8 +569,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final int argumentTargetWidth = term2.toNumber().intValue();
     final int argumentTargetHeight = term3.toNumber().intValue();
 
-    this.gfxBufferLocker.lock();
-    try {
+    safeSwingCall(() -> {
       this.lastPointX = argumentTargetX;
       this.lastPointY = argumentTargetY;
 
@@ -494,11 +578,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         this.bufferGraphics.drawRect(argumentTargetX, argumentTargetY, argumentTargetWidth,
             argumentTargetHeight);
       }
-    } finally {
-      this.gfxBufferLocker.unlock();
-    }
-
-    this.doLabelRepaint();
+    });
+    this.repaintLabel();
   }
 
   @JProlPredicate(determined = true, signature = "fillrectangle/4", args = {
@@ -521,8 +602,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final int argumentTargetWidth = term2.toNumber().intValue();
     final int argumentTargetHeight = term3.toNumber().intValue();
 
-    this.gfxBufferLocker.lock();
-    try {
+    safeSwingCall(() -> {
       this.lastPointX = argumentTargetX;
       this.lastPointY = argumentTargetY;
 
@@ -531,10 +611,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         this.bufferGraphics.fillRect(argumentTargetX, argumentTargetY, argumentTargetWidth,
             argumentTargetHeight);
       }
-    } finally {
-      gfxBufferLocker.unlock();
-    }
-    this.doLabelRepaint();
+    });
+    this.repaintLabel();
   }
 
   @JProlPredicate(determined = true, signature = "plot/4", args = {
@@ -557,8 +635,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final int argxx = targxx.toNumber().intValue();
     final int argyy = targyy.toNumber().intValue();
 
-    gfxBufferLocker.lock();
-    try {
+    this.safeSwingSynchroCall(() -> {
       lastPointX = argxx;
       lastPointY = argyy;
 
@@ -566,11 +643,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         bufferGraphics.setColor(penColor.get());
         bufferGraphics.drawLine(argx, argy, argxx, argyy);
       }
-    } finally {
-      gfxBufferLocker.unlock();
-    }
-
-    this.doLabelRepaint();
+      this.repaintLabel();
+    });
   }
 
   @JProlPredicate(determined = true, signature = "plot/2", args = {
@@ -587,8 +661,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final int argumentX = targetX.toNumber().intValue();
     final int argumentY = targetY.toNumber().intValue();
 
-    gfxBufferLocker.lock();
-    try {
+    this.safeSwingSynchroCall(() -> {
       if (bufferedImage != null) {
         bufferGraphics.setColor(penColor.get());
         bufferGraphics.drawLine(lastPointX, lastPointY, argumentX, argumentY);
@@ -596,10 +669,9 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
       lastPointX = argumentX;
       lastPointY = argumentY;
-    } finally {
-      gfxBufferLocker.unlock();
-    }
-    this.doLabelRepaint();
+
+      this.repaintLabel();
+    });
   }
 
   @JProlPredicate(determined = true, signature = "oval/4", args = {
@@ -622,8 +694,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final int argw = targw.toNumber().intValue();
     final int argh = targh.toNumber().intValue();
 
-    gfxBufferLocker.lock();
-    try {
+    this.safeSwingSynchroCall(() -> {
       if (bufferedImage != null) {
         bufferGraphics.setColor(penColor.get());
         bufferGraphics.drawOval(argx, argy, argw, argh);
@@ -631,10 +702,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
       lastPointX = argx;
       lastPointY = argy;
-    } finally {
-      gfxBufferLocker.unlock();
-    }
-    this.doLabelRepaint();
+      this.repaintLabel();
+    });
   }
 
   @JProlPredicate(determined = true, signature = "filloval/4", args = {
@@ -657,8 +726,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final int argw = targw.toNumber().intValue();
     final int argh = targh.toNumber().intValue();
 
-    gfxBufferLocker.lock();
-    try {
+    this.safeSwingSynchroCall(() -> {
       if (bufferedImage != null) {
         bufferGraphics.setColor(brushColor.get());
         bufferGraphics.fillOval(argx, argy, argw, argh);
@@ -666,24 +734,19 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
       lastPointX = argx;
       lastPointY = argy;
-    } finally {
-      gfxBufferLocker.unlock();
-    }
-    this.doLabelRepaint();
+      this.repaintLabel();
+    });
   }
 
   @JProlPredicate(determined = true, signature = "fillscreen/0", reference = "Fill all screen by the brush color.")
   public void predicateFILLSCREEN(final JProlChoicePoint goal, final TermStruct predicate) {
-    gfxBufferLocker.lock();
-    try {
+    this.safeSwingSynchroCall(() -> {
       if (bufferedImage != null) {
         bufferGraphics.setColor(brushColor.get());
         bufferGraphics.fillRect(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight());
       }
-    } finally {
-      gfxBufferLocker.unlock();
-    }
-    this.doLabelRepaint();
+      this.repaintLabel();
+    });
   }
 
   @JProlPredicate(signature = "brushcolor/1", args = {
@@ -722,7 +785,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       ProlAssertions.assertAtom(term);
     }
     final String title = term.getText();
-    SwingUtilities.invokeLater(() -> {
+    this.safeSwingCall(() -> {
       final JFrame frame = this.graphicFrame.get();
       if (frame != null) {
         frame.setTitle(title);
@@ -774,16 +837,14 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       }
     }
 
-    final ReentrantLock locker = gfxBufferLocker;
-
-    locker.lock();
-    try {
+    final AtomicBoolean result = new AtomicBoolean(true);
+    this.safeSwingSynchroCall(() -> {
       final TermLong lpx = Terms.newLong(lastPointX);
       final TermLong lpy = Terms.newLong(lastPointY);
 
       if (elemX.getTermType() == VAR) {
         if (!elemX.unifyTo(lpx)) {
-          return false;
+          result.set(false);
         }
       } else {
         lastPointX = elemX.toNumber().intValue();
@@ -791,16 +852,13 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
       if (elemY.getTermType() == VAR) {
         if (!elemY.unifyTo(lpy)) {
-          return false;
+          result.set(false);
         }
       } else {
         lastPointY = elemY.toNumber().intValue();
       }
-    } finally {
-      locker.unlock();
-    }
-
-    return true;
+    });
+    return result.get();
   }
 
   @JProlPredicate(determined = true, signature = "print/1", args = {
@@ -812,16 +870,18 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     }
 
     final String text = elem.forWrite();
-    final ReentrantLock locker = gfxBufferLocker;
-
-    locker.lock();
-    try {
+    this.safeSwingSynchroCall(() -> {
       bufferGraphics.setColor(penColor.get());
       bufferGraphics.drawString(text, lastPointX, lastPointY);
-    } finally {
-      locker.unlock();
+      this.repaintLabel();
+    });
+  }
+
+  private void repaintLabel() {
+    final JLabel theLabel = this.label.get();
+    if (theLabel != null) {
+      theLabel.repaint();
     }
-    label.repaint();
   }
 
   /**
@@ -835,20 +895,16 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
    */
   private void saveCurrentBuffer(final File folder, final String name, final String type,
                                  final TermStruct predicate) {
-    gfxBufferLocker.lock();
-    try (final FileOutputStream fileOutputStream = new FileOutputStream(new File(folder, name),
-        false)) {
-      ImageIO.write(bufferedImage, type, fileOutputStream);
-    } catch (IOException e) {
-      LOGGER.log(Level.WARNING, "saveCurrentBuffer()", e);
-      throw new ProlPermissionErrorException("write", "image_output", predicate, e);
-    } finally {
-      gfxBufferLocker.unlock();
-    }
+    this.safeSwingSynchroCall(() -> {
+      try (final FileOutputStream fileOutputStream = new FileOutputStream(new File(folder, name),
+          false)) {
+        ImageIO.write(bufferedImage, type, fileOutputStream);
+      } catch (IOException e) {
+        LOGGER.log(Level.WARNING, "saveCurrentBuffer()", e);
+        throw new ProlPermissionErrorException("write", "image_output", predicate, e);
+      }
+    });
   }
-
-  private final AtomicReference<SourceDataLine> soundDataLine = new AtomicReference<>();
-  private final Lock soundAccessLocker = new ReentrantLock();
 
   @JProlPredicate(determined = true, signature = "play_sound/2", args = {
       "+number,+number"}, reference = "Arguments (frequency_hz,length_ms). Generate sound tone with frequency in hertz and length in milliseconds.")
@@ -929,15 +985,12 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     if (sprite == null) {
       return false;
     } else {
-      gfxBufferLocker.lock();
-      try {
+      this.safeSwingSynchroCall(() -> {
         if (bufferedImage != null) {
           bufferGraphics.drawImage(sprite, x.toNumber().intValue(), y.toNumber().intValue(), null);
         }
-      } finally {
-        gfxBufferLocker.unlock();
-      }
-      label.repaint();
+        this.repaintLabel();
+      });
       return true;
     }
   }
@@ -1093,7 +1146,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   }
 
   @JProlPredicate(determined = true, signature = "graphics/2", args = {
-      "?integer,?integer"}, reference = "Change or get the graphic screen size (width,heigh) and fill it with the curren background color. Pay attention, the predicate creates the new offscreen buffer so don't use it to clear screen.")
+      "?integer,?integer"}, reference = "Change or get the graphic screen size (width,height) and fill it with the current background color. Pay attention, the predicate creates the new offscreen buffer so don't use it to clear screen.")
   public boolean predicateGRAPHICS(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term width = predicate.getElement(0).findNonVarOrSame();
     final Term height = predicate.getElement(1).findNonVarOrSame();
@@ -1107,8 +1160,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       }
     }
 
-    gfxBufferLocker.lock();
-    try {
+    this.safeSwingSynchroCall(() -> {
       final int widthOrig = bufferedImage.getWidth();
       final int heightOrig = bufferedImage.getHeight();
 
@@ -1127,20 +1179,14 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         height2 = height.toNumber().intValue();
       }
 
-      if (widthOrig == width2 && heightOrig == height2) {
-        return true;
+      final int newW = Math.max(1, width2);
+      final int newH = Math.max(1, height2);
+
+      if (widthOrig != newW && heightOrig != newH) {
+        changeResolution(width2, height2);
       }
-
-      if (width2 <= 0 || height2 <= 0) {
-        return false;
-      }
-
-      changeResolution(width2, height2);
-
       activateFrame();
-    } finally {
-      gfxBufferLocker.unlock();
-    }
+    });
 
     return true;
   }
@@ -1149,7 +1195,10 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   protected void onCallContextDispose(final JProlContext context,
                                       final Map<String, Object> contextNamedObjects) {
     super.onCallContextDispose(context, contextNamedObjects);
+
     this.registeredActions.clear();
+    this.registeredMouseActions.clear();
+
     try {
       this.imageSpriteMap.clear();
       final SourceDataLine sourceDataLine = this.soundDataLine.getAndSet(null);
@@ -1170,7 +1219,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       });
       this.soundClipMap.clear();
       final JFrame frame = this.graphicFrame.getAndSet(null);
-      SwingUtilities.invokeLater(() -> {
+      this.safeSwingCall(() -> {
         try {
           if (this.bufferGraphics != null) {
             this.bufferGraphics.dispose();
@@ -1199,34 +1248,62 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
    * @param height the new height of the back buffer at pixels, must be more
    *               than zero
    */
-  private void changeResolution(final int width, final int height) {
+  private boolean changeResolution(final int width, final int height) {
     if (width <= 0 || height <= 0) {
-      return;
+      return false;
     }
 
     final BufferedImage newImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     final Graphics gfx = newImage.getGraphics();
+    final JLabel theLabel = this.label.get();
 
-    this.gfxBufferLocker.lock();
-    try {
-      gfx.setColor(this.brushColor.get());
-      gfx.fillRect(0, 0, width, height);
+    if (theLabel != null) {
+      return safeSwingSynchroCall(() -> {
+        gfx.setColor(this.brushColor.get());
+        gfx.fillRect(0, 0, width, height);
 
-      this.bufferedImage = newImage;
-      this.bufferGraphics = gfx;
+        this.bufferedImage = newImage;
+        this.bufferGraphics = gfx;
+        theLabel.setIcon(new ImageIcon(this.bufferedImage));
+        theLabel.invalidate();
 
-      this.label.setIcon(new ImageIcon(this.bufferedImage));
-      this.label.invalidate();
-    } finally {
-      this.gfxBufferLocker.unlock();
+        final JFrame frame = this.graphicFrame.get();
+        if (frame != null) {
+          frame.invalidate();
+          frame.pack();
+          frame.repaint();
+        }
+      });
     }
+    return true;
+  }
 
-    final JFrame frame = this.graphicFrame.get();
-    if (frame != null) {
-      frame.invalidate();
-      frame.pack();
-      frame.repaint();
+  private void safeSwingCall(final Runnable action) {
+    if (SwingUtilities.isEventDispatchThread()) {
+      action.run();
+    } else {
+      SwingUtilities.invokeLater(action);
     }
+  }
+
+  private boolean safeSwingSynchroCall(final Runnable action) {
+    if (SwingUtilities.isEventDispatchThread()) {
+      action.run();
+    } else {
+      try {
+        SwingUtilities.invokeAndWait(action);
+      } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt();
+        return false;
+      } catch (InvocationTargetException ex) {
+        if (ex.getCause() instanceof ProlException) {
+          throw ((ProlException) ex.getCause());
+        }
+        LOGGER.log(Level.SEVERE, "Can't change size", ex);
+        return false;
+      }
+    }
+    return true;
   }
 
   private void activateFrame() {
@@ -1296,28 +1373,58 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     }
   }
 
-  /**
-   * The class describes registered UI action which can be called through a
-   * menu item
-   */
-  private static class RegisteredAction {
+  private static class JProlMouseAction {
+    private final TermStruct action;
+    private final JProlContext context;
+
+    JProlMouseAction(final TermStruct action, final JProlContext context) {
+      this.action = requireNonNull(action);
+      this.context = requireNonNull(context);
+      if (action.getArity() != 4) {
+        throw new IllegalArgumentException("Unsupported action term: " + action);
+      }
+    }
+
+    boolean execute(final int x, final int y, final int clicksOrWheel, final String actionId) {
+      if (this.context.isDisposed()) {
+        return false;
+      }
+
+      final TermStruct clone = (TermStruct) this.action.makeClone();
+      final TermStruct args = Terms.newStruct(clone.getFunctor(),
+          new Term[] {Terms.newLong(x), Terms.newLong(y), Terms.newLong(clicksOrWheel),
+              Terms.newAtom(actionId)});
+      if (clone.unifyTo(args)) {
+        try {
+          this.context.proveAllAsync(clone, true);
+          return true;
+        } catch (Throwable thr) {
+          LOGGER.log(Level.SEVERE, "Can't execute registered mouse action " + actionId, thr);
+        }
+      }
+      return false;
+    }
+  }
+
+  private static class JProlMenuRegisteredAction {
 
     private final String menuText;
     private final Term action;
-    private final JProlContext contextForTheAction;
+    private final JProlContext context;
 
-    public RegisteredAction(final String menuText, final Term action, final JProlContext context) {
+    JProlMenuRegisteredAction(final String menuText, final Term action,
+                              final JProlContext context) {
       this.menuText = requireNonNull(menuText);
       this.action = requireNonNull(action);
-      this.contextForTheAction = requireNonNull(context);
+      this.context = requireNonNull(context);
     }
 
-    public boolean execute() {
-      if (this.contextForTheAction.isDisposed()) {
+    boolean execute() {
+      if (this.context.isDisposed()) {
         return false;
       }
       try {
-        this.contextForTheAction.proveAllAsync(action, true);
+        this.context.proveAllAsync(action, true);
         return true;
       } catch (Throwable thr) {
         LOGGER.log(Level.SEVERE, "Can't execute registered action " + this.menuText, thr);

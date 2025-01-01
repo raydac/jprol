@@ -1,7 +1,15 @@
 % the example shows the use of the bindaction/2 term of the graphics library
 
+clear_screen :- brushcolor(black), fillscreen, brushcolor(green), !.
+mouse_action(X,Y,Clicks,'dragged') :- plot(X,Y),!.
+mouse_action(X,Y,Clicks,'pressed') :- plot(X,Y,X,Y),!.
+
 init :- graphics(300,300),
-        bindaction('Print text',(rnd(300,X),rnd(300,Y),cursor(X,Y),print('hello action'), bindaction('Print text'))),
+        settitle('Draw by mouse with pressed key'),  
+        brushcolor(green),
+        bindmouse('dragged',mouse_action(X,Y,Clicks,Action)),
+        bindmouse('pressed',mouse_action(X,Y,Clicks,Action)),
+        bindaction('Clear', clear_screen),
         bindaction('Exit',dispose),
         repeat,
         pause(10),

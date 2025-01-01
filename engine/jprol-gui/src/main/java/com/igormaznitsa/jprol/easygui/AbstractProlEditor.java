@@ -289,7 +289,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     }
   }
 
-  public void removeHypelinkListener(final HyperlinkListener listener) {
+  public void removeHyperlinkListener(final HyperlinkListener listener) {
     if (this.editor instanceof JEditorPane) {
       ((JEditorPane) this.editor).removeHyperlinkListener(listener);
     }
