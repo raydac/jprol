@@ -348,46 +348,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     this.doLabelRepaint();
   }
 
-  @JProlPredicate(determined = true, signature = "removeaction/1", args = {
-      "+term"}, reference = "Remove an action from the action menu for its name.")
-  public void predicateREMOVEACTION(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term menuItem = predicate.getElement(0).findNonVarOrSame();
-    if (goal.isArgsValidate()) {
-      ProlAssertions.assertNonVar(menuItem);
-    }
-    final String menuItemName = menuItem.forWrite();
-
-    SwingUtilities.invokeLater(() -> {
-      JMenuItem removedItem = null;
-
-      // remove registered action for the name
-      final Component[] components = boundActionsMenu.getMenuComponents();
-      for (final Component compo : components) {
-        final JMenuItem item = (JMenuItem) compo;
-        if (item.getText().equals(menuItemName)) {
-          removedItem = item;
-          boundActionsMenu.remove(item);
-          break;
-        }
-      }
-
-      if (boundActionsMenu.getMenuComponents().length == 0) {
-        menuBar.remove(boundActionsMenu);
-      }
-
-      if (removedItem != null) {
-        registeredActions.remove(removedItem);
-      }
-
-      boundActionsMenu.revalidate();
-      menuBar.revalidate();
-
-      graphicFrame.repaint();
-    });
-  }
-
-  @JProlPredicate(determined = true, signature = "removeallactions/0", reference = "Remove all actions from the action menu")
-  public void predicateREMOVEALLACTIONS0(final JProlChoicePoint goal, final TermStruct predicate) {
+  @JProlPredicate(determined = true, signature = "bindaction/0", reference = "Remove all actions from the action menu")
+  public void predicateBINDACTION0(final JProlChoicePoint goal, final TermStruct predicate) {
     this.registeredActions.clear();
     SwingUtilities.invokeLater(() -> {
       boundActionsMenu.removeAll();
