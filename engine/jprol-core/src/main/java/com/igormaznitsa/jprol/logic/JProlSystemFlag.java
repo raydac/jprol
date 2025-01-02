@@ -33,6 +33,7 @@ public enum JProlSystemFlag {
   MAX_ARITY(true, Terms.newAtom("max_arity"), Terms.newLong(Integer.MAX_VALUE)),
   MAX_INTEGER(true, Terms.newAtom("max_integer"), Terms.newLong(Long.MAX_VALUE)),
   MIN_INTEGER(true, Terms.newAtom("min_integer"), Terms.newLong(Long.MIN_VALUE)),
+  SHARE_KNOWLEDGE_BASE(false, Terms.newAtom("share_knowledge_base"), FALSE),
   CPU_COUNT(true, Terms.newAtom("cpu_count"),
       Terms.newLong(Runtime.getRuntime().availableProcessors())),
   UNKNOWN(false, Terms.newAtom("unknown"), UndefinedPredicateBehavior.ERROR.getTerm()),

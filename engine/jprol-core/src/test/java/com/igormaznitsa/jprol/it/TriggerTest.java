@@ -121,7 +121,7 @@ class TriggerTest extends AbstractJProlTest {
     }
 
     @Override
-    public void onContextHalting(JProlContext context) {
+    public void onContextDispose(JProlContext context) {
       haltCounter.incrementAndGet();
     }
   }

@@ -1206,7 +1206,7 @@ public final class MainFrame extends javax.swing.JFrame
   private void releaseContext() {
     final JProlContext context = this.currentContext.getAndSet(null);
     if (context != null && !context.isDisposed()) {
-      context.dispose(true);
+      context.dispose();
     }
   }
 

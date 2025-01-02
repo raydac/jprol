@@ -1,18 +1,28 @@
 % the example shows the use of the bindaction/2 term of the graphics library
 
-clear_screen :- brushcolor(black), fillscreen, brushcolor(green), !.
-mouse_action(X,Y,'left', Clicks,'dragged') :- pencolor(green),plot(X,Y),!.
-mouse_action(X,Y,'right', Clicks,'dragged') :- pencolor(red),plot(X,Y),!.
-mouse_action(X,Y,'left',Clicks,'pressed') :- pencolor(green),plot(X,Y,X,Y),!.
-mouse_action(X,Y,'right',Clicks,'pressed') :- pencolor(red),plot(X,Y,X,Y),!.
+:- set_prolog_flag(share_knowledge_base,true).
+:- dynamic last_mouse/2.
 
-init :- graphics(300,300),
+update_last_mouse(X,Y) :- (retractall(last_mouse(_,_));true),asserta(last_mouse(X,Y)),!.
+
+mouse_action(X,Y,'left', Clicks,'dragged') :- (last_mouse(X1,Y1);(X1=X,Y1=Y)),!,pencolor(green),plot(X1,Y1,X,Y),update_last_mouse(X,Y),!.
+mouse_action(X,Y,'right', Clicks,'dragged') :- (last_mouse(X1,Y1);(X1=X,Y1=Y)),!,pencolor(red),plot(X1,Y1,X,Y),update_last_mouse(X,Y),!.
+mouse_action(X,Y,'left',Clicks,'pressed') :- pencolor(green),plot(X,Y,X,Y),update_last_mouse(X,Y),!.
+mouse_action(X,Y,'right',Clicks,'pressed') :- pencolor(red),plot(X,Y,X,Y),update_last_mouse(X,Y),!.
+
+on_menu_action('Clear') :- brushcolor(black), fillscreen, brushcolor(green), !.
+on_menu_action('Exit') :- dispose,!.
+
+on_drawRandomOval(_) :- rnd(600, X), rnd(600,Y), rnd(30,R), brushcolor(orange), filloval(X,Y,R,R),!.
+
+init :- graphics(600,600),
         settitle('Draw by mouse with pressed key'),  
         brushcolor(green),
         bindmouse('dragged',mouse_action(X,Y,Button,Clicks,Action)),
         bindmouse('pressed',mouse_action(X,Y,Button,Clicks,Action)),
-        bindaction('Clear', clear_screen),
-        bindaction('Exit',dispose),
+        bindaction('Clear', on_menu_action(ActionId)),
+        bindaction('Exit',on_menu_action(ActionId)),
+        bindtimer('drawRandomOval', 1000, on_drawRandomOval(TimerId)),  
         repeat,
         pause(10),
         fail.

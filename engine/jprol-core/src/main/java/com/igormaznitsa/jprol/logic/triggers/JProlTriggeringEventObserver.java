@@ -45,7 +45,7 @@ public class JProlTriggeringEventObserver extends AbstractJProlTrigger {
   }
 
   @Override
-  public void onContextHalting(final JProlContext context) {
+  public void onContextDispose(final JProlContext context) {
 
   }
 }

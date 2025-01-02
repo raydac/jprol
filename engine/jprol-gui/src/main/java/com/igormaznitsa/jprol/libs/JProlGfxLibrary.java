@@ -23,11 +23,11 @@ import static java.util.Objects.requireNonNull;
 
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.Term;
-import com.igormaznitsa.jprol.data.TermLong;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.easygui.MainFrame;
 import com.igormaznitsa.jprol.easygui.UiUtils;
+import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
@@ -66,7 +66,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -86,6 +86,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.filechooser.FileFilter;
 
 public final class JProlGfxLibrary extends AbstractJProlLibrary
@@ -94,11 +95,12 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
   private static final Set<String> allowedMouseActions =
       Set.of("clicked", "pressed", "released", "entered", "exited", "wheel", "moved", "dragged");
-
   private static final Logger LOGGER = Logger.getLogger(JProlGfxLibrary.class.getName());
-  private final Map<String, JProlMenuRegisteredAction> registeredActions =
+  private final Map<String, JProlAction> registeredActions =
       new ConcurrentHashMap<>();
   private final Map<String, List<JProlMouseAction>> registeredMouseActions =
+      new ConcurrentHashMap<>();
+  private final Map<String, TimerActionRecord> registeredTimerActions =
       new ConcurrentHashMap<>();
   private final AtomicReference<JFrame> graphicFrame = new AtomicReference<>();
   private final AtomicReference<JLabel> label = new AtomicReference<>();
@@ -110,11 +112,12 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   private final AtomicReference<Color> brushColor = new AtomicReference<>();
   private final AtomicReference<SourceDataLine> soundDataLine = new AtomicReference<>();
   private final Lock soundAccessLocker = new ReentrantLock();
+  private final Lock gfxBufferAccessLocker = new ReentrantLock();
   private File lastSavedImage = null;
   private BufferedImage bufferedImage;
   private Graphics bufferGraphics;
-  private int lastPointX;
-  private int lastPointY;
+  private final AtomicInteger lastPlotPointX = new AtomicInteger();
+  private final AtomicInteger lastPlotPointY = new AtomicInteger();
 
   public JProlGfxLibrary() {
     super("ProlGfxLib");
@@ -124,7 +127,17 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
     try {
       SwingUtilities.invokeAndWait(() -> {
-        final JLabel theLabel = new JLabel();
+        final JLabel theLabel = new JLabel() {
+          @Override
+          protected void paintComponent(final Graphics g) {
+            gfxBufferAccessLocker.lock();
+            try {
+              super.paintComponent(g);
+            } finally {
+              gfxBufferAccessLocker.unlock();
+            }
+          }
+        };
 
         theLabel.addMouseListener(this);
         theLabel.addMouseMotionListener(this);
@@ -163,8 +176,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
         frame.setContentPane(rootPanel);
 
-        this.lastPointX = 0;
-        this.lastPointY = 0;
+        this.lastPlotPointX.set(0);
+        this.lastPlotPointY.set(0);
 
         changeResolution(128, 128);
 
@@ -413,7 +426,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
   @JProlPredicate(determined = true, signature = "dot/2", args = {
       "+number,+number"}, reference = "Draw a point in the coordinates (X,Y) with the current pen color.")
-  public void predicateDOT(final JProlChoicePoint goal, final TermStruct predicate) {
+  public void predicateDOT2(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term termArgX = predicate.getElement(0).findNonVarOrSame();
     final Term termArgY = predicate.getElement(1).findNonVarOrSame();
 
@@ -422,19 +435,22 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       ProlAssertions.assertNumber(termArgY);
     }
 
-    this.safeSwingSynchroCall(() -> {
-      final int argX = termArgX.toNumber().intValue();
-      final int argY = termArgY.toNumber().intValue();
+    final int x = termArgX.toNumber().intValue();
+    final int y = termArgY.toNumber().intValue();
 
-      lastPointX = argX;
-      lastPointY = argY;
-
-      if (bufferedImage != null) {
-        bufferGraphics.setColor(penColor.get());
-        bufferGraphics.drawLine(argX, argY, argX, argY);
+    this.gfxBufferAccessLocker.lock();
+    try {
+      if (this.bufferedImage != null) {
+        this.bufferGraphics.setColor(this.penColor.get());
+        this.bufferGraphics.drawLine(x, y, x, y);
       }
-      this.repaintLabel();
-    });
+    } finally {
+      this.lastPlotPointX.set(x);
+      this.lastPlotPointY.set(y);
+
+      this.gfxBufferAccessLocker.unlock();
+    }
+    this.repaintLabel();
   }
 
   @JProlPredicate(determined = true, signature = "bindaction/0", reference = "Remove all actions from the action menu")
@@ -448,6 +464,69 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     });
   }
 
+  private void stopAllTimersAndRemoveThem() {
+    this.registeredTimerActions.values().forEach(r -> r.timer.stop());
+    this.registeredTimerActions.clear();
+  }
+
+  @JProlPredicate(determined = true, signature = "bindtimer/0", reference = "Remove all registered timers")
+  public void predicateBINDTIMER0(final JProlChoicePoint goal, final TermStruct predicate) {
+    this.stopAllTimersAndRemoveThem();
+  }
+
+  @JProlPredicate(determined = true, signature = "bindtimer/1", args = {
+      "+term"}, reference = "Remove registered timer")
+  public void predicateBINDTIMER1(final JProlChoicePoint goal, final TermStruct predicate) {
+    final Term timerId = predicate.getElement(0).findNonVarOrSame();
+    if (goal.isArgsValidate()) {
+      ProlAssertions.assertAtom(timerId);
+    }
+    final String timerName = timerId.forWrite();
+    final TimerActionRecord record = this.registeredTimerActions.remove(timerName);
+    if (record != null) {
+      record.timer.stop();
+    }
+  }
+
+  @JProlPredicate(determined = true, signature = "bindtimer/3", args = {
+      "+term,+callable"}, reference = "Bind a goal to an action menu item (menu_item_name, action) which can be selected by user.")
+  public void predicateBINDTIMER3(final JProlChoicePoint goal, final TermStruct predicate) {
+    final Term timerId = predicate.getElement(0).findNonVarOrSame();
+    final Term delay = predicate.getElement(1).findNonVarOrSame();
+    final Term action = predicate.getElement(2).findNonVarOrSame();
+
+    if (goal.isArgsValidate()) {
+      ProlAssertions.assertAtom(timerId);
+      ProlAssertions.assertNumber(delay);
+      ProlAssertions.assertCallable(action);
+    }
+
+    final String timerName = timerId.forWrite();
+    final int delayMs = delay.toNumber().intValue();
+    if (delayMs <= 0) {
+      throw new ProlDomainErrorException("integer", "Expected positive timer delay", timerId);
+    }
+
+    if (action.getTermType() != STRUCT || ((TermStruct) action).getArity() != 1) {
+      throw new ProlInstantiationErrorException("Expected callable structure with arity 1",
+          action);
+    }
+
+    final JProlAction newTimerAction =
+        new JProlAction(timerName, (TermStruct) action, goal.getContext());
+
+    final Timer timer = new Timer(delayMs, e ->
+        newTimerAction.execute(timerName)
+    );
+
+    final TimerActionRecord prev =
+        this.registeredTimerActions.put(timerName, new TimerActionRecord(timer, newTimerAction));
+    if (prev != null) {
+      prev.timer.stop();
+    }
+    timer.start();
+  }
+
   @JProlPredicate(determined = true, signature = "bindmouse/2", reference = "List in format [x,y,clicksOrWheel,mouseAction]. Bind mouse actions.")
   public void predicateBINDMOUSE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term action = predicate.getElement(0).findNonVarOrSame();
@@ -458,7 +537,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       ProlAssertions.assertCallable(callable);
     }
 
-    final String actionType = action.getTermType() == ATOM ? action.getText() : "";
+    final String actionType = action.getTermType() == ATOM ? action.forWrite() : "";
 
     if (!allowedMouseActions.contains(actionType)) {
       throw new ProlInstantiationErrorException("Not-allowed mouse action: " + actionType,
@@ -485,7 +564,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     }
 
     final String menuItemName = menuItem.forWrite();
-    final JProlMenuRegisteredAction registeredAction = this.registeredActions.remove(menuItemName);
+    final JProlAction registeredAction = this.registeredActions.remove(menuItemName);
 
     if (registeredAction != null) {
       this.safeSwingCall(() -> {
@@ -514,10 +593,14 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       ProlAssertions.assertCallable(action);
     }
 
+    if (action.getTermType() != STRUCT || ((TermStruct) action).getArity() != 1) {
+      throw new ProlInstantiationErrorException("Expected callable structure with arity 1", action);
+    }
+
     final String menuItemName = menuItem.forWrite();
 
-    final JProlMenuRegisteredAction registeredAction =
-        new JProlMenuRegisteredAction(menuItemName, action, goal.getContext());
+    final JProlAction registeredAction =
+        new JProlAction(menuItemName, (TermStruct) action, goal.getContext());
 
     this.registeredActions.put(menuItemName, registeredAction);
 
@@ -546,7 +629,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       }
 
       foundItem.addActionListener((ActionEvent e) -> {
-        if (registeredAction.execute()) {
+        if (registeredAction.execute(menuItemName)) {
           menuBar.revalidate();
         } else {
           registeredActions.remove(registeredAction.menuText);
@@ -577,21 +660,20 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       ProlAssertions.assertNumber(term3);
     }
 
-    final int argumentTargetX = term0.toNumber().intValue();
-    final int argumentTargetY = term1.toNumber().intValue();
-    final int argumentTargetWidth = term2.toNumber().intValue();
-    final int argumentTargetHeight = term3.toNumber().intValue();
+    final int x = term0.toNumber().intValue();
+    final int y = term1.toNumber().intValue();
+    final int w = term2.toNumber().intValue();
+    final int h = term3.toNumber().intValue();
 
-    safeSwingCall(() -> {
-      this.lastPointX = argumentTargetX;
-      this.lastPointY = argumentTargetY;
-
+    this.gfxBufferAccessLocker.lock();
+    try {
       if (this.bufferGraphics != null) {
         this.bufferGraphics.setColor(penColor.get());
-        this.bufferGraphics.drawRect(argumentTargetX, argumentTargetY, argumentTargetWidth,
-            argumentTargetHeight);
+        this.bufferGraphics.drawRect(x, y, w, h);
       }
-    });
+    } finally {
+      this.gfxBufferAccessLocker.unlock();
+    }
     this.repaintLabel();
   }
 
@@ -616,9 +698,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final int argumentTargetHeight = term3.toNumber().intValue();
 
     safeSwingCall(() -> {
-      this.lastPointX = argumentTargetX;
-      this.lastPointY = argumentTargetY;
-
       if (this.bufferGraphics != null) {
         this.bufferGraphics.setColor(brushColor.get());
         this.bufferGraphics.fillRect(argumentTargetX, argumentTargetY, argumentTargetWidth,
@@ -643,21 +722,24 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       ProlAssertions.assertNumber(targyy);
     }
 
-    final int argx = targx.toNumber().intValue();
-    final int argy = targy.toNumber().intValue();
-    final int argxx = targxx.toNumber().intValue();
-    final int argyy = targyy.toNumber().intValue();
+    final int x1 = targx.toNumber().intValue();
+    final int y1 = targy.toNumber().intValue();
+    final int x2 = targxx.toNumber().intValue();
+    final int y2 = targyy.toNumber().intValue();
 
-    this.safeSwingSynchroCall(() -> {
-      lastPointX = argxx;
-      lastPointY = argyy;
-
+    this.gfxBufferAccessLocker.lock();
+    try {
       if (bufferedImage != null) {
         bufferGraphics.setColor(penColor.get());
-        bufferGraphics.drawLine(argx, argy, argxx, argyy);
+        bufferGraphics.drawLine(x1, y1, x2, y2);
       }
-      this.repaintLabel();
-    });
+    } finally {
+      this.lastPlotPointX.set(x2);
+      this.lastPlotPointY.set(y2);
+
+      this.gfxBufferAccessLocker.unlock();
+    }
+    this.repaintLabel();
   }
 
   @JProlPredicate(determined = true, signature = "plot/2", args = {
@@ -671,24 +753,25 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       ProlAssertions.assertNumber(targetY);
     }
 
-    final int argumentX = targetX.toNumber().intValue();
-    final int argumentY = targetY.toNumber().intValue();
-
-    this.safeSwingSynchroCall(() -> {
-      if (bufferedImage != null) {
-        bufferGraphics.setColor(penColor.get());
-        bufferGraphics.drawLine(lastPointX, lastPointY, argumentX, argumentY);
+    final int x = targetX.toNumber().intValue();
+    final int y = targetY.toNumber().intValue();
+    this.gfxBufferAccessLocker.lock();
+    try {
+      if (this.bufferedImage != null) {
+        this.bufferGraphics.setColor(this.penColor.get());
+        this.bufferGraphics.drawLine(this.lastPlotPointX.get(), this.lastPlotPointY.get(), x, y);
       }
+    } finally {
+      this.lastPlotPointX.set(x);
+      this.lastPlotPointY.set(y);
 
-      lastPointX = argumentX;
-      lastPointY = argumentY;
-
-      this.repaintLabel();
-    });
+      this.gfxBufferAccessLocker.unlock();
+    }
+    this.repaintLabel();
   }
 
   @JProlPredicate(determined = true, signature = "oval/4", args = {
-      "+number,+number,+number,+number"}, reference = "Draw an oval into a rectangle area with coords (X,Y,Width,Height) with the current pen color.")
+      "+number,+number,+number,+number"}, reference = "Draw an oval into a rectangle area with parameters (X,Y,Width,Height) with the current pen color.")
   public void predicateOVAL(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term targx = predicate.getElement(0).findNonVarOrSame();
     final Term targy = predicate.getElement(1).findNonVarOrSame();
@@ -702,25 +785,25 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       ProlAssertions.assertNumber(targh);
     }
 
-    final int argx = targx.toNumber().intValue();
-    final int argy = targy.toNumber().intValue();
-    final int argw = targw.toNumber().intValue();
-    final int argh = targh.toNumber().intValue();
+    final int x = targx.toNumber().intValue();
+    final int y = targy.toNumber().intValue();
+    final int w = targw.toNumber().intValue();
+    final int h = targh.toNumber().intValue();
 
-    this.safeSwingSynchroCall(() -> {
-      if (bufferedImage != null) {
-        bufferGraphics.setColor(penColor.get());
-        bufferGraphics.drawOval(argx, argy, argw, argh);
+    this.gfxBufferAccessLocker.lock();
+    try {
+      if (this.bufferedImage != null) {
+        this.bufferGraphics.setColor(penColor.get());
+        this.bufferGraphics.drawOval(x, y, w, h);
       }
-
-      lastPointX = argx;
-      lastPointY = argy;
-      this.repaintLabel();
-    });
+    } finally {
+      this.gfxBufferAccessLocker.unlock();
+    }
+    this.repaintLabel();
   }
 
   @JProlPredicate(determined = true, signature = "filloval/4", args = {
-      "+number,+number,+number,+number"}, reference = "Fill an oval into a rectangle area with coords (X,Y,Width,Height) with the current pen color.")
+      "+number,+number,+number,+number"}, reference = "Fill an oval into a rectangular area with coordinates (X,Y,Width,Height) with the current pen color.")
   public void predicateFILLOVAL(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term targx = predicate.getElement(0).findNonVarOrSame();
     final Term targy = predicate.getElement(1).findNonVarOrSame();
@@ -734,32 +817,35 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       ProlAssertions.assertNumber(targh);
     }
 
-    final int argx = targx.toNumber().intValue();
-    final int argy = targy.toNumber().intValue();
-    final int argw = targw.toNumber().intValue();
-    final int argh = targh.toNumber().intValue();
+    final int x = targx.toNumber().intValue();
+    final int y = targy.toNumber().intValue();
+    final int w = targw.toNumber().intValue();
+    final int h = targh.toNumber().intValue();
 
-    this.safeSwingSynchroCall(() -> {
+    this.gfxBufferAccessLocker.lock();
+    try {
       if (bufferedImage != null) {
         bufferGraphics.setColor(brushColor.get());
-        bufferGraphics.fillOval(argx, argy, argw, argh);
+        bufferGraphics.fillOval(x, y, w, h);
       }
-
-      lastPointX = argx;
-      lastPointY = argy;
-      this.repaintLabel();
-    });
+    } finally {
+      this.gfxBufferAccessLocker.unlock();
+    }
+    this.repaintLabel();
   }
 
   @JProlPredicate(determined = true, signature = "fillscreen/0", reference = "Fill all screen by the brush color.")
   public void predicateFILLSCREEN(final JProlChoicePoint goal, final TermStruct predicate) {
-    this.safeSwingSynchroCall(() -> {
+    this.gfxBufferAccessLocker.lock();
+    try {
       if (bufferedImage != null) {
         bufferGraphics.setColor(brushColor.get());
         bufferGraphics.fillRect(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight());
       }
-      this.repaintLabel();
-    });
+    } finally {
+      this.gfxBufferAccessLocker.unlock();
+    }
+    this.repaintLabel();
   }
 
   @JProlPredicate(signature = "brushcolor/1", args = {
@@ -834,65 +920,10 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     return true;
   }
 
-  @JProlPredicate(determined = true, signature = "cursor/2", args = {
-      "?number,?number"}, reference = "Set or get the current cursor position (X,Y).")
-  public boolean predicateCURSOR(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term elemX = predicate.getElement(0).findNonVarOrSame();
-    final Term elemY = predicate.getElement(1).findNonVarOrSame();
-
-    if (goal.isArgsValidate()) {
-      if (elemX.getTermType() != VAR) {
-        ProlAssertions.assertNumber(elemX);
-      }
-      if (elemY.getTermType() != VAR) {
-        ProlAssertions.assertNumber(elemY);
-      }
-    }
-
-    final AtomicBoolean result = new AtomicBoolean(true);
-    this.safeSwingSynchroCall(() -> {
-      final TermLong lpx = Terms.newLong(lastPointX);
-      final TermLong lpy = Terms.newLong(lastPointY);
-
-      if (elemX.getTermType() == VAR) {
-        if (!elemX.unifyTo(lpx)) {
-          result.set(false);
-        }
-      } else {
-        lastPointX = elemX.toNumber().intValue();
-      }
-
-      if (elemY.getTermType() == VAR) {
-        if (!elemY.unifyTo(lpy)) {
-          result.set(false);
-        }
-      } else {
-        lastPointY = elemY.toNumber().intValue();
-      }
-    });
-    return result.get();
-  }
-
-  @JProlPredicate(determined = true, signature = "print/1", args = {
-      "+term"}, reference = "Print the text representation of the term with the current pen color. The baseline of the leftmost character is at the cursor position.")
-  public void predicatePRINT(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term elem = predicate.getElement(0).findNonVarOrSame();
-    if (goal.isArgsValidate()) {
-      ProlAssertions.assertNonVar(elem);
-    }
-
-    final String text = elem.forWrite();
-    this.safeSwingSynchroCall(() -> {
-      bufferGraphics.setColor(penColor.get());
-      bufferGraphics.drawString(text, lastPointX, lastPointY);
-      this.repaintLabel();
-    });
-  }
-
   private void repaintLabel() {
     final JLabel theLabel = this.label.get();
     if (theLabel != null) {
-      theLabel.repaint();
+      theLabel.repaint(10L);
     }
   }
 
@@ -997,12 +1028,16 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     if (sprite == null) {
       return false;
     } else {
-      this.safeSwingSynchroCall(() -> {
-        if (bufferedImage != null) {
-          bufferGraphics.drawImage(sprite, x.toNumber().intValue(), y.toNumber().intValue(), null);
+      this.gfxBufferAccessLocker.lock();
+      try {
+        if (this.bufferedImage != null) {
+          this.bufferGraphics.drawImage(sprite, x.toNumber().intValue(), y.toNumber().intValue(),
+              null);
         }
-        this.repaintLabel();
-      });
+      } finally {
+        this.gfxBufferAccessLocker.unlock();
+      }
+      this.repaintLabel();
       return true;
     }
   }
@@ -1208,6 +1243,15 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
                                       final Map<String, Object> contextNamedObjects) {
     super.onCallContextDispose(context, contextNamedObjects);
 
+    this.registeredTimerActions.values().forEach(x -> {
+      try {
+        x.timer.stop();
+      } catch (Exception ex) {
+        // DO NOTHING
+      }
+    });
+    this.registeredTimerActions.clear();
+
     this.registeredActions.clear();
     this.registeredMouseActions.clear();
 
@@ -1230,29 +1274,35 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         }
       });
       this.soundClipMap.clear();
+
       final JFrame frame = this.graphicFrame.getAndSet(null);
       this.safeSwingCall(() -> {
+        this.gfxBufferAccessLocker.lock();
         try {
-          if (this.bufferGraphics != null) {
-            this.bufferGraphics.dispose();
-          }
-        } finally {
-          this.bufferGraphics = null;
-          this.bufferedImage = null;
-          if (frame != null) {
-            try {
-              frame.dispose();
-            } catch (Exception ex) {
-              // do nothing
+          try {
+            if (this.bufferGraphics != null) {
+              this.bufferGraphics.dispose();
+            }
+          } finally {
+            this.bufferGraphics = null;
+            this.bufferedImage = null;
+            if (frame != null) {
+              try {
+                frame.dispose();
+              } catch (Exception ex) {
+                // do nothing
+              }
             }
           }
+        } finally {
+          this.gfxBufferAccessLocker.unlock();
         }
       });
     }
   }
 
   /**
-   * Inside function allows to change the back buffer resolution for new
+   * Internal function allows to change the back buffer resolution for new
    * values
    *
    * @param width  the new width of the back buffer at pixels, must be more
@@ -1260,23 +1310,38 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
    * @param height the new height of the back buffer at pixels, must be more
    *               than zero
    */
-  private boolean changeResolution(final int width, final int height) {
+  private void changeResolution(final int width, final int height) {
     if (width <= 0 || height <= 0) {
-      return false;
+      return;
     }
 
     final BufferedImage newImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     final Graphics gfx = newImage.getGraphics();
-    final JLabel theLabel = this.label.get();
 
-    if (theLabel != null) {
-      return safeSwingSynchroCall(() -> {
+    this.gfxBufferAccessLocker.lock();
+    try {
+      this.bufferedImage = newImage;
+      if (this.bufferGraphics != null) {
+        this.bufferGraphics.dispose();
+      }
+      this.bufferGraphics = gfx;
+    } finally {
+      this.gfxBufferAccessLocker.unlock();
+    }
+
+    safeSwingSynchroCall(() -> {
+      final JLabel theLabel = this.label.get();
+      if (theLabel != null) {
+
         gfx.setColor(this.brushColor.get());
         gfx.fillRect(0, 0, width, height);
 
-        this.bufferedImage = newImage;
-        this.bufferGraphics = gfx;
-        theLabel.setIcon(new ImageIcon(this.bufferedImage));
+        this.gfxBufferAccessLocker.lock();
+        try {
+          theLabel.setIcon(new ImageIcon(this.bufferedImage));
+        } finally {
+          this.gfxBufferAccessLocker.unlock();
+        }
         theLabel.invalidate();
 
         final JFrame frame = this.graphicFrame.get();
@@ -1285,10 +1350,10 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
           frame.pack();
           frame.repaint();
         }
-      });
-    }
-    return true;
+      }
+    });
   }
+
 
   private void safeSwingCall(final Runnable action) {
     if (SwingUtilities.isEventDispatchThread()) {
@@ -1358,6 +1423,16 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   public void windowDeactivated(WindowEvent e) {
   }
 
+  private static class TimerActionRecord {
+    final Timer timer;
+    final JProlAction action;
+
+    TimerActionRecord(final Timer timer, final JProlAction action) {
+      this.timer = requireNonNull(timer);
+      this.action = requireNonNull(action);
+    }
+  }
+
   public static class ImageToClipboard implements Transferable {
 
     private final BufferedImage image;
@@ -1410,7 +1485,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
               Terms.newAtom(actionId)});
       if (clone.unifyTo(args)) {
         try {
-          this.context.proveAllAsync(clone, true);
+          this.context.proveAllAsync(clone, this.context.isShareKnowledgeBaseBetweenThreads());
           return true;
         } catch (Throwable thr) {
           LOGGER.log(Level.SEVERE, "Can't execute registered mouse action " + actionId, thr);
@@ -1420,26 +1495,31 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     }
   }
 
-  private static class JProlMenuRegisteredAction {
+  private static class JProlAction {
 
     private final String menuText;
-    private final Term action;
+    private final TermStruct action;
     private final JProlContext context;
 
-    JProlMenuRegisteredAction(final String menuText, final Term action,
-                              final JProlContext context) {
+    JProlAction(final String menuText, final TermStruct action,
+                final JProlContext context) {
       this.menuText = requireNonNull(menuText);
       this.action = requireNonNull(action);
       this.context = requireNonNull(context);
     }
 
-    boolean execute() {
+    boolean execute(final String id) {
       if (this.context.isDisposed()) {
         return false;
       }
       try {
-        this.context.proveAllAsync(action, true);
-        return true;
+        final TermStruct clone = (TermStruct) this.action.makeClone();
+        final TermStruct args = Terms.newStruct(clone.getFunctor(), new Term[] {Terms.newAtom(id)});
+
+        if (clone.unifyTo(args)) {
+          this.context.proveAllAsync(clone, this.context.isShareKnowledgeBaseBetweenThreads());
+          return true;
+        }
       } catch (Throwable thr) {
         LOGGER.log(Level.SEVERE, "Can't execute registered action " + this.menuText, thr);
       }

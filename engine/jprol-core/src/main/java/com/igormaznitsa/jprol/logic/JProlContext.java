@@ -24,6 +24,7 @@ import static com.igormaznitsa.jprol.logic.PredicateInvoker.NULL_PROCESSOR;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.concat;
@@ -91,6 +92,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -98,7 +100,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class JProlContext implements AutoCloseable {
+public final class JProlContext {
   private final String contextId;
 
   private final Map<String, List<JProlTrigger>> triggersOnAssert = new ConcurrentHashMap<>();
@@ -137,8 +139,10 @@ public final class JProlContext implements AutoCloseable {
 
   private final List<IoResourceProvider> ioProviders = new CopyOnWriteArrayList<>();
   private final File currentFolder;
+  private final JProlContext parentContext;
   private boolean templateValidate;
   private boolean debug;
+  private boolean shareKnowledgeBaseBetweenThreads;
   private UndefinedPredicateBehavior undefinedPredicateBehaviour;
 
   public JProlContext(
@@ -156,6 +160,7 @@ public final class JProlContext implements AutoCloseable {
       final AbstractJProlLibrary... libs
   ) {
     this(
+        null,
         name,
         currentFolder,
         knowledgeBaseSupplier.apply(name + "_kbase"),
@@ -163,6 +168,7 @@ public final class JProlContext implements AutoCloseable {
         emptyMap(),
         emptyList(),
         emptyList(),
+        emptySet(),
         libs
     );
   }
@@ -178,6 +184,7 @@ public final class JProlContext implements AutoCloseable {
   }
 
   private JProlContext(
+      final JProlContext parentContext,
       final String contextId,
       final File currentFolder,
       final KnowledgeBase base,
@@ -185,8 +192,10 @@ public final class JProlContext implements AutoCloseable {
       final Map<JProlSystemFlag, Term> systemFlags,
       final List<JProlContextListener> contextListeners,
       final List<IoResourceProvider> ioProviders,
+      final Set<String> dynamicSignatures,
       final AbstractJProlLibrary... additionalLibraries
   ) {
+    this.parentContext = parentContext;
     this.contextId = requireNonNull(contextId, "Context Id is null");
     this.currentFolder = requireNonNull(currentFolder);
     this.knowledgeBase = requireNonNull(base, "Knowledge base is null");
@@ -201,12 +210,21 @@ public final class JProlContext implements AutoCloseable {
     this.onSystemFlagsUpdated();
 
     this.ioProviders.addAll(ioProviders);
+    this.dynamicSignatures.addAll(dynamicSignatures);
 
     this.libraries.add(new JProlBootstrapLibrary());
 
     asList(additionalLibraries).forEach(this::addLibrary);
 
     this.callInConstructorEnd();
+  }
+
+  public boolean isShareKnowledgeBaseBetweenThreads() {
+    return this.shareKnowledgeBaseBetweenThreads;
+  }
+
+  public JProlContext getParentContext() {
+    return this.parentContext;
   }
 
   public File getCurrentFolder() {
@@ -244,6 +262,8 @@ public final class JProlContext implements AutoCloseable {
   }
 
   private void onSystemFlagsUpdated() {
+    this.shareKnowledgeBaseBetweenThreads =
+        Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.SHARE_KNOWLEDGE_BASE).getText());
     this.templateValidate =
         Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.VERIFY).getText());
     this.debug = Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.DEBUG).getText());
@@ -320,53 +340,48 @@ public final class JProlContext implements AutoCloseable {
   }
 
   @SuppressWarnings("StatementWithEmptyBody")
-  public CompletableFuture<Void> proveAllAsync(final Term goal, final boolean allowDisposeContext) {
+  public CompletableFuture<Void> proveAllAsync(final Term goal, final boolean shareKnowledgeBase) {
     this.assertNotDisposed();
     this.asyncTaskCounter.incrementAndGet();
     return CompletableFuture.runAsync(() -> {
-      try (final JProlContext contextCopy = this.makeCopy()) {
-        final JProlChoicePoint asyncGoal =
-            new JProlChoicePoint(requireNonNull(goal), this.makeCopy());
-        while (asyncGoal.prove() != null && !this.isDisposed()) {
-          // do nothing
-        }
-        if (contextCopy.isDisposed()) {
-          this.dispose();
-        }
-      }
-    }, this.executorService).handle((x, e) -> {
-      onAsyncTaskCompleted(goal);
-      if (e != null) {
-        if (e instanceof CompletionException && e.getCause() instanceof ProlInterruptException) {
-          if (allowDisposeContext) {
-            this.dispose();
+          final JProlContext contextCopy = this.makeCopy(shareKnowledgeBase);
+          final JProlChoicePoint asyncGoal =
+              new JProlChoicePoint(requireNonNull(goal), contextCopy);
+          while (asyncGoal.prove() != null && !this.isDisposed() && !contextCopy.isDisposed()) {
+            // do nothing
           }
-        } else {
-          throw new ProlForkExecutionException("Error during async/1", goal, new Throwable[] {e});
-        }
-      }
-      return x;
-    });
+          if (!contextCopy.isDisposed()) {
+            contextCopy.dispose();
+          }
+        }, this.executorService)
+        .handle((x, e) -> {
+          this.onAsyncTaskCompleted(goal);
+          if (e != null) {
+            if (!(e instanceof CompletionException) ||
+                !(e.getCause() instanceof ProlInterruptException)) {
+              throw new ProlForkExecutionException("Error during async/1", goal,
+                  new Throwable[] {e});
+            }
+          }
+          return x;
+        });
   }
 
   public CompletableFuture<Term> proveOnceAsync(final Term goal,
-                                                final boolean allowDisposeContext) {
+                                                final boolean shareKnowledgeBase) {
     this.assertNotDisposed();
     this.asyncTaskCounter.incrementAndGet();
     return CompletableFuture.supplyAsync(() -> {
       final JProlChoicePoint asyncGoal =
-          new JProlChoicePoint(requireNonNull(goal), this.makeCopy());
+          new JProlChoicePoint(requireNonNull(goal), this.makeCopy(shareKnowledgeBase));
       final Term result = asyncGoal.prove();
       asyncGoal.cutVariants();
       return result;
     }, this.executorService).handle((x, e) -> {
-      onAsyncTaskCompleted(goal);
+      this.onAsyncTaskCompleted(goal);
       if (e != null) {
-        if (e instanceof CompletionException && e.getCause() instanceof ProlInterruptException) {
-          if (allowDisposeContext) {
-            this.dispose();
-          }
-        } else {
+        if (!(e instanceof CompletionException) ||
+            !(e.getCause() instanceof ProlInterruptException)) {
           throw new ProlForkExecutionException("Error during async/1", goal, new Throwable[] {e});
         }
       }
@@ -409,7 +424,7 @@ public final class JProlContext implements AutoCloseable {
   }
 
   private void assertNotDisposed() {
-    if (this.disposed.get()) {
+    if (this.isDisposed()) {
       throw new ProlException("Context is disposed: " + this.contextId);
     }
   }
@@ -563,23 +578,24 @@ public final class JProlContext implements AutoCloseable {
   }
 
   public void dispose() {
-    this.dispose(false);
-  }
-
-  public void dispose(final boolean releaseLibraries) {
     if (this.disposed.compareAndSet(false, true)) {
       this.executorService.shutdownNow();
+      try {
+        this.executorService.awaitTermination(30, TimeUnit.SECONDS);
+      } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt();
+      }
 
       concat(this.triggersOnAssert.entrySet().stream(), this.triggersOnRetract.entrySet().stream())
           .flatMap(x -> x.getValue().stream())
           .distinct()
-          .forEach(x -> x.onContextHalting(this));
+          .forEach(x -> x.onContextDispose(this));
 
       this.triggersOnAssert.clear();
       this.triggersOnRetract.clear();
       this.libraries.forEach(library -> {
-        library.onContextDispose(this);
-        if (releaseLibraries) {
+        if (this.parentContext == null) {
+          library.onContextDispose(this);
           library.release();
         }
       });
@@ -589,7 +605,14 @@ public final class JProlContext implements AutoCloseable {
   }
 
   public boolean isDisposed() {
-    return disposed.get();
+    final boolean parentDisposed = this.parentContext != null && this.parentContext.isDisposed();
+    final boolean thisDisposed = this.disposed.get();
+
+    if (parentDisposed && !thisDisposed) {
+      this.dispose();
+    }
+
+    return thisDisposed;
   }
 
   public void registerTrigger(final JProlTrigger trigger) {
@@ -918,21 +941,18 @@ public final class JProlContext implements AutoCloseable {
     return "ProlContext(" + contextId + ')' + '[' + super.toString() + ']';
   }
 
-  public JProlContext makeCopy() {
+  public JProlContext makeCopy(final boolean shareKnowledgeBase) {
     return new JProlContext(
+        this,
         this.contextId + "_copy",
         this.currentFolder,
-        this.knowledgeBase.makeCopy(),
+        shareKnowledgeBase ? this.knowledgeBase : this.knowledgeBase.makeCopy(),
         this.executorService,
         this.systemFlags,
         this.contextListeners,
-        this.ioProviders
+        this.ioProviders,
+        this.dynamicSignatures
     );
-  }
-
-  @Override
-  public void close() {
-    this.dispose();
   }
 
   public ParserContext getParserContext() {

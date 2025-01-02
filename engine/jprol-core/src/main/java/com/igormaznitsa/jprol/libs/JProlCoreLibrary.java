@@ -1827,10 +1827,14 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "dispose/1", synonyms = {"dispose/0"}, args = {
-      "+integer"}, reference = " These predicate terminate JProl context even if started through async.")
+      "+integer"}, reference = " These predicate terminate JProl root context even if started through async.")
   public static void predicateDispose(final JProlChoicePoint goal, final TermStruct predicate) {
+    JProlContext rootContext = goal.getContext();
+    while (rootContext.getParentContext() != null) {
+      rootContext = rootContext.getParentContext();
+    }
     if (predicate.getArity() == 0) {
-      goal.getContext().dispose();
+      rootContext.dispose();
       throw new ProlHaltExecutionException();
     } else {
       final Term arg = predicate.getElement(0).findNonVarOrSame();
@@ -1838,7 +1842,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         ProlAssertions.assertInteger(arg);
       }
       final long status = arg.toNumber().longValue();
-      goal.getContext().dispose();
+      rootContext.dispose();
       throw new ProlHaltExecutionException(status);
     }
   }

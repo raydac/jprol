@@ -25,5 +25,5 @@ public interface JProlTrigger {
 
   void onTriggerEvent(TriggerEvent event);
 
-  void onContextHalting(JProlContext context);
+  void onContextDispose(JProlContext context);
 }

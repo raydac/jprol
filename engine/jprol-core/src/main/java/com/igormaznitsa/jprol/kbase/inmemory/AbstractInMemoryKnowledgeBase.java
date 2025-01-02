@@ -427,7 +427,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
       throw new IllegalArgumentException("Wrong signature format '" + signature + '\'');
     }
 
-    result = predicateTable.remove(normalSignature) != null;
+    result = this.predicateTable.remove(normalSignature) != null;
 
     if (result && context
         .hasRegisteredTriggersForSignature(normalSignature, JProlTriggerType.TRIGGER_RETRACT)) {
