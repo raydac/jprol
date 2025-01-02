@@ -130,14 +130,13 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         final JLabel theLabel = new JLabel() {
           @Override
           protected void paintComponent(final Graphics g) {
-            gfxBufferAccessLocker.lock();
-            try {
-              super.paintComponent(g);
-            } finally {
-              gfxBufferAccessLocker.unlock();
+            final BufferedImage image = bufferedImage;
+            if (image != null) {
+              g.drawImage(image, 0, 0, null);
             }
           }
         };
+        theLabel.setDoubleBuffered(false);
 
         theLabel.addMouseListener(this);
         theLabel.addMouseMotionListener(this);
@@ -773,22 +772,22 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "oval/4", args = {
       "+number,+number,+number,+number"}, reference = "Draw an oval into a rectangle area with parameters (X,Y,Width,Height) with the current pen color.")
   public void predicateOVAL(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term targx = predicate.getElement(0).findNonVarOrSame();
-    final Term targy = predicate.getElement(1).findNonVarOrSame();
-    final Term targw = predicate.getElement(2).findNonVarOrSame();
-    final Term targh = predicate.getElement(3).findNonVarOrSame();
+    final Term termX = predicate.getElement(0).findNonVarOrSame();
+    final Term termY = predicate.getElement(1).findNonVarOrSame();
+    final Term termW = predicate.getElement(2).findNonVarOrSame();
+    final Term termH = predicate.getElement(3).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      ProlAssertions.assertNumber(targx);
-      ProlAssertions.assertNumber(targy);
-      ProlAssertions.assertNumber(targw);
-      ProlAssertions.assertNumber(targh);
+      ProlAssertions.assertNumber(termX);
+      ProlAssertions.assertNumber(termY);
+      ProlAssertions.assertNumber(termW);
+      ProlAssertions.assertNumber(termH);
     }
 
-    final int x = targx.toNumber().intValue();
-    final int y = targy.toNumber().intValue();
-    final int w = targw.toNumber().intValue();
-    final int h = targh.toNumber().intValue();
+    final int x = termX.toNumber().intValue();
+    final int y = termY.toNumber().intValue();
+    final int w = termW.toNumber().intValue();
+    final int h = termH.toNumber().intValue();
 
     this.gfxBufferAccessLocker.lock();
     try {
@@ -805,22 +804,22 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "filloval/4", args = {
       "+number,+number,+number,+number"}, reference = "Fill an oval into a rectangular area with coordinates (X,Y,Width,Height) with the current pen color.")
   public void predicateFILLOVAL(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term targx = predicate.getElement(0).findNonVarOrSame();
-    final Term targy = predicate.getElement(1).findNonVarOrSame();
-    final Term targw = predicate.getElement(2).findNonVarOrSame();
-    final Term targh = predicate.getElement(3).findNonVarOrSame();
+    final Term termX = predicate.getElement(0).findNonVarOrSame();
+    final Term termY = predicate.getElement(1).findNonVarOrSame();
+    final Term termW = predicate.getElement(2).findNonVarOrSame();
+    final Term termH = predicate.getElement(3).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      ProlAssertions.assertNumber(targx);
-      ProlAssertions.assertNumber(targy);
-      ProlAssertions.assertNumber(targw);
-      ProlAssertions.assertNumber(targh);
+      ProlAssertions.assertNumber(termX);
+      ProlAssertions.assertNumber(termY);
+      ProlAssertions.assertNumber(termW);
+      ProlAssertions.assertNumber(termH);
     }
 
-    final int x = targx.toNumber().intValue();
-    final int y = targy.toNumber().intValue();
-    final int w = targw.toNumber().intValue();
-    final int h = targh.toNumber().intValue();
+    final int x = termX.toNumber().intValue();
+    final int y = termY.toNumber().intValue();
+    final int w = termW.toNumber().intValue();
+    final int h = termH.toNumber().intValue();
 
     this.gfxBufferAccessLocker.lock();
     try {
@@ -923,12 +922,12 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   private void repaintLabel() {
     final JLabel theLabel = this.label.get();
     if (theLabel != null) {
-      theLabel.repaint(10L);
+      theLabel.repaint();
     }
   }
 
   /**
-   * Inside function to save current graphic buffer state
+   * Internal function to save current graphic buffer state
    *
    * @param folder    base folder
    * @param name      the image file name

@@ -594,9 +594,12 @@ public final class JProlContext {
       this.triggersOnAssert.clear();
       this.triggersOnRetract.clear();
       this.libraries.forEach(library -> {
-        if (this.parentContext == null) {
+        try {
           library.onContextDispose(this);
-          library.release();
+        } finally {
+          if (this.parentContext == null) {
+            library.release();
+          }
         }
       });
       this.contextListeners.forEach(listener -> listener.onContextDispose(this));
