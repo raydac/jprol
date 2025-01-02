@@ -100,7 +100,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class JProlContext {
+public final class JProlContext implements AutoCloseable {
   private final String contextId;
 
   private final Map<String, List<JProlTrigger>> triggersOnAssert = new ConcurrentHashMap<>();
@@ -962,4 +962,8 @@ public final class JProlContext {
     return this.parserContext;
   }
 
+  @Override
+  public void close() throws Exception {
+    this.dispose();
+  }
 }
