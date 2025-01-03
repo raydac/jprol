@@ -6,16 +6,13 @@ import static com.igormaznitsa.jprol.data.Terms.TRUE;
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
-import static java.util.Collections.unmodifiableList;
 
 import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.utils.Utils;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 public enum JProlSystemFlag {
@@ -49,9 +46,8 @@ public enum JProlSystemFlag {
   private final Term defaultValue;
   private final boolean readOnly;
 
-  // optimization because JDK make copy during values call
   public static final List<JProlSystemFlag> VALUES =
-      unmodifiableList(Arrays.asList(JProlSystemFlag.values()));
+      List.of(JProlSystemFlag.values());
 
   JProlSystemFlag(final boolean readOnly, final Term name, final Term defaultValue) {
     this.nameTerm = name;
@@ -60,15 +56,12 @@ public enum JProlSystemFlag {
   }
 
   public static Optional<JProlSystemFlag> find(final Term term) {
-    final String termText =
-        term.getTermType() != TermType.ATOM ? null : term.getText().toUpperCase(Locale.ENGLISH);
-
-    Optional<JProlSystemFlag> result = Optional.empty();
-    if (termText != null) {
-      result = JProlSystemFlag.VALUES.stream().filter(x -> x.name().equals(termText))
-          .findFirst();
+    final Term thatTerm = term.findNonVarOrSame();
+    if (thatTerm.getTermType() != TermType.ATOM) {
+      return Optional.empty();
     }
-    return result;
+    return JProlSystemFlag.VALUES.stream().filter(x -> term.unifyTo(x.nameTerm))
+          .findFirst();
   }
 
   public Term getNameTerm() {

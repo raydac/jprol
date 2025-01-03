@@ -16,7 +16,6 @@ import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlSystemFlag;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
 import java.util.Iterator;
-import java.util.stream.Stream;
 
 @SuppressWarnings({"EmptyMethod", "unused", "checkstyle:AbbreviationAsWordInName"})
 @JProlOperator(priority = 700, type = XFX, name = "is")
@@ -57,7 +56,7 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     final boolean firstCall;
     if (iterator == null) {
       firstCall = true;
-      iterator = Stream.of(JProlSystemFlag.values()).iterator();
+      iterator = JProlSystemFlag.VALUES.iterator();
       choicePoint.setPayload(iterator);
     } else {
       firstCall = false;
