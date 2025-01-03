@@ -13,7 +13,8 @@ mouse_action(X,Y,'right',Clicks,'pressed') :- pencolor(red),plot(X,Y,X,Y),update
 on_menu_action('Clear') :- brushcolor(black), fillscreen, brushcolor(green), !.
 on_menu_action('Exit') :- dispose,!.
 
-on_drawRandomOval(_) :- rnd(600, X), rnd(600,Y), rnd(30,R), brushcolor(orange), filloval(X,Y,R,R),!.
+on_drawRandomOvalOrange(_) :- rnd(600, X), rnd(600,Y), rnd(30,R), brushcolor(orange), filloval(X,Y,R,R),!.
+on_drawRandomOvalBlue(_) :- rnd(600, X), rnd(600,Y), rnd(30,R), brushcolor(blue), filloval(X,Y,R,R),!.
 
 init :- graphics(600,600),
         settitle('Draw by mouse with pressed key'),  
@@ -22,7 +23,8 @@ init :- graphics(600,600),
         bindmouse('pressed',mouse_action(X,Y,Button,Clicks,Action)),
         bindaction('Clear', on_menu_action(ActionId)),
         bindaction('Exit',on_menu_action(ActionId)),
-        bindtimer('drawRandomOval', 1000, on_drawRandomOval(TimerId)),  
+        bindtimer('drawRandomOvalOrange', 1000, on_drawRandomOvalOrange(TimerId)),  
+        bindtimer('drawRandomOvalBlue', 1300, on_drawRandomOvalBlue(TimerId)),  
         repeat,
         pause(10),
         fail.
