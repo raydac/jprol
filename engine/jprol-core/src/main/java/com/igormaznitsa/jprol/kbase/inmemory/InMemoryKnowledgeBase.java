@@ -20,4 +20,9 @@ public final class InMemoryKnowledgeBase extends AbstractInMemoryKnowledgeBase {
   public KnowledgeBase makeCopy() {
     return new InMemoryKnowledgeBase(this.knowledgeBaseId + "_copy", this);
   }
+
+  @Override
+  public boolean isConcurrent() {
+    return false;
+  }
 }

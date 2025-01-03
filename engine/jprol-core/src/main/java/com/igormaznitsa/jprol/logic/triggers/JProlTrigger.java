@@ -18,10 +18,11 @@ package com.igormaznitsa.jprol.logic.triggers;
 
 import com.igormaznitsa.jprol.logic.JProlContext;
 import java.util.Map;
+import java.util.Set;
 
 public interface JProlTrigger {
 
-  Map<String, JProlTriggerType> getSignatures();
+  Map<String, Set<JProlTriggerType>> getSignatures();
 
   void onTriggerEvent(TriggerEvent event);
 

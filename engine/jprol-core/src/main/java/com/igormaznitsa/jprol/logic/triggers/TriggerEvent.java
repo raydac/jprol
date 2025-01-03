@@ -23,13 +23,13 @@ import com.igormaznitsa.jprol.logic.JProlContext;
 public class TriggerEvent {
 
   private final JProlContext context;
-  private final String normalizedSignature;
+  private final String signature;
   private final JProlTriggerType eventType;
 
-  public TriggerEvent(final JProlContext context, final String normalizedSignature,
+  public TriggerEvent(final JProlContext context, final String signature,
                       final JProlTriggerType eventType) {
     this.context = requireNonNull(context);
-    this.normalizedSignature = requireNonNull(normalizedSignature);
+    this.signature = requireNonNull(signature);
     this.eventType = requireNonNull(eventType);
   }
 
@@ -38,7 +38,7 @@ public class TriggerEvent {
   }
 
   public String getSignature() {
-    return this.normalizedSignature;
+    return this.signature;
   }
 
   public JProlTriggerType getEventType() {
@@ -48,6 +48,6 @@ public class TriggerEvent {
   @Override
   public String toString() {
     return "Trigger Event (context=" + context.toString() + ',' + "signature='" +
-        normalizedSignature + "',event=" + eventType.name() + ')';
+        signature + "',event=" + eventType.name() + ')';
   }
 }

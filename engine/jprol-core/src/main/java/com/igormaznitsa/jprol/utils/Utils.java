@@ -226,7 +226,7 @@ public final class Utils {
     return builder.toString();
   }
 
-  public static String extractPredicateSignatureFromStructure(final Term term) {
+  public static String indicatorAsStringOrNull(final Term term) {
     final TermStruct struct = term.findNonVarOrSame();
 
     if (struct.getArity() != 2) {

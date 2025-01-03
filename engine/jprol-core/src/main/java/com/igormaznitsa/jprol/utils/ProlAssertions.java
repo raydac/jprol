@@ -382,11 +382,12 @@ public final class ProlAssertions {
     }
   }
 
-  public static void assertInteger(final Term t) {
+  public static TermLong assertInteger(final Term t) {
     assertNonVar(t);
     if (!(t instanceof TermLong)) {
       throw new ProlTypeErrorException("integer", "Integer expected: " + t, t);
     }
+    return (TermLong) t;
   }
 
   public static void assertIoMode(final Term t) {
@@ -403,17 +404,19 @@ public final class ProlAssertions {
     }
   }
 
-  public static void assertList(final Term t) {
+  public static TermList assertList(final Term t) {
     assertNonVar(t);
     if (t.getTermType() != TermType.LIST) {
       throw new ProlTypeErrorException("list", "List expected: " + t, t);
     }
+    return (TermList) t;
   }
 
-  public static void assertVar(final Term t) {
+  public static TermVar assertVar(final Term t) {
     if (t.getTermType() != VAR) {
       throw new ProlTypeErrorException("var", "Unbound variable expected: " + t, t);
     }
+    return (TermVar) t;
   }
 
   public static void assertNonVar(final Term t) {
@@ -422,11 +425,12 @@ public final class ProlAssertions {
     }
   }
 
-  public static void assertNumber(final Term t) {
+  public static NumericTerm assertNumber(final Term t) {
     assertNonVar(t);
     if (!(t instanceof NumericTerm)) {
       throw new ProlTypeErrorException("number", "Number expected: " + t, t);
     }
+    return (NumericTerm) t;
   }
 
   public static void assertOperatorSpecifier(final Term t) {
@@ -444,7 +448,7 @@ public final class ProlAssertions {
     }
   }
 
-  public static void assertIndicator(final Term t) {
+  public static TermStruct assertIndicator(final Term t) {
     assertNonVar(t);
     int errorCode = 1;
     if (t.getTermType() == STRUCT) {
@@ -474,8 +478,6 @@ public final class ProlAssertions {
           } else {
             errorCode = 0;
           }
-        } else {
-          errorCode = 1;
         }
       }
     }
@@ -489,6 +491,8 @@ public final class ProlAssertions {
       case 3:
         throw new ProlRepresentationErrorException("max_arity", "Wrong arity: " + t, t);
     }
+
+    return (TermStruct) t;
   }
 
   public static void assertNonEmptyList(final Term t) {

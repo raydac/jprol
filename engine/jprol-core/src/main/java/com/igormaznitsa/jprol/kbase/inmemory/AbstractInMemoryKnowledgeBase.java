@@ -209,7 +209,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
         list.add(InMemoryItem.fromClause(clause));
       }
       // notify triggers if they are presented
-      if (context.hasRegisteredTriggersForSignature(uid, JProlTriggerType.TRIGGER_ASSERT)) {
+      if (context.hasTrigger(uid, JProlTriggerType.TRIGGER_ASSERT)) {
         context.notifyTriggersForSignature(uid, JProlTriggerType.TRIGGER_ASSERT);
       }
 
@@ -317,7 +317,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
 
     // notify triggers if they are presented
     if (result &&
-        context.hasRegisteredTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT)) {
+        context.hasTrigger(signature, JProlTriggerType.TRIGGER_RETRACT)) {
       context.notifyTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT);
     }
 
@@ -381,7 +381,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
 
     // notify triggers if they are presented
     if (result &&
-        context.hasRegisteredTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT)) {
+        context.hasTrigger(signature, JProlTriggerType.TRIGGER_RETRACT)) {
       context.notifyTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT);
     }
 
@@ -411,7 +411,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
 
     // notify triggers if they are presented
     if (result &&
-        context.hasRegisteredTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT)) {
+        context.hasTrigger(signature, JProlTriggerType.TRIGGER_RETRACT)) {
       context.notifyTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT);
     }
 
@@ -419,7 +419,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
   }
 
   @Override
-  public void abolish(final JProlContext context, final String signature) {
+  public boolean abolish(final JProlContext context, final String signature) {
     boolean result;
 
     final String normalSignature = Utils.normalizeSignature(signature);
@@ -430,9 +430,10 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
     result = this.predicateTable.remove(normalSignature) != null;
 
     if (result && context
-        .hasRegisteredTriggersForSignature(normalSignature, JProlTriggerType.TRIGGER_RETRACT)) {
-      context.notifyTriggersForSignature(normalSignature, JProlTriggerType.TRIGGER_RETRACT);
+        .hasTrigger(normalSignature, JProlTriggerType.TRIGGER_ABOLISH)) {
+      context.notifyTriggersForSignature(normalSignature, JProlTriggerType.TRIGGER_ABOLISH);
     }
+    return result;
   }
 
 }

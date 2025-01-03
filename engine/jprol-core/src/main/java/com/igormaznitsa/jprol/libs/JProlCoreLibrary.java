@@ -1850,21 +1850,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   @JProlPredicate(determined = true, signature = "abolish/1", args = {
       "+predicate_indicator"}, reference = "abolish(Pred/2) is true. It has for side effect the removal of all clauses of the predicate indicated by Pred. After abolish/1 the predicate is not found by current_predicate.")
   public static boolean predicateABOLISH1(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term arg = predicate.getElement(0).findNonVarOrSame();
-    if (goal.isArgsValidate()) {
-      ProlAssertions.assertIndicator(arg);
-    }
-    final String signature = Utils.extractPredicateSignatureFromStructure(arg);
-
-    final KnowledgeBase base = goal.getContext().getKnowledgeBase();
-    if (goal.getContext().hasPredicateAtLibraryForSignature(signature)) {
-      throw new ProlPermissionErrorException("modify", "static_procedure",
-          "Predicate signature '" + signature + "'is presented in library",
-          newAtom(signature, UNKNOWN));
-    }
-
-    base.abolish(goal.getContext(), signature);
-    return true;
+    return goal.getContext().abolish(predicate.getElement(0).findNonVarOrSame());
   }
 
   @JProlPredicate(determined = true, signature = "sort/2", args = {
@@ -2480,47 +2466,52 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @JProlPredicate(determined = true, signature = "regtrigger/3", args = {
-      "+predicate_indicator,+atom,+callable"}, reference = "regtrigger(somepredicate/3,onassert,triggerhandler) is always true. The predicate allows to register a trigger handler for distinguished predicate signature. The handled trigger event can be selected from the list [onassert, onretract, onassertretract].")
-  public static boolean predicateREGTRIGGER3(final JProlChoicePoint goal,
+  @JProlPredicate(determined = true, signature = "addtrigger/1", args = {
+      "+predicate_indicator"}, reference = "addtrigger(somepredicate/3) is true if detected registered triggers for signature. The predicate allows to remove all registered triggers for signature.")
+  public static boolean predicateREGTRIGGER1(final JProlChoicePoint goal,
                                              final TermStruct predicate) {
-    final Term arg1 = predicate.getElement(0).findNonVarOrSame();
-    final Term arg2 = predicate.getElement(1).findNonVarOrSame();
-    final Term callableTerm = predicate.getElement(2).findNonVarOrSame();
+    final TermStruct indicator =
+        ProlAssertions.assertIndicator(predicate.getElement(0).findNonVarOrSame());
+    return goal.getContext().removeTrigger(Utils.indicatorAsStringOrNull(indicator));
+  }
+
+  @JProlPredicate(determined = true, signature = "addtrigger/3", args = {
+      "+predicate_indicator,+list,+callable"}, reference = "addtrigger(somepredicate/3,['assert'],triggerhandler) is always true. The predicate allows to register a trigger handler for distinguished predicate signature. The handled trigger event can be  any combination of listed: assert, retract, abolish.")
+  public static void predicateREGTRIGGER3(final JProlChoicePoint goal,
+                                             final TermStruct predicate) {
+    final TermStruct indicator =
+        ProlAssertions.assertIndicator(predicate.getElement(0).findNonVarOrSame());
+    final TermList list = ProlAssertions.assertList(predicate.getElement(1).findNonVarOrSame());
+    final Term callable = predicate.getElement(2).findNonVarOrSame();
 
     if (goal.isArgsValidate()) {
-      ProlAssertions.assertIndicator(arg1);
-      ProlAssertions.assertAtom(arg2);
-      ProlAssertions.assertCallable(callableTerm);
+      ProlAssertions.assertCallable(callable);
     }
 
-    final String signature = Utils.extractPredicateSignatureFromStructure(arg1);
-    final String triggeringEvent = arg2.getText();
-    final JProlContext context = goal.getContext();
+    final String signature = Utils.indicatorAsStringOrNull(indicator);
+    final Term[] events = list.toArray(false);
 
-    final JProlTriggeringEventObserver deferredTriggeringGoal =
-        new JProlTriggeringEventObserver(callableTerm);
+    final Set<JProlTriggerType> types = Arrays.stream(list.toArray(false))
+        .map(x -> x.getText().trim().toLowerCase(Locale.ENGLISH))
+        .map(x -> {
+          switch (x) {
+            case "assert":
+              return JProlTriggerType.TRIGGER_ASSERT;
+            case "retract":
+              return JProlTriggerType.TRIGGER_RETRACT;
+            case "abolish":
+              return JProlTriggerType.TRIGGER_ABOLISH;
+            default:
+              throw new ProlDomainErrorException("trigger", "Unsupported type of trigger: " + x,
+                  predicate);
+          }
+        }).collect(Collectors.toSet());
 
-    if (triggeringEvent != null) {
-      switch (triggeringEvent) {
-        case "onassert":
-          deferredTriggeringGoal.addSignature(signature, JProlTriggerType.TRIGGER_ASSERT);
-          break;
-        case "onretract":
-          deferredTriggeringGoal.addSignature(signature, JProlTriggerType.TRIGGER_RETRACT);
-          break;
-        case "onassertretract":
-          deferredTriggeringGoal.addSignature(signature, JProlTriggerType.TRIGGER_ASSERT_RETRACT);
-          break;
-        default:
-          throw new ProlCriticalError(
-              "Unsupported trigger event detected [" + triggeringEvent + ']');
-      }
-    }
+    final JProlTriggeringEventObserver triggeringEventObserver =
+        new JProlTriggeringEventObserver(callable);
 
-    context.registerTrigger(deferredTriggeringGoal);
-
-    return true;
+    triggeringEventObserver.register(signature, types);
+    goal.getContext().addTrigger(triggeringEventObserver);
   }
 
   @JProlPredicate(determined = true, signature = "copy_term/2", args = {

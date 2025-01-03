@@ -58,7 +58,9 @@ public interface KnowledgeBase {
 
   boolean retractZ(JProlContext context, TermStruct clause);
 
-  void abolish(JProlContext context, String signature);
+  boolean abolish(JProlContext context, String signature);
 
   KnowledgeBase makeCopy();
+
+  boolean isConcurrent();
 }

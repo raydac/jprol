@@ -21,19 +21,23 @@ import static com.igormaznitsa.jprol.utils.Utils.validateSignature;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractJProlTrigger implements JProlTrigger {
 
-  private final Map<String, JProlTriggerType> signatureMap;
+  private final Map<String, Set<JProlTriggerType>> signatureMap;
+  private final Map<String, Set<JProlTriggerType>> immutableMap;
 
   public AbstractJProlTrigger() {
-    this.signatureMap = Collections.synchronizedMap(new HashMap<>());
+    this.signatureMap = new ConcurrentHashMap<>();
+    this.immutableMap = Collections.unmodifiableMap(this.signatureMap);
   }
 
-  public AbstractJProlTrigger addSignature(final String signature,
-                                           final JProlTriggerType observedEvent) {
+  public void register(final String signature,
+                       final Set<JProlTriggerType> triggerTypes) {
     String validatedSignature = validateSignature(requireNonNull(signature));
 
     if (validatedSignature == null) {
@@ -41,13 +45,15 @@ public abstract class AbstractJProlTrigger implements JProlTrigger {
     } else {
       validatedSignature = normalizeSignature(validatedSignature);
     }
-
-    this.signatureMap.put(validatedSignature, requireNonNull(observedEvent));
-
-    return this;
+    this.signatureMap.put(validatedSignature,
+        Collections.unmodifiableSet(EnumSet.copyOf(triggerTypes)));
   }
 
-  public AbstractJProlTrigger removeSignature(final String signature) {
+  public void clear() {
+    this.signatureMap.clear();
+  }
+
+  public void remove(final String signature) {
     String validatedSignature = validateSignature(requireNonNull(signature, "Signature is null"));
 
     if (validatedSignature == null) {
@@ -55,14 +61,11 @@ public abstract class AbstractJProlTrigger implements JProlTrigger {
     } else {
       validatedSignature = normalizeSignature(validatedSignature);
     }
-
     this.signatureMap.remove(validatedSignature);
-
-    return this;
   }
 
   @Override
-  public Map<String, JProlTriggerType> getSignatures() {
-    return this.signatureMap;
+  public Map<String, Set<JProlTriggerType>> getSignatures() {
+    return this.immutableMap;
   }
 }

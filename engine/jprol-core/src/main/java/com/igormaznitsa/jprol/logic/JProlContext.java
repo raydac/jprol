@@ -27,7 +27,6 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Stream.concat;
 
 import com.igormaznitsa.jprol.annotations.JProlConsultClasspath;
 import com.igormaznitsa.jprol.annotations.JProlConsultFile;
@@ -76,12 +75,12 @@ import java.io.StringReader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -96,15 +95,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public final class JProlContext implements AutoCloseable {
   private final String contextId;
 
-  private final Map<String, List<JProlTrigger>> triggersOnAssert = new ConcurrentHashMap<>();
-  private final Map<String, List<JProlTrigger>> triggersOnRetract = new ConcurrentHashMap<>();
+  private final Map<String, Map<JProlTriggerType, List<JProlTrigger>>> triggers =
+      new ConcurrentHashMap<>();
   private final Map<String, ReentrantLock> namedLockers = new ConcurrentHashMap<>();
   private final List<AbstractJProlLibrary> libraries = new CopyOnWriteArrayList<>();
   private final AtomicBoolean disposed = new AtomicBoolean(false);
@@ -169,6 +168,7 @@ public final class JProlContext implements AutoCloseable {
         emptyList(),
         emptyList(),
         emptySet(),
+        emptyMap(),
         libs
     );
   }
@@ -193,6 +193,7 @@ public final class JProlContext implements AutoCloseable {
       final List<JProlContextListener> contextListeners,
       final List<IoResourceProvider> ioProviders,
       final Set<String> dynamicSignatures,
+      final Map<String, Map<JProlTriggerType, List<JProlTrigger>>> triggers,
       final AbstractJProlLibrary... additionalLibraries
   ) {
     this.parentContext = parentContext;
@@ -201,6 +202,14 @@ public final class JProlContext implements AutoCloseable {
     this.knowledgeBase = requireNonNull(base, "Knowledge base is null");
     this.executorService = requireNonNull(executorService);
     this.contextListeners.addAll(contextListeners);
+
+    if (!triggers.isEmpty()) {
+      triggers.forEach((k, v) -> {
+        final Map<JProlTriggerType, List<JProlTrigger>> triggerMap = new ConcurrentHashMap<>();
+        v.forEach((t, r) -> triggerMap.put(t, new CopyOnWriteArrayList<>(r)));
+        this.triggers.put(k, triggerMap);
+      });
+    }
 
     Arrays.stream(JProlSystemFlag.values())
         .filter(x -> !x.isReadOnly())
@@ -586,13 +595,12 @@ public final class JProlContext implements AutoCloseable {
         Thread.currentThread().interrupt();
       }
 
-      concat(this.triggersOnAssert.entrySet().stream(), this.triggersOnRetract.entrySet().stream())
-          .flatMap(x -> x.getValue().stream())
+      this.triggers.values().stream()
+          .flatMap(x -> x.values().stream())
+          .flatMap(Collection::stream)
           .distinct()
           .forEach(x -> x.onContextDispose(this));
 
-      this.triggersOnAssert.clear();
-      this.triggersOnRetract.clear();
       this.libraries.forEach(library -> {
         try {
           library.onContextDispose(this);
@@ -618,74 +626,44 @@ public final class JProlContext implements AutoCloseable {
     return thisDisposed;
   }
 
-  public void registerTrigger(final JProlTrigger trigger) {
+  public void addTrigger(final JProlTrigger trigger) {
     assertNotDisposed();
-    final Map<String, JProlTriggerType> signatures = trigger.getSignatures();
-
-    signatures.forEach((key, triggerType) -> {
-      String signature = Utils.validateSignature(key);
-      if (signature == null) {
-        throw new IllegalArgumentException("Unsupported signature: " + key);
+    trigger.getSignatures().forEach((signature, types) -> {
+      String validatedSignature = Utils.validateSignature(signature);
+      if (validatedSignature == null) {
+        throw new IllegalArgumentException("Illegal signature format: " + signature);
       }
-      signature = Utils.normalizeSignature(signature);
-
-      if (triggerType == JProlTriggerType.TRIGGER_ASSERT ||
-          triggerType == JProlTriggerType.TRIGGER_ASSERT_RETRACT) {
-        this.triggersOnAssert.computeIfAbsent(signature, k -> new CopyOnWriteArrayList<>())
-            .add(trigger);
-      }
-
-      if (triggerType == JProlTriggerType.TRIGGER_RETRACT ||
-          triggerType == JProlTriggerType.TRIGGER_ASSERT_RETRACT) {
-        this.triggersOnRetract.computeIfAbsent(signature, k -> new CopyOnWriteArrayList<>())
-            .add(trigger);
-      }
+      validatedSignature = Utils.normalizeSignature(validatedSignature);
+      final Map<JProlTriggerType, List<JProlTrigger>> map =
+          this.triggers.computeIfAbsent(validatedSignature, key -> new ConcurrentHashMap<>());
+      types.forEach(x -> {
+        map.computeIfAbsent(x, key -> new CopyOnWriteArrayList<>()).add(trigger);
+      });
     });
   }
 
-  public void unregisterTrigger(final JProlTrigger trigger) {
-    Stream.of(this.triggersOnAssert.entrySet().iterator(),
-        this.triggersOnRetract.entrySet().iterator()).forEach(iterator -> {
-      while (iterator.hasNext()) {
-        final Entry<String, List<JProlTrigger>> entry = iterator.next();
-        final List<JProlTrigger> lst = entry.getValue();
-        if (lst.remove(trigger) && lst.isEmpty()) {
-          iterator.remove();
-        }
-      }
+  public void removeTrigger(final JProlTrigger trigger) {
+    this.assertNotDisposed();
+    this.triggers.values().forEach(map -> {
+      map.values().forEach(x -> x.removeIf(next -> next == trigger));
     });
   }
 
-  public boolean hasRegisteredTriggersForSignature(final String normalizedSignature,
-                                                   final JProlTriggerType observedEvent) {
-    boolean result;
-    switch (observedEvent) {
-      case TRIGGER_ASSERT: {
-        result = this.triggersOnAssert.containsKey(normalizedSignature);
-      }
-      break;
-      case TRIGGER_RETRACT: {
-        result = this.triggersOnRetract.containsKey(normalizedSignature);
-      }
-      break;
-      case TRIGGER_ASSERT_RETRACT: {
-        result = this.triggersOnAssert.containsKey(normalizedSignature);
-        if (!result) {
-          result = this.triggersOnRetract.containsKey(normalizedSignature);
-        }
-      }
-      break;
-      default: {
-        throw new IllegalArgumentException(
-            "Unsupported observed event [" + observedEvent.name() + ']');
-      }
-    }
+  public boolean removeTrigger(final String signature) {
+    this.assertNotDisposed();
+    return this.triggers.remove(signature) != null;
+  }
 
-    return result;
+  public boolean hasTrigger(final String signature,
+                            final JProlTriggerType triggerType) {
+    this.assertNotDisposed();
+    final Map<JProlTriggerType, List<JProlTrigger>> map = this.triggers.get(signature);
+    return map != null && map.containsKey(triggerType);
   }
 
   public void notifyAboutUndefinedPredicate(final JProlChoicePoint choicePoint,
                                             final String signature, final Term term) {
+    this.assertNotDisposed();
     switch (this.getUndefinedPredicateBehavior()) {
       case ERROR: {
         throw new ProlExistenceErrorException("predicate",
@@ -706,36 +684,17 @@ public final class JProlContext implements AutoCloseable {
     }
   }
 
-  public void notifyTriggersForSignature(final String normalizedSignature,
-                                         final JProlTriggerType observedEvent) {
-    final List<JProlTrigger> listOfTriggers;
+  public void notifyTriggersForSignature(final String signature,
+                                         final JProlTriggerType triggerType) {
+    this.assertNotDisposed();
 
-    switch (observedEvent) {
-      case TRIGGER_ASSERT: {
-        listOfTriggers = this.triggersOnAssert.getOrDefault(normalizedSignature, emptyList());
+    final Map<JProlTriggerType, List<JProlTrigger>> triggerMap = this.triggers.get(signature);
+    if (triggerMap != null && triggerMap.containsKey(triggerType)) {
+      final List<JProlTrigger> triggers = triggerMap.get(triggerType);
+      if (triggers != null && !triggers.isEmpty()) {
+        final TriggerEvent triggerEvent = new TriggerEvent(this, signature, triggerType);
+        triggers.forEach(x -> x.onTriggerEvent(triggerEvent));
       }
-      break;
-      case TRIGGER_RETRACT: {
-        listOfTriggers = this.triggersOnRetract.getOrDefault(normalizedSignature, emptyList());
-      }
-      break;
-      case TRIGGER_ASSERT_RETRACT: {
-        final List<JProlTrigger> triggersAssert =
-            this.triggersOnAssert.getOrDefault(normalizedSignature, emptyList());
-        final List<JProlTrigger> triggersRetract =
-            this.triggersOnRetract.getOrDefault(normalizedSignature, emptyList());
-        listOfTriggers = triggersRetract.isEmpty() && triggersAssert.isEmpty() ? emptyList() :
-            concat(triggersAssert.stream(), triggersRetract.stream()).collect(toList());
-      }
-      break;
-      default: {
-        throw new IllegalArgumentException("Unsupported trigger event [" + observedEvent.name());
-      }
-    }
-
-    if (!listOfTriggers.isEmpty()) {
-      final TriggerEvent event = new TriggerEvent(this, normalizedSignature, observedEvent);
-      listOfTriggers.forEach(x -> x.onTriggerEvent(event));
     }
   }
 
@@ -776,23 +735,32 @@ public final class JProlContext implements AutoCloseable {
   }
 
   private boolean doClauseInKnowledgeBase(final Term term,
-                                          final Function<TermStruct, Boolean> assertFunction) {
+                                          final boolean expectedIndicator,
+                                          final BiFunction<String, TermStruct, Boolean> processingFunction) {
     this.assertNotDisposed();
-
+    final boolean operationResult;
+    final String signature;
     final TermStruct termStruct;
-    if (term.getTermType() == STRUCT) {
+
+    if (expectedIndicator) {
+      signature = Utils.indicatorAsStringOrNull(term);
+      if (signature == null) {
+        throw new ProlDomainErrorException("indicator", term);
+      }
       termStruct = (TermStruct) term;
     } else {
-      ProlAssertions.assertCallable(term);
-      termStruct = newStruct(term);
+      if (term.getTermType() == STRUCT) {
+        termStruct = (TermStruct) term;
+      } else {
+        ProlAssertions.assertCallable(term);
+        termStruct = newStruct(term);
+      }
+      signature = termStruct.isClause() ?
+          termStruct.getElement(0).getSignature() : termStruct.getSignature();
     }
 
-    final boolean operationResult;
-
-    final String signature = termStruct.isClause() ?
-        termStruct.getElement(0).getSignature() : termStruct.getSignature();
     if (this.dynamicSignatures.contains(signature)) {
-      operationResult = assertFunction.apply(termStruct);
+      operationResult = processingFunction.apply(signature, termStruct);
     } else {
       throw new ProlPermissionErrorException("modify", "static_procedure",
           "Allowed only for dynamic predicates " + signature,
@@ -802,24 +770,41 @@ public final class JProlContext implements AutoCloseable {
   }
 
   public boolean assertA(final Term term) {
-    return this.doClauseInKnowledgeBase(term, struct -> this.knowledgeBase.assertA(this, struct));
+    return this.doClauseInKnowledgeBase(term,
+        false,
+        (signature, struct) -> knowledgeBase.assertA(this, struct));
   }
 
   public boolean assertZ(final Term term) {
-    return this.doClauseInKnowledgeBase(term, struct -> this.knowledgeBase.assertZ(this, struct));
+    return this.doClauseInKnowledgeBase(term,
+        false,
+        (signature, struct) -> this.knowledgeBase.assertZ(this, struct));
   }
 
   public boolean retractAll(final Term term) {
     return this.doClauseInKnowledgeBase(term,
-        struct -> this.knowledgeBase.retractAll(this, struct));
+        false,
+        (signature, struct) -> this.knowledgeBase.retractAll(this, struct));
+  }
+
+  public boolean abolish(final Term term) {
+    final Term indicator = term.findNonVarOrSame();
+    ProlAssertions.assertIndicator(indicator);
+    return this.doClauseInKnowledgeBase(term,
+        true,
+        (signature, struct) -> this.knowledgeBase.abolish(this, signature));
   }
 
   public boolean retractA(final Term term) {
-    return this.doClauseInKnowledgeBase(term, struct -> this.knowledgeBase.retractA(this, struct));
+    return this.doClauseInKnowledgeBase(term,
+        false,
+        (signature, struct) -> this.knowledgeBase.retractA(this, struct));
   }
 
   public boolean retractZ(final Term term) {
-    return this.doClauseInKnowledgeBase(term, struct -> this.knowledgeBase.retractZ(this, struct));
+    return this.doClauseInKnowledgeBase(term,
+        false,
+        (signature, struct) -> this.knowledgeBase.retractZ(this, struct));
   }
 
   public void consult(final Reader source, final ConsultInteract iterator) {
@@ -954,7 +939,8 @@ public final class JProlContext implements AutoCloseable {
         this.systemFlags,
         this.contextListeners,
         this.ioProviders,
-        this.dynamicSignatures
+        this.dynamicSignatures,
+        this.triggers
     );
   }
 
@@ -963,7 +949,7 @@ public final class JProlContext implements AutoCloseable {
   }
 
   @Override
-  public void close() throws Exception {
+  public void close() {
     this.dispose();
   }
 }
