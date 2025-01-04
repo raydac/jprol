@@ -1147,28 +1147,23 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "ll2r/2", args = {"+list,+list"},
-      reference = "Unify each element of the left list with each element of the right list till first non-processed successful one.")
+      reference = "Iterate right list elements and unification of them with first allowed element in left list, false if any right list element to unified. Allows extract data in case like ll2r([index=1,body='hello'],[index=Index,body=Body]).")
   public static boolean predicateLL2R(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = predicate.getElement(0).findNonVarOrSame();
     final Term argRight = predicate.getElement(1).findNonVarOrSame();
 
-    if (goal.isArgsValidate()) {
-      ProlAssertions.assertList(argLeft);
-      ProlAssertions.assertList(argRight);
-    }
-
-    final TermList lleft = (TermList) argLeft;
-    final TermList lright = (TermList) argRight;
+    final TermList listLeft = ProlAssertions.assertList(argLeft);
+    final TermList listRight = ProlAssertions.assertList(argRight);
 
     Set<Integer> freeIndex = new HashSet<>();
     int index = 0;
-    for (final Term r : lright) {
+    for (final Term r : listRight) {
       freeIndex.add(index++);
     }
 
-    for (final Term l : lleft) {
+    for (final Term l : listLeft) {
       index = 0;
-      for (final Term r : lright) {
+      for (final Term r : listRight) {
         if (freeIndex.contains(index)) {
           if (l.unifyTo(r)) {
             freeIndex.remove(index);
