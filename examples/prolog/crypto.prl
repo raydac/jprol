@@ -22,4 +22,13 @@ del_var(A,[B|L],[B|L1]):-del_var(A,L,L1).
 puzzle1([D,O,N,A,L,D],[G,E,R,A,L,D],[R,O,B,E,R,T]).
 puzzle2([0,S,E,N,D],[0,M,O,R,E],[M,O,N,E,Y]).
 
-?-puzzle2(N1,N2,N), sum(N1,N2,N).
+?-time(
+          (
+               puzzle2(N1,N2,N), sum(N1,N2,N), 
+               nl, write('  N1='), writeln(N1),
+               write('+ N2='), writeln(N1),
+               writeln(' -------------------'),
+               write('  N ='), writeln(N),
+               fail
+          )
+      ).
