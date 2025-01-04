@@ -17,6 +17,7 @@
 package com.igormaznitsa.jprol.easygui;
 
 import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
 import static javax.swing.Box.Filler;
 
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
@@ -29,6 +30,7 @@ import com.igormaznitsa.jprol.exceptions.ProlChoicePointInterruptedException;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlInterruptException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
+import com.igormaznitsa.jprol.kbase.inmemory.ConcurrentInMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
 import com.igormaznitsa.jprol.libs.JProlGfxLibrary;
@@ -233,7 +235,7 @@ public final class MainFrame extends javax.swing.JFrame
   private JMenuItem menuUndo;
   private JMenu menuView;
   private JMenuItem menuViewKnowledgeBase;
-  private JMenuItem menuitemFindText;
+  private JMenuItem menuItemFindText;
   private MessageEditor messageEditor;
   private JPanel panelFindText;
   private JPanel panelProgress;
@@ -536,7 +538,7 @@ public final class MainFrame extends javax.swing.JFrame
     menuEditCommentSelected = new JMenuItem();
     menuEditUncommentSelected = new JMenuItem();
     jSeparator3 = new Separator();
-    menuitemFindText = new JMenuItem();
+    menuItemFindText = new JMenuItem();
     menuItemWordWrapSources = new JCheckBoxMenuItem();
     menuItemFullScreen = new JMenuItem();
     jSeparator5 = new Separator();
@@ -778,7 +780,8 @@ public final class MainFrame extends javax.swing.JFrame
         KeyStroke.getKeyStroke(KeyEvent.VK_5,
             InputEvent.CTRL_DOWN_MASK));
     menuEditCommentSelected.setIcon(new ImageIcon(
-        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/comment_add.png"))); // NOI18N
+        requireNonNull(getClass().getResource(
+            "/com/igormaznitsa/jprol/easygui/icons/comment_add.png")))); // NOI18N
     menuEditCommentSelected.setText("Comment selection");
     menuEditCommentSelected.setToolTipText(
         "Place the commenting symbol as the first one into selected lines");
@@ -788,8 +791,8 @@ public final class MainFrame extends javax.swing.JFrame
     menuEditUncommentSelected.setAccelerator(
         KeyStroke.getKeyStroke(KeyEvent.VK_U,
             InputEvent.CTRL_DOWN_MASK));
-    menuEditUncommentSelected.setIcon(new ImageIcon(getClass().getResource(
-        "/com/igormaznitsa/jprol/easygui/icons/comment_delete.png"))); // NOI18N
+    menuEditUncommentSelected.setIcon(new ImageIcon(requireNonNull((getClass().getResource(
+        "/com/igormaznitsa/jprol/easygui/icons/comment_delete.png"))))); // NOI18N
     menuEditUncommentSelected.setText("Uncomment selection");
     menuEditUncommentSelected.setToolTipText(
         "Remove the first commenting symbol from selected lines");
@@ -797,13 +800,13 @@ public final class MainFrame extends javax.swing.JFrame
     menuEdit.add(menuEditUncommentSelected);
     menuEdit.add(jSeparator3);
 
-    menuitemFindText.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F,
+    menuItemFindText.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F,
         InputEvent.CTRL_DOWN_MASK));
-    menuitemFindText.setIcon(new ImageIcon(
-        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/zoom.png"))); // NOI18N
-    menuitemFindText.setText("Find text");
-    menuitemFindText.addActionListener(this::menuitemFindTextActionPerformed);
-    menuEdit.add(menuitemFindText);
+    menuItemFindText.setIcon(new ImageIcon(requireNonNull(
+        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/zoom.png")))); // NOI18N
+    menuItemFindText.setText("Find text");
+    menuItemFindText.addActionListener(this::menuItemFindTextActionPerformed);
+    menuEdit.add(menuItemFindText);
 
     menuItemWordWrapSources.setAccelerator(
         KeyStroke.getKeyStroke(KeyEvent.VK_W,
@@ -1170,7 +1173,7 @@ public final class MainFrame extends javax.swing.JFrame
     }
   }
 
-  private void menuitemFindTextActionPerformed(ActionEvent evt) {
+  private void menuItemFindTextActionPerformed(ActionEvent evt) {
     this.panelFindText.setVisible(true);
     this.textFind.setText("");
     this.textFind.requestFocus();
@@ -1306,7 +1309,11 @@ public final class MainFrame extends javax.swing.JFrame
       }
 
       try {
-        context = new JProlContext("prol-script", currentFolder).addIoResourceProvider(this);
+        context = new JProlContext(
+            "prol-script",
+            currentFolder,
+            k -> new ConcurrentInMemoryKnowledgeBase("prol-script-knowledge-base")
+        ).addIoResourceProvider(this);
         if (setCurrentContext(context)) {
           context.addContextListener(this);
           if (this.startedInTracing.get()) {

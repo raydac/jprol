@@ -348,9 +348,17 @@ public final class JProlContext implements AutoCloseable {
     }
   }
 
+  private void assertConcurrentKnowledgeBase() {
+    if (!this.knowledgeBase.isConcurrent()) {
+      throw new ProlKnowledgeBaseException("Async operations requires concurrent knowledge base");
+    }
+  }
+
   @SuppressWarnings("StatementWithEmptyBody")
   public CompletableFuture<Void> proveAllAsync(final Term goal, final boolean shareKnowledgeBase) {
     this.assertNotDisposed();
+    this.assertConcurrentKnowledgeBase();
+
     this.asyncTaskCounter.incrementAndGet();
     return CompletableFuture.runAsync(() -> {
           final JProlContext contextCopy = this.makeCopy(shareKnowledgeBase);
@@ -379,6 +387,8 @@ public final class JProlContext implements AutoCloseable {
   public CompletableFuture<Term> proveOnceAsync(final Term goal,
                                                 final boolean shareKnowledgeBase) {
     this.assertNotDisposed();
+    this.assertConcurrentKnowledgeBase();
+
     this.asyncTaskCounter.incrementAndGet();
     return CompletableFuture.supplyAsync(() -> {
       final JProlChoicePoint asyncGoal =
