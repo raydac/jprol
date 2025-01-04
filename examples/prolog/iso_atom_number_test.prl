@@ -1,0 +1,73 @@
+test_atom_number :-
+    % Test 1: Atom representing a positive integer
+    ( atom_number('123', Number1) -> 
+        (Number1 = 123 -> 
+            write('Test 1 Passed') ; 
+            write('Test 1 Failed'))
+    ; write('Test 1 Failed')), nl,
+
+    % Test 2: Atom representing a negative integer
+    ( atom_number('-123', Number2) -> 
+        (Number2 = -123 -> 
+            write('Test 2 Passed') ; 
+            write('Test 2 Failed'))
+    ; write('Test 2 Failed')), nl,
+
+    % Test 3: Atom representing a float
+    ( atom_number('123.45', Number3) -> 
+        (Number3 = 123.45 -> 
+            write('Test 3 Passed') ; 
+            write('Test 3 Failed'))
+    ; write('Test 3 Failed')), nl,
+
+    % Test 4: Atom representing a negative float
+    ( atom_number('-123.45', Number4) -> 
+        (Number4 = -123.45 -> 
+            write('Test 4 Passed') ; 
+            write('Test 4 Failed'))
+    ; write('Test 4 Failed')), nl,
+
+    % Test 5: Atom representing zero
+    ( atom_number('0', Number5) -> 
+        (Number5 = 0 -> 
+            write('Test 5 Passed') ; 
+            write('Test 5 Failed'))
+    ; write('Test 5 Failed')), nl,
+
+    % Test 6: Atom representing zero as negative
+    ( atom_number('-0', Number6) -> 
+        (Number6 = 0 -> 
+            write('Test 6 Passed') ; 
+            write('Test 6 Failed'))
+    ; write('Test 6 Failed')), nl,
+
+    % Test 7: Invalid atom (non-numeric)
+    ( atom_number('hello', Number7) -> 
+        write('Test 7 Failed')
+    ; write('Test 7 Passed')), nl,
+
+    % Test 8: Invalid atom with alphanumeric characters
+    ( atom_number('123abc', Number8) -> 
+        write('Test 8 Failed')
+    ; write('Test 8 Passed')), nl,
+
+    % Test 9: Valid numeric atom as integer
+    ( atom_number('456', Number9) -> 
+        (Number = 456 -> 
+            write('Test 9 Passed') ; 
+            write('Test 9 Failed'))
+    ; write('Test 9 Failed')), nl,
+
+    % Test 10: Floating-point number as atom (string)
+    ( atom_number('0.99', Number10) -> 
+        (Number10 = 0.99 -> 
+            write('Test 10 Passed') ; 
+            write('Test 10 Failed'))
+    ; write('Test 10 Failed')), nl,
+
+    % Test 11: Invalid atom (list)
+    ( atom_number([123], Number11) -> 
+        write('Test 11 Failed')
+    ; write('Test 11 Passed')), nl.
+    
+?- time(test_atom_number),!,fail.

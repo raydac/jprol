@@ -201,6 +201,53 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return choicePoint.compare(predicate.getElement(0), predicate.getElement(1)) != 0;
   }
 
+  @JProlPredicate(determined = true, signature = "atom_number/2", args = {
+      "?atom,?number"}, reference = "convert between atom and number")
+  public static boolean predicateATOMNUMBER2(final JProlChoicePoint goal,
+                                           final TermStruct predicate) {
+    final Term atom = predicate.getElement(0).findNonVarOrSame();
+    final Term number = predicate.getElement(1).findNonVarOrSame();
+
+    if (atom.getTermType() == VAR && number.getTermType() == VAR) {
+      throw new ProlInstantiationErrorException("Arguments are not sufficiently instantiated",
+          predicate);
+    }
+    if (atom.getTermType() == VAR) {
+      if (number instanceof NumericTerm) {
+        return atom.unifyTo(Terms.newAtom(number.forWrite()));
+      } else {
+        throw new ProlTypeErrorException("number", number);
+      }
+    } else if (number.getTermType() == VAR) {
+      final String text = atom.getText();
+      try {
+        return number.unifyTo(Terms.newLong(text));
+      } catch (NumberFormatException ex) {
+        try {
+          return number.unifyTo(Terms.newDouble(text));
+        } catch (NumberFormatException exx) {
+          return false;
+        }
+      }
+    } else {
+      final String text = atom.getText();
+      NumericTerm numericTerm = null;
+      try {
+        numericTerm = Terms.newLong(text);
+      } catch (NumberFormatException ex) {
+        try {
+          numericTerm = Terms.newDouble(text);
+        } catch (NumberFormatException exx) {
+          // do nothing
+        }
+      }
+      if (numericTerm == null) {
+        return false;
+      }
+      return number.unifyTo(numericTerm);
+    }
+  }
+
   @JProlPredicate(determined = true, signature = ">/2", args = {
       "+evaluable,+evaluable"}, reference = "Arithmetic greater than")
   public static boolean predicateArithMore(final JProlChoicePoint goal,
