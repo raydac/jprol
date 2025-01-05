@@ -1,0 +1,224 @@
+:- dynamic cell/3.
+
+% Initial board 
+%    0 means Empty
+%    1 means White
+%    10 means White Dame
+%    2 means Black
+%    20 means Black Dame
+
+% cell(1,8,0). cell(2,8,2). cell(3,8,0). cell(4,8,2). cell(5,8,0). cell(6,8,2). cell(7,8,0). cell(8,8,2).
+% cell(1,7,2). cell(2,7,0). cell(3,7,2). cell(4,7,0). cell(5,7,2). cell(6,7,0). cell(7,7,2). cell(8,7,0).
+% cell(1,6,0). cell(2,6,2). cell(3,6,0). cell(4,6,2). cell(5,6,0). cell(6,6,2). cell(7,6,0). cell(8,6,2).
+%
+% cell(1,5,0). cell(2,5,0). cell(3,5,0). cell(4,5,0). cell(5,5,0). cell(6,5,0). cell(7,5,0). cell(8,5,0).
+% cell(1,4,0). cell(2,4,0). cell(3,4,0). cell(4,4,0). cell(5,4,0). cell(6,4,0). cell(7,4,0). cell(8,4,0).
+%
+% cell(1,3,1). cell(2,3,0). cell(3,3,1). cell(4,3,0). cell(5,3,1). cell(6,3,0). cell(7,3,1). cell(8,3,0).
+% cell(1,2,0). cell(2,2,1). cell(3,2,0). cell(4,2,1). cell(5,2,0). cell(6,2,1). cell(7,2,0). cell(8,2,1).
+% cell(1,1,1). cell(2,1,0). cell(3,1,1). cell(4,1,0). cell(5,1,1). cell(6,1,0). cell(7,1,1). cell(8,1,0).
+
+cell(1,8,0). cell(2,8,0). cell(3,8,0). cell(4,8,0). cell(5,8,0). cell(6,8,0). cell(7,8,0). cell(8,8,0).
+cell(1,7,0). cell(2,7,20). cell(3,7,0). cell(4,7,20). cell(5,7,0). cell(6,7,2). cell(7,7,0). cell(8,7,0).
+cell(1,6,0). cell(2,6,0). cell(3,6,0). cell(4,6,0). cell(5,6,0). cell(6,6,0). cell(7,6,0). cell(8,6,0).
+
+cell(1,5,0). cell(2,5,2). cell(3,5,0). cell(4,5,2). cell(5,5,0). cell(6,5,0). cell(7,5,0). cell(8,5,0).
+cell(1,4,0). cell(2,4,0). cell(3,4,1). cell(4,4,0). cell(5,4,0). cell(6,4,0). cell(7,4,0). cell(8,4,0).
+
+cell(1,3,0). cell(2,3,0). cell(3,3,0). cell(4,3,0). cell(5,3,0). cell(6,3,0). cell(7,3,0). cell(8,3,0).
+cell(1,2,0). cell(2,2,0). cell(3,2,0). cell(4,2,0). cell(5,2,0). cell(6,2,0). cell(7,2,0). cell(8,2,0).
+cell(1,1,0). cell(2,1,0). cell(3,1,0). cell(4,1,0). cell(5,1,0). cell(6,1,0). cell(7,1,0). cell(8,1,10).
+
+
+% Auxiliary stuff
+
+% Get state of cell described as X/Y/C
+cell_state([],_) :- !,fail.
+cell_state(_,X/Y/_) :- (X < 1 ; X > 8 ; Y < 1 ; Y > 8),!,fail.
+cell_state([X/Y/C|_],X/Y/C) :- !.
+cell_state([_/_/_|Rest],X/Y/C) :- cell_state(Rest,X/Y/C).
+
+% Update board
+update_board(X,Y, NewState) :- 
+     retractall(cell(X,Y,_)),
+     assert(cell(X,Y,NewState)),!.
+
+% Change celle state in list
+set_cell([],_,[]):-!.
+set_cell([X/Y/_|Rest],X/Y/S,NewList) :- NewList = [X/Y/S|NewRest], set_cell(Rest,X/Y/S,NewRest),!.
+set_cell([A|Rest],X/Y/S,[A|NewList]) :- set_cell(Rest,X/Y/S,NewList).
+
+% Collect all facts cell(X,Y,C) as List [X/Y/C...]
+board_to_list(CellList) :- findall(X/Y/C, cell(X,Y,C), CellList).
+
+% Check that a piece can make move
+can_move(CellList,X/Y,PossibleMoves) :- 
+          cell_state(CellList,X/Y/C),
+          can_move(CellList,X/Y/C,[],PossibleMoves),!.
+can_move(CellList,X/Y/1,PossibleMoves,NewPossibleMoves) :- 
+          Xl is X - 1, Yu is Y + 1, Xr is X + 1,
+          (cell_state(CellList,Xl/Yu/0),Move1 = [Xl/Yu];Move1 = []),
+          (cell_state(CellList,Xr/Yu/0),Move2 = [Xr/Yu];Move2 = []),
+          append([Move1,Move2],MoveList),
+          (MoveList = [], NewPossibleMoves = PossibleMoves; append([MoveList,PossibleMoves],NewPossibleMoves)), !.
+can_move(CellList,X/Y/2,PossibleMoves,NewPossibleMoves) :- Xl is X - 1, Yd is Y - 1, Xr is X + 1,
+          (cell_state(CellList,Xl/Yd/0),Move1 = [Xl/Yd];Move1 = []),
+          (cell_state(CellList,Xr/Yd/0),Move2 = [Xr/Yd];Move2 = []),
+          append([Move1,Move2],MoveList),
+          (MoveList = [], NewPossibleMoves = PossibleMoves; append([MoveList,PossibleMoves],NewPossibleMoves)), !.
+can_move(CellList,X/Y/C,PossibleMoves,NewPossibleMoves) :- 
+     (C = 10; C = 20),!,
+     can_move(CellList,X/Y/1,[],Moves1),
+     can_move(CellList,X/Y/2,[],Moves2),
+     append([Moves1,Moves2],MoveList),
+     (MoveList = [], NewPossibleMoves = PossibleMoves; append([MoveList,PossibleMoves],NewPossibleMoves)), !.
+
+% Dame lines for color
+dame_line(1,8).
+dame_line(2,1).
+
+% Calculate board scores for selected color (1,2)
+calc_scores(CellList,Color,Scores) :- 
+     collect_possible_moves(CellList,Color,PossibleMoveInfo),
+     calc_scores2(PossibleMoveInfo,Color,Scores).
+calc_scores2([],_,0).
+calc_scores2([X/Y/C-MoveList-TakeList|Rest],Color,Scores) :- 
+     length(MoveList,MoveScores),
+     calc_take_scores_list(Color,TakeList,TakeScores),
+     calc_scores2(Rest,Color,RestScores),
+     Scores is MoveScores + RestScores + TakeScores.
+
+calc_take_scores_list(_,[],0).
+calc_take_scores_list(Color,[Item|Rest],ResultScores) :- 
+     calc_take_scores_list_item(Color,Item,ItemScores), 
+     calc_take_scores_list(Color,Rest,RestScores),
+     ResultScores is ItemScores + RestScores.
+
+calc_take_scores_list_item(_,[],0).
+calc_take_scores_list_item(Color,[X/Y/C-Xn/Yn|Rest],Scores) :- 
+     calc_take_scores_list_item(Color,Rest,RestScores),
+     (C > 2, DameCoeff = 100; DameCoeff = 0),
+     (dame_line(Color,Yn),DameLineCoeff = 500;DameLineCoeff = 0),!,
+      Scores is RestScores + DameLineCoeff + DameCoeff + 20.
+
+% Find all possible chains to take enemy pieces in format [Xenemy/Yenemy/Xnext/Ynext,...]
+find_all_take_chains(CellList,X/Y,Enemy,FoundChains) :- 
+     findall(Result, find_single_take(CellList,X/Y,Enemy,[],Result),FoundChainsReversed),
+     reverse(FoundChainsReversed,FoundChains),!.
+
+% Find single possible chain to take enemy pieces in format [Xenemy/Yenemy/ColorEnemy-/Xnext/Ynext,...]
+find_single_take(CellList,X/Y,Enemy,Accumulated,Result) :- 
+          cell_state(CellList,X/Y/My),
+          (
+               My>2,find_take_dame(CellList,X/Y/My,Enemy,Xenemy/Yenemy/CEnemy,Xafter/Yafter);
+               find_take(CellList,X/Y/My,Enemy,Xenemy/Yenemy/CEnemy,Xafter/Yafter)
+          ),
+          set_cell(CellList,X/Y/0,ListWithoutOur),
+          set_cell(ListWithoutOur,Xenemy/Yenemy/0,ListWithoutEnemy),
+          set_cell(ListWithoutEnemy,Xafter/Yafter/My,NewBoardState),
+          (
+               find_single_take(NewBoardState,Xafter/Yafter,Enemy,[Xenemy/Yenemy/CEnemy-Xafter/Yafter|Accumulated],Result);
+               reverse([Xenemy/Yenemy/CEnemy-Xafter/Yafter|Accumulated],Result)
+          ).
+
+% Find first free diagonal position before non-empty cell
+find_diagonal_start(CellList,Dx,Dy,X/Y,Xfree/Yfree) :- 
+          Xnext is X + Dx,
+          Ynext is Y + Dy,
+          Xnext > 0, Xnext < 9, Ynext > 0, Ynext < 9,
+          cell_state(CellList,Xnext/Ynext/State),
+          State = 0,
+          (     
+               find_diagonal_start(CellList,Dx,Dy,Xnext/Ynext,Xfree/Yfree);
+               Xfree = Xnext, Yfree = Ynext
+          )
+          ,!.
+
+
+% Find start take for a dame and return eaten enemy info and next position info
+find_take_dame(CellList,X/Y/Color,Enemy,Xenemy/Yenemy/E,Xafter/Yafter) :- 
+          Dx=1,Dy=1,find_diagonal_start(CellList,Dx,Dy,X/Y,Xfree/Yfree),find_take_in_dir(CellList,Dx,Dy,Xfree/Yfree/Color,Enemy,Xenemy/Yenemy/E,Xafter/Yafter);
+          Dx=1,Dy=-1,find_diagonal_start(CellList,Dx,Dy,X/Y,Xfree/Yfree),find_take_in_dir(CellList,Dx,Dy,Xfree/Yfree/E,Enemy,Xenemy/Yenemy/E,Xafter/Yafter);          
+          Dx=-1,Dy=1,find_diagonal_start(CellList,Dx,Dy,X/Y,Xfree/Yfree),find_take_in_dir(CellList,Dx,Dy,Xfree/Yfree/E,Enemy,Xenemy/Yenemy/E,Xafter/Yafter);
+          Dx=-1,Dy=-1,find_diagonal_start(CellList,Dx,Dy,X/Y,Xfree/Yfree),find_take_in_dir(CellList,Dx,Dy,Xfree/Yfree/E,Enemy,Xenemy/Yenemy/E,Xafter/Yafter)          
+     .
+
+find_take_in_dir(CellList,Dx,Dy,X/Y/Color,Enemy,Xenemy/Yenemy/E,Xafter/Yafter) :- 
+     Dame is Enemy * 10,
+     Xd is X + Dx, Yd is Y + Dy,
+     Xdd is Xd + Dx, Ydd is Yd + Dy,
+     (
+          cell_state(CellList,Xd/Yd/Enemy),cell_state(CellList,Xdd/Ydd/0),E=Enemy,Xenemy=Xd,Yenemy=Yd,Xafter=Xdd,Yafter=Ydd;
+          cell_state(CellList,Xd/Yd/Dame),cell_state(CellList,Xdd/Ydd/0),E=Dame,Xenemy=Xd,Yenemy=Yd,Xafter=Xdd,Yafter=Ydd
+     ).
+
+% Find single take for a piece and return eaten enemy info and next position info
+find_take(CellList,X/Y/Color,Enemy,Xenemy/Yenemy/E,Xafter/Yafter) :- 
+     (
+          find_take_in_dir(CellList,-1,1,X/Y/Color,Enemy,Xenemy/Yenemy/E,Xafter/Yafter);
+          find_take_in_dir(CellList,1,1,X/Y/Color,Enemy,Xenemy/Yenemy/E,Xafter/Yafter);
+          find_take_in_dir(CellList,-1,-1,X/Y/Color,Enemy,Xenemy/Yenemy/E,Xafter/Yafter);
+          find_take_in_dir(CellList,1,-1,X/Y/Color,Enemy,Xenemy/Yenemy/E,Xafter/Yafter)
+      ).
+
+enemy_color(1,2).
+enemy_color(10,2).
+enemy_color(2,1).
+enemy_color(20,1).
+
+% Collect all movable pieces info for color in format X/Y/Color-[Xmove/Ymove,...]-[[Xtake/Ytake/Xafter/Yafter]..]
+collect_possible_moves(CellList,Color,Result):-
+     collect_possible_moves(CellList,CellList,Color,ResultPieces),!,
+     DameColor is Color * 10, collect_possible_moves(CellList,CellList,DameColor,ResultDames),
+     append([ResultPieces,ResultDames],Result),!.
+collect_possible_moves(_,[],_,[]) :- !.
+collect_possible_moves(CellList,[X/Y/C|Rest],Piece,Result) :- 
+     cell_state(CellList,X/Y/Piece),
+     enemy_color(C,EnemyColor),
+     find_all_take_chains(CellList,X/Y,EnemyColor,AllTakeList),
+     can_move(CellList,X/Y,Variants),
+     collect_possible_moves(CellList,Rest,Piece,ThatResult),(
+          Variants = [], AllTakeList = [], Result = ThatResult;
+          Result = [X/Y/Piece-Variants-AllTakeList|ThatResult]
+     ),!. 
+collect_possible_moves(CellList,[_/_/_|Rest],Piece,Result) :- 
+     collect_possible_moves(CellList,Rest,Piece,Result). 
+
+% Draw board
+draw_board_cell(X,Y) :- 
+     cell(X,Y,Color),
+     (
+          Color = 0, 0 is Y mod 2,(0 is X mod 2, write(' ');write('░'));
+          Color = 0, 1 is Y mod 2,(1 is X mod 2, write(' ');write('░'));
+          Color = 1, write('O');
+          Color = 10, write('$');
+          Color = 2, write('D');
+          Color = 20, write('§')
+     ),!.
+draw_board_row(9, Y) :- !.
+draw_board_row(StartX,Y) :- draw_board_cell(StartX, Y), NextX is StartX + 1, draw_board_row(NextX,Y).
+     
+draw_board :- 
+     (
+          nl,write('  12345678'),fail;
+          nl,write(' ┌────────┐'),fail;
+          nl,write('8│'),draw_board_row(1,8),write('│8'),fail;
+          nl,write('7│'),draw_board_row(1,7),write('│7'),fail;
+          nl,write('6│'),draw_board_row(1,6),write('│6'),fail;
+          nl,write('5│'),draw_board_row(1,5),write('│5'),fail;
+          nl,write('4│'),draw_board_row(1,4),write('│4'),fail;
+          nl,write('3│'),draw_board_row(1,3),write('│3'),fail;
+          nl,write('2│'),draw_board_row(1,2),write('│2'),fail;
+          nl,write('1│'),draw_board_row(1,1),write('│1'),fail;
+          nl,write(' └────────┘'),fail;
+          nl,writeln('  12345678'),fail
+     );true,!.
+     
+?-   
+     draw_board,
+     board_to_list(CellList), 
+     time(collect_possible_moves(CellList,1,Result)),
+     !,fail.
+%     can_move(CellList,8/1,PossibleMoves).
+
+
