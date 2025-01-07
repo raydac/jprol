@@ -211,35 +211,40 @@ public final class JProlChoicePoint implements Comparator<Term> {
         break;
       } else {
         if (goalToProcess.thereAreVariants) {
-          switch (goalToProcess.resolve(unknownPredicateConsumer)) {
-            case FAIL: {
-              if (this.debug) {
-                this.context.fireTraceEvent(TraceEvent.FAIL, goalToProcess);
-                this.context.fireTraceEvent(EXIT, goalToProcess);
+          try {
+            switch (goalToProcess.resolve(unknownPredicateConsumer)) {
+              case FAIL: {
+                if (this.debug) {
+                  this.context.fireTraceEvent(TraceEvent.FAIL, goalToProcess);
+                  this.context.fireTraceEvent(EXIT, goalToProcess);
+                }
+                this.rootChoicePoint.rootLastGoalAtChain = goalToProcess.prevChoicePoint;
               }
-              this.rootChoicePoint.rootLastGoalAtChain = goalToProcess.prevChoicePoint;
-            }
-            break;
-            case SUCCESS: {
-              // we have to renew data about last chain goal because it can be changed during the operation
-              goalToProcess = this.rootChoicePoint.rootLastGoalAtChain;
+              break;
+              case SUCCESS: {
+                // we have to renew data about last chain goal because it can be changed during the operation
+                goalToProcess = this.rootChoicePoint.rootLastGoalAtChain;
 
-              if (goalToProcess.nextAndTerm == null) {
-                result = this.rootChoicePoint.goalTerm;
-                loop = false;
-              } else {
-                final JProlChoicePoint nextGoal =
-                    new JProlChoicePoint(this.rootChoicePoint, goalToProcess.nextAndTerm,
-                        this.context, this.debug, this.validate, null);
-                nextGoal.nextAndTerm = goalToProcess.nextAndTermForNextGoal;
+                if (goalToProcess.nextAndTerm == null) {
+                  result = this.rootChoicePoint.goalTerm;
+                  loop = false;
+                } else {
+                  final JProlChoicePoint nextGoal =
+                      new JProlChoicePoint(this.rootChoicePoint, goalToProcess.nextAndTerm,
+                          this.context, this.debug, this.validate, null);
+                  nextGoal.nextAndTerm = goalToProcess.nextAndTermForNextGoal;
+                }
               }
+              break;
+              case STACK_CHANGED: {
+              }
+              break;
+              default:
+                throw new Error("Unexpected status");
             }
-            break;
-            case STACK_CHANGED: {
-            }
-            break;
-            default:
-              throw new Error("Unexpected status");
+          } catch (StackOverflowError ex) {
+            throw new ProlChoicePointInterruptedException(
+                "Caught stack overflow error during prove", this);
           }
         } else {
           if (this.debug) {
