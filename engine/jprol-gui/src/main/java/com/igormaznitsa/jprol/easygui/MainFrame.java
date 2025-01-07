@@ -875,9 +875,9 @@ public final class MainFrame extends javax.swing.JFrame
         KeyStroke.getKeyStroke(KeyEvent.VK_F12, 0));
     menuViewKnowledgeBase.setIcon(new ImageIcon(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/eye.png"))); // NOI18N
-    menuViewKnowledgeBase.setText("Show Knowledge base");
+    menuViewKnowledgeBase.setText("Show context base");
     menuViewKnowledgeBase.setToolTipText(
-        "Take and show the snapshot of the current knowledge base saved in the memory");
+        "Show current state of knowledge base for started context");
     menuViewKnowledgeBase.setEnabled(false);
     menuViewKnowledgeBase.addActionListener(this::menuViewKnowledgeBaseActionPerformed);
     menuView.add(menuViewKnowledgeBase);
@@ -1209,12 +1209,16 @@ public final class MainFrame extends javax.swing.JFrame
 
   private void releaseContext() {
     final JProlContext context = this.currentContext.getAndSet(null);
-    if (context != null && !context.isDisposed()) {
-      context.dispose();
+    if (context != null) {
+      this.menuViewKnowledgeBase.setEnabled(false);
+      if (!context.isDisposed()) {
+        context.dispose();
+      }
     }
   }
 
   private boolean setCurrentContext(final JProlContext context) {
+    System.out.println("Current context " + context);
     if (this.currentContext.compareAndSet(null, context)) {
       this.menuViewKnowledgeBase.setEnabled(context != null);
       return true;
