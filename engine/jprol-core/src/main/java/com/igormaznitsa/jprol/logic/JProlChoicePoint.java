@@ -31,6 +31,7 @@ import com.igormaznitsa.jprol.data.TermDouble;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.exceptions.ProlChoicePointInterruptedException;
+import com.igormaznitsa.jprol.exceptions.ProlChoicePointStackOverflowException;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.trace.TraceEvent;
@@ -243,7 +244,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                 throw new Error("Unexpected status");
             }
           } catch (StackOverflowError ex) {
-            throw new ProlChoicePointInterruptedException(
+            throw new ProlChoicePointStackOverflowException(
                 "Caught stack overflow error during prove", this);
           }
         } else {
