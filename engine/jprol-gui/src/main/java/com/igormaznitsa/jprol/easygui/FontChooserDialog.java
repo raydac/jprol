@@ -99,7 +99,6 @@ public class FontChooserDialog extends javax.swing.JDialog
     });
 
     final Set<String> duplicationSet = new HashSet<>();
-
     Stream.of(GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames())
         .map(Font::decode)
         .forEach(x -> {
@@ -134,8 +133,7 @@ public class FontChooserDialog extends javax.swing.JDialog
       comboBoxStyle.addItem(style);
     }
 
-    comboBoxFont.setSelectedItem(font instanceof LocalFont.LocallyLoadedFont ?
-        ((LocalFont.LocallyLoadedFont) font).getLocalFont().getTitle() : font.getFamily());
+    comboBoxFont.setSelectedItem(font);
     spinnerSize.setValue(font.getSize());
     comboBoxStyle.setSelectedItem(LocalFont.styleAsString(font));
 

@@ -76,7 +76,6 @@ public class EditorPane extends JTextPane {
   @Override
   public void setFont(final Font font) {
     this.baseFont = font;
-    super.setFont(this.baseFont);
     this.fontScale = 1.0f;
     this.updateFontForScale();
   }
@@ -101,11 +100,11 @@ public class EditorPane extends JTextPane {
   }
 
   private void updateFontForScale() {
-    final Font newFont = this.getFont().deriveFont(this.fontScale * this.baseFont.getSize2D());
+    final Font newFont = this.baseFont.deriveFont(this.fontScale * this.baseFont.getSize2D());
     if (newFont.getSize() > 0) {
       super.setFont(newFont);
     } else {
-      super.setFont(this.getFont().deriveFont(1.0f));
+      super.setFont(this.baseFont.deriveFont(1.0f));
     }
   }
 

@@ -138,8 +138,8 @@ public class DialogEditor extends AbstractProlEditor
     if (caretColor != null) {
       setEdCaretColor(caretColor);
     }
-    setEdWordWrap(prefs.getBoolean("dialogwordwrap", true));
-    setEdFont(loadFontFromPrefs(prefs, "dialogoutputfont", DEFAULT_FONT));
+    this.setEdWordWrap(prefs.getBoolean("dialogwordwrap", true));
+    this.setEdFont(loadFontFromPrefs(prefs, "dialogoutputfont", DEFAULT_FONT));
   }
 
   @Override

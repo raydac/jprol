@@ -107,11 +107,8 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     addPropertyLink(new PropertyLink(this, "Word wrap", PROPERTY_ED_WORD_WRAP));
 
     this.POPUP_CLEARTEXT.addActionListener((ActionEvent e) -> clearText());
-
     this.POPUP_COPY.addActionListener((ActionEvent e) -> copyText());
-
     this.POPUP_PASTE.addActionListener((ActionEvent e) -> pasteText());
-
     this.POPUP_CUT.addActionListener((ActionEvent e) -> cutText());
 
     // add popup
@@ -307,18 +304,24 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     return this.nameID;
   }
 
-  public Font getEdFont() {
-    return editor.getFont();
-  }
-
   private void updatedEditorLook() {
     editor.invalidate();
     scrollPane.invalidate();
     scrollPane.repaint();
   }
 
+  public Font getEdFont() {
+    if (this.editor instanceof EditorPane) {
+      return ((EditorPane) this.editor).getBaseFont();
+    } else if (this.editor instanceof ScalableRsyntaxTextArea) {
+      return ((ScalableRsyntaxTextArea) this.editor).getBaseFont();
+    } else {
+      return editor.getFont();
+    }
+  }
+
   public void setEdFont(final Font val) {
-    editor.setFont(val);
+    this.editor.setFont(val);
     this.updatedEditorLook();
   }
 

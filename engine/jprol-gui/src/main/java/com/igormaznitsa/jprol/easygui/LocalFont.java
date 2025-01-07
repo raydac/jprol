@@ -112,6 +112,23 @@ public enum LocalFont {
   public static class LocallyLoadedFont extends Font {
     private final LocalFont localFont;
 
+    @Override
+    public boolean equals(Object o) {
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      if (!super.equals(o)) {
+        return false;
+      }
+      LocallyLoadedFont that = (LocallyLoadedFont) o;
+      return this.localFont == that.localFont;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(super.hashCode(), this.localFont);
+    }
+
     public LocallyLoadedFont(final LocalFont localFont, String name, int style, int size) {
       super(name, style, size);
       this.localFont = localFont;
