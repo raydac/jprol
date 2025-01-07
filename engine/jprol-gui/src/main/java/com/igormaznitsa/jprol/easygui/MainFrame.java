@@ -307,6 +307,7 @@ public final class MainFrame extends javax.swing.JFrame
       action.putValue(Action.ACCELERATOR_KEY, escKey);
       this.buttonCloseFind.getActionMap().put("closeFind", action);
       this.buttonCloseFind.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escKey, "closeFind");
+      this.buttonCloseFind.addActionListener(e -> action.actionPerformed(e));
 
       this.panelFindText.setVisible(false);
     } finally {
