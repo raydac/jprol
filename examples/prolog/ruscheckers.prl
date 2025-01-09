@@ -7,47 +7,47 @@
 %    2 means Black
 %    20 means Black Dame
 
-% cell(1,8,0). cell(2,8,2). cell(3,8,0). cell(4,8,2). cell(5,8,0). cell(6,8,2). cell(7,8,0). cell(8,8,2).
-% cell(1,7,2). cell(2,7,0). cell(3,7,2). cell(4,7,0). cell(5,7,2). cell(6,7,0). cell(7,7,2). cell(8,7,0).
-% cell(1,6,0). cell(2,6,2). cell(3,6,0). cell(4,6,2). cell(5,6,0). cell(6,6,2). cell(7,6,0). cell(8,6,2).
-%
-% cell(1,5,0). cell(2,5,0). cell(3,5,0). cell(4,5,0). cell(5,5,0). cell(6,5,0). cell(7,5,0). cell(8,5,0).
-% cell(1,4,0). cell(2,4,0). cell(3,4,0). cell(4,4,0). cell(5,4,0). cell(6,4,0). cell(7,4,0). cell(8,4,0).
-%
-% cell(1,3,1). cell(2,3,0). cell(3,3,1). cell(4,3,0). cell(5,3,1). cell(6,3,0). cell(7,3,1). cell(8,3,0).
-% cell(1,2,0). cell(2,2,1). cell(3,2,0). cell(4,2,1). cell(5,2,0). cell(6,2,1). cell(7,2,0). cell(8,2,1).
-% cell(1,1,1). cell(2,1,0). cell(3,1,1). cell(4,1,0). cell(5,1,1). cell(6,1,0). cell(7,1,1). cell(8,1,0).
+ cell(1,8,0). cell(2,8,2). cell(3,8,0). cell(4,8,2). cell(5,8,0). cell(6,8,2). cell(7,8,0). cell(8,8,2).
+ cell(1,7,2). cell(2,7,0). cell(3,7,2). cell(4,7,0). cell(5,7,2). cell(6,7,0). cell(7,7,2). cell(8,7,0).
+ cell(1,6,0). cell(2,6,2). cell(3,6,0). cell(4,6,2). cell(5,6,0). cell(6,6,2). cell(7,6,0). cell(8,6,2).
 
-cell(1,8,0). cell(2,8,0). cell(3,8,0). cell(4,8,0). cell(5,8,0). cell(6,8,0). cell(7,8,0). cell(8,8,0).
-cell(1,7,0). cell(2,7,20). cell(3,7,0). cell(4,7,20). cell(5,7,0). cell(6,7,2). cell(7,7,0). cell(8,7,0).
-cell(1,6,0). cell(2,6,0). cell(3,6,0). cell(4,6,0). cell(5,6,0). cell(6,6,0). cell(7,6,0). cell(8,6,0).
+ cell(1,5,0). cell(2,5,0). cell(3,5,0). cell(4,5,0). cell(5,5,0). cell(6,5,0). cell(7,5,0). cell(8,5,0).
+ cell(1,4,0). cell(2,4,0). cell(3,4,0). cell(4,4,0). cell(5,4,0). cell(6,4,0). cell(7,4,0). cell(8,4,0).
 
-cell(1,5,0). cell(2,5,2). cell(3,5,0). cell(4,5,2). cell(5,5,0). cell(6,5,0). cell(7,5,0). cell(8,5,0).
-cell(1,4,0). cell(2,4,0). cell(3,4,1). cell(4,4,0). cell(5,4,0). cell(6,4,0). cell(7,4,0). cell(8,4,0).
+ cell(1,3,1). cell(2,3,0). cell(3,3,1). cell(4,3,0). cell(5,3,1). cell(6,3,0). cell(7,3,1). cell(8,3,0).
+ cell(1,2,0). cell(2,2,1). cell(3,2,0). cell(4,2,1). cell(5,2,0). cell(6,2,1). cell(7,2,0). cell(8,2,1).
+ cell(1,1,1). cell(2,1,0). cell(3,1,1). cell(4,1,0). cell(5,1,1). cell(6,1,0). cell(7,1,1). cell(8,1,0).
 
-cell(1,3,0). cell(2,3,0). cell(3,3,0). cell(4,3,0). cell(5,3,0). cell(6,3,0). cell(7,3,0). cell(8,3,0).
-cell(1,2,0). cell(2,2,0). cell(3,2,0). cell(4,2,0). cell(5,2,0). cell(6,2,0). cell(7,2,0). cell(8,2,0).
-cell(1,1,0). cell(2,1,0). cell(3,1,0). cell(4,1,0). cell(5,1,0). cell(6,1,0). cell(7,1,0). cell(8,1,10).
 
 % Build tree and select the best move
 
-collect_scores(CellList,[],[]) :- !.
+collect_scores(_,[],[]) :- !.
 collect_scores(CellList,[[CellInfo,MoveList,TakeList]|RestRecords],NewMoveScoresList) :-
      find_scores_in_record(CellList,CellInfo,MoveList,TakeList,ScoresRecordList),
      collect_scores(CellList,RestRecords,NextScoresList),
-     append([ScoresRecordList,NextScoresList],NewMoveScoresList)
-     .
+     append([ScoresRecordList,NextScoresList],MergedLists),
+     only_taking(MergedLists,OnlyTaking),
+     (
+          OnlyTaking = [], NewMoveScoresList = MergedLists;
+          OnlyTaking = NewMoveScoresList
+     ),!.
 
-find_best_move_scores([],none):-!.
-find_best_move_scores([ScoresRecord],ScoresRecord):-!.
-find_best_move_scores([ScoresRecord|Rest],SelectedRecord):-
-     find_best_move_scores(Rest,OtherRecord),
+only_taking([],[]):-!.
+only_taking([scores(I,M,T,S,E)|Rest],Result) :- 
+       only_taking(Rest,RestResult),
+       (T=[],Result = RestResult ; Result=[scores(I,M,T,S,E)|RestResult]),!.
+
+find_best_move_for_scores([],none):-!.
+find_best_move_for_scores([ScoresRecord],ScoresRecord):-!.
+find_best_move_for_scores([ScoresRecord|Rest],SelectedRecord):-
+     find_best_move_for_scores(Rest,OtherRecord),
      (
           OtherRecord = none, SelectedRecord = ScoresRecord;
-          ScoresRecord = scores(_,_,_,CurrentScores),
-          OtherRecord = scores(_,_,_,ThatScores),
+          ScoresRecord = scores(_,_,_,CurrentScores,CurrentEnemyScores),
+          OtherRecord = scores(_,_,_,ThatScores,ThatEnemyScores),
           (
-               CurrentScores < ThatScores, SelectedRecord = OtherRecord;
+               CurrentEnemyScores > ThatEnemyScores, SelectedRecord = OtherRecord;
+               CurrentScores > ThatScores, SelectedRecord = OtherRecord;
                SelectedRecord = ScoresRecord
           ),!
      ),!.
@@ -55,33 +55,31 @@ find_best_move_scores([ScoresRecord|Rest],SelectedRecord):-
 
 find_scores_in_record(_,_,[],[],[]):-!.
 
-find_scores_in_record(CellList,CellInfo,[Move|MoveRest],[],[scores(CellInfo,Move,[],MoveScores)|RestScores]):-
+find_scores_in_record(CellList,CellInfo,[Move|MoveRest],[],[scores(CellInfo,Move,[],MoveScores,EnemyScores)|RestScores]):-
      apply_move(CellList,CellInfo,Move,NewCellList),
      CellInfo = cell(_,_,C),
      base_color(C,BaseC),
+     enemy_color(C,EnemyColor),
      calc_scores(NewCellList,BaseC,MoveScores),
+     calc_scores(NewCellList,EnemyColor,EnemyScores),
      find_scores_in_record(CellList,CellInfo,MoveRest,[],RestScores).
 
-find_scores_in_record(CellList,CellInfo,_,[TakeList|TakeListRest],[scores(CellInfo,none,TakeList,TakeScores)|RestScores]):-
+find_scores_in_record(CellList,CellInfo,_,[TakeList|TakeListRest],[scores(CellInfo,none,TakeList,TakeScores,EnemyScores)|RestScores]):-
      apply_take_list(CellList,CellInfo,TakeList,NewCellList),
-     CellInfo = cell(X,Y,C),
+     CellInfo = cell(_,_,C),
      base_color(C,BaseC),
+     enemy_color(C,EnemyColor),
      calc_scores(NewCellList,BaseC,TakeScores),
+     calc_scores(NewCellList,EnemyColor,EnemyScores),
      find_scores_in_record(CellList,CellInfo,[],TakeListRest,RestScores).
 
-apply_move(CellList,cell(X,Y,C), move(Xn,Yn,Cn), NewList) :-
+apply_move(CellList,cell(X,Y,_), move(Xn,Yn,Cn), NewList) :-
      just_move(CellList,X/Y,Xn/Yn,Cn,NewList),!.
 
 apply_take_list(CellList,_,[],CellList):-!.
-apply_take_list(CellList,cell(X,Y,C),[take(Xt/Yt/Ct,Xn,Yn,Cn)|Rest],NewCellList):-
+apply_take_list(CellList,cell(X,Y,_),[take(Xt/Yt/_,Xn,Yn,Cn)|Rest],NewCellList):-
      move_and_take(CellList,X/Y,Xt/Yt,Xn/Yn,Cn,IntermediateList),
      apply_take_list(IntermediateList,cell(Xn,Yn,Cn),Rest,NewCellList),!.
-
-%%%%
-
-calc_take(CellList,cell(X,Y,C),take(Xt/Yt/Ct,Xn,Yn,Cn),NewCellList,MoveScores) :-
-     move_and_take(CellList,X/Y,Xt/Yt,Cn,NewCellList),
-     calc_scores(NewCellList,Color,MoveScores).
 
 base_color(1,1):-!.
 base_color(2,2):-!.
@@ -89,15 +87,30 @@ base_color(10,1):-!.
 base_color(20,2):-!.
 
 % Get state of cell described as X/Y/C
-cell_state([],_) :- !,fail.
-cell_state(_,X/Y/_) :- (X < 1 ; X > 8 ; Y < 1 ; Y > 8),!,fail.
-cell_state([X/Y/C|_],X/Y/C) :- !.
-cell_state([_/_/_|Rest],X/Y/C) :- cell_state(Rest,X/Y/C).
+get_cell_state([],_) :- !,fail.
+get_cell_state(_,X/Y/_) :- (X < 1 ; X > 8 ; Y < 1 ; Y > 8),!,fail.
+get_cell_state([X/Y/C|_],X/Y/C) :- !.
+get_cell_state([_/_/_|Rest],X/Y/C) :- get_cell_state(Rest,X/Y/C).
 
 % Update board
 list_to_board(CellList) :- retractall(cell(_,_,_)), list_to_board_(CellList).
 list_to_board_([]) :- !.
 list_to_board_([X/Y/C|Rest]) :- assertz(cell(X,Y,C)), list_to_board_(Rest).
+
+% Turn move and take info into facts in knowledge base
+to_board(CellInfo,none,[take(X/Y/_,Xn,Yn,Cn)|RestTakes]) :- 
+     (CellInfo = cell(Xc,Yc,_),retract(cell(Xc,Yc,_)), assert(cell(Xc,Yc,0));true),
+     retract(cell(X,Y,_)),
+     assert(cell(X,Y,0)),
+     (    
+          RestTakes = [],retract(cell(Xn,Yn,_)),assert(cell(Xn,Yn,Cn));
+          to_board(none,none,RestTakes)
+     ),!.
+to_board(cell(X,Y,_),move(Xn,Yn,Cn),[]) :- 
+     retract(cell(X,Y,_)),
+     assert(cell(X,Y,0)),
+     retract(cell(Xn,Yn,_)),
+     assert(cell(Xn,Yn,Cn)).
 
 % Change cell state in list
 set_cell([],_,[]) :- !.
@@ -123,25 +136,30 @@ board_to_list(CellList) :- findall(X/Y/C, cell(X,Y,C), CellList).
 
 % Check that a piece can make move
 can_move(CellList,X/Y,PossibleMoves) :- 
-          cell_state(CellList,X/Y/C),
+          get_cell_state(CellList,X/Y/C),
           can_move(CellList,X/Y/C,[],PossibleMoves),!.
 can_move(CellList,X/Y/1,PossibleMoves,NewPossibleMoves) :- 
           Xl is X - 1, Yu is Y + 1, Xr is X + 1,
-          (cell_state(CellList,Xl/Yu/0),change_dame(Xl/Yu/1,NewColor),Move1 = [move(Xl,Yu,NewColor)];Move1 = []),
-          (cell_state(CellList,Xr/Yu/0),change_dame(Xr/Yu/1,NewColor),Move2 = [move(Xr,Yu,NewColor)];Move2 = []),
+          (get_cell_state(CellList,Xl/Yu/0),change_dame(Xl/Yu/1,NewColor),Move1 = [move(Xl,Yu,NewColor)];Move1 = []),
+          (get_cell_state(CellList,Xr/Yu/0),change_dame(Xr/Yu/1,NewColor),Move2 = [move(Xr,Yu,NewColor)];Move2 = []),
           append([Move1,Move2],MoveList),
           (MoveList = [], NewPossibleMoves = PossibleMoves; append([MoveList,PossibleMoves],NewPossibleMoves)), !.
-can_move(CellList,X/Y/2,PossibleMoves,NewPossibleMoves) :- Xl is X - 1, Yd is Y - 1, Xr is X + 1,
-          (cell_state(CellList,Xl/Yd/0),change_dame(Xl/Yd/1,NewColor),Move1 = [move(Xl,Yd,NewColor)];Move1 = []),
-          (cell_state(CellList,Xr/Yd/0),change_dame(Xr/Yd/1,NewColor),Move2 = [move(Xr,Yd,NewColor)];Move2 = []),
+can_move(CellList,X/Y/2,PossibleMoves,NewPossibleMoves) :- 
+          Xl is X - 1, Yd is Y - 1, Xr is X + 1,
+          (get_cell_state(CellList,Xl/Yd/0),change_dame(Xl/Yd/2,NewColor),Move1 = [move(Xl,Yd,NewColor)];Move1 = []),
+          (get_cell_state(CellList,Xr/Yd/0),change_dame(Xr/Yd/2,NewColor),Move2 = [move(Xr,Yd,NewColor)];Move2 = []),
           append([Move1,Move2],MoveList),
           (MoveList = [], NewPossibleMoves = PossibleMoves; append([MoveList,PossibleMoves],NewPossibleMoves)), !.
 can_move(CellList,X/Y/C,PossibleMoves,NewPossibleMoves) :- 
      (C = 10; C = 20),!,
-     can_move(CellList,X/Y/1,[],Moves1),
-     can_move(CellList,X/Y/2,[],Moves2),
-     append([Moves1,Moves2],MoveList),
+     Xl is X - 1, Yu is Y + 1, Xr is X + 1, Yd is Y - 1,
+     (get_cell_state(CellList,Xl/Yu/0),Move1 = [move(Xl,Yu,C)];Move1 = []),
+     (get_cell_state(CellList,Xr/Yu/0),Move2 = [move(Xr,Yu,C)];Move2 = []),
+     (get_cell_state(CellList,Xl/Yd/0),Move3 = [move(Xl,Yd,C)];Move3 = []),
+     (get_cell_state(CellList,Xr/Yd/0),Move4 = [move(Xr,Yd,C)];Move4 = []),
+     append([Move1,Move2,Move3,Move4],MoveList),
      (MoveList = [], NewPossibleMoves = PossibleMoves; append([MoveList,PossibleMoves],NewPossibleMoves)), !.
+
 
 % Dame lines for color
 is_dame_line(1,8):-!.
@@ -152,24 +170,44 @@ calc_scores(CellList,Color,Scores) :-
      collect_possible_moves(CellList,Color,PossibleMoveInfo),
      calc_scores2(PossibleMoveInfo,Color,Scores).
 calc_scores2([],_,0).
-calc_scores2([[cell(X,Y,C),MoveList,TakeList]|Rest],Color,Scores) :- 
+calc_scores2([[cell(_,_,_),MoveList,TakeList]|Rest],Color,Scores) :- 
      length(MoveList,MoveScores),
      calc_take_scores_list(Color,TakeList,TakeScores),
      calc_scores2(Rest,Color,RestScores),
      Scores is MoveScores + RestScores + TakeScores.
 
-calc_take_scores_list(_,[],0).
+calc_move_scores_list(_,[],0):-!.
+calc_move_scores_list(Color,[Item|Rest],ResultScores) :- 
+     calc_move_scores_list_item(Color,Item,ItemScores), 
+     calc_move_scores_list(Color,Rest,RestScores),
+     ResultScores is ItemScores + RestScores.
+
+calc_move_scores_list_item(_,[],0):-!.
+calc_move_scores_list_item(Color,[move(_,Yn,_)|Rest],Scores) :- 
+     calc_move_scores_list_item(Color,Rest,RestScores),
+     (
+          Color < 3,is_dame_line(Color,Yn),DameCoeff = 500000 ; 
+          DameCoeff = 0
+     ),!,
+     (
+          Color < 3, dame_line(Color,DameLine), ToDameCoeff is (8 - abs(Yn - DameLine)) * 1000 ; 
+          ToDameCoeff = 0
+     ),!,
+     Scores is RestScores + ToDameCoeff + DameCoeff.
+
+
+calc_take_scores_list(_,[],0):-!.
 calc_take_scores_list(Color,[Item|Rest],ResultScores) :- 
      calc_take_scores_list_item(Color,Item,ItemScores), 
      calc_take_scores_list(Color,Rest,RestScores),
      ResultScores is ItemScores + RestScores.
 
-calc_take_scores_list_item(_,[],0).
-calc_take_scores_list_item(Color,[take(X/Y/C,Xn,Yn,Cn)|Rest],Scores) :- 
+calc_take_scores_list_item(_,[],0):-!.
+calc_take_scores_list_item(Color,[take(_/_/C,_,Yn,_)|Rest],Scores) :- 
      calc_take_scores_list_item(Color,Rest,RestScores),
-     (C > 2, DameCoeff = 100; DameCoeff = 0),
+     (C > 2, DameCoeff = 100000; DameCoeff = 0),
      (is_dame_line(Color,Yn),DameLineCoeff = 500;DameLineCoeff = 0),!,
-      Scores is RestScores + DameLineCoeff + DameCoeff + 20.
+      Scores is RestScores + DameLineCoeff + DameCoeff + 500.
 
 % Find all possible chains to take enemy pieces in format [[[Xenemy/Yenemy/EnemyColor,Xnext/Ynext],.]..]
 find_all_take_chains(CellList,X/Y,Enemy,FoundChains) :- 
@@ -183,7 +221,7 @@ change_dame(_/_/Old,Old).
 
 % Find single possible chain to take enemy pieces in format [take(Xenemy/Yenemy/ColorEnemy,Xnext,Ynext,Cnext),...]
 find_single_take(CellList,X/Y,Enemy,Accumulated,Result) :- 
-          cell_state(CellList,X/Y/CellColor),
+          get_cell_state(CellList,X/Y/CellColor),
           (
                CellColor > 2,find_take_dame(CellList,X/Y/CellColor,Enemy,Xenemy/Yenemy/CEnemy,Xafter/Yafter);
                find_take(CellList,X/Y/CellColor,Enemy,Xenemy/Yenemy/CEnemy,Xafter/Yafter)
@@ -200,7 +238,7 @@ find_diagonal_start(CellList,Dx,Dy,X/Y,Xfree/Yfree) :-
           Xnext is X + Dx,
           Ynext is Y + Dy,
           Xnext > 0, Xnext < 9, Ynext > 0, Ynext < 9,
-          cell_state(CellList,Xnext/Ynext/State),
+          get_cell_state(CellList,Xnext/Ynext/State),
           State = 0,
           (     
                find_diagonal_start(CellList,Dx,Dy,Xnext/Ynext,Xfree/Yfree);
@@ -220,13 +258,13 @@ find_take_dame(CellList,X/Y/Color,Enemy,Xenemy/Yenemy/E,Xafter/Yafter) :-
           find_diagonal_start(CellList,Dx,Dy,X/Y,Xfree/Yfree),find_take_in_dir(CellList,Dx,Dy,Xfree/Yfree/E,Enemy,Xenemy/Yenemy/E,Xafter/Yafter)
      .
 
-find_take_in_dir(CellList,Dx,Dy,X/Y/Color,Enemy,Xenemy/Yenemy/E,Xafter/Yafter) :- 
+find_take_in_dir(CellList,Dx,Dy,X/Y/_,Enemy,Xenemy/Yenemy/E,Xafter/Yafter) :- 
      Dame is Enemy * 10,
      Xd is X + Dx, Yd is Y + Dy,
      Xdd is Xd + Dx, Ydd is Yd + Dy,
      (
-          cell_state(CellList,Xd/Yd/Enemy),cell_state(CellList,Xdd/Ydd/0),E=Enemy,Xenemy=Xd,Yenemy=Yd,Xafter=Xdd,Yafter=Ydd;
-          cell_state(CellList,Xd/Yd/Dame),cell_state(CellList,Xdd/Ydd/0),E=Dame,Xenemy=Xd,Yenemy=Yd,Xafter=Xdd,Yafter=Ydd
+          get_cell_state(CellList,Xd/Yd/Enemy),get_cell_state(CellList,Xdd/Ydd/0),E=Enemy,Xenemy=Xd,Yenemy=Yd,Xafter=Xdd,Yafter=Ydd;
+          get_cell_state(CellList,Xd/Yd/Dame),get_cell_state(CellList,Xdd/Ydd/0),E=Dame,Xenemy=Xd,Yenemy=Yd,Xafter=Xdd,Yafter=Ydd
      ).
 
 % Find single take for a piece and return eaten enemy info and next position info
@@ -250,18 +288,18 @@ collect_possible_moves(CellList,Color,Result):-
      DameColor is Color * 10, collect_possible_moves(CellList,CellList,DameColor,ResultDames),
      append([ResultPieces,ResultDames],Result),!.
 collect_possible_moves(_,[],_,[]) :- !.
-collect_possible_moves(CellList,[X/Y/C|Rest],Piece,Result) :- 
-     cell_state(CellList,X/Y/Piece),
+collect_possible_moves(CellList,[X/Y/C|Rest],Color,Result) :- 
+     get_cell_state(CellList,X/Y/Color),
      enemy_color(C,EnemyColor),
      find_all_take_chains(CellList,X/Y,EnemyColor,AllTakeList),
      remove_sublists(AllTakeList,FilteredList),
      can_move(CellList,X/Y,Variants),
-     collect_possible_moves(CellList,Rest,Piece,ThatResult),(
+     collect_possible_moves(CellList,Rest,Color,ThatResult),(
           Variants = [], FilteredList = [], Result = ThatResult;
-          Result = [[cell(X,Y,Piece),Variants,FilteredList]|ThatResult]
+          Result = [[cell(X,Y,Color),Variants,FilteredList]|ThatResult]
      ),!. 
-collect_possible_moves(CellList,[_/_/_|Rest],Piece,Result) :- 
-     collect_possible_moves(CellList,Rest,Piece,Result). 
+collect_possible_moves(CellList,[_/_/_|Rest],Color,Result) :- 
+     collect_possible_moves(CellList,Rest,Color,Result). 
 
 % Check if one list is a sublist of another
 is_sublist(Sub, List) :-
@@ -285,19 +323,19 @@ remove_sublists(Lists, Result) :-
 
 % Draw board
 draw_board_cell(X,Y) :- 
-     XX is X mod 2, YY is Y mod 2,
+     XX is (X - 1) mod 2, YY is (Y - 1) mod 2,
      cell(X,Y,Color),
      (
-          Color = 0, XX = 0, YY = 0 -> write('   ');
-          Color = 0, XX = 0, YY = 1 -> write('░░░');
-          Color = 0, XX = 1, YY = 0 -> write('░░░');
-          Color = 0, XX = 1, YY = 1 -> write('   ');
-          Color = 1 -> write('░W░');
-          Color = 10 -> write('░@░');
-          Color = 2 -> write('░B░');
-          Color = 20 -> write('░§░')
+          Color = 0, XX = 0, YY = 0, write('░░░');
+          Color = 0, XX = 1, YY = 0, write('   ');
+          Color = 0, XX = 0, YY = 1, write('   ');
+          Color = 0, XX = 1, YY = 1, write('░░░');
+          Color = 1, write('░W░');
+          Color = 10, write('░@░');
+          Color = 2, write('░B░');
+          Color = 20, write('░§░')
      ),!.
-draw_board_row(9, Y) :- !.
+draw_board_row(9, _) :- !.
 draw_board_row(StartX,Y) :- draw_board_cell(StartX, Y), NextX is StartX + 1, draw_board_row(NextX,Y).
      
 draw_board :- 
@@ -315,15 +353,62 @@ draw_board :-
           nl,write(' ╚════════════════════════╝'),fail;
           nl,writeln('   1  2  3  4  5  6  7  8'),fail
      );true,!.
-     
-?-   
-     draw_board,
+
+print_take(_,[]):-!.
+print_take(cell(X,Y,C),[Take|Rest]):-
+    Take = take(Xt/Yt/Ct,Xn,Yn,Cn),
+    write(Xt),write(':'),write(Yt),write(' '),
+     (
+       Cn > C, write('(becames Dame) '); true
+     ),!,
+     (Rest \= [], write(', ') ; true),!,
+     print_take(cell(X,Y,Cn),Rest).
+
+print_best_move(CellInfo,Move,TakeList) :-
+     CellInfo = cell(X,Y,C),
+     write('Best move from '),write(X),write(':'),write(Y),write(' '),
+     (
+          TakeList = [], 
+          Move = move(Xm,Ym,Cm),
+          write('is moving to '),write(Xm),write(':'),write(Ym) ;
+          write('is taking '), print_take(CellInfo,TakeList)
+     ),!,nl.
+
+% Make move for specified color
+turn(Color, 0, 0):-
+     turn(Color),!.
+turn(Color) :- 
      board_to_list(CellList), 
-     calc_scores(CellList,1,WhiteScores),
-     calc_scores(CellList,2,BlackScores),
-     time(collect_possible_moves(CellList,1,Result)),nl,
-     write(' Moves='),writeln(Result),
+     collect_possible_moves(CellList,Color,Result),
      collect_scores(CellList,Result,CollectedScores),
-     find_best_move_scores(CollectedScores,Best),
-     write(' Best='),writeln(Best),
-     !,fail.
+     find_best_move_for_scores(CollectedScores,Best),
+     Best = scores(CellInfo,Move,TakeList,_,_),
+     print_best_move(CellInfo,Move,TakeList),
+     to_board(CellInfo,Move,TakeList).
+turn(Color, X,Y) :-
+     base_color(Color,BaseColor),
+     board_to_list(CellList),
+     get_cell_state(CellList,X/Y/C),
+     base_color(C,BaseColor),
+     collect_possible_moves(CellList,[X/Y/C],BaseColor,Result),
+     collect_scores(CellList,Result,CollectedScores),
+     find_best_move_for_scores(CollectedScores,Best),
+     Best = scores(CellInfo,Move,TakeList,_,_),
+     print_best_move(CellInfo,Move,TakeList),
+     to_board(CellInfo,Move,TakeList),!.
+
+play_game :- 
+     writeln('------Start simple Russian Checkers Bot vs Bot session-------'),
+     draw_board,
+     nl,
+     repeat,
+          writeln('------Move WHITE-------'),
+          turn(1),
+          draw_board,
+          writeln('------Move BLACK-------'),
+          turn(2),
+          draw_board,
+          nl,
+     fail.
+
+?- play_game.
