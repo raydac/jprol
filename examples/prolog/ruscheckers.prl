@@ -45,10 +45,11 @@ find_best_move_for_scores([ScoresRecord|Rest],SelectedRecord):-
           OtherRecord = none, SelectedRecord = ScoresRecord;
           ScoresRecord = scores(_,_,_,CurrentScores,CurrentEnemyScores),
           OtherRecord = scores(_,_,_,ThatScores,ThatEnemyScores),
+          DiffCurrent is CurrentScores - CurrentEnemyScores * 2,
+          DiffThat is ThatScores - ThatEnemyScores * 2,
           (
-               CurrentEnemyScores > ThatEnemyScores, SelectedRecord = OtherRecord;
-               CurrentScores > ThatScores, SelectedRecord = OtherRecord;
-               SelectedRecord = ScoresRecord
+               DiffCurrent > DiffThat, SelectedRecord = ScoresRecord;
+               SelectedRecord = OtherRecord
           ),!
      ),!.
 
@@ -186,11 +187,11 @@ calc_move_scores_list_item(_,[],0):-!.
 calc_move_scores_list_item(Color,[move(_,Yn,_)|Rest],Scores) :- 
      calc_move_scores_list_item(Color,Rest,RestScores),
      (
-          Color < 3,is_dame_line(Color,Yn),DameCoeff = 500000 ; 
+          Color < 3,is_dame_line(Color,Yn),DameCoeff = 5000000 ; 
           DameCoeff = 0
      ),!,
      (
-          Color < 3, dame_line(Color,DameLine), ToDameCoeff is (8 - abs(Yn - DameLine)) * 1000 ; 
+          Color < 3, dame_line(Color,DameLine), ToDameCoeff is (8 - abs(Yn - DameLine)) * 10000 ; 
           ToDameCoeff = 0
      ),!,
      Scores is RestScores + ToDameCoeff + DameCoeff.
@@ -223,7 +224,7 @@ change_dame(_/_/Old,Old).
 find_single_take(CellList,X/Y,Enemy,Accumulated,Result) :- 
           get_cell_state(CellList,X/Y/CellColor),
           (
-               CellColor > 2,find_take_dame(CellList,X/Y/CellColor,Enemy,Xenemy/Yenemy/CEnemy,Xafter/Yafter);
+               CellColor > 2,find_take_for_dame(CellList,X/Y/CellColor,Enemy,Xenemy/Yenemy/CEnemy,Xafter/Yafter);
                find_take(CellList,X/Y/CellColor,Enemy,Xenemy/Yenemy/CEnemy,Xafter/Yafter)
           ),
           change_dame(Xafter/Yafter/CellColor,NewCellColor),
@@ -248,14 +249,15 @@ find_diagonal_start(CellList,Dx,Dy,X/Y,Xfree/Yfree) :-
 
 
 % Find start take for a dame and return eaten enemy info and next position info
-find_take_dame(CellList,X/Y/Color,Enemy,Xenemy/Yenemy/E,Xafter/Yafter) :- 
+find_take_for_dame(CellList,X/Y/Color,Enemy,Xenemy/Yenemy/E,Xafter/Yafter) :- 
           (
                Dx = 1, Dy = 1;
                Dx = 1, Dy = -1;          
                Dx = -1,Dy = 1;
                Dx = -1,Dy = -1
           ),
-          find_diagonal_start(CellList,Dx,Dy,X/Y,Xfree/Yfree),find_take_in_dir(CellList,Dx,Dy,Xfree/Yfree/E,Enemy,Xenemy/Yenemy/E,Xafter/Yafter)
+          find_diagonal_start(CellList,Dx,Dy,X/Y,Xfree/Yfree),
+          find_take_in_dir(CellList,Dx,Dy,Xfree/Yfree/E,Enemy,Xenemy/Yenemy/E,Xafter/Yafter)
      .
 
 find_take_in_dir(CellList,Dx,Dy,X/Y/_,Enemy,Xenemy/Yenemy/E,Xafter/Yafter) :- 
@@ -357,16 +359,16 @@ draw_board :-
 print_take(_,[]):-!.
 print_take(cell(X,Y,C),[Take|Rest]):-
     Take = take(Xt/Yt/Ct,Xn,Yn,Cn),
-    write(Xt),write(':'),write(Yt),write(' '),
+    write(Xt),write(':'),write(Yt),
      (
-       Cn > C, write('(becames Dame) '); true
+       Cn > C, write('(Dame!!!) '); true
      ),!,
-     (Rest \= [], write(', ') ; true),!,
+     (Rest \= [], write(',') ; true),!,
      print_take(cell(X,Y,Cn),Rest).
 
 print_best_move(CellInfo,Move,TakeList) :-
      CellInfo = cell(X,Y,C),
-     write('Best move from '),write(X),write(':'),write(Y),write(' '),
+     write(' Piece '),write(X),write(':'),write(Y),write(' '),
      (
           TakeList = [], 
           Move = move(Xm,Ym,Cm),
@@ -403,10 +405,16 @@ play_game :-
      nl,
      repeat,
           writeln('------Move WHITE-------'),
-          turn(1),
+          (
+               \+ time(turn(1)), writeln('   BLACK WINNERS!!!'),!,fail;
+            true
+          ),
           draw_board,
           writeln('------Move BLACK-------'),
-          turn(2),
+          (
+               \+ time(turn(2)), writeln('   WHITE WINNERS!!!'),!,fail;
+            true
+          ),
           draw_board,
           nl,
      fail.
