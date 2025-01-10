@@ -370,6 +370,13 @@ public class JProlTokenMaker extends AbstractTokenMaker {
                 }
               } else {
                 if (RSyntaxUtilities.isLetterOrDigit(c) || c == '_') {
+                  final char prev = array[i - 1];
+                  if (!RSyntaxUtilities.isLetterOrDigit(prev) && prev != '_') {
+                    addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER,
+                        newStartOffset + currentTokenStart);
+                    i--;
+                    currentTokenType = Token.NULL;
+                  }
                   break;
                 }
                 int indexOf = separators.indexOf(c);
