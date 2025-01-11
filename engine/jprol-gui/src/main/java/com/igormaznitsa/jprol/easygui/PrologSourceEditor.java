@@ -1,29 +1,30 @@
 package com.igormaznitsa.jprol.easygui;
 
-import static com.igormaznitsa.jprol.easygui.UiUtils.ellipseRight;
-
 import com.igormaznitsa.jprol.annotations.JProlConsultText;
 import com.igormaznitsa.jprol.annotations.JProlOperator;
 import com.igormaznitsa.jprol.annotations.JProlOperators;
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.easygui.tokenizer.JProlTokenMaker;
+import com.igormaznitsa.jprol.utils.ProlPair;
 import java.awt.Color;
 import java.awt.Font;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
+import javax.swing.text.JTextComponent;
 import javax.swing.undo.UndoManager;
 import org.fife.ui.autocomplete.AutoCompletion;
 import org.fife.ui.autocomplete.Completion;
@@ -52,6 +53,15 @@ public class PrologSourceEditor extends AbstractProlEditor {
   protected static final Logger LOGGER = Logger.getLogger(PrologSourceEditor.class.getName());
   private static final long serialVersionUID = -2223529439306867844L;
   protected RUndoManager undoManager;
+
+
+  private static String findFunctor(final String signature) {
+    final int lastIndex = signature.lastIndexOf('/');
+    if (lastIndex < 0) {
+      throw new IllegalArgumentException("Wrong signature format " + signature);
+    }
+    return signature.substring(0, lastIndex);
+  }
 
   public PrologSourceEditor() {
     super("Editor", new ScalableRsyntaxTextArea(), true);
@@ -90,10 +100,22 @@ public class PrologSourceEditor extends AbstractProlEditor {
     this.undoManager = new RUndoManager(theEditor);
   }
 
+  private static int findArity(final String signature) {
+    final int lastIndex = signature.lastIndexOf('/');
+    if (lastIndex < 0) {
+      throw new IllegalArgumentException("Wrong signature format " + signature);
+    }
+    try {
+      return Integer.parseInt(signature.substring(lastIndex + 1));
+    } catch (Exception e) {
+      throw new IllegalArgumentException(signature);
+    }
+  }
+
   private static List<Completion> makeShorthandCompletions(
       final CompletionProvider completionProvider) {
-    final List<JProlOperator> operatorList = new ArrayList<>();
-    final List<JProlPredicate> predicateList = new ArrayList<>();
+    final List<ProlPair<String, JProlOperator>> operatorList = new ArrayList<>();
+    final List<ProlPair<String, JProlPredicate>> predicateList = new ArrayList<>();
 
     for (final String className : MainFrame.PROL_LIBRARIES) {
       final Class<?> libClass;
@@ -103,24 +125,30 @@ public class PrologSourceEditor extends AbstractProlEditor {
         throw new RuntimeException(ex);
       }
 
+      final String libraryName = libClass.getSimpleName();
+
       final JProlOperator operator = libClass.getAnnotation(JProlOperator.class);
       final JProlOperators operators = libClass.getAnnotation(JProlOperators.class);
       if (operator != null) {
-        operatorList.add(operator);
+        operatorList.add(ProlPair.makeOf(libraryName, operator));
       }
       if (operators != null) {
-        Collections.addAll(operatorList, operators.value());
+        for (final JProlOperator p : operators.value()) {
+          operatorList.add(ProlPair.makeOf(libraryName, p));
+        }
       }
 
       final JProlConsultText consultText = libClass.getAnnotation(JProlConsultText.class);
       if (consultText != null) {
-        predicateList.addAll(Arrays.asList(consultText.declaredPredicates()));
+        for (final JProlPredicate p : consultText.declaredPredicates()) {
+          predicateList.add(ProlPair.makeOf(libraryName, p));
+        }
       }
 
       for (final Method method : libClass.getMethods()) {
         final JProlPredicate predicate = method.getAnnotation(JProlPredicate.class);
         if (predicate != null) {
-          predicateList.add(predicate);
+          predicateList.add(ProlPair.makeOf(libraryName, predicate));
         }
       }
     }
@@ -165,17 +193,8 @@ public class PrologSourceEditor extends AbstractProlEditor {
     };
 
     final Function<String, String> replacementPred = (signature) -> {
-      final int lastIndex = signature.lastIndexOf('/');
-      if (lastIndex < 0) {
-        throw new IllegalArgumentException("Wrong signature format " + signature);
-      }
-      final String name = signature.substring(0, lastIndex);
-      final int arity;
-      try {
-        arity = Integer.parseInt(signature.substring(lastIndex + 1));
-      } catch (Exception e) {
-        throw new IllegalArgumentException(signature);
-      }
+      final String name = findFunctor(signature);
+      final int arity = findArity(signature);
       final StringBuilder result = new StringBuilder(name);
       if (arity > 0) {
         result.append('(');
@@ -191,26 +210,116 @@ public class PrologSourceEditor extends AbstractProlEditor {
     };
 
     final List<Completion> result = new ArrayList<>();
+    final Set<JProlPredicate> predicatesAddedAsOperators = new HashSet<>();
+
     operatorList.forEach(op -> {
-      result.add(new ShorthandCompletion(completionProvider, op.name() + '/' + op.type().getArity(),
-          opReplacement.apply(op)));
+      final String libraryName = op.getLeft();
+      final JProlOperator operator = op.getRight();
+
+      final String signature = operator.name() + '/' + operator.type().getArity();
+
+      final JProlPredicate predicate = predicateList.stream().map(ProlPair::getRight)
+          .filter(x -> signature.equals(x.signature()))
+          .findFirst().orElse(null);
+
+      if (predicate != null) {
+        predicatesAddedAsOperators.add(predicate);
+      }
+
+      result.add(new ProlShorthandCompletion(
+          operator.name(),
+          operator.type().getArity(),
+          completionProvider,
+          signature,
+          opReplacement.apply(operator),
+          libraryName,
+          predicate == null ?
+              String.format("type %s priority %d", operator.type().getText(), operator.priority()) :
+              predicate.reference()));
     });
     predicateList.forEach(p -> {
-      result.add(new ShorthandCompletion(completionProvider, p.signature(),
-          replacementPred.apply(p.signature()), "", p.reference()));
-      for (final String s : p.synonyms()) {
-        result.add(new ShorthandCompletion(completionProvider, s, replacementPred.apply(s),
-            ellipseRight(p.reference(), 32, "..."),
-            p.reference()));
+      final String libraryName = p.getLeft();
+      final JProlPredicate predicate = p.getRight();
+
+      if (!predicatesAddedAsOperators.contains(predicate)) {
+
+        final String signature = predicate.signature();
+        final int lastIndex = signature.lastIndexOf('/');
+        if (lastIndex < 0) {
+          throw new IllegalArgumentException("Wrong signature format " + signature);
+        }
+        final String functor = signature.substring(0, lastIndex);
+        final int arity;
+        try {
+          arity = Integer.parseInt(signature.substring(lastIndex + 1));
+        } catch (Exception e) {
+          throw new IllegalArgumentException(signature);
+        }
+        result.add(new ProlShorthandCompletion(
+            functor,
+            arity,
+            completionProvider,
+            predicate.signature(),
+            replacementPred.apply(predicate.signature()),
+            libraryName, predicate.reference()));
+        for (final String s : predicate.synonyms()) {
+          final String sfunctor = findFunctor(s);
+          final int sarity = findArity(s);
+          result.add(new ProlShorthandCompletion(
+                  sfunctor,
+                  sarity,
+                  completionProvider,
+                  s,
+                  replacementPred.apply(s),
+                  libraryName,
+                  predicate.reference()
+              )
+          );
+        }
       }
     });
     return result;
   }
 
   private CompletionProvider makeCompletionProvider() {
-    final DefaultCompletionProvider result = new DefaultCompletionProvider();
+    final DefaultCompletionProvider result = new DefaultCompletionProvider() {
+      @Override
+      protected List<Completion> getCompletionsImpl(JTextComponent comp) {
+        final String text = getAlreadyEnteredText(comp);
+        if (text.isBlank()) {
+          return this.completions;
+        } else {
+          return this.completions.stream()
+              .filter(x -> ((ProlShorthandCompletion) x).isAllow(text))
+              .collect(Collectors.toList());
+        }
+      }
+    };
     result.addCompletions(makeShorthandCompletions(result));
     return result;
+  }
+
+  private static final class ProlShorthandCompletion extends ShorthandCompletion {
+    private final String functor;
+    private final int arity;
+
+    ProlShorthandCompletion(
+        final String functor,
+        final int arity,
+        final CompletionProvider provider,
+        final String inputText,
+        final String replacementText,
+        final String shortDesc,
+        final String summary
+    ) {
+      super(provider, inputText, replacementText, shortDesc, summary);
+      this.functor = functor;
+      this.arity = arity;
+    }
+
+    boolean isAllow(final String text) {
+      return functor.contains(text);
+    }
   }
 
   private void applyScheme(final RSyntaxTextArea editor) {
