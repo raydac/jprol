@@ -34,6 +34,16 @@
             <groupId>com.fifesoft</groupId>
             <artifactId>rsyntaxtextarea</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.fifesoft</groupId>
+            <artifactId>autocomplete</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fifesoft</groupId>
+                    <artifactId>rsyntaxtextarea</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 
     <profiles>

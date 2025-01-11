@@ -144,7 +144,7 @@ public final class MainFrame extends javax.swing.JFrame
 
   public static final AtomicReference<MainFrame> MAIN_FRAME_INSTANCE = new AtomicReference<>();
 
-  private static final String[] PROL_LIBRARIES = new String[] {
+  public static final String[] PROL_LIBRARIES = new String[] {
       JProlCoreLibrary.class.getCanonicalName(),
       JProlThreadLibrary.class.getCanonicalName(),
       JProlIoLibrary.class.getCanonicalName(),

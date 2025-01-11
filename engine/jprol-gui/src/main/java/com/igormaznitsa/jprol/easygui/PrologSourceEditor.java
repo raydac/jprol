@@ -1,9 +1,21 @@
 package com.igormaznitsa.jprol.easygui;
 
+import static com.igormaznitsa.jprol.easygui.UiUtils.ellipseRight;
+
+import com.igormaznitsa.jprol.annotations.JProlConsultText;
+import com.igormaznitsa.jprol.annotations.JProlOperator;
+import com.igormaznitsa.jprol.annotations.JProlOperators;
+import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.easygui.tokenizer.JProlTokenMaker;
 import java.awt.Color;
 import java.awt.Font;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.JTextArea;
@@ -13,6 +25,11 @@ import javax.swing.event.UndoableEditListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
 import javax.swing.undo.UndoManager;
+import org.fife.ui.autocomplete.AutoCompletion;
+import org.fife.ui.autocomplete.Completion;
+import org.fife.ui.autocomplete.CompletionProvider;
+import org.fife.ui.autocomplete.DefaultCompletionProvider;
+import org.fife.ui.autocomplete.ShorthandCompletion;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.Theme;
 import org.fife.ui.rtextarea.RUndoManager;
@@ -58,11 +75,142 @@ public class PrologSourceEditor extends AbstractProlEditor {
     theEditor.setFont(DEFAULT_SORCE_FONT);
     theEditor.setBaseFont(DEFAULT_SORCE_FONT);
 
+    final AutoCompletion autoCompletion =
+        new AutoCompletion(this.makeCompletionProvider());
+    autoCompletion.setAutoActivationEnabled(false);
+    autoCompletion.setParameterAssistanceEnabled(false);
+    autoCompletion.setShowDescWindow(true);
+    autoCompletion.setAutoCompleteSingleChoices(false);
+    autoCompletion.install(this.editor);
+
     editor.setVisible(true);
 
     setEnabled(true);
 
     this.undoManager = new RUndoManager(theEditor);
+  }
+
+  private static List<Completion> makeShorthandCompletions(
+      final CompletionProvider completionProvider) {
+    final List<JProlOperator> operatorList = new ArrayList<>();
+    final List<JProlPredicate> predicateList = new ArrayList<>();
+
+    for (final String className : MainFrame.PROL_LIBRARIES) {
+      final Class<?> libClass;
+      try {
+        libClass = Class.forName(className);
+      } catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
+
+      final JProlOperator operator = libClass.getAnnotation(JProlOperator.class);
+      final JProlOperators operators = libClass.getAnnotation(JProlOperators.class);
+      if (operator != null) {
+        operatorList.add(operator);
+      }
+      if (operators != null) {
+        Collections.addAll(operatorList, operators.value());
+      }
+
+      final JProlConsultText consultText = libClass.getAnnotation(JProlConsultText.class);
+      if (consultText != null) {
+        predicateList.addAll(Arrays.asList(consultText.declaredPredicates()));
+      }
+
+      for (final Method method : libClass.getMethods()) {
+        final JProlPredicate predicate = method.getAnnotation(JProlPredicate.class);
+        if (predicate != null) {
+          predicateList.add(predicate);
+        }
+      }
+    }
+
+    final Function<JProlOperator, String> opReplacement = op -> {
+      String left = "";
+      String right = "";
+      switch (op.type()) {
+        case XFX: {
+          left = "X ";
+          right = " Y";
+        }
+        break;
+        case YFX: {
+          left = "Y ";
+          right = " X";
+        }
+        break;
+        case XFY: {
+          left = "X";
+          right = " Y";
+        }
+        break;
+        case FX: {
+          right = " X";
+        }
+        break;
+        case FY: {
+          right = " Y";
+        }
+        break;
+        case YF: {
+          left = "Y ";
+        }
+        break;
+        case XF: {
+          left = "X ";
+        }
+        break;
+      }
+      return String.format("%s%s%s", left, op.name(), right);
+    };
+
+    final Function<String, String> replacementPred = (signature) -> {
+      final int lastIndex = signature.lastIndexOf('/');
+      if (lastIndex < 0) {
+        throw new IllegalArgumentException("Wrong signature format " + signature);
+      }
+      final String name = signature.substring(0, lastIndex);
+      final int arity;
+      try {
+        arity = Integer.parseInt(signature.substring(lastIndex + 1));
+      } catch (Exception e) {
+        throw new IllegalArgumentException(signature);
+      }
+      final StringBuilder result = new StringBuilder(name);
+      if (arity > 0) {
+        result.append('(');
+        for (int i = 0; i < arity; i++) {
+          if (i > 0) {
+            result.append(". ");
+          }
+          result.append('_');
+        }
+        result.append(')');
+      }
+      return result.toString();
+    };
+
+    final List<Completion> result = new ArrayList<>();
+    operatorList.forEach(op -> {
+      result.add(new ShorthandCompletion(completionProvider, op.name() + '/' + op.type().getArity(),
+          opReplacement.apply(op)));
+    });
+    predicateList.forEach(p -> {
+      result.add(new ShorthandCompletion(completionProvider, p.signature(),
+          replacementPred.apply(p.signature()), "", p.reference()));
+      for (final String s : p.synonyms()) {
+        result.add(new ShorthandCompletion(completionProvider, s, replacementPred.apply(s),
+            ellipseRight(p.reference(), 32, "..."),
+            p.reference()));
+      }
+    });
+    return result;
+  }
+
+  private CompletionProvider makeCompletionProvider() {
+    final DefaultCompletionProvider result = new DefaultCompletionProvider();
+    result.addCompletions(makeShorthandCompletions(result));
+    return result;
   }
 
   private void applyScheme(final RSyntaxTextArea editor) {
