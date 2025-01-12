@@ -7,7 +7,9 @@ import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.easygui.tokenizer.JProlTokenMaker;
 import com.igormaznitsa.jprol.utils.ProlPair;
 import com.igormaznitsa.jprol.utils.ProlUtils;
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Font;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -19,8 +21,15 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
+import javax.swing.Box;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
+import javax.swing.ListCellRenderer;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.BadLocationException;
@@ -182,7 +191,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
         result.append('(');
         for (int i = 0; i < arity; i++) {
           if (i > 0) {
-            result.append(". ");
+            result.append(", ");
           }
           result.append('_');
         }
@@ -278,8 +287,72 @@ public class PrologSourceEditor extends AbstractProlEditor {
         }
       }
     };
+    result.setListCellRenderer(new ProlShorthandListCellRenderer());
     result.addCompletions(makeShorthandCompletions(result));
     return result;
+  }
+
+  private static final class ProlShorthandListCellRenderer
+      extends JPanel
+      implements ListCellRenderer<Object> {
+
+    private final JLabel signatureLabel;
+    private final JLabel libraryLabel;
+    private final JComponent glue;
+    private final DefaultListCellRenderer defaultListCellRenderer;
+
+    ProlShorthandListCellRenderer() {
+      super(new BorderLayout(0, 0));
+      this.defaultListCellRenderer = new DefaultListCellRenderer();
+      this.signatureLabel = new JLabel();
+      this.libraryLabel = new JLabel();
+      this.libraryLabel.setOpaque(true);
+      this.signatureLabel.setOpaque(true);
+
+      this.signatureLabel.setBackground(this.defaultListCellRenderer.getBackground());
+      this.signatureLabel.setForeground(this.defaultListCellRenderer.getForeground());
+      this.signatureLabel.setFont(this.defaultListCellRenderer.getFont());
+
+      this.libraryLabel.setBackground(this.defaultListCellRenderer.getBackground());
+      this.libraryLabel.setForeground(this.defaultListCellRenderer.getForeground());
+      this.libraryLabel.setFont(this.defaultListCellRenderer.getFont());
+
+      this.signatureLabel.setFont(this.signatureLabel.getFont().deriveFont(Font.BOLD));
+      this.libraryLabel.setFont(this.libraryLabel.getFont().deriveFont(Font.PLAIN | Font.ITALIC));
+      this.add(this.signatureLabel, BorderLayout.WEST);
+      this.glue = (JComponent) Box.createHorizontalGlue();
+      this.glue.setOpaque(true);
+      this.add(glue, BorderLayout.CENTER);
+      this.add(this.libraryLabel, BorderLayout.EAST);
+    }
+
+    @Override
+    public Component getListCellRendererComponent(
+        JList<?> list, Object value, int index,
+        boolean isSelected, boolean cellHasFocus) {
+
+      final Component component =
+          this.defaultListCellRenderer.getListCellRendererComponent(list, value, index, isSelected,
+              cellHasFocus);
+
+      this.signatureLabel.setBackground(component.getBackground());
+      this.signatureLabel.setForeground(component.getForeground());
+      this.libraryLabel.setBackground(component.getBackground());
+      this.libraryLabel.setForeground(component.getForeground());
+      this.glue.setBackground(component.getBackground());
+      this.glue.setForeground(component.getForeground());
+
+      if (value instanceof ProlShorthandCompletion) {
+        final ProlShorthandCompletion completion = (ProlShorthandCompletion) value;
+        this.signatureLabel.setText(' ' + completion.getInputText());
+        this.libraryLabel.setText('<' + completion.getShortDescription() + "> ");
+      } else {
+        this.signatureLabel.setText("");
+        this.libraryLabel.setText("");
+      }
+
+      return this;
+    }
   }
 
   private void applyScheme(final RSyntaxTextArea editor) {

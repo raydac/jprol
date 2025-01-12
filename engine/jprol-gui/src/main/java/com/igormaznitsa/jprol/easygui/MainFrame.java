@@ -768,8 +768,6 @@ public final class MainFrame extends javax.swing.JFrame
     menuEdit.add(menuRedo);
     menuEdit.add(jSeparator2);
 
-    menuClearText.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R,
-        InputEvent.CTRL_DOWN_MASK));
     menuClearText.setIcon(new ImageIcon(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/page_white.png"))); // NOI18N
     menuClearText.setText("Clear");
