@@ -113,15 +113,17 @@ public enum LocalFont {
     private final LocalFont localFont;
 
     @Override
-    public boolean equals(Object o) {
-      if (o == null || getClass() != o.getClass()) {
+    public boolean equals(final Object o) {
+      if (o == null) {
         return false;
       }
-      if (!super.equals(o)) {
-        return false;
+      if (this == o) {
+        return true;
       }
-      LocallyLoadedFont that = (LocallyLoadedFont) o;
-      return this.localFont == that.localFont;
+      if (o instanceof LocallyLoadedFont) {
+        return this.localFont == ((LocallyLoadedFont) o).localFont;
+      }
+      return false;
     }
 
     @Override
