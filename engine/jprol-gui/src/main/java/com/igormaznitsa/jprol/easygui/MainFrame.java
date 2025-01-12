@@ -777,9 +777,6 @@ public final class MainFrame extends javax.swing.JFrame
     menuClearText.addActionListener(this::menuClearTextActionPerformed);
     menuEdit.add(menuClearText);
 
-    menuEditCommentSelected.setAccelerator(
-        KeyStroke.getKeyStroke(KeyEvent.VK_5,
-            InputEvent.CTRL_DOWN_MASK));
     menuEditCommentSelected.setIcon(new ImageIcon(
         requireNonNull(getClass().getResource(
             "/com/igormaznitsa/jprol/easygui/icons/comment_add.png")))); // NOI18N
@@ -789,9 +786,6 @@ public final class MainFrame extends javax.swing.JFrame
     menuEditCommentSelected.addActionListener(this::menuEditCommentSelectedActionPerformed);
     menuEdit.add(menuEditCommentSelected);
 
-    menuEditUncommentSelected.setAccelerator(
-        KeyStroke.getKeyStroke(KeyEvent.VK_U,
-            InputEvent.CTRL_DOWN_MASK));
     menuEditUncommentSelected.setIcon(new ImageIcon(requireNonNull((getClass().getResource(
         "/com/igormaznitsa/jprol/easygui/icons/comment_delete.png"))))); // NOI18N
     menuEditUncommentSelected.setText("Uncomment selection");
