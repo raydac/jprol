@@ -42,12 +42,11 @@ public enum JProlSystemFlag {
           new Term[] {newLong(2, SourcePosition.UNKNOWN), newLong(0, SourcePosition.UNKNOWN),
               newLong(1, SourcePosition.UNKNOWN), NULL_LIST}));
 
+  public static final List<JProlSystemFlag> VALUES =
+      List.of(JProlSystemFlag.values());
   private final Term nameTerm;
   private final Term defaultValue;
   private final boolean readOnly;
-
-  public static final List<JProlSystemFlag> VALUES =
-      List.of(JProlSystemFlag.values());
 
   JProlSystemFlag(final boolean readOnly, final Term name, final Term defaultValue) {
     this.nameTerm = name;
@@ -61,7 +60,7 @@ public enum JProlSystemFlag {
       return Optional.empty();
     }
     return JProlSystemFlag.VALUES.stream().filter(x -> term.unifyTo(x.nameTerm))
-          .findFirst();
+        .findFirst();
   }
 
   public Term getNameTerm() {

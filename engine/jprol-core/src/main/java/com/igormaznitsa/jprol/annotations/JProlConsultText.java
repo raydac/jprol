@@ -21,10 +21,23 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Allows to make auto-consult from predefined text during library load.
+ */
 @Target(value = ElementType.TYPE)
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface JProlConsultText {
+  /**
+   * Contains text to be used for consulting.
+   *
+   * @return the prolog text to be used for consulting.
+   */
   String[] value() default {};
 
+  /**
+   * Array allows to define descriptions of predicates provided by the consulting text.
+   *
+   * @return array of predicate descriptions.
+   */
   JProlPredicate[] declaredPredicates() default {};
 }

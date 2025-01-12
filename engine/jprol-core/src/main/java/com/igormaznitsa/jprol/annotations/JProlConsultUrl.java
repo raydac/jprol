@@ -21,8 +21,25 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Allows to make auto-consult from accessible resources described by URLs.
+ *
+ * @since 2.2.0
+ */
 @Target(value = ElementType.TYPE)
 @Retention(value = RetentionPolicy.RUNTIME)
-public @interface JProlConsultClasspath {
-  String[] value() default "";
+public @interface JProlConsultUrl {
+  /**
+   * Array contains resource URLs.
+   *
+   * @return resource paths as array
+   */
+  String[] value() default {};
+
+  /**
+   * Array allows to define descriptions of predicates loaded by the resources.
+   *
+   * @return array of predicate descriptions.
+   */
+  JProlPredicate[] declaredPredicates() default {};
 }

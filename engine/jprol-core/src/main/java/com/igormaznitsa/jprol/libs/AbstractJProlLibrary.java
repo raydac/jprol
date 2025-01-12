@@ -119,16 +119,6 @@ public abstract class AbstractJProlLibrary {
     return true;
   }
 
-  @SuppressWarnings("EmptyMethod")
-  public void onRegisteredInContext(final JProlContext context) {
-
-  }
-
-  @SuppressWarnings("EmptyMethod")
-  public void onLibraryRemove(final JProlContext context) {
-
-  }
-
   protected static NumericTerm calcEvaluable(final JProlChoicePoint choicePoint, final Term term) {
     try {
       final Term thatTerm = term.findNonVarOrSame();
@@ -164,6 +154,16 @@ public abstract class AbstractJProlLibrary {
       throw new ProlEvaluationErrorException(ex.getMessage(), "Arithmetic exception",
           choicePoint.getGoalTerm(), ex);
     }
+  }
+
+  @SuppressWarnings("EmptyMethod")
+  public void onRegisteredInContext(final JProlContext context) {
+
+  }
+
+  @SuppressWarnings("EmptyMethod")
+  public void onLibraryRemove(final JProlContext context) {
+
   }
 
   public CloseableIterator<TermOperator> makeOperatorIterator() {

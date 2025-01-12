@@ -47,7 +47,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
   private static final BiConsumer<String, Term> NULL_UNDEFINED_PREDICATE_CONSUMER =
       (signature, term) -> {
-  };
+      };
   private final Map<String, TermVar> variables;
   private final VariableStateSnapshot varSnapshot;
   private final JProlContext context;

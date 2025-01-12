@@ -7,7 +7,8 @@ public class ProlChoicePointInterruptedException extends ProlInterruptException 
 
   private final JProlChoicePoint choicePoint;
 
-  public ProlChoicePointInterruptedException(final String text, final JProlChoicePoint choicePoint) {
+  public ProlChoicePointInterruptedException(final String text,
+                                             final JProlChoicePoint choicePoint) {
     super(text, null);
     this.choicePoint = choicePoint;
   }

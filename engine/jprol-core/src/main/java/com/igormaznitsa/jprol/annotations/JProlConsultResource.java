@@ -22,20 +22,22 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Allows to make auto-consult from listed files.
+ * Allows to make auto-consult from accessible resources described by paths.
+ *
+ * @since 2.2.0
  */
 @Target(value = ElementType.TYPE)
 @Retention(value = RetentionPolicy.RUNTIME)
-public @interface JProlConsultFile {
+public @interface JProlConsultResource {
   /**
-   * String array contains file paths.
+   * Array contains resource paths.
    *
-   * @return array of file paths
+   * @return resource paths as array
    */
   String[] value() default {};
 
   /**
-   * Array allows to define descriptions of predicates loaded by the consulting files.
+   * Array allows to define descriptions of predicates loaded by the resources.
    *
    * @return array of predicate descriptions.
    */

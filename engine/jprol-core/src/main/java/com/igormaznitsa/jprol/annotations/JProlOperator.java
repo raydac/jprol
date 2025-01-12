@@ -23,13 +23,33 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Describes an JProl operator.
+ */
 @Target(value = ElementType.TYPE)
 @Retention(value = RetentionPolicy.RUNTIME)
-@Repeatable(value = JProlOperators.class )
+@Repeatable(value = JProlOperators.class)
 public @interface JProlOperator {
+  /**
+   * Priority in diapason (MIN)1200..0(MAX)
+   *
+   * @return priority as integer
+   * @see com.igormaznitsa.jprol.data.TermOperator#PRIORITY_MAX
+   * @see com.igormaznitsa.jprol.data.TermOperator#PRIORITY_MIN
+   */
   int priority();
 
+  /**
+   * Type of association.
+   *
+   * @return the association type.
+   */
   OpAssoc type();
 
+  /**
+   * Operator name. Must be appropriate one and in Prolog style.
+   *
+   * @return name of the operator.
+   */
   String name();
 }

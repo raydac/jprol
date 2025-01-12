@@ -28,9 +28,10 @@ import static java.util.Collections.emptySet;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
-import com.igormaznitsa.jprol.annotations.JProlConsultClasspath;
 import com.igormaznitsa.jprol.annotations.JProlConsultFile;
+import com.igormaznitsa.jprol.annotations.JProlConsultResource;
 import com.igormaznitsa.jprol.annotations.JProlConsultText;
+import com.igormaznitsa.jprol.annotations.JProlConsultUrl;
 import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermOperator;
@@ -65,7 +66,6 @@ import com.igormaznitsa.prologparser.PrologParser;
 import com.igormaznitsa.prologparser.exceptions.PrologParserException;
 import com.igormaznitsa.prologparser.terms.OpContainer;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -73,6 +73,10 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.Writer;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
@@ -264,7 +268,7 @@ public final class JProlContext implements AutoCloseable {
     if (flag.isReadOnly()) {
       throw new IllegalStateException("Flag is marked as read-only: " + flag);
     } else {
-      final Term value = Objects.requireNonNull(term.findNonVarOrDefault(null));
+      final Term value = requireNonNull(term.findNonVarOrDefault(null));
       this.systemFlags.put(flag, value);
       this.onSystemFlagsUpdated();
     }
@@ -476,29 +480,66 @@ public final class JProlContext implements AutoCloseable {
             try {
               return ProlUtils.readAsUtf8(x);
             } catch (IOException ex) {
-              throw new Error("Can't read file: " + x);
+              throw new RuntimeException("Can't read file: " + x, ex);
             }
           })
           .collect(Collectors.joining("\n"));
       this.consult(new StringReader(resourceText), null);
     }
 
-    final JProlConsultClasspath consultClasspath =
-        library.getClass().getAnnotation(JProlConsultClasspath.class);
-    if (consultClasspath != null) {
-      final String resourceText = Arrays.stream(consultClasspath.value())
+    final JProlConsultUrl consultUrls =
+        library.getClass().getAnnotation(JProlConsultUrl.class);
+    if (consultUrls != null) {
+      final String resourceText = Arrays.stream(consultUrls.value())
           .filter(x -> !(x == null || x.trim().isEmpty()))
           .map(x -> {
-            final InputStream inStream = ClassLoader.getSystemClassLoader().getResourceAsStream(x);
-            if (inStream == null) {
-              throw new Error("Can't find resource: " + x);
+            final URL resourceUrl;
+            try {
+              resourceUrl = URI.create(x).toURL();
+            } catch (MalformedURLException ex) {
+              throw new IllegalArgumentException("Malformed URL: " + x, ex);
             }
-            return inStream;
+            return resourceUrl;
           })
           .map(x -> {
             final StringBuilder buffer = new StringBuilder();
-            try (final Reader reader = new InputStreamReader(new BufferedInputStream(x),
-                StandardCharsets.UTF_8)) {
+            URLConnection connection;
+            try {
+              connection = x.openConnection();
+              try (final Reader reader = new InputStreamReader(connection.getInputStream(),
+                  StandardCharsets.UTF_8)) {
+                while (!this.isDisposed()) {
+                  final int value = reader.read();
+                  if (value < 0) {
+                    break;
+                  }
+                  buffer.append((char) value);
+                }
+              }
+            } catch (IOException ex) {
+              throw new RuntimeException("Can't read resource for IO error", ex);
+            }
+            return buffer.toString();
+          })
+          .collect(Collectors.joining("\n"));
+      this.consult(new StringReader(resourceText), null);
+    }
+
+    final JProlConsultResource consultResource =
+        library.getClass().getAnnotation(JProlConsultResource.class);
+    if (consultResource != null) {
+      final String resourceText = Arrays.stream(consultResource.value())
+          .filter(x -> !(x == null || x.trim().isEmpty()))
+          .map(x -> {
+            final InputStream stream = this.getClass().getResourceAsStream(x);
+            if (stream == null) {
+              throw new NullPointerException("Can't find resource: " + x);
+            }
+            return stream;
+          })
+          .map(x -> {
+            final StringBuilder buffer = new StringBuilder();
+            try (final Reader reader = new InputStreamReader(x, StandardCharsets.UTF_8)) {
               while (!this.isDisposed()) {
                 final int value = reader.read();
                 if (value < 0) {
@@ -507,7 +548,7 @@ public final class JProlContext implements AutoCloseable {
                 buffer.append((char) value);
               }
             } catch (IOException ex) {
-              throw new Error("Can't read resource", ex);
+              throw new RuntimeException("Can't read resource for IO error", ex);
             }
             return buffer.toString();
           })

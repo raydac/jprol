@@ -130,13 +130,11 @@ import java.util.stream.Stream;
 @JProlOperator(priority = 200, type = XFX, name = "**")
 @JProlOperator(priority = 200, type = XFY, name = "^")
 @JProlConsultText(
-    value = {
-        "forall(Generator, Test) :- \\+ (Generator, \\+ Test).",
-        "append([], Zs, Zs).",
-        "append([X|Xs], Ys, [X|Zs]) :- append(Xs, Ys, Zs).",
-        "member(X,[X|_]).",
-        "member(X,[A|Rest]):-member(X,Rest)."
-    },
+    value = "forall(Generator, Test) :- \\+ (Generator, \\+ Test). " +
+        "append([], Zs, Zs). " +
+        "append([X|Xs], Ys, [X|Zs]) :- append(Xs, Ys, Zs). " +
+        "member(X,[X|_]). " +
+        "member(X,[A|Rest]):-member(X,Rest). ",
     declaredPredicates = {
         @JProlPredicate(signature = "forall/2", args = {
             "+callable, +callable"}, reference = "forall(Cond, Action) for all alternative bindings of Cond, Action can be proven."),
@@ -204,7 +202,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   @JProlPredicate(determined = true, signature = "atom_number/2", args = {
       "?atom,?number"}, reference = "convert between atom and number")
   public static boolean predicateATOMNUMBER2(final JProlChoicePoint goal,
-                                           final TermStruct predicate) {
+                                             final TermStruct predicate) {
     final Term atom = predicate.getElement(0).findNonVarOrSame();
     final Term number = predicate.getElement(1).findNonVarOrSame();
 
@@ -2520,7 +2518,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   @JProlPredicate(determined = true, signature = "addtrigger/3", args = {
       "+predicate_indicator,+list,+callable"}, reference = "addtrigger(somepredicate/3,['assert'],triggerhandler) is always true. The predicate allows to register a trigger handler for distinguished predicate signature. The handled trigger event can be  any combination of listed: assert, retract, abolish.")
   public static void predicateREGTRIGGER3(final JProlChoicePoint goal,
-                                             final TermStruct predicate) {
+                                          final TermStruct predicate) {
     final TermStruct indicator =
         ProlAssertions.assertIndicator(predicate.getElement(0).findNonVarOrSame());
     final TermList list = ProlAssertions.assertList(predicate.getElement(1).findNonVarOrSame());

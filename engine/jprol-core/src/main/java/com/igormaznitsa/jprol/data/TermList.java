@@ -55,6 +55,45 @@ public final class TermList extends TermStruct {
     super(Terms.LIST_FUNCTOR, new Term[] {head, tail}, sourcePosition);
   }
 
+  public static TermList asList(final Term... elements) {
+    return asList(Arrays.asList(elements));
+  }
+
+  public static TermList asList(final List<Term> elements) {
+    if (elements.isEmpty()) {
+      return NULL_LIST;
+    } else if (elements.size() == 1) {
+      return Terms.newList(elements.get(0), NULL_LIST);
+    } else {
+      final TermList result = newList(elements.get(0));
+      TermList next = result;
+      final int length = elements.size();
+      for (int i = 1; i < length; i++) {
+        next = createOrAppendToList(next, elements.get(i));
+      }
+      return result;
+    }
+  }
+
+  public static TermList makeListFromElementWithSplitStructure(final Term element) {
+    switch (element.getTermType()) {
+      case LIST:
+        return (TermList) element;
+      case STRUCT: {
+        final TermStruct struct = (TermStruct) element;
+        final TermList result = newList(struct.getFunctor());
+        TermList curResult = result;
+        final int arity = struct.getArity();
+        for (int li = 0; li < arity; li++) {
+          curResult = createOrAppendToList(curResult, struct.getElement(li));
+        }
+        return result;
+      }
+      default:
+        return newList(element);
+    }
+  }
+
   public TermList sort(final Comparator<Term> comparator, final boolean removeDuplication) {
     final Term[] terms = this.toArray(false);
     Arrays.sort(terms, comparator);
@@ -143,45 +182,6 @@ public final class TermList extends TermStruct {
         }
       }
     };
-  }
-
-  public static TermList asList(final Term... elements) {
-    return asList(Arrays.asList(elements));
-  }
-
-  public static TermList asList(final List<Term> elements) {
-    if (elements.isEmpty()) {
-      return NULL_LIST;
-    } else if (elements.size() == 1) {
-      return Terms.newList(elements.get(0), NULL_LIST);
-    } else {
-      final TermList result = newList(elements.get(0));
-      TermList next = result;
-      final int length = elements.size();
-      for (int i = 1; i < length; i++) {
-        next = createOrAppendToList(next, elements.get(i));
-      }
-      return result;
-    }
-  }
-
-  public static TermList makeListFromElementWithSplitStructure(final Term element) {
-    switch (element.getTermType()) {
-      case LIST:
-        return (TermList) element;
-      case STRUCT: {
-        final TermStruct struct = (TermStruct) element;
-        final TermList result = newList(struct.getFunctor());
-        TermList curResult = result;
-        final int arity = struct.getArity();
-        for (int li = 0; li < arity; li++) {
-          curResult = createOrAppendToList(curResult, struct.getElement(li));
-        }
-        return result;
-      }
-      default:
-        return newList(element);
-    }
   }
 
   @SuppressWarnings("unchecked")

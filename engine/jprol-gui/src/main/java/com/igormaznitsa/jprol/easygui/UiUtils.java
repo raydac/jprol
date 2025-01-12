@@ -16,7 +16,12 @@
 
 package com.igormaznitsa.jprol.easygui;
 
+import static java.util.stream.Stream.concat;
+
+import com.igormaznitsa.jprol.annotations.JProlConsultFile;
+import com.igormaznitsa.jprol.annotations.JProlConsultResource;
 import com.igormaznitsa.jprol.annotations.JProlConsultText;
+import com.igormaznitsa.jprol.annotations.JProlConsultUrl;
 import com.igormaznitsa.jprol.annotations.JProlOperator;
 import com.igormaznitsa.jprol.annotations.JProlOperators;
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
@@ -97,22 +102,40 @@ public final class UiUtils {
     targetPrintStream.println(libraryClass.getCanonicalName());
     targetPrintStream.println("===============================================");
 
-    final JProlConsultText consult = libraryClass.getAnnotation(JProlConsultText.class);
+    final JProlConsultText consultText = libraryClass.getAnnotation(JProlConsultText.class);
+    final JProlConsultFile consultFile = libraryClass.getAnnotation(JProlConsultFile.class);
+    final JProlConsultUrl consultUrl =
+        libraryClass.getAnnotation(JProlConsultUrl.class);
+    final JProlConsultResource consultResource =
+        libraryClass.getAnnotation(JProlConsultResource.class);
     final JProlOperators operators = libraryClass.getAnnotation(JProlOperators.class);
     final JProlOperator operator = libraryClass.getAnnotation(JProlOperator.class);
     if (operators != null || operator != null) {
       targetPrintStream.println("Operators\n-----------------------");
-      Stream.concat(operators == null ? Stream.empty() : Arrays.stream(operators.value()),
-              operator == null ? Stream.empty() : Stream.of(operator))
+      concat(operators == null ? Stream.empty() : Arrays.stream(operators.value()),
+          operator == null ? Stream.empty() : Stream.of(operator))
           .filter(op -> op.priority() > 0)
           .sorted(Comparator.comparingInt(JProlOperator::priority))
           .forEach(op -> targetPrintStream.printf(":-op(%d,%s,%s).%n", op.priority(), op.type(),
               op.name()));
     }
 
-    Stream.concat(Arrays.stream(methods).filter(x -> x.getAnnotation(JProlPredicate.class) != null)
-                .map(x -> x.getAnnotation(JProlPredicate.class))
-            , consult == null ? Stream.empty() : Arrays.stream(consult.declaredPredicates())).sorted(
+    concat(
+        Arrays.stream(methods).flatMap(x -> {
+          final JProlPredicate predicate = x.getAnnotation(JProlPredicate.class);
+          return predicate == null ? Stream.empty() : Stream.of(predicate);
+        })
+        , concat(
+            consultFile == null ? Stream.empty() : Arrays.stream(consultFile.declaredPredicates()),
+            concat(consultUrl == null ? Stream.empty() :
+                    Arrays.stream(consultUrl.declaredPredicates()),
+                concat(consultResource == null ? Stream.empty() :
+                        Arrays.stream(consultResource.declaredPredicates()),
+                    consultText == null ? Stream.empty() :
+                        Arrays.stream(consultText.declaredPredicates()))
+            )
+        )
+    ).sorted(
             Comparator.comparing(JProlPredicate::signature))
         .forEach(predicate -> {
           final boolean determined = predicate.determined();
@@ -215,7 +238,8 @@ public final class UiUtils {
   public static ImageIcon loadIcon(final String name) {
     try {
       final Image img;
-      try (InputStream inStream = UiUtils.class.getClassLoader().getResourceAsStream("com/igormaznitsa/jprol/easygui/icons/" + name + ".png")) {
+      try (InputStream inStream = UiUtils.class.getClassLoader()
+          .getResourceAsStream("com/igormaznitsa/jprol/easygui/icons/" + name + ".png")) {
         img = ImageIO.read(Objects.requireNonNull(inStream));
       }
       return new ImageIcon(img);
