@@ -26,7 +26,7 @@ import javax.swing.JTextPane;
 /**
  * The class implements the Editor pane for the IDE.
  */
-public class EditorPane extends JTextPane {
+public class ScalableEditorPane extends JTextPane {
 
   private static final long serialVersionUID = 2384993058573194751L;
   private static final float SCALE_STEP = 0.5f;
@@ -37,7 +37,7 @@ public class EditorPane extends JTextPane {
   private float fontScale = 1.0f;
   private Font baseFont;
 
-  public EditorPane(final boolean scalable) {
+  public ScalableEditorPane(final boolean scalable) {
     super();
     this.baseFont = this.getFont();
     this.setOpaque(true);
@@ -73,10 +73,13 @@ public class EditorPane extends JTextPane {
     return this.baseFont;
   }
 
+  public void setBaseFont(final Font baseFont) {
+    this.baseFont = baseFont;
+    this.updateFontForScale();
+  }
+
   @Override
   public void setFont(final Font font) {
-    this.baseFont = font;
-    this.fontScale = 1.0f;
     this.updateFontForScale();
   }
 
@@ -100,11 +103,13 @@ public class EditorPane extends JTextPane {
   }
 
   private void updateFontForScale() {
-    final Font newFont = this.baseFont.deriveFont(this.fontScale * this.baseFont.getSize2D());
-    if (newFont.getSize() > 0) {
-      super.setFont(newFont);
-    } else {
-      super.setFont(this.baseFont.deriveFont(1.0f));
+    if (this.baseFont != null) {
+      final float newScaledSize = this.fontScale * this.baseFont.getSize2D();
+      if (newScaledSize > 1.0f) {
+        super.setFont(this.baseFont.deriveFont(newScaledSize));
+      } else {
+        super.setFont(this.baseFont.deriveFont(1.0f));
+      }
     }
   }
 

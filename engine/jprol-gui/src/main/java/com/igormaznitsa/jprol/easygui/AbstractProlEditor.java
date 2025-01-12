@@ -74,7 +74,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
 
   public AbstractProlEditor(final String title, final boolean scalable,
                             final boolean lineNumeration) {
-    this(title, new EditorPane(scalable), lineNumeration);
+    this(title, new ScalableEditorPane(scalable), lineNumeration);
   }
 
   public AbstractProlEditor(final String title, final JTextComponent editor,
@@ -311,8 +311,8 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
   }
 
   public Font getEdFont() {
-    if (this.editor instanceof EditorPane) {
-      return ((EditorPane) this.editor).getBaseFont();
+    if (this.editor instanceof ScalableEditorPane) {
+      return ((ScalableEditorPane) this.editor).getBaseFont();
     } else if (this.editor instanceof ScalableRsyntaxTextArea) {
       return ((ScalableRsyntaxTextArea) this.editor).getBaseFont();
     } else {
@@ -321,7 +321,13 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
   }
 
   public void setEdFont(final Font val) {
-    this.editor.setFont(val);
+    if (this.editor instanceof ScalableEditorPane) {
+      ((ScalableEditorPane) this.editor).setBaseFont(val);
+    } else if (this.editor instanceof ScalableRsyntaxTextArea) {
+      ((ScalableRsyntaxTextArea) this.editor).setBaseFont(val);
+    } else {
+      this.editor.setFont(val);
+    }
     this.updatedEditorLook();
   }
 

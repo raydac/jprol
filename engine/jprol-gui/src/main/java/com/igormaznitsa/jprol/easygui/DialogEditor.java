@@ -49,7 +49,7 @@ import javax.swing.text.StyleConstants.CharacterConstants;
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public class DialogEditor extends AbstractProlEditor
-    implements KeyListener, FocusListener, Runnable, EditorPane.EventReplacer {
+    implements KeyListener, FocusListener, Runnable, ScalableEditorPane.EventReplacer {
 
   private static final long serialVersionUID = 5005224218702033782L;
   private final NonClosableReader inputReader;
@@ -65,7 +65,7 @@ public class DialogEditor extends AbstractProlEditor
   public DialogEditor() throws IOException {
     super("Dialog", true, false);
 
-    ((EditorPane) this.editor).setEventReplacer(this);
+    ((ScalableEditorPane) this.editor).setEventReplacer(this);
 
     isWorking = true;
 
@@ -102,7 +102,7 @@ public class DialogEditor extends AbstractProlEditor
     editor.setCaretColor(Color.YELLOW);
     editor.setFont(DEFAULT_FONT);
 
-    ((EditorPane) this.editor).setCharacterAttributes(userAttribute, false);
+    ((ScalableEditorPane) this.editor).setCharacterAttributes(userAttribute, false);
   }
 
   @Override
@@ -149,7 +149,7 @@ public class DialogEditor extends AbstractProlEditor
     prefs.putInt("dialogoutputcolor", getEdOutputColor().getRGB());
     prefs.putInt("dialogcaretcolor", getEdCaretColor().getRGB());
     prefs.putBoolean("dialogwordwrap", getEdWordWrap());
-    saveFontToPrefs(prefs, "dialogoutputfont", ((EditorPane) editor).getBaseFont());
+    saveFontToPrefs(prefs, "dialogoutputfont", ((ScalableEditorPane) editor).getBaseFont());
   }
 
   public void initBeforeSession() {
@@ -211,7 +211,7 @@ public class DialogEditor extends AbstractProlEditor
 
           document.insertString(document.getLength(), text, consoleAttribute);
           int textLength = document.getLength();
-          ((EditorPane) editor).setCharacterAttributes(userAttribute, false);
+          ((ScalableEditorPane) editor).setCharacterAttributes(userAttribute, false);
           editor.setCaretPosition(textLength);
         } catch (BadLocationException ex) {
           ex.printStackTrace();
@@ -248,7 +248,7 @@ public class DialogEditor extends AbstractProlEditor
 
   @Override
   public void keyPressed(KeyEvent e) {
-    ((EditorPane) this.editor).setCharacterAttributes(userAttribute, false);
+    ((ScalableEditorPane) this.editor).setCharacterAttributes(userAttribute, false);
   }
 
   @Override
