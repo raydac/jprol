@@ -309,7 +309,9 @@ public class PrologSourceEditor extends AbstractProlEditor {
             this.parserContext)) {
           while (parser.hasNext()) {
             final PrologTerm term = parser.next();
-
+            if (term == null) {
+              break;
+            }
             PrologStruct foundStruct = null;
             if (term.getType() == TermType.STRUCT) {
               if (term.getArity() == 2 && ":-".equals(term.getFunctor().getText())) {
@@ -330,14 +332,14 @@ public class PrologSourceEditor extends AbstractProlEditor {
             }
           }
         } catch (Exception ex) {
-          // ignore
+          // do nothing in the case
         }
 
         this.foundSignaturesInSources.forEach((s, p) -> this.additionalCompletions.add(
             new AdditionalProlShorthandCompletion(p.getFunctor().getText(), p.getArity(), this, s,
                 makeReplacementText(p.getFunctor().getText(), p.getArity()),
                 "editor",
-                "Code at " + p.getLine() + ':' + p.getPos())));
+                "Sources at " + p.getLine() + ':' + p.getPos())));
 
         return super.getCompletions(comp);
       }
