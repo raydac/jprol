@@ -7,20 +7,32 @@ import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.easygui.tokenizer.JProlTokenMaker;
 import com.igormaznitsa.jprol.utils.ProlPair;
 import com.igormaznitsa.jprol.utils.ProlUtils;
+import com.igormaznitsa.prologparser.DefaultParserContext;
+import com.igormaznitsa.prologparser.GenericPrologParser;
+import com.igormaznitsa.prologparser.ParserContext;
+import com.igormaznitsa.prologparser.PrologParser;
+import com.igormaznitsa.prologparser.terms.PrologStruct;
+import com.igormaznitsa.prologparser.terms.PrologTerm;
+import com.igormaznitsa.prologparser.terms.TermType;
+import com.igormaznitsa.prologparser.tokenizer.Op;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.io.IOException;
+import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.swing.Box;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
@@ -186,18 +198,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
       final ProlPair<String, Integer> parseSignature = ProlUtils.parseSignaturePair(signature);
       final String name = parseSignature.getLeft();
       final int arity = parseSignature.getRight();
-      final StringBuilder result = new StringBuilder(name);
-      if (arity > 0) {
-        result.append('(');
-        for (int i = 0; i < arity; i++) {
-          if (i > 0) {
-            result.append(", ");
-          }
-          result.append('_');
-        }
-        result.append(')');
-      }
-      return result.toString();
+      return makeReplacementText(name, arity);
     };
 
     final List<Completion> result = new ArrayList<>();
@@ -273,16 +274,87 @@ public class PrologSourceEditor extends AbstractProlEditor {
     return result;
   }
 
+  private static String makeReplacementText(final String functor, final int arity) {
+    if (arity == 0) {
+      return functor;
+    }
+    final StringBuilder buffer = new StringBuilder();
+    buffer.append(functor).append('(');
+    for (int i = 0; i < arity; i++) {
+      if (i > 0) {
+        buffer.append(',');
+      }
+      buffer.append('_');
+    }
+    buffer.append(')');
+    return buffer.toString();
+  }
+
   private CompletionProvider makeCompletionProvider() {
     final DefaultCompletionProvider result = new DefaultCompletionProvider() {
+
+      private final List<Completion> additionalCompletions = new ArrayList<>();
+      private final ParserContext parserContext = DefaultParserContext.of(
+          ParserContext.FLAG_BLOCK_COMMENTS | ParserContext.FLAG_ZERO_STRUCT, Op.SWI);
+      private final Map<String, PrologStruct> foundSignaturesInSources = new HashMap<>();
+
       @Override
-      protected List<Completion> getCompletionsImpl(JTextComponent comp) {
+      public List<Completion> getCompletions(final JTextComponent comp) {
+        this.additionalCompletions.clear();
+
+        final String sources = comp.getText();
+
+        this.foundSignaturesInSources.clear();
+        try (final PrologParser parser = new GenericPrologParser(new StringReader(sources),
+            this.parserContext)) {
+          while (parser.hasNext()) {
+            final PrologTerm term = parser.next();
+
+            PrologStruct foundStruct = null;
+            if (term.getType() == TermType.STRUCT) {
+              if (term.getArity() == 2 && ":-".equals(term.getFunctor().getText())) {
+                final PrologStruct struct = (PrologStruct) term;
+                final PrologTerm leftPart = struct.getTermAt(0);
+                if (leftPart.getType() == TermType.STRUCT) {
+                  foundStruct = (PrologStruct) leftPart;
+                }
+              } else {
+                foundStruct = (PrologStruct) term;
+              }
+            }
+
+            if (foundStruct != null) {
+              final String signature =
+                  foundStruct.getFunctor().getText() + '/' + foundStruct.getArity();
+              this.foundSignaturesInSources.put(signature, foundStruct);
+            }
+          }
+        } catch (Exception ex) {
+          // ignore
+        }
+
+        this.foundSignaturesInSources.forEach((s, p) -> this.additionalCompletions.add(
+            new AdditionalProlShorthandCompletion(p.getFunctor().getText(), p.getArity(), this, s,
+                makeReplacementText(p.getFunctor().getText(), p.getArity()),
+                "editor",
+                "Code at " + p.getLine() + ':' + p.getPos())));
+
+        return super.getCompletions(comp);
+      }
+
+      @Override
+      protected List<Completion> getCompletionsImpl(final JTextComponent comp) {
         final String text = getAlreadyEnteredText(comp);
         if (text.isBlank()) {
-          return this.completions;
+          final List<Completion> result = new ArrayList<>();
+          result.addAll(this.additionalCompletions);
+          result.addAll(this.completions);
+          return result;
         } else {
-          return this.completions.stream()
-              .filter(x -> ((ProlShorthandCompletion) x).isAllow(text))
+          return Stream.concat(this.additionalCompletions.stream()
+                      .filter(x -> ((AdditionalProlShorthandCompletion) x).isAllow(text)),
+                  this.completions.stream()
+                      .filter(x -> ((ProlShorthandCompletion) x).isAllow(text)))
               .collect(Collectors.toList());
         }
       }
@@ -342,7 +414,17 @@ public class PrologSourceEditor extends AbstractProlEditor {
       this.glue.setBackground(component.getBackground());
       this.glue.setForeground(component.getForeground());
 
-      if (value instanceof ProlShorthandCompletion) {
+      if (value instanceof AdditionalProlShorthandCompletion) {
+        final AdditionalProlShorthandCompletion completion =
+            (AdditionalProlShorthandCompletion) value;
+        this.signatureLabel.setText(' ' + completion.getInputText());
+        this.libraryLabel.setText(completion.getShortDescription());
+
+        this.signatureLabel.setBackground(this.signatureLabel.getBackground().darker());
+        this.libraryLabel.setBackground(this.libraryLabel.getBackground().darker());
+        this.glue.setBackground(this.glue.getBackground().darker());
+
+      } else if (value instanceof ProlShorthandCompletion) {
         final ProlShorthandCompletion completion = (ProlShorthandCompletion) value;
         this.signatureLabel.setText(' ' + completion.getInputText());
         this.libraryLabel.setText('<' + completion.getShortDescription() + "> ");
@@ -568,7 +650,19 @@ public class PrologSourceEditor extends AbstractProlEditor {
     return true;
   }
 
-  private static final class ProlShorthandCompletion extends ShorthandCompletion {
+  private static final class AdditionalProlShorthandCompletion extends ProlShorthandCompletion {
+    AdditionalProlShorthandCompletion(
+        final String functor,
+        final int arity,
+        final CompletionProvider provider,
+        final String signatureText,
+        final String replacementText, String shortDesc,
+        final String summary) {
+      super(functor, arity, provider, signatureText, replacementText, shortDesc, summary);
+    }
+  }
+
+  private static class ProlShorthandCompletion extends ShorthandCompletion {
     private final String functor;
     private final int arity;
 
