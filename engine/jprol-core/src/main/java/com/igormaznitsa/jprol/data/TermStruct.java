@@ -24,7 +24,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
-import com.igormaznitsa.jprol.utils.Utils;
+import com.igormaznitsa.jprol.utils.ProlUtils;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -153,7 +153,7 @@ public class TermStruct extends CompoundTerm {
   private String getStringRepresentation(final boolean sourceLike) {
     if (functor.getTermType() != OPERATOR) {
       // just struct
-      final StringBuilder buffer = new StringBuilder(Utils.escapeSrc(getText()));
+      final StringBuilder buffer = new StringBuilder(ProlUtils.escapeSrc(getText()));
 
       if (getArity() != 0) {
         buffer.append('(');

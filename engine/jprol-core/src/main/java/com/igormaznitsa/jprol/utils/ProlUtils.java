@@ -45,12 +45,12 @@ import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 
-public final class Utils {
+public final class ProlUtils {
 
   public static final TermOperator SIGNATURE_OPERATOR =
       new TermOperator(400, OpAssoc.YFX, "/", SourcePosition.UNKNOWN);
 
-  private Utils() {
+  private ProlUtils() {
   }
 
   public static TermList toCharCodeList(final Term term) {
@@ -277,55 +277,60 @@ public final class Utils {
     return String.format("%02d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds);
   }
 
-  public static String validateSignature(final String signature) {
-    final String[] parsed =
-        Objects.requireNonNull(signature, "Null signature not allowed").split("/");
-    if (parsed.length == 2) {
-      String str = parsed[0].trim();
-      boolean quoted = false;
-      if (!str.isEmpty()) {
-        if (str.charAt(0) == '\'') {
-          if (str.length() > 1 && str.charAt(str.length() - 1) == '\'') {
-            str = str.substring(1, str.length() - 1);
-            if (str.isEmpty()) {
-              return null;
-            }
-            quoted = true;
-          } else {
-            // wrong name, it must not contain '\'' as the only symbol
-            return null;
-          }
-        }
-
-        final char firstChar = str.charAt(0);
-        if (!quoted && (Character.isDigit(firstChar) || Character.isUpperCase(firstChar) ||
-            Character.isWhitespace(firstChar) || firstChar == '.')) {
-          return null;
-        }
-
-        // ok. the first part is ok, check the second part
-        final int arity;
-        try {
-          arity = Integer.parseInt(parsed[1].trim());
-          if (arity < 0) {
-            throw new NumberFormatException("Negate number is not supported as arity");
-          }
-        } catch (NumberFormatException ex) {
-          return null;
-        }
-
-        final StringBuilder builder = new StringBuilder(signature.length());
-
-        if (quoted) {
-          builder.append('\'').append(str).append('\'').append('/').append(arity);
-        } else {
-          builder.append(str).append('/').append(arity);
-        }
-
-        return builder.toString();
+  public static ProlPair<String, Integer> parseSignaturePair(final String signature) {
+    if (signature == null) {
+      throw new NullPointerException("Null signature not allowed");
+    }
+    final int dividerIndex = signature.lastIndexOf('/');
+    String namePart =
+        signature.substring(0, dividerIndex < 0 ? signature.length() : dividerIndex).trim();
+    final String arityPart = signature.substring(dividerIndex + 1).trim();
+    if (namePart.length() > 2
+        && namePart.charAt(0) == '\''
+        && namePart.charAt(namePart.length() - 1) == '\''
+    ) {
+      namePart = namePart.substring(1, namePart.length() - 1);
+    }
+    final Integer arity;
+    if (dividerIndex < 0) {
+      arity = null;
+    } else {
+      try {
+        arity = Integer.parseInt(arityPart);
+      } catch (NumberFormatException ex) {
+        throw new NumberFormatException("Arity is not numeric: " + signature);
+      }
+      if (arity < 0) {
+        throw new NumberFormatException("Arity is negative one: " + signature);
       }
     }
-    return null;
+    return ProlPair.makeOf(namePart, arity);
+  }
+
+  public static String reassembleSignature(final String signature) {
+    try {
+      final ProlPair<String, Integer> parsed = parseSignaturePair(signature);
+      final String functor = parsed.getLeft();
+      final Integer arity = parsed.getRight();
+      if (arity == null) {
+        return null;
+      }
+      final boolean quoted = signature.charAt(0) == '\'';
+      final char firstChar = functor.charAt(0);
+      if (!quoted && (Character.isDigit(firstChar)
+          || Character.isUpperCase(firstChar)
+          || Character.isWhitespace(firstChar)
+          || firstChar == '.')) {
+        return null;
+      }
+      if (quoted) {
+        return "'" + functor + "'/" + arity;
+      } else {
+        return functor + '/' + arity;
+      }
+    } catch (IllegalArgumentException ex) {
+      return null;
+    }
   }
 
 }

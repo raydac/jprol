@@ -59,7 +59,7 @@ import com.igormaznitsa.jprol.logic.triggers.TriggerEvent;
 import com.igormaznitsa.jprol.trace.JProlContextListener;
 import com.igormaznitsa.jprol.trace.TraceEvent;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
-import com.igormaznitsa.jprol.utils.Utils;
+import com.igormaznitsa.jprol.utils.ProlUtils;
 import com.igormaznitsa.prologparser.ParserContext;
 import com.igormaznitsa.prologparser.PrologParser;
 import com.igormaznitsa.prologparser.exceptions.PrologParserException;
@@ -474,7 +474,7 @@ public final class JProlContext implements AutoCloseable {
           .map(File::new)
           .map(x -> {
             try {
-              return Utils.readAsUtf8(x);
+              return ProlUtils.readAsUtf8(x);
             } catch (IOException ex) {
               throw new Error("Can't read file: " + x);
             }
@@ -639,11 +639,11 @@ public final class JProlContext implements AutoCloseable {
   public void addTrigger(final JProlTrigger trigger) {
     assertNotDisposed();
     trigger.getSignatures().forEach((signature, types) -> {
-      String validatedSignature = Utils.validateSignature(signature);
+      String validatedSignature = ProlUtils.reassembleSignature(signature);
       if (validatedSignature == null) {
         throw new IllegalArgumentException("Illegal signature format: " + signature);
       }
-      validatedSignature = Utils.normalizeSignature(validatedSignature);
+      validatedSignature = ProlUtils.normalizeSignature(validatedSignature);
       final Map<JProlTriggerType, List<JProlTrigger>> map =
           this.triggers.computeIfAbsent(validatedSignature, key -> new ConcurrentHashMap<>());
       types.forEach(x -> {
@@ -753,7 +753,7 @@ public final class JProlContext implements AutoCloseable {
     final TermStruct termStruct;
 
     if (expectedIndicator) {
-      signature = Utils.indicatorAsStringOrNull(term);
+      signature = ProlUtils.indicatorAsStringOrNull(term);
       if (signature == null) {
         throw new ProlDomainErrorException("indicator", term);
       }

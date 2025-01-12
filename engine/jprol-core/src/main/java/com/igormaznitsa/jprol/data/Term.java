@@ -33,7 +33,7 @@
 package com.igormaznitsa.jprol.data;
 
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
-import static com.igormaznitsa.jprol.utils.Utils.escapeSrc;
+import static com.igormaznitsa.jprol.utils.ProlUtils.escapeSrc;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
 

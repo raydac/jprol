@@ -16,9 +16,8 @@
 
 package com.igormaznitsa.jprol.logic.triggers;
 
-import static com.igormaznitsa.jprol.utils.Utils.normalizeSignature;
-import static com.igormaznitsa.jprol.utils.Utils.validateSignature;
-import static java.util.Objects.requireNonNull;
+import static com.igormaznitsa.jprol.utils.ProlUtils.normalizeSignature;
+import static com.igormaznitsa.jprol.utils.ProlUtils.reassembleSignature;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -38,7 +37,7 @@ public abstract class AbstractJProlTrigger implements JProlTrigger {
 
   public void register(final String signature,
                        final Set<JProlTriggerType> triggerTypes) {
-    String validatedSignature = validateSignature(requireNonNull(signature));
+    String validatedSignature = reassembleSignature(signature);
 
     if (validatedSignature == null) {
       throw new IllegalArgumentException("Wrong signature format [" + signature + ']');
@@ -54,7 +53,7 @@ public abstract class AbstractJProlTrigger implements JProlTrigger {
   }
 
   public void remove(final String signature) {
-    String validatedSignature = validateSignature(requireNonNull(signature, "Signature is null"));
+    String validatedSignature = reassembleSignature(signature);
 
     if (validatedSignature == null) {
       throw new IllegalArgumentException("Wrong signature format [" + signature + ']');

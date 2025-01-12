@@ -1,6 +1,6 @@
 package com.igormaznitsa.jprol.libs;
 
-import static com.igormaznitsa.jprol.utils.Utils.escapeSrc;
+import static com.igormaznitsa.jprol.utils.ProlUtils.escapeSrc;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;

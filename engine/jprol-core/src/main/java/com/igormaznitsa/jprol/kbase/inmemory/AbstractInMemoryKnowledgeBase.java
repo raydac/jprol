@@ -19,7 +19,7 @@ package com.igormaznitsa.jprol.kbase.inmemory;
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
-import static com.igormaznitsa.jprol.utils.Utils.makeCloseableIterator;
+import static com.igormaznitsa.jprol.utils.ProlUtils.makeCloseableIterator;
 import static java.lang.Integer.parseInt;
 import static java.util.Objects.requireNonNull;
 
@@ -38,7 +38,7 @@ import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
 import com.igormaznitsa.jprol.utils.OperatorIterator;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
-import com.igormaznitsa.jprol.utils.Utils;
+import com.igormaznitsa.jprol.utils.ProlUtils;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -242,7 +242,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
         .stream()
         .map(key -> {
           final int index = key.lastIndexOf('/');
-          return newStruct(Utils.SIGNATURE_OPERATOR,
+          return newStruct(ProlUtils.SIGNATURE_OPERATOR,
               new Term[] {
                   Terms.newAtom(key.substring(0, index)),
                   Terms.newLong(parseInt(key.substring(index + 1)))
@@ -422,7 +422,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
   public boolean abolish(final JProlContext context, final String signature) {
     boolean result;
 
-    final String normalSignature = Utils.normalizeSignature(signature);
+    final String normalSignature = ProlUtils.normalizeSignature(signature);
     if (normalSignature == null) {
       throw new IllegalArgumentException("Wrong signature format '" + signature + '\'');
     }

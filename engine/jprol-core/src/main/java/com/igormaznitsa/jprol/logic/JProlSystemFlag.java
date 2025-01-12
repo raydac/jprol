@@ -11,13 +11,13 @@ import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.data.Terms;
-import com.igormaznitsa.jprol.utils.Utils;
+import com.igormaznitsa.jprol.utils.ProlUtils;
 import java.util.List;
 import java.util.Optional;
 
 public enum JProlSystemFlag {
   ADDRESS_BIT(true, Terms.newAtom("address_bit", SourcePosition.UNKNOWN),
-      Terms.newLong(Utils.getJvmBitness(), SourcePosition.UNKNOWN)),
+      Terms.newLong(ProlUtils.getJvmBitness(), SourcePosition.UNKNOWN)),
   ALLOW_VARIABLE_NAME_AS_FUNCTOR(true,
       Terms.newAtom("allow_variable_name_as_functor", SourcePosition.UNKNOWN), FALSE),
   OS(true, Terms.newAtom("os"), Terms.newAtom(System.getProperty("os.name", "unknown"))),

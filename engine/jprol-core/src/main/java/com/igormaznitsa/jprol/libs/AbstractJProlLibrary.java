@@ -20,7 +20,7 @@ import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
-import static com.igormaznitsa.jprol.utils.Utils.SIGNATURE_OPERATOR;
+import static com.igormaznitsa.jprol.utils.ProlUtils.SIGNATURE_OPERATOR;
 import static java.lang.Integer.parseInt;
 
 import com.igormaznitsa.jprol.annotations.JProlOperator;
@@ -42,7 +42,7 @@ import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
 import com.igormaznitsa.jprol.utils.OperatorIterator;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
-import com.igormaznitsa.jprol.utils.Utils;
+import com.igormaznitsa.jprol.utils.ProlUtils;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
@@ -306,7 +306,7 @@ public abstract class AbstractJProlLibrary {
       final JProlPredicate predicateAnnotation = method.getAnnotation(JProlPredicate.class);
 
       if (predicateAnnotation != null) {
-        final String signature = Utils.normalizeSignature(predicateAnnotation.signature());
+        final String signature = ProlUtils.normalizeSignature(predicateAnnotation.signature());
 
         if (signature == null) {
           throw new ProlCriticalError(

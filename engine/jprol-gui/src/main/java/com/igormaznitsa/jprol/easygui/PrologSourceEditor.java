@@ -6,6 +6,7 @@ import com.igormaznitsa.jprol.annotations.JProlOperators;
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.easygui.tokenizer.JProlTokenMaker;
 import com.igormaznitsa.jprol.utils.ProlPair;
+import com.igormaznitsa.jprol.utils.ProlUtils;
 import java.awt.Color;
 import java.awt.Font;
 import java.io.IOException;
@@ -55,14 +56,6 @@ public class PrologSourceEditor extends AbstractProlEditor {
   protected RUndoManager undoManager;
 
 
-  private static String findFunctor(final String signature) {
-    final int lastIndex = signature.lastIndexOf('/');
-    if (lastIndex < 0) {
-      throw new IllegalArgumentException("Wrong signature format " + signature);
-    }
-    return signature.substring(0, lastIndex);
-  }
-
   public PrologSourceEditor() {
     super("Editor", new ScalableRsyntaxTextArea(), true);
     replacePropertyLink(PROPERTY_ED_FONT, new PropertyLink(this, "Font", "EdAndBaseFont"));
@@ -98,18 +91,6 @@ public class PrologSourceEditor extends AbstractProlEditor {
     setEnabled(true);
 
     this.undoManager = new RUndoManager(theEditor);
-  }
-
-  private static int findArity(final String signature) {
-    final int lastIndex = signature.lastIndexOf('/');
-    if (lastIndex < 0) {
-      throw new IllegalArgumentException("Wrong signature format " + signature);
-    }
-    try {
-      return Integer.parseInt(signature.substring(lastIndex + 1));
-    } catch (Exception e) {
-      throw new IllegalArgumentException(signature);
-    }
   }
 
   private static List<Completion> makeShorthandCompletions(
@@ -193,8 +174,9 @@ public class PrologSourceEditor extends AbstractProlEditor {
     };
 
     final Function<String, String> replacementPred = (signature) -> {
-      final String name = findFunctor(signature);
-      final int arity = findArity(signature);
+      final ProlPair<String, Integer> parseSignature = ProlUtils.parseSignaturePair(signature);
+      final String name = parseSignature.getLeft();
+      final int arity = parseSignature.getRight();
       final StringBuilder result = new StringBuilder(name);
       if (arity > 0) {
         result.append('(');
@@ -263,8 +245,9 @@ public class PrologSourceEditor extends AbstractProlEditor {
             replacementPred.apply(predicate.signature()),
             libraryName, predicate.reference()));
         for (final String s : predicate.synonyms()) {
-          final String sfunctor = findFunctor(s);
-          final int sarity = findArity(s);
+          final ProlPair<String, Integer> parse = ProlUtils.parseSignaturePair(s);
+          final String sfunctor = parse.getLeft();
+          final int sarity = parse.getRight();
           result.add(new ProlShorthandCompletion(
                   sfunctor,
                   sarity,
@@ -297,29 +280,6 @@ public class PrologSourceEditor extends AbstractProlEditor {
     };
     result.addCompletions(makeShorthandCompletions(result));
     return result;
-  }
-
-  private static final class ProlShorthandCompletion extends ShorthandCompletion {
-    private final String functor;
-    private final int arity;
-
-    ProlShorthandCompletion(
-        final String functor,
-        final int arity,
-        final CompletionProvider provider,
-        final String inputText,
-        final String replacementText,
-        final String shortDesc,
-        final String summary
-    ) {
-      super(provider, inputText, replacementText, shortDesc, summary);
-      this.functor = functor;
-      this.arity = arity;
-    }
-
-    boolean isAllow(final String text) {
-      return functor.contains(text);
-    }
   }
 
   private void applyScheme(final RSyntaxTextArea editor) {
@@ -533,5 +493,28 @@ public class PrologSourceEditor extends AbstractProlEditor {
   @Override
   public boolean doesSupportTextPaste() {
     return true;
+  }
+
+  private static final class ProlShorthandCompletion extends ShorthandCompletion {
+    private final String functor;
+    private final int arity;
+
+    ProlShorthandCompletion(
+        final String functor,
+        final int arity,
+        final CompletionProvider provider,
+        final String inputText,
+        final String replacementText,
+        final String shortDesc,
+        final String summary
+    ) {
+      super(provider, inputText, replacementText, shortDesc, summary);
+      this.functor = functor;
+      this.arity = arity;
+    }
+
+    boolean isAllow(final String text) {
+      return functor.contains(text);
+    }
   }
 }

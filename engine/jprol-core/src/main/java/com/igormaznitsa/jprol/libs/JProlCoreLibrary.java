@@ -29,7 +29,7 @@ import static com.igormaznitsa.jprol.data.Terms.newList;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.data.Terms.newVar;
-import static com.igormaznitsa.jprol.utils.Utils.createOrAppendToList;
+import static com.igormaznitsa.jprol.utils.ProlUtils.createOrAppendToList;
 import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.FX;
 import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.FY;
 import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.XFX;
@@ -70,7 +70,7 @@ import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
 import com.igormaznitsa.jprol.logic.triggers.JProlTriggeringEventObserver;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
-import com.igormaznitsa.jprol.utils.Utils;
+import com.igormaznitsa.jprol.utils.ProlUtils;
 import com.igormaznitsa.prologparser.exceptions.PrologParserException;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 import java.io.ByteArrayOutputStream;
@@ -1315,11 +1315,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
     switch (left.getTermType()) {
       case ATOM: {
-        return Utils.toCharList(left).unifyTo(right);
+        return ProlUtils.toCharList(left).unifyTo(right);
       }
       case LIST: {
         if (((TermList) left).isNullList()) {
-          return Utils.toCharList(Terms.newAtom("[]")).unifyTo(right);
+          return ProlUtils.toCharList(Terms.newAtom("[]")).unifyTo(right);
         } else {
           throw new ProlTypeErrorException("atom", predicate);
         }
@@ -1400,7 +1400,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
 
     if (left.getTermType() == ATOM && right.getTermType() == VAR) {
-      return Utils.toCharCodeList(left).unifyTo(right);
+      return ProlUtils.toCharCodeList(left).unifyTo(right);
     }
 
     if (right.getTermType() == LIST) {
@@ -1685,7 +1685,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         throw new ProlTypeErrorException("number", "Expected numeric term: " + term, term);
       }
     } else if (left.getTermType() == ATOM) {
-      result = Utils.toCharList(left).unifyTo(right);
+      result = ProlUtils.toCharList(left).unifyTo(right);
     } else {
       result = false;
     }
@@ -1825,11 +1825,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
     switch (left.getTermType()) {
       case ATOM: {
-        return Utils.toCharCodeList(left).unifyTo(right);
+        return ProlUtils.toCharCodeList(left).unifyTo(right);
       }
       case LIST: {
         if (((TermList) left).isNullList()) {
-          return Utils.toCharCodeList(newAtom("[]", UNKNOWN)).unifyTo(right);
+          return ProlUtils.toCharCodeList(newAtom("[]", UNKNOWN)).unifyTo(right);
         } else {
           throw new ProlTypeErrorException("atom", predicate);
         }
@@ -1837,7 +1837,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
 
     if (left.getTermType() == ATOM) {
-      return Utils.toCharCodeList(left).unifyTo(right);
+      return ProlUtils.toCharCodeList(left).unifyTo(right);
     }
 
     if (right.getTermType() == LIST) {
@@ -2223,7 +2223,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         final TermList resultList;
         if (preparedMap.containsKey(key)) {
           resultList = preparedMap.get(key);
-          Utils.createOrAppendToList(resultList, templateCopy.findNonVarOrSame().makeClone());
+          ProlUtils.createOrAppendToList(resultList, templateCopy.findNonVarOrSame().makeClone());
         } else {
           resultList = newList(templateCopy.findNonVarOrSame().makeClone());
           preparedMap.put(key, resultList);
@@ -2514,7 +2514,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
                                              final TermStruct predicate) {
     final TermStruct indicator =
         ProlAssertions.assertIndicator(predicate.getElement(0).findNonVarOrSame());
-    return goal.getContext().removeTrigger(Utils.indicatorAsStringOrNull(indicator));
+    return goal.getContext().removeTrigger(ProlUtils.indicatorAsStringOrNull(indicator));
   }
 
   @JProlPredicate(determined = true, signature = "addtrigger/3", args = {
@@ -2530,7 +2530,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       ProlAssertions.assertCallable(callable);
     }
 
-    final String signature = Utils.indicatorAsStringOrNull(indicator);
+    final String signature = ProlUtils.indicatorAsStringOrNull(indicator);
     final Term[] events = list.toArray(false);
 
     final Set<JProlTriggerType> types = Arrays.stream(list.toArray(false))

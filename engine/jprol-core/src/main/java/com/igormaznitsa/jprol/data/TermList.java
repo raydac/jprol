@@ -21,7 +21,7 @@ import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.NULL_LIST;
 import static com.igormaznitsa.jprol.data.Terms.newList;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
-import static com.igormaznitsa.jprol.utils.Utils.createOrAppendToList;
+import static com.igormaznitsa.jprol.utils.ProlUtils.createOrAppendToList;
 
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import java.util.ArrayList;

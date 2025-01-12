@@ -48,7 +48,7 @@ import com.igormaznitsa.jprol.logic.JProlSystemFlag;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
 import com.igormaznitsa.jprol.trace.JProlContextListener;
 import com.igormaznitsa.jprol.trace.TraceEvent;
-import com.igormaznitsa.jprol.utils.Utils;
+import com.igormaznitsa.jprol.utils.ProlUtils;
 import com.igormaznitsa.prologparser.exceptions.PrologParserException;
 import java.awt.BorderLayout;
 import java.awt.Desktop;
@@ -1421,7 +1421,7 @@ public final class MainFrame extends javax.swing.JFrame
       try {
         this.messageEditor.addInfoText(
             "Spent time " +
-                Utils.asTimeString(Duration.ofMillis(System.currentTimeMillis() - startTime)));
+                ProlUtils.asTimeString(Duration.ofMillis(System.currentTimeMillis() - startTime)));
 
         if (haltException == null && parserException == null) {
           if (!canceled) {
@@ -1627,7 +1627,7 @@ public final class MainFrame extends javax.swing.JFrame
     final String textFromEditor = this.sourceEditor.getEditor().getText();
 
     try {
-      Utils.writeAsUtf8(file, textFromEditor);
+      ProlUtils.writeAsUtf8(file, textFromEditor);
       this.recentFiles.put(file.getAbsolutePath());
     } catch (Throwable thr) {
       LOGGER.throwing(this.getClass().getCanonicalName(), "saveFile()", thr);
@@ -1705,7 +1705,7 @@ public final class MainFrame extends javax.swing.JFrame
       if (fileToOpen != null) {
         this.lastOpenedFile = fileToOpen;
         try {
-          setTextToDocument(Utils.readAsUtf8(fileToOpen));
+          setTextToDocument(ProlUtils.readAsUtf8(fileToOpen));
           this.currentOpenedFile = fileToOpen;
           this.setFileNameTitle(this.currentOpenedFile.getAbsolutePath(), false);
           this.repaint();

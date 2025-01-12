@@ -27,7 +27,7 @@ import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.kbase.inmemory.AbstractInMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
-import com.igormaznitsa.jprol.utils.Utils;
+import com.igormaznitsa.jprol.utils.ProlUtils;
 import java.io.CharArrayWriter;
 import java.io.File;
 import java.io.IOException;
@@ -86,14 +86,14 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
     if (str.getTermType() == VAR) {
       if (file.isFile()) {
         try {
-          result = str.unifyTo(Terms.newAtom(Utils.readAsUtf8(file)));
+          result = str.unifyTo(Terms.newAtom(ProlUtils.readAsUtf8(file)));
         } catch (IOException ex) {
           Objects.requireNonNull(MainFrame.MAIN_FRAME_INSTANCE.get()).addErrorText("Can't read file '" + file + "' : " + ex.getMessage());
         }
       }
     } else {
       try {
-        Utils.writeAsUtf8(file, str.getText());
+        ProlUtils.writeAsUtf8(file, str.getText());
         result = true;
       } catch (IOException ex) {
         Objects.requireNonNull(MainFrame.MAIN_FRAME_INSTANCE.get()).addErrorText("Can't write file '" + file + "' : " + ex.getMessage());
@@ -214,7 +214,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
 
     boolean result = false;
     try {
-      Utils.writeAsUtf8(path, dbtext);
+      ProlUtils.writeAsUtf8(path, dbtext);
       result = true;
     } catch (IOException ex) {
       Objects.requireNonNull(MainFrame.MAIN_FRAME_INSTANCE.get()).addWarnText("Can't save data base as file, error : " + ex.getMessage());
