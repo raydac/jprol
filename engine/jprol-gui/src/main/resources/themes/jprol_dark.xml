@@ -46,7 +46,7 @@
         <style token="LITERAL_NUMBER_DECIMAL_INT" fg="FFCD22"/>
         <style token="LITERAL_NUMBER_FLOAT" fg="FFCD22"/>
         <style token="LITERAL_NUMBER_HEXADECIMAL" fg="FFCD22"/>
-        <style token="LITERAL_STRING_DOUBLE_QUOTE" fg="EC7600"/>
+        <style token="LITERAL_STRING_DOUBLE_QUOTE" fg="FF8C00"/>
         <style token="LITERAL_CHAR" fg="EC7600"/>
         <style token="LITERAL_BACKQUOTE" fg="EC7600"/>
         <style token="MARKUP_TAG_DELIMITER" fg="678CB1"/>

@@ -204,6 +204,16 @@ public class JProlTokenMaker extends AbstractTokenMaker {
                     newStartOffset + currentTokenStart);
                 backslash = false;
               } else {
+                currentTokenType = Token.LITERAL_CHAR;
+              }
+            }
+            break;
+            case '\"': {
+              if (backslash) {
+                addToken(text, currentTokenStart, i, Token.IDENTIFIER,
+                    newStartOffset + currentTokenStart);
+                backslash = false;
+              } else {
                 currentTokenType = Token.LITERAL_STRING_DOUBLE_QUOTE;
               }
             }
@@ -596,7 +606,7 @@ public class JProlTokenMaker extends AbstractTokenMaker {
               backslash = !backslash;
             }
             break;
-            case '\'': {
+            case '\"': {
               if (!backslash) {
                 addToken(text, currentTokenStart, i, Token.LITERAL_STRING_DOUBLE_QUOTE,
                     newStartOffset + currentTokenStart);
