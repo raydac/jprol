@@ -140,7 +140,6 @@ public final class MainFrame extends javax.swing.JFrame
     DocumentListener, HyperlinkListener, JProlContextListener {
 
   private static final String PROL_EXTENSION = ".prl";
-  private static final long serialVersionUID = 72348723421332L;
 
   public static final AtomicReference<MainFrame> MAIN_FRAME_INSTANCE = new AtomicReference<>();
 
@@ -291,8 +290,6 @@ public final class MainFrame extends javax.swing.JFrame
       this.menuItemWordWrapSources.setState(sourceEditor.getEdWordWrap());
 
       final Action action = new AbstractAction("closeFindPanel") {
-        private static final long serialVersionUID = 4377386270269629176L;
-
         @Override
         public void actionPerformed(ActionEvent e) {
           if (panelFindText.isVisible()) {
@@ -1881,8 +1878,6 @@ public final class MainFrame extends javax.swing.JFrame
   }
 
   private static final class JLFRadioButtonItem extends JRadioButtonMenuItem {
-
-    private static final long serialVersionUID = 71348723421332L;
 
     private final String lfClassName;
 

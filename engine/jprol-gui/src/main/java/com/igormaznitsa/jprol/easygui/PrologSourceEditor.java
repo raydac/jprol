@@ -73,7 +73,6 @@ public class PrologSourceEditor extends AbstractProlEditor {
    * Inside logger, the logger id = "PROL_NOTE_PAD"
    */
   protected static final Logger LOGGER = Logger.getLogger(PrologSourceEditor.class.getName());
-  private static final long serialVersionUID = -2223529439306867844L;
   protected RUndoManager undoManager;
 
 

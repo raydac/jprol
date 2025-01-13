@@ -18,8 +18,6 @@ package com.igormaznitsa.jprol.exceptions;
 
 public class ProlException extends RuntimeException {
 
-  private static final long serialVersionUID = -6503064090950753871L;
-
   public ProlException(final Throwable cause) {
     super(cause);
   }

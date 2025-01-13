@@ -23,8 +23,6 @@ import com.igormaznitsa.jprol.data.TermStruct;
 
 public class ProlInstantiationErrorException extends ProlAbstractCatchableException {
 
-  private static final long serialVersionUID = -5157739502740121566L;
-
   private static final Term TERM_ERROR = newAtom("instantiation_error");
 
   public ProlInstantiationErrorException(final Term culprit, final Throwable cause) {

@@ -35,7 +35,6 @@ public class MessageEditor extends AbstractProlEditor {
   public static final int TYPE_INFO = 0;
   public static final int TYPE_WARNING = 1;
   public static final int TYPE_ERROR = 2;
-  private static final long serialVersionUID = -9129430685050371959L;
   private static final SimpleAttributeSet ATTRSET_INFO = new SimpleAttributeSet();
   private static final SimpleAttributeSet ATTRSET_WARNING = new SimpleAttributeSet();
   private static final SimpleAttributeSet ATTRSET_ERROR = new SimpleAttributeSet();

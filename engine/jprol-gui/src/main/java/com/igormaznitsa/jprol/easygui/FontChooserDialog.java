@@ -49,8 +49,6 @@ import javax.swing.event.ChangeListener;
 public class FontChooserDialog extends javax.swing.JDialog
     implements ActionListener, ChangeListener {
 
-  private static final long serialVersionUID = -1141137262767344186L;
-
   private static final String[] STYLES = new String[] {"PLAIN", "BOLD", "ITALIC", "BOLD+ITALIC"};
   private Font result;
 

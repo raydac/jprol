@@ -51,8 +51,6 @@ import javax.swing.tree.TreeSelectionModel;
  */
 public class OptionsDialog extends javax.swing.JDialog implements TreeSelectionListener, TreeModel {
 
-  private static final long serialVersionUID = 6189268173338687096L;
-
   private final ArrayList<TreeModel> items;
   private final ArrayList<TreeModelListener> treeModelListeners;
   // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -269,8 +267,6 @@ public class OptionsDialog extends javax.swing.JDialog implements TreeSelectionL
   }
 
   private static final class TreeRenderer extends DefaultTreeCellRenderer {
-
-    private static final long serialVersionUID = 4008482488500265205L;
 
     private static final Icon ICON_CLOSE = UiUtils.loadIcon("folder_wrench");
     private static final Icon ICON_OPEN = UiUtils.loadIcon("folder");

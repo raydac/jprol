@@ -27,8 +27,6 @@ import javax.swing.JTextPane;
  * The class implements the Editor pane for the IDE.
  */
 public class ScalableEditorPane extends JTextPane {
-
-  private static final long serialVersionUID = 2384993058573194751L;
   private static final float SCALE_STEP = 0.5f;
   private static final float SCALE_MIN = 1.0f;
   private static final float SCALE_MAX = 10.0f;

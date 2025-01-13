@@ -34,9 +34,6 @@ import javax.swing.text.StyleConstants;
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public class TraceDialog extends AbstractProlEditor implements ActionListener {
-
-  private static final long serialVersionUID = -907317020170501786L;
-
   private static final SimpleAttributeSet ATTRSET_OTHER = new SimpleAttributeSet();
   private static final SimpleAttributeSet ATTRSET_CALL = new SimpleAttributeSet();
   private static final SimpleAttributeSet ATTRSET_REDO = new SimpleAttributeSet();

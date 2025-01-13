@@ -25,8 +25,6 @@ import java.util.Arrays;
 
 public class ProlForkExecutionException extends ProlAbstractCatchableException {
 
-  private static final long serialVersionUID = 3401072948341099491L;
-
   private static final Term ERROR_TERM = newAtom("fork_error");
 
   private final Throwable[] throwableArray;

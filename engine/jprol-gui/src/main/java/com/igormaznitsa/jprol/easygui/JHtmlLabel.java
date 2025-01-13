@@ -42,8 +42,6 @@ import javax.swing.text.html.HTMLDocument;
  * @version 1.00
  */
 public class JHtmlLabel extends JLabel {
-
-  private static final long serialVersionUID = -166975925687523220L;
   private final List<LinkListener> linkListeners = new CopyOnWriteArrayList<>();
   /**
    * Inside cache of detected link elements.

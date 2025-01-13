@@ -22,6 +22,8 @@ import static com.igormaznitsa.jprol.data.Terms.newLong;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.utils.ProlUtils.SIGNATURE_OPERATOR;
 import static java.lang.Integer.parseInt;
+import static java.util.Collections.unmodifiableMap;
+import static java.util.Collections.unmodifiableSet;
 
 import com.igormaznitsa.jprol.annotations.JProlOperator;
 import com.igormaznitsa.jprol.annotations.JProlOperators;
@@ -44,7 +46,6 @@ import com.igormaznitsa.jprol.utils.OperatorIterator;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.ProlUtils;
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -64,6 +65,7 @@ public abstract class AbstractJProlLibrary {
   private final Map<JProlContext, Map<String, Object>> contextNamedObjects =
       new ConcurrentHashMap<>();
 
+  @SuppressWarnings("this-escape")
   public AbstractJProlLibrary(final String libraryUid) {
     if (libraryUid == null) {
       throw new IllegalArgumentException("Library UID must not be null!");
@@ -72,11 +74,11 @@ public abstract class AbstractJProlLibrary {
     this.libraryUid = libraryUid;
 
     this.systemOperators =
-        Collections.unmodifiableMap(loadStaticOperators(this.getClass(), SourcePosition.UNKNOWN));
+        unmodifiableMap(loadStaticOperators(this.getClass(), SourcePosition.UNKNOWN));
     final Set<String> zeroArityPredicates = new HashSet<>();
-    this.predicateMethodsMap = Collections
-        .unmodifiableMap(extractAnnotatedMethodsAsPredicates(libraryUid, zeroArityPredicates));
-    this.zeroArityPredicateNames = Collections.unmodifiableSet(zeroArityPredicates);
+    this.predicateMethodsMap =
+        unmodifiableMap(extractAnnotatedMethodsAsPredicates(libraryUid, zeroArityPredicates));
+    this.zeroArityPredicateNames = unmodifiableSet(zeroArityPredicates);
   }
 
   private static void registerStaticOperator(final Map<String, TermOperatorContainer> operatorMap,

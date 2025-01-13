@@ -46,8 +46,6 @@ import org.fife.ui.rtextarea.SearchEngine;
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public final class LibraryInfoDialog extends JDialog {
-
-  private static final long serialVersionUID = 8821096803790541482L;
   private JButton buttonClose;
   private JScrollPane textPaneScroll;
   private JLabel labelTextToSearch;
@@ -68,8 +66,6 @@ public final class LibraryInfoDialog extends JDialog {
     this.buttonClose.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
         .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CloseForm");
     this.buttonClose.getActionMap().put("CloseForm", new AbstractAction() {
-      private static final long serialVersionUID = -5644390861803492172L;
-
       @Override
       public void actionPerformed(final ActionEvent e) {
         buttonClose.doClick();

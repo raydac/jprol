@@ -24,8 +24,6 @@ package com.igormaznitsa.jprol.exceptions;
  */
 public class ProlCriticalError extends Error {
 
-  private static final long serialVersionUID = 1340153646373377400L;
-
   public ProlCriticalError(final Throwable cause) {
     super(cause);
   }

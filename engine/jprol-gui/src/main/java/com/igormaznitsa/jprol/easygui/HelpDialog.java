@@ -27,9 +27,7 @@ import org.fife.ui.rtextarea.RTextScrollPane;
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public class HelpDialog extends javax.swing.JDialog {
-
-  private static final long serialVersionUID = -7171671787513628228L;
-  // Variables declaration - do not modify                     
+  // Variables declaration - do not modify
   private javax.swing.JButton buttonClose;
   private javax.swing.JScrollPane scrollTextHelp;
   private ScalableRsyntaxTextArea textHelp;

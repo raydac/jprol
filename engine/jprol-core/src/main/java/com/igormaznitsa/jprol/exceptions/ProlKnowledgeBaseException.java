@@ -18,8 +18,6 @@ package com.igormaznitsa.jprol.exceptions;
 
 public class ProlKnowledgeBaseException extends ProlException {
 
-  private static final long serialVersionUID = 7055306365499059734L;
-
   public ProlKnowledgeBaseException() {
     super();
   }

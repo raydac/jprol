@@ -50,8 +50,6 @@ import org.fife.ui.rtextarea.RTextScrollPane;
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public abstract class AbstractProlEditor extends JPanel implements TreeModel {
-
-  private static final long serialVersionUID = -3683279049571011888L;
   public static final String PROPERTY_ED_FONT = "EdFont";
   public static final String PROPERTY_ED_BACKGROUND = "EdBackground";
   public static final String PROPERTY_ED_FOREGROUND = "EdForeground";

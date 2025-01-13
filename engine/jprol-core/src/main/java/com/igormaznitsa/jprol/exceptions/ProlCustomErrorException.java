@@ -21,8 +21,6 @@ import com.igormaznitsa.jprol.data.TermStruct;
 
 public class ProlCustomErrorException extends ProlAbstractCatchableException {
 
-  private static final long serialVersionUID = -4720280738591345468L;
-
   private final Term error;
 
   public ProlCustomErrorException(final Term error, final Term culprit) {

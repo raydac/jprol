@@ -31,8 +31,6 @@ import org.fife.ui.rtextarea.Gutter;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
 public final class ScalableRsyntaxTextArea extends RSyntaxTextArea {
-
-  private static final long serialVersionUID = 72348723421L;
   private static final float SCALE_STEP = 0.5f;
   private static final float SCALE_MIN = 1.0f;
   private static final float SCALE_MAX = 10.0f;

@@ -34,8 +34,6 @@ import javax.swing.JFrame;
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public class KnowledgeBaseSnapshotViewDialog extends JDialog {
-
-  private static final long serialVersionUID = -4927120918645871928L;
   private JButton buttonClose;
   private PrologSourceEditor textViewer;
 

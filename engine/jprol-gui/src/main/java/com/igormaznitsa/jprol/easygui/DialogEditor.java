@@ -50,8 +50,6 @@ import javax.swing.text.StyleConstants.CharacterConstants;
  */
 public class DialogEditor extends AbstractProlEditor
     implements KeyListener, FocusListener, Runnable, ScalableEditorPane.EventReplacer {
-
-  private static final long serialVersionUID = 5005224218702033782L;
   private final NonClosableReader inputReader;
   private final NonClosableWriter inputWriter;
   private final NonClosableWriter outputWriter;

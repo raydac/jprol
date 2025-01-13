@@ -24,8 +24,6 @@ import com.igormaznitsa.jprol.data.TermStruct;
 
 public class ProlTypeErrorException extends ProlAbstractCatchableException {
 
-  private static final long serialVersionUID = -3258214534404942716L;
-
   private static final Term TERM_ERROR = newAtom("type_error");
 
   private final String validType;

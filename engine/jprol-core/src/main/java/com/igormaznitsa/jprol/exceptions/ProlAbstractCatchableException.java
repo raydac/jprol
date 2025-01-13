@@ -29,7 +29,6 @@ public abstract class ProlAbstractCatchableException extends ProlException {
 
   static final Term UNDEFINED = newAtom("<undefined>");
   private static final String ERROR_FUNCTOR = "error";
-  private static final long serialVersionUID = 6911111912695145529L;
   private final Term culprit;
 
   public ProlAbstractCatchableException(final Term culprit) {

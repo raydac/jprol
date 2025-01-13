@@ -24,8 +24,6 @@ import com.igormaznitsa.jprol.data.TermStruct;
 
 public class ProlDomainErrorException extends ProlAbstractCatchableException {
 
-  private static final long serialVersionUID = -7481773982226534683L;
-
   private static final Term ERROR_TERM = newAtom("domain_error");
 
   private final String validDomain;
