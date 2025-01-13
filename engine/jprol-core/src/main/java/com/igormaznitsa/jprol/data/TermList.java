@@ -47,6 +47,10 @@ public final class TermList extends TermStruct {
     super(Terms.LIST_FUNCTOR, null, SourcePosition.UNKNOWN);
   }
 
+  TermList(final SourcePosition sourcePosition) {
+    super(Terms.LIST_FUNCTOR, null, sourcePosition);
+  }
+
   TermList(final Term term, final SourcePosition sourcePosition) {
     super(Terms.LIST_FUNCTOR, new Term[] {term, Terms.NULL_LIST}, sourcePosition);
   }
@@ -56,14 +60,18 @@ public final class TermList extends TermStruct {
   }
 
   public static TermList asList(final Term... elements) {
-    return asList(Arrays.asList(elements));
+    return asList(Arrays.asList(elements), SourcePosition.UNKNOWN);
   }
 
   public static TermList asList(final List<Term> elements) {
+    return asList(elements, SourcePosition.UNKNOWN);
+  }
+
+  public static TermList asList(final List<Term> elements, final SourcePosition sourcePosition) {
     if (elements.isEmpty()) {
-      return NULL_LIST;
+      return Terms.newList(sourcePosition);
     } else if (elements.size() == 1) {
-      return Terms.newList(elements.get(0), NULL_LIST);
+      return Terms.newList(elements.get(0), NULL_LIST, sourcePosition);
     } else {
       final TermList result = newList(elements.get(0));
       TermList next = result;

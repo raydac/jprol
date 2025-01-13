@@ -39,6 +39,7 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -77,11 +78,26 @@ public final class ProlUtils {
     return 64;
   }
 
-  public static TermList toCharList(final Term term) {
+  public static TermList toCharCodeList(final String text, final SourcePosition sourcePosition) {
+    if (text == null || text.length() == 0) {
+      return Terms.newList(sourcePosition);
+    }
+    final List<Term> codes = new ArrayList<>();
+    for (int i = 0; i < text.length(); i++) {
+      codes.add(Terms.newLong(text.charAt(i)));
+    }
+    return TermList.asList(codes, sourcePosition);
+  }
+
+  public static TermList toCharList(final Term term, final SourcePosition sourcePosition) {
     final String text = term.getText();
     final int len = text.length();
     if (len == 0) {
-      return Terms.NULL_LIST;
+      if (sourcePosition == null) {
+        return Terms.NULL_LIST;
+      } else {
+        return Terms.newList(sourcePosition);
+      }
     }
 
     final StringBuilder buff = new StringBuilder(1);

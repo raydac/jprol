@@ -4,6 +4,7 @@ import static com.igormaznitsa.jprol.data.TermStruct.EMPTY_ARRAY;
 
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
+import com.igormaznitsa.jprol.utils.ProlUtils;
 import com.igormaznitsa.prologparser.terms.PrologFloat;
 import com.igormaznitsa.prologparser.terms.PrologInt;
 import com.igormaznitsa.prologparser.terms.PrologList;
@@ -11,6 +12,7 @@ import com.igormaznitsa.prologparser.terms.PrologNumeric;
 import com.igormaznitsa.prologparser.terms.PrologStruct;
 import com.igormaznitsa.prologparser.terms.PrologTerm;
 import com.igormaznitsa.prologparser.terms.PrologVar;
+import com.igormaznitsa.prologparser.terms.Quotation;
 import com.igormaznitsa.prologparser.terms.TermType;
 import com.igormaznitsa.prologparser.tokenizer.Op;
 import java.util.HashMap;
@@ -84,6 +86,14 @@ public final class Terms {
 
   public static TermList newList(final Term term) {
     return new TermList(term, term.getSourcePosition());
+  }
+
+  public static TermList newList(final SourcePosition sourcePosition) {
+    if (sourcePosition == null || sourcePosition == SourcePosition.UNKNOWN) {
+      return NULL_LIST;
+    } else {
+      return new TermList(sourcePosition);
+    }
   }
 
   public static TermList newList(final Term term, final SourcePosition sourcePosition) {
@@ -166,13 +176,17 @@ public final class Terms {
             return newLong(((PrologInt) term).getIntValue().longValue(), sourcePosition);
           }
         } else {
-          final String text = term.getText();
-          if (context.hasZeroArityPredicateForName(text)) {
-            final TermStruct result = newStruct(text, EMPTY_ARRAY, sourcePosition);
-            result.setPredicateProcessor(context.findProcessor(result));
-            return result;
+          if (term.getQuotation() == Quotation.DOUBLE) {
+            return ProlUtils.toCharCodeList(term.getText(), sourcePosition);
           } else {
-            return newAtom(text, sourcePosition);
+            final String text = term.getText();
+            if (context.hasZeroArityPredicateForName(text)) {
+              final TermStruct result = newStruct(text, EMPTY_ARRAY, sourcePosition);
+              result.setPredicateProcessor(context.findProcessor(result));
+              return result;
+            } else {
+              return newAtom(text, sourcePosition);
+            }
           }
         }
       }

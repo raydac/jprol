@@ -1313,11 +1313,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
     switch (left.getTermType()) {
       case ATOM: {
-        return ProlUtils.toCharList(left).unifyTo(right);
+        return ProlUtils.toCharList(left, left.getSourcePosition()).unifyTo(right);
       }
       case LIST: {
         if (((TermList) left).isNullList()) {
-          return ProlUtils.toCharList(Terms.newAtom("[]")).unifyTo(right);
+          return ProlUtils.toCharList(Terms.newAtom("[]"), left.getSourcePosition()).unifyTo(right);
         } else {
           throw new ProlTypeErrorException("atom", predicate);
         }
@@ -1683,7 +1683,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         throw new ProlTypeErrorException("number", "Expected numeric term: " + term, term);
       }
     } else if (left.getTermType() == ATOM) {
-      result = ProlUtils.toCharList(left).unifyTo(right);
+      result = ProlUtils.toCharList(left, left.getSourcePosition()).unifyTo(right);
     } else {
       result = false;
     }
