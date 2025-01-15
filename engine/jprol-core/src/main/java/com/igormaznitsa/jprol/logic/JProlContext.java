@@ -531,7 +531,7 @@ public final class JProlContext implements AutoCloseable {
       final String resourceText = Arrays.stream(consultResource.value())
           .filter(x -> !(x == null || x.trim().isEmpty()))
           .map(x -> {
-            final InputStream stream = this.getClass().getResourceAsStream(x);
+            final InputStream stream = library.getClass().getResourceAsStream(x);
             if (stream == null) {
               throw new NullPointerException("Can't find resource: " + x);
             }
