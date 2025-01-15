@@ -81,9 +81,35 @@ public abstract class AbstractJProlLibrary {
     this.zeroArityPredicateNames = unmodifiableSet(zeroArityPredicates);
   }
 
+  private static void assertProlOperator(final JProlOperator operator) {
+    if (operator.priority() < TermOperator.PRIORITY_MAX ||
+        operator.priority() > TermOperator.PRIORITY_MIN) {
+      throw new IllegalArgumentException(
+          "Operator priority must be in " + TermOperator.PRIORITY_MAX + "..." +
+              TermOperator.PRIORITY_MIN + " but " + operator.priority());
+    }
+    if (operator.name().length() == 0) {
+      throw new IllegalArgumentException("Operator name must not be empty");
+    }
+    if (Character.isUpperCase(operator.name().charAt(0))) {
+      throw new IllegalArgumentException("Operator name must not start with upper cased char");
+    }
+    if (operator.name().charAt(0) == '_') {
+      throw new IllegalArgumentException("Operator name must not start with '_'");
+    }
+    if (Character.isDigit(operator.name().charAt(0))) {
+      throw new IllegalArgumentException("Operator name must not start with a digit");
+    }
+    if (operator.name().split("\\s").length > 1) {
+      throw new IllegalArgumentException(
+          "Operator name must not contain whitespaces: " + operator.name());
+    }
+  }
+
   private static void registerStaticOperator(final Map<String, TermOperatorContainer> operatorMap,
                                              final JProlOperator operator,
                                              final SourcePosition sourcePosition) {
+    assertProlOperator(operator);
     TermOperator newOperator =
         new TermOperator(operator.priority(), operator.type(), operator.name(), sourcePosition);
     TermOperatorContainer container = operatorMap.get(operator.name());
