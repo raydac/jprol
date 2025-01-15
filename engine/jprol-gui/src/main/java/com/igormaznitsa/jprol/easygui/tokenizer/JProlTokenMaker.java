@@ -271,7 +271,15 @@ public class JProlTokenMaker extends AbstractTokenMaker {
             case ' ':
             case '\t':
               break;
-            case '\'': {// Don't need to worry about backslashes as previous char is space.
+            case '\'': {
+              addToken(text, currentTokenStart, i - 1, Token.WHITESPACE,
+                  newStartOffset + currentTokenStart);
+              currentTokenStart = i;
+              currentTokenType = Token.LITERAL_CHAR;
+              backslash = false;
+            }
+            break;
+            case '\"': {
               addToken(text, currentTokenStart, i - 1, Token.WHITESPACE,
                   newStartOffset + currentTokenStart);
               currentTokenStart = i;
