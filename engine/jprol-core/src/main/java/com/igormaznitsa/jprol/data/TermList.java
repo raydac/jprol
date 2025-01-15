@@ -223,8 +223,9 @@ public final class TermList extends TermStruct {
     final Term tail = this.terms[INDEX_TAIL];
     if (tail.getTermType() == LIST) {
       return ((TermList) tail).calculateLength() + 1;
+    } else {
+      return 1;
     }
-    return 2;
   }
 
   @Override
