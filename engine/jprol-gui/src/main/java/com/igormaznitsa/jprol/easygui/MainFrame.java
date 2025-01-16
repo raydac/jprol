@@ -19,6 +19,7 @@ package com.igormaznitsa.jprol.easygui;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static javax.swing.Box.Filler;
+import static javax.swing.JOptionPane.showMessageDialog;
 
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.SourcePosition;
@@ -101,6 +102,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
+import javax.swing.JEditorPane;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -112,6 +114,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu.Separator;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
@@ -208,6 +211,7 @@ public final class MainFrame extends javax.swing.JFrame
   private Separator jSeparator5;
   private JLabel labelFind;
   private JMenuItem menuAbout;
+  private JMenuItem menuSourceEditorShortcuts;
   private JMenuItem menuClearText;
   private JMenu menuEdit;
   private JMenuItem menuEditCommentSelected;
@@ -552,6 +556,7 @@ public final class MainFrame extends javax.swing.JFrame
     menuHelp = new JMenu();
     menuHelpHelp = new JMenuItem();
     menuAbout = new JMenuItem();
+    menuSourceEditorShortcuts = new JMenuItem();
 
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
@@ -792,8 +797,7 @@ public final class MainFrame extends javax.swing.JFrame
 
     menuItemFindText.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F,
         InputEvent.CTRL_DOWN_MASK));
-    menuItemFindText.setIcon(new ImageIcon(requireNonNull(
-        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/zoom.png")))); // NOI18N
+    menuItemFindText.setIcon(UiUtils.loadIcon("zoom")); // NOI18N
     menuItemFindText.setText("Find text");
     menuItemFindText.addActionListener(this::menuItemFindTextActionPerformed);
     menuEdit.add(menuItemFindText);
@@ -804,16 +808,14 @@ public final class MainFrame extends javax.swing.JFrame
     menuItemWordWrapSources.setSelected(true);
     menuItemWordWrapSources.setText("Word wrap (editor)");
     menuItemWordWrapSources.setToolTipText("Word-wrap mode for the document editor");
-    menuItemWordWrapSources.setIcon(new ImageIcon(getClass().getResource(
-        "/com/igormaznitsa/jprol/easygui/icons/text_align_justify.png"))); // NOI18N
+    menuItemWordWrapSources.setIcon(UiUtils.loadIcon("text_align_justify")); // NOI18N
     menuItemWordWrapSources.addActionListener(this::menuItemWordWrapSourcesActionPerformed);
     menuEdit.add(menuItemWordWrapSources);
 
     menuItemFullScreen.setAccelerator(
         KeyStroke.getKeyStroke(KeyEvent.VK_F,
             InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK));
-    menuItemFullScreen.setIcon(new ImageIcon(getClass().getResource(
-        "/com/igormaznitsa/jprol/easygui/icons/shape_move_forwards.png"))); // NOI18N
+    menuItemFullScreen.setIcon(UiUtils.loadIcon("shape_move_forwards")); // NOI18N
     menuItemFullScreen.setText("Full screen");
     menuItemFullScreen.setToolTipText(
         "Turn on the full screen mode if it is supported by the device");
@@ -821,8 +823,7 @@ public final class MainFrame extends javax.swing.JFrame
     menuEdit.add(menuItemFullScreen);
     menuEdit.add(jSeparator5);
 
-    menuEditOptions.setIcon(new ImageIcon(
-        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cog.png"))); // NOI18N
+    menuEditOptions.setIcon(UiUtils.loadIcon("cog")); // NOI18N
     menuEditOptions.setText("Options");
     menuEditOptions.setToolTipText("Open editor options");
     menuEditOptions.addActionListener(this::menuEditOptionsActionPerformed);
@@ -834,22 +835,19 @@ public final class MainFrame extends javax.swing.JFrame
 
     menuRunScript.setAccelerator(
         KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
-    menuRunScript.setIcon(new ImageIcon(
-        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/flag_green.png"))); // NOI18N
+    menuRunScript.setIcon(UiUtils.loadIcon("flag_green")); // NOI18N
     menuRunScript.setText("Start");
     menuRunScript.setToolTipText("Execute the current document");
     menuRunScript.addActionListener(this::menuRunScriptActionPerformed);
     menuRun.add(menuRunScript);
 
-    menuTraceScript.setIcon(new ImageIcon(
-        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/flag_blue.png"))); // NOI18N
+    menuTraceScript.setIcon(UiUtils.loadIcon("flag_blue")); // NOI18N
     menuTraceScript.setText("Trace");
     menuTraceScript.setToolTipText("Execute the current document with tracing");
     menuTraceScript.addActionListener(this::menuTraceScriptActionPerformed);
     menuRun.add(menuTraceScript);
 
-    menuRunStop.setIcon(new ImageIcon(
-        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/flag_red.png"))); // NOI18N
+    menuRunStop.setIcon(UiUtils.loadIcon("flag_red")); // NOI18N
     menuRunStop.setText("Stop");
     menuRunStop.setToolTipText("Stop the current execution");
     menuRunStop.setEnabled(false);
@@ -862,8 +860,7 @@ public final class MainFrame extends javax.swing.JFrame
 
     menuViewKnowledgeBase.setAccelerator(
         KeyStroke.getKeyStroke(KeyEvent.VK_F12, 0));
-    menuViewKnowledgeBase.setIcon(new ImageIcon(
-        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/eye.png"))); // NOI18N
+    menuViewKnowledgeBase.setIcon(UiUtils.loadIcon("eye")); // NOI18N
     menuViewKnowledgeBase.setText("Show context base");
     menuViewKnowledgeBase.setToolTipText(
         "Show current state of knowledge base for started context");
@@ -873,8 +870,7 @@ public final class MainFrame extends javax.swing.JFrame
 
     menuItemLibraryInfo.setAccelerator(
         KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0));
-    menuItemLibraryInfo.setIcon(new ImageIcon(
-        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/table.png"))); // NOI18N
+    menuItemLibraryInfo.setIcon(UiUtils.loadIcon("table")); // NOI18N
     menuItemLibraryInfo.setText("Library info");
     menuItemLibraryInfo.setToolTipText("Show all predicates found in embedded libraries");
     menuItemLibraryInfo.addActionListener(this::menuItemLibraryInfoActionPerformed);
@@ -887,18 +883,22 @@ public final class MainFrame extends javax.swing.JFrame
 
     menuHelp.setText("Help");
 
-    menuHelpHelp.setIcon(new ImageIcon(
-        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/information.png"))); // NOI18N
+    menuHelpHelp.setIcon(UiUtils.loadIcon("information")); // NOI18N
     menuHelpHelp.setText("Help");
     menuHelpHelp.setToolTipText("Show information about usage of the utility");
     menuHelpHelp.addActionListener(this::menuHelpHelpActionPerformed);
     menuHelp.add(menuHelpHelp);
 
-    menuAbout.setIcon(new ImageIcon(getClass().getResource(
-        "/com/igormaznitsa/jprol/easygui/icons/emoticon_smile.png"))); // NOI18N
+    menuSourceEditorShortcuts.setText("Source editor shortcuts");
+    menuSourceEditorShortcuts.setToolTipText("Show shortcuts for the source editor");
+    menuSourceEditorShortcuts.addActionListener(this::menuSourceEditorShortcutsPerformed);
+    menuHelp.add(menuSourceEditorShortcuts);
+
+    menuAbout.setIcon(UiUtils.loadIcon("emoticon_smile")); // NOI18N
     menuAbout.setText("About");
     menuAbout.setToolTipText("Show the information about the application and license");
     menuAbout.addActionListener(this::menuAboutActionPerformed);
+
     menuHelp.add(menuAbout);
 
     jMenuBar1.add(menuHelp);
@@ -984,7 +984,15 @@ public final class MainFrame extends javax.swing.JFrame
         messageEditor.addWarningText("Execution has been canceled.");
       }
     });
+  }
 
+  private void menuSourceEditorShortcutsPerformed(ActionEvent evt) {
+    final String text = UiUtils.loadTextResource("KeyboardShortcuts.html");
+    final JEditorPane viewPane = new JEditorPane("text/html", text);
+    viewPane.setEditable(false);
+    final JScrollPane scrollPane = new JScrollPane(viewPane);
+    UiUtils.makeOwningDialogResizable(scrollPane);
+    showMessageDialog(this, scrollPane, "Source editor shortcuts", JOptionPane.PLAIN_MESSAGE);
   }
 
   private void menuAboutActionPerformed(ActionEvent evt) {
@@ -1001,7 +1009,7 @@ public final class MainFrame extends javax.swing.JFrame
         LOGGER.log(Level.SEVERE, "Can't open URL : " + link, ex);
       }
     });
-    JOptionPane.showMessageDialog(this, label, "About", JOptionPane.INFORMATION_MESSAGE,
+    showMessageDialog(this, label, "About", JOptionPane.INFORMATION_MESSAGE,
         new ImageIcon(this.getIconImage()));
   }
 
@@ -1066,7 +1074,7 @@ public final class MainFrame extends javax.swing.JFrame
   private void menuFileNewActionPerformed(ActionEvent evt) {
     final Thread executingThread = this.currentExecutedScriptThread.get();
     if (executingThread != null && executingThread.isAlive()) {
-      JOptionPane.showMessageDialog(this, "Wait until current Prolog application is completed.",
+      showMessageDialog(this, "Wait until current Prolog application is completed.",
           "Can't create new one", JOptionPane.WARNING_MESSAGE);
     } else {
       if (this.documentHasBeenChangedFlag) {
@@ -1085,7 +1093,7 @@ public final class MainFrame extends javax.swing.JFrame
     final Thread executingThread = this.currentExecutedScriptThread.get();
 
     if (executingThread != null && executingThread.isAlive()) {
-      JOptionPane.showMessageDialog(this, "Prolog program is already started!.", "Can't trace",
+      showMessageDialog(this, "Prolog program is already started!.", "Can't trace",
           JOptionPane.WARNING_MESSAGE);
     } else {
       if (!this.currentExecutedScriptThread.compareAndSet(executingThread, null)) {
@@ -1329,7 +1337,7 @@ public final class MainFrame extends javax.swing.JFrame
               format("Library '%s' has been added...", logLibrary.getLibraryUid()));
         } else {
           context.dispose();
-          JOptionPane.showMessageDialog(this, "Can't create new context, may be started already",
+          showMessageDialog(this, "Can't create new context, may be started already",
               "Error", JOptionPane.ERROR_MESSAGE);
           return;
         }
@@ -1354,7 +1362,7 @@ public final class MainFrame extends javax.swing.JFrame
         LOGGER.log(Level.WARNING, "Permission error", ex);
         this.messageEditor.addErrorText(
             "Permission error [" + ex.getMessage() + ']');
-        JOptionPane.showMessageDialog(this, "Out of memory error detected!", "Error",
+        showMessageDialog(this, "Out of memory error detected!", "Error",
             JOptionPane.ERROR_MESSAGE);
         return;
       } catch (PrologParserException ex) {
@@ -1365,12 +1373,12 @@ public final class MainFrame extends javax.swing.JFrame
 
         if (cause instanceof StackOverflowError) {
           this.messageEditor.addErrorText("Stack Overflow!");
-          JOptionPane.showMessageDialog(this, "Stack overflow error detected!", "Error",
+          showMessageDialog(this, "Stack overflow error detected!", "Error",
               JOptionPane.ERROR_MESSAGE);
           return;
         } else if (cause instanceof OutOfMemoryError) {
           this.messageEditor.addErrorText("Out of Memory!");
-          JOptionPane.showMessageDialog(this, "Out of memory error detected!", "Error",
+          showMessageDialog(this, "Out of memory error detected!", "Error",
               JOptionPane.ERROR_MESSAGE);
           return;
         }
@@ -1619,7 +1627,7 @@ public final class MainFrame extends javax.swing.JFrame
       this.recentFiles.put(file.getAbsolutePath());
     } catch (Throwable thr) {
       LOGGER.throwing(this.getClass().getCanonicalName(), "saveFile()", thr);
-      JOptionPane.showMessageDialog(this, format("Can't save file for error '%s'",
+      showMessageDialog(this, format("Can't save file for error '%s'",
           (thr.getMessage() == null ? thr.getClass().getCanonicalName() :
               thr.getLocalizedMessage())), "Can't save file", JOptionPane.ERROR_MESSAGE);
       return;
@@ -1701,7 +1709,7 @@ public final class MainFrame extends javax.swing.JFrame
           this.recentFiles.put(fileToOpen.getAbsolutePath());
         } catch (Throwable thr) {
           LOGGER.throwing(this.getClass().getCanonicalName(), "loadFile()", thr);
-          JOptionPane.showMessageDialog(this,
+          showMessageDialog(this,
               format("Can't load file %s ! [%s]", fileToOpen.getAbsolutePath(), thr.getMessage()));
           this.recentFiles.remove(fileToOpen.getAbsolutePath());
         }

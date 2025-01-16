@@ -27,14 +27,21 @@ import com.igormaznitsa.jprol.annotations.JProlOperators;
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Desktop;
+import java.awt.Dialog;
 import java.awt.Image;
+import java.awt.Window;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Locale;
@@ -235,6 +242,26 @@ public final class UiUtils {
     return result;
   }
 
+  public static String loadTextResource(final String resource) {
+    try (InputStreamReader inStream = new InputStreamReader(
+        Objects.requireNonNull(UiUtils.class.getClassLoader()
+            .getResourceAsStream("com/igormaznitsa/jprol/easygui/texts/" + resource)),
+        StandardCharsets.UTF_8)) {
+      final StringBuilder result = new StringBuilder();
+      while (true) {
+        final int next = inStream.read();
+        if (next < 0) {
+          break;
+        }
+        result.append((char) next);
+      }
+      return result.toString();
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      return "Can't load resource for error";
+    }
+  }
+
   public static ImageIcon loadIcon(final String name) {
     try {
       final Image img;
@@ -249,10 +276,33 @@ public final class UiUtils {
     }
   }
 
+  public static void makeOwningDialogResizable(final Component component,
+                                               final Runnable... extraActions) {
+    final HierarchyListener listener = new HierarchyListener() {
+      @Override
+      public void hierarchyChanged(final HierarchyEvent e) {
+        final Window window = SwingUtilities.getWindowAncestor(component);
+        if (window instanceof Dialog) {
+          final Dialog dialog = (Dialog) window;
+          if (!dialog.isResizable()) {
+            dialog.setResizable(true);
+            component.removeHierarchyListener(this);
+
+            for (final Runnable r : extraActions) {
+              r.run();
+            }
+          }
+        }
+      }
+    };
+    component.addHierarchyListener(listener);
+  }
+
   public static void assertSwingThread() {
     if (!SwingUtilities.isEventDispatchThread()) {
       throw new Error("Must e called in Swing Dispatch Event Thread");
 
     }
   }
+
 }
