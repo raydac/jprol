@@ -77,7 +77,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
 
 
   public PrologSourceEditor() {
-    super("Editor", new ScalableRsyntaxTextArea(), true);
+    super("Editor", new ScalableRsyntaxTextArea(), true, true);
     replacePropertyLink(PROPERTY_ED_FONT, new PropertyLink(this, "Font", "EdAndBaseFont"));
 
     final ScalableRsyntaxTextArea theEditor = (ScalableRsyntaxTextArea) this.editor;

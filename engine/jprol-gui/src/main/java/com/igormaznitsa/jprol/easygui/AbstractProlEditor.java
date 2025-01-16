@@ -40,6 +40,7 @@ import javax.swing.text.JTextComponent;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rtextarea.Gutter;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
 /**
@@ -72,17 +73,25 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
 
   public AbstractProlEditor(final String title, final boolean scalable,
                             final boolean lineNumeration) {
-    this(title, new ScalableEditorPane(scalable), lineNumeration);
+    this(title, new ScalableEditorPane(scalable), lineNumeration, false);
   }
 
-  public AbstractProlEditor(final String title, final JTextComponent editor,
-                            final boolean lineNumeration) {
+  public AbstractProlEditor(
+      final String title,
+      final JTextComponent editor,
+      final boolean lineNumeration,
+      final boolean bookmarkingEnabled) {
     super();
     this.editableProperties = new ArrayList<>();
     this.editor = editor;
 
     if (this.editor instanceof RSyntaxTextArea) {
       this.scrollPane = new RTextScrollPane(this.editor, lineNumeration);
+      final Gutter gutter = ((RTextScrollPane) this.scrollPane).getGutter();
+      if (bookmarkingEnabled) {
+        gutter.setBookmarkIcon(UiUtils.loadIcon("bookmark"));
+        gutter.setBookmarkingEnabled(true);
+      }
     } else {
       this.scrollPane = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
           JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
