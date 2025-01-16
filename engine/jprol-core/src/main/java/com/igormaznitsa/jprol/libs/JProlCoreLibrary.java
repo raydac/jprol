@@ -376,6 +376,15 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return newLong(leftNum - (leftNum / rightNum) * rightNum, UNKNOWN);
   }
 
+  private static Term tryAsLong(final double result) {
+    if (Double.isFinite(result)) {
+      final long round = Math.round(result);
+      return round == result ? newLong(round) : newDouble(result);
+    } else {
+      return newDouble(result, UNKNOWN);
+    }
+  }
+
   @JProlPredicate(evaluable = true, synonyms = "^/2", signature = "**/2", args = {
       "+evaluable,+evaluable"}, reference = "Power")
   public static Term predicatePOWER(final JProlChoicePoint goal, final TermStruct predicate) {
@@ -385,7 +394,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final double valueLeft = left.toNumber().doubleValue();
     final double valueRight = right.toNumber().doubleValue();
 
-    return newDouble(Math.pow(valueLeft, valueRight), UNKNOWN);
+    return tryAsLong(Math.pow(valueLeft, valueRight));
   }
 
   @JProlPredicate(evaluable = true, signature = "+/2", args = {
@@ -399,7 +408,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   @JProlPredicate(evaluable = true, signature = "sin/1", args = {"+evaluable"}, reference = "Sine")
   public static Term predicateSIN(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
-    return newDouble(Math.sin(arg.toNumber().doubleValue()), UNKNOWN);
+    return tryAsLong(Math.sin(arg.toNumber().doubleValue()));
   }
 
   @JProlPredicate(evaluable = true, signature = "float_integer_part/1", args = {
@@ -417,7 +426,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
     final long valueInt = (long) value;
-    return newDouble(value - (double) valueInt, UNKNOWN);
+    return tryAsLong(value - (double) valueInt);
   }
 
   @JProlPredicate(evaluable = true, signature = "floor/1", args = {
@@ -457,7 +466,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static Term predicateCOS(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
-    return newDouble(Math.cos(value), UNKNOWN);
+    return tryAsLong(Math.cos(value));
   }
 
   @JProlPredicate(evaluable = true, signature = "atan/1", args = {
@@ -465,7 +474,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static Term predicateATAN(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
-    return newDouble(Math.atan(value), UNKNOWN);
+    return tryAsLong(Math.atan(value));
   }
 
   @JProlPredicate(evaluable = true, signature = "exp/1", args = {
@@ -473,14 +482,14 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static Term predicateEXP(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
-    return newDouble(Math.exp(value), UNKNOWN);
+    return tryAsLong(Math.exp(value));
   }
 
   @JProlPredicate(evaluable = true, signature = "log/1", args = {"+evaluable"}, reference = "Log")
   public static Term predicateLOG(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
-    return newDouble(Math.log(value), UNKNOWN);
+    return tryAsLong(Math.log(value));
   }
 
   @JProlPredicate(evaluable = true, signature = "sqrt/1", args = {
@@ -488,7 +497,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static Term predicateSQRT(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
     final double value = arg.toNumber().doubleValue();
-    return newDouble(Math.sqrt(value), UNKNOWN);
+    return tryAsLong(Math.sqrt(value));
   }
 
   @JProlPredicate(evaluable = true, signature = "abs/1", args = {
