@@ -131,17 +131,19 @@ import java.util.stream.Stream;
 @JProlOperator(priority = 200, type = XFY, name = "^")
 @JProlConsultText(
     value = "forall(Generator, Test) :- \\+ (Generator, \\+ Test). " +
-        "append([], Zs, Zs). " +
-        "append([X|Xs], Ys, [X|Zs]) :- append(Xs, Ys, Zs). " +
-        "member(X,[X|_]). " +
-        "member(X,[A|Rest]):-member(X,Rest). ",
+        "append([], Zs, Zs). append([X|Xs], Ys, [X|Zs]) :- append(Xs, Ys, Zs). " +
+        "member(X,[X|_]). member(X,[A|Rest]):-member(X,Rest). " +
+        "between(Lower, Upper, Lower) :- Lower =< Upper. between(Lower1, Upper, X) :- Lower1 < Upper, Lower2 is Lower1 + 1, between(Lower2, Upper, X)."
+    ,
     declaredPredicates = {
+        @JProlPredicate(signature = "between/3", args = {
+            "+integer,+integer,?integer"}, reference = "between(Lower, Upper, X) is true if X is greater than or equal to Lower, and less than or equal to Upper."),
         @JProlPredicate(signature = "forall/2", args = {
-            "+callable, +callable"}, reference = "forall(Cond, Action) for all alternative bindings of Cond, Action can be proven."),
+            "+callable,+callable"}, reference = "forall(Cond, Action) for all alternative bindings of Cond, Action can be proven."),
         @JProlPredicate(signature = "append/3", args = {
-            "?term, ?term, ?term"}, reference = "append(Xs, Ys, Zs) is true if Zs is the concatenation of the lists Xs and Ys. More precisely, append(Xs, Ys, Zs) is true iff the list Xs is a list prefix of Zs and Ys is Zs with prefix Xs removed."),
+            "?term,?term,?term"}, reference = "append(Xs, Ys, Zs) is true if Zs is the concatenation of the lists Xs and Ys. More precisely, append(Xs, Ys, Zs) is true iff the list Xs is a list prefix of Zs and Ys is Zs with prefix Xs removed."),
         @JProlPredicate(signature = "member/2", args = {
-            "?term, ?list"}, reference = "member(X, List) is true if and only if X is an element contained in List. If X is not instantiated, it will be instantiated with all the values in List.")
+            "?term,?list"}, reference = "member(X, List) is true if and only if X is an element contained in List. If X is not instantiated, it will be instantiated with all the values in List.")
     })
 public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
