@@ -74,7 +74,8 @@ public class FontChooserDialog extends javax.swing.JDialog
    * @param testText test text string
    */
   @SuppressWarnings({"unchecked"})
-  public FontChooserDialog(final Dialog parent, final String title, Font font, String testText) {
+  public FontChooserDialog(final Dialog parent, final String title, final Font font,
+                           String testText) {
     super(parent, true);
     initComponents();
 
@@ -84,16 +85,19 @@ public class FontChooserDialog extends javax.swing.JDialog
       testText = "Sample text. <?!;:,.>";
     }
 
-    labelPreview.setText(testText);
+    this.labelPreview.setText(testText);
+    this.comboBoxFont.removeAllItems();
 
-    if (font == null) {
-      font = Font.decode(null);
-    }
+    final LocalFontContainer localFontContainer =
+        font instanceof LocalFontContainer.ResourceBasedFont ?
+            ((LocalFontContainer.ResourceBasedFont) font).getParent() : null;
 
-    comboBoxFont.removeAllItems();
-
-    LocalFont.VALUES.forEach(x -> {
-      comboBoxFont.addItem(x.getFont());
+    LocalFontContainer.VALUES.forEach(x -> {
+      if (x == localFontContainer) {
+        comboBoxFont.addItem(font);
+      } else {
+        comboBoxFont.addItem(x.getFont());
+      }
     });
 
     final Set<String> duplicationSet = new HashSet<>();
@@ -102,11 +106,11 @@ public class FontChooserDialog extends javax.swing.JDialog
         .forEach(x -> {
           final String family = x.getFamily();
           if (duplicationSet.add(family)) {
-            comboBoxFont.addItem(x);
+            this.comboBoxFont.addItem(x);
           }
         });
 
-    comboBoxFont.setRenderer(new DefaultListCellRenderer() {
+    this.comboBoxFont.setRenderer(new DefaultListCellRenderer() {
       @Override
       public Component getListCellRendererComponent(JList<?> list, Object value, int index,
                                                     boolean isSelected, boolean cellHasFocus) {
@@ -114,9 +118,9 @@ public class FontChooserDialog extends javax.swing.JDialog
             (JLabel) super.getListCellRendererComponent(list, value, index, isSelected,
                 cellHasFocus);
         final Font font = (Font) value;
-        if (font instanceof LocalFont.LocallyLoadedFont) {
+        if (font instanceof LocalFontContainer.ResourceBasedFont) {
           label.setFont(label.getFont().deriveFont(Font.BOLD));
-          label.setText(((LocalFont.LocallyLoadedFont) font).getLocalFont().getTitle());
+          label.setText(((LocalFontContainer.ResourceBasedFont) font).getLocalFont().getTitle());
         } else {
           label.setText(font.getFontName());
         }
@@ -133,7 +137,7 @@ public class FontChooserDialog extends javax.swing.JDialog
 
     comboBoxFont.setSelectedItem(font);
     spinnerSize.setValue(font.getSize());
-    comboBoxStyle.setSelectedItem(LocalFont.styleAsString(font));
+    comboBoxStyle.setSelectedItem(LocalFontContainer.styleAsString(font));
 
     comboBoxFont.addActionListener(this);
     comboBoxStyle.addActionListener(this);
@@ -298,7 +302,7 @@ public class FontChooserDialog extends javax.swing.JDialog
     final Font selectedFont = (Font) comboBoxFont.getSelectedItem();
     final String fontStyle = (String) comboBoxStyle.getSelectedItem();
     final int fontSize = (Integer) spinnerSize.getValue();
-    final Font font = selectedFont.deriveFont(LocalFont.dscodeStyle(fontStyle), fontSize);
+    final Font font = selectedFont.deriveFont(LocalFontContainer.decodeStyle(fontStyle), fontSize);
     labelPreview.setFont(font);
     labelPreview.invalidate();
     labelPreview.repaint();

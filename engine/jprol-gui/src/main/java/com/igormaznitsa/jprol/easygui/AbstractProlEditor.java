@@ -69,7 +69,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
   private boolean wordWrap;
 
   public static final Font DEFAULT_FONT =
-      LocalFont.LOCAL_NOTO_SANS_MONO.getFont().deriveFont(Font.PLAIN, 12);
+      LocalFontContainer.LOCAL_NOTO_SANS_MONO.getFont().deriveFont(Font.PLAIN, 12);
 
   public AbstractProlEditor(final String title, final boolean scalable,
                             final boolean lineNumeration) {
@@ -538,7 +538,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     if (font == null) {
       prefs.remove(key);
     } else {
-      prefs.put(key, LocalFont.makeFontDescriptor(font));
+      prefs.put(key, LocalFontContainer.makeFontDescriptor(font));
     }
   }
 
@@ -547,7 +547,7 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
     if (fontData == null) {
       return defaultFont;
     } else {
-      return LocalFont.decodeFont(fontData);
+      return LocalFontContainer.decodeFont(fontData);
     }
   }
 

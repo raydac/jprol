@@ -176,7 +176,7 @@ public final class MainFrame extends javax.swing.JFrame
   };
   private static final int MAX_RECENT_FILES = 10;
   private static final Font FONT_INDICATOR_PANEL =
-      LocalFont.LOCAL_NOTO_SANS_MONO.getFont().deriveFont(12.0f);
+      LocalFontContainer.LOCAL_NOTO_SANS_MONO.getFont().deriveFont(12.0f);
   private final LogLibrary logLibrary;
   private final AtomicReference<Thread> currentExecutedScriptThread = new AtomicReference<>();
   private final AtomicBoolean startedInTracing = new AtomicBoolean();

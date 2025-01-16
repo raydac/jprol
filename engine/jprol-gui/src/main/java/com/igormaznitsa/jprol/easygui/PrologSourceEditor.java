@@ -68,7 +68,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
   public static final String PROPERTY_SOURCE_BACK_COLOR = "sourceedbackcolor";
   public static final String PROPERTY_SOURCE_FONT = "sourcefont";
   public static final Font DEFAULT_SORCE_FONT =
-      LocalFont.LOCAL_JET_BRAINS_MONO.getFont().deriveFont(Font.PLAIN, 18);
+      LocalFontContainer.LOCAL_JET_BRAINS_MONO.getFont().deriveFont(Font.PLAIN, 18);
   /**
    * Inside logger, the logger id = "PROL_NOTE_PAD"
    */

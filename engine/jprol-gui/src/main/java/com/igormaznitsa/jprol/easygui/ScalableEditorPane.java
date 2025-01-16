@@ -42,10 +42,13 @@ public class ScalableEditorPane extends JTextPane {
 
     if (scalable) {
       this.addMouseWheelListener((final MouseWheelEvent e) -> {
-        final int allModifiers = MouseWheelEvent.CTRL_DOWN_MASK | MouseWheelEvent.ALT_DOWN_MASK | MouseWheelEvent.META_DOWN_MASK | MouseWheelEvent.SHIFT_DOWN_MASK;
-        if (!e.isConsumed() && !e.isPopupTrigger() && (e.getModifiersEx() & allModifiers) == MouseWheelEvent.CTRL_DOWN_MASK) {
+        final int allModifiers = MouseWheelEvent.CTRL_DOWN_MASK | MouseWheelEvent.ALT_DOWN_MASK |
+            MouseWheelEvent.META_DOWN_MASK | MouseWheelEvent.SHIFT_DOWN_MASK;
+        if (!e.isConsumed() && !e.isPopupTrigger() &&
+            (e.getModifiersEx() & allModifiers) == MouseWheelEvent.CTRL_DOWN_MASK) {
           e.consume();
-          this.fontScale = Math.max(SCALE_MIN, Math.min(SCALE_MAX, this.fontScale + SCALE_STEP * -e.getWheelRotation()));
+          this.fontScale = Math.max(SCALE_MIN,
+              Math.min(SCALE_MAX, this.fontScale + SCALE_STEP * -e.getWheelRotation()));
           updateFontForScale();
         } else {
           this.getParent().dispatchEvent(e);
@@ -73,6 +76,7 @@ public class ScalableEditorPane extends JTextPane {
 
   public void setBaseFont(final Font baseFont) {
     this.baseFont = baseFont;
+    this.fontScale = 1.0f;
     this.updateFontForScale();
   }
 
@@ -103,11 +107,13 @@ public class ScalableEditorPane extends JTextPane {
   private void updateFontForScale() {
     if (this.baseFont != null) {
       final float newScaledSize = this.fontScale * this.baseFont.getSize2D();
+      final Font scaledFont;
       if (newScaledSize > 1.0f) {
-        super.setFont(this.baseFont.deriveFont(newScaledSize));
+        scaledFont = this.baseFont.deriveFont(newScaledSize);
       } else {
-        super.setFont(this.baseFont.deriveFont(1.0f));
+        scaledFont = this.baseFont.deriveFont(1.0f);
       }
+      super.setFont(scaledFont);
     }
   }
 
