@@ -1207,7 +1207,6 @@ public final class MainFrame extends javax.swing.JFrame
   }
 
   private boolean setCurrentContext(final JProlContext context) {
-    System.out.println("Current context " + context);
     if (this.currentContext.compareAndSet(null, context)) {
       this.menuViewKnowledgeBase.setEnabled(context != null);
       return true;
