@@ -261,8 +261,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testPow2() {
-    checkVarValues("X is 16**8.", "X", String.valueOf(Math.pow(16, 8)));
-    checkVarValues("X is 16**0.", "X", String.valueOf(1.0));
+    checkVarValues("X is 16**8.", "X", String.valueOf(4294967296L));
+    checkVarValues("X is 16**0.", "X", String.valueOf(1));
     checkVarValues("X is 16**-2.", "X", String.valueOf(Math.pow(16, -2)));
     assertProlException("X is 'a'**-2.", ProlTypeErrorException.class);
     assertProlException("X is A**-2.", ProlInstantiationErrorException.class);
@@ -283,25 +283,25 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   @Test
   void testSin1() {
     checkVarValues("X is sin(3.14).", "X", String.valueOf(Math.sin(3.14D)));
-    checkVarValues("X is sin(0).", "X", String.valueOf(Math.sin(0)));
+    checkVarValues("X is sin(0).", "X", String.valueOf(0));
   }
 
   @Test
   void testCos1() {
     checkVarValues("X is cos(3.14).", "X", String.valueOf(Math.cos(3.14D)));
-    checkVarValues("X is cos(0).", "X", String.valueOf(Math.cos(0)));
+    checkVarValues("X is cos(0).", "X", String.valueOf(1));
   }
 
   @Test
   void testAtan1() {
     checkVarValues("X is atan(3.14).", "X", String.valueOf(Math.atan(3.14D)));
-    checkVarValues("X is atan(0).", "X", String.valueOf(Math.atan(0)));
+    checkVarValues("X is atan(0).", "X", String.valueOf(0));
   }
 
   @Test
   void testExp1() {
     checkVarValues("X is exp(3.14).", "X", String.valueOf(Math.exp(3.14D)));
-    checkVarValues("X is exp(0).", "X", String.valueOf(Math.exp(0)));
+    checkVarValues("X is exp(0).", "X", String.valueOf(1));
   }
 
   @Test
@@ -313,7 +313,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   @Test
   void testSqrt1() {
     checkVarValues("X is sqrt(3.14).", "X", String.valueOf(Math.sqrt(3.14D)));
-    checkVarValues("X is sqrt(0).", "X", String.valueOf(Math.sqrt(0)));
+    checkVarValues("X is sqrt(0).", "X", String.valueOf(0));
   }
 
   @Test
@@ -357,7 +357,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   @Test
   void testFloatFractionalPart1() {
     checkVarValues("X is float_fractional_part(3.14).", "X", String.valueOf(3.14D - 3));
-    checkVarValues("X is float_fractional_part(4).", "X", String.valueOf(0.0d));
+    checkVarValues("X is float_fractional_part(4).", "X", String.valueOf(0));
   }
 
   @Test
