@@ -17,14 +17,11 @@
 package com.igormaznitsa.jprol.easygui;
 
 import static java.lang.String.format;
-import static java.util.Objects.requireNonNull;
 import static javax.swing.Box.Filler;
 import static javax.swing.JOptionPane.showMessageDialog;
 
-import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
-import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.exceptions.ProlChoicePointInterruptedException;
@@ -93,7 +90,6 @@ import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -155,10 +151,11 @@ public final class MainFrame extends javax.swing.JFrame
       JProlRegexLibrary.class.getCanonicalName(),
       JProlGfxLibrary.class.getCanonicalName(),
       JProlHttpLibrary.class.getCanonicalName(),
-      TPrologPredicateLibrary.class.getCanonicalName()
+      TPrologPredicateLibrary.class.getCanonicalName(),
+      LogLibrary.class.getCanonicalName()
   };
 
-  private static final Logger LOGGER = Logger.getLogger(MainFrame.class.getName());
+  public static final Logger LOGGER = Logger.getLogger(MainFrame.class.getName());
   private static final FileFilter PROL_FILE_FILTER = new FileFilter() {
 
     @Override
@@ -180,7 +177,6 @@ public final class MainFrame extends javax.swing.JFrame
   private static final int MAX_RECENT_FILES = 10;
   private static final Font FONT_INDICATOR_PANEL =
       LocalFontContainer.LOCAL_NOTO_SANS_MONO.getFont().deriveFont(12.0f);
-  private final LogLibrary logLibrary;
   private final AtomicReference<Thread> currentExecutedScriptThread = new AtomicReference<>();
   private final AtomicBoolean startedInTracing = new AtomicBoolean();
   /**
@@ -239,7 +235,7 @@ public final class MainFrame extends javax.swing.JFrame
   private JMenu menuView;
   private JMenuItem menuViewKnowledgeBase;
   private JMenuItem menuItemFindText;
-  private MessageEditor messageEditor;
+  public MessageEditor messageEditor;
   private JPanel panelFindText;
   private JPanel panelProgress;
   private JProgressBar progressBarTask;
@@ -276,14 +272,7 @@ public final class MainFrame extends javax.swing.JFrame
       addWindowListener(this);
       panelProgress.setVisible(false);
 
-      logLibrary = new LogLibrary();
-
-      try {
-        this.setAppIcon(ImageIO.read(
-            this.getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/appico.png")));
-      } catch (Exception ex) {
-        LOGGER.throwing(this.getClass().getCanonicalName(), "MainFrame", ex);
-      }
+      this.setAppIcon(((ImageIcon) UiUtils.loadIcon("appico")).getImage());
 
       fillLFMenuItem();
 
@@ -491,6 +480,9 @@ public final class MainFrame extends javax.swing.JFrame
   private void initComponents() {
     GridBagConstraints gridBagConstraints;
 
+    final boolean macOs = UiUtils.isMacOs();
+    final int controlDownMask = macOs ? InputEvent.META_DOWN_MASK : InputEvent.CTRL_DOWN_MASK;
+
     splitPaneMain = new JSplitPane();
     splitPaneTop = new JSplitPane();
     try {
@@ -616,8 +608,7 @@ public final class MainFrame extends javax.swing.JFrame
     gridBagConstraints.ipadx = 300;
     panelFindText.add(textFind, gridBagConstraints);
 
-    buttonCloseFind.setIcon(new ImageIcon(
-        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cross.png"))); // NOI18N
+    buttonCloseFind.setIcon(UiUtils.loadIcon("cross")); // NOI18N
     buttonCloseFind.setToolTipText("Hide the find text panel (ESC)");
     buttonCloseFind.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
     buttonCloseFind.setIconTextGap(0);
@@ -665,8 +656,7 @@ public final class MainFrame extends javax.swing.JFrame
 
     buttonStopExecuting.setBackground(new java.awt.Color(255, 156, 156));
     buttonStopExecuting.setFont(new Font("DejaVu Sans", Font.BOLD, 13)); // NOI18N
-    buttonStopExecuting.setIcon(new ImageIcon(
-        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/flag_red.png"))); // NOI18N
+    buttonStopExecuting.setIcon(UiUtils.loadIcon("flag_red")); // NOI18N
     buttonStopExecuting.setText(" STOP EXECUTION ");
     buttonStopExecuting.setBorder(
         new SoftBevelBorder(BevelBorder.RAISED));
@@ -682,41 +672,36 @@ public final class MainFrame extends javax.swing.JFrame
 
     menuFile.setText("File");
 
-    menuFileNew.setIcon(new ImageIcon(
-        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/page.png"))); // NOI18N
+    menuFileNew.setIcon(UiUtils.loadIcon("page")); // NOI18N
     menuFileNew.setText("New");
     menuFileNew.setToolTipText("Create new document");
     menuFileNew.addActionListener(this::menuFileNewActionPerformed);
     menuFile.add(menuFileNew);
 
     menuFileOpen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O,
-        InputEvent.CTRL_DOWN_MASK));
-    menuFileOpen.setIcon(new ImageIcon(
-        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/page_edit.png"))); // NOI18N
+        controlDownMask));
+    menuFileOpen.setIcon(UiUtils.loadIcon("page_edit")); // NOI18N
     menuFileOpen.setText("Open");
     menuFileOpen.setToolTipText("Open a saved document");
     menuFileOpen.addActionListener(this::menuFileOpenActionPerformed);
     menuFile.add(menuFileOpen);
 
-    menuFileSaveAs.setIcon(new ImageIcon(
-        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/page_save.png"))); // NOI18N
+    menuFileSaveAs.setIcon(UiUtils.loadIcon("page_save")); // NOI18N
     menuFileSaveAs.setText("Save As..");
     menuFileSaveAs.setToolTipText("Save the current document as a file");
     menuFileSaveAs.addActionListener(this::menuFileSaveAsActionPerformed);
     menuFile.add(menuFileSaveAs);
 
     menuFileSave.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
-        InputEvent.CTRL_DOWN_MASK));
-    menuFileSave.setIcon(new ImageIcon(
-        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/page_go.png"))); // NOI18N
+        controlDownMask));
+    menuFileSave.setIcon(UiUtils.loadIcon("page_go")); // NOI18N
     menuFileSave.setText("Save");
     menuFileSave.setToolTipText("Save the current document");
     menuFileSave.addActionListener(this::menuFileSaveActionPerformed);
     menuFile.add(menuFileSave);
     menuFile.add(jSeparator1);
 
-    menuFileRecentFiles.setIcon(new ImageIcon(
-        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/folder.png"))); // NOI18N
+    menuFileRecentFiles.setIcon(UiUtils.loadIcon("folder")); // NOI18N
     menuFileRecentFiles.setText("Recent files...");
     menuFileRecentFiles.setToolTipText("List of files opened early");
     menuFileRecentFiles.addMenuListener(new javax.swing.event.MenuListener() {
@@ -736,10 +721,14 @@ public final class MainFrame extends javax.swing.JFrame
     menuFile.add(menuFileRecentFiles);
     menuFile.add(jSeparator4);
 
-    menuExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4,
-        InputEvent.ALT_DOWN_MASK));
-    menuExit.setIcon(new ImageIcon(
-        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/door_in.png"))); // NOI18N
+    if (macOs) {
+      menuExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,
+          InputEvent.ALT_DOWN_MASK | InputEvent.META_DOWN_MASK));
+    } else {
+      menuExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4,
+          InputEvent.ALT_DOWN_MASK));
+    }
+    menuExit.setIcon(UiUtils.loadIcon("door_in")); // NOI18N
     menuExit.setText("Exit");
     menuExit.setToolTipText("Close the editor");
     menuExit.addActionListener(this::menuExitActionPerformed);
@@ -750,9 +739,8 @@ public final class MainFrame extends javax.swing.JFrame
     menuEdit.setText("Edit");
 
     menuUndo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z,
-        InputEvent.CTRL_DOWN_MASK));
-    menuUndo.setIcon(new ImageIcon(getClass().getResource(
-        "/com/igormaznitsa/jprol/easygui/icons/book_previous.png"))); // NOI18N
+        controlDownMask));
+    menuUndo.setIcon(UiUtils.loadIcon("book_previous")); // NOI18N
     menuUndo.setText("Undo");
     menuUndo.setToolTipText("Undo last changes in the document");
     menuUndo.setEnabled(false);
@@ -760,9 +748,8 @@ public final class MainFrame extends javax.swing.JFrame
     menuEdit.add(menuUndo);
 
     menuRedo.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y,
-        InputEvent.CTRL_DOWN_MASK));
-    menuRedo.setIcon(new ImageIcon(
-        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/book_next.png"))); // NOI18N
+        controlDownMask));
+    menuRedo.setIcon(UiUtils.loadIcon("book_next")); // NOI18N
     menuRedo.setText("Redo");
     menuRedo.setToolTipText("Redo canceled changes in the document");
     menuRedo.setEnabled(false);
@@ -770,24 +757,20 @@ public final class MainFrame extends javax.swing.JFrame
     menuEdit.add(menuRedo);
     menuEdit.add(jSeparator2);
 
-    menuClearText.setIcon(new ImageIcon(
-        getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/page_white.png"))); // NOI18N
+    menuClearText.setIcon(UiUtils.loadIcon("page_white")); // NOI18N
     menuClearText.setText("Clear");
     menuClearText.setToolTipText("Just clear text in the current document");
     menuClearText.addActionListener(this::menuClearTextActionPerformed);
     menuEdit.add(menuClearText);
 
-    menuEditCommentSelected.setIcon(new ImageIcon(
-        requireNonNull(getClass().getResource(
-            "/com/igormaznitsa/jprol/easygui/icons/comment_add.png")))); // NOI18N
+    menuEditCommentSelected.setIcon(UiUtils.loadIcon("comment_add")); // NOI18N
     menuEditCommentSelected.setText("Comment selection");
     menuEditCommentSelected.setToolTipText(
         "Place the commenting symbol as the first one into selected lines");
     menuEditCommentSelected.addActionListener(this::menuEditCommentSelectedActionPerformed);
     menuEdit.add(menuEditCommentSelected);
 
-    menuEditUncommentSelected.setIcon(new ImageIcon(requireNonNull((getClass().getResource(
-        "/com/igormaznitsa/jprol/easygui/icons/comment_delete.png"))))); // NOI18N
+    menuEditUncommentSelected.setIcon(UiUtils.loadIcon("comment_delete")); // NOI18N
     menuEditUncommentSelected.setText("Uncomment selection");
     menuEditUncommentSelected.setToolTipText(
         "Remove the first commenting symbol from selected lines");
@@ -796,7 +779,7 @@ public final class MainFrame extends javax.swing.JFrame
     menuEdit.add(jSeparator3);
 
     menuItemFindText.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F,
-        InputEvent.CTRL_DOWN_MASK));
+        controlDownMask));
     menuItemFindText.setIcon(UiUtils.loadIcon("zoom")); // NOI18N
     menuItemFindText.setText("Find text");
     menuItemFindText.addActionListener(this::menuItemFindTextActionPerformed);
@@ -804,7 +787,7 @@ public final class MainFrame extends javax.swing.JFrame
 
     menuItemWordWrapSources.setAccelerator(
         KeyStroke.getKeyStroke(KeyEvent.VK_W,
-            InputEvent.CTRL_DOWN_MASK));
+            controlDownMask));
     menuItemWordWrapSources.setSelected(true);
     menuItemWordWrapSources.setText("Word wrap (editor)");
     menuItemWordWrapSources.setToolTipText("Word-wrap mode for the document editor");
@@ -814,7 +797,7 @@ public final class MainFrame extends javax.swing.JFrame
 
     menuItemFullScreen.setAccelerator(
         KeyStroke.getKeyStroke(KeyEvent.VK_F,
-            InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK));
+            controlDownMask | InputEvent.SHIFT_DOWN_MASK));
     menuItemFullScreen.setIcon(UiUtils.loadIcon("shape_move_forwards")); // NOI18N
     menuItemFullScreen.setText("Full screen");
     menuItemFullScreen.setToolTipText(
@@ -889,6 +872,7 @@ public final class MainFrame extends javax.swing.JFrame
     menuHelpHelp.addActionListener(this::menuHelpHelpActionPerformed);
     menuHelp.add(menuHelpHelp);
 
+    menuSourceEditorShortcuts.setIcon(UiUtils.loadIcon("keyboard")); // NOI18N
     menuSourceEditorShortcuts.setText("Source editor shortcuts");
     menuSourceEditorShortcuts.setToolTipText("Show shortcuts for the source editor");
     menuSourceEditorShortcuts.addActionListener(this::menuSourceEditorShortcutsPerformed);
@@ -1047,7 +1031,6 @@ public final class MainFrame extends javax.swing.JFrame
     final java.util.List<String> list = new ArrayList<>();
     list.add(JProlCoreLibrary.class.getCanonicalName());
     list.addAll(Arrays.asList(PROL_LIBRARIES));
-    list.add(MainFrame.class.getCanonicalName() + "$LogLibrary");
 
     final LibraryInfoDialog infoDialog;
     try {
@@ -1332,9 +1315,6 @@ public final class MainFrame extends javax.swing.JFrame
                 format("Library '%s' has been added...", lib.getLibraryUid()));
           }
 
-          context.addLibrary(logLibrary);
-          this.messageEditor.addInfoText(
-              format("Library '%s' has been added...", logLibrary.getLibraryUid()));
         } else {
           context.dispose();
           showMessageDialog(this, "Can't create new context, may be started already",
@@ -1898,34 +1878,4 @@ public final class MainFrame extends javax.swing.JFrame
     }
   }
 
-  protected final class LogLibrary extends AbstractJProlLibrary {
-
-    public LogLibrary() {
-      super("JProlGuiLogger");
-    }
-
-    @JProlPredicate(determined = true, signature = "msgerror/1", reference = "The predicate allows to output information marked as error at the message window.")
-    public void predicateMSGERROR(final JProlChoicePoint goal, final TermStruct struct) {
-      final Term term = struct.getElement(0).findNonVarOrSame();
-      final String text = term.forWrite();
-      LOGGER.log(Level.SEVERE, "msgerror/1 : {0}", text);
-      messageEditor.addErrorText(text);
-    }
-
-    @JProlPredicate(determined = true, signature = "msgwarning/1", reference = "The predicate allows to output information marked as warning at the message window.")
-    public void predicateMSGWARNING(final JProlChoicePoint goal, final TermStruct struct) {
-      final Term term = struct.getElement(0).findNonVarOrSame();
-      final String text = term.forWrite();
-      LOGGER.log(Level.WARNING, "msgwarning/1 : {0}", text);
-      messageEditor.addWarningText(text);
-    }
-
-    @JProlPredicate(determined = true, signature = "msginfo/1", reference = "The predicate allows to output information marked as info at the message window.")
-    public void predicateMSGINFO(final JProlChoicePoint goal, final TermStruct struct) {
-      final Term term = struct.getElement(0).findNonVarOrSame();
-      final String text = term.forWrite();
-      LOGGER.log(Level.INFO, "msginfo/1 : {0}", text);
-      messageEditor.addInfoText(text);
-    }
-  }
 }

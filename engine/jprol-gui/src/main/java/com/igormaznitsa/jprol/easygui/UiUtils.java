@@ -305,4 +305,9 @@ public final class UiUtils {
     }
   }
 
+  public static boolean isMacOs() {
+    final String osName =
+        Objects.requireNonNullElse(System.getProperty("os.name"), "").toLowerCase();
+    return osName.contains("mac");
+  }
 }
