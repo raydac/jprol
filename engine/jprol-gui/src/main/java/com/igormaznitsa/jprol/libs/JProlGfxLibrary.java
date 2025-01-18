@@ -1237,11 +1237,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     return true;
   }
 
-  @Override
-  protected void onCallContextDispose(final JProlContext context,
-                                      final Map<String, Object> contextNamedObjects) {
-    super.onCallContextDispose(context, contextNamedObjects);
-
+  private void clearResources() {
     this.registeredTimerActions.values().forEach(x -> {
       try {
         x.timer.stop();
@@ -1273,31 +1269,47 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         }
       });
       this.soundClipMap.clear();
+    }
+  }
 
-      final JFrame frame = this.graphicFrame.getAndSet(null);
-      this.safeSwingCall(() -> {
-        this.gfxBufferAccessLocker.lock();
+  @Override
+  public void release() {
+    try {
+      this.clearResources();
+    } finally {
+      super.release();
+    }
+  }
+
+  @Override
+  protected void onCallContextDispose(final JProlContext context,
+                                      final Map<String, Object> contextNamedObjects) {
+    super.onCallContextDispose(context, contextNamedObjects);
+    this.clearResources();
+
+    final JFrame frame = this.graphicFrame.getAndSet(null);
+    this.safeSwingCall(() -> {
+      this.gfxBufferAccessLocker.lock();
+      try {
         try {
-          try {
-            if (this.bufferGraphics != null) {
-              this.bufferGraphics.dispose();
-            }
-          } finally {
-            this.bufferGraphics = null;
-            this.bufferedImage = null;
-            if (frame != null) {
-              try {
-                frame.dispose();
-              } catch (Exception ex) {
-                // do nothing
-              }
-            }
+          if (this.bufferGraphics != null) {
+            this.bufferGraphics.dispose();
           }
         } finally {
-          this.gfxBufferAccessLocker.unlock();
+          this.bufferGraphics = null;
+          this.bufferedImage = null;
+          if (frame != null) {
+            try {
+              frame.dispose();
+            } catch (Exception ex) {
+              // do nothing
+            }
+          }
         }
-      });
-    }
+      } finally {
+        this.gfxBufferAccessLocker.unlock();
+      }
+    });
   }
 
   /**
