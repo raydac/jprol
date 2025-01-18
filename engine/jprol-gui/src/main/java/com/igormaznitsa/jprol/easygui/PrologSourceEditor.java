@@ -82,6 +82,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
 
     final ScalableRsyntaxTextArea theEditor = (ScalableRsyntaxTextArea) this.editor;
     theEditor.setSyntaxEditingStyle(JProlTokenMaker.MIME);
+    theEditor.setAutoscrolls(true);
     theEditor.setTabsEmulated(true);
 
     this.applyScheme(theEditor);
@@ -683,6 +684,50 @@ public class PrologSourceEditor extends AbstractProlEditor {
 
     boolean isAllow(final String text) {
       return functor.contains(text);
+    }
+  }
+
+  public void toggleComment() {
+    final RSyntaxTextArea textArea = (RSyntaxTextArea) this.editor;
+    try {
+      int start = textArea.getSelectionStart();
+      int end = textArea.getSelectionEnd();
+
+      if (start == end) {
+        // No selection, process the current line
+        int line = textArea.getCaretLineNumber();
+        int lineStart = textArea.getLineStartOffset(line);
+        int lineEnd = textArea.getLineEndOffset(line);
+        String lineText = textArea.getText(lineStart, lineEnd - lineStart);
+
+        if (lineText.trim().startsWith("%")) {
+          // Uncomment
+          textArea.replaceRange(lineText.replaceFirst("%", ""), lineStart, lineEnd);
+        } else {
+          // Comment
+          textArea.insert("%", lineStart);
+        }
+      } else {
+        // Process selected lines
+        int startLine = textArea.getLineOfOffset(start);
+        int endLine = textArea.getLineOfOffset(end);
+
+        for (int i = startLine; i <= endLine; i++) {
+          int lineStart = textArea.getLineStartOffset(i);
+          int lineEnd = textArea.getLineEndOffset(i);
+          String lineText = textArea.getText(lineStart, lineEnd - lineStart);
+
+          if (lineText.trim().startsWith("%")) {
+            // Uncomment
+            textArea.replaceRange(lineText.replaceFirst("%", ""), lineStart, lineEnd);
+          } else {
+            // Comment
+            textArea.insert("%", lineStart);
+          }
+        }
+      }
+    } catch (BadLocationException e) {
+      // do nothing
     }
   }
 }

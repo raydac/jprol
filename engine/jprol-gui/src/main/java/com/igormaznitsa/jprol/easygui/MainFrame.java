@@ -210,9 +210,8 @@ public final class MainFrame extends javax.swing.JFrame
   private JMenuItem menuSourceEditorShortcuts;
   private JMenuItem menuClearText;
   private JMenu menuEdit;
-  private JMenuItem menuEditCommentSelected;
+  private JMenuItem menuToggleComment;
   private JMenuItem menuEditOptions;
-  private JMenuItem menuEditUncommentSelected;
   private JMenuItem menuExit;
   private JMenu menuFile;
   private JMenuItem menuFileNew;
@@ -529,8 +528,7 @@ public final class MainFrame extends javax.swing.JFrame
     menuRedo = new JMenuItem();
     jSeparator2 = new Separator();
     menuClearText = new JMenuItem();
-    menuEditCommentSelected = new JMenuItem();
-    menuEditUncommentSelected = new JMenuItem();
+    menuToggleComment = new JMenuItem();
     jSeparator3 = new Separator();
     menuItemFindText = new JMenuItem();
     menuItemWordWrapSources = new JCheckBoxMenuItem();
@@ -763,19 +761,13 @@ public final class MainFrame extends javax.swing.JFrame
     menuClearText.addActionListener(this::menuClearTextActionPerformed);
     menuEdit.add(menuClearText);
 
-    menuEditCommentSelected.setIcon(UiUtils.loadIcon("comment_add")); // NOI18N
-    menuEditCommentSelected.setText("Comment selection");
-    menuEditCommentSelected.setToolTipText(
-        "Place the commenting symbol as the first one into selected lines");
-    menuEditCommentSelected.addActionListener(this::menuEditCommentSelectedActionPerformed);
-    menuEdit.add(menuEditCommentSelected);
+    menuToggleComment.setIcon(UiUtils.loadIcon("comment_add")); // NOI18N
+    menuToggleComment.setText("Toggle comment");
+    menuToggleComment.setToolTipText(
+        "Comment or uncomment selected text or focused line");
+    menuToggleComment.addActionListener(this::menuEditCommentSelectedActionPerformed);
+    menuEdit.add(menuToggleComment);
 
-    menuEditUncommentSelected.setIcon(UiUtils.loadIcon("comment_delete")); // NOI18N
-    menuEditUncommentSelected.setText("Uncomment selection");
-    menuEditUncommentSelected.setToolTipText(
-        "Remove the first commenting symbol from selected lines");
-    menuEditUncommentSelected.addActionListener(this::menuEditUncommentSelectedActionPerformed);
-    menuEdit.add(menuEditUncommentSelected);
     menuEdit.add(jSeparator3);
 
     menuItemFindText.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F,
@@ -1132,15 +1124,7 @@ public final class MainFrame extends javax.swing.JFrame
   }
 
   private void menuEditCommentSelectedActionPerformed(ActionEvent evt) {
-    if (this.sourceEditor.commentSelectedLines()) {
-      documentChanged();
-    }
-  }
-
-  private void menuEditUncommentSelectedActionPerformed(ActionEvent evt) {
-    if (this.sourceEditor.uncommentSelectedLines()) {
-      documentChanged();
-    }
+    this.sourceEditor.toggleComment();
   }
 
   private void menuItemFullScreenActionPerformed(ActionEvent evt) {
