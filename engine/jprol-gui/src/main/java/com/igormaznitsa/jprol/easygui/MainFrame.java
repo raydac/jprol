@@ -1084,7 +1084,8 @@ public final class MainFrame extends javax.swing.JFrame
       }
 
       final Thread newThread =
-          new Thread(this.executingScripts, this, tracing ? "JPROL_TRACING_EXEC" : "JPROL_EXEC");
+          new Thread(this.executingScripts, this,
+              tracing ? "thread-jprol-tracing" : "jprol-running");
       newThread.setDaemon(false);
 
       if (this.currentExecutedScriptThread.compareAndSet(null, newThread)) {
@@ -1474,8 +1475,11 @@ public final class MainFrame extends javax.swing.JFrame
         this.dialogEditor.cancelRead();
         this.dialogEditor.close();
 
+        final JProlContext context = this.currentContext.getAndSet(null);
+        if (context != null) {
+          context.dispose();
+        }
         final Thread executingThread = this.currentExecutedScriptThread.get();
-
         try {
           executingThread.interrupt();
           executingThread.join();

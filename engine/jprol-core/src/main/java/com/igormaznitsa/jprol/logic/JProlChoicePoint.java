@@ -33,6 +33,7 @@ import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.exceptions.ProlChoicePointInterruptedException;
 import com.igormaznitsa.jprol.exceptions.ProlChoicePointStackOverflowException;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
+import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.trace.TraceEvent;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
@@ -191,6 +192,9 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public Term prove() {
+    if (this.context.isDisposed()) {
+      throw new ProlHaltExecutionException("Context disposed", 0);
+    }
     return this.proveNext((s, t) -> this.context.notifyAboutUndefinedPredicate(this, s, t));
   }
 
