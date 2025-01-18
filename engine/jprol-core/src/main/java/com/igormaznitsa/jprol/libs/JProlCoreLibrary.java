@@ -2321,12 +2321,26 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         throw new ProlTypeErrorException("numeric", length);
       }
     } else if (list.getTermType() == LIST) {
-      final NumericTerm calculatedLength = Terms.newLong(((TermList) list).calculateLength());
-      if (length.getTermType() == VAR || length instanceof NumericTerm) {
+      final TermList asList = (TermList) list;
+      final NumericTerm calculatedLength = Terms.newLong(asList.calculateLength());
+      if (length.getTermType() == VAR) {
+        final TermVar asVar = (TermVar) length;
+        if (asVar.isAnonymous()) {
+          return true;
+        }
+        final Term tail = asList.findLastTail().findNonVarOrSame();
+        if (tail.getTermType() == VAR) {
+          final TermVar tailVar = (TermVar) tail;
+          if (!tailVar.isAnonymous() && asVar.getText().equals(tailVar.getText())) {
+            return false;
+          }
+        }
         return length.unifyTo(calculatedLength);
-      } else {
-        throw new ProlTypeErrorException("numeric", length);
       }
+      if (length instanceof NumericTerm) {
+        return length.unifyTo(calculatedLength);
+      }
+      throw new ProlTypeErrorException("numeric", length);
     } else {
       throw new ProlTypeErrorException("numeric", list);
     }

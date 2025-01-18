@@ -338,6 +338,20 @@ public final class TermList extends TermStruct {
     return "./2";
   }
 
+  public Term findLastTail() {
+    if (isNullList()) {
+      return NULL_LIST;
+    }
+    TermList curList = this;
+    while (true) {
+      Term tail = curList.getTail();
+      if (tail == Terms.NULL_LIST || tail.getTermType() != LIST) {
+        return tail;
+      }
+      curList = (TermList) tail;
+    }
+  }
+
   public void replaceLastElement(final Term newLastElement) {
     if (isNullList()) {
       throw new ProlCriticalError("Attempt to change Null list");
