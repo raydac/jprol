@@ -1,0 +1,111 @@
+% Test cases for length/2
+
+% Test empty list
+test_empty_list :-
+    length([], 0),
+    writeln('test_empty_list passed').
+
+% Test singleton list
+test_singleton_list :-
+    length([a], 1),
+    writeln('test_singleton_list passed').
+
+% Test small list
+test_small_list :-
+    length([a, b, c], 3),
+    writeln('test_small_list passed').
+
+% Test list with mixed elements
+test_mixed_elements :-
+    length([a, 42, foo(bar)], 3),
+    writeln('test_mixed_elements passed').
+
+% Test with variable list and known length
+test_variable_list :-
+    length(List, 4),
+    List = [_A, _B, _C, _D],
+    writeln('test_variable_list passed').
+
+% Test with length partially instantiated
+test_partially_instantiated_length :-
+    List = [a, _],
+    length(List, 2),
+    writeln('test_partially_instantiated_length passed').
+
+% Test large list
+test_large_list :-
+    length(List, 1000),
+    length(FilledList, 1000),
+    append(List, [], FilledList),
+    writeln('test_large_list passed').
+
+% Test variable length with fully instantiated list
+test_variable_length :-
+    List = [a, b, c],
+    length(List, Length),
+    Length == 3,
+    writeln('test_variable_length passed').
+
+% Test incorrect length
+test_incorrect_length :-
+    (   length([a, b, c], 4) -> writeln('test_incorrect_length failed')
+    ;   writeln('test_incorrect_length passed')
+    ).
+
+% Test non-list input (should fail)
+test_non_list_input :-
+    (   length(foo, 3) -> writeln('test_non_list_input failed')
+    ;   writeln('test_non_list_input passed')
+    ).
+
+% Test invalid length (negative number, should fail)
+test_negative_length :-
+    (   length([a, b], -1) -> writeln('test_negative_length failed')
+    ;   writeln('test_negative_length passed')
+    ).
+
+% Test with infinite list (should fail in ISO Prolog)
+test_infinite_list :-
+    (   length([_|Tail], 1000), Tail = Tail ->
+        writeln('test_infinite_list failed')
+    ;   writeln('test_infinite_list passed')
+    ).
+
+% Test ground check
+test_ground_check :-
+    length(X, 3),
+    X = [1, 2, 3],
+    writeln('test_ground_check passed').
+
+% Test backtracking with length
+test_backtracking :-
+    findall(L, (member(L, [[a, b, c], [a, b, d]]), length(L, 3)), Results),
+    Results == [[a, b, c], [a, b, d]],
+    writeln('test_backtracking passed').
+
+% Test corner case when partial list contains lemgth variable must fail
+test_corner_case :-
+    (   X=Tail,length([1,2,3|Tail], X) -> writeln('test_corner_case failed')
+    ;   writeln('test_corner_case passed')
+    ).
+
+% Run all tests
+run_tests :-
+    test_empty_list,
+    test_singleton_list,
+    test_small_list,
+    test_mixed_elements,
+    test_variable_list,
+    test_partially_instantiated_length,
+    test_large_list,
+    test_variable_length,
+    test_incorrect_length,
+    test_non_list_input,
+    test_negative_length,
+    test_infinite_list,
+    test_ground_check,
+    test_backtracking,
+    test_corner_case.
+
+% Entry point
+:- run_tests.

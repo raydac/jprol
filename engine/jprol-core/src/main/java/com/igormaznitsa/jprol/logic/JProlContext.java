@@ -680,7 +680,7 @@ public final class JProlContext implements AutoCloseable {
   public void addTrigger(final JProlTrigger trigger) {
     assertNotDisposed();
     trigger.getSignatures().forEach((signature, types) -> {
-      String validatedSignature = ProlUtils.reassembleSignature(signature);
+      String validatedSignature = ProlUtils.reassembleSignatureOrNull(signature);
       if (validatedSignature == null) {
         throw new IllegalArgumentException("Illegal signature format: " + signature);
       }

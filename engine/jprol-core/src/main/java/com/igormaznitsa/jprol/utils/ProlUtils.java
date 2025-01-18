@@ -323,7 +323,7 @@ public final class ProlUtils {
     return ProlPair.makeOf(namePart, arity);
   }
 
-  public static String reassembleSignature(final String signature) {
+  public static String reassembleSignatureOrNull(final String signature) {
     try {
       final ProlPair<String, Integer> parsed = parseSignaturePair(signature);
       final String functor = parsed.getLeft();

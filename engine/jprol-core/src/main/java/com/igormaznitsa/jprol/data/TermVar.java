@@ -61,6 +61,30 @@ public final class TermVar extends Term {
     return VAR;
   }
 
+  /**
+   * Check that a variable presented in among variables in values.
+   *
+   * @param otherVar variable to be checked
+   * @return true if var presented among variables in hosted variable chain.
+   * @since 2.2.0
+   */
+  public boolean hasAmongValues(final TermVar otherVar) {
+    TermVar current = this;
+    while (current != null) {
+      if (this.isAnonymous() || otherVar.isAnonymous()) {
+        return false;
+      }
+      if (this.value == null || this.value.getTermType() != VAR || this.value == this) {
+        return false;
+      }
+      if (this.value == otherVar || this.value.getText().equals(otherVar.getText())) {
+        return true;
+      }
+      current = (TermVar) this.value;
+    }
+    return false;
+  }
+
   @Override
   public Term makeClone() {
     final Term thisValue = this.getThisValue();

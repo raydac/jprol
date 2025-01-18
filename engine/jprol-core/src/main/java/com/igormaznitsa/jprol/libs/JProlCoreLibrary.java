@@ -2331,7 +2331,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         final Term tail = asList.findLastTail().findNonVarOrSame();
         if (tail.getTermType() == VAR) {
           final TermVar tailVar = (TermVar) tail;
-          if (!tailVar.isAnonymous() && asVar.getText().equals(tailVar.getText())) {
+          if (tailVar.hasAmongValues(asVar) || asVar.hasAmongValues(tailVar)) {
             return false;
           }
         }
@@ -2342,7 +2342,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
       throw new ProlTypeErrorException("numeric", length);
     } else {
-      throw new ProlTypeErrorException("numeric", list);
+      return false;
     }
   }
 
