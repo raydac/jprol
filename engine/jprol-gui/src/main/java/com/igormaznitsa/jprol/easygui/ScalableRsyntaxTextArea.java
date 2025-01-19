@@ -30,7 +30,7 @@ import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
 import org.fife.ui.rtextarea.Gutter;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
-public final class ScalableRsyntaxTextArea extends RSyntaxTextArea {
+public class ScalableRsyntaxTextArea extends RSyntaxTextArea {
   private static final float SCALE_STEP = 0.5f;
   private static final float SCALE_MIN = 1.0f;
   private static final float SCALE_MAX = 10.0f;

@@ -87,8 +87,13 @@ public class PrologSourceEditor extends AbstractProlEditor {
 
     this.applyScheme(theEditor);
 
-    theEditor.getInputMap().put(KeyStroke.getKeyStroke("control Z"), "none");
-    theEditor.getInputMap().put(KeyStroke.getKeyStroke("control Y"), "none");
+    if (UiUtils.isMacOs()) {
+      theEditor.getInputMap().put(KeyStroke.getKeyStroke("meta Z"), "none");
+      theEditor.getInputMap().put(KeyStroke.getKeyStroke("meta Y"), "none");
+    } else {
+      theEditor.getInputMap().put(KeyStroke.getKeyStroke("control Z"), "none");
+      theEditor.getInputMap().put(KeyStroke.getKeyStroke("control Y"), "none");
+    }
 
     theEditor.setAntiAliasingEnabled(true);
     theEditor.setBracketMatchingEnabled(true);
