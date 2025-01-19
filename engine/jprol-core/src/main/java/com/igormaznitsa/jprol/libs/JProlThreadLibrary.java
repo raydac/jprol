@@ -38,6 +38,8 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
       "+list"}, reference = "Allows to prove a few goals (non linked between each other) in separated threads simultaneously, it is blocking the calling thread until all threads (started by the predicate) are completed. The fork implements AND operation (i.e. all goals have to be true else the predicate will fail).You must not have the same non-instantiated variables in terms that will be executed in different threads. The fork_error/1 will be thrown if any thread will throw an exception.")
   public static boolean predicateFORK1(final JProlChoicePoint choicePoint,
                                        final TermStruct predicate) {
+    assertCriticalPredicateAllowed(JProlThreadLibrary.class, choicePoint, predicate);
+
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     if (choicePoint.isArgsValidate()) {
       ProlAssertions.assertList(arg);
@@ -58,6 +60,8 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
       "+list"}, reference = "It works like fork/1 but it will interrupt all non-completed threads of the fork if any of completed fails.")
   public static boolean predicateIFORK1(final JProlChoicePoint choicePoint,
                                         final TermStruct predicate) {
+    assertCriticalPredicateAllowed(JProlThreadLibrary.class, choicePoint, predicate);
+
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     if (choicePoint.isArgsValidate()) {
       ProlAssertions.assertList(arg);
@@ -83,6 +87,8 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
       "+callable"}, reference = "Allows to next a goal asynchronously, it will be started as a daemon so it will be stopped when the main goal will be solved or failed. If there will be uncaught exception it will be just out at the log.")
   public static void predicateASYNC1(final JProlChoicePoint choicePoint,
                                      final TermStruct predicate) {
+    assertCriticalPredicateAllowed(JProlThreadLibrary.class, choicePoint, predicate);
+
     final Term term = predicate.getElement(0).findNonVarOrSame();
     if (choicePoint.isArgsValidate()) {
       ProlAssertions.assertCallable(term);
@@ -99,6 +105,8 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
       "+atom"}, reference = "Unlock a locker for its name and allow to continue work of waiting threads. If any other thread is the owner for the locker then permission_error/3 will be thrown.")
   public static void predicateUNLOCK1(final JProlChoicePoint choicePoint,
                                       final TermStruct predicate) {
+    assertCriticalPredicateAllowed(JProlThreadLibrary.class, choicePoint, predicate);
+
     final Term term = predicate.getElement(0).findNonVarOrSame();
     if (choicePoint.isArgsValidate()) {
       ProlAssertions.assertAtom(term);
@@ -117,6 +125,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
       "+atom"}, reference = "Try make lock for a named locker, if it is being locked already then fail else success.")
   public static boolean predicateTRYLOCK1(final JProlChoicePoint choicePoint,
                                           final TermStruct predicate) {
+    assertCriticalPredicateAllowed(JProlThreadLibrary.class, choicePoint, predicate);
     final Term term = predicate.getElement(0).findNonVarOrSame();
     if (choicePoint.isArgsValidate()) {
       ProlAssertions.assertAtom(term);
@@ -128,6 +137,8 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
       "+atom"}, reference = "Lock named locker, if it is being locked already then fail else success.")
   public static void predicateLOCK1(final JProlChoicePoint choicePoint,
                                     final TermStruct predicate) {
+    assertCriticalPredicateAllowed(JProlThreadLibrary.class, choicePoint, predicate);
+
     final Term term = predicate.getElement(0).findNonVarOrSame();
     if (choicePoint.isArgsValidate()) {
       ProlAssertions.assertAtom(term);
@@ -136,11 +147,13 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "waitasync/0", reference = "Blocking waiting until all daemon threads (started with either fork/1 or async/1) of the context will be done.")
-  public static void predicateWAITASYNC0(final JProlChoicePoint choincePoint,
+  public static void predicateWAITASYNC0(final JProlChoicePoint choicePoint,
                                          final TermStruct predicate) {
-    choincePoint.getContext().waitAllAsyncTasks();
-    if (Thread.currentThread().isInterrupted()) {
-      choincePoint.getContext().getContextExecutorService().shutdown();
+    assertCriticalPredicateAllowed(JProlThreadLibrary.class, choicePoint, predicate);
+
+    choicePoint.getContext().waitAllAsyncTasks();
+    if (Thread.currentThread().isInterrupted() || choicePoint.getContext().isDisposed()) {
+      choicePoint.getContext().getContextExecutorService().shutdown();
       throw new ProlForkExecutionException("Execution interrupted", predicate, null);
     }
   }

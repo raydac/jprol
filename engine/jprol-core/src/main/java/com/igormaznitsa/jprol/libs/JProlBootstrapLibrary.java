@@ -95,6 +95,8 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
   )
   public static boolean predicateSETPROLOGFLAG(final JProlChoicePoint choicePoint,
                                                final TermStruct predicate) {
+    assertCriticalPredicateAllowed(JProlBootstrapLibrary.class, choicePoint, predicate);
+
     final Term atom = predicate.getElement(0).findNonVarOrSame();
     final Term term = predicate.getElement(1).findNonVarOrSame();
 

@@ -980,6 +980,23 @@ public final class JProlContext implements AutoCloseable {
     return "ProlContext(" + contextId + ')' + '[' + super.toString() + ']';
   }
 
+  /**
+   * Check that a critical predicate allowed, a predicate like consult/1 or abolish/1 so mainly working with IO, threads and changing knowledge base.
+   *
+   * @param sourceLibrary      source library class where the predicate is defined
+   * @param choicePoint        choice point where the predicate is called
+   * @param predicateIndicator predicate indicator
+   * @return true if allowed false otherwise
+   * @since 2.2.0
+   */
+  public boolean isCriticalPredicateAllowed(
+      final Class<? extends AbstractJProlLibrary> sourceLibrary,
+      final JProlChoicePoint choicePoint,
+      final String predicateIndicator
+  ) {
+    return true;
+  }
+
   public JProlContext makeCopy(final boolean shareKnowledgeBase) {
     return new JProlContext(
         this,

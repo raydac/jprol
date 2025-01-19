@@ -37,6 +37,7 @@ import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
@@ -204,6 +205,17 @@ public abstract class AbstractJProlLibrary {
     return (T) this.contextNamedObjects
         .computeIfAbsent(context, ctx -> new ConcurrentHashMap<>())
         .computeIfAbsent(objectId, defaultSupplier);
+  }
+
+  protected static void assertCriticalPredicateAllowed(
+      final Class<? extends AbstractJProlLibrary> sourceLibrary,
+      final JProlChoicePoint choicePoint,
+      final TermStruct predicate
+  ) {
+    if (!choicePoint.getContext()
+        .isCriticalPredicateAllowed(sourceLibrary, choicePoint, predicate.getSignature())) {
+      throw new ProlPermissionErrorException("access", "prohibited_predicate", predicate);
+    }
   }
 
   protected void putContextObject(final JProlContext context, final String objectId,
