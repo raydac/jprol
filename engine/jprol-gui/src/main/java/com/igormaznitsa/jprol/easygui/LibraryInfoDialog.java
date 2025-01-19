@@ -16,6 +16,7 @@
 
 package com.igormaznitsa.jprol.easygui;
 
+import com.igormaznitsa.jprol.easygui.tokenizer.JProlTokenMaker;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -107,7 +108,7 @@ public final class LibraryInfoDialog extends JDialog {
   private void initComponents() {
     java.awt.GridBagConstraints gridBagConstraints;
 
-    textPaneLibText = new ScalableRsyntaxTextArea();
+    textPaneLibText = new ScalableRsyntaxTextArea(JProlTokenMaker.MIME);
     textPaneScroll = new RTextScrollPane(textPaneLibText, false);
     textPaneLibText.setEditable(false);
     textPaneLibText.setHighlightCurrentLine(false);

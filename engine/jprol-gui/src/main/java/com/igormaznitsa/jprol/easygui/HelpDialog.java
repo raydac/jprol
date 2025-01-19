@@ -46,7 +46,7 @@ public class HelpDialog extends javax.swing.JDialog {
   private void initComponents() {
     java.awt.GridBagConstraints gridBagConstraints;
 
-    textHelp = new ScalableRsyntaxTextArea();
+    textHelp = new ScalableRsyntaxTextArea("plain/text");
     scrollTextHelp = new RTextScrollPane(textHelp, false);
     buttonClose = new javax.swing.JButton();
 

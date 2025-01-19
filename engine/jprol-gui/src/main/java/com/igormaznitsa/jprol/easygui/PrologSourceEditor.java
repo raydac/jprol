@@ -77,11 +77,10 @@ public class PrologSourceEditor extends AbstractProlEditor {
 
 
   public PrologSourceEditor() {
-    super("Editor", new ScalableRsyntaxTextArea(), true, true);
+    super("Editor", new ScalableRsyntaxTextArea(JProlTokenMaker.MIME), true, true);
     replacePropertyLink(PROPERTY_ED_FONT, new PropertyLink(this, "Font", "EdAndBaseFont"));
 
     final ScalableRsyntaxTextArea theEditor = (ScalableRsyntaxTextArea) this.editor;
-    theEditor.setSyntaxEditingStyle(JProlTokenMaker.MIME);
     theEditor.setAutoscrolls(true);
     theEditor.setTabsEmulated(true);
 
@@ -537,45 +536,6 @@ public class PrologSourceEditor extends AbstractProlEditor {
         ((ScalableRsyntaxTextArea) editor).getBaseFont());
   }
 
-  public boolean uncommentSelectedLines() {
-    if (editor.getDocument().getLength() == 0) {
-      return false;
-    }
-
-    int selectionStart = editor.getSelectionStart();
-    int selectionEnd = editor.getSelectionEnd();
-
-    if (selectionStart < 0 || selectionEnd < 0) {
-      selectionStart = editor.getCaretPosition();
-      selectionEnd = selectionStart;
-    }
-
-    final Element root = editor.getDocument().getDefaultRootElement();
-    final int startElement = root.getElementIndex(selectionStart);
-    final int endElement = root.getElementIndex(selectionEnd);
-
-    boolean result = false;
-
-    for (int i = startElement; i <= endElement; i++) {
-      final Element elem = root.getElement(i);
-      try {
-        final String elementtext = elem.getDocument()
-            .getText(elem.getStartOffset(), elem.getEndOffset() - elem.getStartOffset());
-        if (elementtext.trim().startsWith("%")) {
-          final int indexofcomment = elementtext.indexOf('%');
-          if (indexofcomment >= 0) {
-            elem.getDocument().remove(elem.getStartOffset() + indexofcomment, 1);
-            result = true;
-          }
-        }
-      } catch (BadLocationException ex) {
-        LOGGER.throwing(this.getClass().getCanonicalName(), "uncommentSelectedLines()", ex);
-      }
-    }
-    editor.revalidate();
-    return result;
-  }
-
   public int getLine() {
     if (this.editor instanceof RSyntaxTextArea) {
       final RSyntaxTextArea rSyntaxTextArea = (RSyntaxTextArea) this.editor;
@@ -609,42 +569,6 @@ public class PrologSourceEditor extends AbstractProlEditor {
     } else {
       return -1;
     }
-  }
-
-  public boolean commentSelectedLines() {
-    if (editor.getDocument().getLength() == 0) {
-      return false;
-    }
-
-    int selectionStart = editor.getSelectionStart();
-    int selectionEnd = editor.getSelectionEnd();
-
-    if (selectionStart < 0 || selectionEnd < 0) {
-      selectionStart = editor.getCaretPosition();
-      selectionEnd = selectionStart;
-    }
-
-    final Element root = editor.getDocument().getDefaultRootElement();
-    final int startElement = root.getElementIndex(selectionStart);
-    final int endElement = root.getElementIndex(selectionEnd);
-
-    boolean result = false;
-
-    for (int i = startElement; i <= endElement; i++) {
-      final Element elem = root.getElement(i);
-      try {
-        final String elementText = elem.getDocument()
-            .getText(elem.getStartOffset(), elem.getEndOffset() - elem.getStartOffset());
-        if (!elementText.trim().startsWith("%")) {
-          elem.getDocument().insertString(elem.getStartOffset(), "%", null);
-          result = true;
-        }
-      } catch (BadLocationException ex) {
-        LOGGER.throwing(this.getClass().getCanonicalName(), "commentSelectedLines()", ex);
-      }
-    }
-    editor.revalidate();
-    return result;
   }
 
   @Override

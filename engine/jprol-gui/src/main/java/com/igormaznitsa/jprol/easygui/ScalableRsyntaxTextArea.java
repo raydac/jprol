@@ -24,6 +24,7 @@ import java.awt.Font;
 import java.awt.event.MouseWheelEvent;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
+import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.Style;
 import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
@@ -37,8 +38,8 @@ public class ScalableRsyntaxTextArea extends RSyntaxTextArea {
   private float fontScale = 1.0f;
   private Font baseFont;
 
-  public ScalableRsyntaxTextArea() {
-    super();
+  public ScalableRsyntaxTextArea(final String syntaxStyle) {
+    super(new RSyntaxDocument(syntaxStyle));
     this.baseFont = this.getFont();
 
     this.addMouseWheelListener((final MouseWheelEvent e) -> {

@@ -257,6 +257,8 @@ public final class MainFrame extends javax.swing.JFrame
     try {
       initComponents();
 
+      this.setTitle("JProl editor v" + VERSION);
+
       this.sourceEditor.getEditor().addCaretListener(e -> this.updateCaretPositionIndication());
       this.updateCaretPositionIndication();
 
@@ -271,7 +273,7 @@ public final class MainFrame extends javax.swing.JFrame
       addWindowListener(this);
       panelProgress.setVisible(false);
 
-      this.setAppIcon(((ImageIcon) UiUtils.loadIcon("appico")).getImage());
+      this.setAppIcon(UiUtils.loadIcon("appico").getImage());
 
       fillLFMenuItem();
 
