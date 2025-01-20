@@ -42,6 +42,8 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
       "?atom,?term"}, reference = "Check prolog flag and flag values.")
   public static boolean predicateCURRENTPROLOGFLAG(final JProlChoicePoint choicePoint,
                                                    final TermStruct predicate) {
+    assertCriticalPredicateAllowed(JProlBootstrapLibrary.class, choicePoint, predicate);
+
     final Term atom = predicate.getElement(0).findNonVarOrSame();
     final Term term = predicate.getElement(1).findNonVarOrSame();
 

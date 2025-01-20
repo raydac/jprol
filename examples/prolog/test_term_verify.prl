@@ -1,0 +1,98 @@
+% Test cases for atom/1
+run_test(atom_true) :- (atom(hello) -> writeln('atom_true: ok'); writeln('atom_true: failed')).
+run_test(atom_false) :- (atom(42) -> writeln('atom_false: failed'); writeln('atom_false: ok')).
+run_test(atom_empty_list) :- (atom([]) -> writeln('atom_empty_list: failed'));writeln('atom_empty_list: ok').
+
+% Test cases for numeric/1 (SWI-Prolog provides number/1 instead of numeric/1)
+run_test(numeric_true) :- (number(42) -> writeln('numeric_true: ok'); writeln('numeric_true: failed')).
+run_test(numeric_true_float) :- (number(3.14) -> writeln('numeric_true_float: ok'); writeln('numeric_true_float: failed')).
+run_test(numeric_false) :- (number(hello) -> writeln('numeric_false: failed'); writeln('numeric_false: ok')).
+run_test(numeric_empty_list) :- (number([]) -> writeln('numeric_empty_list: failed'); writeln('numeric_empty_list: ok')).
+
+% Test cases for compound/1
+run_test(compound_true) :- (compound(foo(bar)) -> writeln('compound_true: ok'); writeln('compound_true: failed')).
+run_test(compound_false) :- (compound(42) -> writeln('compound_false: failed'); writeln('compound_false: ok')).
+run_test(compound_empty_list) :- (compound([]) -> writeln('compound_empty_list: failed'); writeln('compound_empty_list: ok')).
+
+% Test cases for ground/1
+run_test(ground_true) :- (ground(42) -> writeln('ground_true: ok'); writeln('ground_true: failed')).
+run_test(ground_true_compound) :- (ground(foo(bar)) -> writeln('ground_true_compound: ok'); writeln('ground_true_compound: failed')).
+run_test(ground_false) :- (ground(foo(_)) -> writeln('ground_false: failed'); writeln('ground_false: ok')).
+run_test(ground_empty_list) :- (ground([]) -> writeln('ground_empty_list: ok'); writeln('ground_empty_list: failed')).
+
+% Test cases for callable/1
+run_test(callable_true) :- (callable(foo(bar)) -> writeln('callable_true: ok'); writeln('callable_true: failed')).
+run_test(callable_false) :- (callable(42) -> writeln('callable_false: failed'); writeln('callable_false: ok')).
+run_test(callable_empty_list) :- (callable([]) -> writeln('callable_empty_list: failed')); writeln('callable_empty_list: ok').
+
+% Test cases for integer/1
+run_test(integer_true) :- (integer(42) -> writeln('integer_true: ok'); writeln('integer_true: failed')).
+run_test(integer_false) :- (integer(3.14) -> writeln('integer_false: failed'); writeln('integer_false: ok')).
+run_test(integer_empty_list) :- (integer([]) -> writeln('integer_empty_list: failed'); writeln('integer_empty_list: ok')).
+
+% Test cases for float/1
+run_test(float_true) :- (float(3.14) -> writeln('float_true: ok'); writeln('float_true: failed')).
+run_test(float_false) :- (float(42) -> writeln('float_false: failed'); writeln('float_false: ok')).
+run_test(float_empty_list) :- (float([]) -> writeln('float_empty_list: failed'); writeln('float_empty_list: ok')).
+
+% Test cases for var/1
+run_test(var_true) :- (var(X) -> writeln('var_true: ok'); writeln('var_true: failed')).
+run_test(var_false) :- (var(42) -> writeln('var_false: failed'); writeln('var_false: ok')).
+run_test(var_empty_list) :- (var([]) -> writeln('var_empty_list: failed'); writeln('var_empty_list: ok')).
+
+% Test cases for nonvar/1
+run_test(nonvar_true) :- (nonvar(42) -> writeln('nonvar_true: ok'); writeln('nonvar_true: failed')).
+run_test(nonvar_false) :- (nonvar(X) -> writeln('nonvar_false: failed'); writeln('nonvar_false: ok')).
+run_test(nonvar_empty_list) :- (nonvar([]) -> writeln('nonvar_empty_list: ok'); writeln('nonvar_empty_list: failed')).
+
+% Test cases for number/1
+run_test(number_true_integer) :- (number(42) -> writeln('number_true_integer: ok'); writeln('number_true_integer: failed')).
+run_test(number_true_float) :- (number(3.14) -> writeln('number_true_float: ok'); writeln('number_true_float: failed')).
+run_test(number_false) :- (number(hello) -> writeln('number_false: failed'); writeln('number_false: ok')).
+run_test(number_empty_list) :- (number([]) -> writeln('number_empty_list: failed'); writeln('number_empty_list: ok')).
+
+% Test cases for string/1
+run_test(string_true) :- (string("hello") -> writeln('string_true: ok'); writeln('string_true: failed')).
+run_test(string_false) :- (string(42) -> writeln('string_false: failed'); writeln('string_false: ok')).
+run_test(string_empty_list) :- (string([]) -> writeln('string_empty_list: failed'); writeln('string_empty_list: ok')).
+
+% Run all tests
+run_tests :-
+    run_test(atom_true),
+    run_test(atom_false),
+    run_test(atom_empty_list),
+    run_test(numeric_true),
+    run_test(numeric_true_float),
+    run_test(numeric_false),
+    run_test(numeric_empty_list),
+    run_test(compound_true),
+    run_test(compound_false),
+    run_test(compound_empty_list),
+    run_test(ground_true),
+    run_test(ground_true_compound),
+    run_test(ground_false),
+    run_test(ground_empty_list),
+    run_test(callable_true),
+    run_test(callable_false),
+    run_test(callable_empty_list),
+    run_test(integer_true),
+    run_test(integer_false),
+    run_test(integer_empty_list),
+    run_test(float_true),
+    run_test(float_false),
+    run_test(float_empty_list),
+    run_test(var_true),
+    run_test(var_false),
+    run_test(var_empty_list),
+    run_test(nonvar_true),
+    run_test(nonvar_false),
+    run_test(nonvar_empty_list),
+    run_test(number_true_integer),
+    run_test(number_true_float),
+    run_test(number_false),
+    run_test(number_empty_list),
+    run_test(string_true),
+    run_test(string_false),
+    run_test(string_empty_list).
+
+:- run_tests.

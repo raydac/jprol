@@ -1494,7 +1494,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     //[atom(TermVar), failure].
     checkOnce("atom(TermVar).", false);
     //[atom([]), success].
-    checkOnce("atom([]).", true);
+    checkOnce("atom([]).", false);
     //[atom(6), failure].
     checkOnce("atom(6).", false);
     //[atom(3.3), failure].

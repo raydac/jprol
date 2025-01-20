@@ -549,4 +549,35 @@ public final class TermList extends TermStruct {
     }
     return getHead().hasVariableWithName(name) || getTail().hasVariableWithName(name);
   }
+
+  public boolean doesContainOnlyCharCodes() {
+    TermList current = this;
+    while (current != null) {
+      final Term term = current.getHead().findNonVarOrSame();
+      if (term instanceof TermLong) {
+        final long code = term.toNumber().longValue();
+        if ((code & 0xFFFFFFFF00000000L) == 0L) {
+          final int charCode = (int) (code & 0xFFFFFFFFL);
+          if (!Character.isValidCodePoint(charCode)) {
+            return false;
+          }
+        } else {
+          return false;
+        }
+
+        final Term tail = current.getTail().findNonVarOrSame();
+        if (tail.getTermType() == LIST) {
+          final TermList newList = (TermList) tail;
+          if (newList.isNullList()) {
+            current = null;
+          } else {
+            current = newList;
+          }
+        } else {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
 }

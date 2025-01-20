@@ -46,6 +46,7 @@ import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermLong;
 import com.igormaznitsa.jprol.data.TermOperator;
 import com.igormaznitsa.jprol.data.TermStruct;
+import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.exceptions.ProlAbstractCatchableException;
@@ -86,6 +87,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
@@ -968,85 +970,72 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = "atom/1", reference = "atom(X) is true if and only if X is an atom.")
   public static boolean predicateATOM(final JProlChoicePoint goal, final TermStruct predicate) {
-    Term arg = predicate.getElement(0);
-    if (arg.getTermType() == VAR) {
-      arg = ((TermVar) arg).getValue();
-      if (arg == null) {
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
+    return arg.getTermType() == ATOM && !(arg instanceof NumericTerm);
+  }
+
+  @JProlPredicate(determined = true, signature = "ground/1", args = "@term", reference = "True if Term holds no free variables.")
+  public static boolean predicateGROUND(final JProlChoicePoint goal, final TermStruct predicate) {
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
+    return arg.isGround();
+  }
+
+  @JProlPredicate(determined = true, signature = "callable/1", args = "@term", reference = "True if Term is bound to an atom or a compound term.")
+  public static boolean predicateCALLABLE(final JProlChoicePoint goal, final TermStruct predicate) {
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
+    return (arg.getTermType() == ATOM && !(arg instanceof NumericTerm)) ||
+        arg.getTermType() == STRUCT;
+  }
+
+  @JProlPredicate(determined = true, signature = "string/1", args = "@term", reference = "True if Term is bound to a string.")
+  public static boolean predicateSTRING(final JProlChoicePoint goal, final TermStruct predicate) {
+    final Term arg = predicate.getElement(0).findNonVarOrSame();
+    if (arg.getTermType() == LIST) {
+      final TermList termList = (TermList) arg;
+      if (termList.isNullList()) {
         return false;
       }
+      return termList.doesContainOnlyCharCodes();
+    } else {
+      return false;
     }
-
-    boolean result = false;
-
-    switch (arg.getTermType()) {
-      case ATOM: {
-        result = !(arg instanceof NumericTerm);
-      }
-      break;
-      case LIST: {
-        result = ((TermList) arg).isNullList();
-      }
-      break;
-    }
-
-    return result;
   }
 
   @JProlPredicate(determined = true, signature = "integer/1", reference = "integer(X) is true if and only if X is an integer.")
   public static boolean predicateINTEGER(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
-
-    if (arg.getTermType() == ATOM) {
-      return arg instanceof TermLong;
-    } else {
-      return false;
-    }
+    return arg instanceof TermLong;
   }
 
   @JProlPredicate(determined = true, signature = "number/1", reference = "number(X) is true if and only if X is an integer or a float.")
   public static boolean predicateNUMBER(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
-    return (arg.getTermType() == ATOM) && (arg instanceof NumericTerm);
+    return arg instanceof NumericTerm;
   }
 
   @JProlPredicate(determined = true, signature = "float/1", reference = "float(X) is true if and only if X is a float.")
   public static boolean predicateFLOAT(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
-    if (arg.getTermType() == ATOM) {
-      return arg instanceof TermDouble;
-    } else {
-      return false;
-    }
+    return arg instanceof TermDouble;
   }
 
   @JProlPredicate(determined = true, signature = "compound/1", reference = "compound(X) is true if and only if X is a compound term, that is neither atomic nor a variable.")
   public static boolean predicateCOMPOUND(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term atom = predicate.getElement(0).findNonVarOrSame();
-    switch (atom.getTermType()) {
-      case STRUCT:
-        return true;
-      case LIST:
-        return !((TermList) atom).isNullList();
-      default:
-        return false;
+    TermType termType = atom.getTermType();
+    if (Objects.requireNonNull(termType) == STRUCT) {
+      return true;
+    } else if (termType == LIST) {
+      return !((TermList) atom).isNullList();
     }
+    return false;
   }
 
   @JProlPredicate(determined = true, signature = "atomic/1", reference = "atomic(X) is true if and only if X is atomic (that is an atom, an integer or a float).")
   public static boolean predicateATOMIC(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
-    boolean result = false;
-    switch (arg.getTermType()) {
-      case ATOM: {
-        result = true;
-      }
-      break;
-      case LIST: {
-        result = ((TermList) arg).isNullList();
-      }
-      break;
-    }
-    return result;
+    return arg.getTermType() == ATOM ||
+        (arg.getTermType() == LIST && ((TermList) arg).isNullList());
   }
 
   @JProlPredicate(determined = true, signature = "arg/3", args = {
