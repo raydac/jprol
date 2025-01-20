@@ -763,8 +763,8 @@ public final class MainFrame extends javax.swing.JFrame
     menuClearText.addActionListener(this::menuClearTextActionPerformed);
     menuEdit.add(menuClearText);
 
-    menuToggleComment.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_SLASH,
-        controlDownMask));
+//    menuToggleComment.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_SLASH,
+//        controlDownMask));
     menuToggleComment.setIcon(UiUtils.loadIcon("comment_add")); // NOI18N
     menuToggleComment.setText("Toggle comment");
     menuToggleComment.setToolTipText(

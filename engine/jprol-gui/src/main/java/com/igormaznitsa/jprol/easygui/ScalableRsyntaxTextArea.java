@@ -39,7 +39,9 @@ public class ScalableRsyntaxTextArea extends RSyntaxTextArea {
   private Font baseFont;
 
   public ScalableRsyntaxTextArea(final String syntaxStyle) {
-    super(new RSyntaxDocument(syntaxStyle));
+    super();
+    final RSyntaxDocument document = new RSyntaxDocument(syntaxStyle);
+    this.setDocument(document);
     this.baseFont = this.getFont();
 
     this.addMouseWheelListener((final MouseWheelEvent e) -> {

@@ -80,7 +80,7 @@ public class JProlTokenMaker extends AbstractTokenMaker {
    */
   @Override
   public boolean getMarkOccurrencesOfTokenType(int type) {
-    return type == Token.IDENTIFIER || type == Token.VARIABLE;
+    return type == Token.IDENTIFIER || type == Token.VARIABLE || type == Token.FUNCTION;
   }
 
   /**
