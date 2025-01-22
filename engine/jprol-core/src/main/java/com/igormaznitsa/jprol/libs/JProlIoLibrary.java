@@ -1,31 +1,41 @@
 package com.igormaznitsa.jprol.libs;
 
-import static com.igormaznitsa.jprol.data.TermType.LIST;
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.libs.JProlCoreLibrary.predicateCALL;
+import static java.util.Objects.requireNonNullElse;
 
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.Terms;
+import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
+import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.prologparser.GenericPrologParser;
 import com.igormaznitsa.prologparser.PrologParser;
 import com.igormaznitsa.prologparser.terms.PrologTerm;
 import com.igormaznitsa.prologparser.utils.StringBuilderEx;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilterWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PushbackReader;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.Writer;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -44,9 +54,69 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     super("jprol-io-lib");
   }
 
+  private void consultFromText(final JProlContext prolContext, final String text) {
+    prolContext.consult(new StringReader(text));
+  }
+
+  private void consultFromUri(final JProlContext context, final URI uri, final Term term) {
+    final String scheme = uri.getScheme();
+    final String authorityAndPath =
+        requireNonNullElse(uri.getAuthority(), "") + requireNonNullElse(uri.getPath(), "");
+
+    if ("file".equalsIgnoreCase(scheme)) {
+      final File file = new File(context.getCurrentFolder(), authorityAndPath);
+      if (!file.isFile()) {
+        throw new ProlExistenceErrorException("file",
+            "Can't find file: " + file.getAbsolutePath(), term);
+      }
+      if (!file.canRead()) {
+        throw new ProlPermissionErrorException("read", "image_input", term);
+      }
+      try {
+        consultFromText(context, Files.readString(file.toPath(), StandardCharsets.UTF_8));
+      } catch (IOException ex) {
+        throw new ProlPermissionErrorException("read", "text_input", term, ex);
+      }
+    } else if ("resource".equalsIgnoreCase(scheme) || scheme == null) {
+      this.consultFromResource(context, authorityAndPath, term);
+    } else if ("classpath".equalsIgnoreCase(scheme)) {
+      final InputStream stream = context.getClass().getResourceAsStream(authorityAndPath);
+      if (stream == null) {
+        throw new ProlExistenceErrorException("classpath",
+            "Can't find resource: " + authorityAndPath,
+            term);
+      }
+      final StringBuilder buffer = new StringBuilder();
+      try (InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
+        while (true) {
+          int nextChar = reader.read();
+          if (nextChar < 0) {
+            break;
+          }
+          buffer.append((char) nextChar);
+        }
+      } catch (IOException ex) {
+        throw new ProlPermissionErrorException("read", "text_input", term, ex);
+      }
+      consultFromText(context, buffer.toString());
+    } else {
+      throw new ProlDomainErrorException("scheme", "Unsupported scheme: " + uri, term);
+    }
+
+  }
+
+  private void consultFromResource(final JProlContext context, final String resourceId,
+                                   final Term term) {
+    try (final Reader reader = makeResourceReader(context, resourceId, term)) {
+      context.consult(reader);
+    } catch (IOException ex) {
+      throw new ProlPermissionErrorException("read", "resource_input", term, ex);
+    }
+  }
+
   @JProlPredicate(determined = true, signature = "consult/1", args = {"+atom",
       "+list"}, reference = "Take an atom as URI of resource, or a list contains resource URIs chain.")
-  public boolean predicateCONSULT(final JProlChoicePoint goal, final TermStruct predicate) {
+  public void predicateCONSULT(final JProlChoicePoint goal, final TermStruct predicate) {
     assertCriticalPredicateAllowed(this.getClass(), goal, predicate);
 
     final JProlContext context = goal.getContext();
@@ -54,46 +124,39 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
 
     switch (argument.getTermType()) {
       case ATOM: {
-        return this.consultFromResource(context, argument.getText());
+        try {
+          this.consultFromUri(context, new URI(argument.getText()), predicate);
+        } catch (URISyntaxException ex) {
+          throw new ProlDomainErrorException("uri", "Malformed URI format: " + argument.getText(),
+              predicate);
+        }
       }
+      break;
       case LIST: {
         TermList list = (TermList) argument;
 
         while (!goal.getContext().isDisposed()) {
           if (list.isNullList()) {
-            return true;
+            break;
           }
-
-          final Term termHead = list.getHead().findNonVarOrSame();
-          final Term termTail = list.getTail().findNonVarOrSame();
-
-          if (termTail.getTermType() == LIST) {
-            list = (TermList) termTail;
-          } else {
-            return false;
-          }
-
-          if (this.consultFromResource(context, termHead.getText())) {
-            return false;
-          }
+          final Term head = list.getHead().findNonVarOrSame();
+          final Term tail = list.getTail().findNonVarOrSame();
+          ProlAssertions.assertAtom(head);
+          ProlAssertions.assertList(tail);
+          this.consultFromResource(context, head.getText(), predicate);
+          list = (TermList) tail;
         }
-        return false;
       }
-      default:
-        return false;
+      break;
+      default: {
+        throw new ProlTypeErrorException("atom", "Atom or atom list expected: " + predicate,
+            predicate);
+      }
     }
   }
 
-  private boolean consultFromResource(final JProlContext context, final String resourceId) {
-    try (final Reader reader = makeResourceReader(context, resourceId)) {
-      context.consult(reader);
-    } catch (IOException ex) {
-      return false;
-    }
-    return true;
-  }
-
-  private InternalReader makeResourceReader(final JProlContext context, final String resourceId)
+  private InternalReader makeResourceReader(final JProlContext context, final String resourceId,
+                                            final Term term)
       throws IOException {
     final Reader reader = context.findResourceReader(resourceId)
         .orElseThrow(() -> new FileNotFoundException(resourceId));
@@ -104,7 +167,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
       return new InternalReader(newAtom("user"),
           new InputStreamReader(System.in, Charset.defaultCharset()), false);
     } else {
-      throw new FileNotFoundException(resourceId);
+      throw new ProlExistenceErrorException("resource", "Can't find resource: " + resourceId, term);
     }
   }
 
@@ -348,7 +411,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
       if (readers.containsKey(name)) {
         readers.put(CURRENT_STREAM_ID, readers.get(name));
       } else {
-        final InternalReader reader = makeResourceReader(goal.getContext(), name);
+        final InternalReader reader = makeResourceReader(goal.getContext(), name, predicate);
         readers.put(CURRENT_STREAM_ID, reader);
       }
     } catch (FileNotFoundException ex) {

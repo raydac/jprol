@@ -68,7 +68,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
@@ -1197,28 +1196,11 @@ public final class MainFrame extends javax.swing.JFrame
 
   @Override
   public Reader findReader(final JProlContext context, final String id) {
-    boolean successful = false;
-    boolean notTraceable = false;
-    try {
-      if (id.equals("user")) {
-        successful = true;
-        notTraceable = true;
-        return this.dialogEditor.getInputReader();
-      } else {
-        final FileReader reader = new FileReader(id);
-        successful = true;
-        return reader;
-      }
-    } catch (IOException ex) {
-      throw new ProlCriticalError("Can't provide reader", ex);
-    } finally {
-      if (!notTraceable) {
-        if (successful) {
-          this.messageEditor.addInfoText(format("Reader for '%s' has been opened.", id));
-        } else {
-          this.messageEditor.addWarningText(format("Reader for '%s' can't be opened.", id));
-        }
-      }
+    if (id.equals("user")) {
+      this.messageEditor.addInfoText(format("Reader for '%s' has been opened.", id));
+      return this.dialogEditor.getInputReader();
+    } else {
+      throw new ProlCriticalError("Can't provide reader: " + id);
     }
   }
 
