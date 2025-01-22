@@ -1,0 +1,1 @@
+:- consult('file://./consult_text.txt'), hello(X), atom(X), X = world, writeln('Works well').

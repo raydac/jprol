@@ -115,17 +115,15 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "consult/1", args = {"+atom",
-      "+list"}, reference = "Take an atom as URI of resource, or a list contains resource URIs chain.")
+      "+list"}, reference = "Take an atom as URI of resource, or a list contains resource URIs and load all them as Prolog sources. Allowed schemes 'file:', 'resource:', 'classpath'")
   public void predicateCONSULT(final JProlChoicePoint goal, final TermStruct predicate) {
     assertCriticalPredicateAllowed(this.getClass(), goal, predicate);
-
-    final JProlContext context = goal.getContext();
     final Term argument = predicate.getElement(0).findNonVarOrSame();
 
     switch (argument.getTermType()) {
       case ATOM: {
         try {
-          this.consultFromUri(context, new URI(argument.getText()), predicate);
+          this.consultFromUri(goal.getContext(), new URI(argument.getText()), predicate);
         } catch (URISyntaxException ex) {
           throw new ProlDomainErrorException("uri", "Malformed URI format: " + argument.getText(),
               predicate);
@@ -143,7 +141,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
           final Term tail = list.getTail().findNonVarOrSame();
           ProlAssertions.assertAtom(head);
           ProlAssertions.assertList(tail);
-          this.consultFromResource(context, head.getText(), predicate);
+          this.consultFromResource(goal.getContext(), head.getText(), predicate);
           list = (TermList) tail;
         }
       }
