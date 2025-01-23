@@ -9,7 +9,7 @@
     <currentLineHighlight color="ffffd7" fade="false"/>
     <marginLine fg="b0b4b9"/>
     <markAllHighlight color="ccccff"/>
-    <markOccurrencesHighlight color="ccccff" border="false"/>
+    <markOccurrencesHighlight color="fff6c2" border="true"/>
     <matchedBracket fg="99ccff" bg="99ccff" highlightBoth="true" animate="false"/>
     <hyperlinks fg="0000ff"/>
     <secondaryLanguages>

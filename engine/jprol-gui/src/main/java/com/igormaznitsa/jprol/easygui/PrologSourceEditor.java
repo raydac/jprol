@@ -83,6 +83,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
     final ScalableRsyntaxTextArea theEditor = (ScalableRsyntaxTextArea) this.editor;
     theEditor.setAutoscrolls(true);
     theEditor.setTabsEmulated(true);
+    theEditor.setMarkOccurrences(true);
 
     this.applyScheme(theEditor);
 
@@ -112,7 +113,6 @@ public class PrologSourceEditor extends AbstractProlEditor {
     autoCompletion.install(this.editor);
 
     editor.setVisible(true);
-
     setEnabled(true);
 
     this.undoManager = new RUndoManager(theEditor);
