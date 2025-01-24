@@ -2,6 +2,7 @@ package com.igormaznitsa.jprol.libs;
 
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.libs.JProlCoreLibrary.predicateCALL;
+import static com.igormaznitsa.jprol.utils.ProlUtils.readAsString;
 import static java.util.Objects.requireNonNullElse;
 
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
@@ -35,7 +36,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -73,7 +73,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
         throw new ProlPermissionErrorException("read", "image_input", term);
       }
       try {
-        consultFromText(context, Files.readString(file.toPath(), StandardCharsets.UTF_8));
+        consultFromText(context, readAsString(file, StandardCharsets.UTF_8));
       } catch (IOException ex) {
         throw new ProlPermissionErrorException("read", "text_input", term, ex);
       }

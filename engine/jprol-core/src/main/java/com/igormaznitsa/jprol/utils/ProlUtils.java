@@ -32,11 +32,14 @@ import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Duration;
@@ -54,6 +57,21 @@ public final class ProlUtils {
       new TermOperator(400, OpAssoc.YFX, "/", SourcePosition.UNKNOWN);
 
   private ProlUtils() {
+  }
+
+  public static String readAsString(final File file, final Charset charset) throws IOException {
+    final StringBuilder builder = new StringBuilder();
+    try (Reader reader = new BufferedReader(
+        new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+      while (!Thread.currentThread().isInterrupted()) {
+        final int next = reader.read();
+        if (next < 0) {
+          break;
+        }
+        builder.append((char) next);
+      }
+    }
+    return builder.toString();
   }
 
   public static TermList toCharCodeList(final Term term) {
