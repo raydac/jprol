@@ -1277,15 +1277,30 @@ public final class MainFrame extends javax.swing.JFrame
             context.setSystemFlag(JProlSystemFlag.DEBUG, Terms.FALSE);
           }
 
+          boolean errorLoad = false;
           for (final String str : PROL_LIBRARIES) {
-            final AbstractJProlLibrary lib =
-                (AbstractJProlLibrary) Class.forName(str).getDeclaredConstructor().newInstance();
+            try {
+              final AbstractJProlLibrary lib =
+                  (AbstractJProlLibrary) Class.forName(str).getDeclaredConstructor()
+                      .newInstance();
 
-            context.addLibrary(lib);
-            this.messageEditor.addInfoText(
-                format("Library '%s' has been added...", lib.getLibraryUid()));
+              context.addLibrary(lib);
+              this.messageEditor.addInfoText(
+                  format("Library '%s' has been added...", lib.getLibraryUid()));
+            } catch (Exception ex) {
+              ex.printStackTrace();
+              this.messageEditor.addErrorText(
+                  format("Library '%s' can't be added for initialization error", str));
+              errorLoad = true;
+              break;
+            }
           }
-
+          if (errorLoad) {
+            context.dispose();
+            showMessageDialog(this, "Can't create context, for library load error",
+                "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+          }
         } else {
           context.dispose();
           showMessageDialog(this, "Can't create new context, may be started already",

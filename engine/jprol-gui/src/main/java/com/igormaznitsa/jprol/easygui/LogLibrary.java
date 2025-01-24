@@ -13,7 +13,7 @@ public final class LogLibrary extends AbstractJProlLibrary {
     super("JProlGuiLogger");
   }
 
-  @JProlPredicate(determined = true, signature = "msgerror/1", reference = "The predicate allows to output information marked as error at the message window.")
+  @JProlPredicate(determined = true, signature = "msgerror/1", args = "+atom", reference = "The predicate allows to output information marked as error at the message window.")
   public void predicateMSGERROR(final JProlChoicePoint goal, final TermStruct struct) {
     final Term term = struct.getElement(0).findNonVarOrSame();
     final String text = term.forWrite();
@@ -25,7 +25,7 @@ public final class LogLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @JProlPredicate(determined = true, signature = "msgwarning/1", reference = "The predicate allows to output information marked as warning at the message window.")
+  @JProlPredicate(determined = true, signature = "msgwarning/1", args = "+atom", reference = "The predicate allows to output information marked as warning at the message window.")
   public void predicateMSGWARNING(final JProlChoicePoint goal, final TermStruct struct) {
     final Term term = struct.getElement(0).findNonVarOrSame();
     final String text = term.forWrite();
@@ -37,7 +37,7 @@ public final class LogLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @JProlPredicate(determined = true, signature = "msginfo/1", reference = "The predicate allows to output information marked as info at the message window.")
+  @JProlPredicate(determined = true, signature = "msginfo/1", args = "+atom", reference = "The predicate allows to output information marked as info at the message window.")
   public void predicateMSGINFO(final JProlChoicePoint goal, final TermStruct struct) {
     final Term term = struct.getElement(0).findNonVarOrSame();
     final String text = term.forWrite();

@@ -25,6 +25,10 @@ import static java.lang.Integer.parseInt;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Collections.unmodifiableSet;
 
+import com.igormaznitsa.jprol.annotations.JProlConsultFile;
+import com.igormaznitsa.jprol.annotations.JProlConsultResource;
+import com.igormaznitsa.jprol.annotations.JProlConsultText;
+import com.igormaznitsa.jprol.annotations.JProlConsultUrl;
 import com.igormaznitsa.jprol.annotations.JProlOperator;
 import com.igormaznitsa.jprol.annotations.JProlOperators;
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
@@ -47,6 +51,8 @@ import com.igormaznitsa.jprol.utils.OperatorIterator;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.ProlUtils;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -80,6 +86,50 @@ public abstract class AbstractJProlLibrary {
     this.predicateMethodsMap =
         unmodifiableMap(extractAnnotatedMethodsAsPredicates(libraryUid, zeroArityPredicates));
     this.zeroArityPredicateNames = unmodifiableSet(zeroArityPredicates);
+
+    for (final JProlPredicate p : findAllPredicateDescriptors()) {
+      try {
+        ProlUtils.validateJProlPredicate(p);
+      } catch (IllegalArgumentException ex) {
+        throw new IllegalStateException(
+            "A prolog predicate descriptor doesn't meet requirements: " + p, ex);
+      }
+    }
+  }
+
+  public List<JProlPredicate> findAllPredicateDescriptors() {
+    final List<JProlPredicate> allLibraryPredicates = new ArrayList<>();
+
+    final JProlConsultText consultText = this.getClass().getAnnotation(JProlConsultText.class);
+    final JProlConsultResource consultResource =
+        this.getClass().getAnnotation(JProlConsultResource.class);
+    final JProlConsultFile consultFile = this.getClass().getAnnotation(JProlConsultFile.class);
+    final JProlConsultUrl consultUrl = this.getClass().getAnnotation(JProlConsultUrl.class);
+
+    if (consultText != null) {
+      allLibraryPredicates.addAll(Arrays.asList(consultText.declaredPredicates()));
+    }
+
+    if (consultFile != null) {
+      allLibraryPredicates.addAll(Arrays.asList(consultFile.declaredPredicates()));
+    }
+
+    if (consultResource != null) {
+      allLibraryPredicates.addAll(Arrays.asList(consultResource.declaredPredicates()));
+    }
+
+    if (consultUrl != null) {
+      allLibraryPredicates.addAll(Arrays.asList(consultUrl.declaredPredicates()));
+    }
+
+    for (final Method method : this.getClass().getMethods()) {
+      final JProlPredicate predicate = method.getAnnotation(JProlPredicate.class);
+      if (predicate != null) {
+        allLibraryPredicates.add(predicate);
+      }
+    }
+
+    return allLibraryPredicates;
   }
 
   private static void assertProlOperator(final JProlOperator operator) {

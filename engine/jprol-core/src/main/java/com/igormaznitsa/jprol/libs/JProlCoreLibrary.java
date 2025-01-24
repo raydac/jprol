@@ -724,7 +724,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(signature = "clause/2", args = {
-      "+head,?callable"}, reference = "clause(Head, Body) is true if and only if\n* The predicate of Head is public (the standard does not specify how a predicate is declared public but dynamic predicates are public, and\n* There is a clause in the database which corresponds to a term H:- B which unifies with Head :- Body.")
+      "@term,-term"}, reference = "clause(Head, Body) is true if and only if\n* The predicate of Head is public (the standard does not specify how a predicate is declared public but dynamic predicates are public, and\n* There is a clause in the database which corresponds to a term H:- B which unifies with Head :- Body.")
   public static boolean predicateCLAUSE2(final JProlChoicePoint goal, final TermStruct predicate) {
     assertCriticalPredicateAllowed(JProlCoreLibrary.class, goal, predicate);
 
@@ -936,7 +936,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return nextResult != null;
   }
 
-  @JProlPredicate(changesChooseChain = true, signature = "->/2", reference = "'->'(If, Then) is true if and only if If is true and Then is true for the first solution of If")
+  @JProlPredicate(changesChooseChain = true, signature = "->/2", args = ":callable,:term", reference = "'->'(If, Then) is true if and only if If is true and Then is true for the first solution of If")
   public static boolean predicateIFTHEN(final JProlChoicePoint goal, final TermStruct predicate) {
     // if-then
     final JProlChoicePoint leftSubbranch =
@@ -953,12 +953,12 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return result;
   }
 
-  @JProlPredicate(determined = true, signature = "var/1", reference = "var(X) is true if and only if X is a variable.")
+  @JProlPredicate(determined = true, signature = "var/1", args = "@term", reference = "var(X) is true if and only if X is a variable.")
   public static boolean predicateVAR(final JProlChoicePoint goal, final TermStruct predicate) {
     return predicate.getElement(0).findNonVarOrSame().getTermType() == VAR;
   }
 
-  @JProlPredicate(determined = true, signature = "nonvar/1", reference = "nonvar(X) is true if and only if X is not a variable.")
+  @JProlPredicate(determined = true, signature = "nonvar/1", args = "@term", reference = "nonvar(X) is true if and only if X is not a variable.")
   public static boolean predicateNONVAR(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0);
     if (arg.getTermType() == VAR) {
@@ -968,7 +968,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @JProlPredicate(determined = true, signature = "atom/1", reference = "atom(X) is true if and only if X is an atom.")
+  @JProlPredicate(determined = true, signature = "atom/1", args = "@term", reference = "atom(X) is true if and only if X is an atom.")
   public static boolean predicateATOM(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     return arg.getTermType() == ATOM && !(arg instanceof NumericTerm);
@@ -1001,25 +1001,25 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @JProlPredicate(determined = true, signature = "integer/1", reference = "integer(X) is true if and only if X is an integer.")
+  @JProlPredicate(determined = true, signature = "integer/1", args = "@term", reference = "integer(X) is true if and only if X is an integer.")
   public static boolean predicateINTEGER(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     return arg instanceof TermLong;
   }
 
-  @JProlPredicate(determined = true, signature = "number/1", reference = "number(X) is true if and only if X is an integer or a float.")
+  @JProlPredicate(determined = true, signature = "number/1", args = "@term", reference = "number(X) is true if and only if X is an integer or a float.")
   public static boolean predicateNUMBER(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     return arg instanceof NumericTerm;
   }
 
-  @JProlPredicate(determined = true, signature = "float/1", reference = "float(X) is true if and only if X is a float.")
+  @JProlPredicate(determined = true, signature = "float/1", args = "@term", reference = "float(X) is true if and only if X is a float.")
   public static boolean predicateFLOAT(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     return arg instanceof TermDouble;
   }
 
-  @JProlPredicate(determined = true, signature = "compound/1", reference = "compound(X) is true if and only if X is a compound term, that is neither atomic nor a variable.")
+  @JProlPredicate(determined = true, signature = "compound/1", args = "@term", reference = "compound(X) is true if and only if X is a compound term, that is neither atomic nor a variable.")
   public static boolean predicateCOMPOUND(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term atom = predicate.getElement(0).findNonVarOrSame();
     TermType termType = atom.getTermType();
@@ -1031,7 +1031,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return false;
   }
 
-  @JProlPredicate(determined = true, signature = "atomic/1", reference = "atomic(X) is true if and only if X is atomic (that is an atom, an integer or a float).")
+  @JProlPredicate(determined = true, signature = "atomic/1", args = "@term", reference = "atomic(X) is true if and only if X is atomic (that is an atom, an integer or a float).")
   public static boolean predicateATOMIC(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     return arg.getTermType() == ATOM ||
@@ -1295,8 +1295,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return right.unifyTo(TermList.asList(concatenated));
   }
 
-  @JProlPredicate(determined = true, signature = "atom_chars/2", args = {"+atom,?character_list",
-      "-atom,+character_list"}, reference = "atom_chars(Atom, List) succeeds if and only if List is a list whose elements are the one character atoms that in order make up  Atom.")
+  @JProlPredicate(determined = true, signature = "atom_chars/2", args = {"+atom,?string",
+      "-atom,+string"}, reference = "atom_chars(Atom, List) succeeds if and only if List is a list whose elements are the one character atoms that in order make up  Atom.")
   public static boolean predicateATOMCHARS(final JProlChoicePoint goal,
                                            final TermStruct predicate) {
     Term left = predicate.getElement(0).findNonVarOrSame();
@@ -1385,8 +1385,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "number_codes/2", args = {
-      "+number,?character_code_list",
-      "-number,+character_code_list"}, reference = "number_codes(Number, CodeList) succeeds if and only if CodeList is a list whose elements are the codes for the one character atoms that in order make up Number.")
+      "+number,?string",
+      "-number,+string"}, reference = "number_codes(Number, CodeList) succeeds if and only if CodeList is a list whose elements are the codes for the one character atoms that in order make up Number.")
   public static boolean predicateNUMBERCODES(final JProlChoicePoint goal,
                                              final TermStruct predicate) {
     Term left = predicate.getElement(0).findNonVarOrSame();
@@ -1619,7 +1619,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   @JProlPredicate(
       determined = true,
       signature = "number_chars/2",
-      args = {"+number,?character_list", "-number,+character_list"},
+      args = {"+number,?string", "-number,+string"},
       reference = "number_chars(Number, List) succeeds if and only if List is a list whose elements are the one character atoms that in order make up Number.")
   public static boolean predicateNUMBERCHARS2(final JProlChoicePoint goal,
                                               final TermStruct predicate) {
@@ -1807,8 +1807,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "atom_codes/2", args = {
-      "+atom,?character_code_list",
-      "?atom,+character_code_list"}, reference = "atom_codes(Atom, List) succeeds if and only if List is a list whose elements are the character codes that in order correspond to the characters that make up  Atom.")
+      "+atom,?string",
+      "?atom,+string"}, reference = "atom_codes(Atom, List) succeeds if and only if List is a list whose elements are the character codes that in order correspond to the characters that make up  Atom.")
   public static boolean predicateATOMCHARCODES(final JProlChoicePoint goal,
                                                final TermStruct predicate) {
     Term left = predicate.getElement(0).findNonVarOrSame();
@@ -1872,7 +1872,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return false;
   }
 
-  @JProlPredicate(determined = true, signature = "dispose/1", synonyms = {"dispose/0"}, args = {
+  @JProlPredicate(determined = true, signature = "dispose/1", synonyms = "dispose/0", args = {
       "+integer"}, reference = " These predicate terminate JProl root context even if started through async.")
   public static void predicateDispose(final JProlChoicePoint goal, final TermStruct predicate) {
     assertCriticalPredicateAllowed(JProlCoreLibrary.class, goal, predicate);

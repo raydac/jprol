@@ -5,12 +5,12 @@
     <!--  General editor colors. -->
     <background color="ffffff"/>
     <caret color="000000"/>
-    <selection fg="ffffff" bg="526da5"/>
-    <currentLineHighlight color="ffffd7" fade="false"/>
+    <selection fg="ffffff" bg="526da5" roundedEdges="false"/>
+    <currentLineHighlight color="ffffd7" fade="true"/>
     <marginLine fg="b0b4b9"/>
     <markAllHighlight color="ccccff"/>
     <markOccurrencesHighlight color="fff6c2" border="true"/>
-    <matchedBracket fg="99ccff" bg="99ccff" highlightBoth="true" animate="false"/>
+    <matchedBracket fg="99ccff" bg="99ccff" highlightBoth="true" animate="true"/>
     <hyperlinks fg="0000ff"/>
     <secondaryLanguages>
         <language index="1" bg="fff0cc"/>

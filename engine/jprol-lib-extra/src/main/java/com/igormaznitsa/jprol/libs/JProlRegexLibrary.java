@@ -167,7 +167,7 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "regex_replace_all/4", args = {
-      "+atom,+atom,?atom"},
+      "+atom,+atom,+atom,?atom"},
       reference = "Replace all text for Java regex. Example: regex_replace_all('\\\\s+','my-url-with-spaces','-',Result).")
   public static boolean predicateREGEX_REPLACE_ALL(final JProlChoicePoint goal,
                                                    final TermStruct predicate) {

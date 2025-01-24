@@ -488,7 +488,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   }
 
   @JProlPredicate(determined = true, signature = "bindtimer/3", args = {
-      "+term,+callable"}, reference = "Bind a goal to an action menu item (menu_item_name, action) which can be selected by user.")
+      "+atom,+integer,+callable"}, reference = "Bind a goal to a timer (timerId, delay, action) which can be selected by user.")
   public void predicateBINDTIMER3(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term timerId = predicate.getElement(0).findNonVarOrSame();
     final Term delay = predicate.getElement(1).findNonVarOrSame();
@@ -526,7 +526,9 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     timer.start();
   }
 
-  @JProlPredicate(determined = true, signature = "bindmouse/2", reference = "List in format [x,y,clicksOrWheel,mouseAction]. Bind mouse actions.")
+  @JProlPredicate(determined = true, signature = "bindmouse/2",
+      args = "+atom,+callable",
+      reference = "List in format [x,y,clicksOrWheel,mouseAction]. Bind mouse actions.")
   public void predicateBINDMOUSE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term action = predicate.getElement(0).findNonVarOrSame();
     final Term callable = predicate.getElement(1).findNonVarOrSame();

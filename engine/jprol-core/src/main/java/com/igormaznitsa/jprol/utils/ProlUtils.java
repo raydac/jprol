@@ -20,6 +20,7 @@ import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.data.Terms.newList;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
 
+import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
@@ -42,6 +43,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -346,6 +348,81 @@ public final class ProlUtils {
       }
     } catch (IllegalArgumentException ex) {
       return null;
+    }
+  }
+
+  public static void validateJProlPredicate(final JProlPredicate predicate) {
+    if (reassembleSignatureOrNull(predicate.signature()) == null) {
+      throw new IllegalArgumentException("Wrong signature: " + predicate.signature());
+    }
+    final ProlPair<String, Integer> parsedSignature = parseSignaturePair(predicate.signature());
+    for (final String s : predicate.synonyms()) {
+      if (reassembleSignatureOrNull(s) == null) {
+        throw new IllegalArgumentException("Wrong synonym: " + s);
+      }
+    }
+
+    if (parsedSignature.getRight() > 0 && predicate.args().length == 0) {
+      throw new IllegalArgumentException("Expected arguments description for predicate");
+    }
+
+    for (final String s : predicate.args()) {
+      final String[] parsedArgs = s.split(",");
+      if (parsedArgs.length != parsedSignature.getRight()) {
+        throw new IllegalArgumentException(
+            "Expected " + parsedSignature.getRight() + " arguments: " + s);
+      }
+
+      for (final String a : parsedArgs) {
+        final String normalized = a.trim().toLowerCase(Locale.ENGLISH);
+        if (normalized.isEmpty()) {
+          throw new IllegalArgumentException("Wrong arguments description: " + s);
+        }
+        final String text;
+        if (normalized.startsWith("--") || normalized.startsWith("++")) {
+          text = normalized.substring(2);
+        } else if (
+            normalized.startsWith("-")
+                || normalized.startsWith("+")
+                || normalized.startsWith("?")
+                || normalized.startsWith(":")
+                || normalized.startsWith("@")
+                || normalized.startsWith("!")) {
+          text = normalized.substring(1);
+        } else {
+          throw new IllegalArgumentException("Unexpected argument mode indicator: " + a);
+        }
+
+        switch (text) {
+          case "term":
+          case "atom":
+          case "atomic":
+          case "string":
+          case "float":
+          case "integer":
+          case "number":
+          case "callable":
+          case "evaluable":
+          case "list":
+          case "non_empty_list":
+          case "goal":
+          case "character":
+          case "character_code":
+          case "predicate_indicator":
+          case "operator_specifier":
+          case "compound_term":
+          case "nonvar":
+          case "compound":
+          case "arity":
+          case "atom_or_atom_list":
+          case "var": {
+            // all is ok
+          }
+          break;
+          default:
+            throw new IllegalArgumentException("Unexpected type: " + a);
+        }
+      }
     }
   }
 

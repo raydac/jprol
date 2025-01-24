@@ -299,7 +299,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }).orElseThrow(() -> new ProlPermissionErrorException("read", "text_input", predicate));
   }
 
-  @JProlPredicate(determined = true, signature = "read/1", reference = "Read  the next Prolog term from the current input stream.")
+  @JProlPredicate(determined = true, signature = "read/1", args = "-term", reference = "Read  the next Prolog term from the current input stream.")
   public final boolean predicateRead(final JProlChoicePoint goal, final TermStruct predicate) {
     assertCriticalPredicateAllowed(this.getClass(), goal, predicate);
 
@@ -325,7 +325,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @JProlPredicate(determined = true, signature = "read_line_to_string/2", reference = "Read line of chars from input as atom.")
+  @JProlPredicate(determined = true, signature = "read_line_to_string/2", args = "-term,?string", reference = "Read line of chars from input as atom.")
   public final boolean predicateReadLineToString(final JProlChoicePoint goal,
                                                  final TermStruct predicate) {
     assertCriticalPredicateAllowed(this.getClass(), goal, predicate);
@@ -442,7 +442,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @JProlPredicate(determined = true, signature = "write/1", reference = "Write a term into the current output stream.")
+  @JProlPredicate(determined = true, signature = "write/1", args = "+term", reference = "Write a term into the current output stream.")
   public final boolean predicateWrite(final JProlChoicePoint goal, final TermStruct predicate) {
     assertCriticalPredicateAllowed(this.getClass(), goal, predicate);
     return findCurrentOutput(goal.getContext(), predicate).map(writer -> {
@@ -455,7 +455,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }).orElseThrow(() -> new ProlPermissionErrorException("write", "text_output", predicate));
   }
 
-  @JProlPredicate(determined = true, signature = "writeln/1", reference = "Write a term and next line into the current output stream.")
+  @JProlPredicate(determined = true, signature = "writeln/1", args = "+term", reference = "Write a term and next line into the current output stream.")
   public final boolean predicateWriteln(final JProlChoicePoint goal, final TermStruct predicate) {
     assertCriticalPredicateAllowed(this.getClass(), goal, predicate);
     return findCurrentOutput(goal.getContext(), predicate).map(writer -> {

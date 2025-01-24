@@ -141,7 +141,7 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     return false;
   }
 
-  @JProlPredicate(determined = true, signature = "not/1", reference = "True if goal cannot be proven")
+  @JProlPredicate(determined = true, signature = "not/1", args = ":Goal", reference = "True if goal cannot be proven")
   public static boolean predicateNOT(final JProlChoicePoint choicePoint,
                                      final TermStruct predicate) {
     return
@@ -150,24 +150,24 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
             null;
   }
 
-  @JProlPredicate(determined = true, signature = "=/2", reference = "Unify X and Y terms. It is true if X and Y are unifiable.")
+  @JProlPredicate(determined = true, signature = "=/2", args = "?term,?term", reference = "Unify X and Y terms. It is true if X and Y are unifiable.")
   public static boolean predicateEQU(final JProlChoicePoint choicePoint,
                                      final TermStruct predicate) {
     return predicate.getElement(0).unifyTo(predicate.getElement(1));
   }
 
-  @JProlPredicate(determined = true, signature = "\\=/2", reference = "Unify X and Y terms. It is true if X and Y are not-unifiable.")
+  @JProlPredicate(determined = true, signature = "\\=/2", args = "@term,@term", reference = "Unify X and Y terms. It is true if X and Y are not-unifiable.")
   public static boolean predicateNOTEQU(final JProlChoicePoint choicePoint,
                                         final TermStruct predicate) {
     return !predicate.getElement(0).unifyTo(predicate.getElement(1));
   }
 
-  @JProlPredicate(signature = ";/2", reference = "';'(Either, Or) is true if either Either or Or is true.")
+  @JProlPredicate(signature = ";/2", args = ":goal,:goal", reference = "';'(Either, Or) is true if either Either or Or is true.")
   public static void predicateOR(final JProlChoicePoint choicePoint, final TermStruct predicate) {
     // stub, see Goal#resolve
   }
 
-  @JProlPredicate(signature = ",/2", reference = "','(First, Second) is true if and only if First is true and Second is true.")
+  @JProlPredicate(signature = ",/2", args = ":goal,:goal", reference = "','(First, Second) is true if and only if First is true and Second is true.")
   public static void predicateAND(final JProlChoicePoint choicePoint, final TermStruct predicate) {
     // stub, see Goal#resolve
   }
