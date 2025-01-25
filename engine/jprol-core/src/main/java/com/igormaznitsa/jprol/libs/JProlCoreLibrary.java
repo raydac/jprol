@@ -834,7 +834,10 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return false;
   }
 
-  @JProlPredicate(determined = true, signature = "op/3", args = "+integer,+operator_specifier,+atom_or_atom_list", reference = "Predicate allows to alter operators.\nop(Priority, Op_Specifier, TermOperator) is true, with the side effect that\n1. if Priority is 0 then TermOperator is removed from operators\n2. TermOperator is added into operators, with priority (lower binds tighter) Priority and associativity determined by Op_Specifier")
+  @JProlPredicate(determined = true, signature = "op/3",
+      args = {
+          "+integer,+operator_specifier,+atom", "+integer,+operator_specifier,+list",
+      }, reference = "Predicate allows to alter operators.\nop(Priority, Op_Specifier, TermOperator) is true, with the side effect that\n1. if Priority is 0 then TermOperator is removed from operators\n2. TermOperator is added into operators, with priority (lower binds tighter) Priority and associativity determined by Op_Specifier")
   public static boolean predicateOP(final JProlChoicePoint goal, final TermStruct predicate) {
     assertCriticalPredicateAllowed(JProlCoreLibrary.class, goal, predicate);
 
@@ -1070,8 +1073,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return result;
   }
 
-  @JProlPredicate(determined = true, signature = "functor/3", args = {"-nonvar,+atomic,+arity",
-      "+nonvar,?atomic,?arity"}, reference = "functor(Term, Name, Arity) is true if and only if Term is a compound term with functor name Name and arity Arity or Term is an atomic term equal to Name and Arity is 0.")
+  @JProlPredicate(determined = true, signature = "functor/3", args = "?term,?atom,?integer", reference = "functor(Term, Name, Arity) is true if and only if Term is a compound term with functor name Name and arity Arity or Term is an atomic term equal to Name and Arity is 0.")
   public static boolean predicateFUNCTOR(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term argTerm = predicate.getElement(0).findNonVarOrSame();
     final Term argName = predicate.getElement(1).findNonVarOrSame();
@@ -1232,8 +1234,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @JProlPredicate(determined = true, signature = "=../2", args = {"+nonvar,?non_empty_list",
-      "-nonvar,+non_empty_list"}, reference = "Term =.. List is true if and only if\n* Term is an atomic term and List is the list whose only element is Term, or\n* Term is a compound term and List is the list whose head is the functor name of Term and whose tail is the list of the arguments of Term. ")
+  @JProlPredicate(determined = true, signature = "=../2", args = {"+term,?list",
+      "+term,+list"}, reference = "Term =.. List is true if and only if\n* Term is an atomic term and List is the list whose only element is Term, or\n* Term is a compound term and List is the list whose head is the functor name of Term and whose tail is the list of the arguments of Term. ")
   public static boolean predicateUNIV(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = predicate.getElement(0).findNonVarOrSame();
     final Term argRight = predicate.getElement(1).findNonVarOrSame();
@@ -1354,8 +1356,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "char_code/2", args = {
-      "+character,?character_code",
-      "-character,+character_code"}, reference = "char_code(Char, Code) succeeds if and only if Code is the character code that corresponds to the character Char.")
+      "+char,?integer",
+      "-char,+integer"}, reference = "char_code(Char, Code) succeeds if and only if Code is the character code that corresponds to the character Char.")
   public static boolean predicateCHARCODE(final JProlChoicePoint goal, final TermStruct predicate) {
     Term left = predicate.getElement(0).findNonVarOrSame();
     Term right = predicate.getElement(1).findNonVarOrSame();

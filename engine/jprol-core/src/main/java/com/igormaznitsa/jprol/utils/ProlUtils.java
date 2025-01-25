@@ -397,15 +397,24 @@ public final class ProlUtils {
           throw new IllegalArgumentException("Wrong arguments description: " + s);
         }
         final String text;
-        if (normalized.startsWith("--") || normalized.startsWith("++")) {
+        if (normalized.startsWith("--") // At call time, the argument must be unbound.
+            || normalized.startsWith("++") // At call time, the argument must be ground
+        ) {
           text = normalized.substring(2);
         } else if (
             normalized.startsWith("-")
+                // Argument is an output argument. It may or may not be bound at call-time.
                 || normalized.startsWith("+")
+                // At call time, the argument must be instantiated to a term satisfying some (informal) type specification.
                 || normalized.startsWith("?")
+                // At call time, the argument must be bound to a partial term (a term which may or may not be ground) satisfying some (informal) type specification.
                 || normalized.startsWith(":")
+                // Argument is a meta-argument, for example a term that can be called as goal. This flag implies +.
                 || normalized.startsWith("@")
-                || normalized.startsWith("!")) {
+                // Argument will not be further instantiated than it is at call-time.
+                || normalized.startsWith(
+                "!") // Argument contains a mutable structure that may be modified
+        ) {
           text = normalized.substring(1);
         } else {
           throw new IllegalArgumentException("Unexpected argument mode indicator: " + a);
@@ -422,17 +431,12 @@ public final class ProlUtils {
           case "callable":
           case "evaluable":
           case "list":
-          case "non_empty_list":
           case "goal":
-          case "character":
-          case "character_code":
+          case "char":
           case "predicate_indicator":
           case "operator_specifier":
           case "compound_term":
-          case "nonvar":
           case "compound":
-          case "arity":
-          case "atom_or_atom_list":
           case "var": {
             // all is ok
           }
