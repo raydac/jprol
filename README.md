@@ -1,6 +1,6 @@
 ![JPROL logo](art/github_logo.png)   
 [![License Apache 12](https://img.shields.io/badge/license-Apache%20License%202.0-green.svg)](http://www.apache.org/licenses/LICENSE-2.0)
-[![Maven central](https://maven-badges.herokuapp.com/maven-central/com.igormaznitsa/jprol-core/badge.svg)](http://search.maven.org/#artifactdetails|com.igormaznitsa|jprol-core|2.2.0|jar)
+[![Maven central](https://maven-badges.herokuapp.com/maven-central/com.igormaznitsa/jprol-core/badge.svg)](http://search.maven.org/#artifactdetails|com.igormaznitsa|jprol-core|2.2.1|jar)
 [![Java 11+](https://img.shields.io/badge/java-11%2b-green.svg)](https://bell-sw.com/pages/downloads/#jdk-21-lts)
 [![PayPal donation](https://img.shields.io/badge/donation-PayPal-cyan.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AHWJHJFBAWGL2)
 [![YooMoney donation](https://img.shields.io/badge/donation-Yoo.money-blue.svg)](https://yoomoney.ru/to/41001158080699)
@@ -24,7 +24,7 @@ The engine is published in [the maven central](https://search.maven.org/artifact
 <dependency>
     <groupId>com.igormaznitsa</groupId>
     <artifactId>jprol-core</artifactId>
-    <version>2.2.0</version>
+    <version>2.2.1</version>
 </dependency>
 ```   
 
