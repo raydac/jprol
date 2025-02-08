@@ -38,9 +38,15 @@ public enum JProlSystemFlag {
       Terms.newAtom(System.getProperty("user.home", ""), SourcePosition.UNKNOWN)),
   VERIFY(false, Terms.newAtom("verify", SourcePosition.UNKNOWN), TRUE),
   VERSION_DATA(true, Terms.newAtom("version_data", SourcePosition.UNKNOWN),
-      newStruct(newAtom("jprol", SourcePosition.UNKNOWN),
-          new Term[] {newLong(2, SourcePosition.UNKNOWN), newLong(0, SourcePosition.UNKNOWN),
-              newLong(1, SourcePosition.UNKNOWN), NULL_LIST}));
+      newStruct(
+          newAtom("jprol", SourcePosition.UNKNOWN),
+          new Term[] {
+              newLong(2, SourcePosition.UNKNOWN),
+              newLong(2, SourcePosition.UNKNOWN),
+              newLong(2, SourcePosition.UNKNOWN),
+              NULL_LIST}
+      )
+  );
 
   public static final List<JProlSystemFlag> VALUES =
       List.of(JProlSystemFlag.values());
