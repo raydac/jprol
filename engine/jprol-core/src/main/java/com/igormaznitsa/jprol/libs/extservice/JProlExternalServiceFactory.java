@@ -7,7 +7,7 @@ import java.util.Properties;
  *
  * @since 2.2.2
  */
-public interface JProlExternalServiceFactory {
+public interface JProlExternalServiceFactory extends JProlExternalServiceCommonProperties {
 
   /**
    * Get the properties of the service factory.

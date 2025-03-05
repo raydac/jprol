@@ -10,7 +10,7 @@ import java.util.Properties;
  *
  * @since 2.2.2
  */
-public interface JProlExternalService {
+public interface JProlExternalService extends JProlExternalServiceCommonProperties {
   /**
    * Get current state.
    *
@@ -45,11 +45,23 @@ public interface JProlExternalService {
    */
   void start(Properties properties, JProlExternalServiceCallback callback);
 
+  /**
+   * Pause service work.
+   */
   void pause();
 
+  /**
+   * Resume of work if paused.
+   */
   void resume();
 
+  /**
+   * Stop service work.
+   */
   void stop();
 
+  /**
+   * Dispose service.
+   */
   void dispose();
 }
