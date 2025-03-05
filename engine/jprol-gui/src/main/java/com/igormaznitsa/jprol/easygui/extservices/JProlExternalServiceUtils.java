@@ -1,4 +1,4 @@
-package com.igormaznitsa.jprol.utils;
+package com.igormaznitsa.jprol.easygui.extservices;
 
 import com.igormaznitsa.jprol.libs.extservice.JProlExternalServiceFactory;
 import java.util.List;
