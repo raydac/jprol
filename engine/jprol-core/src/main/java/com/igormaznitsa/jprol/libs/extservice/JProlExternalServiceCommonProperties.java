@@ -9,13 +9,13 @@ public interface JProlExternalServiceCommonProperties {
   /**
    * Identifier of service or service factory
    */
-  String ID = "jprol.service.id";
+  String PROPERTY_JPROL_SERVICE_ID = "jprol.service.id";
   /**
    * Human-readable name of service or service factory,
    */
-  String NAME = "jprol.service.name";
+  String PROPERTY_JPROL_SERVICE_NAME = "jprol.service.name";
   /**
    * Description of service or service factory.
    */
-  String DESCRIPTION = "jprol.service.description";
+  String PROPERTY_JPROL_SERVICE_DESCRIPTION = "jprol.service.description";
 }
