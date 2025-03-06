@@ -25,6 +25,8 @@ public interface JProlExternalService extends JProlExternalServiceCommonProperti
    */
   Properties getProperties();
 
+  List<JProlExternalServiceStartPropertyDescriptor> getStartRequiredProperties();
+
   /**
    * Find all internal JProl libraries provided by the service.
    *
