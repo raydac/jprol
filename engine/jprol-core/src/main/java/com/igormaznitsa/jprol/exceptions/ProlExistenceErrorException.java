@@ -36,7 +36,7 @@ public class ProlExistenceErrorException extends ProlAbstractCatchableException 
 
   public ProlExistenceErrorException(final String objectType, final String message,
                                      final Term culprit, final Throwable cause) {
-    super(message, culprit, cause);
+    super(message, culprit, cause, null);
     this.objectType = objectType == null ? UNDEFINED.getText() : objectType;
   }
 

@@ -18,6 +18,7 @@ package com.igormaznitsa.jprol.exceptions;
 
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 
+import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermStruct;
@@ -28,27 +29,40 @@ public class ProlDomainErrorException extends ProlAbstractCatchableException {
 
   private final String validDomain;
 
-  public ProlDomainErrorException(final String validDomain, final Term culprit,
-                                  final Throwable cause) {
-    super(culprit, cause);
+  public ProlDomainErrorException(
+      final String message,
+      final Term culprit,
+      final Throwable cause,
+      final SourcePosition sourcePosition,
+      final String validDomain
+  ) {
+    super(message, culprit, cause, sourcePosition);
     this.validDomain = validDomain == null ? UNDEFINED.getText() : validDomain;
   }
 
-  public ProlDomainErrorException(final String validDomain, final String message,
-                                  final Term culprit, final Throwable cause) {
-    super(message, culprit, cause);
-    this.validDomain = validDomain == null ? UNDEFINED.getText() : validDomain;
+  public ProlDomainErrorException(
+      final String validDomain,
+      final Term culprit,
+      final Throwable cause
+  ) {
+    this(null, culprit, cause, null, validDomain);
+  }
+
+  public ProlDomainErrorException(
+      final String validDomain,
+      final String message,
+      final Term culprit,
+      final Throwable cause) {
+    this(message, culprit, cause, null, validDomain);
   }
 
   public ProlDomainErrorException(final String validDomain, final String message,
                                   final Term culprit) {
-    super(message, culprit);
-    this.validDomain = validDomain == null ? UNDEFINED.getText() : validDomain;
+    this(message, culprit, null, null, validDomain);
   }
 
   public ProlDomainErrorException(final String validDomain, final Term culprit) {
-    super(culprit);
-    this.validDomain = validDomain == null ? UNDEFINED.getText() : validDomain;
+    this(null, culprit, null, null, validDomain);
   }
 
   @Override

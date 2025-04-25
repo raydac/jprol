@@ -1355,7 +1355,7 @@ public final class MainFrame extends javax.swing.JFrame
         } else if (cause instanceof InterruptedException) {
           canceled = true;
         } else {
-          this.messageEditor.addText("Parser exception [" + ex.getMessage() + ']',
+          this.messageEditor.addText("Execution error [" + ex.getMessage() + ']',
               MessageEditor.TYPE_ERROR, "source://" + ex.getLine() + ';' + ex.getPos(),
               "line " + ex.getLine() + ":" + ex.getPos());
           return;

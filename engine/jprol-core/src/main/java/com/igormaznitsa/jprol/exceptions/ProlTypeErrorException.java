@@ -35,7 +35,7 @@ public class ProlTypeErrorException extends ProlAbstractCatchableException {
 
   public ProlTypeErrorException(final String validType, final String message, final Term culprit,
                                 final Throwable cause) {
-    super(message, culprit, cause);
+    super(message, culprit, cause, null);
     this.validType = validType == null ? UNDEFINED.getText() : validType;
   }
 

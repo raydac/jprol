@@ -36,7 +36,7 @@ public class ProlEvaluationErrorException extends ProlAbstractCatchableException
 
   public ProlEvaluationErrorException(final String error, final String message, final Term culprit,
                                       final Throwable cause) {
-    super(message, culprit, cause);
+    super(message, culprit, cause, null);
     this.error = error == null ? UNDEFINED.getText() : error;
   }
 

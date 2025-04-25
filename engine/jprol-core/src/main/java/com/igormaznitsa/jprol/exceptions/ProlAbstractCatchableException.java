@@ -23,32 +23,47 @@ import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 import java.util.HashMap;
-import java.util.Objects;
 
 public abstract class ProlAbstractCatchableException extends ProlException {
 
   static final Term UNDEFINED = newAtom("<undefined>");
   private static final String ERROR_FUNCTOR = "error";
   private final Term culprit;
+  private final SourcePosition sourcePosition;
 
   public ProlAbstractCatchableException(final Term culprit) {
-    this.culprit = Objects.requireNonNull(culprit);
+    this(culprit, culprit.getSourcePosition());
+  }
+
+  public ProlAbstractCatchableException(final Term culprit, final SourcePosition sourcePosition) {
+    this(null, culprit, null, sourcePosition);
   }
 
   public ProlAbstractCatchableException(final String message, final Term culprit) {
-    super(message);
-    this.culprit = culprit == null ? UNDEFINED : culprit.makeCloneAndVarBound(new HashMap<>());
+    this(message, culprit, null, null);
   }
 
-  public ProlAbstractCatchableException(final String message, final Term culprit,
-                                        final Throwable cause) {
+  public ProlAbstractCatchableException(
+      final String message,
+      final Term culprit,
+      final Throwable cause,
+      final SourcePosition sourcePosition
+  ) {
     super(message, cause);
     this.culprit = culprit == null ? UNDEFINED : culprit.makeCloneAndVarBound(new HashMap<>());
+    if (sourcePosition == null) {
+      this.sourcePosition = this.culprit.getSourcePosition();
+    } else {
+      this.sourcePosition = sourcePosition;
+    }
   }
 
   public ProlAbstractCatchableException(final Term culprit, final Throwable cause) {
-    super(cause);
-    this.culprit = culprit == null ? UNDEFINED : culprit.makeCloneAndVarBound(new HashMap<>());
+    this(null, culprit, cause, null);
+  }
+
+  public SourcePosition getSourcePosition() {
+    return this.sourcePosition;
   }
 
   public abstract Term getErrorTerm();

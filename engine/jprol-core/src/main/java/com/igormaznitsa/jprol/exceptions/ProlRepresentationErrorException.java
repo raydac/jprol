@@ -35,7 +35,7 @@ public class ProlRepresentationErrorException extends ProlAbstractCatchableExcep
 
   public ProlRepresentationErrorException(final String errorCode, final String message,
                                           final Term culprit, final Throwable cause) {
-    super(message, culprit, cause);
+    super(message, culprit, cause, null);
     this.errorCode = errorCode == null ? UNDEFINED.getText() : errorCode;
   }
 

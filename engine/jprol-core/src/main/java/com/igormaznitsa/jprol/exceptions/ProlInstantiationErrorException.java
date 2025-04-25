@@ -31,7 +31,7 @@ public class ProlInstantiationErrorException extends ProlAbstractCatchableExcept
 
   public ProlInstantiationErrorException(final String message, final Term culprit,
                                          final Throwable cause) {
-    super(message, culprit, cause);
+    super(message, culprit, cause, null);
   }
 
   public ProlInstantiationErrorException(final String message, final Term culprit) {

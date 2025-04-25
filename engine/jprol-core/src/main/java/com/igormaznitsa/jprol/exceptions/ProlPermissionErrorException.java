@@ -39,7 +39,7 @@ public class ProlPermissionErrorException extends ProlAbstractCatchableException
   public ProlPermissionErrorException(final String operation, final String permissionType,
                                       final String message, final Term culprit,
                                       final Throwable cause) {
-    super(message, culprit, cause);
+    super(message, culprit, cause, null);
     this.operation = operation == null ? UNDEFINED.getText() : operation;
     this.permissionType = permissionType == null ? UNDEFINED.getText() : permissionType;
   }

@@ -941,7 +941,7 @@ public final class JProlContext implements AutoCloseable {
       } catch (ProlChoicePointInterruptedException | ProlHaltExecutionException ex) {
         throw ex;
       } catch (ProlAbstractCatchableException ex) {
-        final SourcePosition errorPosition = ex.getCulprit().getSourcePosition();
+        final SourcePosition errorPosition = ex.getSourcePosition();
 
         String message = ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage();
         if (message == null) {

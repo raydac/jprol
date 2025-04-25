@@ -47,7 +47,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
     return index.get() >= text.length();
   }
 
-  private static char skipWhitspceAndReadChar(final String text, final AtomicInteger index) {
+  private static char skipWhitespaceAndReadChar(final String text, final AtomicInteger index) {
     skipWhitespaces(text, index);
     if (isEndOfString(text, index)) {
       throw new IllegalArgumentException("Unexpected end of text");
@@ -155,7 +155,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
     final List<Term> values = new ArrayList<>();
     boolean endFound = false;
     while (!endFound && !isEndOfString(json, index)) {
-      final char nextChar = skipWhitspceAndReadChar(json, index);
+      final char nextChar = skipWhitespaceAndReadChar(json, index);
       if (nextChar == ']') {
         endFound = true;
         continue;
@@ -179,7 +179,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
       final TermOperator jsonMarkerOperator,
       final String json,
       final AtomicInteger index) {
-    char nextChar = skipWhitspceAndReadChar(json, index);
+    char nextChar = skipWhitespaceAndReadChar(json, index);
     final Term value;
     switch (nextChar) {
       case '{': {
@@ -242,7 +242,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
                                      final TermOperator equalsOperator,
                                      final TermOperator jsonMarkerOperator) {
     final AtomicInteger index = new AtomicInteger(0);
-    if (skipWhitspceAndReadChar(jsonText, index) != '{') {
+    if (skipWhitespaceAndReadChar(jsonText, index) != '{') {
       throw new IllegalArgumentException("Wrong JSON format");
     }
     return readJsonStruct(equalsOperator, jsonMarkerOperator, jsonText, index);
@@ -254,7 +254,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
     final List<Term> terms = new ArrayList<>();
     int commaCounter = 0;
     while (index.get() < json.length()) {
-      char nextChar = skipWhitspceAndReadChar(json, index);
+      char nextChar = skipWhitespaceAndReadChar(json, index);
       if (nextChar == ',') {
         commaCounter++;
         if (commaCounter > 1) {
@@ -270,7 +270,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
             new Term[] {TermList.asList(terms)});
       } else if (nextChar == '\"') {
         final String fieldName = readJsonString(json, index);
-        nextChar = skipWhitspceAndReadChar(json, index);
+        nextChar = skipWhitespaceAndReadChar(json, index);
         if (nextChar == ':') {
           final TermStruct foundStruct =
               Terms.newStruct(equalsOperator, new Term[] {Terms.newAtom(fieldName),
@@ -278,7 +278,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
           terms.add(foundStruct);
         } else {
           throw new IllegalArgumentException(
-              "Unexpected char in JSON instead of field value delimeter: " + nextChar);
+              "Unexpected char in JSON instead of field value delimiter: " + nextChar);
         }
       } else {
         throw new IllegalArgumentException("Unexpected char for JSON struct field: " + nextChar);
@@ -449,7 +449,8 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
     } catch (ProlException ex) {
       throw ex;
     } catch (IllegalArgumentException ex) {
-      throw new ProlDomainErrorException("Correct JSON format expected", argLeft, ex);
+      throw new ProlDomainErrorException("Valid JSON format expected", predicate.getElement(0), ex,
+          predicate.getSourcePosition(), "json");
     } catch (Exception ex) {
       throw new ProlCriticalError(ex);
     }
