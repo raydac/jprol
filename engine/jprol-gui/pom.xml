@@ -322,8 +322,9 @@
                                     <dontWrapJar>true</dontWrapJar>
                                     <jar>jprol-gui.jar</jar>
                                     <jre>
-                                        <path>%VAR%</path>
                                         <minVersion>11</minVersion>
+                                        <jdkPreference>preferJdk</jdkPreference>
+                                        <bundledJre64Bit>false</bundledJre64Bit>
                                     </jre>
                                 </configuration>
                             </execution>
