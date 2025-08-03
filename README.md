@@ -2,9 +2,8 @@
 [![License Apache 12](https://img.shields.io/badge/license-Apache%20License%202.0-green.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Maven central](https://maven-badges.herokuapp.com/maven-central/com.igormaznitsa/jprol-core/badge.svg)](http://search.maven.org/#artifactdetails|com.igormaznitsa|jprol-core|2.2.1|jar)
 [![Java 11+](https://img.shields.io/badge/java-11%2b-green.svg)](https://bell-sw.com/pages/downloads/#jdk-21-lts)
-[![PayPal donation](https://img.shields.io/badge/donation-PayPal-cyan.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AHWJHJFBAWGL2)
-[![YooMoney donation](https://img.shields.io/badge/donation-Yoo.money-blue.svg)](https://yoomoney.ru/to/41001158080699)
 
+[![Arthur's acres sanctuary donation](art/arthur_sanctuary_banner.png)](https://www.arthursacresanimalsanctuary.org/donate)
 
 # Introduction
 I used to buy and collect books about computer technologies since my childhood and in 1990 I bought a book titled as "Prolog programming for Artificial Intelligence" by Ivan Bratko but didn't have enough time to read it for about 20 years. In 2009 I found some free time to read the book and was amazed by the power of the computer language. To learn it better I wrote small Java based Prolog embeddable engine and called it JProl.   
