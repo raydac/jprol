@@ -17,10 +17,6 @@
         <module>jprol-gui</module>
     </modules>
 
-    <prerequisites>
-        <maven>3.0</maven>
-    </prerequisites>
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>11</maven.compiler.release>
@@ -61,7 +57,7 @@
             <dependency>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.11.2</version>
+                <version>3.12.0</version>
             </dependency>
             <dependency>
                 <groupId>com.fifesoft</groupId>
@@ -82,19 +78,19 @@
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-api</artifactId>
-                <version>5.13.2</version>
+                <version>5.13.4</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-engine</artifactId>
-                <version>5.13.2</version>
+                <version>5.13.4</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-params</artifactId>
-                <version>5.13.2</version>
+                <version>5.13.4</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -121,17 +117,17 @@
                 <plugin>
                     <groupId>com.igormaznitsa</groupId>
                     <artifactId>mvn-jlink-wrapper</artifactId>
-                    <version>1.2.4</version>
+                    <version>1.2.5</version>
                 </plugin>    
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-enforcer-plugin</artifactId>
-                    <version>3.5.0</version>
+                    <version>3.6.2</version>
                 </plugin>    
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-gpg-plugin</artifactId>
-                    <version>3.2.7</version>
+                    <version>3.2.8</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -141,7 +137,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.14.0</version>
+                    <version>3.14.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -151,7 +147,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
-                    <version>3.6.0</version>
+                    <version>3.6.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -166,7 +162,12 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.11.2</version>
+                    <version>3.12.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.5.4</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -202,7 +203,7 @@
                     <dependency>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>extra-enforcer-rules</artifactId>
-                        <version>1.10.0</version>
+                        <version>1.11.0</version>
                     </dependency>
                 </dependencies>
             </plugin>
@@ -244,11 +245,6 @@
                     <showDeprecation>true</showDeprecation>
                     <showWarnings>true</showWarnings>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.3</version>
             </plugin>
         </plugins>
     </build>
