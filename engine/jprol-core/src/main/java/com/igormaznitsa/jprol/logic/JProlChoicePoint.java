@@ -140,7 +140,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public Map<String, Term> findAllGroundedVars() {
-    return this.variables.entrySet()
+    return this.variables == null ? Map.of() : this.variables.entrySet()
         .stream()
         .filter(v -> v.getValue().isGround())
         .collect(toMap(Map.Entry::getKey, e -> e.getValue().makeClone()));

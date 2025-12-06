@@ -50,6 +50,9 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class ProlUtils {
 
@@ -140,6 +143,14 @@ public final class ProlUtils {
     return resultList;
   }
 
+  public static <T> List<T> listToMappedValues(final TermList list,
+                                               final boolean includeNonListTail,
+                                               final Function<Term, T> mapper) {
+    if (list == null) {
+      return List.of();
+    }
+    return Stream.of(list.toArray(includeNonListTail)).map(mapper).collect(Collectors.toList());
+  }
 
   public static Throwable[] extractErrors(final List<CompletableFuture<Term>> futures) {
     return futures.stream().filter(CompletableFuture::isCompletedExceptionally).map(x -> {
