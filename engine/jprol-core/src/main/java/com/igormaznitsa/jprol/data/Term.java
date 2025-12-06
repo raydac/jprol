@@ -52,6 +52,10 @@ public class Term {
     this.sourcePosition = requireNonNull(sourcePosition);
   }
 
+  public Term replaceVar(final String variableName, final Term value) {
+    return this;
+  }
+
   public SourcePosition getSourcePosition() {
     return this.sourcePosition;
   }

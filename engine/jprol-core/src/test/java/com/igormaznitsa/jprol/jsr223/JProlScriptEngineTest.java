@@ -208,7 +208,10 @@ class JProlScriptEngineTest {
     Object[] libs = new Object[] {new MathLibrary()};
     context.setAttribute("jprol.libraries", libs, ScriptContext.ENGINE_SCOPE);
 
-    engine.eval("?- square(7, X).", context);
+    final Bindings engineBindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
+    engineBindings.put("A", 7);
+
+    engine.eval("?- square(A, X).", context);
 
     Bindings bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
     Object result = bindings.get("X");

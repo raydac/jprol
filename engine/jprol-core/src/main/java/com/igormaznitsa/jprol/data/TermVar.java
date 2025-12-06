@@ -52,6 +52,18 @@ public final class TermVar extends Term {
     this(SourcePosition.UNKNOWN);
   }
 
+  @Override
+  public Term replaceVar(final String variableName, final Term value) {
+    if (this.isAnonymous()) {
+      return this;
+    }
+    if (this.getText().equals(variableName)) {
+      return value;
+    } else {
+      return this;
+    }
+  }
+
   public int getVarUid() {
     return this.uid;
   }

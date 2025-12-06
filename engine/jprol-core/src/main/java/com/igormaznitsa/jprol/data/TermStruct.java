@@ -538,6 +538,22 @@ public class TermStruct extends CompoundTerm {
     return result;
   }
 
+  @Override
+  public Term replaceVar(final String variableName, final Term value) {
+    boolean changed = false;
+    final Term[] newTerms = new Term[this.terms.length];
+    for (int i = 0; i < this.terms.length; i++) {
+      final Term next = this.terms[i];
+      final Term replaced = next.replaceVar(variableName, value);
+      newTerms[i] = replaced;
+      changed |= next != replaced;
+    }
+    if (changed) {
+      return Terms.newStruct(this.functor, newTerms);
+    } else {
+      return this;
+    }
+  }
 
   @Override
   public boolean hasVariableWithName(final String name) {

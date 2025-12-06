@@ -67,6 +67,22 @@ public final class TermList extends TermStruct {
     return asList(elements, SourcePosition.UNKNOWN);
   }
 
+  @Override
+  public Term replaceVar(final String variableName, final Term value) {
+    if (this.isNullList()) {
+      return this;
+    }
+
+    final Term newHead = this.getHead().replaceVar(variableName, value);
+    final Term newTail = this.getTail().replaceVar(variableName, value);
+
+    if (newHead != this.getHead() || newTail != this.getTail()) {
+      return Terms.newList(newHead, newTail, SourcePosition.UNKNOWN);
+    } else {
+      return this;
+    }
+  }
+
   public static TermList asList(final List<Term> elements, final SourcePosition sourcePosition) {
     if (elements.isEmpty()) {
       return Terms.newList(sourcePosition);
