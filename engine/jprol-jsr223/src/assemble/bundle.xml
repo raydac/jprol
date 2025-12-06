@@ -1,0 +1,32 @@
+<assembly xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+    <id>bundle</id>
+
+    <includeBaseDirectory>false</includeBaseDirectory>
+    <includeSiteDirectory>false</includeSiteDirectory>
+
+    <formats>
+        <format>tar.gz</format>
+    </formats>
+    <fileSets>
+        <fileSet>
+            <directory>${project.build.directory}</directory>
+            <outputDirectory>/com/igormaznitsa/${project.artifactId}/${project.version}</outputDirectory>
+            <includes>
+                <include>*.jar</include>
+                <include>*.jar.asc</include>
+                <include>*.jar.sha1</include>
+                <include>*.jar.md5</include>
+                <include>*.pom</include>
+                <include>*.pom.asc</include>
+                <include>*.pom.sha1</include>
+                <include>*.pom.md5</include>
+            </includes>
+            <excludes>
+                <exclude>original*.*</exclude>
+                <exclude>*.zip</exclude>
+            </excludes>
+        </fileSet>
+    </fileSets>
+</assembly>

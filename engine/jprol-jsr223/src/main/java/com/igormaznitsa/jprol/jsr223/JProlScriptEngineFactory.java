@@ -89,9 +89,9 @@ public class JProlScriptEngineFactory implements ScriptEngineFactory {
   }
 
   @Override
-  public String getProgram(String... statements) {
-    StringBuilder sb = new StringBuilder();
-    for (String statement : statements) {
+  public String getProgram(final String... statements) {
+    final StringBuilder sb = new StringBuilder();
+    for (final String statement : statements) {
       sb.append(statement);
       if (!statement.trim().endsWith(".")) {
         sb.append(".");
@@ -112,7 +112,7 @@ public class JProlScriptEngineFactory implements ScriptEngineFactory {
    * @param libraries JProl library instances to add (in addition to core library)
    * @return A new script engine with the specified libraries
    */
-  public ScriptEngine getScriptEngine(AbstractJProlLibrary... libraries) {
+  public ScriptEngine getScriptEngine(final AbstractJProlLibrary... libraries) {
     return new JProlScriptEngine(this, libraries);
   }
 }

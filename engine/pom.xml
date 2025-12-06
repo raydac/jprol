@@ -13,6 +13,7 @@
 
     <modules>
         <module>jprol-core</module>
+        <module>jprol-jsr223</module>
         <module>jprol-lib-extra</module>
         <module>jprol-gui</module>
     </modules>
