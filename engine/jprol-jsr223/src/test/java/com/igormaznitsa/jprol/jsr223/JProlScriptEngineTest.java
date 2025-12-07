@@ -2,6 +2,7 @@ package com.igormaznitsa.jprol.jsr223;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -41,7 +42,7 @@ class JProlScriptEngineTest {
   @BeforeAll
   public void setUp() {
     factory = new JProlScriptEngineFactory();
-    System.out.println("=== JProl Custom Library JUnit 5 Tests ===\n");
+    System.out.println("=== JProl Custom Library Tests ===\n");
   }
 
   @Test
@@ -202,7 +203,7 @@ class JProlScriptEngineTest {
     System.out.println("Test 5: Library via Context");
     System.out.println("---------------------------");
 
-    JProlScriptEngine engine = (JProlScriptEngine) factory.getScriptEngine();
+    JProlScriptEngine engine = (JProlScriptEngine) this.factory.getScriptEngine();
     ScriptContext context = engine.getContext();
 
     Object[] libs = new Object[] {new MathLibrary()};
@@ -234,9 +235,8 @@ class JProlScriptEngineTest {
     JProlScriptEngine engine = (JProlScriptEngine) factory.getScriptEngine();
 
     // Initially, custom predicates should not be available
-    assertThrows(ScriptException.class, () -> {
-      engine.query("square(5, X).");
-    }, "square/2 should not be available initially");
+    assertThrows(ScriptException.class, () -> engine.query("square(5, X)."),
+        "square/2 should not be available initially");
 
     System.out.println("✓ Custom predicate not available before adding library");
 
@@ -270,7 +270,7 @@ class JProlScriptEngineTest {
 
     Object timestamp = results.get(0).get("X");
     assertNotNull(timestamp, "Timestamp should not be null");
-    assertTrue(timestamp instanceof Long, "Timestamp should be a Long");
+    assertInstanceOf(Long.class, timestamp, "Timestamp should be a Long");
     assertTrue((Long) timestamp > 0, "Timestamp should be positive");
 
     System.out.println("✓ current_timestamp(X) => X = " + timestamp);
@@ -314,7 +314,7 @@ class JProlScriptEngineTest {
 
     Object uniqueList = results.get(0).get("X");
     assertNotNull(uniqueList, "Unique list should not be null");
-    assertTrue(uniqueList instanceof List, "Result should be a list");
+    assertInstanceOf(List.class, uniqueList, "Result should be a list");
 
     @SuppressWarnings("unchecked")
     List<Object> list = (List<Object>) uniqueList;
@@ -404,7 +404,6 @@ class JProlScriptEngineTest {
 
     @JProlPredicate(
         signature = "hello_world/0",
-        args = {},
         determined = true,
         reference = "Print hello world message"
     )

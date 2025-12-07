@@ -48,7 +48,8 @@ import javax.script.SimpleBindings;
  */
 public class JProlScriptEngine extends AbstractScriptEngine implements Compilable {
 
-  private static final JProlCoreLibrary CORE_PROL_LIBRARY = new JProlCoreLibrary();
+  private static final List<AbstractJProlLibrary> BOOTSTRAP_LIBRARIES =
+      List.of(new JProlCoreLibrary(), new JProlJsr223BootstrapLibrary());
   private static final Predicate<Term> IS_QUERY_PREDICATE = t -> {
     if (t instanceof TermStruct) {
       final TermStruct struct = (TermStruct) t;
@@ -98,7 +99,7 @@ public class JProlScriptEngine extends AbstractScriptEngine implements Compilabl
   private void initializeContext(final List<? extends AbstractJProlLibrary> libraries) {
     try {
       final AbstractJProlLibrary[] targetLibraries =
-          Stream.concat(Stream.of(CORE_PROL_LIBRARY), libraries.stream()).toArray(
+          Stream.concat(BOOTSTRAP_LIBRARIES.stream(), libraries.stream()).toArray(
               AbstractJProlLibrary[]::new);
       this.prologContext = new JProlContext(
           "jsr223-context-" + System.identityHashCode(this),
@@ -154,7 +155,7 @@ public class JProlScriptEngine extends AbstractScriptEngine implements Compilabl
       final String consult =
           parsedTerms.stream().filter(Predicate.not(IS_QUERY_PREDICATE)).map(Term::toSrcString)
               .collect(
-                  Collectors.joining(". "));
+                  Collectors.joining(" ", "", "."));
       this.prologContext.consult(new StringReader(consult));
       return this.executeQuery(queryString + '.', context);
     } catch (Exception e) {
@@ -305,7 +306,7 @@ public class JProlScriptEngine extends AbstractScriptEngine implements Compilabl
           bindings.put(n, this.convertTermToJava(v));
         });
       }
-      return this.convertTermToJava(result);
+      return Boolean.TRUE;
     }
 
     return Boolean.FALSE;
@@ -355,7 +356,7 @@ public class JProlScriptEngine extends AbstractScriptEngine implements Compilabl
       try {
         this.compiledContext = new JProlContext(
             "compiled-context-" + System.identityHashCode(this),
-            Stream.concat(Stream.of(CORE_PROL_LIBRARY), this.libraries.stream()).toArray(
+            Stream.concat(BOOTSTRAP_LIBRARIES.stream(), this.libraries.stream()).toArray(
                 AbstractJProlLibrary[]::new)
         );
         this.compiledContext.consult(new StringReader(script));
