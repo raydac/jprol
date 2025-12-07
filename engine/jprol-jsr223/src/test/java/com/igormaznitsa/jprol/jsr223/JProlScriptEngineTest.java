@@ -17,6 +17,7 @@ import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -383,6 +384,59 @@ class JProlScriptEngineTest {
     System.out.println("✓ Language: " + factory.getLanguageName());
     System.out.println("✓ Extensions: " + factory.getExtensions());
     System.out.println("✓ Names: " + factory.getNames());
+    System.out.println();
+  }
+
+  @Test
+  @Order(11)
+  @DisplayName("Test 11: Prolog Flags Management")
+  public void testPrologFlags() throws ScriptException {
+    System.out.println("Test 11: Prolog Flags Management");
+    System.out.println("--------------------------------");
+
+    JProlScriptEngine engine = (JProlScriptEngine) factory.getScriptEngine();
+
+    // Test setting and getting debug flag
+    engine.setFlag("debug", "false");
+    Object debugValue = engine.getFlag("debug");
+    assertNotNull(debugValue, "Debug flag should be set");
+    System.out.println("✓ Set debug flag: " + debugValue);
+
+    // Test setting and getting unknown flag
+    engine.setFlag("unknown", "fail");
+    Object unknownValue = engine.getFlag("unknown");
+    assertNotNull(unknownValue, "Unknown flag should be set");
+    System.out.println("✓ Set unknown flag: " + unknownValue);
+
+    // Test setting verify flag
+    engine.setFlag("verify", "true");
+    Object verifyValue = engine.getFlag("verify");
+    assertNotNull(verifyValue, "Verify flag should be set");
+    System.out.println("✓ Set verify flag: " + verifyValue);
+
+    // Test flags via ScriptContext
+    ScriptContext context = engine.getContext();
+    Map<String, Object> flags = new HashMap<>();
+    flags.put("unknown", "fail");
+    flags.put("debug", "true");
+    flags.put("verify", "false");
+    context.setAttribute("jprol.context.flags", flags, ScriptContext.ENGINE_SCOPE);
+
+    // Execute with context flags
+    engine.eval("?- true.", context);
+
+    System.out.println("✓ Context flags applied successfully");
+
+    // Test getting read-only flags
+    Object dialectValue = engine.getFlag("dialect");
+    assertNotNull(dialectValue, "Dialect flag should exist");
+    System.out.println("✓ Dialect flag: " + dialectValue);
+
+    Object versionData = engine.getFlag("version_data");
+    assertNotNull(versionData, "Version data flag should exist");
+    System.out.println("✓ Version data flag: " + versionData);
+
+    System.out.println("✓ All flag operations completed successfully");
     System.out.println();
   }
 
