@@ -40,7 +40,8 @@ public class SimpleJsr223Test {
   public void testMultithread() throws Exception {
     var engine = findScriptEngine();
     final AtomicInteger errorCounter = new AtomicInteger();
-    final int threads = 1000;
+    final AtomicInteger completionCounter = new AtomicInteger();
+    final int threads = 20000;
     final CountDownLatch start = new CountDownLatch(threads);
     final CountDownLatch end = new CountDownLatch(threads);
     for (int i = 0; i < threads; i++) {
@@ -63,10 +64,11 @@ public class SimpleJsr223Test {
           }
         } catch (InterruptedException ex) {
           Thread.currentThread().interrupt();
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
           errorCounter.incrementAndGet();
           System.err.println("Error: " + ex.getMessage());
         } finally {
+          completionCounter.incrementAndGet();
           end.countDown();
         }
       }, "thread-test-" + i);
@@ -74,6 +76,7 @@ public class SimpleJsr223Test {
       start.countDown();
     }
     end.await();
+    assertEquals(threads, completionCounter.get());
     assertEquals(0, errorCounter.get());
   }
 }
