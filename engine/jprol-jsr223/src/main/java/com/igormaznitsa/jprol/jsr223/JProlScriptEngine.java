@@ -83,7 +83,7 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
   static final List<AbstractJProlLibrary> BOOTSTRAP_LIBRARIES =
       List.of(new JProlCoreLibrary(), new JProlJsr223BootstrapLibrary());
 
-  private static final Function<Term, Term> QUERY_PREDICATE_FILTER = t -> {
+  static final Function<Term, Term> QUERY_PREDICATE_FILTER = t -> {
     if (t instanceof TermStruct) {
       final TermStruct struct = (TermStruct) t;
       if (struct.getArity() == 1 && "?-".equals(struct.getFunctor().getText())) {
@@ -93,7 +93,7 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
     return null;
   };
 
-  private static final Function<Term, Term> NOT_QUERY_PREDICATE_FILTER = t -> {
+  static final Function<Term, Term> NOT_QUERY_PREDICATE_FILTER = t -> {
     if (t instanceof TermStruct) {
       final TermStruct struct = (TermStruct) t;
       if (struct.getArity() == 1 && "?-".equals(struct.getFunctor().getText())) {
@@ -203,7 +203,7 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
     return term.getText();
   }
 
-  private static Map<String, Term> extractVarsFromBindings(final ScriptContext context) {
+  static Map<String, Term> extractVarsFromBindings(final ScriptContext context) {
     final Bindings globalScope = context.getBindings(ScriptContext.GLOBAL_SCOPE);
     final Bindings engineScope = context.getBindings(ScriptContext.ENGINE_SCOPE);
 
@@ -219,7 +219,7 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
     return result;
   }
 
-  private static List<Term> parseWholeScript(final String script, final JProlContext context) {
+  static List<Term> parseWholeScript(final String script, final JProlContext context) {
     try (final StringReader reader = new StringReader(script)) {
       final JProlTreeBuilder treeBuilder = new JProlTreeBuilder(context);
       final List<Term> parsedTerms = new ArrayList<>();
@@ -231,7 +231,7 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
     }
   }
 
-  private static String joinSources(
+  static String joinSources(
       final List<Term> parsed,
       final Function<Term, Term> processor,
       final int limit,

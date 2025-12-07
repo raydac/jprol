@@ -2,11 +2,15 @@ package com.igormaznitsa.jprol.jsr223;
 
 import static java.lang.System.identityHashCode;
 
+import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.prologparser.exceptions.PrologParserException;
 import java.io.StringReader;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.script.CompiledScript;
 import javax.script.ScriptContext;
@@ -15,32 +19,44 @@ import javax.script.ScriptException;
 
 class JProlCompiledScript extends CompiledScript {
   private final JProlScriptEngine engine;
-  private final String script;
+  private final String filteredScript;
+  private final List<Term> queryList;
   private final JProlContext compiledContext;
 
   JProlCompiledScript(
       final JProlScriptEngine engine,
-      final String script,
+      String script,
       final List<? extends AbstractJProlLibrary> libraries) throws ScriptException {
     this.engine = engine;
-    this.script = script;
     final List<? extends AbstractJProlLibrary> libraries1 = List.copyOf(libraries);
 
     try {
+      final List<Term> parsed =
+          JProlScriptEngine.parseWholeScript(script, engine.getPrologContext());
+      this.queryList = parsed.stream().map(JProlScriptEngine.QUERY_PREDICATE_FILTER)
+          .filter(Objects::nonNull)
+          .collect(Collectors.toList());
+
+      script = JProlScriptEngine.joinSources(parsed, JProlScriptEngine.NOT_QUERY_PREDICATE_FILTER,
+          Integer.MAX_VALUE,
+          Map.of());
+
       this.compiledContext = new JProlContext(
           "compiled-context-" + identityHashCode(this),
           Stream.concat(JProlScriptEngine.BOOTSTRAP_LIBRARIES.stream(), libraries1.stream())
               .toArray(
                   AbstractJProlLibrary[]::new)
       );
+      this.filteredScript = script;
       this.compiledContext.addIoResourceProvider(JProlScriptEngine.CONSOLE_IO_PROVIDER);
-      this.compiledContext.consult(new StringReader(script));
+      this.compiledContext.consult(new StringReader(this.filteredScript));
     } catch (PrologParserException e) {
       if (e.hasValidPosition()) {
         throw new ScriptException(
-            "Error parsing query: " + e.getMessage() + " " + e.getLine() + ':' + e.getPos());
+            "Error parsing script (" + e.getMessage() + ") " + e.getLine() + ':' + e.getPos() +
+                " : " + script);
       } else {
-        throw new ScriptException("Error parsing query: " + e.getMessage());
+        throw new ScriptException("Error parsing script (" + e.getMessage() + "): " + script);
       }
     } catch (Exception e) {
       throw new ScriptException("Error compiling Prolog script: " + e.getMessage());
@@ -54,22 +70,20 @@ class JProlCompiledScript extends CompiledScript {
       this.engine.setPrologContext(this.compiledContext);
       this.engine.applyContextFlags(context);
 
-      String[] lines = script.split("\n");
       Object lastResult = null;
 
-      for (String line : lines) {
-        line = line.trim();
-        if (line.startsWith("?-")) {
-          String query = line.substring(2).trim();
-          if (query.endsWith(".")) {
-            query = query.substring(0, query.length() - 1).trim();
+      final Map<String, Term> bindings = JProlScriptEngine.extractVarsFromBindings(context);
+      for (final Term q : this.queryList) {
+        Term preparedQuery = q;
+        if (!bindings.isEmpty()) {
+          for (final Map.Entry<String, Term> t : bindings.entrySet()) {
+            preparedQuery = preparedQuery.replaceVar(t.getKey(), t.getValue());
           }
-          lastResult = engine.executeQuery(query, context);
         }
+        final String preparedQueryText = preparedQuery.toSrcString() + '.';
+        lastResult = this.engine.executeQuery(preparedQueryText, context);
       }
-
-      return lastResult != null ? lastResult : Boolean.TRUE;
-
+      return lastResult == null ? Boolean.FALSE : lastResult;
     } catch (Exception e) {
       throw new ScriptException("Error evaluating compiled script: " + e.getMessage());
     } finally {

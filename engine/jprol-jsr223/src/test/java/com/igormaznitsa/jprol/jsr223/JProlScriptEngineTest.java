@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.script.Bindings;
+import javax.script.CompiledScript;
 import javax.script.ScriptContext;
 import javax.script.ScriptException;
 import org.junit.jupiter.api.AfterAll;
@@ -437,6 +438,55 @@ class JProlScriptEngineTest {
     System.out.println("✓ Version data flag: " + versionData);
 
     System.out.println("✓ All flag operations completed successfully");
+    System.out.println();
+  }
+
+  @Test
+  @Order(12)
+  @DisplayName("Test 12: Compiled Scripts")
+  public void testCompiledScripts() throws ScriptException {
+    System.out.println("Test 12: Compiled Scripts");
+    System.out.println("-------------------------");
+
+    JProlScriptEngine engine = (JProlScriptEngine) factory.getScriptEngine(
+        new MathLibrary()
+    );
+
+    // Script with facts, rules, and queries
+    String script =
+        "% Factorial predicate\n" +
+            "fact(0, 1).\n" +
+            "fact(N, F) :- N > 0, N1 is N - 1, fact(N1, F1), F is N * F1.\n" +
+            "\n" +
+            "% Fibonacci predicate\n" +
+            "fib(0, 0).\n" +
+            "fib(1, 1).\n" +
+            "fib(N, F) :- N > 1, N1 is N - 1, N2 is N - 2, fib(N1, F1), fib(N2, F2), F is F1 + F2.\n" +
+            "\n" +
+            "% Combined predicate using custom library\n" +
+            "process(N, Fact, Sq) :- fact(N, Fact), square(N, Sq).\n" +
+            "?- fact(A, F).";
+
+    // Test 1: Compile the script
+    CompiledScript compiled = engine.compile(script);
+    assertNotNull(compiled, "Compiled script should not be null");
+    System.out.println("✓ Script compiled successfully");
+
+    // Test 2: Execute compiled script (loads predicates)
+    Object result = compiled.eval();
+    assertNotNull(result, "Evaluation should return a result");
+    System.out.println("✓ Compiled script executed successfully");
+
+    // Test 3: Query factorial predicate from compiled script
+    compiled.getEngine().getBindings(ScriptContext.ENGINE_SCOPE).clear();
+    compiled.getEngine().getBindings(ScriptContext.ENGINE_SCOPE).put("A", 5);
+    result = compiled.eval();
+    assertTrue((Boolean) result);
+    Object resultF = compiled.getEngine().getBindings(ScriptContext.ENGINE_SCOPE).get("F");
+    assertEquals(120L, resultF, "5! should be 120");
+    System.out.println("✓ fact(5, F) => F = " + resultF);
+
+    System.out.println("✓ All compiled script tests passed successfully");
     System.out.println();
   }
 
