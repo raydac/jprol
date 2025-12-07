@@ -3,6 +3,8 @@ package com.igormaznitsa.jprol.jsr223;
 import static com.igormaznitsa.jprol.jsr223.JProlJsr223BootstrapLibrary.READER_IN;
 import static com.igormaznitsa.jprol.jsr223.JProlJsr223BootstrapLibrary.WRITER_ERR;
 import static com.igormaznitsa.jprol.jsr223.JProlJsr223BootstrapLibrary.WRITER_OUT;
+import static java.lang.System.identityHashCode;
+import static java.util.stream.Collectors.joining;
 
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermDouble;
@@ -18,6 +20,7 @@ import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.JProlTreeBuilder;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
 import com.igormaznitsa.jprol.utils.ProlUtils;
+import com.igormaznitsa.prologparser.exceptions.PrologParserException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -29,7 +32,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.script.Bindings;
@@ -42,7 +46,7 @@ import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 
 /**
- * JSR 223 ScriptEngine implementation for JProl Prolog.
+ * JProl JSR 223 script engine implementation.
  * Allows execution of Prolog code through the standard Java Scripting API.
  * <p>
  * Supports custom libraries via ScriptContext attributes:
@@ -77,31 +81,51 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
 
   private static final List<AbstractJProlLibrary> BOOTSTRAP_LIBRARIES =
       List.of(new JProlCoreLibrary(), new JProlJsr223BootstrapLibrary());
-  private static final Predicate<Term> IS_QUERY_PREDICATE = t -> {
+
+  private static final Function<Term, Term> QUERY_PREDICATE_FILTER = t -> {
     if (t instanceof TermStruct) {
       final TermStruct struct = (TermStruct) t;
-      return struct.getArity() == 1 && "?-".equals(struct.getFunctor().getText());
+      if (struct.getArity() == 1 && "?-".equals(struct.getFunctor().getText())) {
+        return struct.getElement(0);
+      }
     }
-    return false;
+    return null;
   };
+
+  private static final Function<Term, Term> NOT_QUERY_PREDICATE_FILTER = t -> {
+    if (t instanceof TermStruct) {
+      final TermStruct struct = (TermStruct) t;
+      if (struct.getArity() == 1 && "?-".equals(struct.getFunctor().getText())) {
+        return null;
+      }
+    }
+    return t;
+  };
+  private static final AbstractJProlLibrary[] EMPTY_LIBRARIES = new AbstractJProlLibrary[0];
   private final JProlScriptEngineFactory factory;
   private final List<AbstractJProlLibrary> defaultLibraries;
-  private JProlContext prologContext;
-
+  private volatile JProlContext prologContext;
   private volatile JProlScriptEngineContext engineContext;
 
   JProlScriptEngine(JProlScriptEngineFactory factory) {
-    this(factory, new AbstractJProlLibrary[0]);
+    this(factory, EMPTY_LIBRARIES);
   }
 
-  JProlScriptEngine(JProlScriptEngineFactory factory, AbstractJProlLibrary... libraries) {
+  JProlScriptEngine(final JProlScriptEngineFactory factory,
+                    final AbstractJProlLibrary... libraries) {
     this.engineContext = new JProlScriptEngineContext();
     this.factory = factory;
     this.defaultLibraries = List.of(libraries);
     this.initializeJProlContext(this.defaultLibraries);
   }
 
-  private static Term asTerm(final Object obj) {
+  /**
+   * Convert a Java object into JProl Term
+   *
+   * @param obj source object, can be null
+   * @return converted object, null will be returned as null list
+   */
+  private static Term java2term(final Object obj) {
     if (obj == null) {
       return Terms.NULL_LIST;
     }
@@ -112,31 +136,43 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
       return Terms.newLong(((Number) obj).longValue());
     }
     if (obj instanceof Collection) {
-      final List<Term> terms = ((Collection<?>) obj).stream().map(JProlScriptEngine::asTerm)
+      final List<Term> terms = ((Collection<?>) obj).stream().map(JProlScriptEngine::java2term)
           .collect(Collectors.toList());
       return TermList.asList(terms);
     }
     return Terms.newAtom(obj.toString());
   }
 
-  private static boolean isPrologVarName(final String string) {
+  /**
+   * Check that a string can be recognized as a prolog variable name.
+   *
+   * @param string source string, can be null
+   * @return true if the string can be recognized as a prolog variable name
+   */
+  private static boolean isValidPrologVariableName(final String string) {
     if (string == null || string.isEmpty()) {
       return false;
     }
     return string.startsWith("_") || Character.isUpperCase(string.charAt(0));
   }
 
-  private static Map<String, Object> extractAllGroundedVariables(
+  /**
+   * Search grounded variables in a choice point and fill the result map by converted values.
+   *
+   * @param choicePoint source choice point, can be null
+   * @return a map filled by named java objects found as grounded variables, can't be null but can be empty one
+   */
+  private static Map<String, Object> extractGroundedVariables(
       final JProlChoicePoint choicePoint) {
     if (choicePoint == null) {
       return Map.of();
     } else {
       return choicePoint.findAllGroundedVars().entrySet().stream().collect(Collectors.toMap(
-          Map.Entry::getKey, x -> convertTermToJava(x.getValue())));
+          Map.Entry::getKey, x -> term2java(x.getValue())));
     }
   }
 
-  private static Object convertTermToJava(final Term term) {
+  private static Object term2java(final Term term) {
     if (term == null) {
       return null;
     }
@@ -146,7 +182,7 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
       if (term == value) {
         return term.getText();
       } else {
-        return convertTermToJava(value);
+        return term2java(value);
       }
     }
 
@@ -160,22 +196,60 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
 
     if (term instanceof TermList) {
       return ProlUtils.listToMappedValues((TermList) term, true,
-          JProlScriptEngine::convertTermToJava);
+          JProlScriptEngine::term2java);
     }
 
     return term.getText();
   }
 
-  private static Map<String, Term> findVarsInBindings(final ScriptContext context) {
+  private static Map<String, Term> extractVarsFromBindings(final ScriptContext context) {
     final Bindings globalScope = context.getBindings(ScriptContext.GLOBAL_SCOPE);
     final Bindings engineScope = context.getBindings(ScriptContext.ENGINE_SCOPE);
 
     final Map<String, Term> result = new HashMap<>();
-    globalScope.entrySet().stream().filter(x -> isPrologVarName(x.getKey()))
-        .forEach(e -> result.put(e.getKey(), asTerm(e.getValue())));
-    engineScope.entrySet().stream().filter(x -> isPrologVarName(x.getKey()))
-        .forEach(e -> result.put(e.getKey(), asTerm(e.getValue())));
+    if (globalScope != null) {
+      globalScope.entrySet().stream().filter(x -> isValidPrologVariableName(x.getKey()))
+          .forEach(e -> result.put(e.getKey(), java2term(e.getValue())));
+    }
+    if (engineScope != null) {
+      engineScope.entrySet().stream().filter(x -> isValidPrologVariableName(x.getKey()))
+          .forEach(e -> result.put(e.getKey(), java2term(e.getValue())));
+    }
     return result;
+  }
+
+  private static List<Term> parseWholeScript(final String script, final JProlContext context) {
+    try (final StringReader reader = new StringReader(script)) {
+      final JProlTreeBuilder treeBuilder = new JProlTreeBuilder(context);
+      final List<Term> parsedTerms = new ArrayList<>();
+      Term nextTerm;
+      while ((nextTerm = treeBuilder.readPhraseAndMakeTree(reader)) != null) {
+        parsedTerms.add(nextTerm);
+      }
+      return parsedTerms;
+    }
+  }
+
+  private static String joinSources(
+      final List<Term> parsed,
+      final Function<Term, Term> processor,
+      final int limit,
+      final Map<String, Term> varReplacements) {
+    final String resultString = parsed.stream()
+        .map(processor)
+        .filter(Objects::nonNull).limit(limit).map(x -> {
+          if (varReplacements.isEmpty()) {
+            return x;
+          }
+          Term replaced = x;
+          for (final Map.Entry<String, Term> e : varReplacements.entrySet()) {
+            replaced = replaced.replaceVar(e.getKey(), e.getValue());
+          }
+          return replaced;
+        })
+        .map(Term::toSrcString)
+        .collect(joining(". "));
+    return resultString.isEmpty() ? resultString : resultString + ".";
   }
 
   @Override
@@ -193,7 +267,7 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
     return eval(script, this.getScriptContext(bindings));
   }
 
-  protected ScriptContext getScriptContext(Bindings bindings) {
+  private ScriptContext getScriptContext(final Bindings bindings) {
     final JProlScriptEngineContext newContext = new JProlScriptEngineContext(
         this.engineContext.getReader(), this.engineContext.getWriter(),
         this.engineContext.getErrorWriter());
@@ -255,7 +329,7 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
           Stream.concat(BOOTSTRAP_LIBRARIES.stream(), libraries.stream()).toArray(
               AbstractJProlLibrary[]::new);
       this.prologContext = new JProlContext(
-          "jsr223-context-" + System.identityHashCode(this),
+          "jprol-jsr223-" + identityHashCode(this),
           targetLibraries
       );
       this.prologContext.addIoResourceProvider(CONSOLE_IO_PROVIDER);
@@ -274,40 +348,30 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
       this.checkAndReinitializeWithLibraries(context);
       this.applyContextFlags(context);
 
-      final StringReader reader = new StringReader(script);
-
-      final JProlTreeBuilder treeBuilder = new JProlTreeBuilder(this.prologContext);
-      final List<Term> parsedTerms = new ArrayList<>();
-      Term nextTerm;
-      while ((nextTerm = treeBuilder.readPhraseAndMakeTree(reader)) != null) {
-        parsedTerms.add(nextTerm);
-      }
-
-      final Map<String, Term> bindingsAsTerm = findVarsInBindings(context);
-      final String queryString = parsedTerms.stream().filter(IS_QUERY_PREDICATE).findFirst()
-          .map(x -> {
-            if (bindingsAsTerm.isEmpty()) {
-              return x;
-            }
-            Term result = x;
-            for (final Map.Entry<String, Term> e : bindingsAsTerm.entrySet()) {
-              result = result.replaceVar(e.getKey(), e.getValue());
-            }
-            return result;
-          })
-          .map(x -> ((TermStruct) x).getElement(0).toSrcString()).orElse(null);
-      if (queryString == null) {
+      final List<Term> parsedTerms = parseWholeScript(script, this.prologContext);
+      final String queryString =
+          joinSources(parsedTerms, QUERY_PREDICATE_FILTER, 1, extractVarsFromBindings(context));
+      if (queryString.isEmpty()) {
         throw new ScriptException("Can't find query predicate '?-' in the script: " + script);
       }
       final String consult =
-          parsedTerms.stream().filter(Predicate.not(IS_QUERY_PREDICATE)).map(Term::toSrcString)
-              .collect(
-                  Collectors.joining(" ", "", "."));
+          joinSources(parsedTerms, NOT_QUERY_PREDICATE_FILTER, Integer.MAX_VALUE, Map.of());
       this.prologContext.consult(new StringReader(consult));
-      return this.executeQuery(queryString + '.', context);
+      return this.executeQuery(queryString, context);
     } catch (Exception e) {
       if (e instanceof ScriptException) {
         throw (ScriptException) e;
+      }
+      if (e instanceof PrologParserException) {
+        final PrologParserException pe = (PrologParserException) e;
+        if (pe.hasValidPosition()) {
+          throw new ScriptException(
+              "Error parsing Prolog script: " + e.getMessage() + " " + pe.getLine() + ':' +
+                  pe.getPos());
+        } else {
+          throw new ScriptException(
+              "Error parsing Prolog script: " + e.getMessage());
+        }
       }
       throw new ScriptException("Error executing Prolog script: " + e.getMessage());
     }
@@ -363,12 +427,19 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
     }
   }
 
-  public List<Map<String, Object>> query(String queryString) throws ScriptException {
+  public List<Map<String, Object>> query(final String queryString) throws ScriptException {
     final List<Map<String, Object>> results = new ArrayList<>();
     try {
       final JProlChoicePoint goal = new JProlChoicePoint(queryString, this.prologContext);
       while (goal.prove() != null) {
-        results.add(extractAllGroundedVariables(goal));
+        results.add(extractGroundedVariables(goal));
+      }
+    } catch (PrologParserException e) {
+      if (e.hasValidPosition()) {
+        throw new ScriptException(
+            "Error parsing query: " + e.getMessage() + " " + e.getLine() + ':' + e.getPos());
+      } else {
+        throw new ScriptException("Error parsing query: " + e.getMessage());
       }
     } catch (Exception e) {
       throw new ScriptException("Error executing query: " + e.getMessage());
@@ -402,7 +473,14 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
     try {
       String valueStr = value instanceof String ? "'" + value + "'" : value.toString();
       this.prologContext.consult(
-          new StringReader(":-set_prolog_flag(" + flagName + ", " + valueStr + ")."));
+          new StringReader(":- set_prolog_flag(" + flagName + ", " + valueStr + ")."));
+    } catch (PrologParserException e) {
+      if (e.hasValidPosition()) {
+        throw new ScriptException(
+            "Error parsing query: " + e.getMessage() + " " + e.getLine() + ':' + e.getPos());
+      } else {
+        throw new ScriptException("Error parsing query: " + e.getMessage());
+      }
     } catch (Exception e) {
       throw new ScriptException("Error setting flag: " + e.getMessage());
     }
@@ -417,7 +495,11 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
       }
       return null;
     } catch (Exception e) {
-      throw new ScriptException("Error getting flag: " + e.getMessage());
+      if (e instanceof ScriptException) {
+        throw (ScriptException) e;
+      } else {
+        throw new ScriptException("Error getting flag: " + e.getMessage());
+      }
     }
   }
 
@@ -463,7 +545,7 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
     final JProlChoicePoint goal = new JProlChoicePoint(queryString, this.prologContext);
     final Term result = goal.prove();
     if (result != null) {
-      final Map<String, Object> groundedVars = extractAllGroundedVariables(goal);
+      final Map<String, Object> groundedVars = extractGroundedVariables(goal);
       final Bindings engineBindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
       if (engineBindings != null) {
         engineBindings.putAll(groundedVars);
@@ -478,20 +560,29 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
     private final String script;
     private final JProlContext compiledContext;
 
-    JProlCompiledScript(JProlScriptEngine engine, String script,
-                        List<? extends AbstractJProlLibrary> libraries) throws ScriptException {
+    JProlCompiledScript(
+        final JProlScriptEngine engine,
+        final String script,
+        final List<? extends AbstractJProlLibrary> libraries) throws ScriptException {
       this.engine = engine;
       this.script = script;
       final List<? extends AbstractJProlLibrary> libraries1 = List.copyOf(libraries);
 
       try {
         this.compiledContext = new JProlContext(
-            "compiled-context-" + System.identityHashCode(this),
+            "compiled-context-" + identityHashCode(this),
             Stream.concat(BOOTSTRAP_LIBRARIES.stream(), libraries1.stream()).toArray(
                 AbstractJProlLibrary[]::new)
         );
         this.compiledContext.addIoResourceProvider(CONSOLE_IO_PROVIDER);
         this.compiledContext.consult(new StringReader(script));
+      } catch (PrologParserException e) {
+        if (e.hasValidPosition()) {
+          throw new ScriptException(
+              "Error parsing query: " + e.getMessage() + " " + e.getLine() + ':' + e.getPos());
+        } else {
+          throw new ScriptException("Error parsing query: " + e.getMessage());
+        }
       } catch (Exception e) {
         throw new ScriptException("Error compiling Prolog script: " + e.getMessage());
       }

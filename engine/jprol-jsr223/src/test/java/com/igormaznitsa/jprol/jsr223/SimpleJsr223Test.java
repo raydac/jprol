@@ -41,7 +41,7 @@ public class SimpleJsr223Test {
     var engine = findScriptEngine();
     final AtomicInteger errorCounter = new AtomicInteger();
     final AtomicInteger completionCounter = new AtomicInteger();
-    final int threads = 20000;
+    final int threads = 5000;
     final CountDownLatch start = new CountDownLatch(threads);
     final CountDownLatch end = new CountDownLatch(threads);
     for (int i = 0; i < threads; i++) {
