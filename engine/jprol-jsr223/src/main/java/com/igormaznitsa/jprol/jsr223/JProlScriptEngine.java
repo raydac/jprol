@@ -4,6 +4,7 @@ import static com.igormaznitsa.jprol.jsr223.JProlJsr223BootstrapLibrary.READER_I
 import static com.igormaznitsa.jprol.jsr223.JProlJsr223BootstrapLibrary.WRITER_ERR;
 import static com.igormaznitsa.jprol.jsr223.JProlJsr223BootstrapLibrary.WRITER_OUT;
 import static java.lang.System.identityHashCode;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 
 import com.igormaznitsa.jprol.data.Term;
@@ -57,7 +58,7 @@ import javax.script.SimpleBindings;
  */
 public class JProlScriptEngine implements ScriptEngine, Compilable {
 
-  private static final IoResourceProvider CONSOLE_IO_PROVIDER = new IoResourceProvider() {
+  static final IoResourceProvider CONSOLE_IO_PROVIDER = new IoResourceProvider() {
     @Override
     public Reader findReader(JProlContext context, String readerId) {
       Reader result = null;
@@ -79,7 +80,7 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
     }
   };
 
-  private static final List<AbstractJProlLibrary> BOOTSTRAP_LIBRARIES =
+  static final List<AbstractJProlLibrary> BOOTSTRAP_LIBRARIES =
       List.of(new JProlCoreLibrary(), new JProlJsr223BootstrapLibrary());
 
   private static final Function<Term, Term> QUERY_PREDICATE_FILTER = t -> {
@@ -459,6 +460,10 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
     return this.prologContext;
   }
 
+  public void setPrologContext(final JProlContext context) {
+    this.prologContext = requireNonNull(context);
+  }
+
   public void resetContext() {
     this.initializeJProlContext(this.defaultLibraries);
   }
@@ -518,7 +523,7 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
     }
   }
 
-  private void applyContextFlags(ScriptContext context) throws ScriptException {
+  void applyContextFlags(ScriptContext context) throws ScriptException {
     Object flagsAttr = context.getAttribute("jprol.context.flags", ScriptContext.ENGINE_SCOPE);
     if (flagsAttr instanceof Map) {
       @SuppressWarnings("unchecked") final Map<String, Object> flags =
@@ -541,7 +546,7 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
     }
   }
 
-  private Object executeQuery(final String queryString, final ScriptContext context) {
+  Object executeQuery(final String queryString, final ScriptContext context) {
     final JProlChoicePoint goal = new JProlChoicePoint(queryString, this.prologContext);
     final Term result = goal.prove();
     if (result != null) {
@@ -555,72 +560,4 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
     return Boolean.FALSE;
   }
 
-  private static class JProlCompiledScript extends CompiledScript {
-    private final JProlScriptEngine engine;
-    private final String script;
-    private final JProlContext compiledContext;
-
-    JProlCompiledScript(
-        final JProlScriptEngine engine,
-        final String script,
-        final List<? extends AbstractJProlLibrary> libraries) throws ScriptException {
-      this.engine = engine;
-      this.script = script;
-      final List<? extends AbstractJProlLibrary> libraries1 = List.copyOf(libraries);
-
-      try {
-        this.compiledContext = new JProlContext(
-            "compiled-context-" + identityHashCode(this),
-            Stream.concat(BOOTSTRAP_LIBRARIES.stream(), libraries1.stream()).toArray(
-                AbstractJProlLibrary[]::new)
-        );
-        this.compiledContext.addIoResourceProvider(CONSOLE_IO_PROVIDER);
-        this.compiledContext.consult(new StringReader(script));
-      } catch (PrologParserException e) {
-        if (e.hasValidPosition()) {
-          throw new ScriptException(
-              "Error parsing query: " + e.getMessage() + " " + e.getLine() + ':' + e.getPos());
-        } else {
-          throw new ScriptException("Error parsing query: " + e.getMessage());
-        }
-      } catch (Exception e) {
-        throw new ScriptException("Error compiling Prolog script: " + e.getMessage());
-      }
-    }
-
-    @Override
-    public Object eval(final ScriptContext context) throws ScriptException {
-      final JProlContext oldContext = engine.prologContext;
-      try {
-        this.engine.prologContext = compiledContext;
-        this.engine.applyContextFlags(context);
-
-        String[] lines = script.split("\n");
-        Object lastResult = null;
-
-        for (String line : lines) {
-          line = line.trim();
-          if (line.startsWith("?-")) {
-            String query = line.substring(2).trim();
-            if (query.endsWith(".")) {
-              query = query.substring(0, query.length() - 1).trim();
-            }
-            lastResult = engine.executeQuery(query, context);
-          }
-        }
-
-        return lastResult != null ? lastResult : Boolean.TRUE;
-
-      } catch (Exception e) {
-        throw new ScriptException("Error evaluating compiled script: " + e.getMessage());
-      } finally {
-        engine.prologContext = oldContext;
-      }
-    }
-
-    @Override
-    public ScriptEngine getEngine() {
-      return this.engine;
-    }
-  }
 }
