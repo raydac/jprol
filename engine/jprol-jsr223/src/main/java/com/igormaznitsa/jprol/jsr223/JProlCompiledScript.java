@@ -17,10 +17,10 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
-class JProlCompiledScript extends CompiledScript {
+public class JProlCompiledScript extends CompiledScript {
   private final JProlScriptEngine engine;
-  private final String filteredScript;
   private final List<Term> queryList;
+  private final String scriptSources;
   private final JProlContext compiledContext;
 
   JProlCompiledScript(
@@ -28,6 +28,7 @@ class JProlCompiledScript extends CompiledScript {
       String script,
       final List<? extends AbstractJProlLibrary> libraries) throws ScriptException {
     this.engine = engine;
+    this.scriptSources = script;
     final List<? extends AbstractJProlLibrary> libraries1 = List.copyOf(libraries);
 
     try {
@@ -47,9 +48,8 @@ class JProlCompiledScript extends CompiledScript {
               .toArray(
                   AbstractJProlLibrary[]::new)
       );
-      this.filteredScript = script;
       this.compiledContext.addIoResourceProvider(JProlScriptEngine.CONSOLE_IO_PROVIDER);
-      this.compiledContext.consult(new StringReader(this.filteredScript));
+      this.compiledContext.consult(new StringReader(script));
     } catch (PrologParserException e) {
       if (e.hasValidPosition()) {
         throw new ScriptException(
@@ -61,6 +61,10 @@ class JProlCompiledScript extends CompiledScript {
     } catch (Exception e) {
       throw new ScriptException("Error compiling Prolog script: " + e.getMessage());
     }
+  }
+
+  public String getScriptSources() {
+    return this.scriptSources;
   }
 
   @Override
