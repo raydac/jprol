@@ -153,24 +153,29 @@ public final class ProlAssertions {
   }
 
   public static void assertCallable(final Term t) {
-    final boolean errorType;
+    final boolean nonCallable;
     switch (t.getTermType()) {
       case STRUCT: {
-        errorType = false;
+        nonCallable = false;
       }
       break;
       case ATOM: {
-        errorType = t instanceof NumericTerm;
+        nonCallable = t instanceof NumericTerm;
       }
       break;
       case VAR: {
-        throw new ProlInstantiationErrorException("Expected instantiated callable: " + t, t);
+        Term value = t.findNonVarOrSame();
+        if (value.getTermType() == VAR) {
+          throw new ProlInstantiationErrorException("Expected instantiated callable: " + t, t);
+        } else {
+          assertCallable(value);
+        }
       }
       default:
-        errorType = true;
+        nonCallable = true;
         break;
     }
-    if (errorType) {
+    if (nonCallable) {
       throw new ProlTypeErrorException("callable", "Callable term expected: " + t, t);
     }
   }

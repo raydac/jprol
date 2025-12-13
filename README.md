@@ -79,12 +79,12 @@ The bootstrap library of the engine has two predicates `set_prolog_flag/2` and `
 - Flags:
     - __address_bit__ (read only) address size of the hosting machine. Typically 32 or 64.
     - __allow_variable_name_as_functor__ (read only)
-    - __os.name__ (read only)
-    - __os.arch__ (read only)
+    - __os.name__ (read only) the host OS name
+    - __os.arch__ (read only) the host OS architecture
     - __bounded__ (read only) if true, integer representation is bound by min_integer and max_integer
     - __debug__ switch debugging mode true/false
-    - __dialect__ (read only) fixed to `jprol`
-    - __encoding__ default encoding used for opening files in text mode 
+    - __dialect__ (read only) contains `jprol`
+    - __encoding__ default encoding used for opening files in text mode, `UTF-8` by default
     - __gc__ (read only) if true (default), the garbage collector is active
     - __max_arity__ (read only) flag describing there is no maximum arity to compound terms
     - __max_integer__ (read only) maximum integer value if integers are bounded
@@ -92,8 +92,8 @@ The bootstrap library of the engine has two predicates `set_prolog_flag/2` and `
     - __cpu_count__ (read only) number of physical CPUs or cores in the system
     - __unknown__ determines the behaviour if an undefined procedure is encountered. If fail, the predicate fails silently. Allowed `error`,`fail` or `warning` by default `error`
     - __home__ (read only) notion of the user home directory
-    - __verify__
-    - __version_data__ (read only)
+    - __verify__ extra check for callable term in choice points true/false
+    - __version_data__ (read only) contains structure `jprol(MAJOR, MINOR, PATH)`
 
 
 ## Multi-threads

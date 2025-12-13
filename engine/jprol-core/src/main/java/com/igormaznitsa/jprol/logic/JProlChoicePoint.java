@@ -87,7 +87,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
     final Term goal = goalToSolve.findNonVarOrSame();
 
-    if (this.isArgsValidate()) {
+    if (this.validate) {
       ProlAssertions.assertCallable(goal);
     }
 

@@ -12,6 +12,7 @@ import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.utils.ProlUtils;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,7 +26,7 @@ public enum JProlSystemFlag {
   BOUNDED(true, Terms.newAtom("bounded"), TRUE),
   DEBUG(false, Terms.newAtom("debug"), FALSE),
   DIALECT(true, Terms.newAtom("dialect"), Terms.newAtom("jprol")),
-  ENCODING(false, Terms.newAtom("encoding"), Terms.newAtom("UTF-8")),
+  ENCODING(false, Terms.newAtom("encoding"), Terms.newAtom(StandardCharsets.UTF_8.name())),
   GC(true, Terms.newAtom("gc"), TRUE),
   MAX_ARITY(true, Terms.newAtom("max_arity"), Terms.newLong(Integer.MAX_VALUE)),
   MAX_INTEGER(true, Terms.newAtom("max_integer"), Terms.newLong(Long.MAX_VALUE)),
