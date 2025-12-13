@@ -1,6 +1,5 @@
 package com.igormaznitsa.jprol.jsr223;
 
-import static java.lang.ThreadLocal.withInitial;
 import static java.util.Objects.requireNonNull;
 
 import java.io.InputStreamReader;
@@ -10,22 +9,26 @@ import java.io.Writer;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.SimpleBindings;
 
-public class JProlScriptEngineContext implements ScriptContext {
+public class JProlScriptEngineContext implements ScriptContext, AutoCloseable {
 
   private static final List<Integer> SCOPES = List.of(GLOBAL_SCOPE, ENGINE_SCOPE);
+
+  ;
   private final Bindings globalBindings = new SimpleBindings(new ConcurrentHashMap<>());
-  private final ThreadLocal<Bindings> engineBindings = withInitial(SimpleBindings::new);
+  private final JProlScriptThreadLocalBindings engineBindings =
+      new JProlScriptThreadLocalBindings();
   private final AtomicReference<Writer> writer = new AtomicReference<>();
   private final AtomicReference<Reader> reader =
       new AtomicReference<>();
   private final AtomicReference<Writer> writerErr =
       new AtomicReference<>();
-
+  private final AtomicBoolean closed = new AtomicBoolean();
   JProlScriptEngineContext() {
     this(new InputStreamReader(System.in), new PrintWriter(System.out),
         new PrintWriter(System.err));
@@ -48,8 +51,15 @@ public class JProlScriptEngineContext implements ScriptContext {
     }
   }
 
+  private void assertNotClosed() {
+    if (this.closed.get()) {
+      throw new IllegalStateException("Already closed context");
+    }
+  }
+
   @Override
   public void setBindings(final Bindings bindings, final int scope) {
+    this.assertNotClosed();
     switch (scope) {
       case ENGINE_SCOPE: {
         this.engineBindings.set(bindings);
@@ -74,6 +84,7 @@ public class JProlScriptEngineContext implements ScriptContext {
 
   @Override
   public Bindings getBindings(final int scope) {
+    this.assertNotClosed();
     switch (scope) {
       case ENGINE_SCOPE:
         return this.engineBindings.get();
@@ -85,13 +96,13 @@ public class JProlScriptEngineContext implements ScriptContext {
   }
 
   @Override
-  public void setAttribute(String name, Object value, int scope) {
+  public void setAttribute(final String name, final Object value, final int scope) {
     checkName(name);
     this.getBindings(scope).put(name, value);
   }
 
   @Override
-  public Object getAttribute(String name, int scope) {
+  public Object getAttribute(final String name, final int scope) {
     checkName(name);
     return this.getBindings(scope).get(name);
   }
@@ -129,36 +140,64 @@ public class JProlScriptEngineContext implements ScriptContext {
 
   @Override
   public Writer getWriter() {
+    this.assertNotClosed();
     return this.writer.get();
   }
 
   @Override
-  public void setWriter(Writer writer) {
+  public void setWriter(final Writer writer) {
+    this.assertNotClosed();
     this.writer.set(writer);
   }
 
   @Override
   public Writer getErrorWriter() {
+    this.assertNotClosed();
     return this.writerErr.get();
   }
 
   @Override
-  public void setErrorWriter(Writer writer) {
+  public void setErrorWriter(final Writer writer) {
+    this.assertNotClosed();
     this.writerErr.set(writer);
   }
 
   @Override
   public Reader getReader() {
+    this.assertNotClosed();
     return this.reader.get();
   }
 
   @Override
-  public void setReader(Reader reader) {
+  public void setReader(final Reader reader) {
+    this.assertNotClosed();
     this.reader.set(reader);
   }
 
   @Override
   public List<Integer> getScopes() {
     return SCOPES;
+  }
+
+  @Override
+  public void close() {
+    if (this.closed.compareAndSet(false, true)) {
+      this.engineBindings.remove();
+      this.globalBindings.clear();
+      this.writer.set(null);
+      this.writerErr.set(null);
+      this.reader.set(null);
+    }
+  }
+
+  private static final class JProlScriptThreadLocalBindings extends ThreadLocal<Bindings> {
+    public JProlScriptThreadLocalBindings() {
+      super();
+    }
+
+    @Override
+    protected Bindings initialValue() {
+      return new SimpleBindings();
+    }
   }
 }

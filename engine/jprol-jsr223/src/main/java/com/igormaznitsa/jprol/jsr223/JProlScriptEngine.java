@@ -15,6 +15,7 @@ import com.igormaznitsa.jprol.data.TermLong;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.data.Terms;
+import com.igormaznitsa.jprol.kbase.KnowledgeBase;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
@@ -22,6 +23,7 @@ import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.JProlTreeBuilder;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
 import com.igormaznitsa.jprol.utils.ProlUtils;
+import com.igormaznitsa.prologparser.ParserContext;
 import com.igormaznitsa.prologparser.exceptions.PrologParserException;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -35,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -58,7 +61,7 @@ import javax.script.SimpleBindings;
  *
  * @since 2.2.2
  */
-public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
+public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable, AutoCloseable {
 
   static final IoResourceProvider CONSOLE_IO_PROVIDER = new IoResourceProvider() {
     @Override
@@ -71,7 +74,8 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
     }
 
     @Override
-    public Writer findWriter(JProlContext context, String writerId, boolean append) {
+    public Writer findWriter(final JProlContext context, final String writerId,
+                             final boolean append) {
       if (WRITER_OUT.equals(writerId)) {
         return new PrintWriter(System.out);
       } else if (WRITER_ERR.equals(writerId)) {
@@ -107,8 +111,35 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
   private static final AbstractJProlLibrary[] EMPTY_LIBRARIES = new AbstractJProlLibrary[0];
   private final JProlScriptEngineFactory factory;
   private final List<AbstractJProlLibrary> defaultLibraries;
+  private final AtomicBoolean closed = new AtomicBoolean();
   private volatile JProlContext prologContext;
   private volatile JProlScriptEngineContext engineContext;
+
+  /**
+   * Convert a Java object into JProl Term
+   *
+   * @param obj source object, can be null
+   * @return converted object, null will be returned as null list
+   */
+  static Term java2term(final Object obj) {
+    if (obj == null) {
+      return Terms.NULL_LIST;
+    }
+    if (obj instanceof Term) {
+      return (Term) obj;
+    } else if (obj instanceof Number) {
+      if (obj instanceof Float || obj instanceof Double) {
+        return Terms.newDouble(((Number) obj).doubleValue());
+      }
+      return Terms.newLong(((Number) obj).longValue());
+    }
+    if (obj instanceof Collection) {
+      final List<Term> terms = ((Collection<?>) obj).stream().map(JProlScriptEngine::java2term)
+          .collect(Collectors.toList());
+      return TermList.asList(terms);
+    }
+    return Terms.newAtom(obj.toString());
+  }
 
   JProlScriptEngine(JProlScriptEngineFactory factory) {
     this(factory, EMPTY_LIBRARIES);
@@ -122,28 +153,10 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
     this.initializeJProlContext(this.defaultLibraries);
   }
 
-  /**
-   * Convert a Java object into JProl Term
-   *
-   * @param obj source object, can be null
-   * @return converted object, null will be returned as null list
-   */
-  private static Term java2term(final Object obj) {
-    if (obj == null) {
-      return Terms.NULL_LIST;
+  private void assertNotClosed() {
+    if (this.closed.get()) {
+      throw new IllegalStateException("Already closed");
     }
-    if (obj instanceof Number) {
-      if (obj instanceof Float || obj instanceof Double) {
-        return Terms.newDouble(((Number) obj).doubleValue());
-      }
-      return Terms.newLong(((Number) obj).longValue());
-    }
-    if (obj instanceof Collection) {
-      final List<Term> terms = ((Collection<?>) obj).stream().map(JProlScriptEngine::java2term)
-          .collect(Collectors.toList());
-      return TermList.asList(terms);
-    }
-    return Terms.newAtom(obj.toString());
   }
 
   /**
@@ -267,7 +280,7 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
 
   @Override
   public Object eval(String script, Bindings bindings) throws ScriptException {
-    return eval(script, this.getScriptContext(bindings));
+    return this.eval(script, this.getScriptContext(bindings));
   }
 
   private ScriptContext getScriptContext(final Bindings bindings) {
@@ -291,11 +304,13 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
 
   @Override
   public Object eval(final Reader reader, final Bindings bindings) throws ScriptException {
+    this.assertNotClosed();
     return eval(reader, this.getScriptContext(bindings));
   }
 
   @Override
   public void put(final String key, final Object value) {
+    this.assertNotClosed();
     final Bindings bindings = this.getBindings(ScriptContext.ENGINE_SCOPE);
     if (bindings != null) {
       bindings.put(key, value);
@@ -304,6 +319,7 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
 
   @Override
   public Object get(String key) {
+    this.assertNotClosed();
     final Bindings bindings = getBindings(ScriptContext.ENGINE_SCOPE);
     if (bindings != null) {
       return bindings.get(key);
@@ -313,11 +329,13 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
 
   @Override
   public ScriptContext getContext() {
+    this.assertNotClosed();
     return this.engineContext;
   }
 
   @Override
   public void setContext(final ScriptContext context) {
+    this.assertNotClosed();
     if (context instanceof JProlScriptEngineContext) {
       this.engineContext = (JProlScriptEngineContext) context;
     } else {
@@ -343,6 +361,8 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
 
   @Override
   public Object eval(final String script, final ScriptContext context) throws ScriptException {
+    this.assertNotClosed();
+
     if (script == null) {
       throw new NullPointerException("Script is null");
     }
@@ -354,12 +374,14 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
       final List<Term> parsedTerms = parseWholeScript(script, this.prologContext);
       final String queryString =
           joinSources(parsedTerms, QUERY_PREDICATE_FILTER, 1, extractVarsFromBindings(context));
-      if (queryString.isEmpty()) {
-        throw new ScriptException("Can't find query predicate '?-' in the script: " + script);
-      }
       final String consult =
           joinSources(parsedTerms, NOT_QUERY_PREDICATE_FILTER, Integer.MAX_VALUE, Map.of());
-      this.prologContext.consult(new StringReader(consult));
+      if (!consult.isBlank()) {
+        this.prologContext.consult(new StringReader(consult));
+      }
+      if (queryString.isBlank()) {
+        return Boolean.TRUE;
+      }
       return this.executeQuery(queryString, context);
     } catch (Exception e) {
       if (e instanceof ScriptException) {
@@ -381,7 +403,8 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
   }
 
   @Override
-  public Object eval(Reader reader, ScriptContext context) throws ScriptException {
+  public Object eval(final Reader reader, final ScriptContext context) throws ScriptException {
+    this.assertNotClosed();
     try {
       StringBuilder sb = new StringBuilder();
       char[] buffer = new char[8192];
@@ -397,26 +420,31 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
 
   @Override
   public Bindings createBindings() {
+    this.assertNotClosed();
     return new SimpleBindings();
   }
 
   @Override
-  public void setBindings(Bindings bindings, int scope) {
+  public void setBindings(final Bindings bindings, final int scope) {
+    this.assertNotClosed();
     this.engineContext.setBindings(bindings, scope);
   }
 
   @Override
   public ScriptEngineFactory getFactory() {
-    return factory;
+    this.assertNotClosed();
+    return this.factory;
   }
 
   @Override
-  public CompiledScript compile(String script) throws ScriptException {
-    return new JProlCompiledScript(this, script, defaultLibraries);
+  public CompiledScript compile(final String script) throws ScriptException {
+    this.assertNotClosed();
+    return new JProlCompiledScript(this, script, this.defaultLibraries);
   }
 
   @Override
-  public CompiledScript compile(Reader reader) throws ScriptException {
+  public CompiledScript compile(final Reader reader) throws ScriptException {
+    this.assertNotClosed();
     try {
       StringBuilder sb = new StringBuilder();
       char[] buffer = new char[8192];
@@ -431,6 +459,7 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
   }
 
   public List<Map<String, Object>> query(final String queryString) throws ScriptException {
+    this.assertNotClosed();
     final List<Map<String, Object>> results = new ArrayList<>();
     try {
       final JProlChoicePoint goal = new JProlChoicePoint(queryString, this.prologContext);
@@ -451,6 +480,7 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
   }
 
   public void consult(final String source) throws ScriptException {
+    this.assertNotClosed();
     try {
       this.prologContext.consult(new StringReader(source));
     } catch (Exception e) {
@@ -459,24 +489,29 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
   }
 
   public JProlContext getPrologContext() {
+    this.assertNotClosed();
     return this.prologContext;
   }
 
   public void setPrologContext(final JProlContext context) {
+    this.assertNotClosed();
     this.prologContext = requireNonNull(context);
   }
 
   public void resetContext() {
+    this.assertNotClosed();
     this.initializeJProlContext(this.defaultLibraries);
   }
 
   public void addLibraries(final AbstractJProlLibrary... libraries) {
+    this.assertNotClosed();
     final List<AbstractJProlLibrary> combined = new ArrayList<>(this.defaultLibraries);
     combined.addAll(List.of(libraries));
     this.initializeJProlContext(combined);
   }
 
   public void setFlag(final String flagName, final Object value) throws ScriptException {
+    this.assertNotClosed();
     try {
       String valueStr = value instanceof String ? "'" + value + "'" : value.toString();
       this.prologContext.consult(
@@ -493,9 +528,10 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
     }
   }
 
-  public Object getFlag(String flagName) throws ScriptException {
+  public Object getFlag(final String flagName) throws ScriptException {
+    this.assertNotClosed();
     try {
-      List<Map<String, Object>> results =
+      final List<Map<String, Object>> results =
           this.query("current_prolog_flag(" + flagName + ", Value).");
       if (!results.isEmpty()) {
         return results.get(0).get("Value");
@@ -510,7 +546,8 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
     }
   }
 
-  private void checkAndReinitializeWithLibraries(ScriptContext context) {
+  void checkAndReinitializeWithLibraries(final ScriptContext context) {
+    this.assertNotClosed();
     final Object libsAttr = context.getAttribute("jprol.libraries", ScriptContext.ENGINE_SCOPE);
     if (libsAttr instanceof Object[]) {
       final List<AbstractJProlLibrary> combined = new ArrayList<>(this.defaultLibraries);
@@ -525,7 +562,8 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
     }
   }
 
-  void applyContextFlags(ScriptContext context) throws ScriptException {
+  void applyContextFlags(final ScriptContext context) throws ScriptException {
+    this.assertNotClosed();
     Object flagsAttr = context.getAttribute("jprol.context.flags", ScriptContext.ENGINE_SCOPE);
     if (flagsAttr instanceof Map) {
       @SuppressWarnings("unchecked") final Map<String, Object> flags =
@@ -537,7 +575,8 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
   }
 
   @Override
-  public Bindings getBindings(int scope) {
+  public Bindings getBindings(final int scope) {
+    this.assertNotClosed();
     switch (scope) {
       case ScriptContext.ENGINE_SCOPE:
         return this.engineContext.getBindings(ScriptContext.ENGINE_SCOPE);
@@ -549,6 +588,7 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
   }
 
   Object executeQuery(final String queryString, final ScriptContext context) {
+    this.assertNotClosed();
     final JProlChoicePoint goal = new JProlChoicePoint(queryString, this.prologContext);
     final Term result = goal.prove();
     if (result != null) {
@@ -563,6 +603,7 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
   }
 
   Object executeQuery(final Term queryTerm, final ScriptContext context) {
+    this.assertNotClosed();
     final JProlChoicePoint goal = new JProlChoicePoint(queryTerm, this.prologContext);
     final Term result = goal.prove();
     if (result != null) {
@@ -585,6 +626,7 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
   @Override
   public Object invokeFunction(final String name, final Object... args)
       throws ScriptException, NoSuchMethodException {
+    this.assertNotClosed();
     final Term[] terms = new Term[args.length];
     for (int i = 0; i < args.length; i++) {
       terms[i] = java2term(args[i]);
@@ -605,25 +647,47 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
   @SuppressWarnings("unchecked")
   @Override
   public <T> T getInterface(final Object thisObject, final Class<T> targetClass) {
-    if (targetClass == null) {
-      throw new NullPointerException("Class must not be null");
-    }
+    this.assertNotClosed();
 
-    T result = null;
+    if (thisObject instanceof JProlScriptEngine) {
+      if (targetClass == null) {
+        throw new NullPointerException("Class must not be null");
+      }
 
-    if (targetClass.isAssignableFrom(JProlScriptEngine.class)) {
-      result = (T) this;
-    }
+      final JProlScriptEngine engine = (JProlScriptEngine) thisObject;
 
-    if (targetClass.isAssignableFrom(JProlContext.class)) {
-      result = (T) this.prologContext;
-    }
-
-    if (result == null) {
+      final T result;
+      if (targetClass.isAssignableFrom(JProlScriptEngine.class)) {
+        result = (T) engine;
+      } else {
+        final JProlContext prolContext = engine.prologContext;
+        if (prolContext != null && targetClass.isAssignableFrom(JProlContext.class)) {
+          result = (T) prolContext;
+        } else if (prolContext != null && targetClass.isAssignableFrom(ParserContext.class)) {
+          result = (T) prolContext.getParserContext();
+        } else if (prolContext != null && targetClass.isAssignableFrom(KnowledgeBase.class)) {
+          result = (T) prolContext.getKnowledgeBase();
+        } else {
+          result = null;
+        }
+      }
+      return result;
+    } else {
       throw new IllegalArgumentException(
-          "Can't find instantiated object for class " + targetClass.getCanonicalName());
+          "Expected " + JProlScriptEngine.class.getCanonicalName() + " but provided " +
+              (thisObject == null ? "null" : thisObject.getClass().getCanonicalName()));
     }
+  }
 
-    return result;
+  @Override
+  public void close() throws Exception {
+    if (this.closed.compareAndSet(false, true)) {
+      final JProlContext currentContext = this.prologContext;
+      this.prologContext = null;
+      if (currentContext != null) {
+        currentContext.close();
+      }
+      this.engineContext.close();
+    }
   }
 }
