@@ -8,6 +8,19 @@ import org.junit.jupiter.api.Test;
 class CompoundTermTest {
 
   @Test
+  void testReplaceVarInDeepStructure() {
+    TermList list = TermList.asList(
+        Terms.newAtom("a"),
+        TermList.asList(Terms.newAtom("b"),
+            Terms.newStruct("aaa", new Term[] {TermList.asList(Terms.newVar("X"))},
+                SourcePosition.UNKNOWN))
+    );
+
+    list = (TermList) list.replaceVar("X", Terms.newAtom("replaced"));
+    assertEquals("['a',['b',aaa(['replaced'])]]", list.toSrcString());
+  }
+
+  @Test
   void testList_streamChildren() {
     final TermList list = TermList.asList(
         Terms.newAtom("a"),
