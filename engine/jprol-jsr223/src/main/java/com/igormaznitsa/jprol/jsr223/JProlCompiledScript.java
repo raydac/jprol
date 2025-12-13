@@ -24,7 +24,8 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
-public class JProlCompiledScript extends CompiledScript implements Invocable, AutoCloseable {
+public class JProlCompiledScript extends CompiledScript
+    implements Invocable, AutoCloseable, JProlScriptEngineProvider {
   private final JProlScriptEngine engine;
   private final List<Term> queryList;
   private final String scriptSources;
@@ -131,15 +132,10 @@ public class JProlCompiledScript extends CompiledScript implements Invocable, Au
   public Object invokeMethod(final Object thisObject, final String name, final Object... args)
       throws ScriptException, NoSuchMethodException {
     this.assertNotClosed();
-    if (thisObject instanceof JProlScriptEngine || thisObject instanceof JProlCompiledScript) {
+    if (thisObject instanceof JProlScriptEngineProvider) {
 
-      final JProlScriptEngine thisEngine;
-      if (thisObject instanceof JProlScriptEngine) {
-        thisEngine = (JProlScriptEngine) thisObject;
-      } else {
-        thisEngine = (JProlScriptEngine) ((JProlCompiledScript) thisObject).getEngine();
-      }
-
+      final JProlScriptEngine thisEngine =
+          ((JProlScriptEngineProvider) thisObject).getJProlScriptEngine();
       final JProlContext oldContext = thisEngine.getPrologContext();
       thisEngine.setPrologContext(this.compiledContext);
       try {
@@ -148,14 +144,13 @@ public class JProlCompiledScript extends CompiledScript implements Invocable, Au
           terms[i] = java2term(args[i]);
         }
         final Term term = Terms.newStruct(name, terms, SourcePosition.UNKNOWN);
-        return thisEngine.executeQuery(term, this.engine.getContext());
+        return thisEngine.executeQuery(term, thisEngine.getContext());
       } finally {
         thisEngine.setPrologContext(oldContext);
       }
     } else {
       throw new IllegalArgumentException(
-          "Expected " + JProlScriptEngine.class.getCanonicalName() + " but provided " +
-              (thisObject == null ? null : thisObject.getClass().getCanonicalName()));
+          "Expected " + JProlScriptEngineProvider.class.getCanonicalName() + " instance");
     }
   }
 
@@ -163,6 +158,11 @@ public class JProlCompiledScript extends CompiledScript implements Invocable, Au
   public Object invokeFunction(final String name, final Object... args)
       throws ScriptException, NoSuchMethodException {
     return this.invokeMethod(this, name, args);
+  }
+
+  @Override
+  public JProlScriptEngine getJProlScriptEngine() {
+    return this.engine;
   }
 
   @Override
@@ -175,17 +175,13 @@ public class JProlCompiledScript extends CompiledScript implements Invocable, Au
   public <T> T getInterface(final Object thisObject, final Class<T> targetClass) {
     this.assertNotClosed();
 
-    if (thisObject instanceof JProlScriptEngine || thisObject instanceof JProlCompiledScript) {
+    if (thisObject instanceof JProlScriptEngineProvider) {
       if (targetClass == null) {
         throw new NullPointerException("Class must not be null");
       }
 
-      final JProlScriptEngine engine;
-      if (thisObject instanceof JProlScriptEngine) {
-        engine = (JProlScriptEngine) thisObject;
-      } else {
-        engine = (JProlScriptEngine) ((JProlCompiledScript) thisObject).getEngine();
-      }
+      final JProlScriptEngine engine =
+          ((JProlScriptEngineProvider) thisObject).getJProlScriptEngine();
 
       final T result;
       if (targetClass.isAssignableFrom(JProlScriptEngine.class)) {
@@ -205,8 +201,7 @@ public class JProlCompiledScript extends CompiledScript implements Invocable, Au
       return result;
     } else {
       throw new IllegalArgumentException(
-          "Expected " + JProlScriptEngine.class.getCanonicalName() + " but provided " +
-              (thisObject == null ? "null" : thisObject.getClass().getCanonicalName()));
+          "Expected " + JProlScriptEngineProvider.class.getCanonicalName() + " instance");
     }
   }
 

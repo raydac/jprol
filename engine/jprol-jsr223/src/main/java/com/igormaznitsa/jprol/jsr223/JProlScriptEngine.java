@@ -61,7 +61,8 @@ import javax.script.SimpleBindings;
  *
  * @since 2.2.2
  */
-public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable, AutoCloseable {
+public class JProlScriptEngine
+    implements ScriptEngine, Compilable, Invocable, AutoCloseable, JProlScriptEngineProvider {
 
   static final IoResourceProvider CONSOLE_IO_PROVIDER = new IoResourceProvider() {
     @Override
@@ -244,6 +245,11 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable, A
       }
       return parsedTerms;
     }
+  }
+
+  @Override
+  public JProlScriptEngine getJProlScriptEngine() {
+    return this;
   }
 
   static String joinSources(
@@ -649,12 +655,13 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable, A
   public <T> T getInterface(final Object thisObject, final Class<T> targetClass) {
     this.assertNotClosed();
 
-    if (thisObject instanceof JProlScriptEngine) {
+    if (thisObject instanceof JProlScriptEngineProvider) {
       if (targetClass == null) {
         throw new NullPointerException("Class must not be null");
       }
 
-      final JProlScriptEngine engine = (JProlScriptEngine) thisObject;
+      final JProlScriptEngine engine =
+          ((JProlScriptEngineProvider) thisObject).getJProlScriptEngine();
 
       final T result;
       if (targetClass.isAssignableFrom(JProlScriptEngine.class)) {
@@ -674,8 +681,7 @@ public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable, A
       return result;
     } else {
       throw new IllegalArgumentException(
-          "Expected " + JProlScriptEngine.class.getCanonicalName() + " but provided " +
-              (thisObject == null ? "null" : thisObject.getClass().getCanonicalName()));
+          "Expected " + JProlScriptEngineProvider.class.getCanonicalName() + " instance");
     }
   }
 
