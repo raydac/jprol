@@ -63,6 +63,14 @@ public class JProlCompiledScript extends CompiledScript {
     }
   }
 
+  public JProlContext getCompiledContext() {
+    return this.compiledContext;
+  }
+
+  public List<Term> getQueryList() {
+    return this.queryList;
+  }
+
   public String getScriptSources() {
     return this.scriptSources;
   }
@@ -78,14 +86,13 @@ public class JProlCompiledScript extends CompiledScript {
 
       final Map<String, Term> bindings = JProlScriptEngine.extractVarsFromBindings(context);
       for (final Term q : this.queryList) {
-        Term preparedQuery = q;
+        Term preparedQuery = q.makeClone();
         if (!bindings.isEmpty()) {
           for (final Map.Entry<String, Term> t : bindings.entrySet()) {
             preparedQuery = preparedQuery.replaceVar(t.getKey(), t.getValue());
           }
         }
-        final String preparedQueryText = preparedQuery.toSrcString() + '.';
-        lastResult = this.engine.executeQuery(preparedQueryText, context);
+        lastResult = this.engine.executeQuery(preparedQuery, context);
       }
       return lastResult == null ? Boolean.FALSE : lastResult;
     } catch (Exception e) {

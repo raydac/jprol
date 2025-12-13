@@ -7,6 +7,7 @@ import static java.lang.System.identityHashCode;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 
+import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermDouble;
 import com.igormaznitsa.jprol.data.TermList;
@@ -40,6 +41,7 @@ import java.util.stream.Stream;
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
+import javax.script.Invocable;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
@@ -56,7 +58,7 @@ import javax.script.SimpleBindings;
  *
  * @since 2.2.2
  */
-public class JProlScriptEngine implements ScriptEngine, Compilable {
+public class JProlScriptEngine implements ScriptEngine, Compilable, Invocable {
 
   static final IoResourceProvider CONSOLE_IO_PROVIDER = new IoResourceProvider() {
     @Override
@@ -560,4 +562,68 @@ public class JProlScriptEngine implements ScriptEngine, Compilable {
     return Boolean.FALSE;
   }
 
+  Object executeQuery(final Term queryTerm, final ScriptContext context) {
+    final JProlChoicePoint goal = new JProlChoicePoint(queryTerm, this.prologContext);
+    final Term result = goal.prove();
+    if (result != null) {
+      final Map<String, Object> groundedVars = extractGroundedVariables(goal);
+      final Bindings engineBindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
+      if (engineBindings != null) {
+        engineBindings.putAll(groundedVars);
+      }
+      return Boolean.TRUE;
+    }
+    return Boolean.FALSE;
+  }
+
+  @Override
+  public Object invokeMethod(final Object thisObject, final String name, final Object... args)
+      throws ScriptException, NoSuchMethodException {
+    return this.invokeFunction(name, args);
+  }
+
+  @Override
+  public Object invokeFunction(final String name, final Object... args)
+      throws ScriptException, NoSuchMethodException {
+    final Term[] terms = new Term[args.length];
+    for (int i = 0; i < args.length; i++) {
+      terms[i] = java2term(args[i]);
+    }
+    final Term term = Terms.newStruct(name, terms, SourcePosition.UNKNOWN);
+
+    this.checkAndReinitializeWithLibraries(this.engineContext);
+    this.applyContextFlags(this.engineContext);
+
+    return this.executeQuery(term, this.engineContext);
+  }
+
+  @Override
+  public <T> T getInterface(final Class<T> targetClass) {
+    return this.getInterface(this, targetClass);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public <T> T getInterface(final Object thisObject, final Class<T> targetClass) {
+    if (targetClass == null) {
+      throw new NullPointerException("Class must not be null");
+    }
+
+    T result = null;
+
+    if (targetClass.isAssignableFrom(JProlScriptEngine.class)) {
+      result = (T) this;
+    }
+
+    if (targetClass.isAssignableFrom(JProlContext.class)) {
+      result = (T) this.prologContext;
+    }
+
+    if (result == null) {
+      throw new IllegalArgumentException(
+          "Can't find instantiated object for class " + targetClass.getCanonicalName());
+    }
+
+    return result;
+  }
 }
