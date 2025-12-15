@@ -18,8 +18,6 @@ import javax.script.SimpleBindings;
 public class JProlScriptEngineContext implements ScriptContext, AutoCloseable {
 
   private static final List<Integer> SCOPES = List.of(GLOBAL_SCOPE, ENGINE_SCOPE);
-
-  ;
   private final Bindings globalBindings = new SimpleBindings(new ConcurrentHashMap<>());
   private final JProlScriptThreadLocalBindings engineBindings =
       new JProlScriptThreadLocalBindings();
@@ -29,6 +27,7 @@ public class JProlScriptEngineContext implements ScriptContext, AutoCloseable {
   private final AtomicReference<Writer> writerErr =
       new AtomicReference<>();
   private final AtomicBoolean closed = new AtomicBoolean();
+
   JProlScriptEngineContext() {
     this(new InputStreamReader(System.in), new PrintWriter(System.out),
         new PrintWriter(System.err));

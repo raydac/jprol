@@ -206,7 +206,7 @@ public class JProlCompiledScript extends CompiledScript
   }
 
   @Override
-  public void close() throws Exception {
+  public void close() {
     if (this.closed.compareAndSet(false, true)) {
       this.compiledContext.dispose();
       this.engine.close();

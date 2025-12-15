@@ -686,7 +686,7 @@ public class JProlScriptEngine
   }
 
   @Override
-  public void close() throws Exception {
+  public void close() {
     if (this.closed.compareAndSet(false, true)) {
       final JProlContext currentContext = this.prologContext;
       this.prologContext = null;
