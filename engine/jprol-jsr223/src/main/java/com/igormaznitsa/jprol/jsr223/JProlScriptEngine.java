@@ -56,6 +56,7 @@ import javax.script.SimpleBindings;
 /**
  * JProl JSR 223 script engine implementation.
  * Allows execution of Prolog code through the standard Java Scripting API.
+ * <b>It has MULTIHREADED level, threads not isolated</b>
  * <p>
  * Supports custom libraries via ScriptContext attributes:
  * - "jprol.libraries" - array of JProlLibrary instances
@@ -391,7 +392,8 @@ public class JProlScriptEngine
       if (queryString.isBlank()) {
         return Boolean.TRUE;
       }
-      return this.executeQuery(queryString, context);
+      return this.executeQuery(queryString, context,
+          context.getBindings(ScriptContext.ENGINE_SCOPE));
     } catch (Exception e) {
       if (e instanceof ScriptException) {
         throw (ScriptException) e;
@@ -596,7 +598,8 @@ public class JProlScriptEngine
     }
   }
 
-  Object executeQuery(final String queryString, final ScriptContext context) {
+  Object executeQuery(final String queryString, final ScriptContext context,
+                      final Bindings bindings) {
     this.assertNotClosed();
     this.queryLock.lock();
     try {
@@ -604,9 +607,8 @@ public class JProlScriptEngine
       final Term result = goal.prove();
       if (result != null) {
         final Map<String, Object> groundedVars = extractGroundedVariables(goal);
-        final Bindings engineBindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
-        if (engineBindings != null) {
-          engineBindings.putAll(groundedVars);
+        if (bindings != null) {
+          bindings.putAll(groundedVars);
         }
         return Boolean.TRUE;
       }
@@ -616,7 +618,7 @@ public class JProlScriptEngine
     }
   }
 
-  Object executeQuery(final Term queryTerm, final ScriptContext context) {
+  Object executeQuery(final Term queryTerm, final ScriptContext context, final Bindings bindings) {
     this.assertNotClosed();
     this.queryLock.lock();
     try {
@@ -624,9 +626,8 @@ public class JProlScriptEngine
       final Term result = goal.prove();
       if (result != null) {
         final Map<String, Object> groundedVars = extractGroundedVariables(goal);
-        final Bindings engineBindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
-        if (engineBindings != null) {
-          engineBindings.putAll(groundedVars);
+        if (bindings != null) {
+          bindings.putAll(groundedVars);
         }
         return Boolean.TRUE;
       }
@@ -655,7 +656,8 @@ public class JProlScriptEngine
     this.checkAndReinitializeWithLibraries(this.engineContext);
     this.applyContextFlags(this.engineContext);
 
-    return this.executeQuery(term, this.engineContext);
+    return this.executeQuery(term, this.engineContext,
+        this.engineContext.getBindings(ScriptContext.ENGINE_SCOPE));
   }
 
   @Override

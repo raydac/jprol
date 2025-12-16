@@ -2,6 +2,7 @@ package com.igormaznitsa.jprol.jsr223;
 
 import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.java2term;
 import static java.lang.System.identityHashCode;
+import static javax.script.ScriptContext.ENGINE_SCOPE;
 
 import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
@@ -117,7 +118,8 @@ public class JProlCompiledScript extends CompiledScript
               preparedQuery = preparedQuery.replaceVar(t.getKey(), t.getValue());
             }
           }
-          lastResult = this.engine.executeQuery(preparedQuery, context);
+          lastResult = this.engine.executeQuery(preparedQuery, context, context.getBindings(
+              ENGINE_SCOPE));
         }
         return lastResult == null ? Boolean.FALSE : lastResult;
       } catch (Exception e) {
@@ -153,7 +155,8 @@ public class JProlCompiledScript extends CompiledScript
             terms[i] = java2term(args[i]);
           }
           final Term term = Terms.newStruct(name, terms, SourcePosition.UNKNOWN);
-          return thisEngine.executeQuery(term, thisEngine.getContext());
+          return thisEngine.executeQuery(term, thisEngine.getContext(),
+              thisEngine.getBindings(ENGINE_SCOPE));
         } finally {
           thisEngine.setPrologContext(oldContext);
         }
