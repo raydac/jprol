@@ -24,7 +24,7 @@ public class SimpleJsr223Test {
 
   private ScriptEngine findScriptEngine() {
     var manager = new ScriptEngineManager();
-    var engine = manager.getEngineByName("jprol");
+    var engine = manager.getEngineByName("jprol.prolog");
     assertNotNull(engine);
     return engine;
   }

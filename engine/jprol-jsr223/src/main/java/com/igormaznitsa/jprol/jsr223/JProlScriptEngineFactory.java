@@ -11,11 +11,12 @@ public class JProlScriptEngineFactory implements ScriptEngineFactory {
   private static final String ENGINE_NAME = "JProl";
   private static final String ENGINE_VERSION = "2.2.2";
   private static final String LANGUAGE_NAME = "Prolog";
-  private static final String LANGUAGE_VERSION = "Edinburgh";
+  private static final String LANGUAGE_VERSION = "JProl";
 
   private static final List<String> EXTENSIONS = List.of("pl", "pro", "prolog");
   private static final List<String> MIME = List.of("text/x-prolog", "application/x-prolog");
-  private static final List<String> NAMES = List.of("prolog", "Prolog", "jprol", "JProl", "JPROL");
+  private static final List<String> NAMES =
+      List.of("jprol", "JPROL", "JProl", "jprol.prolog", "JProl.Prolog", "JPROL.PROLOG");
 
   @Override
   public String getEngineName() {

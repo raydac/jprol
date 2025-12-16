@@ -379,7 +379,7 @@ class JProlScriptEngineTest {
     assertEquals("JProl", factory.getEngineName(), "Engine name should be JProl");
     assertEquals("Prolog", factory.getLanguageName(), "Language should be Prolog");
     assertTrue(factory.getExtensions().contains("pl"), "Should support .pl extension");
-    assertTrue(factory.getNames().contains("prolog"), "Should have 'prolog' name");
+    assertTrue(factory.getNames().contains("jprol"), "Should have 'jprol' name");
 
     System.out.println("✓ Engine name: " + factory.getEngineName());
     System.out.println("✓ Language: " + factory.getLanguageName());
