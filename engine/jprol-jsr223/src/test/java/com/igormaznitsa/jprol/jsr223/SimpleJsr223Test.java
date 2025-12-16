@@ -3,18 +3,21 @@ package com.igormaznitsa.jprol.jsr223;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.igormaznitsa.jprol.data.Terms;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
 import javax.script.Invocable;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
+import javax.script.SimpleBindings;
 import org.junit.jupiter.api.Test;
 
 public class SimpleJsr223Test {
@@ -34,6 +37,19 @@ public class SimpleJsr223Test {
         "list_length([],0). list_length([_],1). list_length([_|Tail],X):-list_length(Tail,Y), X is Y + 1.\n"
             + "?- list_length(List,Length)."));
     assertEquals(5L, engine.get("Length"));
+  }
+
+  @Test
+  public void testSimpleEngineCallWithCustomBindings() throws Exception {
+    ScriptEngine engine = new ScriptEngineManager().getEngineByName("jprol");
+    Bindings bindings = new SimpleBindings();
+    bindings.put("List", List.of(1, 2, 3, 4, 5));
+    assertTrue((boolean) engine.eval(
+        "list_length([],0). list_length([_],1). list_length([_|Tail],X):-list_length(Tail,Y), X is Y + 1.\n"
+            + "?- list_length(List,Length).", bindings));
+    assertNull(engine.get("List"));
+    assertNull(engine.get("Length"));
+    assertEquals(5L, bindings.get("Length"));
   }
 
   @Test
