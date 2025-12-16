@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.script.CompiledScript;
@@ -32,6 +33,8 @@ public class JProlCompiledScript extends CompiledScript
   private final JProlContext compiledContext;
 
   private final AtomicBoolean closed = new AtomicBoolean();
+
+  private final ReentrantLock evalLock = new ReentrantLock();
 
   JProlCompiledScript(
       final JProlScriptEngine engine,
@@ -97,28 +100,33 @@ public class JProlCompiledScript extends CompiledScript
   @Override
   public Object eval(final ScriptContext context) throws ScriptException {
     this.assertNotClosed();
-    final JProlContext oldContext = this.engine.getPrologContext();
+    this.evalLock.lock();
     try {
-      this.engine.setPrologContext(this.compiledContext);
-      this.engine.applyContextFlags(context);
+      final JProlContext oldContext = this.engine.getPrologContext();
+      try {
+        this.engine.setPrologContext(this.compiledContext);
+        this.engine.applyContextFlags(context);
 
-      Object lastResult = null;
+        Object lastResult = null;
 
-      final Map<String, Term> bindings = JProlScriptEngine.extractVarsFromBindings(context);
-      for (final Term q : this.queryList) {
-        Term preparedQuery = q.makeClone();
-        if (!bindings.isEmpty()) {
-          for (final Map.Entry<String, Term> t : bindings.entrySet()) {
-            preparedQuery = preparedQuery.replaceVar(t.getKey(), t.getValue());
+        final Map<String, Term> bindings = JProlScriptEngine.extractVarsFromBindings(context);
+        for (final Term q : this.queryList) {
+          Term preparedQuery = q.makeClone();
+          if (!bindings.isEmpty()) {
+            for (final Map.Entry<String, Term> t : bindings.entrySet()) {
+              preparedQuery = preparedQuery.replaceVar(t.getKey(), t.getValue());
+            }
           }
+          lastResult = this.engine.executeQuery(preparedQuery, context);
         }
-        lastResult = this.engine.executeQuery(preparedQuery, context);
+        return lastResult == null ? Boolean.FALSE : lastResult;
+      } catch (Exception e) {
+        throw new ScriptException("Error evaluating compiled script: " + e.getMessage());
+      } finally {
+        this.engine.setPrologContext(oldContext);
       }
-      return lastResult == null ? Boolean.FALSE : lastResult;
-    } catch (Exception e) {
-      throw new ScriptException("Error evaluating compiled script: " + e.getMessage());
     } finally {
-      this.engine.setPrologContext(oldContext);
+      this.evalLock.unlock();
     }
   }
 
@@ -129,24 +137,28 @@ public class JProlCompiledScript extends CompiledScript
   }
 
   @Override
-  public Object invokeMethod(final Object thisObject, final String name, final Object... args)
-      throws ScriptException, NoSuchMethodException {
+  public Object invokeMethod(final Object thisObject, final String name, final Object... args) {
     this.assertNotClosed();
     if (thisObject instanceof JProlScriptEngineProvider) {
 
       final JProlScriptEngine thisEngine =
           ((JProlScriptEngineProvider) thisObject).getJProlScriptEngine();
-      final JProlContext oldContext = thisEngine.getPrologContext();
-      thisEngine.setPrologContext(this.compiledContext);
+      this.evalLock.lock();
       try {
-        final Term[] terms = new Term[args.length];
-        for (int i = 0; i < args.length; i++) {
-          terms[i] = java2term(args[i]);
+        final JProlContext oldContext = thisEngine.getPrologContext();
+        thisEngine.setPrologContext(this.compiledContext);
+        try {
+          final Term[] terms = new Term[args.length];
+          for (int i = 0; i < args.length; i++) {
+            terms[i] = java2term(args[i]);
+          }
+          final Term term = Terms.newStruct(name, terms, SourcePosition.UNKNOWN);
+          return thisEngine.executeQuery(term, thisEngine.getContext());
+        } finally {
+          thisEngine.setPrologContext(oldContext);
         }
-        final Term term = Terms.newStruct(name, terms, SourcePosition.UNKNOWN);
-        return thisEngine.executeQuery(term, thisEngine.getContext());
       } finally {
-        thisEngine.setPrologContext(oldContext);
+        this.evalLock.unlock();
       }
     } else {
       throw new IllegalArgumentException(
@@ -155,8 +167,7 @@ public class JProlCompiledScript extends CompiledScript
   }
 
   @Override
-  public Object invokeFunction(final String name, final Object... args)
-      throws ScriptException, NoSuchMethodException {
+  public Object invokeFunction(final String name, final Object... args) {
     return this.invokeMethod(this, name, args);
   }
 

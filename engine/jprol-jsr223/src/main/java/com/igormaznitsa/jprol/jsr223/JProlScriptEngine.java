@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -113,8 +114,21 @@ public class JProlScriptEngine
   private final JProlScriptEngineFactory factory;
   private final List<AbstractJProlLibrary> defaultLibraries;
   private final AtomicBoolean closed = new AtomicBoolean();
+  private final ReentrantLock queryLock = new ReentrantLock();
   private volatile JProlContext prologContext;
   private volatile JProlScriptEngineContext engineContext;
+
+  JProlScriptEngine(JProlScriptEngineFactory factory) {
+    this(factory, EMPTY_LIBRARIES);
+  }
+
+  JProlScriptEngine(final JProlScriptEngineFactory factory,
+                    final AbstractJProlLibrary... libraries) {
+    this.engineContext = new JProlScriptEngineContext();
+    this.factory = factory;
+    this.defaultLibraries = List.of(libraries);
+    this.initializeJProlContext(this.defaultLibraries);
+  }
 
   /**
    * Convert a Java object into JProl Term
@@ -140,24 +154,6 @@ public class JProlScriptEngine
       return TermList.asList(terms);
     }
     return Terms.newAtom(obj.toString());
-  }
-
-  JProlScriptEngine(JProlScriptEngineFactory factory) {
-    this(factory, EMPTY_LIBRARIES);
-  }
-
-  JProlScriptEngine(final JProlScriptEngineFactory factory,
-                    final AbstractJProlLibrary... libraries) {
-    this.engineContext = new JProlScriptEngineContext();
-    this.factory = factory;
-    this.defaultLibraries = List.of(libraries);
-    this.initializeJProlContext(this.defaultLibraries);
-  }
-
-  private void assertNotClosed() {
-    if (this.closed.get()) {
-      throw new IllegalStateException("Already closed");
-    }
   }
 
   /**
@@ -247,11 +243,6 @@ public class JProlScriptEngine
     }
   }
 
-  @Override
-  public JProlScriptEngine getJProlScriptEngine() {
-    return this;
-  }
-
   static String joinSources(
       final List<Term> parsed,
       final Function<Term, Term> processor,
@@ -272,6 +263,17 @@ public class JProlScriptEngine
         .map(Term::toSrcString)
         .collect(joining(". "));
     return resultString.isEmpty() ? resultString : resultString + ".";
+  }
+
+  private void assertNotClosed() {
+    if (this.closed.get()) {
+      throw new IllegalStateException("Already closed");
+    }
+  }
+
+  @Override
+  public JProlScriptEngine getJProlScriptEngine() {
+    return this;
   }
 
   @Override
@@ -595,43 +597,53 @@ public class JProlScriptEngine
 
   Object executeQuery(final String queryString, final ScriptContext context) {
     this.assertNotClosed();
-    final JProlChoicePoint goal = new JProlChoicePoint(queryString, this.prologContext);
-    final Term result = goal.prove();
-    if (result != null) {
-      final Map<String, Object> groundedVars = extractGroundedVariables(goal);
-      final Bindings engineBindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
-      if (engineBindings != null) {
-        engineBindings.putAll(groundedVars);
+    this.queryLock.lock();
+    try {
+      final JProlChoicePoint goal = new JProlChoicePoint(queryString, this.prologContext);
+      final Term result = goal.prove();
+      if (result != null) {
+        final Map<String, Object> groundedVars = extractGroundedVariables(goal);
+        final Bindings engineBindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
+        if (engineBindings != null) {
+          engineBindings.putAll(groundedVars);
+        }
+        return Boolean.TRUE;
       }
-      return Boolean.TRUE;
+      return Boolean.FALSE;
+    } finally {
+      this.queryLock.unlock();
     }
-    return Boolean.FALSE;
   }
 
   Object executeQuery(final Term queryTerm, final ScriptContext context) {
     this.assertNotClosed();
-    final JProlChoicePoint goal = new JProlChoicePoint(queryTerm, this.prologContext);
-    final Term result = goal.prove();
-    if (result != null) {
-      final Map<String, Object> groundedVars = extractGroundedVariables(goal);
-      final Bindings engineBindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
-      if (engineBindings != null) {
-        engineBindings.putAll(groundedVars);
+    this.queryLock.lock();
+    try {
+      final JProlChoicePoint goal = new JProlChoicePoint(queryTerm, this.prologContext);
+      final Term result = goal.prove();
+      if (result != null) {
+        final Map<String, Object> groundedVars = extractGroundedVariables(goal);
+        final Bindings engineBindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
+        if (engineBindings != null) {
+          engineBindings.putAll(groundedVars);
+        }
+        return Boolean.TRUE;
       }
-      return Boolean.TRUE;
+      return Boolean.FALSE;
+    } finally {
+      this.queryLock.unlock();
     }
-    return Boolean.FALSE;
   }
 
   @Override
   public Object invokeMethod(final Object thisObject, final String name, final Object... args)
-      throws ScriptException, NoSuchMethodException {
+      throws ScriptException {
     return this.invokeFunction(name, args);
   }
 
   @Override
   public Object invokeFunction(final String name, final Object... args)
-      throws ScriptException, NoSuchMethodException {
+      throws ScriptException {
     this.assertNotClosed();
     final Term[] terms = new Term[args.length];
     for (int i = 0; i < args.length; i++) {
@@ -693,7 +705,11 @@ public class JProlScriptEngine
       if (currentContext != null) {
         currentContext.close();
       }
-      this.engineContext.close();
+      final JProlScriptEngineContext thisEngineContext = this.engineContext;
+      this.engineContext = null;
+      if (thisEngineContext != null) {
+        thisEngineContext.close();
+      }
     }
   }
 }
