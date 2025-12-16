@@ -208,7 +208,7 @@ public final class UiUtils {
               buffer.append(".");
               break;
             default: {
-              final String ucode = Integer.toHexString(c).toUpperCase(Locale.ENGLISH);
+              final String ucode = Integer.toHexString(c).toUpperCase(Locale.ROOT);
               buffer.append("\\u").append("0000".substring(4 - ucode.length())).append(ucode);
             }
             break;

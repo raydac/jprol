@@ -102,7 +102,7 @@ public final class ProlUtils {
   }
 
   public static TermList toCharCodeList(final String text, final SourcePosition sourcePosition) {
-    if (text == null || text.length() == 0) {
+    if (text == null || text.isEmpty()) {
       return Terms.newList(sourcePosition);
     }
     final List<Term> codes = new ArrayList<>();
@@ -167,7 +167,7 @@ public final class ProlUtils {
 
   public static <T> CloseableIterator<T> makeCloseableIterator(final Iterator<T> iterator,
                                                                final Runnable onClose) {
-    return new CloseableIterator<T>() {
+    return new CloseableIterator<>() {
       private final Iterator<T> wrapped = iterator;
 
       @Override
@@ -403,33 +403,7 @@ public final class ProlUtils {
       }
 
       for (final String a : parsedArgs) {
-        final String normalized = a.trim().toLowerCase(Locale.ENGLISH);
-        if (normalized.isEmpty()) {
-          throw new IllegalArgumentException("Wrong arguments description: " + s);
-        }
-        final String text;
-        if (normalized.startsWith("--") // At call time, the argument must be unbound.
-            || normalized.startsWith("++") // At call time, the argument must be ground
-        ) {
-          text = normalized.substring(2);
-        } else if (
-            normalized.startsWith("-")
-                // Argument is an output argument. It may or may not be bound at call-time.
-                || normalized.startsWith("+")
-                // At call time, the argument must be instantiated to a term satisfying some (informal) type specification.
-                || normalized.startsWith("?")
-                // At call time, the argument must be bound to a partial term (a term which may or may not be ground) satisfying some (informal) type specification.
-                || normalized.startsWith(":")
-                // Argument is a meta-argument, for example a term that can be called as goal. This flag implies +.
-                || normalized.startsWith("@")
-                // Argument will not be further instantiated than it is at call-time.
-                || normalized.startsWith(
-                "!") // Argument contains a mutable structure that may be modified
-        ) {
-          text = normalized.substring(1);
-        } else {
-          throw new IllegalArgumentException("Unexpected argument mode indicator: " + a);
-        }
+        final String text = extractAndNormalize(s, a);
 
         switch (text) {
           case "term":
@@ -457,6 +431,37 @@ public final class ProlUtils {
         }
       }
     }
+  }
+
+  private static String extractAndNormalize(final String description, final String srcText) {
+    final String normalized = srcText.trim().toLowerCase(Locale.ROOT);
+    if (normalized.isEmpty()) {
+      throw new IllegalArgumentException("Wrong arguments description: " + description);
+    }
+    final String text;
+    if (normalized.startsWith("--") // At call time, the argument must be unbound.
+        || normalized.startsWith("++") // At call time, the argument must be ground
+    ) {
+      text = normalized.substring(2);
+    } else if (
+        normalized.startsWith("-")
+            // Argument is an output argument. It may or may not be bound at call-time.
+            || normalized.startsWith("+")
+            // At call time, the argument must be instantiated to a term satisfying some (informal) type specification.
+            || normalized.startsWith("?")
+            // At call time, the argument must be bound to a partial term (a term which may or may not be ground) satisfying some (informal) type specification.
+            || normalized.startsWith(":")
+            // Argument is a meta-argument, for example a term that can be called as goal. This flag implies +.
+            || normalized.startsWith("@")
+            // Argument will not be further instantiated than it is at call-time.
+            || normalized.startsWith(
+            "!") // Argument contains a mutable structure that may be modified
+    ) {
+      text = normalized.substring(1);
+    } else {
+      throw new IllegalArgumentException("Unexpected argument mode indicator: " + srcText);
+    }
+    return text;
   }
 
 }

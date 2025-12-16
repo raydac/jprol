@@ -88,7 +88,7 @@ public class TermStruct extends CompoundTerm {
 
   @Override
   public Iterator<Term> iterator() {
-    return new Iterator<Term>() {
+    return new Iterator<>() {
       int index = 0;
 
       @Override

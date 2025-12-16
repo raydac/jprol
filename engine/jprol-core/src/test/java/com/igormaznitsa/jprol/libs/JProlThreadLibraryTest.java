@@ -2,6 +2,7 @@ package com.igormaznitsa.jprol.libs;
 
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("EmptyMethod")
 class JProlThreadLibraryTest {
 
   @Test

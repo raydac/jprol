@@ -687,17 +687,14 @@ public final class JProlContext implements AutoCloseable {
       validatedSignature = ProlUtils.normalizeSignature(validatedSignature);
       final Map<JProlTriggerType, List<JProlTrigger>> map =
           this.triggers.computeIfAbsent(validatedSignature, key -> new ConcurrentHashMap<>());
-      types.forEach(x -> {
-        map.computeIfAbsent(x, key -> new CopyOnWriteArrayList<>()).add(trigger);
-      });
+      types.forEach(x -> map.computeIfAbsent(x, key -> new CopyOnWriteArrayList<>()).add(trigger));
     });
   }
 
   public void removeTrigger(final JProlTrigger trigger) {
     this.assertNotDisposed();
-    this.triggers.values().forEach(map -> {
-      map.values().forEach(x -> x.removeIf(next -> next == trigger));
-    });
+    this.triggers.values()
+        .forEach(map -> map.values().forEach(x -> x.removeIf(next -> next == trigger)));
   }
 
   public boolean removeTrigger(final String signature) {

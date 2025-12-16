@@ -148,7 +148,8 @@ public class JHtmlLabel extends JLabel {
 
   @Override
   public void setText(final String text) {
-    super.setText(text.toLowerCase(Locale.ENGLISH).trim().startsWith("<html>") ? text : "<html>" + text + "</html>");
+    super.setText(text.toLowerCase(Locale.ROOT).trim().startsWith("<html>") ? text :
+        "<html>" + text + "</html>");
     this.linkCache = null;
   }
 

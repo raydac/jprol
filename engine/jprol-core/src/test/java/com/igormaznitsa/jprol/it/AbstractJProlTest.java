@@ -225,9 +225,9 @@ public abstract class AbstractJProlTest {
       assertEquals(names.length, values.length);
       for (int v = 0; v < names.length; v++) {
         final String varName = names[v];
-        final TermVar thevar = thisGoal.findVar(varName)
+        final TermVar foundVar = thisGoal.findVar(varName)
             .orElseThrow(() -> new IllegalArgumentException("Can't find var: " + varName));
-        assertEquals(values[v], thevar.getValue().getText(), i + ": Var=" + varName);
+        assertEquals(values[v], foundVar.getValue().getText(), i + ": Var=" + varName);
       }
     }
     assertNull(thisGoal.prove());

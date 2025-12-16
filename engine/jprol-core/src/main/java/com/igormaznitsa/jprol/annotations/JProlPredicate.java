@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
 
 /**
  * Info about predicate definition. If placed over a method then the method will be recognized
- * as processor for the predicate. Also can be used as just description of a predicate added
+ * as processor for the predicate. Also, can be used as just description of a predicate added
  * through JProlConsultText.
  */
 @Target(value = ElementType.METHOD)

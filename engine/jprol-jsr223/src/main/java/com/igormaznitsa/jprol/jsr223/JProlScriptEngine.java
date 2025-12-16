@@ -31,6 +31,7 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -70,7 +71,7 @@ public class JProlScriptEngine
     public Reader findReader(JProlContext context, String readerId) {
       Reader result = null;
       if (READER_IN.equals(readerId)) {
-        result = new InputStreamReader(System.in);
+        result = new InputStreamReader(System.in, Charset.defaultCharset());
       }
       return result;
     }
@@ -79,9 +80,9 @@ public class JProlScriptEngine
     public Writer findWriter(final JProlContext context, final String writerId,
                              final boolean append) {
       if (WRITER_OUT.equals(writerId)) {
-        return new PrintWriter(System.out);
+        return new PrintWriter(System.out, true, Charset.defaultCharset());
       } else if (WRITER_ERR.equals(writerId)) {
-        return new PrintWriter(System.err);
+        return new PrintWriter(System.err, true, Charset.defaultCharset());
       } else {
         return null;
       }

@@ -139,7 +139,7 @@ public abstract class AbstractJProlLibrary {
           "Operator priority must be in " + TermOperator.PRIORITY_MAX + "..." +
               TermOperator.PRIORITY_MIN + " but " + operator.priority());
     }
-    if (operator.name().length() == 0) {
+    if (operator.name().isEmpty()) {
       throw new IllegalArgumentException("Operator name must not be empty");
     }
     if (Character.isUpperCase(operator.name().charAt(0))) {

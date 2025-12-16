@@ -49,7 +49,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
         makeTestContext(":-dynamic(bar/1)."));
     assertNotNull(testCp.prove());
     final TermVar yVar = testCp.findVar("Y").get();
-    assertSame(yVar.getThisValue().getTermType(), TermType.VAR);
+    assertSame(TermType.VAR, yVar.getThisValue().getTermType());
     assertEquals("X", yVar.getThisValue().getText());
   }
 
@@ -1230,8 +1230,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
     //[functor(foo(a,b,c),X,Y), [[X <-- foo, Y <-- 3]]].
     JProlChoicePoint goal = proveGoal("functor(foo(a,b,c),X,Y).");
-    assertEquals(getVarAsText(goal, "X"), "'foo'");
-    assertEquals(getVarAsNumber(goal, "Y"), 3L);
+    assertEquals("'foo'", getVarAsText(goal, "X"));
+    assertEquals(3L, getVarAsNumber(goal, "Y"));
     assertNull(goal.prove());
 
     //[functor(X,foo,3), [[X <-- foo(A,B,C)]]].  % A, B and C are 3 new variables
@@ -1241,8 +1241,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
     //[functor(mats(A,B),A,B), [[A <-- mats,B <-- 2]]].
     goal = proveGoal("functor(mats(A,B),A,B).");
-    assertEquals(getVarAsText(goal, "A"), "'mats'");
-    assertEquals(getVarAsNumber(goal, "B"), 2L);
+    assertEquals("'mats'", getVarAsText(goal, "A"));
+    assertEquals(2L, getVarAsNumber(goal, "B"));
     assertNull(goal.prove());
 
     //[functor(foo(a),foo,2), failure].
@@ -1252,8 +1252,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
     //[functor(1,X,Y), [[X <-- 1,Y <-- 0]]].
     goal = proveGoal("functor(1,X,Y).");
-    assertEquals(getVarAsNumber(goal, "X"), 1L);
-    assertEquals(getVarAsNumber(goal, "Y"), 0L);
+    assertEquals(1L, getVarAsNumber(goal, "X"));
+    assertEquals(0L, getVarAsNumber(goal, "Y"));
     assertNull(goal.prove());
 
     //[functor(X,1.1,0), [[X <-- 1.1]]].
@@ -1327,8 +1327,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
     //[arg(2,foo(a, f(X,b), c), f(a, Y)), [[X <-- a, Y <-- b]]].
     final JProlChoicePoint goal = proveGoal("arg(2,foo(a, f(X,b), c), f(a, Y)).");
-    assertEquals(getVarAsText(goal, "X"), "'a'");
-    assertEquals(getVarAsText(goal, "Y"), "'b'");
+    assertEquals("'a'", getVarAsText(goal, "X"));
+    assertEquals("'b'", getVarAsText(goal, "Y"));
     assertNull(goal.prove());
 
     //[arg(1,foo(X,b),Y), [[Y <-- X]]].
@@ -1396,16 +1396,16 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
     //[('='(X,Y),'='(X,abc)),[[X <-- abc, Y <-- abc]]].
     JProlChoicePoint goal = proveGoal("X=Y,'='(X,abc).");
-    assertEquals(getVarAsText(goal, "X"), "'abc'");
-    assertEquals(getVarAsText(goal, "Y"), "'abc'");
+    assertEquals("'abc'", getVarAsText(goal, "X"));
+    assertEquals("'abc'", getVarAsText(goal, "Y"));
     assertNull(goal.prove());
 
     checkVarValues("X=Y,'='(X,abc).", "Y", "'abc'");
 
     //['='(f(X,def),f(def,Y)), [[X <-- def, Y <-- def]]].
     goal = proveGoal("'='(f(X,def),f(def,Y)).");
-    assertEquals(getVarAsText(goal, "X"), "'def'");
-    assertEquals(getVarAsText(goal, "Y"), "'def'");
+    assertEquals("'def'", getVarAsText(goal, "X"));
+    assertEquals("'def'", getVarAsText(goal, "Y"));
     assertNull(goal.prove());
 
     //['='(1,2), failure].

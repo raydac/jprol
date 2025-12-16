@@ -53,7 +53,9 @@ class StrongTest extends AbstractJProlTest {
 
     goal = new JProlChoicePoint("route(ljubljana,edinburgh,th,R).", context);
     assertNotNull(goal.prove());
-    assertEquals(getVarAsText(goal, "R"), "['ljubljana' / 'zurich' / 'jp322' / 11 : 30,'zurich' / 'london' / 'sr806' / 16 : 10,'london' / 'edinburgh' / 'ba4822' / 18 : 40]");
+    assertEquals(
+        "['ljubljana' / 'zurich' / 'jp322' / 11 : 30,'zurich' / 'london' / 'sr806' / 16 : 10,'london' / 'edinburgh' / 'ba4822' / 18 : 40]",
+        getVarAsText(goal, "R"));
 
   }
 

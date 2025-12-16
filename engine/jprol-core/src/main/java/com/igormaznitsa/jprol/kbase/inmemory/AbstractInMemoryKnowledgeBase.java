@@ -91,9 +91,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
           writer.println(String.format("%n%% signature '%s'", e.getKey()));
           return e.getValue().stream();
         })
-        .forEach(i -> {
-          writer.println(String.format("%s.", i.getClause().toSrcString()));
-        });
+        .forEach(i -> writer.println(String.format("%s.", i.getClause().toSrcString())));
   }
 
   public Map<String, List<InMemoryItem>> getStorage() {
@@ -265,7 +263,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
       });
     } else {
       final Iterator<InMemoryItem> items = list.iterator();
-      return new CloseableIterator<TermStruct>() {
+      return new CloseableIterator<>() {
         @Override
         public void close() {
 

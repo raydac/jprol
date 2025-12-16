@@ -347,7 +347,7 @@ class PrimitiveTest extends AbstractJProlTest {
 
     final JProlChoicePoint goal = new JProlChoicePoint("a(X).", context);
     assertNotNull(goal.prove());
-    assertEquals(getVarAsText(goal, "X"), "'a1'");
+    assertEquals("'a1'", getVarAsText(goal, "X"));
     assertNull(goal.prove());
   }
 

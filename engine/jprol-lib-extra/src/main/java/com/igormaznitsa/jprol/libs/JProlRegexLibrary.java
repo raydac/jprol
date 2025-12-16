@@ -55,7 +55,7 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     int compileFlags = 0;
     if (flags instanceof TermList) {
       for (final Term a : ((TermList) flags)) {
-        switch (a.getText().toLowerCase(Locale.ENGLISH)) {
+        switch (a.getText().toLowerCase(Locale.ROOT)) {
           case "case_insensitive":
             compileFlags |= Pattern.CASE_INSENSITIVE;
             break;

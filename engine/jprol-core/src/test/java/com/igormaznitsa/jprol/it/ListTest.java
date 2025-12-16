@@ -191,7 +191,7 @@ class ListTest extends AbstractJProlTest {
     final JProlChoicePoint testgoal = new JProlChoicePoint("test(R).", context);
 
     assertNotNull(testgoal.prove());
-    assertEquals(getVarAsText(testgoal, "R"), "[1,2,3,4]");
+    assertEquals("[1,2,3,4]", getVarAsText(testgoal, "R"));
     assertNull(testgoal.prove());
   }
 
@@ -229,7 +229,7 @@ class ListTest extends AbstractJProlTest {
 
       etalon++;
     }
-    assertEquals(etalon, 11);
+    assertEquals(11, etalon);
   }
 
   @Test

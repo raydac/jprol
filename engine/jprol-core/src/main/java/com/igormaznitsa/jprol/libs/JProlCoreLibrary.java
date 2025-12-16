@@ -1202,7 +1202,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       ProlAssertions.assertAtom(encoding);
     }
 
-    final String encodingText = encoding.getText().trim().toUpperCase(Locale.ENGLISH);
+    final String encodingText = encoding.getText().trim().toUpperCase(Locale.ROOT);
     final Charset charset;
     if (Charset.isSupported(encodingText)) {
       charset = Charset.forName(encodingText);
@@ -1220,7 +1220,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         for (final Term t : (TermList) argListBytes) {
           buffer.write(t.findNonVarOrSame().toNumber().byteValue());
         }
-        return argString.unifyTo(Terms.newAtom(new String(buffer.toByteArray(), charset)));
+        return argString.unifyTo(Terms.newAtom(new String(buffer.toByteArray(),
+            charset))); // keep such construction for android compatibility
       } else {
         return false;
       }
@@ -2564,7 +2565,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final Term[] events = list.toArray(false);
 
     final Set<JProlTriggerType> types = Arrays.stream(list.toArray(false))
-        .map(x -> x.getText().trim().toLowerCase(Locale.ENGLISH))
+        .map(x -> x.getText().trim().toLowerCase(Locale.ROOT))
         .map(x -> {
           switch (x) {
             case "assert":

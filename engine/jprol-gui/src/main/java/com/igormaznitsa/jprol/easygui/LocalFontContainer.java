@@ -53,7 +53,7 @@ public enum LocalFontContainer {
       return ((ResourceBasedFont) font).getLocalFont().name() + ' ' + styleAsString(font) + ' ' +
           font.getSize();
     } else {
-      return font.getFamily(Locale.ENGLISH) + ' ' + styleAsString(font) + ' ' + font.getSize();
+      return font.getFamily(Locale.ROOT) + ' ' + styleAsString(font) + ' ' + font.getSize();
     }
   }
 
@@ -73,7 +73,7 @@ public enum LocalFontContainer {
   }
 
   public static int decodeStyle(final String style) {
-    final String normalized = style.toLowerCase(Locale.ENGLISH);
+    final String normalized = style.toLowerCase(Locale.ROOT);
     int styleAccum = 0;
     if (normalized.contains("plain")) {
       styleAccum |= Font.PLAIN;

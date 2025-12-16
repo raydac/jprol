@@ -17,9 +17,9 @@
 package com.igormaznitsa.jprol.it;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
@@ -84,7 +84,7 @@ class MiscTest extends AbstractJProlTest {
     }
 
     assertNotNull(result);
-    assertTrue(result.getValue() instanceof TermList);
+    assertInstanceOf(TermList.class, result.getValue());
     assertEquals("[[],['b'],['a'],['a','b']]", result.getValue().toString());
   }
 

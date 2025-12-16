@@ -73,17 +73,17 @@ public class JProlHttpLibrary extends AbstractJProlLibrary {
   }
 
   private Term findMandatory(final HttpRequestParameters key, final TermList list) {
-    final Term found = findValue(key.name().toLowerCase(Locale.ENGLISH), list);
+    final Term found = findValue(key.name().toLowerCase(Locale.ROOT), list);
     if (found == null) {
       throw new ProlDomainErrorException(
-          "Expected mandatory value: " + key.name().toLowerCase(Locale.ENGLISH), list);
+          "Expected mandatory value: " + key.name().toLowerCase(Locale.ROOT), list);
     }
     return found;
   }
 
   private Term findNonMandatory(final HttpRequestParameters key, final TermList list,
                                 final Term defaultTerm) {
-    final Term found = findValue(key.name().toLowerCase(Locale.ENGLISH), list);
+    final Term found = findValue(key.name().toLowerCase(Locale.ROOT), list);
     if (found == null) {
       return defaultTerm;
     }
@@ -184,11 +184,11 @@ public class JProlHttpLibrary extends AbstractJProlLibrary {
       final List<Term> responseListTerms = new ArrayList<>();
       responseListTerms.add(Terms.newStruct(equalsOperator,
           new Term[] {
-              Terms.newAtom(HttpRespnseParameters.RESPONSE_CODE.name().toLowerCase(Locale.ENGLISH)),
+              Terms.newAtom(HttpRespnseParameters.RESPONSE_CODE.name().toLowerCase(Locale.ROOT)),
               Terms.newLong(responseCode)}));
       responseListTerms.add(Terms.newStruct(equalsOperator,
           new Term[] {Terms.newAtom(
-              HttpRespnseParameters.RESPONSE_MESSAGE.name().toLowerCase(Locale.ENGLISH)),
+              HttpRespnseParameters.RESPONSE_MESSAGE.name().toLowerCase(Locale.ROOT)),
               Terms.newAtom(responseMessage == null ? "" : responseMessage)}));
 
       if (responseCode == HTTP_OK) {
@@ -204,7 +204,7 @@ public class JProlHttpLibrary extends AbstractJProlLibrary {
         }
         responseListTerms.add(Terms.newStruct(equalsOperator,
             new Term[] {
-                Terms.newAtom(HttpRespnseParameters.HEADERS.name().toLowerCase(Locale.ENGLISH)),
+                Terms.newAtom(HttpRespnseParameters.HEADERS.name().toLowerCase(Locale.ROOT)),
                 TermList.asList(responseHeaders)}));
 
         final List<Term> listBody = new ArrayList<>();
@@ -217,7 +217,7 @@ public class JProlHttpLibrary extends AbstractJProlLibrary {
         final TermList bodyAsBin = TermList.asList(listBody);
         responseListTerms.add(Terms.newStruct(equalsOperator,
             new Term[] {
-                Terms.newAtom(HttpRespnseParameters.BODY.name().toLowerCase(Locale.ENGLISH)),
+                Terms.newAtom(HttpRespnseParameters.BODY.name().toLowerCase(Locale.ROOT)),
                 bodyAsBin}));
       }
 
