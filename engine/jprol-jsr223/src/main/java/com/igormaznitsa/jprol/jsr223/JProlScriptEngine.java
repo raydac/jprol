@@ -234,11 +234,12 @@ public class JProlScriptEngine
   }
 
   static List<Term> parseWholeScript(final String script, final JProlContext context) {
-    try (final StringReader reader = new StringReader(script)) {
-      final JProlTreeBuilder treeBuilder = new JProlTreeBuilder(context);
+    try (
+        final JProlTreeBuilder treeBuilder = new JProlTreeBuilder(context, new StringReader(script),
+            false)) {
       final List<Term> parsedTerms = new ArrayList<>();
       Term nextTerm;
-      while ((nextTerm = treeBuilder.readPhraseAndMakeTree(reader)) != null) {
+      while ((nextTerm = treeBuilder.readPhraseAndMakeTree()) != null) {
         parsedTerms.add(nextTerm);
       }
       return parsedTerms;

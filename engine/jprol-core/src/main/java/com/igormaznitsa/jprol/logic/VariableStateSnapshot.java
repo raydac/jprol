@@ -34,7 +34,7 @@ final class VariableStateSnapshot {
   private final List<VariableContainer> containers;
   private Set<Integer> processedVariables;
 
-  public VariableStateSnapshot(final VariableStateSnapshot snapshot) {
+  VariableStateSnapshot(final VariableStateSnapshot snapshot) {
     this.containers = new ArrayList<>();
 
     final Iterator<VariableContainer> iterator = snapshot.containers.iterator();
@@ -56,21 +56,21 @@ final class VariableStateSnapshot {
     }
 
     if (changed != null) {
-      for (VariableContainer container : changed) {
+      for (final VariableContainer container : changed) {
         final int uid = container.variable.getVarUid();
         if (!this.processedVariables.contains(uid)) {
           this.processedVariables.add(uid);
           this.containers.add(new VariableContainer(container.variable, null));
-          extractAllVariables(container.variable.getThisValue(), null);
+          this.extractAllVariables(container.variable.getThisValue(), null);
         }
       }
     }
     this.processedVariables = null;
   }
 
-  public VariableStateSnapshot(final Term source, final Map<String, Term> predefinedValues) {
+  VariableStateSnapshot(final Term source, final Map<String, Term> predefinedValues) {
     this.containers = new ArrayList<>();
-    extractAllVariables(source, predefinedValues);
+    this.extractAllVariables(source, predefinedValues);
     this.processedVariables = null;
   }
 
@@ -82,16 +82,16 @@ final class VariableStateSnapshot {
       case LIST: {
         final TermList list = (TermList) src;
         if (!list.isNullList()) {
-          extractAllVariables(list.getHead(), predefinedValues);
-          extractAllVariables(list.getTail(), predefinedValues);
+          this.extractAllVariables(list.getHead(), predefinedValues);
+          this.extractAllVariables(list.getTail(), predefinedValues);
         }
       }
       break;
       case STRUCT: {
         final TermStruct struct = (TermStruct) src;
         final Term[] elements = struct.getElementArray();
-        for (Term element : elements) {
-          extractAllVariables(element, predefinedValues);
+        for (final Term element : elements) {
+          this.extractAllVariables(element, predefinedValues);
         }
       }
       break;
@@ -106,7 +106,7 @@ final class VariableStateSnapshot {
           this.containers.add(new VariableContainer(var, predefinedValues));
           final Term value = var.getThisValue();
           if (value != null) {
-            extractAllVariables(value, predefinedValues);
+            this.extractAllVariables(value, predefinedValues);
           }
         }
       }
@@ -114,12 +114,8 @@ final class VariableStateSnapshot {
     }
   }
 
-  public void resetToState() {
+  void resetToState() {
     this.containers.forEach(VariableContainer::resetToSample);
-  }
-
-  public int getSize() {
-    return this.containers.size();
   }
 
   @Override

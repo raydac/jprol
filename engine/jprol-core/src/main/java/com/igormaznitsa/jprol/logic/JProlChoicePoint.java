@@ -114,7 +114,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public JProlChoicePoint(final String goal, final JProlContext context) {
-    this(new JProlTreeBuilder(context).readPhraseAndMakeTree(new StringReader(goal)), context,
+    this(new JProlTreeBuilder(context, new StringReader(goal), true).readPhraseAndMakeTree(),
+        context,
         null);
   }
 

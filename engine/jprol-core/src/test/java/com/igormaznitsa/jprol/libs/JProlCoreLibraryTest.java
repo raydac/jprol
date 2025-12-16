@@ -20,9 +20,28 @@ import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.it.AbstractJProlTest;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class JProlCoreLibraryTest extends AbstractJProlTest {
+
+  @Disabled("For manual test only")
+  @Test
+  void testNextLong() {
+    assertEquals(0, JProlCoreLibrary.nextLong(0));
+    final int[] counter = new int[1000];
+    for (int i = 0; i < 100_000_000; i++) {
+      final long next = JProlCoreLibrary.nextLong(counter.length);
+      if (next < 0 || next >= counter.length) {
+        fail("Unexpectedly " + next);
+        return;
+      }
+      counter[(int) next]++;
+    }
+    for (int j : counter) {
+      assertTrue(j > 0);
+    }
+  }
 
   @Test
   void testAsserta1() {
@@ -397,7 +416,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   @Test
   void testAbolish1() {
     //[(current_prolog_flag(max_arity,A), X is A + 1, abolish(foo/X)), representation_error(max_arity)].
-    assertProlException("current_prolog_flag(max_arity,A), X is A + 1, abolish(foo/X).", ProlRepresentationErrorException.class);
+    assertProlException("current_prolog_flag(max_arity,A), X is A + 1, abolish(foo/X).",
+        ProlRepresentationErrorException.class);
 
     checkOnce(":-dynamic(test/1).", "assert(test(1)),test(X),X==1,abolish(test/1),\\+ test(_).",
         true);
@@ -450,7 +470,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     checkOnce("findall(X,(X=2;X=1),[1,2]).", false);
 
     //[findall(X,(X=1 ; X=2),[X,Y]), [[X <-- 1, Y <-- 2]]].
-    final JProlChoicePoint goal = proveGoal("findall(X,(X=1;X=2),[X1,Y1])."); // changed from original because at Prol all variables linked by their names inside a goal, so that it is not a bug, it is a feature
+    final JProlChoicePoint goal = proveGoal(
+        "findall(X,(X=1;X=2),[X1,Y1])."); // changed from original because at Prol all variables linked by their names inside a goal, so that it is not a bug, it is a feature
     assertEquals("1", getVarAsText(goal, "X1"));
     assertEquals("2", getVarAsText(goal, "Y1"));
     assertNull(goal.prove());
@@ -628,7 +649,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     checkVarValues("number_codes(A,[0'4,0'2,0'.,0'0,0'e,0'-,0'1]).", "A", "4.2");
 
     //[number_codes(A,[ 0'1, 0'2, 1000]), representation_error(character_code)]. % 1000 not a code
-    assertProlException("number_codes(A,[ 0'1, 0'2, 100000]).", ProlRepresentationErrorException.class);
+    assertProlException("number_codes(A,[ 0'1, 0'2, 100000]).",
+        ProlRepresentationErrorException.class);
 
     //[number_codes(A,L), instantiation_error].
     assertProlException("number_codes(A,L).", ProlInstantiationErrorException.class);
@@ -643,11 +665,16 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     checkOnce("number_codes(33,[51,51]).", true);
     //[number_codes(33.0,L), [[L <-- [51,51,46,48]]]].
     checkVarValues("number_codes(33.0,L).", "L", "[51,51,46,48]");
-    checkOnce("number_codes(33.0,[" + (int) '3' + ',' + (int) '.' + ',' + (int) '3' + ',' + (int) 'E' + ',' + (int) '0' + ',' + (int) '1' + "]).", true);
-    checkVarValues("number_codes(A,[" + (int) '-' + ',' + (int) '2' + ',' + (int) '5' + "]).", "A", "-25");
+    checkOnce(
+        "number_codes(33.0,[" + (int) '3' + ',' + (int) '.' + ',' + (int) '3' + ',' + (int) 'E' +
+            ',' + (int) '0' + ',' + (int) '1' + "]).", true);
+    checkVarValues("number_codes(A,[" + (int) '-' + ',' + (int) '2' + ',' + (int) '5' + "]).", "A",
+        "-25");
     checkVarValues("number_codes(A,[" + (int) ' ' + ',' + (int) '3' + "]).", "A", "' 3'");
-    checkVarValues("number_codes(A,[" + (int) '0' + ',' + (int) 'x' + ',' + (int) 'f' + "]).", "A", "15");
-    checkVarValues("number_codes(A,[" + (int) '4' + ',' + (int) '.' + ',' + (int) '2' + "]).", "A", "4.2");
+    checkVarValues("number_codes(A,[" + (int) '0' + ',' + (int) 'x' + ',' + (int) 'f' + "]).", "A",
+        "15");
+    checkVarValues("number_codes(A,[" + (int) '4' + ',' + (int) '.' + ',' + (int) '2' + "]).", "A",
+        "4.2");
     //       checkOnceVar("number_codes(A,["+(int)'4'+','+(int)'2'+','+(int)'.'+','+(int)'0'+','+(int)'e'+','+(int)'-'+','+(int)'1'+"]).","A","4.2"); // prol returns 42.0e-1 because it is based on Java number output
   }
 
@@ -902,10 +929,12 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   @Test
   void testSubAtom5() {
     //[sub_atom(abracadabra, 0, 5, _, S2), [[S2 <-- 'abrac']]].
-    checkVarsAfterCall("sub_atom(abracadabra, 0, 5, _, S2).", new String[][] {new String[] {"S2"}, new String[] {"abrac"}});
+    checkVarsAfterCall("sub_atom(abracadabra, 0, 5, _, S2).",
+        new String[][] {new String[] {"S2"}, new String[] {"abrac"}});
 
     //[sub_atom(abracadabra, _, 5, 0, S2), [[S2 <-- 'dabra']]].
-    checkVarsAfterCall("sub_atom(abracadabra, _, 5, 0, S2).", new String[][] {new String[] {"S2"}, new String[] {"dabra"}});
+    checkVarsAfterCall("sub_atom(abracadabra, _, 5, 0, S2).",
+        new String[][] {new String[] {"S2"}, new String[] {"dabra"}});
 
     //[sub_atom(abracadabra, 3, Length, 3, S2), [[Length <-- 5, S2 <-- 'acada']]].
     checkVarsAfterCall("sub_atom(abracadabra, 3, Length, 3, S2).",
@@ -973,7 +1002,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     //[current_predicate(current_predicate/1), failure].
     checkOnce("current_predicate(current_predicate/1).", false);
 
-    final JProlChoicePoint goal = prepareGoal("some(). some(huzzaa).", "current_predicate(some/X).");
+    final JProlChoicePoint goal =
+        prepareGoal("some(). some(huzzaa).", "current_predicate(some/X).");
     assertNotNull(goal.prove());
     assertEquals(0L, getVarAsNumber(goal, "X"));
     assertNotNull(goal.prove());
@@ -1074,12 +1104,16 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     checkVarValues("atom_codes('\\'',L).", "L", "[39]");
 
     //[atom_codes('iso',L), [[L <-- [ 0'i, 0's, 0'o ]]]].
-    checkVarValues("atom_codes('iso',L).", "L", "[" + (int) 'i' + ',' + (int) 's' + ',' + (int) 'o' + ']');
+    checkVarValues("atom_codes('iso',L).", "L",
+        "[" + (int) 'i' + ',' + (int) 's' + ',' + (int) 'o' + ']');
 
     //[atom_codes(A,[ 0'p, 0'r, 0'o, 0'l, 0'o, 0'g]), [[A <-- 'prolog']]].
-    checkVarValues("atom_codes(A,[" + (int) 'p' + ',' + (int) 'r' + ',' + (int) 'o' + ',' + (int) 'l' + ',' + (int) 'o' + ',' + (int) 'g' + "]).", "A", "'prolog'");
+    checkVarValues(
+        "atom_codes(A,[" + (int) 'p' + ',' + (int) 'r' + ',' + (int) 'o' + ',' + (int) 'l' + ',' +
+            (int) 'o' + ',' + (int) 'g' + "]).", "A", "'prolog'");
     //[atom_codes('North',[0'N | L]), [[L <-- [0'o, 0'r, 0't, 0'h]]]].
-    checkVarValues("atom_codes('North',[" + (int) 'N' + '|' + "L]).", "L", "[" + (int) 'o' + ',' + (int) 'r' + ',' + (int) 't' + ',' + (int) 'h' + ']');
+    checkVarValues("atom_codes('North',[" + (int) 'N' + '|' + "L]).", "L",
+        "[" + (int) 'o' + ',' + (int) 'r' + ',' + (int) 't' + ',' + (int) 'h' + ']');
     //[atom_codes('iso',[0'i, 0's]), failure].
     checkOnce("atom_codes('iso',[" + (int) 's' + ',' + (int) 'o' + "]).", false);
 
@@ -1091,7 +1125,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     assertProlException("atom_codes(A," + (int) 'x' + ").", ProlTypeErrorException.class);
 
     //[atom_codes(A,[ 0'i, 0's, 1000]), representation_error(character_code)]. % 1000 not a code
-    assertProlException("atom_codes(A,[" + (int) 'i' + ',' + (int) 's' + ",1.1]).", ProlRepresentationErrorException.class);
+    assertProlException("atom_codes(A,[" + (int) 'i' + ',' + (int) 's' + ",1.1]).",
+        ProlRepresentationErrorException.class);
   }
 
   @Test
@@ -1215,7 +1250,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     assertProlException("functor(F,foo(a),1).", ProlTypeErrorException.class);
 
     //[(current_prolog_flag(max_arity,A),X is A + 1,functor(T, foo, X)),representation_error(max_arity)].
-    assertProlException("current_prolog_flag(max_arity,A),X is A + 1,functor(T, foo, X).", ProlRepresentationErrorException.class);
+    assertProlException("current_prolog_flag(max_arity,A),X is A + 1,functor(T, foo, X).",
+        ProlRepresentationErrorException.class);
 
     //[functor(T, foo, -1), domain_error(not_less_than_zero,-1)].
     assertProlException("functor(T, foo, -1).", ProlDomainErrorException.class);

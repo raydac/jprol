@@ -78,6 +78,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.Charset;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -89,7 +90,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -148,6 +148,8 @@ import java.util.stream.Stream;
             "?term,?list"}, reference = "member(X, List) is true if and only if X is an element contained in List. If X is not instantiated, it will be instantiated with all the values in List.")
     })
 public final class JProlCoreLibrary extends AbstractJProlLibrary {
+
+  private static final SecureRandom RND = new SecureRandom();
 
   public JProlCoreLibrary() {
     super("jprol-core-lib");
@@ -1679,9 +1681,9 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
 
       final Term term;
-      try {
-        term = new JProlTreeBuilder(goal.getContext())
-            .readPhraseAndMakeTree(new StringReader(builder.append('.').toString()));
+      try (final JProlTreeBuilder treeBuilder = new JProlTreeBuilder(goal.getContext(),
+          new StringReader(builder.append('.').toString()), true)) {
+        term = treeBuilder.readPhraseAndMakeTree();
       } catch (PrologParserException ex) {
         throw new ProlCustomErrorException(Terms.newAtom("syntax_error", UNKNOWN), right);
       }
@@ -1782,10 +1784,10 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         result = Terms.NULL_LIST;
       } else {
         final Term[] array = list.toArray(false);
-        result = array[ThreadLocalRandom.current().nextInt(array.length)];
+        result = array[RND.nextInt(array.length)];
       }
     } else {
-      result = Terms.newLong(ThreadLocalRandom.current().nextLong(first.toNumber().longValue()),
+      result = Terms.newLong(nextLong(first.toNumber().longValue()),
           UNKNOWN);
     }
     return second.unifyTo(result);
@@ -2585,6 +2587,13 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
     triggeringEventObserver.register(signature, types);
     goal.getContext().addTrigger(triggeringEventObserver);
+  }
+
+  static long nextLong(final long bound) {
+    if (bound <= 0L) {
+      return 0L;
+    }
+    return Math.abs(RND.nextLong()) % bound;
   }
 
   @JProlPredicate(determined = true, signature = "copy_term/2", args = {

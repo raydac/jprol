@@ -49,6 +49,7 @@ import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlInterruptException;
 import com.igormaznitsa.jprol.exceptions.ProlKnowledgeBaseException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
+import com.igormaznitsa.jprol.exceptions.RuntimeIOException;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
 import com.igormaznitsa.jprol.kbase.inmemory.ConcurrentInMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
@@ -480,7 +481,7 @@ public final class JProlContext implements AutoCloseable {
             try {
               return ProlUtils.readAsUtf8(x);
             } catch (IOException ex) {
-              throw new RuntimeException("Can't read file: " + x, ex);
+              throw new RuntimeIOException("Can't read file: " + x, ex);
             }
           })
           .collect(Collectors.joining("\n"));
@@ -517,7 +518,7 @@ public final class JProlContext implements AutoCloseable {
                 }
               }
             } catch (IOException ex) {
-              throw new RuntimeException("Can't read resource for IO error", ex);
+              throw new RuntimeIOException("Can't read resource for IO error", ex);
             }
             return buffer.toString();
           })
@@ -548,7 +549,7 @@ public final class JProlContext implements AutoCloseable {
                 buffer.append((char) value);
               }
             } catch (IOException ex) {
-              throw new RuntimeException("Can't read resource for IO error", ex);
+              throw new RuntimeIOException("Can't read resource for IO error", ex);
             }
             return buffer.toString();
           })
@@ -856,104 +857,105 @@ public final class JProlContext implements AutoCloseable {
   }
 
   public void consult(final Reader source, final ConsultInteract iterator) {
-    final JProlTreeBuilder treeBuilder = new JProlTreeBuilder(this);
-    do {
-      final Term nextItem = treeBuilder.readPhraseAndMakeTree(source);
-      if (nextItem == null) {
-        break;
-      }
-
-      final SourcePosition sourcePosition = nextItem.getSourcePosition();
-
-      try {
-        switch (nextItem.getTermType()) {
-          case ATOM: {
-            this.knowledgeBase.assertZ(this, newStruct(nextItem));
-          }
+    try (final JProlTreeBuilder treeBuilder = new JProlTreeBuilder(this, source, false)) {
+      do {
+        final Term nextItem = treeBuilder.readPhraseAndMakeTree();
+        if (nextItem == null) {
           break;
-          case STRUCT: {
-            final TermStruct struct = (TermStruct) nextItem;
-            final Term functor = struct.getFunctor();
+        }
 
-            if (functor.getTermType() == TermType.OPERATOR) {
-              final TermOperator op = (TermOperator) functor;
-              final String text = op.getText();
-              final OpAssoc type = op.getOperatorType();
+        final SourcePosition sourcePosition = nextItem.getSourcePosition();
 
-              if (struct.isClause()) {
-                switch (type) {
-                  case XFX: {
-                    // new rule
-                    this.knowledgeBase.assertZ(this, struct);
-                  }
-                  break;
-                  case FX: {
-                    // directive
-                    if (!this.processDirective(struct.getElement(0))) {
-                      throw new ProlHaltExecutionException(2);
+        try {
+          switch (nextItem.getTermType()) {
+            case ATOM: {
+              this.knowledgeBase.assertZ(this, newStruct(nextItem));
+            }
+            break;
+            case STRUCT: {
+              final TermStruct struct = (TermStruct) nextItem;
+              final Term functor = struct.getFunctor();
+
+              if (functor.getTermType() == TermType.OPERATOR) {
+                final TermOperator op = (TermOperator) functor;
+                final String text = op.getText();
+                final OpAssoc type = op.getOperatorType();
+
+                if (struct.isClause()) {
+                  switch (type) {
+                    case XFX: {
+                      // new rule
+                      this.knowledgeBase.assertZ(this, struct);
                     }
-                  }
-                  break;
-                }
-
-              } else if ("?-".equals(text)) {
-                final Term termGoal = struct.getElement(0);
-
-                if (iterator != null && iterator.onFoundInteractiveGoal(this, termGoal)) {
-
-                  final Map<String, TermVar> variableMap = new HashMap<>();
-                  final AtomicInteger solutionCounter = new AtomicInteger();
-
-                  final JProlChoicePoint thisGoal = new JProlChoicePoint(termGoal, this, null);
-
-                  boolean doFindNextSolution;
-                  do {
-                    variableMap.clear();
-                    if (solveGoal(thisGoal, variableMap)) {
-                      doFindNextSolution = iterator
-                          .onSolution(this, termGoal, variableMap,
-                              solutionCounter.incrementAndGet());
-                      if (!doFindNextSolution) {
-                        throw new ProlHaltExecutionException("search halted or stopped", 1);
+                    break;
+                    case FX: {
+                      // directive
+                      if (!this.processDirective(struct.getElement(0))) {
+                        throw new ProlHaltExecutionException(2);
                       }
-                    } else {
-                      iterator.onFail(this, termGoal, solutionCounter.get());
-                      doFindNextSolution = false;
                     }
-                  } while (doFindNextSolution);
+                    break;
+                  }
+
+                } else if ("?-".equals(text)) {
+                  final Term termGoal = struct.getElement(0);
+
+                  if (iterator != null && iterator.onFoundInteractiveGoal(this, termGoal)) {
+
+                    final Map<String, TermVar> variableMap = new HashMap<>();
+                    final AtomicInteger solutionCounter = new AtomicInteger();
+
+                    final JProlChoicePoint thisGoal = new JProlChoicePoint(termGoal, this, null);
+
+                    boolean doFindNextSolution;
+                    do {
+                      variableMap.clear();
+                      if (solveGoal(thisGoal, variableMap)) {
+                        doFindNextSolution = iterator
+                            .onSolution(this, termGoal, variableMap,
+                                solutionCounter.incrementAndGet());
+                        if (!doFindNextSolution) {
+                          throw new ProlHaltExecutionException("search halted or stopped", 1);
+                        }
+                      } else {
+                        iterator.onFail(this, termGoal, solutionCounter.get());
+                        doFindNextSolution = false;
+                      }
+                    } while (doFindNextSolution);
+                  }
+                } else {
+                  this.knowledgeBase.assertZ(this, struct);
                 }
               } else {
                 this.knowledgeBase.assertZ(this, struct);
               }
-            } else {
-              this.knowledgeBase.assertZ(this, struct);
+            }
+            break;
+            default: {
+              throw new ProlKnowledgeBaseException(
+                  "Such element can't be saved at knowledge base [" + nextItem + ']');
             }
           }
-          break;
-          default: {
-            throw new ProlKnowledgeBaseException(
-                "Such element can't be saved at knowledge base [" + nextItem + ']');
+        } catch (ProlChoicePointInterruptedException | ProlHaltExecutionException ex) {
+          throw ex;
+        } catch (ProlAbstractCatchableException ex) {
+          final SourcePosition errorPosition = ex.getSourcePosition();
+
+          String message = ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage();
+          if (message == null) {
+            message = ex.getClass().getSimpleName();
           }
-        }
-      } catch (ProlChoicePointInterruptedException | ProlHaltExecutionException ex) {
-        throw ex;
-      } catch (ProlAbstractCatchableException ex) {
-        final SourcePosition errorPosition = ex.getSourcePosition();
 
-        String message = ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage();
-        if (message == null) {
-          message = ex.getClass().getSimpleName();
+          throw new PrologParserException(
+              message,
+              errorPosition.getLine(), errorPosition.getPosition(), ex);
+        } catch (Exception ex) {
+          throw new PrologParserException(
+              ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage(),
+              sourcePosition.getLine(), sourcePosition.getPosition(), ex);
         }
-
-        throw new PrologParserException(
-            message,
-            errorPosition.getLine(), errorPosition.getPosition(), ex);
-      } catch (Exception ex) {
-        throw new PrologParserException(
-            ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage(),
-            sourcePosition.getLine(), sourcePosition.getPosition(), ex);
-      }
-    } while (!this.isDisposed());
+      } while (!this.isDisposed());
+    }
   }
 
   private boolean solveGoal(final JProlChoicePoint goal, final Map<String, TermVar> varTable) {

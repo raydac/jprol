@@ -16,6 +16,7 @@ import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
+import com.igormaznitsa.jprol.exceptions.RuntimeIOException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 import java.io.IOException;
@@ -53,7 +54,7 @@ public class JProlHttpLibrary extends AbstractJProlLibrary {
     try {
       return (HttpURLConnection) url.openConnection();
     } catch (IOException ex) {
-      throw new RuntimeException(ex);
+      throw new RuntimeIOException(ex);
     }
   }
 
