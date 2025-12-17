@@ -88,10 +88,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
@@ -113,11 +115,12 @@ public final class JProlContext implements AutoCloseable {
   private final List<AbstractJProlLibrary> libraries = new CopyOnWriteArrayList<>();
   private final AtomicBoolean disposed = new AtomicBoolean(false);
   private final KnowledgeBase knowledgeBase;
-  private final ExecutorService executorService;
+  private final ExecutorService asyncTaskExecutorService;
   private final List<JProlContextListener> contextListeners = new CopyOnWriteArrayList<>();
   private final Map<JProlSystemFlag, Term> systemFlags = new ConcurrentHashMap<>();
   private final AtomicInteger asyncTaskCounter = new AtomicInteger();
   private final Set<String> dynamicSignatures = new ConcurrentSkipListSet<>();
+  private final Queue<CompletableFuture<Term>> activeAsyncTasks = new ConcurrentLinkedQueue<>();
 
   private final ParserContext parserContext = new ParserContext() {
     @Override
@@ -164,11 +167,27 @@ public final class JProlContext implements AutoCloseable {
       final AbstractJProlLibrary... libs
   ) {
     this(
+        name,
+        currentFolder,
+        knowledgeBaseSupplier,
+        ForkJoinPool.commonPool(),
+        libs
+    );
+  }
+
+  public JProlContext(
+      final String name,
+      final File currentFolder,
+      final Function<String, KnowledgeBase> knowledgeBaseSupplier,
+      final ExecutorService asyncTaskExecutorService,
+      final AbstractJProlLibrary... libs
+  ) {
+    this(
         null,
         name,
         currentFolder,
         knowledgeBaseSupplier.apply(name + "_kbase"),
-        ForkJoinPool.commonPool(),
+        asyncTaskExecutorService,
         emptyMap(),
         emptyList(),
         emptyList(),
@@ -193,7 +212,7 @@ public final class JProlContext implements AutoCloseable {
       final String contextId,
       final File currentFolder,
       final KnowledgeBase base,
-      final ExecutorService executorService,
+      final ExecutorService asyncTaskExecutorService,
       final Map<JProlSystemFlag, Term> systemFlags,
       final List<JProlContextListener> contextListeners,
       final List<IoResourceProvider> ioProviders,
@@ -205,7 +224,7 @@ public final class JProlContext implements AutoCloseable {
     this.contextId = requireNonNull(contextId, "Context Id is null");
     this.currentFolder = requireNonNull(currentFolder);
     this.knowledgeBase = requireNonNull(base, "Knowledge base is null");
-    this.executorService = requireNonNull(executorService);
+    this.asyncTaskExecutorService = requireNonNull(asyncTaskExecutorService);
     this.contextListeners.addAll(contextListeners);
 
     if (!triggers.isEmpty()) {
@@ -375,7 +394,7 @@ public final class JProlContext implements AutoCloseable {
           if (!contextCopy.isDisposed()) {
             contextCopy.dispose();
           }
-        }, this.executorService)
+        }, this.asyncTaskExecutorService)
         .handle((x, e) -> {
           this.onAsyncTaskCompleted(goal);
           if (e != null) {
@@ -401,7 +420,7 @@ public final class JProlContext implements AutoCloseable {
       final Term result = asyncGoal.prove();
       asyncGoal.cutVariants();
       return result;
-    }, this.executorService).handle((x, e) -> {
+    }, this.asyncTaskExecutorService).handle((x, e) -> {
       this.onAsyncTaskCompleted(goal);
       if (e != null) {
         if (!(e instanceof CompletionException) ||
@@ -414,7 +433,7 @@ public final class JProlContext implements AutoCloseable {
   }
 
   public ExecutorService getContextExecutorService() {
-    return this.executorService;
+    return this.asyncTaskExecutorService;
   }
 
   private Optional<ReentrantLock> findLockerForId(final String lockerId,
@@ -640,9 +659,9 @@ public final class JProlContext implements AutoCloseable {
 
   public void dispose() {
     if (this.disposed.compareAndSet(false, true)) {
-      this.executorService.shutdownNow();
+      this.asyncTaskExecutorService.shutdownNow();
       try {
-        this.executorService.awaitTermination(30, TimeUnit.SECONDS);
+        this.asyncTaskExecutorService.awaitTermination(30, TimeUnit.SECONDS);
       } catch (InterruptedException ex) {
         Thread.currentThread().interrupt();
       }
@@ -1002,7 +1021,7 @@ public final class JProlContext implements AutoCloseable {
         this.contextId + "_copy",
         this.currentFolder,
         shareKnowledgeBase ? this.knowledgeBase : this.knowledgeBase.makeCopy(),
-        this.executorService,
+        this.asyncTaskExecutorService,
         this.systemFlags,
         this.contextListeners,
         this.ioProviders,
