@@ -1,7 +1,14 @@
 package com.igormaznitsa.jprol.jsr223;
 
+import static java.lang.Double.parseDouble;
+import static java.lang.Long.parseLong;
+
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
+import com.igormaznitsa.jprol.utils.ProlUtils;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 
@@ -76,30 +83,48 @@ public class JProlScriptEngineFactory implements ScriptEngineFactory {
   @Override
   public String getMethodCallSyntax(final String obj, final String method, final String... args) {
     final StringBuilder buffer = new StringBuilder();
-    buffer.append(method).append("(").append(obj);
-    for (String arg : args) {
-      buffer.append(", ").append(arg);
+    if (obj != null) {
+      buffer.append(obj).append(' ');
     }
-    buffer.append(")");
+    buffer.append('\'').append(ProlUtils.escapeSrc(method)).append("'(");
+    String comma = "";
+    for (final String arg : args) {
+      buffer.append(comma);
+      comma = ", ";
+      try {
+        parseLong(arg);
+        buffer.append(arg);
+      } catch (NumberFormatException ex) {
+        try {
+          parseDouble(arg);
+          buffer.append(arg);
+        } catch (NumberFormatException exx) {
+          buffer.append('\'').append(ProlUtils.escapeSrc(arg)).append('\'');
+        }
+      }
+    }
+    buffer.append(").");
     return buffer.toString();
   }
 
   @Override
   public String getOutputStatement(final String toDisplay) {
-    return "write('" + toDisplay.replace("'", "\\'") + "'), nl.";
+    return "write('" + ProlUtils.escapeSrc(toDisplay) + "'), nl.";
   }
 
   @Override
   public String getProgram(final String... statements) {
-    final StringBuilder sb = new StringBuilder();
-    for (final String statement : statements) {
-      sb.append(statement);
-      if (!statement.trim().endsWith(".")) {
-        sb.append(".");
-      }
-      sb.append("\n");
-    }
-    return sb.toString();
+    return Stream.of(statements)
+        .filter(Objects::nonNull)
+        .map(String::trim)
+        .map(x -> {
+          if (x.endsWith(".")) {
+            return x.substring(0, x.length() - 1);
+          } else {
+            return x;
+          }
+        })
+        .collect(Collectors.joining(", ", "?- ", "."));
   }
 
   @Override

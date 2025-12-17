@@ -67,6 +67,9 @@ import javax.script.SimpleBindings;
 public class JProlScriptEngine
     implements ScriptEngine, Compilable, Invocable, AutoCloseable, JProlScriptEngineProvider {
 
+  public static final String JPROL_LIBRARIES = "jprol.libraries";
+  public static final String JPROL_CONTEXT_FLAGS = "jprol.context.flags";
+
   static final IoResourceProvider CONSOLE_IO_PROVIDER = new IoResourceProvider() {
     @Override
     public Reader findReader(JProlContext context, String readerId) {
@@ -89,10 +92,8 @@ public class JProlScriptEngine
       }
     }
   };
-
   static final List<AbstractJProlLibrary> BOOTSTRAP_LIBRARIES =
       List.of(new JProlCoreLibrary(), new JProlJsr223BootstrapLibrary());
-
   static final Function<Term, Term> QUERY_PREDICATE_FILTER = t -> {
     if (t instanceof TermStruct) {
       final TermStruct struct = (TermStruct) t;
@@ -102,7 +103,6 @@ public class JProlScriptEngine
     }
     return null;
   };
-
   static final Function<Term, Term> NOT_QUERY_PREDICATE_FILTER = t -> {
     if (t instanceof TermStruct) {
       final TermStruct struct = (TermStruct) t;
@@ -560,7 +560,7 @@ public class JProlScriptEngine
 
   void checkAndReinitializeWithLibraries(final ScriptContext context) {
     this.assertNotClosed();
-    final Object libsAttr = context.getAttribute("jprol.libraries", ScriptContext.ENGINE_SCOPE);
+    final Object libsAttr = context.getAttribute(JPROL_LIBRARIES, ScriptContext.ENGINE_SCOPE);
     if (libsAttr instanceof Object[]) {
       final List<AbstractJProlLibrary> combined = new ArrayList<>(this.defaultLibraries);
       for (final Object j : (Object[]) libsAttr) {
@@ -568,7 +568,7 @@ public class JProlScriptEngine
           combined.add((AbstractJProlLibrary) j);
         }
       }
-      if (!combined.equals(defaultLibraries)) {
+      if (!combined.equals(this.defaultLibraries)) {
         initializeJProlContext(combined);
       }
     }
@@ -576,7 +576,7 @@ public class JProlScriptEngine
 
   void applyContextFlags(final ScriptContext context) throws ScriptException {
     this.assertNotClosed();
-    Object flagsAttr = context.getAttribute("jprol.context.flags", ScriptContext.ENGINE_SCOPE);
+    Object flagsAttr = context.getAttribute(JPROL_CONTEXT_FLAGS, ScriptContext.ENGINE_SCOPE);
     if (flagsAttr instanceof Map) {
       @SuppressWarnings("unchecked") final Map<String, Object> flags =
           (Map<String, Object>) flagsAttr;

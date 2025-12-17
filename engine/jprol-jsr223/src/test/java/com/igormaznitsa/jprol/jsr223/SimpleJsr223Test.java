@@ -30,6 +30,21 @@ public class SimpleJsr223Test {
   }
 
   @Test
+  void testFactoryGetMethodCallSyntax() {
+    ScriptEngine engine = findScriptEngine();
+    assertEquals("?- '0print_hello'(123, 44.34, '\\'world\\'').",
+        engine.getFactory().getMethodCallSyntax("?-", "0print_hello", "123", "44.34", "'world'"));
+  }
+
+  @Test
+  void testFactoryGetProgram() {
+    ScriptEngine engine = findScriptEngine();
+    assertEquals("?- write('hello world'), nl, repeat.",
+        engine.getFactory().getProgram("write('hello world').", "nl  ", "  repeat   "));
+  }
+
+
+  @Test
   public void testSimpleEngineCall() throws Exception {
     ScriptEngine engine = new ScriptEngineManager().getEngineByName("jprol");
     engine.put("List", List.of(1, 2, 3, 4, 5));
