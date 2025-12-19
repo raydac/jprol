@@ -7,7 +7,9 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.script.Bindings;
@@ -17,8 +19,8 @@ import javax.script.SimpleBindings;
 public class JProlScriptEngineContext implements ScriptContext, AutoCloseable {
 
   private static final List<Integer> SCOPES = List.of(GLOBAL_SCOPE, ENGINE_SCOPE);
-  private final JProlScriptThreadLocalBindings engineBindings =
-      new JProlScriptThreadLocalBindings();
+  private final ThreadLocalBindings engineBindings =
+      new ThreadLocalBindings();
   private final AtomicReference<Writer> writer = new AtomicReference<>();
   private final AtomicReference<Reader> reader =
       new AtomicReference<>();
@@ -183,21 +185,43 @@ public class JProlScriptEngineContext implements ScriptContext, AutoCloseable {
   @Override
   public void close() {
     if (this.closed.compareAndSet(false, true)) {
-      this.engineBindings.remove();
+      this.engineBindings.removeAll();
       this.writer.set(null);
       this.writerErr.set(null);
       this.reader.set(null);
     }
   }
 
-  private static final class JProlScriptThreadLocalBindings extends ThreadLocal<Bindings> {
-    public JProlScriptThreadLocalBindings() {
+  private static final class ThreadLocalBindings {
+
+    final Map<Long, Bindings> threadMap = new ConcurrentHashMap<>();
+
+    ThreadLocalBindings() {
       super();
     }
 
-    @Override
-    protected Bindings initialValue() {
+    Long getThreadId() {
+      return Thread.currentThread().getId();
+    }
+
+    void set(final Bindings bindings) {
+      this.threadMap.put(this.getThreadId(), requireNonNull(bindings));
+    }
+
+    void remove() {
+      this.threadMap.remove(this.getThreadId());
+    }
+
+    Bindings get() {
+      return this.threadMap.computeIfAbsent(this.getThreadId(), x -> this.initialValue());
+    }
+
+    Bindings initialValue() {
       return new SimpleBindings();
+    }
+
+    void removeAll() {
+      this.threadMap.clear();
     }
   }
 }

@@ -291,21 +291,19 @@ public class JProlScriptEngine
 
   @Override
   public Object eval(String script, Bindings bindings) throws ScriptException {
-    return this.eval(script, this.getScriptContext(bindings));
+    try (final JProlScriptEngineContext scriptContext = this.createScriptContext(bindings)) {
+      return this.eval(script, scriptContext);
+    }
   }
 
-  private ScriptContext getScriptContext(final Bindings bindings) {
+  private JProlScriptEngineContext createScriptContext(final Bindings engineBindings) {
     final JProlScriptEngineContext newContext = new JProlScriptEngineContext(
         this.factory,
         this.engineContext.getReader(), this.engineContext.getWriter(),
         this.engineContext.getErrorWriter());
-    Bindings globalScope = this.engineContext.getBindings(ScriptContext.GLOBAL_SCOPE);
-    if (globalScope != null) {
-      newContext.setBindings(globalScope, ScriptContext.GLOBAL_SCOPE);
-    }
 
-    if (bindings != null) {
-      newContext.setBindings(bindings,
+    if (engineBindings != null) {
+      newContext.setBindings(engineBindings,
           ScriptContext.ENGINE_SCOPE);
     } else {
       throw new NullPointerException("Engine scope Bindings may not be null.");
@@ -317,7 +315,9 @@ public class JProlScriptEngine
   @Override
   public Object eval(final Reader reader, final Bindings bindings) throws ScriptException {
     this.assertNotClosed();
-    return eval(reader, this.getScriptContext(bindings));
+    try (final JProlScriptEngineContext engineContext = this.createScriptContext(bindings)) {
+      return eval(reader, engineContext);
+    }
   }
 
   @Override
