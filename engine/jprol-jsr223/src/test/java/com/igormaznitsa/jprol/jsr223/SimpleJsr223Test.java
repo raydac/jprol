@@ -1,9 +1,11 @@
 package com.igormaznitsa.jprol.jsr223;
 
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.igormaznitsa.jprol.data.Terms;
@@ -17,6 +19,7 @@ import javax.script.Invocable;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 import org.junit.jupiter.api.Test;
 
@@ -27,6 +30,23 @@ public class SimpleJsr223Test {
     var engine = manager.getEngineByName("jprol.prolog");
     assertNotNull(engine);
     return engine;
+  }
+
+  @Test
+  void testDisableCriticalPredicateClause() throws Exception {
+    final ScriptEngine engine = findScriptEngine();
+    engine.getBindings(ScriptContext.GLOBAL_SCOPE).put(
+        JProlScriptEngine.JPROL_GLOBAL_CRITICAL_PREDICATE_ALLOW,
+        (JProlCriticalPredicateAllow) (sourceLibrary, choicePoint, predicateIndicator) -> !"clause/2".equals(
+            predicateIndicator));
+
+    assertThrowsExactly(ScriptException.class, () ->
+        engine.eval("?-clause(a(X),(X = 10))."));
+
+    final ScriptEngine engineWithoutRestriction = findScriptEngine();
+    assertDoesNotThrow(() ->
+        engineWithoutRestriction.eval("?-clause(a(X),(X = 10))."));
+
   }
 
   @Test

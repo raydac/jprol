@@ -726,10 +726,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(signature = "clause/2", args = {
-      "@term,-term"}, reference = "clause(Head, Body) is true if and only if\n* The predicate of Head is public (the standard does not specify how a predicate is declared public but dynamic predicates are public, and\n* There is a clause in the database which corresponds to a term H:- B which unifies with Head :- Body.")
+      "@term,-term"}, critical = true, reference = "clause(Head, Body) is true if and only if\n* The predicate of Head is public (the standard does not specify how a predicate is declared public but dynamic predicates are public, and\n* There is a clause in the database which corresponds to a term H:- B which unifies with Head :- Body.")
   public static boolean predicateCLAUSE2(final JProlChoicePoint goal, final TermStruct predicate) {
-    assertCriticalPredicateAllowed(JProlCoreLibrary.class, goal, predicate);
-
     final Term head = predicate.getElement(0).findNonVarOrSame();
     final Term body = predicate.getElement(1).findNonVarOrSame();
 
@@ -784,11 +782,9 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return false;
   }
 
-  @JProlPredicate(signature = "current_op/3", args = "?integer,?operator_specifier,?atom", reference = "current_op(Priority, Op_specifier, TermOperator) is true if and only if TermOperator is an operator with properties given by Op_specifier and Priority")
+  @JProlPredicate(critical = true, signature = "current_op/3", args = "?integer,?operator_specifier,?atom", reference = "current_op(Priority, Op_specifier, TermOperator) is true if and only if TermOperator is an operator with properties given by Op_specifier and Priority")
   public static boolean predicateCURRENTOP3(final JProlChoicePoint goal,
                                             final TermStruct predicate) {
-    assertCriticalPredicateAllowed(JProlCoreLibrary.class, goal, predicate);
-
     final Term priority = predicate.getElement(0).findNonVarOrSame();
     final Term specifier = predicate.getElement(1).findNonVarOrSame();
     final Term name = predicate.getElement(2).findNonVarOrSame();
@@ -837,12 +833,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "op/3",
+      critical = true,
       args = {
           "+integer,+operator_specifier,+atom", "+integer,+operator_specifier,+list",
       }, reference = "Predicate allows to alter operators.\nop(Priority, Op_Specifier, TermOperator) is true, with the side effect that\n1. if Priority is 0 then TermOperator is removed from operators\n2. TermOperator is added into operators, with priority (lower binds tighter) Priority and associativity determined by Op_Specifier")
   public static boolean predicateOP(final JProlChoicePoint goal, final TermStruct predicate) {
-    assertCriticalPredicateAllowed(JProlCoreLibrary.class, goal, predicate);
-
     final Term arg1 = predicate.getElement(0).findNonVarOrSame();
     final Term arg2 = predicate.getElement(1).findNonVarOrSame();
     final Term atomOrList = predicate.getElement(2).findNonVarOrSame();
@@ -1877,11 +1872,9 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return false;
   }
 
-  @JProlPredicate(determined = true, signature = "dispose/1", synonyms = "dispose/0", args = {
+  @JProlPredicate(critical = true, determined = true, signature = "dispose/1", synonyms = "dispose/0", args = {
       "+integer"}, reference = " These predicate terminate JProl root context even if started through async.")
   public static void predicateDispose(final JProlChoicePoint goal, final TermStruct predicate) {
-    assertCriticalPredicateAllowed(JProlCoreLibrary.class, goal, predicate);
-
     JProlContext rootContext = goal.getContext();
     while (rootContext.getParentContext() != null) {
       rootContext = rootContext.getParentContext();
@@ -1900,10 +1893,9 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @JProlPredicate(determined = true, signature = "abolish/1", args = {
+  @JProlPredicate(critical = true, determined = true, signature = "abolish/1", args = {
       "+predicate_indicator"}, reference = "abolish(Pred/2) is true. It has for side effect the removal of all clauses of the predicate indicated by Pred. After abolish/1 the predicate is not found by current_predicate.")
   public static boolean predicateABOLISH1(final JProlChoicePoint goal, final TermStruct predicate) {
-    assertCriticalPredicateAllowed(JProlCoreLibrary.class, goal, predicate);
     return goal.getContext().abolish(predicate.getElement(0).findNonVarOrSame());
   }
 
@@ -2272,39 +2264,36 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @JProlPredicate(determined = true, signature = "asserta/1", args = {
+  @JProlPredicate(critical = true, determined = true, signature = "asserta/1", args = {
       "+callable"}, reference = "Addition of a clause into the knowlwde base before all other clauses.")
   public static boolean predicateASSERTA1(final JProlChoicePoint goal, final TermStruct predicate) {
-    assertCriticalPredicateAllowed(JProlCoreLibrary.class, goal, predicate);
     return goal.getContext().assertA(predicate.getElement(0).findNonVarOrSame());
   }
 
-  @JProlPredicate(determined = true, signature = "assertz/1", synonyms = {"assert/1"}, args = {
+  @JProlPredicate(critical = true, determined = true, signature = "assertz/1", synonyms = {
+      "assert/1"}, args = {
       "+callable"}, reference = "Addition of a clause into the knowlwde base after all other clauses.")
   public static boolean predicateASSERTZ1(final JProlChoicePoint goal, final TermStruct predicate) {
-    assertCriticalPredicateAllowed(JProlCoreLibrary.class, goal, predicate);
     return goal.getContext().assertZ(predicate.getElement(0).findNonVarOrSame());
   }
 
-  @JProlPredicate(determined = true, signature = "retract/1", synonyms = {"retracta/1"}, args = {
+  @JProlPredicate(critical = true, determined = true, signature = "retract/1", synonyms = {
+      "retracta/1"}, args = {
       "+callable"}, reference = "Retract the first clause which can be unified with argument. True if there is such clause in the knowledge base.")
   public static boolean predicateRETRACT1(final JProlChoicePoint goal, final TermStruct predicate) {
-    assertCriticalPredicateAllowed(JProlCoreLibrary.class, goal, predicate);
     return goal.getContext().retractA(predicate.getElement(0).findNonVarOrSame());
   }
 
-  @JProlPredicate(determined = true, signature = "retractz/1", args = {
+  @JProlPredicate(critical = true, determined = true, signature = "retractz/1", args = {
       "+callable"}, reference = "Retract the last clause which can be unified with argument. True if there is such clause in the knowledge base.")
   public static boolean predicateRETRACTZ(final JProlChoicePoint goal, final TermStruct predicate) {
-    assertCriticalPredicateAllowed(JProlCoreLibrary.class, goal, predicate);
     return goal.getContext().retractZ(predicate.getElement(0).findNonVarOrSame());
   }
 
-  @JProlPredicate(determined = true, signature = "retractall/1", args = {
+  @JProlPredicate(critical = true, determined = true, signature = "retractall/1", args = {
       "+callable"}, reference = "Retract all clauses which can be unified with argument. True if there is as minimum one clause in the knowledge base.")
   public static boolean predicateRETRACTALL(final JProlChoicePoint goal,
                                             final TermStruct predicate) {
-    assertCriticalPredicateAllowed(JProlCoreLibrary.class, goal, predicate);
     return goal.getContext().retractAll(predicate.getElement(0).findNonVarOrSame());
   }
 
@@ -2386,12 +2375,10 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @JProlPredicate(determined = true, signature = "dynamic/1", args = {
+  @JProlPredicate(critical = true, determined = true, signature = "dynamic/1", args = {
       "+term"}, reference = "Informs the interpreter that the definition of the predicate(s) may change during execution.")
   public static void predicateDYNAMIC(final JProlChoicePoint goal,
                                       final TermStruct predicate) {
-    assertCriticalPredicateAllowed(JProlCoreLibrary.class, goal, predicate);
-
     final Term term = predicate.getElement(0).findNonVarOrSame();
     final Set<String> indicators = new HashSet<>();
 

@@ -39,11 +39,9 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(signature = "current_prolog_flag/2", args = {
-      "?atom,?term"}, reference = "Check prolog flag and flag values.")
+      "?atom,?term"}, reference = "Check prolog flag and flag values.", critical = true)
   public static boolean predicateCURRENTPROLOGFLAG(final JProlChoicePoint choicePoint,
                                                    final TermStruct predicate) {
-    assertCriticalPredicateAllowed(JProlBootstrapLibrary.class, choicePoint, predicate);
-
     final Term atom = predicate.getElement(0).findNonVarOrSame();
     final Term term = predicate.getElement(1).findNonVarOrSame();
 
@@ -93,12 +91,11 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
       determined = true,
       signature = "set_prolog_flag/2",
       args = {"+atom,+term"},
-      reference = "Set value of flag."
+      reference = "Set value of flag.",
+      critical = true
   )
   public static boolean predicateSETPROLOGFLAG(final JProlChoicePoint choicePoint,
                                                final TermStruct predicate) {
-    assertCriticalPredicateAllowed(JProlBootstrapLibrary.class, choicePoint, predicate);
-
     final Term atom = predicate.getElement(0).findNonVarOrSame();
     final Term term = predicate.getElement(1).findNonVarOrSame();
 

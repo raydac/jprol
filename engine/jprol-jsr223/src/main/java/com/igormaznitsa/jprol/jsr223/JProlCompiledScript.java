@@ -1,14 +1,12 @@
 package com.igormaznitsa.jprol.jsr223;
 
-import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.java2term;
-import static java.lang.System.identityHashCode;
+import static com.igormaznitsa.jprol.jsr223.JProlScriptEngineUtils.java2term;
 import static javax.script.ScriptContext.ENGINE_SCOPE;
 
 import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
-import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.prologparser.ParserContext;
 import com.igormaznitsa.prologparser.exceptions.PrologParserException;
@@ -19,7 +17,6 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.script.CompiledScript;
 import javax.script.Invocable;
 import javax.script.ScriptContext;
@@ -31,23 +28,23 @@ public class JProlCompiledScript extends CompiledScript
   private final JProlScriptEngine engine;
   private final List<Term> queryList;
   private final String scriptSources;
-  private final JProlContext compiledContext;
+  private final JProlContext compiledProlContext;
 
   private final AtomicBoolean closed = new AtomicBoolean();
-
   private final ReentrantLock evalLock = new ReentrantLock();
 
   JProlCompiledScript(
       final JProlScriptEngine engine,
-      String script,
-      final List<? extends AbstractJProlLibrary> libraries) throws ScriptException {
+      String script) throws ScriptException {
     this.engine = engine;
     this.scriptSources = script;
-    final List<? extends AbstractJProlLibrary> libraries1 = List.copyOf(libraries);
 
     try {
+      this.compiledProlContext =
+          JProlScriptEngineUtils.asJProlContext(engine.getContext()).findOrMakeJProlContext();
+
       final List<Term> parsed =
-          JProlScriptEngine.parseWholeScript(script, engine.getPrologContext());
+          JProlScriptEngine.parseWholeScript(script, this.compiledProlContext);
       this.queryList = parsed.stream().map(JProlScriptEngine.QUERY_PREDICATE_FILTER)
           .filter(Objects::nonNull)
           .collect(Collectors.toList());
@@ -56,14 +53,7 @@ public class JProlCompiledScript extends CompiledScript
           Integer.MAX_VALUE,
           Map.of());
 
-      this.compiledContext = new JProlContext(
-          "compiled-context-" + identityHashCode(this),
-          Stream.concat(JProlScriptEngine.BOOTSTRAP_LIBRARIES.stream(), libraries1.stream())
-              .toArray(
-                  AbstractJProlLibrary[]::new)
-      );
-      this.compiledContext.addIoResourceProvider(JProlScriptEngine.CONSOLE_IO_PROVIDER);
-      this.compiledContext.consult(new StringReader(script));
+      this.compiledProlContext.consult(new StringReader(script));
     } catch (PrologParserException e) {
       if (e.hasValidPosition()) {
         throw new ScriptException(
@@ -85,7 +75,7 @@ public class JProlCompiledScript extends CompiledScript
 
   public JProlContext getCompiledContext() {
     this.assertNotClosed();
-    return this.compiledContext;
+    return this.compiledProlContext;
   }
 
   public List<Term> getQueryList() {
@@ -103,14 +93,10 @@ public class JProlCompiledScript extends CompiledScript
     this.assertNotClosed();
     this.evalLock.lock();
     try {
-      final JProlContext oldContext = this.engine.getPrologContext();
       try {
-        this.engine.setPrologContext(this.compiledContext);
-        this.engine.applyContextFlags(context);
-
         Object lastResult = null;
 
-        final Map<String, Term> bindings = JProlScriptEngine.extractVarsFromBindings(context);
+        final Map<String, Term> bindings = JProlScriptEngine.extractVarsFromBindings(context, null);
         for (final Term q : this.queryList) {
           Term preparedQuery = q.makeClone();
           if (!bindings.isEmpty()) {
@@ -118,14 +104,13 @@ public class JProlCompiledScript extends CompiledScript
               preparedQuery = preparedQuery.replaceVar(t.getKey(), t.getValue());
             }
           }
-          lastResult = this.engine.executeQuery(preparedQuery, context, context.getBindings(
-              ENGINE_SCOPE));
+          lastResult =
+              this.engine.executeQuery(preparedQuery, this.compiledProlContext, context.getBindings(
+                  ENGINE_SCOPE));
         }
         return lastResult == null ? Boolean.FALSE : lastResult;
       } catch (Exception e) {
         throw new ScriptException("Error evaluating compiled script: " + e.getMessage());
-      } finally {
-        this.engine.setPrologContext(oldContext);
       }
     } finally {
       this.evalLock.unlock();
@@ -142,24 +127,17 @@ public class JProlCompiledScript extends CompiledScript
   public Object invokeMethod(final Object thisObject, final String name, final Object... args) {
     this.assertNotClosed();
     if (thisObject instanceof JProlScriptEngineProvider) {
-
       final JProlScriptEngine thisEngine =
           ((JProlScriptEngineProvider) thisObject).getJProlScriptEngine();
       this.evalLock.lock();
       try {
-        final JProlContext oldContext = thisEngine.getPrologContext();
-        thisEngine.setPrologContext(this.compiledContext);
-        try {
-          final Term[] terms = new Term[args.length];
-          for (int i = 0; i < args.length; i++) {
-            terms[i] = java2term(args[i]);
-          }
-          final Term term = Terms.newStruct(name, terms, SourcePosition.UNKNOWN);
-          return thisEngine.executeQuery(term, thisEngine.getContext(),
-              thisEngine.getBindings(ENGINE_SCOPE));
-        } finally {
-          thisEngine.setPrologContext(oldContext);
+        final Term[] terms = new Term[args.length];
+        for (int i = 0; i < args.length; i++) {
+          terms[i] = java2term(args[i]);
         }
+        final Term term = Terms.newStruct(name, terms, SourcePosition.UNKNOWN);
+        return thisEngine.executeQuery(term, this.compiledProlContext,
+            thisEngine.getBindings(ENGINE_SCOPE));
       } finally {
         this.evalLock.unlock();
       }
@@ -201,12 +179,12 @@ public class JProlCompiledScript extends CompiledScript
       if (targetClass.isAssignableFrom(JProlScriptEngine.class)) {
         result = (T) engine;
       } else {
-        final JProlContext prolContext = engine.getPrologContext();
-        if (prolContext != null && targetClass.isAssignableFrom(JProlContext.class)) {
+        final JProlContext prolContext = this.compiledProlContext;
+        if (targetClass.isAssignableFrom(JProlContext.class)) {
           result = (T) prolContext;
-        } else if (prolContext != null && targetClass.isAssignableFrom(ParserContext.class)) {
+        } else if (targetClass.isAssignableFrom(ParserContext.class)) {
           result = (T) prolContext.getParserContext();
-        } else if (prolContext != null && targetClass.isAssignableFrom(KnowledgeBase.class)) {
+        } else if (targetClass.isAssignableFrom(KnowledgeBase.class)) {
           result = (T) prolContext.getKnowledgeBase();
         } else {
           result = null;
@@ -222,8 +200,7 @@ public class JProlCompiledScript extends CompiledScript
   @Override
   public void close() {
     if (this.closed.compareAndSet(false, true)) {
-      this.compiledContext.dispose();
-      this.engine.close();
+      this.compiledProlContext.dispose();
     }
   }
 }

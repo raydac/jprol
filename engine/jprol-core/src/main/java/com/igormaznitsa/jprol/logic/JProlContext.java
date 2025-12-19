@@ -88,12 +88,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
@@ -106,7 +104,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public final class JProlContext implements AutoCloseable {
+public class JProlContext implements AutoCloseable {
   private final String contextId;
 
   private final Map<String, Map<JProlTriggerType, List<JProlTrigger>>> triggers =
@@ -120,7 +118,6 @@ public final class JProlContext implements AutoCloseable {
   private final Map<JProlSystemFlag, Term> systemFlags = new ConcurrentHashMap<>();
   private final AtomicInteger asyncTaskCounter = new AtomicInteger();
   private final Set<String> dynamicSignatures = new ConcurrentSkipListSet<>();
-  private final Queue<CompletableFuture<Term>> activeAsyncTasks = new ConcurrentLinkedQueue<>();
 
   private final ParserContext parserContext = new ParserContext() {
     @Override

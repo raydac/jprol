@@ -5,12 +5,14 @@ import static java.lang.Long.parseLong;
 
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.utils.ProlUtils;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.script.Bindings;
+import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.SimpleBindings;
@@ -138,16 +140,21 @@ public class JProlScriptEngineFactory implements ScriptEngineFactory {
 
   @Override
   public ScriptEngine getScriptEngine() {
-    return new JProlScriptEngine(this);
+    return this.getScriptEngine(List.of());
   }
 
-  /**
-   * Create a script engine with custom libraries.
-   *
-   * @param libraries JProl library instances to add (in addition to core library)
-   * @return A new script engine with the specified libraries
-   */
   public ScriptEngine getScriptEngine(final AbstractJProlLibrary... libraries) {
-    return new JProlScriptEngine(this, libraries);
+    return this.getScriptEngine(
+        Arrays.stream(libraries).filter(Objects::nonNull).collect(Collectors.toList()));
   }
+
+  public ScriptEngine getScriptEngine(final List<AbstractJProlLibrary> libraries) {
+    final JProlScriptEngine engine = new JProlScriptEngine(this);
+    if (libraries != null && !libraries.isEmpty()) {
+      engine.getBindings(ScriptContext.ENGINE_SCOPE)
+          .put(JProlScriptEngine.JPROL_LIBRARIES, List.copyOf(libraries));
+    }
+    return engine;
+  }
+
 }

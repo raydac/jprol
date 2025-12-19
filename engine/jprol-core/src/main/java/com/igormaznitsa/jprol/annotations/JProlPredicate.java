@@ -78,4 +78,12 @@ public @interface JProlPredicate {
    * @see com.igormaznitsa.jprol.libs.JProlCoreLibrary#predicateIFTHEN
    */
   boolean changesChooseChain() default false;
+
+  /**
+   * Flag shows that the predicate make some critical operation and should be allowed by a checker.
+   *
+   * @return true if the predicate can be checked by a critical predicate checked defined in JProl engine.
+   * @since 2.2.3
+   */
+  boolean critical() default false;
 }

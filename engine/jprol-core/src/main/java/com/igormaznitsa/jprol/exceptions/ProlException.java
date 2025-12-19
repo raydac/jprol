@@ -34,4 +34,14 @@ public class ProlException extends RuntimeException {
     super();
   }
 
+  @Override
+  public String getMessage() {
+    final String message = super.getMessage();
+    if (message == null) {
+      return this.toString();
+    } else {
+      return message;
+    }
+  }
+
 }

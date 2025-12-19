@@ -1,34 +1,63 @@
 package com.igormaznitsa.jprol.jsr223;
 
+import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.CONSOLE_IO_PROVIDER;
+import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_CONTEXT_FLAGS;
+import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_GLOBAL_CRITICAL_PREDICATE_ALLOW;
+import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_GLOBAL_EXECUTOR_SERVICE;
+import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_GLOBAL_KNOWLEDGE_BASE;
+import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_LIBRARIES;
+import static com.igormaznitsa.jprol.jsr223.JProlScriptEngineUtils.java2term;
+import static java.lang.System.identityHashCode;
 import static java.util.Objects.requireNonNull;
 
+import com.igormaznitsa.jprol.kbase.KnowledgeBase;
+import com.igormaznitsa.jprol.kbase.inmemory.ConcurrentInMemoryKnowledgeBase;
+import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
+import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
+import com.igormaznitsa.jprol.logic.JProlChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlContext;
+import com.igormaznitsa.jprol.utils.ProlUtils;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.SimpleBindings;
 
-public class JProlScriptEngineContext implements ScriptContext, AutoCloseable {
+public class JProlScriptEngineContext implements ScriptContext {
 
+  static final List<AbstractJProlLibrary> BOOTSTRAP_LIBRARIES =
+      List.of(new JProlCoreLibrary(), new JProlJsr223BootstrapLibrary());
   private static final List<Integer> SCOPES = List.of(GLOBAL_SCOPE, ENGINE_SCOPE);
-  private final ThreadLocalBindings engineBindings =
-      new ThreadLocalBindings();
   private final AtomicReference<Writer> writer = new AtomicReference<>();
   private final AtomicReference<Reader> reader =
       new AtomicReference<>();
   private final AtomicReference<Writer> writerErr =
       new AtomicReference<>();
-  private final AtomicBoolean closed = new AtomicBoolean();
-
+  private final AtomicBoolean disposed = new AtomicBoolean();
   private final JProlScriptEngineFactory factory;
+
+  private final ClearableThreadLocal<Bindings> engineBindings =
+      new ClearableThreadLocal<>(() -> new SimpleBindings(new ConcurrentHashMap<>()));
+  private final ClearableThreadLocal<JProlContext> jprolContext =
+      new ClearableThreadLocal<>(() -> this.newInitedJProlContext(null));
+
+  private final AtomicInteger linkCounter = new AtomicInteger();
 
   JProlScriptEngineContext(final JProlScriptEngineFactory factory) {
     this(factory, new InputStreamReader(System.in), new PrintWriter(System.out),
@@ -47,6 +76,18 @@ public class JProlScriptEngineContext implements ScriptContext, AutoCloseable {
     this.reader.set(reader);
   }
 
+  void linkDec() {
+    this.assertNotClosed();
+    if (this.linkCounter.decrementAndGet() <= 0) {
+      this.dispose();
+    }
+  }
+
+  void linkInc() {
+    this.assertNotClosed();
+    this.linkCounter.incrementAndGet();
+  }
+
   private static void checkName(final String name) {
     requireNonNull(name);
     if (name.isEmpty()) {
@@ -54,8 +95,84 @@ public class JProlScriptEngineContext implements ScriptContext, AutoCloseable {
     }
   }
 
+  public JProlContext findOrMakeJProlContext() {
+    this.assertNotClosed();
+    return this.jprolContext.get();
+  }
+
+  public JProlContext findJProlContext() {
+    this.assertNotClosed();
+    return this.jprolContext.find();
+  }
+
+  JProlContext removeJProlContext() {
+    this.assertNotClosed();
+    return this.jprolContext.remove();
+  }
+
+  @SuppressWarnings("unchecked")
+  private JProlContext newInitedJProlContext(final KnowledgeBase forceKnowledgeBase) {
+    final List<AbstractJProlLibrary> libraries =
+        (List<AbstractJProlLibrary>) this.getAttribute(JPROL_LIBRARIES);
+    final List<AbstractJProlLibrary> prolLibraries = new ArrayList<>(BOOTSTRAP_LIBRARIES);
+    if (libraries != null) {
+      prolLibraries.addAll(libraries);
+    }
+
+    final KnowledgeBase knowledgeBase =
+        (KnowledgeBase) this.factory.getGlobalBindings().get(JPROL_GLOBAL_KNOWLEDGE_BASE);
+    final ExecutorService executorService =
+        (ExecutorService) this.factory.getGlobalBindings().get(JPROL_GLOBAL_EXECUTOR_SERVICE);
+
+    final JProlCriticalPredicateAllow foundPredicateAllow =
+        (JProlCriticalPredicateAllow) this.factory.getGlobalBindings()
+            .get(JPROL_GLOBAL_CRITICAL_PREDICATE_ALLOW);
+    final JProlCriticalPredicateAllow predicateAllow =
+        foundPredicateAllow == null ? (a, b, c) -> true : foundPredicateAllow;
+
+    final Function<String, KnowledgeBase> knowledgeBaseSupplier =
+        s -> Objects.requireNonNullElseGet(forceKnowledgeBase,
+            () -> knowledgeBase == null ? new ConcurrentInMemoryKnowledgeBase(s) : knowledgeBase);
+
+    final JProlContext result = new JProlContext(
+        "jprol-jsr223-" + identityHashCode(this),
+        new File(System.getProperty("user.home")),
+        knowledgeBaseSupplier,
+        executorService == null ? ForkJoinPool.commonPool() : executorService,
+        prolLibraries.toArray(AbstractJProlLibrary[]::new)
+    ) {
+      @Override
+      public boolean isCriticalPredicateAllowed(
+          Class<? extends AbstractJProlLibrary> sourceLibrary,
+          JProlChoicePoint choicePoint, String predicateIndicator) {
+        return predicateAllow.isCriticalPredicateAllowed(sourceLibrary, choicePoint,
+            predicateIndicator);
+      }
+    };
+    result.addIoResourceProvider(CONSOLE_IO_PROVIDER);
+
+    Object flagAttributes = this.getAttribute(JPROL_CONTEXT_FLAGS);
+    if (flagAttributes != null) {
+      if (flagAttributes instanceof Map) {
+        final StringBuilder buffer = new StringBuilder();
+        final Map<String, Object> flags = (Map<String, Object>) flagAttributes;
+        for (Map.Entry<String, Object> entry : flags.entrySet()) {
+          buffer.append(":- set_prolog_flag('").append(ProlUtils.escapeSrc(entry.getKey()))
+              .append("', ").append(java2term(entry.getValue()).toSrcString())
+              .append("). ");
+        }
+        result.consult(new StringReader(buffer.toString()));
+      } else {
+        throw new IllegalArgumentException("Expected Map<String,Object> for flags but found " +
+            flagAttributes.getClass().getCanonicalName());
+      }
+    }
+
+    return result;
+  }
+
   private void assertNotClosed() {
-    if (this.closed.get()) {
+    if (this.disposed.get()) {
       throw new IllegalStateException("Already closed context");
     }
   }
@@ -182,46 +299,35 @@ public class JProlScriptEngineContext implements ScriptContext, AutoCloseable {
     return SCOPES;
   }
 
-  @Override
-  public void close() {
-    if (this.closed.compareAndSet(false, true)) {
-      this.engineBindings.removeAll();
+  public void dispose() {
+    if (this.linkCounter.get() > 0) {
+      throw new IllegalStateException(
+          "The context still linked to non-closed JProlEngine(s): " + this.linkCounter.get());
+    }
+    if (this.disposed.compareAndSet(false, true)) {
+      this.engineBindings.removeAll(x -> {
+      });
+      this.jprolContext.removeAll(JProlContext::dispose);
       this.writer.set(null);
       this.writerErr.set(null);
       this.reader.set(null);
     }
   }
 
-  private static final class ThreadLocalBindings {
-
-    final Map<Long, Bindings> threadMap = new ConcurrentHashMap<>();
-
-    ThreadLocalBindings() {
-      super();
-    }
-
-    Long getThreadId() {
-      return Thread.currentThread().getId();
-    }
-
-    void set(final Bindings bindings) {
-      this.threadMap.put(this.getThreadId(), requireNonNull(bindings));
-    }
-
-    void remove() {
-      this.threadMap.remove(this.getThreadId());
-    }
-
-    Bindings get() {
-      return this.threadMap.computeIfAbsent(this.getThreadId(), x -> this.initialValue());
-    }
-
-    Bindings initialValue() {
-      return new SimpleBindings();
-    }
-
-    void removeAll() {
-      this.threadMap.clear();
+  public void reloadLibraries() {
+    this.assertNotClosed();
+    final JProlContext current = this.removeJProlContext();
+    if (current == null) {
+      this.findOrMakeJProlContext();
+    } else {
+      try {
+        final KnowledgeBase knowledgeBase = current.getKnowledgeBase().makeCopy();
+        if (this.jprolContext.set(this.newInitedJProlContext(knowledgeBase)) != null) {
+          throw new IllegalStateException("Unexpectedly found created JProl engine instance");
+        }
+      } finally {
+        current.dispose();
+      }
     }
   }
 }

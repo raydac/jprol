@@ -208,8 +208,7 @@ class JProlScriptEngineTest {
     JProlScriptEngine engine = (JProlScriptEngine) this.factory.getScriptEngine();
     ScriptContext context = engine.getContext();
 
-    Object[] libs = new Object[] {new MathLibrary()};
-    context.setAttribute("jprol.libraries", libs, ScriptContext.ENGINE_SCOPE);
+    context.setAttribute("jprol.libraries", List.of(new MathLibrary()), ScriptContext.ENGINE_SCOPE);
 
     final Bindings engineBindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
     engineBindings.put("A", 7);
@@ -243,7 +242,9 @@ class JProlScriptEngineTest {
     System.out.println("✓ Custom predicate not available before adding library");
 
     // Add library
-    engine.addLibraries(new MathLibrary());
+    engine.getBindings(ScriptContext.ENGINE_SCOPE)
+        .put(JProlScriptEngine.JPROL_LIBRARIES, List.of(new MathLibrary()));
+    engine.reloadEngine();
 
     // Now it should work
     List<Map<String, Object>> results = engine.query("square(5, X).");
@@ -398,7 +399,7 @@ class JProlScriptEngineTest {
     JProlScriptEngine engine = (JProlScriptEngine) factory.getScriptEngine();
 
     // Test setting and getting debug flag
-    engine.setFlag("debug", "false");
+    engine.setFlag("debug", false);
     Object debugValue = engine.getFlag("debug");
     assertNotNull(debugValue, "Debug flag should be set");
     System.out.println("✓ Set debug flag: " + debugValue);

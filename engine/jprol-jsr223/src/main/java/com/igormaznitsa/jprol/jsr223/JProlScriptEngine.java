@@ -3,21 +3,17 @@ package com.igormaznitsa.jprol.jsr223;
 import static com.igormaznitsa.jprol.jsr223.JProlJsr223BootstrapLibrary.READER_IN;
 import static com.igormaznitsa.jprol.jsr223.JProlJsr223BootstrapLibrary.WRITER_ERR;
 import static com.igormaznitsa.jprol.jsr223.JProlJsr223BootstrapLibrary.WRITER_OUT;
-import static java.lang.System.identityHashCode;
-import static java.util.Objects.requireNonNull;
+import static com.igormaznitsa.jprol.jsr223.JProlScriptEngineUtils.asJProlContext;
+import static com.igormaznitsa.jprol.jsr223.JProlScriptEngineUtils.isValidPrologVariableName;
+import static com.igormaznitsa.jprol.jsr223.JProlScriptEngineUtils.java2term;
+import static com.igormaznitsa.jprol.jsr223.JProlScriptEngineUtils.term2java;
 import static java.util.stream.Collectors.joining;
 
 import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
-import com.igormaznitsa.jprol.data.TermDouble;
-import com.igormaznitsa.jprol.data.TermList;
-import com.igormaznitsa.jprol.data.TermLong;
 import com.igormaznitsa.jprol.data.TermStruct;
-import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
-import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
-import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.JProlTreeBuilder;
@@ -33,16 +29,15 @@ import java.io.StringReader;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
@@ -67,7 +62,32 @@ import javax.script.SimpleBindings;
 public class JProlScriptEngine
     implements ScriptEngine, Compilable, Invocable, AutoCloseable, JProlScriptEngineProvider {
 
+  /**
+   * Checker to allow execution of critical predicates like knowledge base operations.
+   *
+   * @see JProlCriticalPredicateAllow
+   */
+  public static final String JPROL_GLOBAL_CRITICAL_PREDICATE_ALLOW =
+      "jprol.global.critical.predicate.allow";
+
+  /**
+   * Executor service to be used for all child JProl engines to start async processes. Can be defined only in global scope.
+   */
+  public static final String JPROL_GLOBAL_EXECUTOR_SERVICE = "jprol.global.executor.service";
+
+  /**
+   * Knowledge base to be used for all child JProl engines. Can be defined only in global scope.
+   */
+  public static final String JPROL_GLOBAL_KNOWLEDGE_BASE = "jprol.global.executor.service";
+
+  /**
+   * Array of JProl libraries which will be applied to JProl engine context during create. Can be defined in both global and engine context.
+   */
   public static final String JPROL_LIBRARIES = "jprol.libraries";
+
+  /**
+   * Map of JProl flag names as String and their values as objects to be applied during JProl engine initialization. Can be defined in both global and engine context.
+   */
   public static final String JPROL_CONTEXT_FLAGS = "jprol.context.flags";
 
   static final IoResourceProvider CONSOLE_IO_PROVIDER = new IoResourceProvider() {
@@ -92,8 +112,6 @@ public class JProlScriptEngine
       }
     }
   };
-  static final List<AbstractJProlLibrary> BOOTSTRAP_LIBRARIES =
-      List.of(new JProlCoreLibrary(), new JProlJsr223BootstrapLibrary());
   static final Function<Term, Term> QUERY_PREDICATE_FILTER = t -> {
     if (t instanceof TermStruct) {
       final TermStruct struct = (TermStruct) t;
@@ -112,63 +130,15 @@ public class JProlScriptEngine
     }
     return t;
   };
-  private static final AbstractJProlLibrary[] EMPTY_LIBRARIES = new AbstractJProlLibrary[0];
   private final JProlScriptEngineFactory factory;
-  private final List<AbstractJProlLibrary> defaultLibraries;
   private final AtomicBoolean closed = new AtomicBoolean();
   private final ReentrantLock queryLock = new ReentrantLock();
-  private volatile JProlContext prologContext;
-  private volatile JProlScriptEngineContext engineContext;
+  private final AtomicReference<JProlScriptEngineContext> engineContext = new AtomicReference<>();
 
-  JProlScriptEngine(JProlScriptEngineFactory factory) {
-    this(factory, EMPTY_LIBRARIES);
-  }
-
-  JProlScriptEngine(final JProlScriptEngineFactory factory,
-                    final AbstractJProlLibrary... libraries) {
-    this.engineContext = new JProlScriptEngineContext(factory);
+  JProlScriptEngine(final JProlScriptEngineFactory factory) {
     this.factory = factory;
-    this.defaultLibraries = List.of(libraries);
-    this.initializeJProlContext(this.defaultLibraries);
-  }
-
-  /**
-   * Convert a Java object into JProl Term
-   *
-   * @param obj source object, can be null
-   * @return converted object, null will be returned as null list
-   */
-  static Term java2term(final Object obj) {
-    if (obj == null) {
-      return Terms.NULL_LIST;
-    }
-    if (obj instanceof Term) {
-      return (Term) obj;
-    } else if (obj instanceof Number) {
-      if (obj instanceof Float || obj instanceof Double) {
-        return Terms.newDouble(((Number) obj).doubleValue());
-      }
-      return Terms.newLong(((Number) obj).longValue());
-    }
-    if (obj instanceof Collection) {
-      final List<Term> terms = ((Collection<?>) obj).stream().map(JProlScriptEngine::java2term)
-          .collect(Collectors.toList());
-      return TermList.asList(terms);
-    }
-    return Terms.newAtom(obj.toString());
-  }
-
-  /**
-   * Check that a string can be recognized as a prolog variable name.
-   *
-   * @param string source string, can be null
-   * @return true if the string can be recognized as a prolog variable name
-   */
-  private static boolean isValidPrologVariableName(final String string) {
-    if (string == null || string.isEmpty()) {
-      return false;
-    }
-    return string.startsWith("_") || Character.isUpperCase(string.charAt(0));
+    this.engineContext.set(new JProlScriptEngineContext(this.factory));
+    this.engineContext.get().linkInc();
   }
 
   /**
@@ -187,39 +157,12 @@ public class JProlScriptEngine
     }
   }
 
-  private static Object term2java(final Term term) {
-    if (term == null) {
-      return null;
-    }
-
-    if (term instanceof TermVar) {
-      final Term value = term.findNonVarOrSame();
-      if (term == value) {
-        return term.getText();
-      } else {
-        return term2java(value);
-      }
-    }
-
-    if (term instanceof TermLong) {
-      return term.toNumber().longValue();
-    }
-
-    if (term instanceof TermDouble) {
-      return term.toNumber().doubleValue();
-    }
-
-    if (term instanceof TermList) {
-      return ProlUtils.listToMappedValues((TermList) term, true,
-          JProlScriptEngine::term2java);
-    }
-
-    return term.getText();
-  }
-
-  static Map<String, Term> extractVarsFromBindings(final ScriptContext context) {
+  static Map<String, Term> extractVarsFromBindings(final ScriptContext context,
+                                                   final Bindings customEngineBindings) {
     final Bindings globalScope = context.getBindings(ScriptContext.GLOBAL_SCOPE);
-    final Bindings engineScope = context.getBindings(ScriptContext.ENGINE_SCOPE);
+    final Bindings engineScope =
+        customEngineBindings == null ? context.getBindings(ScriptContext.ENGINE_SCOPE) :
+            customEngineBindings;
 
     final Map<String, Term> result = new HashMap<>();
     if (globalScope != null) {
@@ -233,6 +176,19 @@ public class JProlScriptEngine
     return result;
   }
 
+  static List<Term> parseWholeScript(final Reader script, final JProlContext context) {
+    try (
+        final JProlTreeBuilder treeBuilder = new JProlTreeBuilder(context, script,
+            false)) {
+      final List<Term> parsedTerms = new ArrayList<>();
+      Term nextTerm;
+      while ((nextTerm = treeBuilder.readPhraseAndMakeTree()) != null) {
+        parsedTerms.add(nextTerm);
+      }
+      return parsedTerms;
+    }
+  }
+
   static List<Term> parseWholeScript(final String script, final JProlContext context) {
     try (
         final JProlTreeBuilder treeBuilder = new JProlTreeBuilder(context, new StringReader(script),
@@ -244,6 +200,11 @@ public class JProlScriptEngine
       }
       return parsedTerms;
     }
+  }
+
+  public void reloadEngine() {
+    this.assertNotClosed();
+    this.engineContext.get().reloadLibraries();
   }
 
   static String joinSources(
@@ -281,43 +242,23 @@ public class JProlScriptEngine
 
   @Override
   public Object eval(String script) throws ScriptException {
-    return this.eval(script, this.engineContext);
+    return this.eval(script, this.engineContext.get());
   }
 
   @Override
-  public Object eval(Reader reader) throws ScriptException {
-    return this.eval(reader, this.engineContext);
+  public Object eval(final Reader reader) throws ScriptException {
+    return this.eval(reader, this.engineContext.get());
   }
 
   @Override
-  public Object eval(String script, Bindings bindings) throws ScriptException {
-    try (final JProlScriptEngineContext scriptContext = this.createScriptContext(bindings)) {
-      return this.eval(script, scriptContext);
-    }
-  }
-
-  private JProlScriptEngineContext createScriptContext(final Bindings engineBindings) {
-    final JProlScriptEngineContext newContext = new JProlScriptEngineContext(
-        this.factory,
-        this.engineContext.getReader(), this.engineContext.getWriter(),
-        this.engineContext.getErrorWriter());
-
-    if (engineBindings != null) {
-      newContext.setBindings(engineBindings,
-          ScriptContext.ENGINE_SCOPE);
-    } else {
-      throw new NullPointerException("Engine scope Bindings may not be null.");
-    }
-
-    return newContext;
+  public Object eval(final String script, final Bindings bindings) throws ScriptException {
+    return this.eval(new StringReader(script), this.engineContext.get(), bindings);
   }
 
   @Override
   public Object eval(final Reader reader, final Bindings bindings) throws ScriptException {
     this.assertNotClosed();
-    try (final JProlScriptEngineContext engineContext = this.createScriptContext(bindings)) {
-      return eval(reader, engineContext);
-    }
+    return this.eval(reader, this.engineContext.get(), bindings);
   }
 
   @Override
@@ -330,9 +271,9 @@ public class JProlScriptEngine
   }
 
   @Override
-  public Object get(String key) {
+  public Object get(final String key) {
     this.assertNotClosed();
-    final Bindings bindings = getBindings(ScriptContext.ENGINE_SCOPE);
+    final Bindings bindings = this.getBindings(ScriptContext.ENGINE_SCOPE);
     if (bindings != null) {
       return bindings.get(key);
     }
@@ -342,37 +283,27 @@ public class JProlScriptEngine
   @Override
   public ScriptContext getContext() {
     this.assertNotClosed();
-    return this.engineContext;
+    return this.engineContext.get();
   }
 
   @Override
   public void setContext(final ScriptContext context) {
     this.assertNotClosed();
-    if (context instanceof JProlScriptEngineContext) {
-      this.engineContext = (JProlScriptEngineContext) context;
-    } else {
-      throw new IllegalArgumentException(
-          "Expected " + JProlScriptEngineContext.class.getCanonicalName());
-    }
-  }
-
-  private void initializeJProlContext(final List<? extends AbstractJProlLibrary> libraries) {
-    try {
-      final AbstractJProlLibrary[] targetLibraries =
-          Stream.concat(BOOTSTRAP_LIBRARIES.stream(), libraries.stream()).toArray(
-              AbstractJProlLibrary[]::new);
-      this.prologContext = new JProlContext(
-          "jprol-jsr223-" + identityHashCode(this),
-          targetLibraries
-      );
-      this.prologContext.addIoResourceProvider(CONSOLE_IO_PROVIDER);
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to initialize JProl context", e);
+    final JProlScriptEngineContext prolScriptEngineContext = asJProlContext(context);
+    final JProlScriptEngineContext prev = this.engineContext.getAndSet(prolScriptEngineContext);
+    prolScriptEngineContext.linkInc();
+    if (prev != null) {
+      prev.linkDec();
     }
   }
 
   @Override
   public Object eval(final String script, final ScriptContext context) throws ScriptException {
+    return this.eval(new StringReader(script), context, null);
+  }
+
+  public Object eval(final Reader script, final ScriptContext context,
+                     final Bindings customEngineBindings) throws ScriptException {
     this.assertNotClosed();
 
     if (script == null) {
@@ -380,38 +311,35 @@ public class JProlScriptEngine
     }
 
     try {
-      this.checkAndReinitializeWithLibraries(context);
-      this.applyContextFlags(context);
+      final JProlContext prolContext = this.engineContext.get().findOrMakeJProlContext();
 
-      final List<Term> parsedTerms = parseWholeScript(script, this.prologContext);
+      final List<Term> parsedTerms = parseWholeScript(script, prolContext);
       final String queryString =
-          joinSources(parsedTerms, QUERY_PREDICATE_FILTER, 1, extractVarsFromBindings(context));
+          joinSources(parsedTerms, QUERY_PREDICATE_FILTER, 1,
+              extractVarsFromBindings(context, customEngineBindings));
       final String consult =
           joinSources(parsedTerms, NOT_QUERY_PREDICATE_FILTER, Integer.MAX_VALUE, Map.of());
       if (!consult.isBlank()) {
-        this.prologContext.consult(new StringReader(consult));
+        prolContext.consult(new StringReader(consult));
       }
       if (queryString.isBlank()) {
         return Boolean.TRUE;
       }
       return this.executeQuery(queryString, context,
-          context.getBindings(ScriptContext.ENGINE_SCOPE));
+          customEngineBindings == null ? context.getBindings(ScriptContext.ENGINE_SCOPE) :
+              customEngineBindings);
     } catch (Exception e) {
-      if (e instanceof ScriptException) {
-        throw (ScriptException) e;
-      }
       if (e instanceof PrologParserException) {
         final PrologParserException pe = (PrologParserException) e;
         if (pe.hasValidPosition()) {
           throw new ScriptException(
-              "Error parsing Prolog script: " + e.getMessage() + " " + pe.getLine() + ':' +
-                  pe.getPos());
+              "Error parsing Prolog script: " + e);
         } else {
           throw new ScriptException(
-              "Error parsing Prolog script: " + e.getMessage());
+              "Error parsing Prolog script: " + e);
         }
       }
-      throw new ScriptException("Error executing Prolog script: " + e.getMessage());
+      throw new ScriptException("Error executing Prolog script: " + e);
     }
   }
 
@@ -425,7 +353,7 @@ public class JProlScriptEngine
       while ((len = reader.read(buffer)) != -1) {
         sb.append(buffer, 0, len);
       }
-      return eval(sb.toString(), context);
+      return this.eval(sb.toString(), context);
     } catch (IOException e) {
       throw new ScriptException(e);
     }
@@ -440,7 +368,7 @@ public class JProlScriptEngine
   @Override
   public void setBindings(final Bindings bindings, final int scope) {
     this.assertNotClosed();
-    this.engineContext.setBindings(bindings, scope);
+    this.engineContext.get().setBindings(bindings, scope);
   }
 
   @Override
@@ -452,7 +380,7 @@ public class JProlScriptEngine
   @Override
   public CompiledScript compile(final String script) throws ScriptException {
     this.assertNotClosed();
-    return new JProlCompiledScript(this, script, this.defaultLibraries);
+    return new JProlCompiledScript(this, script);
   }
 
   @Override
@@ -474,8 +402,9 @@ public class JProlScriptEngine
   public List<Map<String, Object>> query(final String queryString) throws ScriptException {
     this.assertNotClosed();
     final List<Map<String, Object>> results = new ArrayList<>();
+    final JProlContext prolContext = this.engineContext.get().findOrMakeJProlContext();
     try {
-      final JProlChoicePoint goal = new JProlChoicePoint(queryString, this.prologContext);
+      final JProlChoicePoint goal = new JProlChoicePoint(queryString, prolContext);
       while (goal.prove() != null) {
         results.add(extractGroundedVariables(goal));
       }
@@ -495,49 +424,9 @@ public class JProlScriptEngine
   public void consult(final String source) throws ScriptException {
     this.assertNotClosed();
     try {
-      this.prologContext.consult(new StringReader(source));
+      this.engineContext.get().findOrMakeJProlContext().consult(new StringReader(source));
     } catch (Exception e) {
       throw new ScriptException("Error consulting Prolog source: " + e.getMessage());
-    }
-  }
-
-  public JProlContext getPrologContext() {
-    this.assertNotClosed();
-    return this.prologContext;
-  }
-
-  public void setPrologContext(final JProlContext context) {
-    this.assertNotClosed();
-    this.prologContext = requireNonNull(context);
-  }
-
-  public void resetContext() {
-    this.assertNotClosed();
-    this.initializeJProlContext(this.defaultLibraries);
-  }
-
-  public void addLibraries(final AbstractJProlLibrary... libraries) {
-    this.assertNotClosed();
-    final List<AbstractJProlLibrary> combined = new ArrayList<>(this.defaultLibraries);
-    combined.addAll(List.of(libraries));
-    this.initializeJProlContext(combined);
-  }
-
-  public void setFlag(final String flagName, final Object value) throws ScriptException {
-    this.assertNotClosed();
-    try {
-      String valueStr = value instanceof String ? "'" + value + "'" : value.toString();
-      this.prologContext.consult(
-          new StringReader(":- set_prolog_flag(" + flagName + ", " + valueStr + ")."));
-    } catch (PrologParserException e) {
-      if (e.hasValidPosition()) {
-        throw new ScriptException(
-            "Error parsing query: " + e.getMessage() + " " + e.getLine() + ':' + e.getPos());
-      } else {
-        throw new ScriptException("Error parsing query: " + e.getMessage());
-      }
-    } catch (Exception e) {
-      throw new ScriptException("Error setting flag: " + e.getMessage());
     }
   }
 
@@ -559,42 +448,14 @@ public class JProlScriptEngine
     }
   }
 
-  void checkAndReinitializeWithLibraries(final ScriptContext context) {
-    this.assertNotClosed();
-    final Object libsAttr = context.getAttribute(JPROL_LIBRARIES);
-    if (libsAttr instanceof Object[]) {
-      final List<AbstractJProlLibrary> combined = new ArrayList<>(this.defaultLibraries);
-      for (final Object j : (Object[]) libsAttr) {
-        if (j instanceof AbstractJProlLibrary) {
-          combined.add((AbstractJProlLibrary) j);
-        }
-      }
-      if (!combined.equals(this.defaultLibraries)) {
-        initializeJProlContext(combined);
-      }
-    }
-  }
-
-  void applyContextFlags(final ScriptContext context) throws ScriptException {
-    this.assertNotClosed();
-    Object flagsAttr = context.getAttribute(JPROL_CONTEXT_FLAGS);
-    if (flagsAttr instanceof Map) {
-      @SuppressWarnings("unchecked") final Map<String, Object> flags =
-          (Map<String, Object>) flagsAttr;
-      for (Map.Entry<String, Object> entry : flags.entrySet()) {
-        this.setFlag(entry.getKey(), entry.getValue());
-      }
-    }
-  }
-
   @Override
   public Bindings getBindings(final int scope) {
     this.assertNotClosed();
     switch (scope) {
       case ScriptContext.ENGINE_SCOPE:
-        return this.engineContext.getBindings(ScriptContext.ENGINE_SCOPE);
+        return this.engineContext.get().getBindings(ScriptContext.ENGINE_SCOPE);
       case ScriptContext.GLOBAL_SCOPE:
-        return this.engineContext.getBindings(ScriptContext.GLOBAL_SCOPE);
+        return this.engineContext.get().getBindings(ScriptContext.GLOBAL_SCOPE);
       default:
         throw new IllegalArgumentException("Invalid scope value.");
     }
@@ -605,7 +466,8 @@ public class JProlScriptEngine
     this.assertNotClosed();
     this.queryLock.lock();
     try {
-      final JProlChoicePoint goal = new JProlChoicePoint(queryString, this.prologContext);
+      final JProlContext prolContext = asJProlContext(context).findOrMakeJProlContext();
+      final JProlChoicePoint goal = new JProlChoicePoint(queryString, prolContext);
       final Term result = goal.prove();
       if (result != null) {
         final Map<String, Object> groundedVars = extractGroundedVariables(goal);
@@ -624,7 +486,28 @@ public class JProlScriptEngine
     this.assertNotClosed();
     this.queryLock.lock();
     try {
-      final JProlChoicePoint goal = new JProlChoicePoint(queryTerm, this.prologContext);
+      final JProlContext prolContext = asJProlContext(context).findOrMakeJProlContext();
+      final JProlChoicePoint goal = new JProlChoicePoint(queryTerm, prolContext);
+      final Term result = goal.prove();
+      if (result != null) {
+        final Map<String, Object> groundedVars = extractGroundedVariables(goal);
+        if (bindings != null) {
+          bindings.putAll(groundedVars);
+        }
+        return Boolean.TRUE;
+      }
+      return Boolean.FALSE;
+    } finally {
+      this.queryLock.unlock();
+    }
+  }
+
+  Object executeQuery(final Term queryTerm, final JProlContext prolContext,
+                      final Bindings bindings) {
+    this.assertNotClosed();
+    this.queryLock.lock();
+    try {
+      final JProlChoicePoint goal = new JProlChoicePoint(queryTerm, prolContext);
       final Term result = goal.prove();
       if (result != null) {
         final Map<String, Object> groundedVars = extractGroundedVariables(goal);
@@ -649,17 +532,19 @@ public class JProlScriptEngine
   public Object invokeFunction(final String name, final Object... args)
       throws ScriptException {
     this.assertNotClosed();
-    final Term[] terms = new Term[args.length];
-    for (int i = 0; i < args.length; i++) {
-      terms[i] = java2term(args[i]);
+
+    try {
+      final Term[] terms = new Term[args.length];
+      for (int i = 0; i < args.length; i++) {
+        terms[i] = java2term(args[i]);
+      }
+      final Term term = Terms.newStruct(name, terms, SourcePosition.UNKNOWN);
+      final JProlScriptEngineContext scriptEngineContext = this.engineContext.get();
+      return this.executeQuery(term, scriptEngineContext,
+          scriptEngineContext.getBindings(ScriptContext.ENGINE_SCOPE));
+    } catch (Exception ex) {
+      throw new ScriptException(ex);
     }
-    final Term term = Terms.newStruct(name, terms, SourcePosition.UNKNOWN);
-
-    this.checkAndReinitializeWithLibraries(this.engineContext);
-    this.applyContextFlags(this.engineContext);
-
-    return this.executeQuery(term, this.engineContext,
-        this.engineContext.getBindings(ScriptContext.ENGINE_SCOPE));
   }
 
   @Override
@@ -684,7 +569,7 @@ public class JProlScriptEngine
       if (targetClass.isAssignableFrom(JProlScriptEngine.class)) {
         result = (T) engine;
       } else {
-        final JProlContext prolContext = engine.prologContext;
+        final JProlContext prolContext = this.engineContext.get().findJProlContext();
         if (prolContext != null && targetClass.isAssignableFrom(JProlContext.class)) {
           result = (T) prolContext;
         } else if (prolContext != null && targetClass.isAssignableFrom(ParserContext.class)) {
@@ -705,16 +590,18 @@ public class JProlScriptEngine
   @Override
   public void close() {
     if (this.closed.compareAndSet(false, true)) {
-      final JProlContext currentContext = this.prologContext;
-      this.prologContext = null;
-      if (currentContext != null) {
-        currentContext.close();
-      }
-      final JProlScriptEngineContext thisEngineContext = this.engineContext;
-      this.engineContext = null;
-      if (thisEngineContext != null) {
-        thisEngineContext.close();
+      final JProlScriptEngineContext context = this.engineContext.getAndSet(null);
+      if (context != null) {
+        context.linkDec();
       }
     }
+  }
+
+  public void setFlag(final String name, final Object value) {
+    this.assertNotClosed();
+    final String text = String.format(":- set_prolog_flag('%s', %s).", ProlUtils.escapeSrc(name),
+        java2term(value).toSrcString());
+    final JProlContext prolContext = this.engineContext.get().findOrMakeJProlContext();
+    prolContext.consult(new StringReader(text));
   }
 }

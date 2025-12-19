@@ -22,6 +22,7 @@ import com.igormaznitsa.jprol.exceptions.ProlAbstractCatchableException;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlException;
+import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -31,7 +32,7 @@ import java.lang.reflect.Modifier;
 public final class PredicateInvoker {
 
   public static final PredicateInvoker NULL_PROCESSOR =
-      new PredicateInvoker(null, true, false, false, null, null);
+      new PredicateInvoker(null, false, true, false, false, null, null);
   private static final MethodHandles.Lookup METHOD_LOOKUP = MethodHandles.lookup();
   private static final Class<?> CLASS_RESULT_VOID = void.class;
   private final String predicateSignature;
@@ -41,9 +42,11 @@ public final class PredicateInvoker {
   private final boolean determined;
   private final boolean evaluable;
   private final boolean changesGoalChain;
+  private final boolean critical;
 
   public PredicateInvoker(
       final AbstractJProlLibrary owner,
+      final boolean critical,
       final boolean determined,
       final boolean evaluable,
       final boolean affectsChain,
@@ -53,6 +56,7 @@ public final class PredicateInvoker {
     super();
     this.predicateSignature = signature;
     this.ownerLibrary = owner;
+    this.critical = critical;
 
     if (method == null) {
       this.methodHandle = null;
@@ -128,9 +132,14 @@ public final class PredicateInvoker {
 
   public boolean execute(final JProlChoicePoint goal, final TermStruct predicate) {
     try {
-      final Object result;
-      result = this.methodHandle.invoke(goal, predicate);
-
+      if (this.critical) {
+        if (!goal.getContext()
+            .isCriticalPredicateAllowed(this.ownerLibrary.getClass(), goal,
+                predicate.getSignature())) {
+          throw new ProlPermissionErrorException("access", "prohibited_predicate", predicate);
+        }
+      }
+      final Object result = this.methodHandle.invoke(goal, predicate);
       if (this.voidResult) {
         return true;
       } else if (result instanceof Boolean) {

@@ -77,4 +77,12 @@ public abstract class ProlAbstractCatchableException extends ProlException {
   }
 
   public abstract TermStruct getAsStruct();
+
+  @Override
+  public String toString() {
+    return this.getClass().getSimpleName() + "{"
+        + "culprit=" + this.culprit
+        + ", sourcePosition=" + sourcePosition
+        + '}';
+  }
 }
