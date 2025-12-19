@@ -126,7 +126,7 @@ public class JProlScriptEngine
 
   JProlScriptEngine(final JProlScriptEngineFactory factory,
                     final AbstractJProlLibrary... libraries) {
-    this.engineContext = new JProlScriptEngineContext();
+    this.engineContext = new JProlScriptEngineContext(factory);
     this.factory = factory;
     this.defaultLibraries = List.of(libraries);
     this.initializeJProlContext(this.defaultLibraries);
@@ -296,6 +296,7 @@ public class JProlScriptEngine
 
   private ScriptContext getScriptContext(final Bindings bindings) {
     final JProlScriptEngineContext newContext = new JProlScriptEngineContext(
+        this.factory,
         this.engineContext.getReader(), this.engineContext.getWriter(),
         this.engineContext.getErrorWriter());
     Bindings globalScope = this.engineContext.getBindings(ScriptContext.GLOBAL_SCOPE);
@@ -560,7 +561,7 @@ public class JProlScriptEngine
 
   void checkAndReinitializeWithLibraries(final ScriptContext context) {
     this.assertNotClosed();
-    final Object libsAttr = context.getAttribute(JPROL_LIBRARIES, ScriptContext.ENGINE_SCOPE);
+    final Object libsAttr = context.getAttribute(JPROL_LIBRARIES);
     if (libsAttr instanceof Object[]) {
       final List<AbstractJProlLibrary> combined = new ArrayList<>(this.defaultLibraries);
       for (final Object j : (Object[]) libsAttr) {
@@ -576,7 +577,7 @@ public class JProlScriptEngine
 
   void applyContextFlags(final ScriptContext context) throws ScriptException {
     this.assertNotClosed();
-    Object flagsAttr = context.getAttribute(JPROL_CONTEXT_FLAGS, ScriptContext.ENGINE_SCOPE);
+    Object flagsAttr = context.getAttribute(JPROL_CONTEXT_FLAGS);
     if (flagsAttr instanceof Map) {
       @SuppressWarnings("unchecked") final Map<String, Object> flags =
           (Map<String, Object>) flagsAttr;

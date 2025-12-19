@@ -7,10 +7,13 @@ import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.utils.ProlUtils;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.script.Bindings;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
+import javax.script.SimpleBindings;
 
 
 public class JProlScriptEngineFactory implements ScriptEngineFactory {
@@ -24,6 +27,8 @@ public class JProlScriptEngineFactory implements ScriptEngineFactory {
   private static final List<String> MIME = List.of("text/x-prolog", "application/x-prolog");
   private static final List<String> NAMES =
       List.of("jprol", "JPROL", "JProl", "jprol.prolog", "JProl.Prolog", "JPROL.PROLOG");
+
+  private final Bindings globalBindings = new SimpleBindings(new ConcurrentHashMap<>());
 
   @Override
   public String getEngineName() {
@@ -58,6 +63,10 @@ public class JProlScriptEngineFactory implements ScriptEngineFactory {
   @Override
   public String getLanguageVersion() {
     return LANGUAGE_VERSION;
+  }
+
+  public Bindings getGlobalBindings() {
+    return this.globalBindings;
   }
 
   @Override

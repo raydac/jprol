@@ -8,7 +8,6 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.script.Bindings;
@@ -18,7 +17,6 @@ import javax.script.SimpleBindings;
 public class JProlScriptEngineContext implements ScriptContext, AutoCloseable {
 
   private static final List<Integer> SCOPES = List.of(GLOBAL_SCOPE, ENGINE_SCOPE);
-  private final Bindings globalBindings = new SimpleBindings(new ConcurrentHashMap<>());
   private final JProlScriptThreadLocalBindings engineBindings =
       new JProlScriptThreadLocalBindings();
   private final AtomicReference<Writer> writer = new AtomicReference<>();
@@ -28,16 +26,20 @@ public class JProlScriptEngineContext implements ScriptContext, AutoCloseable {
       new AtomicReference<>();
   private final AtomicBoolean closed = new AtomicBoolean();
 
-  JProlScriptEngineContext() {
-    this(new InputStreamReader(System.in), new PrintWriter(System.out),
+  private final JProlScriptEngineFactory factory;
+
+  JProlScriptEngineContext(final JProlScriptEngineFactory factory) {
+    this(factory, new InputStreamReader(System.in), new PrintWriter(System.out),
         new PrintWriter(System.err));
   }
 
   JProlScriptEngineContext(
+      final JProlScriptEngineFactory factory,
       final Reader reader,
       final Writer outWriter,
       final Writer errWriter
   ) {
+    this.factory = factory;
     this.writer.set(outWriter);
     this.writerErr.set(errWriter);
     this.reader.set(reader);
@@ -65,15 +67,15 @@ public class JProlScriptEngineContext implements ScriptContext, AutoCloseable {
       }
       break;
       case GLOBAL_SCOPE: {
-        final Set<String> currentKeys = Set.copyOf(this.globalBindings.keySet());
+        final Set<String> currentKeys = Set.copyOf(this.factory.getGlobalBindings().keySet());
         currentKeys.forEach(x -> {
           if (!bindings.containsKey(x)) {
             {
-              this.globalBindings.remove(x);
+              this.factory.getGlobalBindings().remove(x);
             }
           }
         });
-        this.globalBindings.putAll(bindings);
+        this.factory.getGlobalBindings().putAll(bindings);
       }
       break;
       default:
@@ -88,7 +90,7 @@ public class JProlScriptEngineContext implements ScriptContext, AutoCloseable {
       case ENGINE_SCOPE:
         return this.engineBindings.get();
       case GLOBAL_SCOPE:
-        return this.globalBindings;
+        return this.factory.getGlobalBindings();
       default:
         throw new IllegalArgumentException("Invalid scope value.");
     }
@@ -107,7 +109,7 @@ public class JProlScriptEngineContext implements ScriptContext, AutoCloseable {
   }
 
   @Override
-  public Object removeAttribute(String name, int scope) {
+  public Object removeAttribute(final String name, final int scope) {
     checkName(name);
     return this.getBindings(scope).remove(name);
   }
@@ -182,7 +184,6 @@ public class JProlScriptEngineContext implements ScriptContext, AutoCloseable {
   public void close() {
     if (this.closed.compareAndSet(false, true)) {
       this.engineBindings.remove();
-      this.globalBindings.clear();
       this.writer.set(null);
       this.writerErr.set(null);
       this.reader.set(null);
