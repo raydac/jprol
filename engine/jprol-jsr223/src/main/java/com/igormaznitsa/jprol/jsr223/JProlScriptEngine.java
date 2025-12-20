@@ -7,6 +7,7 @@ import static com.igormaznitsa.jprol.jsr223.JProlScriptEngineUtils.asJProlContex
 import static com.igormaznitsa.jprol.jsr223.JProlScriptEngineUtils.isValidPrologVariableName;
 import static com.igormaznitsa.jprol.jsr223.JProlScriptEngineUtils.java2term;
 import static com.igormaznitsa.jprol.jsr223.JProlScriptEngineUtils.term2java;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 
 import com.igormaznitsa.jprol.data.SourcePosition;
@@ -59,7 +60,7 @@ import javax.script.SimpleBindings;
  * @since 2.2.2
  */
 public class JProlScriptEngine
-    implements ScriptEngine, Compilable, Invocable, JProlScriptEngineProvider {
+    implements ScriptEngine, Compilable, Invocable, JProlScriptEngineProvider, AutoCloseable {
 
   /**
    * Checker to allow execution of critical predicates like knowledge base operations.
@@ -287,7 +288,7 @@ public class JProlScriptEngine
   @Override
   public void setContext(final ScriptContext context) {
     this.assertNotClosed();
-    this.engineContext.set(asJProlContext(context));
+    this.engineContext.set(asJProlContext(requireNonNull(context)));
   }
 
   @Override
@@ -572,6 +573,11 @@ public class JProlScriptEngine
         context.dispose();
       }
     }
+  }
+
+  @Override
+  public void close() {
+    this.dispose(true);
   }
 
   public void setFlag(final String name, final Object value) {

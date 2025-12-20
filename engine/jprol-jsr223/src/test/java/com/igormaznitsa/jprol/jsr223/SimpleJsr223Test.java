@@ -160,6 +160,9 @@ public class SimpleJsr223Test {
     final int threads = 5000;
     final CountDownLatch start = new CountDownLatch(threads);
     final CountDownLatch end = new CountDownLatch(threads);
+
+    assertTrue((boolean) engine.eval("square(X,Y):-Y is X * X."));
+
     for (int i = 0; i < threads; i++) {
       final long arg = i;
       final long expected = i * i;
@@ -167,7 +170,6 @@ public class SimpleJsr223Test {
         try {
           start.await();
           var bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
-          assertTrue((boolean) engine.eval("square(X,Y):-Y is X * X."));
           assertTrue(
               (boolean) ((Invocable) engine).invokeFunction("square", arg, Terms.newVar("Result")));
           final Long result = (Long) bindings.get("Result");

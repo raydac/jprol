@@ -56,6 +56,8 @@ public class JProlScriptEngineContext implements ScriptContext {
   private final ClearableThreadLocal<JProlContext> jprolContext =
       new ClearableThreadLocal<>(() -> this.newInitedJProlContext(null));
 
+  private final AtomicReference<KnowledgeBase> prolKnowledgeBase = new AtomicReference<>();
+
   JProlScriptEngineContext(final JProlScriptEngineFactory factory) {
     this(factory, new InputStreamReader(System.in), new PrintWriter(System.out),
         new PrintWriter(System.err));
@@ -71,6 +73,9 @@ public class JProlScriptEngineContext implements ScriptContext {
     this.writer.set(outWriter);
     this.writerErr.set(errWriter);
     this.reader.set(reader);
+
+    this.prolKnowledgeBase.set(new ConcurrentInMemoryKnowledgeBase(
+        "jprol-script-engine-context-" + System.identityHashCode(this)));
   }
 
   private static void checkName(final String name) {
@@ -97,6 +102,7 @@ public class JProlScriptEngineContext implements ScriptContext {
    */
   public void clear(final boolean disposeProlContext) {
     this.assertNotClosed();
+
     final JProlContext context = this.jprolContext.remove();
     if (context != null && disposeProlContext) {
       context.dispose();
@@ -105,6 +111,16 @@ public class JProlScriptEngineContext implements ScriptContext {
     if (currentBindings != null) {
       currentBindings.clear();
     }
+  }
+
+  public KnowledgeBase getKnowledgeBase() {
+    this.assertNotClosed();
+    KnowledgeBase result =
+        (KnowledgeBase) this.factory.getGlobalBindings().get(JPROL_GLOBAL_KNOWLEDGE_BASE);
+    if (result == null) {
+      result = this.prolKnowledgeBase.get();
+    }
+    return result;
   }
 
   @SuppressWarnings("unchecked")
@@ -116,8 +132,6 @@ public class JProlScriptEngineContext implements ScriptContext {
       prolLibraries.addAll(libraries);
     }
 
-    final KnowledgeBase knowledgeBase =
-        (KnowledgeBase) this.factory.getGlobalBindings().get(JPROL_GLOBAL_KNOWLEDGE_BASE);
     final ExecutorService executorService =
         (ExecutorService) this.factory.getGlobalBindings().get(JPROL_GLOBAL_EXECUTOR_SERVICE);
 
@@ -128,8 +142,7 @@ public class JProlScriptEngineContext implements ScriptContext {
         foundPredicateAllow == null ? (a, b, c) -> true : foundPredicateAllow;
 
     final Function<String, KnowledgeBase> knowledgeBaseSupplier =
-        s -> Objects.requireNonNullElseGet(forceKnowledgeBase,
-            () -> knowledgeBase == null ? new ConcurrentInMemoryKnowledgeBase(s) : knowledgeBase);
+        s -> Objects.requireNonNullElseGet(forceKnowledgeBase, this::getKnowledgeBase);
 
     final JProlContext result = new JProlContext(
         "jprol-jsr223-" + identityHashCode(this),
@@ -303,6 +316,7 @@ public class JProlScriptEngineContext implements ScriptContext {
       this.writer.set(null);
       this.writerErr.set(null);
       this.reader.set(null);
+      this.prolKnowledgeBase.set(null);
     }
   }
 
@@ -313,8 +327,7 @@ public class JProlScriptEngineContext implements ScriptContext {
       this.findOrMakeJProlContext();
     } else {
       try {
-        final KnowledgeBase knowledgeBase = current.getKnowledgeBase().makeCopy();
-        if (this.jprolContext.set(this.newInitedJProlContext(knowledgeBase)) != null) {
+        if (this.jprolContext.set(this.newInitedJProlContext(this.getKnowledgeBase())) != null) {
           throw new IllegalStateException("Unexpectedly found created JProl engine instance");
         }
       } finally {
