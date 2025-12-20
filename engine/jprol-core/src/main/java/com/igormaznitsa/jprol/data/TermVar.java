@@ -179,6 +179,7 @@ public final class TermVar extends Term {
         mapVariables.put(varId, newVariable);
       }
       result = newVariable;
+      result.setPayload(this.getPayload());
     } else {
       result = thisValue.doMakeClone(mapVariables);
     }

@@ -281,8 +281,14 @@ public final class TermList extends TermStruct {
 
   @Override
   protected Term doMakeClone(Map<Integer, TermVar> vars) {
-    return this.isNullList() ? Terms.NULL_LIST :
-        newList(this.getHead().doMakeClone(vars), this.getTail().doMakeClone(vars));
+    if (this.isNullList()) {
+      return NULL_LIST;
+    } else {
+      final Term result =
+          newList(this.getHead().doMakeClone(vars), this.getTail().doMakeClone(vars));
+      result.setPayload(this.getPayload());
+      return result;
+    }
   }
 
   @Override

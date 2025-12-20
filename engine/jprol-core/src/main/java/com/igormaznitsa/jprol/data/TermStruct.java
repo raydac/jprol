@@ -534,6 +534,7 @@ public class TermStruct extends CompoundTerm {
       }
       result = Terms.newStruct(this.getFunctor(), destElements, this.getPredicateProcessor(),
           this.getSourcePosition());
+      result.setPayload(this.getPayload());
     }
     return result;
   }
