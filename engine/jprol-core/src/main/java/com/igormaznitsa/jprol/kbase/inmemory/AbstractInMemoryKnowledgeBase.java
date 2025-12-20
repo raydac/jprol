@@ -85,6 +85,12 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
     }
   }
 
+  @Override
+  public void clear() {
+    this.operatorTable.clear();
+    this.predicateTable.clear();
+  }
+
   public void printStateAsSource(final PrintWriter writer) {
     this.predicateTable.entrySet().stream()
         .flatMap(e -> {

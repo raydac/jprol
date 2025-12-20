@@ -7,7 +7,7 @@ import com.igormaznitsa.jprol.logic.JProlChoicePoint;
  * Interface describing an object which can disable execution of predicates marked as critical.
  */
 @FunctionalInterface
-public interface JProlCriticalPredicateAllow {
+public interface JProlCriticalPredicateGuard {
   boolean isCriticalPredicateAllowed(
       Class<? extends AbstractJProlLibrary> sourceLibrary,
       JProlChoicePoint choicePoint,

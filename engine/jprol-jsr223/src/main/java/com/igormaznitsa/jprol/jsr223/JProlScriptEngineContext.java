@@ -2,7 +2,7 @@ package com.igormaznitsa.jprol.jsr223;
 
 import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.CONSOLE_IO_PROVIDER;
 import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_CONTEXT_FLAGS;
-import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_GLOBAL_CRITICAL_PREDICATE_ALLOW;
+import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_GLOBAL_CRITICAL_PREDICATE_GUARD;
 import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_GLOBAL_EXECUTOR_SERVICE;
 import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_GLOBAL_KNOWLEDGE_BASE;
 import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_LIBRARIES;
@@ -137,10 +137,10 @@ public class JProlScriptEngineContext implements ScriptContext {
     final ExecutorService executorService =
         (ExecutorService) this.factory.getGlobalBindings().get(JPROL_GLOBAL_EXECUTOR_SERVICE);
 
-    final JProlCriticalPredicateAllow foundPredicateAllow =
-        (JProlCriticalPredicateAllow) this.factory.getGlobalBindings()
-            .get(JPROL_GLOBAL_CRITICAL_PREDICATE_ALLOW);
-    final JProlCriticalPredicateAllow predicateAllow =
+    final JProlCriticalPredicateGuard foundPredicateAllow =
+        (JProlCriticalPredicateGuard) this.factory.getGlobalBindings()
+            .get(JPROL_GLOBAL_CRITICAL_PREDICATE_GUARD);
+    final JProlCriticalPredicateGuard predicateAllow =
         foundPredicateAllow == null ? (a, b, c) -> true : foundPredicateAllow;
 
     final JProlContext result = new JProlContext(

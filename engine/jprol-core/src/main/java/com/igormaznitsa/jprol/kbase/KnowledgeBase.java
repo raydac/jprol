@@ -28,6 +28,11 @@ import java.util.function.Consumer;
 
 public interface KnowledgeBase {
 
+  /**
+   * Get text id of the knowledge base.
+   *
+   * @return the text id of the knowledge base, must not be null
+   */
   String getId();
 
   boolean removeOperator(String name, OpAssoc type);
@@ -60,7 +65,24 @@ public interface KnowledgeBase {
 
   boolean abolish(JProlContext context, String signature);
 
+  /**
+   * Make copy of the knowledge base with all internal states.
+   *
+   * @return copy of the knowledge base
+   */
   KnowledgeBase makeCopy();
 
+  /**
+   * To check that the knowledge base is concurrent one and can be used in multithread environment.
+   *
+   * @return true if concurrent one, false otherwise
+   */
   boolean isConcurrent();
+
+  /**
+   * Clear internal states of the knowledge base.
+   *
+   * @since 2.2.2
+   */
+  void clear();
 }

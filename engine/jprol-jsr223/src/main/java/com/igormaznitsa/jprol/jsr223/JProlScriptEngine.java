@@ -54,8 +54,13 @@ import javax.script.SimpleBindings;
  * <b>It has MULTIHREADED level, threads not isolated</b>
  * <p>
  * Supports custom libraries via ScriptContext attributes:
- * - "jprol.libraries" - array of JProlLibrary instances
- * - "jprol.context.flags" - Map of initial flags
+ * - "jprol.libraries" - list of {@link com.igormaznitsa.jprol.libs.AbstractJProlLibrary} instances to be loaded during new {@link JProlContext} create or reinit
+ * - "jprol.context.flags" - {@link java.util.Map} of {@code String} to {@code Object} describing JProl engine flags
+ * <p>
+ * It is possible define in global context listed attributes:
+ * - "jprol.global.executor.service" - {@link java.util.concurrent.ExecutorService} service for async tasks
+ * - "jprol.global.knowledge.base" - shared {@link KnowledgeBase} between all child engines
+ * - "jprol.global.critical.predicate.guard" - can be provided as a {@link JProlCriticalPredicateGuard} to disable execution of predicates marked in library as critical ones
  *
  * @since 2.2.2
  */
@@ -65,10 +70,10 @@ public class JProlScriptEngine
   /**
    * Checker to allow execution of critical predicates like knowledge base operations.
    *
-   * @see JProlCriticalPredicateAllow
+   * @see JProlCriticalPredicateGuard
    */
-  public static final String JPROL_GLOBAL_CRITICAL_PREDICATE_ALLOW =
-      "jprol.global.critical.predicate.allow";
+  public static final String JPROL_GLOBAL_CRITICAL_PREDICATE_GUARD =
+      "jprol.global.critical.predicate.guard";
 
   /**
    * Executor service to be used for all child JProl engines to start async processes. Can be defined only in global scope.
@@ -78,7 +83,7 @@ public class JProlScriptEngine
   /**
    * Knowledge base to be used for all child JProl engines. Can be defined only in global scope.
    */
-  public static final String JPROL_GLOBAL_KNOWLEDGE_BASE = "jprol.global.executor.service";
+  public static final String JPROL_GLOBAL_KNOWLEDGE_BASE = "jprol.global.knowledge.base";
 
   /**
    * Array of JProl libraries which will be applied to JProl engine context during create. Can be defined in both global and engine context.
