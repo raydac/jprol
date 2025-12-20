@@ -146,6 +146,7 @@ public final class UiUtils {
             Comparator.comparing(JProlPredicate::signature))
         .forEach(predicate -> {
           final boolean determined = predicate.determined();
+          final boolean critical = predicate.critical();
           targetPrintStream.print(predicate.signature());
           if (predicate.synonyms().length > 0) {
             targetPrintStream.print(" {");
@@ -161,6 +162,11 @@ public final class UiUtils {
           if (determined) {
             targetPrintStream.print(" [DETERMINED]");
           }
+
+          if (critical) {
+            targetPrintStream.print(" [CRITICAL]");
+          }
+
           targetPrintStream.println();
 
           final String[] templates = predicate.args();
