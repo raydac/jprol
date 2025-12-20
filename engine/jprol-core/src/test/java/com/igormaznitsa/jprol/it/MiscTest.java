@@ -20,10 +20,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermVar;
+import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import java.util.ArrayList;
@@ -32,6 +34,42 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class MiscTest extends AbstractJProlTest {
+
+  @Test
+  void testPayloadInAtom() {
+    final JProlContext context = makeContextAndConsult("map(X,Y):- X = Y.");
+
+    final Object testPayload = new Object();
+
+    final Term first = Terms.newAtom("xxx");
+    first.setPayload(testPayload);
+    final Term second = Terms.newVar("Y");
+
+    final Term request = Terms.newStruct(Terms.newAtom("map"), first, second);
+
+    final JProlChoicePoint goal = new JProlChoicePoint(request, context);
+    final Term goalResult = goal.prove();
+    assertNotNull(goalResult);
+    assertSame(testPayload, goal.findVar("Y").orElseThrow().findNonVarOrSame().getPayload());
+  }
+
+  @Test
+  void testPayloadInList() {
+    final JProlContext context = makeContextAndConsult("map(X,Y):- X = Y.");
+
+    final Object testPayload = new Object();
+
+    final Term first = TermList.asList(Terms.newAtom("a"));
+    first.setPayload(testPayload);
+    final Term second = Terms.newVar("Y");
+
+    final Term request = Terms.newStruct(Terms.newAtom("map"), first, second);
+
+    final JProlChoicePoint goal = new JProlChoicePoint(request, context);
+    final Term goalResult = goal.prove();
+    assertNotNull(goalResult);
+    assertSame(testPayload, goal.findVar("Y").orElseThrow().findNonVarOrSame().getPayload());
+  }
 
   @Test
   void testGetAllGoalsAndConvertThem() {

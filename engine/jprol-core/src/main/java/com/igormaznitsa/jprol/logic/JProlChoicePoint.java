@@ -192,6 +192,11 @@ public final class JProlChoicePoint implements Comparator<Term> {
     return this.context;
   }
 
+  /**
+   * Prove current goal.
+   *
+   * @return proved term or null if no result.
+   */
   public Term prove() {
     if (this.context.isDisposed()) {
       throw new ProlHaltExecutionException("Context disposed", 0);

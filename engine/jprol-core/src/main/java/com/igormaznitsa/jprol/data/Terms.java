@@ -139,7 +139,7 @@ public final class Terms {
     return new TermStruct(functor, elements, sourcePosition);
   }
 
-  public static TermStruct newStruct(final Term functor, final Term[] elements) {
+  public static TermStruct newStruct(final Term functor, final Term... elements) {
     return new TermStruct(functor, elements, functor.getSourcePosition());
   }
 
