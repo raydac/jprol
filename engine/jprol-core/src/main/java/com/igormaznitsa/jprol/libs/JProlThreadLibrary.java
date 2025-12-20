@@ -1,11 +1,15 @@
 package com.igormaznitsa.jprol.libs;
 
+import static com.igormaznitsa.jprol.utils.ProlAssertions.assertAtom;
+import static com.igormaznitsa.jprol.utils.ProlAssertions.assertCallable;
+import static com.igormaznitsa.jprol.utils.ProlAssertions.assertNumber;
 import static com.igormaznitsa.jprol.utils.ProlUtils.extractErrors;
 
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermStruct;
+import com.igormaznitsa.jprol.exceptions.ProlChoicePointInterruptedException;
 import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlForkExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
@@ -28,7 +32,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
                                                               final TermList list,
                                                               final boolean shareKnowledgeBase) {
     final Term[] terms = list.toArray(false);
-    Arrays.stream(terms).forEach(x -> ProlAssertions.assertCallable(x.findNonVarOrSame()));
+    Arrays.stream(terms).forEach(x -> assertCallable(x.findNonVarOrSame()));
     return Arrays.stream(terms)
         .map(x -> choicePoint.getContext().proveOnceAsync(x.makeClone(), shareKnowledgeBase))
         .collect(Collectors.toList());
@@ -85,7 +89,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
                                      final TermStruct predicate) {
     final Term term = predicate.getElement(0).findNonVarOrSame();
     if (choicePoint.isArgsValidate()) {
-      ProlAssertions.assertCallable(term);
+      assertCallable(term);
     }
 
     if (!term.isGround()) {
@@ -102,7 +106,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
                                       final TermStruct predicate) {
     final Term term = predicate.getElement(0).findNonVarOrSame();
     if (choicePoint.isArgsValidate()) {
-      ProlAssertions.assertAtom(term);
+      assertAtom(term);
     }
 
     try {
@@ -114,13 +118,30 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
     }
   }
 
+  @JProlPredicate(determined = true, signature = "sleep/1", args = {
+      "+number"}, critical = true,
+      reference = "Sleep current thread for provided number of milliseconds.")
+  public static void predicateSLEEP1(final JProlChoicePoint choicePoint,
+                                     final TermStruct predicate) {
+    final Term term = predicate.getElement(0).findNonVarOrSame();
+    if (choicePoint.isArgsValidate()) {
+      assertNumber(term);
+    }
+
+    try {
+      Thread.sleep(term.toNumber().longValue());
+    } catch (InterruptedException ex) {
+      throw new ProlChoicePointInterruptedException("Sleep interrupted", choicePoint);
+    }
+  }
+
   @JProlPredicate(determined = true, signature = "trylock/1", args = {
       "+atom"}, critical = true, reference = "Try make lock for a named locker, if it is being locked already then fail else success.")
   public static boolean predicateTRYLOCK1(final JProlChoicePoint choicePoint,
                                           final TermStruct predicate) {
     final Term term = predicate.getElement(0).findNonVarOrSame();
     if (choicePoint.isArgsValidate()) {
-      ProlAssertions.assertAtom(term);
+      assertAtom(term);
     }
     return choicePoint.getContext().tryLockFor(term.getText());
   }
@@ -131,7 +152,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
                                     final TermStruct predicate) {
     final Term term = predicate.getElement(0).findNonVarOrSame();
     if (choicePoint.isArgsValidate()) {
-      ProlAssertions.assertAtom(term);
+      assertAtom(term);
     }
     choicePoint.getContext().lockFor(term.getText());
   }
