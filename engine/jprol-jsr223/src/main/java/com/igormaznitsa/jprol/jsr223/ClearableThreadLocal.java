@@ -14,31 +14,31 @@ public class ClearableThreadLocal<T> {
 
   private final Supplier<T> supplier;
 
-  ClearableThreadLocal(Supplier<T> supplier) {
+  public ClearableThreadLocal(Supplier<T> supplier) {
     this.supplier = Objects.requireNonNull(supplier);
   }
 
-  Long getThreadId() {
+  protected Long getCurrentThreadId() {
     return Thread.currentThread().getId();
   }
 
-  T set(final T value) {
-    return this.threadMap.put(this.getThreadId(), requireNonNull(value));
+  public T set(final T value) {
+    return this.threadMap.put(this.getCurrentThreadId(), requireNonNull(value));
   }
 
-  T remove() {
-    return this.threadMap.remove(this.getThreadId());
+  public T remove() {
+    return this.threadMap.remove(this.getCurrentThreadId());
   }
 
-  T get() {
-    return this.threadMap.computeIfAbsent(this.getThreadId(), x -> this.supplier.get());
+  public T get() {
+    return this.threadMap.computeIfAbsent(this.getCurrentThreadId(), x -> this.supplier.get());
   }
 
-  T find() {
-    return this.threadMap.get(this.getThreadId());
+  public T find() {
+    return this.threadMap.get(this.getCurrentThreadId());
   }
 
-  void removeAll(final Consumer<T> action) {
+  public void removeAll(final Consumer<T> action) {
     if (action != null) {
       this.threadMap.forEach((key, value) -> {
         try {
@@ -49,5 +49,9 @@ public class ClearableThreadLocal<T> {
       });
     }
     this.threadMap.clear();
+  }
+
+  public int size() {
+    return this.threadMap.size();
   }
 }

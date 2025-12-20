@@ -32,7 +32,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import javax.script.Bindings;
@@ -57,8 +56,6 @@ public class JProlScriptEngineContext implements ScriptContext {
   private final ClearableThreadLocal<JProlContext> jprolContext =
       new ClearableThreadLocal<>(() -> this.newInitedJProlContext(null));
 
-  private final AtomicInteger linkCounter = new AtomicInteger();
-
   JProlScriptEngineContext(final JProlScriptEngineFactory factory) {
     this(factory, new InputStreamReader(System.in), new PrintWriter(System.out),
         new PrintWriter(System.err));
@@ -74,18 +71,6 @@ public class JProlScriptEngineContext implements ScriptContext {
     this.writer.set(outWriter);
     this.writerErr.set(errWriter);
     this.reader.set(reader);
-  }
-
-  void linkDec() {
-    this.assertNotClosed();
-    if (this.linkCounter.decrementAndGet() <= 0) {
-      this.dispose();
-    }
-  }
-
-  void linkInc() {
-    this.assertNotClosed();
-    this.linkCounter.incrementAndGet();
   }
 
   private static void checkName(final String name) {
@@ -105,9 +90,21 @@ public class JProlScriptEngineContext implements ScriptContext {
     return this.jprolContext.find();
   }
 
-  JProlContext removeJProlContext() {
+  /**
+   * Remove all thread local internal states.
+   *
+   * @param disposeProlContext if true then existing JProl context will be disposed
+   */
+  public void clear(final boolean disposeProlContext) {
     this.assertNotClosed();
-    return this.jprolContext.remove();
+    final JProlContext context = this.jprolContext.remove();
+    if (context != null && disposeProlContext) {
+      context.dispose();
+    }
+    final Bindings currentBindings = this.engineBindings.remove();
+    if (currentBindings != null) {
+      currentBindings.clear();
+    }
   }
 
   @SuppressWarnings("unchecked")
@@ -300,13 +297,8 @@ public class JProlScriptEngineContext implements ScriptContext {
   }
 
   public void dispose() {
-    if (this.linkCounter.get() > 0) {
-      throw new IllegalStateException(
-          "The context still linked to non-closed JProlEngine(s): " + this.linkCounter.get());
-    }
     if (this.disposed.compareAndSet(false, true)) {
-      this.engineBindings.removeAll(x -> {
-      });
+      this.engineBindings.removeAll(Map::clear);
       this.jprolContext.removeAll(JProlContext::dispose);
       this.writer.set(null);
       this.writerErr.set(null);
@@ -314,9 +306,9 @@ public class JProlScriptEngineContext implements ScriptContext {
     }
   }
 
-  public void reloadLibraries() {
+  public void reloadLibraries(final boolean disposeOldContext) {
     this.assertNotClosed();
-    final JProlContext current = this.removeJProlContext();
+    final JProlContext current = this.jprolContext.remove();
     if (current == null) {
       this.findOrMakeJProlContext();
     } else {
@@ -326,8 +318,20 @@ public class JProlScriptEngineContext implements ScriptContext {
           throw new IllegalStateException("Unexpectedly found created JProl engine instance");
         }
       } finally {
-        current.dispose();
+        if (disposeOldContext) {
+          current.dispose();
+        }
       }
     }
+  }
+
+  /**
+   * Returns total number of context and binding options kept for different thread in internal stores.
+   *
+   * @return number of instances in internal stores
+   */
+  public int size() {
+    this.assertNotClosed();
+    return this.jprolContext.size() + this.engineBindings.size();
   }
 }

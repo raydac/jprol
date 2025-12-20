@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.script.Bindings;
@@ -60,7 +59,7 @@ import javax.script.SimpleBindings;
  * @since 2.2.2
  */
 public class JProlScriptEngine
-    implements ScriptEngine, Compilable, Invocable, AutoCloseable, JProlScriptEngineProvider {
+    implements ScriptEngine, Compilable, Invocable, JProlScriptEngineProvider {
 
   /**
    * Checker to allow execution of critical predicates like knowledge base operations.
@@ -132,13 +131,12 @@ public class JProlScriptEngine
   };
   private final JProlScriptEngineFactory factory;
   private final AtomicBoolean closed = new AtomicBoolean();
-  private final ReentrantLock queryLock = new ReentrantLock();
   private final AtomicReference<JProlScriptEngineContext> engineContext = new AtomicReference<>();
 
   JProlScriptEngine(final JProlScriptEngineFactory factory) {
     this.factory = factory;
-    this.engineContext.set(new JProlScriptEngineContext(this.factory));
-    this.engineContext.get().linkInc();
+    final JProlScriptEngineContext newContext = new JProlScriptEngineContext(this.factory);
+    this.engineContext.set(newContext);
   }
 
   /**
@@ -202,9 +200,9 @@ public class JProlScriptEngine
     }
   }
 
-  public void reloadEngine() {
+  public void reloadEngine(final boolean disposeOldContext) {
     this.assertNotClosed();
-    this.engineContext.get().reloadLibraries();
+    this.engineContext.get().reloadLibraries(disposeOldContext);
   }
 
   static String joinSources(
@@ -289,12 +287,7 @@ public class JProlScriptEngine
   @Override
   public void setContext(final ScriptContext context) {
     this.assertNotClosed();
-    final JProlScriptEngineContext prolScriptEngineContext = asJProlContext(context);
-    final JProlScriptEngineContext prev = this.engineContext.getAndSet(prolScriptEngineContext);
-    prolScriptEngineContext.linkInc();
-    if (prev != null) {
-      prev.linkDec();
-    }
+    this.engineContext.set(asJProlContext(context));
   }
 
   @Override
@@ -464,62 +457,47 @@ public class JProlScriptEngine
   Object executeQuery(final String queryString, final ScriptContext context,
                       final Bindings bindings) {
     this.assertNotClosed();
-    this.queryLock.lock();
-    try {
-      final JProlContext prolContext = asJProlContext(context).findOrMakeJProlContext();
-      final JProlChoicePoint goal = new JProlChoicePoint(queryString, prolContext);
-      final Term result = goal.prove();
-      if (result != null) {
-        final Map<String, Object> groundedVars = extractGroundedVariables(goal);
-        if (bindings != null) {
-          bindings.putAll(groundedVars);
-        }
-        return Boolean.TRUE;
+    final JProlContext prolContext = asJProlContext(context).findOrMakeJProlContext();
+    final JProlChoicePoint goal = new JProlChoicePoint(queryString, prolContext);
+    final Term result = goal.prove();
+    if (result != null) {
+      final Map<String, Object> groundedVars = extractGroundedVariables(goal);
+      if (bindings != null) {
+        bindings.putAll(groundedVars);
       }
-      return Boolean.FALSE;
-    } finally {
-      this.queryLock.unlock();
+      return Boolean.TRUE;
     }
+    return Boolean.FALSE;
   }
 
   Object executeQuery(final Term queryTerm, final ScriptContext context, final Bindings bindings) {
     this.assertNotClosed();
-    this.queryLock.lock();
-    try {
-      final JProlContext prolContext = asJProlContext(context).findOrMakeJProlContext();
-      final JProlChoicePoint goal = new JProlChoicePoint(queryTerm, prolContext);
-      final Term result = goal.prove();
-      if (result != null) {
-        final Map<String, Object> groundedVars = extractGroundedVariables(goal);
-        if (bindings != null) {
-          bindings.putAll(groundedVars);
-        }
-        return Boolean.TRUE;
+    final JProlContext prolContext = asJProlContext(context).findOrMakeJProlContext();
+    final JProlChoicePoint goal = new JProlChoicePoint(queryTerm, prolContext);
+    final Term result = goal.prove();
+    if (result != null) {
+      final Map<String, Object> groundedVars = extractGroundedVariables(goal);
+      if (bindings != null) {
+        bindings.putAll(groundedVars);
       }
-      return Boolean.FALSE;
-    } finally {
-      this.queryLock.unlock();
+      return Boolean.TRUE;
     }
+    return Boolean.FALSE;
   }
 
   Object executeQuery(final Term queryTerm, final JProlContext prolContext,
                       final Bindings bindings) {
     this.assertNotClosed();
-    this.queryLock.lock();
-    try {
-      final JProlChoicePoint goal = new JProlChoicePoint(queryTerm, prolContext);
-      final Term result = goal.prove();
-      if (result != null) {
-        final Map<String, Object> groundedVars = extractGroundedVariables(goal);
-        if (bindings != null) {
-          bindings.putAll(groundedVars);
-        }
-        return Boolean.TRUE;
+    final JProlChoicePoint goal = new JProlChoicePoint(queryTerm, prolContext);
+    final Term result = goal.prove();
+    if (result != null) {
+      final Map<String, Object> groundedVars = extractGroundedVariables(goal);
+      if (bindings != null) {
+        bindings.putAll(groundedVars);
       }
-      return Boolean.FALSE;
-    } finally {
-      this.queryLock.unlock();
+      return Boolean.TRUE;
     }
+    return Boolean.FALSE;
   }
 
   @Override
@@ -587,12 +565,11 @@ public class JProlScriptEngine
     }
   }
 
-  @Override
-  public void close() {
+  public void dispose(final boolean disposeContext) {
     if (this.closed.compareAndSet(false, true)) {
       final JProlScriptEngineContext context = this.engineContext.getAndSet(null);
-      if (context != null) {
-        context.linkDec();
+      if (context != null && disposeContext) {
+        context.dispose();
       }
     }
   }
@@ -603,5 +580,11 @@ public class JProlScriptEngine
         java2term(value).toSrcString());
     final JProlContext prolContext = this.engineContext.get().findOrMakeJProlContext();
     prolContext.consult(new StringReader(text));
+  }
+
+  public int size() {
+    this.assertNotClosed();
+    final JProlScriptEngineContext context = this.engineContext.get();
+    return context == null ? 0 : context.size();
   }
 }

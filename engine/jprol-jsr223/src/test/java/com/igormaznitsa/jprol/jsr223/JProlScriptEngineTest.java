@@ -244,7 +244,7 @@ class JProlScriptEngineTest {
     // Add library
     engine.getBindings(ScriptContext.ENGINE_SCOPE)
         .put(JProlScriptEngine.JPROL_LIBRARIES, List.of(new MathLibrary()));
-    engine.reloadEngine();
+    engine.reloadEngine(true);
 
     // Now it should work
     List<Map<String, Object>> results = engine.query("square(5, X).");
