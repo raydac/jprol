@@ -26,14 +26,12 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.SimpleBindings;
@@ -54,7 +52,7 @@ public class JProlScriptEngineContext implements ScriptContext {
   private final ClearableThreadLocal<Bindings> engineBindings =
       new ClearableThreadLocal<>(() -> new SimpleBindings(new ConcurrentHashMap<>()));
   private final ClearableThreadLocal<JProlContext> jprolContext =
-      new ClearableThreadLocal<>(() -> this.newInitedJProlContext(null));
+      new ClearableThreadLocal<>(this::newInitedJProlContext);
 
   private final AtomicReference<KnowledgeBase> prolKnowledgeBase = new AtomicReference<>();
 
@@ -115,6 +113,10 @@ public class JProlScriptEngineContext implements ScriptContext {
 
   public KnowledgeBase getKnowledgeBase() {
     this.assertNotClosed();
+    return this.jprolContext.get().getKnowledgeBase();
+  }
+
+  private KnowledgeBase findKnowledgeBase() {
     KnowledgeBase result =
         (KnowledgeBase) this.factory.getGlobalBindings().get(JPROL_GLOBAL_KNOWLEDGE_BASE);
     if (result == null) {
@@ -124,7 +126,7 @@ public class JProlScriptEngineContext implements ScriptContext {
   }
 
   @SuppressWarnings("unchecked")
-  private JProlContext newInitedJProlContext(final KnowledgeBase forceKnowledgeBase) {
+  private JProlContext newInitedJProlContext() {
     final List<AbstractJProlLibrary> libraries =
         (List<AbstractJProlLibrary>) this.getAttribute(JPROL_LIBRARIES);
     final List<AbstractJProlLibrary> prolLibraries = new ArrayList<>(BOOTSTRAP_LIBRARIES);
@@ -141,13 +143,10 @@ public class JProlScriptEngineContext implements ScriptContext {
     final JProlCriticalPredicateAllow predicateAllow =
         foundPredicateAllow == null ? (a, b, c) -> true : foundPredicateAllow;
 
-    final Function<String, KnowledgeBase> knowledgeBaseSupplier =
-        s -> Objects.requireNonNullElseGet(forceKnowledgeBase, this::getKnowledgeBase);
-
     final JProlContext result = new JProlContext(
         "jprol-jsr223-" + identityHashCode(this),
         new File(System.getProperty("user.home")),
-        knowledgeBaseSupplier,
+        x -> this.findKnowledgeBase(),
         executorService == null ? ForkJoinPool.commonPool() : executorService,
         prolLibraries.toArray(AbstractJProlLibrary[]::new)
     ) {
@@ -320,22 +319,13 @@ public class JProlScriptEngineContext implements ScriptContext {
     }
   }
 
-  public void reloadLibraries(final boolean disposeOldContext) {
+  public void reinitJProlContext() {
     this.assertNotClosed();
     final JProlContext current = this.jprolContext.remove();
-    if (current == null) {
-      this.findOrMakeJProlContext();
-    } else {
-      try {
-        if (this.jprolContext.set(this.newInitedJProlContext(this.getKnowledgeBase())) != null) {
-          throw new IllegalStateException("Unexpectedly found created JProl engine instance");
-        }
-      } finally {
-        if (disposeOldContext) {
-          current.dispose();
-        }
-      }
+    if (current != null) {
+      current.dispose();
     }
+    this.findOrMakeJProlContext();
   }
 
   /**

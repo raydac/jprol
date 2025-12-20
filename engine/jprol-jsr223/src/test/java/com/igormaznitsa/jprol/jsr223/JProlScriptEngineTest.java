@@ -228,9 +228,9 @@ class JProlScriptEngineTest {
 
   @Test
   @Order(6)
-  @DisplayName("Test 6: Adding Libraries After Creation")
+  @DisplayName("Test 6: Reinit JProl engine")
   public void testAddLibrariesAfterCreation() throws ScriptException {
-    System.out.println("Test 6: Add Libraries After Creation");
+    System.out.println("Test 6: Reinit JProl engine");
     System.out.println("------------------------------------");
 
     JProlScriptEngine engine = (JProlScriptEngine) factory.getScriptEngine();
@@ -244,7 +244,7 @@ class JProlScriptEngineTest {
     // Add library
     engine.getBindings(ScriptContext.ENGINE_SCOPE)
         .put(JProlScriptEngine.JPROL_LIBRARIES, List.of(new MathLibrary()));
-    engine.reloadEngine(true);
+    engine.reinitJProlContext();
 
     // Now it should work
     List<Map<String, Object>> results = engine.query("square(5, X).");

@@ -201,9 +201,13 @@ public class JProlScriptEngine
     }
   }
 
-  public void reloadEngine(final boolean disposeOldContext) {
+  /**
+   * Disposing existing thread local JProl context and create new one from current context parameters.
+   * Knowledge base can be affected.
+   */
+  public void reinitJProlContext() {
     this.assertNotClosed();
-    this.engineContext.get().reloadLibraries(disposeOldContext);
+    this.engineContext.get().reinitJProlContext();
   }
 
   static String joinSources(
