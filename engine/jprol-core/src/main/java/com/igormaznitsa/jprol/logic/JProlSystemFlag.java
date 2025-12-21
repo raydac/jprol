@@ -1,7 +1,7 @@
 package com.igormaznitsa.jprol.logic;
 
+import static com.igormaznitsa.jprol.data.TermList.NULL_LIST;
 import static com.igormaznitsa.jprol.data.Terms.FALSE;
-import static com.igormaznitsa.jprol.data.Terms.NULL_LIST;
 import static com.igormaznitsa.jprol.data.Terms.TRUE;
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
@@ -41,12 +41,10 @@ public enum JProlSystemFlag {
   VERSION_DATA(true, Terms.newAtom("version_data", SourcePosition.UNKNOWN),
       newStruct(
           newAtom("jprol", SourcePosition.UNKNOWN),
-          new Term[] {
-              newLong(2, SourcePosition.UNKNOWN),
-              newLong(2, SourcePosition.UNKNOWN),
-              newLong(2, SourcePosition.UNKNOWN),
-              NULL_LIST}
-      )
+          newLong(2, SourcePosition.UNKNOWN),
+          newLong(2, SourcePosition.UNKNOWN),
+          newLong(2, SourcePosition.UNKNOWN),
+          NULL_LIST)
   );
 
   public static final List<JProlSystemFlag> VALUES =

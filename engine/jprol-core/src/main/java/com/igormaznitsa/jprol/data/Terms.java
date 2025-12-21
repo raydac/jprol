@@ -1,5 +1,6 @@
 package com.igormaznitsa.jprol.data;
 
+import static com.igormaznitsa.jprol.data.TermList.NULL_LIST;
 import static com.igormaznitsa.jprol.data.TermStruct.EMPTY_ARRAY;
 
 import com.igormaznitsa.jprol.logic.JProlContext;
@@ -27,7 +28,6 @@ public final class Terms {
   public static final TermLong INT_ZERO = new TermLong(0L, SourcePosition.UNKNOWN);
   public static final TermLong INT_MINUS_ONE = new TermLong(-1L, SourcePosition.UNKNOWN);
   public static final Term LIST_FUNCTOR = new Term(".", SourcePosition.UNKNOWN);
-  public static final TermList NULL_LIST = new TermList();
 
   public static Term newAtom(final String text) {
     return newAtom(text, SourcePosition.UNKNOWN);

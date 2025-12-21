@@ -11,7 +11,6 @@ import com.igormaznitsa.jprol.data.TermLong;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.data.TermVar;
-import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlRepresentationErrorException;
@@ -98,7 +97,7 @@ public final class ProlAssertions {
           }
 
           final Term tail = lst.getTail();
-          if (tail == Terms.NULL_LIST) {
+          if (tail.isNullList()) {
             break;
           }
           if (tail.getTermType() == TermType.LIST) {
@@ -505,7 +504,7 @@ public final class ProlAssertions {
     if (t.getTermType() != TermType.LIST) {
       throw new ProlTypeErrorException("list", "Expected list: " + t, t);
     } else {
-      if (t == Terms.NULL_LIST) {
+      if (t.isNullList()) {
         throw new ProlDomainErrorException("[]", "Expected non-empty list: " + t, t);
       }
     }

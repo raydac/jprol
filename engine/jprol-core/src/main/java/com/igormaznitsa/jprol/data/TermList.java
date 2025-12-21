@@ -18,7 +18,6 @@ package com.igormaznitsa.jprol.data;
 
 import static com.igormaznitsa.jprol.data.TermType.LIST;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
-import static com.igormaznitsa.jprol.data.Terms.NULL_LIST;
 import static com.igormaznitsa.jprol.data.Terms.newList;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.utils.ProlUtils.createOrAppendToList;
@@ -41,10 +40,11 @@ import java.util.stream.Stream;
 
 public final class TermList extends TermStruct {
 
+  public static final TermList NULL_LIST = new TermList();
   private static final int INDEX_HEAD = 0;
   private static final int INDEX_TAIL = 1;
 
-  TermList() {
+  private TermList() {
     this(EMPTY_ARRAY, null, SourcePosition.UNKNOWN);
   }
 
@@ -53,11 +53,11 @@ public final class TermList extends TermStruct {
   }
 
   TermList(final Term term, final SourcePosition sourcePosition) {
-    this(new Term[] {requireNonNull(term), Terms.NULL_LIST}, null, sourcePosition);
+    this(new Term[] {requireNonNull(term), NULL_LIST}, null, sourcePosition);
   }
 
   TermList(final Term term, final Object payload, final SourcePosition sourcePosition) {
-    this(new Term[] {requireNonNull(term), Terms.NULL_LIST}, payload, sourcePosition);
+    this(new Term[] {requireNonNull(term), NULL_LIST}, payload, sourcePosition);
   }
 
   TermList(final Term head, final Term tail, final SourcePosition sourcePosition) {
@@ -81,22 +81,6 @@ public final class TermList extends TermStruct {
 
   public static TermList asList(final List<Term> elements) {
     return asList(elements, SourcePosition.UNKNOWN);
-  }
-
-  @Override
-  public Term replaceVar(final String variableName, final Term value) {
-    if (this.isNullList()) {
-      return this;
-    }
-
-    final Term newHead = this.getHead().replaceVar(variableName, value);
-    final Term newTail = this.getTail().replaceVar(variableName, value);
-
-    if (newHead != this.getHead() || newTail != this.getTail()) {
-      return Terms.newList(newHead, newTail, SourcePosition.UNKNOWN);
-    } else {
-      return this;
-    }
   }
 
   public static TermList asList(final List<Term> elements, final SourcePosition sourcePosition) {
@@ -136,6 +120,22 @@ public final class TermList extends TermStruct {
       }
       default:
         return newList(element);
+    }
+  }
+
+  @Override
+  public Term replaceVar(final String variableName, final Term value) {
+    if (this.isNullList()) {
+      return this;
+    }
+
+    final Term newHead = this.getHead().replaceVar(variableName, value);
+    final Term newTail = this.getTail().replaceVar(variableName, value);
+
+    if (newHead != this.getHead() || newTail != this.getTail()) {
+      return Terms.newList(newHead, newTail, SourcePosition.UNKNOWN);
+    } else {
+      return this;
     }
   }
 
@@ -254,7 +254,7 @@ public final class TermList extends TermStruct {
   }
 
   public int calculateLength() {
-    if (this == Terms.NULL_LIST) {
+    if (this.isNullList()) {
       return 0;
     }
     final Term tail = this.terms[INDEX_TAIL];
@@ -287,7 +287,7 @@ public final class TermList extends TermStruct {
 
   @Override
   public Term makeCloneAndVarBound(final Map<Integer, TermVar> vars) {
-    return this.isNullList() ? Terms.NULL_LIST : newList(this.getHead().makeCloneAndVarBound(vars),
+    return this.isNullList() ? NULL_LIST : newList(this.getHead().makeCloneAndVarBound(vars),
         this.getTail().makeCloneAndVarBound(vars));
   }
 
@@ -321,7 +321,7 @@ public final class TermList extends TermStruct {
     boolean notFirst = false;
     Term list = this;
 
-    while (list != Terms.NULL_LIST) {
+    while (list != NULL_LIST) {
       if (list.getTermType() == LIST) {
         if (notFirst) {
           builder.append(',');
@@ -387,7 +387,7 @@ public final class TermList extends TermStruct {
     TermList curList = this;
     while (true) {
       Term tail = curList.getTail();
-      if (tail == Terms.NULL_LIST || tail.getTermType() != LIST) {
+      if (tail == NULL_LIST || tail.getTermType() != LIST) {
         return tail;
       }
       curList = (TermList) tail;
@@ -401,7 +401,7 @@ public final class TermList extends TermStruct {
     TermList curList = this;
     while (true) {
       Term tail = curList.getTail();
-      if (tail == Terms.NULL_LIST || tail.getTermType() != LIST) {
+      if (tail == NULL_LIST || tail.getTermType() != LIST) {
         curList.setTail(newLastElement);
         break;
       }
@@ -487,7 +487,7 @@ public final class TermList extends TermStruct {
     boolean notFirst = false;
     Term list = this;
 
-    while (list != Terms.NULL_LIST) {
+    while (list != NULL_LIST) {
       if (list.getTermType() == LIST) {
         if (notFirst) {
           builder.append(',');
@@ -538,7 +538,7 @@ public final class TermList extends TermStruct {
     if (this.isNullList()) {
       return new Term("<empty>", this.getSourcePosition());
     }
-    if (this.getTail() == Terms.NULL_LIST) {
+    if (this.getTail().isNullList()) {
       return this.getHead();
     } else {
       final int length = this.calculateLength();
@@ -560,7 +560,7 @@ public final class TermList extends TermStruct {
         Term[] elements = new Term[length - 1];
         TermList lst = this.getTail();
         int index = 0;
-        while (lst != Terms.NULL_LIST) {
+        while (lst != NULL_LIST) {
           elements[index++] = lst.getHead();
           lst = lst.getTail();
         }
@@ -586,7 +586,7 @@ public final class TermList extends TermStruct {
 
   @Override
   public boolean hasVariableWithName(final String name) {
-    if (this == Terms.NULL_LIST) {
+    if (this.isNullList()) {
       return false;
     }
     return getHead().hasVariableWithName(name) || getTail().hasVariableWithName(name);

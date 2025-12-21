@@ -21,7 +21,7 @@ import javax.script.SimpleBindings;
 public class JProlScriptEngineFactory implements ScriptEngineFactory {
 
   private static final String ENGINE_NAME = "JProl";
-  private static final String ENGINE_VERSION = "2.2.2";
+  private static final String ENGINE_VERSION = "2.3.0";
   private static final String LANGUAGE_NAME = "Prolog";
   private static final String LANGUAGE_VERSION = "JProl";
 

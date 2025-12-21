@@ -1,0 +1,50 @@
+2.3.0 (SNAPSHOT)
+
+    - Updated embedded JDK to 25.0.1+13.
+    - Refactored API moved some constants and restored support of payload for terms.
+    - Added support for Java Scripting API (JSR 223) as module `jprol-jsr223`.
+    - Bugfixing.
+
+2.2.1 (2025-02-05)
+    
+    - Added Automatic-Module-Name into all project modules.
+
+2.2.0 (2025-01-25)
+    
+    - Added `forall/2`, `append/3`, `between/3`, and `member/2` predicates into the core library.
+    - Added support for obtaining information about comments during consult.
+    - Added support for double quoted strings.
+    - Minimal supported JDK increased to 11+.
+    - Minimal Android SDK increased to 32+.
+    - Updated embedded JDK to 23.0.1+13.
+    - Updated dependencies.
+    - Refactored and improved GUI editor and libraries.
+
+2.1.2 (2023-07-22)
+    
+    - Published jprol-extra-libs to Maven Central.
+    - Added `llr/2`, `string_bytes/3`, and `append/2` predicates into the core library.
+    - Added HTTP and JSON libraries into extra libs, including regex processing predicates.
+    - Minor refactoring and dependency updates.
+
+2.1.1 (2023-02-28)
+
+    - Added current_input/1 and current_output/1 predicates.
+    - Fixed unexpected calls of evaluable predicates.
+    - Updated dependencies and embedded JDK.
+    - Minor refactoring.
+
+2.1.0 (2022-05-01)
+
+    - Added SH and DMG launchers.
+    - Added JProl GUI support for MacOS ARM64.
+    - Minor improvements and method renaming.
+    - Fixed typos.
+    - Updated Launch4j starter and embedded OpenJDK to version 17.0.3.1+2.
+
+2.0.0 (2020-11-20)
+
+    - Major refactoring.
+    - Parser reworked to use an external project.
+    - Fixed issues in libraries.
+    - Published jprol-core to Maven Central.

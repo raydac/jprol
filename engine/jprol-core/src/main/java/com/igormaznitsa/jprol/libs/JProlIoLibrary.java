@@ -1,5 +1,6 @@
 package com.igormaznitsa.jprol.libs;
 
+import static com.igormaznitsa.jprol.data.TermList.NULL_LIST;
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.libs.JProlCoreLibrary.predicateCALL;
 import static com.igormaznitsa.jprol.utils.ProlUtils.readAsString;
@@ -455,7 +456,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
   public final boolean predicateSEEING(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     final InternalReader current = this.getIoReaders(goal.getContext()).get(CURRENT_STREAM_ID);
-    final Term result = current == null ? Terms.NULL_LIST : current.getStreamId();
+    final Term result = current == null ? NULL_LIST : current.getStreamId();
     return arg.unifyTo(result);
   }
 
@@ -463,7 +464,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
   public final boolean predicateTELLING(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
     final InternalWriter current = this.getIoWriters(goal.getContext()).get(CURRENT_STREAM_ID);
-    final Term result = current == null ? Terms.NULL_LIST : current.getStreamId();
+    final Term result = current == null ? NULL_LIST : current.getStreamId();
     return arg.unifyTo(result);
   }
 

@@ -16,6 +16,7 @@
 
 package com.igormaznitsa.jprol.utils;
 
+import static com.igormaznitsa.jprol.data.TermList.NULL_LIST;
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.data.Terms.newList;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
@@ -65,7 +66,7 @@ public final class ProlUtils {
   public static String readAsString(final File file, final Charset charset) throws IOException {
     final StringBuilder builder = new StringBuilder();
     try (Reader reader = new BufferedReader(
-        new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+        new InputStreamReader(new FileInputStream(file), charset))) {
       while (!Thread.currentThread().isInterrupted()) {
         final int next = reader.read();
         if (next < 0) {
@@ -81,7 +82,7 @@ public final class ProlUtils {
     final String text = term.getText();
 
     if (text == null || text.isEmpty()) {
-      return Terms.NULL_LIST;
+      return NULL_LIST;
     } else {
       final TermList result =
           createOrAppendToList(null, newLong(text.charAt(0), term.getSourcePosition()));
@@ -117,7 +118,7 @@ public final class ProlUtils {
     final int len = text.length();
     if (len == 0) {
       if (sourcePosition == null) {
-        return Terms.NULL_LIST;
+        return NULL_LIST;
       } else {
         return Terms.newList(sourcePosition);
       }

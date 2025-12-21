@@ -17,13 +17,13 @@
 package com.igormaznitsa.jprol.libs;
 
 import static com.igormaznitsa.jprol.data.SourcePosition.UNKNOWN;
+import static com.igormaznitsa.jprol.data.TermList.NULL_LIST;
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.data.TermType.LIST;
 import static com.igormaznitsa.jprol.data.TermType.STRUCT;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.EMPTY_LIST_ATOM;
 import static com.igormaznitsa.jprol.data.Terms.LIST_FUNCTOR;
-import static com.igormaznitsa.jprol.data.Terms.NULL_LIST;
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.data.Terms.newDouble;
 import static com.igormaznitsa.jprol.data.Terms.newList;
@@ -1777,7 +1777,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     if (first.getTermType() == LIST) {
       final TermList list = (TermList) first;
       if (list.isNullList()) {
-        result = Terms.NULL_LIST;
+        result = NULL_LIST;
       } else {
         final Term[] array = list.toArray(false);
         result = array[RND.nextInt(array.length)];

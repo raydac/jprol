@@ -1,5 +1,7 @@
 package com.igormaznitsa.jprol.jsr223;
 
+import static com.igormaznitsa.jprol.data.TermList.NULL_LIST;
+
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermDouble;
 import com.igormaznitsa.jprol.data.TermList;
@@ -51,7 +53,7 @@ public final class JProlScriptEngineUtils {
    */
   public static Term java2term(final Object obj) {
     if (obj == null) {
-      return Terms.NULL_LIST;
+      return NULL_LIST;
     }
     if (obj instanceof Term) {
       return (Term) obj;

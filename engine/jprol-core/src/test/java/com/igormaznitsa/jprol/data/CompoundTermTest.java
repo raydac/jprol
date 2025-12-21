@@ -1,5 +1,6 @@
 package com.igormaznitsa.jprol.data;
 
+import static com.igormaznitsa.jprol.data.TermList.NULL_LIST;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.stream.Collectors;
@@ -32,7 +33,7 @@ class CompoundTermTest {
     assertEquals("'a';'b';s(['true','false']);'c'",
         list.streamChildren().map(Term::toSrcString).collect(Collectors.joining(";")));
     assertEquals("",
-        Terms.NULL_LIST.streamChildren().map(Term::toSrcString).collect(Collectors.joining(";")));
+        NULL_LIST.streamChildren().map(Term::toSrcString).collect(Collectors.joining(";")));
   }
 
   @Test
@@ -48,12 +49,10 @@ class CompoundTermTest {
   void testStruct_stream() {
     final TermStruct struct = Terms.newStruct(
         Terms.newAtom("abc"),
-        new Term[] {
-            Terms.newVar("T"),
-            Terms.newAnonymousVar(),
-            Terms.newStruct(Terms.newLong(1234), new Term[] {Terms.NULL_LIST}),
-            TermList.asList(Terms.TRUE, Terms.FALSE)}
-    );
+        Terms.newVar("T"),
+        Terms.newAnonymousVar(),
+        Terms.newStruct(Terms.newLong(1234), new Term[] {NULL_LIST}),
+        TermList.asList(Terms.TRUE, Terms.FALSE));
     assertEquals("'abc';T;_;1234;'.';'.';'true';'.';'false';'.'",
         struct.stream().map(Term::toSrcString).collect(Collectors.joining(";")));
   }
@@ -62,12 +61,10 @@ class CompoundTermTest {
   void testStruct_streamChildren() {
     final TermStruct struct = Terms.newStruct(
         Terms.newAtom("abc"),
-        new Term[] {
-            Terms.newVar("T"),
-            Terms.newAnonymousVar(),
-            Terms.newStruct(Terms.newLong(1234), new Term[] {Terms.NULL_LIST}),
-            TermList.asList(Terms.TRUE, Terms.FALSE)}
-    );
+        Terms.newVar("T"),
+        Terms.newAnonymousVar(),
+        Terms.newStruct(Terms.newLong(1234), new Term[] {NULL_LIST}),
+        TermList.asList(Terms.TRUE, Terms.FALSE));
     assertEquals("T;_;1234([]);['true','false']",
         struct.streamChildren().map(Term::toSrcString).collect(Collectors.joining(";")));
   }
