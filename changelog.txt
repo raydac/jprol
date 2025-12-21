@@ -1,5 +1,6 @@
 2.3.0 (SNAPSHOT)
 
+    - Internal random generator switched to SecureRandom.
     - Updated embedded JDK to 25.0.1+13.
     - Refactored API moved some constants and restored support of payload for terms.
     - Added support for Java Scripting API (JSR 223) as module `jprol-jsr223`.
