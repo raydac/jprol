@@ -58,12 +58,12 @@ public final class TermVar extends Term {
   }
 
   @Override
-  public Term replaceVar(final String variableName, final Term value) {
+  public Term replaceVar(final String varName, final Term targetTerm) {
     if (this.isAnonymous()) {
       return this;
     }
-    if (this.getText().equals(variableName)) {
-      return value;
+    if (this.getText().equals(varName)) {
+      return targetTerm;
     } else {
       return this;
     }
@@ -253,8 +253,9 @@ public final class TermVar extends Term {
     return this.isAnonymous() ? Stream.empty() : Stream.of(this);
   }
 
+  @Override
   public boolean isAnonymous() {
-    return anonymous;
+    return this.anonymous;
   }
 
   @Override
@@ -344,7 +345,7 @@ public final class TermVar extends Term {
   public String forWrite() {
     final Term val = this.getValue();
     if (val == null) {
-      if (isAnonymous()) {
+      if (this.isAnonymous()) {
         return "_";
       } else {
         return this.getText();
@@ -371,12 +372,12 @@ public final class TermVar extends Term {
   }
 
   @Override
-  public boolean dryUnifyTo(final Term atom) {
-    if (this == atom) {
+  public boolean dryUnifyTo(final Term target) {
+    if (this == target) {
       return true;
     } else {
       final Term varValue = this.getValue();
-      return varValue == null || varValue.dryUnifyTo(atom);
+      return varValue == null || varValue.dryUnifyTo(target);
     }
   }
 

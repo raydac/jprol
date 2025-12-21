@@ -13,7 +13,7 @@ public abstract class SpecialTerm extends Term {
   }
 
   @Override
-  public boolean dryUnifyTo(final Term term) {
+  public boolean dryUnifyTo(final Term target) {
     throw new UnsupportedOperationException("Not supported for such kind of term");
   }
 

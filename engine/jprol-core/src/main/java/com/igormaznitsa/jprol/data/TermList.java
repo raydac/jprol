@@ -124,13 +124,13 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public Term replaceVar(final String variableName, final Term value) {
+  public Term replaceVar(final String varName, final Term targetTerm) {
     if (this.isNullList()) {
       return this;
     }
 
-    final Term newHead = this.getHead().replaceVar(variableName, value);
-    final Term newTail = this.getTail().replaceVar(variableName, value);
+    final Term newHead = this.getHead().replaceVar(varName, targetTerm);
+    final Term newTail = this.getTail().replaceVar(varName, targetTerm);
 
     if (newHead != this.getHead() || newTail != this.getTail()) {
       return Terms.newList(newHead, newTail, SourcePosition.UNKNOWN);
@@ -442,25 +442,25 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public boolean dryUnifyTo(Term atom) {
-    if (this == atom) {
+  public boolean dryUnifyTo(Term target) {
+    if (this == target) {
       return true;
     }
 
-    if (atom.getTermType() == VAR) {
-      atom = ((TermVar) atom).getValue();
+    if (target.getTermType() == VAR) {
+      target = ((TermVar) target).getValue();
     }
 
-    if (atom == null) {
+    if (target == null) {
       return true;
     }
 
-    if (atom.getTermType() == LIST) {
-      if (this == atom) {
+    if (target.getTermType() == LIST) {
+      if (this == target) {
         return true;
       }
       final TermList thisList = this;
-      final TermList thatList = (TermList) atom;
+      final TermList thatList = (TermList) target;
 
       if (thisList.isNullList()) {
         return thatList.isNullList();

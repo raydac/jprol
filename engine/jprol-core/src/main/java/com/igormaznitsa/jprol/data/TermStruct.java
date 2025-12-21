@@ -440,26 +440,26 @@ public class TermStruct extends CompoundTerm {
   }
 
   @Override
-  public boolean dryUnifyTo(Term atom) {
-    if (this == atom) {
+  public boolean dryUnifyTo(Term target) {
+    if (this == target) {
       return true;
     }
 
-    if (atom.getTermType() == VAR) {
-      atom = ((TermVar) atom).getValue();
+    if (target.getTermType() == VAR) {
+      target = ((TermVar) target).getValue();
     }
 
-    if (atom == null) {
+    if (target == null) {
       return true;
     } else {
-      if (atom == this) {
+      if (target == this) {
         return true;
       }
     }
 
-    if (atom.getTermType() == STRUCT) {
+    if (target.getTermType() == STRUCT) {
       final TermStruct thisStruct = this;
-      final TermStruct thatStruct = (TermStruct) atom;
+      final TermStruct thatStruct = (TermStruct) target;
 
       final int arity = thisStruct.getArity();
 
@@ -472,8 +472,8 @@ public class TermStruct extends CompoundTerm {
         }
         return true;
       }
-    } else if (this.getArity() == 0 && atom.getTermType() == ATOM) {
-      return this.getFunctor().getText().equals(atom.getText());
+    } else if (this.getArity() == 0 && target.getTermType() == ATOM) {
+      return this.getFunctor().getText().equals(target.getText());
     }
     return false;
   }
@@ -548,12 +548,12 @@ public class TermStruct extends CompoundTerm {
   }
 
   @Override
-  public Term replaceVar(final String variableName, final Term value) {
+  public Term replaceVar(final String varName, final Term targetTerm) {
     boolean changed = false;
     final Term[] newTerms = new Term[this.terms.length];
     for (int i = 0; i < this.terms.length; i++) {
       final Term next = this.terms[i];
-      final Term replaced = next.replaceVar(variableName, value);
+      final Term replaced = next.replaceVar(varName, targetTerm);
       newTerms[i] = replaced;
       changed |= next != replaced;
     }

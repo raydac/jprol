@@ -52,21 +52,21 @@ public abstract class NumericTerm extends Term {
   }
 
   @Override
-  public final boolean dryUnifyTo(Term atom) {
-    if (this == atom) {
+  public final boolean dryUnifyTo(Term target) {
+    if (this == target) {
       return true;
     }
 
-    if (atom.getTermType() == VAR) {
-      atom = ((TermVar) atom).getValue();
+    if (target.getTermType() == VAR) {
+      target = ((TermVar) target).getValue();
     }
 
-    if (atom == null) {
+    if (target == null) {
       return true;
     }
 
-    if (atom.getClass() == this.getClass()) {
-      return this.compare((NumericTerm) atom) == 0;
+    if (target.getClass() == this.getClass()) {
+      return this.compare((NumericTerm) target) == 0;
     }
     return false;
   }

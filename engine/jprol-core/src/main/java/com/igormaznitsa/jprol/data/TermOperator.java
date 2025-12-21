@@ -160,21 +160,21 @@ public final class TermOperator extends Term {
   }
 
   @Override
-  public boolean dryUnifyTo(final Term atom) {
-    if (this == atom) {
+  public boolean dryUnifyTo(final Term target) {
+    if (this == target) {
       return true;
     }
 
     final boolean result;
 
-    switch (atom.getTermType()) {
+    switch (target.getTermType()) {
       case OPERATOR:
       case ATOM: {
-        result = getText().equals(atom.getText());
+        result = getText().equals(target.getText());
       }
       break;
       case VAR: {
-        final TermVar var = (TermVar) atom;
+        final TermVar var = (TermVar) target;
         final Term value = var.getValue();
         result = value == null || this.dryUnifyTo(value);
       }

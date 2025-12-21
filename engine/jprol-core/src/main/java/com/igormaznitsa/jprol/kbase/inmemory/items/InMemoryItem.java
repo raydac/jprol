@@ -5,7 +5,6 @@ import static java.util.Objects.requireNonNull;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermType;
-import com.igormaznitsa.jprol.data.TermVar;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,7 +30,7 @@ public abstract class InMemoryItem {
     final Term rhs = clause.isClause() ? clause.getElement(0) : clause;
 
     final List<String> foundKeyVars = rhs.stream()
-        .filter(x -> x.getTermType() == TermType.VAR && !((TermVar) x).isAnonymous())
+        .filter(x -> x.getTermType() == TermType.VAR && !x.isAnonymous())
         .map(Term::getText)
         .collect(Collectors.toList());
 

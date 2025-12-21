@@ -44,9 +44,9 @@ import java.util.stream.Stream;
 
 public class Term {
 
+  protected final Object payload;
   private final String text;
   private final SourcePosition sourcePosition;
-  protected final Object payload;
 
   Term(final String text, final SourcePosition sourcePosition) {
     this(text, null, sourcePosition);
@@ -58,19 +58,56 @@ public class Term {
     this.sourcePosition = requireNonNull(sourcePosition);
   }
 
+  /**
+   * Check that the term is a null list term.
+   *
+   * @return true if it is a null list term, false otherwise
+   * @since 2.3.0
+   */
   public boolean isNullList() {
     return false;
   }
 
+  /**
+   * Check that the term is an anonymous variable.
+   *
+   * @return true if it is an anonymous variable, false otherwise
+   * @since 2.3.0
+   */
+  public boolean isAnonymous() {
+    return false;
+  }
+
+  /**
+   * Get payload object associated with the term.
+   *
+   * @param <T> type of expected payload object
+   * @return the payload object saved in the term, can be null
+   * @since 2.3.0
+   */
   @SuppressWarnings("unchecked")
   public <T> T getPayload() {
     return (T) this.payload;
   }
 
-  public Term replaceVar(final String variableName, final Term value) {
+  /**
+   * Make version of the term where a named variable replaced by a target term.
+   *
+   * @param varName    name of variable to be replaced, must not be null
+   * @param targetTerm target term to be injected instead of the variable, must not be null
+   * @return new version of the term with replaced variables or the same
+   * @since 2.3.0
+   */
+  public Term replaceVar(final String varName, final Term targetTerm) {
     return this;
   }
 
+  /**
+   * Get source position for the term.
+   *
+   * @return the source position
+   * @see SourcePosition#UNKNOWN
+   */
   public SourcePosition getSourcePosition() {
     return this.sourcePosition;
   }
@@ -87,21 +124,27 @@ public class Term {
     return ATOM;
   }
 
-  public boolean dryUnifyTo(Term term) {
-    if (this == term) {
+  /**
+   * Check that the term can be unified with target term without real change of state.
+   *
+   * @param target target term to be checked, must not be null
+   * @return true if it can be unified with the target term, false otherwise
+   */
+  public boolean dryUnifyTo(Term target) {
+    if (this == target) {
       return true;
     }
 
-    switch (term.getTermType()) {
+    switch (target.getTermType()) {
       case VAR: {
-        term = ((TermVar) term).getValue();
-        return term == null || this.dryUnifyTo(term);
+        target = ((TermVar) target).getValue();
+        return target == null || this.dryUnifyTo(target);
       }
       case ATOM: {
-        return term.getClass() == Term.class && getText().equals(term.getText());
+        return target.getClass() == Term.class && getText().equals(target.getText());
       }
       case STRUCT: {
-        final TermStruct thatStruct = (TermStruct) term;
+        final TermStruct thatStruct = (TermStruct) target;
         return thatStruct.getArity() == 0 && getText().equals(thatStruct.getFunctor().getText());
       }
       default:
@@ -125,6 +168,11 @@ public class Term {
         .collect(toMap(TermVar::getText, e -> e.<Term>findNonVarOrDefault(e), (v1, v2) -> v2));
   }
 
+  /**
+   * Check that the term represents a ground term (not a variable)
+   *
+   * @return true if grounded term, false otherwise
+   */
   public boolean isGround() {
     return true;
   }
@@ -243,6 +291,11 @@ public class Term {
     }
   }
 
+  /**
+   * Check that term can contain variables.
+   *
+   * @return true if the term can contain variables, false otherwise
+   */
   public boolean canContainVariables() {
     return false;
   }
