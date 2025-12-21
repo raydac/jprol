@@ -95,7 +95,7 @@ class MiscTest extends AbstractJProlTest {
     final List<Result> result = new ArrayList<>();
     Term t;
     while ((t = goal.prove()) != null) {
-      result.add(new Result(t.allNamedVarValuesAsMap()));
+      result.add(new Result(t.findAllNamedVariableValues()));
     }
 
     assertEquals(3, result.size());

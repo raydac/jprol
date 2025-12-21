@@ -18,9 +18,11 @@ package com.igormaznitsa.jprol.data;
 
 import static com.igormaznitsa.jprol.data.Terms.newLong;
 
+import java.util.Objects;
+
 public final class TermLong extends NumericTerm {
 
-  private final Long value;
+  private final long value;
 
   TermLong(final String name, final SourcePosition sourcePosition) {
     this(name, null, sourcePosition);
@@ -51,20 +53,24 @@ public final class TermLong extends NumericTerm {
 
   @Override
   public int hashCode() {
-    return this.value.hashCode();
+    return Objects.hash(this.value);
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(final Object obj) {
     if (obj == null) {
       return false;
     }
-
-    if (obj.getClass() == TermLong.class) {
-      return ((TermLong) obj).value.equals(this.value);
+    if (obj == this) {
+      return true;
     }
 
-    return super.equals(obj);
+    if (obj.getClass() == TermLong.class) {
+      final TermLong that = (TermLong) obj;
+      return this.value == that.value;
+    }
+
+    return false;
   }
 
   @Override
@@ -74,7 +80,7 @@ public final class TermLong extends NumericTerm {
 
   @Override
   public String toSrcString() {
-    return Long.toString(value);
+    return Long.toString(this.value);
   }
 
   @Override

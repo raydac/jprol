@@ -35,9 +35,9 @@ public final class TermOperatorContainer extends SpecialTerm {
                                 final SourcePosition sourcePosition) {
     super(sample.getText(), sourcePosition);
     this.opContainer = OpContainer.make(sample.getText(),
-        sample.opFZ == null ? null : sample.opFZ.asOp(),
-        sample.opZF == null ? null : sample.opZF.asOp(),
-        sample.opZFZ == null ? null : sample.opZFZ.asOp());
+        sample.opFZ == null ? null : sample.opFZ.asOperator(),
+        sample.opZF == null ? null : sample.opZF.asOperator(),
+        sample.opZFZ == null ? null : sample.opZFZ.asOperator());
     opFZ = sample.opFZ;
     opZF = sample.opZF;
     opZFZ = sample.opZFZ;
@@ -45,7 +45,7 @@ public final class TermOperatorContainer extends SpecialTerm {
 
   public TermOperatorContainer(final TermOperator operator, final SourcePosition sourcePosition) {
     super(operator.getText(), sourcePosition);
-    this.opContainer = OpContainer.make(operator.asOp());
+    this.opContainer = OpContainer.make(operator.asOperator());
     setOperator(operator);
   }
 
@@ -54,14 +54,14 @@ public final class TermOperatorContainer extends SpecialTerm {
   }
 
   public boolean setOperator(final TermOperator operator) {
-    switch (operator.getOperatorType()) {
+    switch (operator.getType()) {
       case FX:
       case FY: {
         if (opFZ != null) {
           return false;
         }
         opFZ = operator;
-        this.opContainer.add(operator.asOp());
+        this.opContainer.add(operator.asOperator());
       }
       break;
       case XF:
@@ -70,7 +70,7 @@ public final class TermOperatorContainer extends SpecialTerm {
           return false;
         }
         opZF = operator;
-        this.opContainer.add(operator.asOp());
+        this.opContainer.add(operator.asOperator());
       }
       break;
       case XFX:
@@ -80,7 +80,7 @@ public final class TermOperatorContainer extends SpecialTerm {
           return false;
         }
         opZFZ = operator;
-        this.opContainer.add(operator.asOp());
+        this.opContainer.add(operator.asOperator());
       }
       break;
       default: {
@@ -107,7 +107,7 @@ public final class TermOperatorContainer extends SpecialTerm {
     }
   }
 
-  public TermOperator getForTypePrecisely(final OpAssoc type) {
+  public TermOperator getForExactType(final OpAssoc type) {
     TermOperator result = null;
     switch (type) {
       case FY:
@@ -137,18 +137,18 @@ public final class TermOperatorContainer extends SpecialTerm {
       }
     }
 
-    if (result != null && result.getOperatorType() == type) {
+    if (result != null && result.getType() == type) {
       return result;
     }
     return null;
   }
 
-  public boolean removeOperatorForType(final OpAssoc type) {
+  public boolean removeForType(final OpAssoc type) {
     boolean result = false;
     switch (type) {
       case FX:
       case FY: {
-        if (opFZ != null && opFZ.getOperatorType() == type) {
+        if (opFZ != null && opFZ.getType() == type) {
           opFZ = null;
           this.opContainer.removeForType(type);
           result = true;
@@ -157,7 +157,7 @@ public final class TermOperatorContainer extends SpecialTerm {
       break;
       case XF:
       case YF: {
-        if (opZF != null && opZF.getOperatorType() == type) {
+        if (opZF != null && opZF.getType() == type) {
           opZF = null;
           this.opContainer.removeForType(type);
           result = true;
@@ -167,7 +167,7 @@ public final class TermOperatorContainer extends SpecialTerm {
       case XFX:
       case YFX:
       case XFY: {
-        if (opZFZ != null && opZFZ.getOperatorType() == type) {
+        if (opZFZ != null && opZFZ.getType() == type) {
           opZFZ = null;
           this.opContainer.removeForType(type);
           result = true;
@@ -180,7 +180,7 @@ public final class TermOperatorContainer extends SpecialTerm {
     return result;
   }
 
-  public List<TermOperator> toList() {
+  public List<TermOperator> makeList() {
     final List<TermOperator> result = new ArrayList<>(3);
     final TermOperator fz = this.opFZ;
     final TermOperator zfz = this.opZFZ;
@@ -197,7 +197,9 @@ public final class TermOperatorContainer extends SpecialTerm {
     return result;
   }
 
-  public TermOperatorContainer makeCopy() {
+  @Override
+  public Term makeClone() {
     return new TermOperatorContainer(this, this.getSourcePosition());
   }
+
 }

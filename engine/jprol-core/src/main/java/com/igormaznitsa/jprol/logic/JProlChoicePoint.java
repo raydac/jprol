@@ -96,7 +96,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
         this.varSnapshot = null;
         this.variables = null;
       } else {
-        this.variables = goal.allNamedVarsAsMap();
+        this.variables = goal.findAllNamedVariables();
         this.varSnapshot = new VariableStateSnapshot(goal, presetVarValues);
       }
       this.rootLastGoalAtChain = this;

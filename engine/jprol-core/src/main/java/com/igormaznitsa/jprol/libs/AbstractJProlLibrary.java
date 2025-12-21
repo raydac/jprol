@@ -46,14 +46,14 @@ import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
+import com.igormaznitsa.jprol.utils.LazyMap;
+import com.igormaznitsa.jprol.utils.LazySet;
 import com.igormaznitsa.jprol.utils.OperatorIterator;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.ProlUtils;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -81,7 +81,7 @@ public abstract class AbstractJProlLibrary {
 
     this.systemOperators =
         unmodifiableMap(loadStaticOperators(this.getClass(), SourcePosition.UNKNOWN));
-    final Set<String> zeroArityPredicates = new HashSet<>();
+    final Set<String> zeroArityPredicates = new LazySet<>();
     this.predicateMethodsMap =
         unmodifiableMap(extractAnnotatedMethodsAsPredicates(libraryUid, zeroArityPredicates));
     this.zeroArityPredicateNames = unmodifiableSet(zeroArityPredicates);
@@ -173,7 +173,7 @@ public abstract class AbstractJProlLibrary {
 
   private static Map<String, TermOperatorContainer> loadStaticOperators(final Class<?> targetClass,
                                                                         final SourcePosition sourcePosition) {
-    final Map<String, TermOperatorContainer> result = new HashMap<>();
+    final Map<String, TermOperatorContainer> result = new LazyMap<>();
     final JProlOperators operators = targetClass.getAnnotation(JProlOperators.class);
     if (operators != null) {
       JProlOperator[] operatorList = operators.value();
@@ -377,7 +377,7 @@ public abstract class AbstractJProlLibrary {
 
   private Map<String, PredicateInvoker> extractAnnotatedMethodsAsPredicates(final String libraryUID,
                                                                             final Set<String> foundZeroArityPredicates) {
-    final Map<String, PredicateInvoker> result = new HashMap<>();
+    final Map<String, PredicateInvoker> result = new LazyMap<>();
 
     final Method[] methods = this.getClass().getMethods();
     for (final Method method : methods) {

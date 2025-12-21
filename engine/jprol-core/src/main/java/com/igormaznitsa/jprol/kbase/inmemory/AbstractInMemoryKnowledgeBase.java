@@ -75,7 +75,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
 
     if (base != null) {
       for (final Entry<String, TermOperatorContainer> item : base.operatorTable.entrySet()) {
-        operatorTable.put(item.getKey(), item.getValue().makeCopy());
+        operatorTable.put(item.getKey(), (TermOperatorContainer) item.getValue().makeClone());
       }
       base.predicateTable.forEach((key, value) -> {
         final List<InMemoryItem> list = itermListSupplier.get();
@@ -117,7 +117,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
     boolean result = false;
 
     if (opContainer != null) {
-      result = opContainer.removeOperatorForType(type);
+      result = opContainer.removeForType(type);
     }
     return result;
   }
@@ -187,7 +187,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
 
         if (rightPart != null) {
           if (rightPart.getTermType() == VAR) {
-            if (!leftPart.hasVariableWithName(rightPart.getText())) {
+            if (!leftPart.containsNamedVariable(rightPart.getText())) {
               throw new ProlInstantiationErrorException(
                   "Arguments are not sufficiently instantiated: " + rightPart, clause);
             }

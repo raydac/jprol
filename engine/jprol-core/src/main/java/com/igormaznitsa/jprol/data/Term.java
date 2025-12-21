@@ -38,8 +38,9 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
 
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
-import java.util.HashMap;
+import com.igormaznitsa.jprol.utils.LazyMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 public class Term {
@@ -112,7 +113,7 @@ public class Term {
     return this.sourcePosition;
   }
 
-  public int getPriority() {
+  public int getPrecedence() {
     return 0;
   }
 
@@ -152,7 +153,7 @@ public class Term {
     }
   }
 
-  public Map<String, TermVar> allNamedVarsAsMap() {
+  public Map<String, TermVar> findAllNamedVariables() {
     return this.variables()
         .collect(
             toMap(TermVar::getText,
@@ -162,7 +163,7 @@ public class Term {
         );
   }
 
-  public Map<String, Term> allNamedVarValuesAsMap() {
+  public Map<String, Term> findAllNamedVariableValues() {
     return this.variables()
         .filter(v -> !v.isFree())
         .collect(toMap(TermVar::getText, e -> e.<Term>findNonVarOrDefault(e), (v1, v2) -> v2));
@@ -215,11 +216,7 @@ public class Term {
 
   @Override
   public int hashCode() {
-    if (text == null) {
-      return super.hashCode();
-    } else {
-      return text.hashCode();
-    }
+    return Objects.hash(this.text);
   }
 
   public Number toNumber() {
@@ -276,19 +273,12 @@ public class Term {
       return true;
     }
 
-    final Class<?> thatClass = obj.getClass();
-
-    if (thatClass == TermLong.class || obj.getClass() == Term.class) {
-
-      final Term other = (Term) obj;
-
-      if (hashCode() != other.hashCode()) {
-        return false;
-      }
-      return this.text.equals(other.text);
-    } else {
-      return false;
+    if (obj.getClass() == Term.class) {
+      final Term that = (Term) obj;
+      return this.text.equals(that.text);
     }
+
+    return false;
   }
 
   /**
@@ -305,7 +295,7 @@ public class Term {
 
   public final void arrangeVariablesInsideTerms(final Term termTwo) {
     if (this.canContainVariables() && termTwo.canContainVariables()) {
-      final Map<String, TermVar> varMap = new HashMap<>();
+      final Map<String, TermVar> varMap = new LazyMap<>();
       this.doArrangeVars(varMap);
       termTwo.doArrangeVars(varMap);
     }
@@ -315,10 +305,20 @@ public class Term {
     return this.text == null ? 0 : this.text.length();
   }
 
-  public boolean hasVariableWithName(final String name) {
+  /**
+   * Check that the term has a named variable among its content.
+   *
+   * @param name name of variable, must not be null
+   * @return true if it contains, false otherwise
+   */
+  public boolean containsNamedVariable(final String name) {
     return false;
   }
 
+  /**
+   * Get cloned version of the term.
+   * @return a cloned version.
+   */
   public Term makeClone() {
     return this;
   }

@@ -12,7 +12,7 @@ public class OperatorIterator implements CloseableIterator<TermOperator> {
   public OperatorIterator(final Iterator<TermOperatorContainer> iterator) {
     this.iterator = iterator;
     if (this.iterator.hasNext()) {
-      this.operatorIterator = this.iterator.next().toList().iterator();
+      this.operatorIterator = this.iterator.next().makeList().iterator();
     }
   }
 
@@ -34,7 +34,7 @@ public class OperatorIterator implements CloseableIterator<TermOperator> {
     final TermOperator result = this.operatorIterator.next();
     if (!this.operatorIterator.hasNext()) {
       if (this.iterator.hasNext()) {
-        this.operatorIterator = this.iterator.next().toList().iterator();
+        this.operatorIterator = this.iterator.next().makeList().iterator();
       }
     }
     return result;

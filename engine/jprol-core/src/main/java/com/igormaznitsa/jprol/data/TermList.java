@@ -24,10 +24,10 @@ import static com.igormaznitsa.jprol.utils.ProlUtils.createOrAppendToList;
 import static java.util.Objects.requireNonNull;
 
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
+import com.igormaznitsa.jprol.utils.LazyMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -277,7 +277,7 @@ public final class TermList extends TermStruct {
 
   @Override
   public Term makeClone() {
-    return this.isNullList() ? this : this.doMakeClone(new HashMap<>());
+    return this.isNullList() ? this : this.doMakeClone(new LazyMap<>());
   }
 
   @Override
@@ -585,11 +585,11 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public boolean hasVariableWithName(final String name) {
+  public boolean containsNamedVariable(final String name) {
     if (this.isNullList()) {
       return false;
     }
-    return getHead().hasVariableWithName(name) || getTail().hasVariableWithName(name);
+    return this.getHead().containsNamedVariable(name) || this.getTail().containsNamedVariable(name);
   }
 
   public boolean doesContainOnlyCharCodes() {

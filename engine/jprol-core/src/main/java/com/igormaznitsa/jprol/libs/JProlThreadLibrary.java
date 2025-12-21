@@ -2,14 +2,12 @@ package com.igormaznitsa.jprol.libs;
 
 import static com.igormaznitsa.jprol.utils.ProlAssertions.assertAtom;
 import static com.igormaznitsa.jprol.utils.ProlAssertions.assertCallable;
-import static com.igormaznitsa.jprol.utils.ProlAssertions.assertNumber;
 import static com.igormaznitsa.jprol.utils.ProlUtils.extractErrors;
 
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermStruct;
-import com.igormaznitsa.jprol.exceptions.ProlChoicePointInterruptedException;
 import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlForkExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
@@ -115,23 +113,6 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
       throw new ProlExistenceErrorException("locker", "unlock", predicate, ex);
     } catch (IllegalMonitorStateException ex) {
       throw new ProlPermissionErrorException("locker", "unlock", predicate, ex);
-    }
-  }
-
-  @JProlPredicate(determined = true, signature = "sleep/1", args = {
-      "+number"}, critical = true,
-      reference = "Sleep current thread for provided number of milliseconds.")
-  public static void predicateSLEEP1(final JProlChoicePoint choicePoint,
-                                     final TermStruct predicate) {
-    final Term term = predicate.getElement(0).findNonVarOrSame();
-    if (choicePoint.isArgsValidate()) {
-      assertNumber(term);
-    }
-
-    try {
-      Thread.sleep(term.toNumber().longValue());
-    } catch (InterruptedException ex) {
-      throw new ProlChoicePointInterruptedException("Sleep interrupted", choicePoint);
     }
   }
 

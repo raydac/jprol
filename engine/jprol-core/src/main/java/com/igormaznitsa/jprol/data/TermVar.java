@@ -20,7 +20,7 @@ import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.newVar;
 
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
-import java.util.HashMap;
+import com.igormaznitsa.jprol.utils.LazyMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
@@ -109,7 +109,7 @@ public final class TermVar extends Term {
         this.isAnonymous() ? Terms.newAnonymousVar() :
             newVar(this.getText(), this.payload, this.getSourcePosition());
     if (thisValue != null) {
-      final Map<Integer, TermVar> variableMap = new HashMap<>();
+      final Map<Integer, TermVar> variableMap = new LazyMap<>();
       variableMap.put(this.getVarUid(), result);
       result.setThisValue(this.doMakeClone(variableMap));
     }
@@ -382,7 +382,7 @@ public final class TermVar extends Term {
   }
 
   @Override
-  public boolean hasVariableWithName(final String name) {
+  public boolean containsNamedVariable(final String name) {
     return getText().equals(name);
   }
 }

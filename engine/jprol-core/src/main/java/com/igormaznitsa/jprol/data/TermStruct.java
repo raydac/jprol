@@ -24,9 +24,9 @@ import static java.util.Objects.requireNonNull;
 
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
+import com.igormaznitsa.jprol.utils.LazyMap;
 import com.igormaznitsa.jprol.utils.ProlUtils;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -141,9 +141,9 @@ public class TermStruct extends CompoundTerm {
   }
 
   @Override
-  public int getPriority() {
+  public int getPrecedence() {
     if (functor.getTermType() == OPERATOR) {
-      return functor.getPriority();
+      return functor.getPrecedence();
     } else {
       return 0;
     }
@@ -183,19 +183,19 @@ public class TermStruct extends CompoundTerm {
 
       final TermOperator OperatorFunctor = (TermOperator) functor;
 
-      final int priority = OperatorFunctor.getPriority();
+      final int priority = OperatorFunctor.getPrecedence();
 
       final Term arg1 = this.getElement(0);
       final Term arg2 = getArity() > 1 ? this.getElement(1) : null;
 
-      switch (OperatorFunctor.getOperatorType()) {
+      switch (OperatorFunctor.getType()) {
         case FX: {
           builder.append(opName);
           builder.append(' ');
 
           final String text = sourceLike ? arg1.toSrcString() : arg1.toString();
 
-          if (arg1.getPriority() >= priority) {
+          if (arg1.getPrecedence() >= priority) {
             builder.append('(').append(text).append(')');
           } else {
             builder.append(text);
@@ -208,7 +208,7 @@ public class TermStruct extends CompoundTerm {
 
           final String text = sourceLike ? arg1.toSrcString() : arg1.toString();
 
-          if (arg1.getPriority() > priority) {
+          if (arg1.getPrecedence() > priority) {
             builder.append('(').append(text).append(')');
           } else {
             builder.append(text);
@@ -218,7 +218,7 @@ public class TermStruct extends CompoundTerm {
         case XF: {
           final String text = sourceLike ? arg1.toSrcString() : arg1.toString();
 
-          if (arg1.getPriority() >= priority) {
+          if (arg1.getPrecedence() >= priority) {
             builder.append('(').append(text).append(')');
           } else {
             builder.append(text);
@@ -231,7 +231,7 @@ public class TermStruct extends CompoundTerm {
         case YF: {
           final String text = sourceLike ? arg1.toSrcString() : arg1.toString();
 
-          if (arg1.getPriority() > priority) {
+          if (arg1.getPrecedence() > priority) {
             builder.append('(').append(text).append(')');
           } else {
             builder.append(text);
@@ -245,7 +245,7 @@ public class TermStruct extends CompoundTerm {
           final String text = sourceLike ? arg1.toSrcString() : arg1.toString();
           final String text2 = sourceLike ? arg2.toSrcString() : arg2.toString();
 
-          if (arg1.getPriority() >= priority) {
+          if (arg1.getPrecedence() >= priority) {
             builder.append('(').append(text).append(')');
           } else {
             builder.append(text);
@@ -255,7 +255,7 @@ public class TermStruct extends CompoundTerm {
           builder.append(opName);
           builder.append(' ');
 
-          if (arg2.getPriority() >= priority) {
+          if (arg2.getPrecedence() >= priority) {
             builder.append('(').append(text2).append(')');
           } else {
             builder.append(text2);
@@ -266,7 +266,7 @@ public class TermStruct extends CompoundTerm {
           final String text = sourceLike ? arg1.toSrcString() : arg1.toString();
           final String text2 = sourceLike ? arg2.toSrcString() : arg2.toString();
 
-          if (arg1.getPriority() > priority) {
+          if (arg1.getPrecedence() > priority) {
             builder.append('(').append(text).append(')');
           } else {
             builder.append(text);
@@ -276,7 +276,7 @@ public class TermStruct extends CompoundTerm {
           builder.append(opName);
           builder.append(' ');
 
-          if (arg2.getPriority() >= priority) {
+          if (arg2.getPrecedence() >= priority) {
             builder.append('(').append(text2).append(')');
           } else {
             builder.append(text2);
@@ -287,7 +287,7 @@ public class TermStruct extends CompoundTerm {
           final String text = sourceLike ? arg1.toSrcString() : arg1.toString();
           final String text2 = sourceLike ? arg2.toSrcString() : arg2.toString();
 
-          if (arg1.getPriority() >= priority) {
+          if (arg1.getPrecedence() >= priority) {
             builder.append('(').append(text).append(')');
           } else {
             builder.append(text);
@@ -297,7 +297,7 @@ public class TermStruct extends CompoundTerm {
           builder.append(opName);
           builder.append(' ');
 
-          if (arg2.getPriority() > priority) {
+          if (arg2.getPrecedence() > priority) {
             builder.append('(').append(text2).append(')');
           } else {
             builder.append(text2);
@@ -337,7 +337,7 @@ public class TermStruct extends CompoundTerm {
 
       final TermOperator OperatorFunctor = (TermOperator) functor;
 
-      switch (OperatorFunctor.getOperatorType()) {
+      switch (OperatorFunctor.getType()) {
         case FX:
         case FY: {
           builder.append(opName);
@@ -479,7 +479,7 @@ public class TermStruct extends CompoundTerm {
   }
 
   public Term makeClone() {
-    return this.getArity() == 0 ? this : this.doMakeClone(new HashMap<>());
+    return this.getArity() == 0 ? this : this.doMakeClone(new LazyMap<>());
   }
 
   @Override
@@ -528,20 +528,19 @@ public class TermStruct extends CompoundTerm {
 
 
   @Override
-  protected Term doMakeClone(Map<Integer, TermVar> vars) {
+  protected Term doMakeClone(final Map<Integer, TermVar> vars) {
     final Term result;
     if (this.getArity() == 0) {
       result = this;
     } else {
       final Term[] elements = this.getElementArray();
       final int arity = elements.length;
-      final Term[] destElements = new Term[arity];
-
-      for (int li = 0; li < arity; li++) {
-        final Term element = elements[li];
-        destElements[li] = element.doMakeClone(vars);
+      final Term[] targetElements = new Term[arity];
+      for (int i = 0; i < arity; i++) {
+        final Term element = elements[i];
+        targetElements[i] = element.doMakeClone(vars);
       }
-      result = Terms.newStruct(this.getFunctor(), destElements, this.getPredicateProcessor(),
+      result = Terms.newStruct(this.getFunctor(), targetElements, this.getPredicateProcessor(),
           this.payload, this.getSourcePosition());
     }
     return result;
@@ -565,10 +564,9 @@ public class TermStruct extends CompoundTerm {
   }
 
   @Override
-  public boolean hasVariableWithName(final String name) {
-    final int arity = getArity();
-    for (int li = 0; li < arity; li++) {
-      if (getElement(li).hasVariableWithName(name)) {
+  public boolean containsNamedVariable(final String name) {
+    for (final Term t : this.terms) {
+      if (t.containsNamedVariable(name)) {
         return true;
       }
     }
@@ -577,7 +575,19 @@ public class TermStruct extends CompoundTerm {
 
   @Override
   public boolean equals(final Object obj) {
-    return this == obj;
+    if (obj == null) {
+      return false;
+    }
+    if (obj == this) {
+      return true;
+    }
+    if (obj instanceof TermStruct) {
+      final TermStruct that = (TermStruct) obj;
+      return this.terms.length == that.terms.length
+          && this.functor.equals(that.functor)
+          && Arrays.equals(this.terms, that.terms);
+    }
+    return false;
   }
 
   @Override

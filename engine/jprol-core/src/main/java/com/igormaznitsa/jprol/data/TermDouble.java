@@ -65,11 +65,15 @@ public final class TermDouble extends NumericTerm {
       return false;
     }
 
+    if (obj == this) {
+      return true;
+    }
+
     if (obj.getClass() == TermDouble.class) {
       return Double.compare(this.value, ((TermDouble) obj).value) == 0;
     }
 
-    return super.equals(obj);
+    return false;
   }
 
   @Override

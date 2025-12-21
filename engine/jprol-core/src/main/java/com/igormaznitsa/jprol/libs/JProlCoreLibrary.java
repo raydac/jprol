@@ -70,6 +70,7 @@ import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
 import com.igormaznitsa.jprol.logic.triggers.JProlTriggeringEventObserver;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
+import com.igormaznitsa.jprol.utils.LazySet;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.ProlUtils;
 import com.igormaznitsa.prologparser.exceptions.PrologParserException;
@@ -816,7 +817,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       final Iterator<TermOperator> activeIterator = list.get(0);
       while (activeIterator.hasNext()) {
         final TermOperator found = activeIterator.next();
-        final Term opPriority = Terms.newLong(found.getPriority());
+        final Term opPriority = Terms.newLong(found.getPrecedence());
         final Term opType = Terms.newAtom(found.getTypeAsString());
         final Term opName = Terms.newAtom(found.getText());
 
@@ -1157,7 +1158,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final TermList listLeft = ProlAssertions.assertList(argLeft);
     final TermList listRight = ProlAssertions.assertList(argRight);
 
-    Set<Integer> freeIndex = new HashSet<>();
+    Set<Integer> freeIndex = new LazySet<>();
     int index = 0;
     for (final Term r : listRight) {
       freeIndex.add(index++);
@@ -2065,7 +2066,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     if (bagOfMap == null) {
       bagOfMap = new LinkedHashMap<>();
 
-      final Set<String> excludedVars = new HashSet<>(templateTerm.allNamedVarsAsMap().keySet());
+      final Set<String> excludedVars = new HashSet<>(templateTerm.findAllNamedVariables().keySet());
 
       Term processingGoal = goalTerm;
       while (processingGoal.getTermType() == STRUCT
@@ -2190,7 +2191,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     if (preparedMap == null) {
       preparedMap = new LinkedHashMap<>();
 
-      final Set<String> excludedVars = new HashSet<>(template.allNamedVarsAsMap().keySet());
+      final Set<String> excludedVars = new HashSet<>(template.findAllNamedVariables().keySet());
 
       Term processingGoal = scopeGoal;
       while (processingGoal.getTermType() == STRUCT
@@ -2381,7 +2382,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static void predicateDYNAMIC(final JProlChoicePoint goal,
                                       final TermStruct predicate) {
     final Term term = predicate.getElement(0).findNonVarOrSame();
-    final Set<String> indicators = new HashSet<>();
+    final Set<String> indicators = new LazySet<>();
 
     final Consumer<Term> termConsumer = x -> {
       ProlAssertions.assertIndicator(x);
@@ -2513,12 +2514,14 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "pause/1", args = {
-      "+number"}, reference = "Make pause for defined milliseconds.")
+      "+number"}, reference = "Pauses execution of the current thread for the specified time in milliseconds.")
   public static void predicatePAUSE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term term = predicate.getElement(0).findNonVarOrSame();
+
     if (goal.isArgsValidate()) {
       ProlAssertions.assertNumber(term);
     }
+
     final long milliseconds = term.toNumber().longValue();
     if (milliseconds > 0) {
       try {

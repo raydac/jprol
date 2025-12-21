@@ -59,7 +59,7 @@ public final class TermOperator extends Term {
     this.op = Op.make(priority, type, name);
   }
 
-  public Op asOp() {
+  public Op asOperator() {
     return this.op;
   }
 
@@ -68,13 +68,13 @@ public final class TermOperator extends Term {
     return OPERATOR;
   }
 
-  public OpAssoc getOperatorType() {
+  public OpAssoc getType() {
     return this.op.getAssoc();
   }
 
   @Override
-  public int getPriority() {
-    return op.getPrecedence();
+  public int getPrecedence() {
+    return this.op.getPrecedence();
   }
 
   @Override
@@ -87,21 +87,24 @@ public final class TermOperator extends Term {
     if (obj == null) {
       return false;
     }
-    if (getClass() != obj.getClass()) {
-      return false;
+
+    if (this == obj) {
+      return true;
     }
 
-    final TermOperator other = (TermOperator) obj;
-
-    if (!this.op.equals(other.op)) {
-      return false;
+    if (obj instanceof TermOperator) {
+      final TermOperator that = (TermOperator) obj;
+      return this.op.equals(that.op);
+    } else if (obj instanceof Term) {
+      return this.getText().equals(((Term) obj).getText());
     }
-    return this.getText().equals(other.getText());
+
+    return false;
   }
 
   @Override
   public String toSrcString() {
-    return getText();
+    return this.getText();
   }
 
   @Override

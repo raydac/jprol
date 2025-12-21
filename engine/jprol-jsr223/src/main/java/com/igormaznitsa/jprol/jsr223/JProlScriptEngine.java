@@ -19,6 +19,7 @@ import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.JProlTreeBuilder;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
+import com.igormaznitsa.jprol.utils.LazyMap;
 import com.igormaznitsa.jprol.utils.ProlUtils;
 import com.igormaznitsa.prologparser.ParserContext;
 import com.igormaznitsa.prologparser.exceptions.PrologParserException;
@@ -30,7 +31,6 @@ import java.io.StringReader;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -168,7 +168,7 @@ public class JProlScriptEngine
         customEngineBindings == null ? context.getBindings(ScriptContext.ENGINE_SCOPE) :
             customEngineBindings;
 
-    final Map<String, Term> result = new HashMap<>();
+    final Map<String, Term> result = new LazyMap<>();
     if (globalScope != null) {
       globalScope.entrySet().stream().filter(x -> isValidPrologVariableName(x.getKey()))
           .forEach(e -> result.put(e.getKey(), java2term(e.getValue())));

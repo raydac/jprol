@@ -7,18 +7,22 @@ public abstract class SpecialTerm extends Term {
     super(text, sourcePosition);
   }
 
-  @Override
-  public Stream<Term> stream() {
-    throw new UnsupportedOperationException("Not supported for such kind of term");
+  protected static <T> T throwUnsupportedException() {
+    throw new UnsupportedOperationException("Unsupported in special terms");
   }
 
   @Override
-  public boolean dryUnifyTo(final Term target) {
-    throw new UnsupportedOperationException("Not supported for such kind of term");
+  public final Stream<Term> stream() {
+    return throwUnsupportedException();
   }
 
   @Override
-  public boolean unifyTo(final Term other) {
-    throw new UnsupportedOperationException("Not supported for such kind of term");
+  public final boolean dryUnifyTo(final Term target) {
+    return throwUnsupportedException();
+  }
+
+  @Override
+  public final boolean unifyTo(final Term other) {
+    return throwUnsupportedException();
   }
 }

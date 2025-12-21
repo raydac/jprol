@@ -60,6 +60,7 @@ import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
 import com.igormaznitsa.jprol.logic.triggers.TriggerEvent;
 import com.igormaznitsa.jprol.trace.JProlContextListener;
 import com.igormaznitsa.jprol.trace.TraceEvent;
+import com.igormaznitsa.jprol.utils.LazyMap;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.ProlUtils;
 import com.igormaznitsa.prologparser.ParserContext;
@@ -81,7 +82,6 @@ import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -99,6 +99,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -118,6 +119,9 @@ public class JProlContext implements AutoCloseable {
   private final Map<JProlSystemFlag, Term> systemFlags = new ConcurrentHashMap<>();
   private final AtomicInteger asyncTaskCounter = new AtomicInteger();
   private final Set<String> dynamicSignatures = new ConcurrentSkipListSet<>();
+
+  private final ReentrantLock asyncLocker = new ReentrantLock();
+  private final Condition asyncCounterCondition = asyncLocker.newCondition();
 
   private final ParserContext parserContext = new ParserContext() {
     @Override
@@ -350,22 +354,28 @@ public class JProlContext implements AutoCloseable {
   }
 
   public void waitAllAsyncTasks() {
-    while (this.asyncTaskCounter.get() > 0 && !this.isDisposed()) {
-      synchronized (this.asyncTaskCounter) {
+    this.asyncLocker.lock();
+    try {
+      while (this.asyncTaskCounter.get() > 0 && !this.isDisposed()) {
         try {
-          this.asyncTaskCounter.wait();
+          this.asyncCounterCondition.await();
         } catch (InterruptedException ex) {
           Thread.currentThread().interrupt();
-          return;
+          break;
         }
       }
+    } finally {
+      this.asyncLocker.unlock();
     }
   }
 
-  private void onAsyncTaskCompleted(final Term goal) {
+  private void onAsyncTaskCompleted() {
     this.asyncTaskCounter.decrementAndGet();
-    synchronized (this.asyncTaskCounter) {
-      this.asyncTaskCounter.notifyAll();
+    this.asyncLocker.lock();
+    try {
+      this.asyncCounterCondition.signalAll();
+    } finally {
+      this.asyncLocker.unlock();
     }
   }
 
@@ -393,7 +403,7 @@ public class JProlContext implements AutoCloseable {
           }
         }, this.asyncTaskExecutorService)
         .handle((x, e) -> {
-          this.onAsyncTaskCompleted(goal);
+          this.onAsyncTaskCompleted();
           if (e != null) {
             if (!(e instanceof CompletionException) ||
                 !(e.getCause() instanceof ProlInterruptException)) {
@@ -418,7 +428,7 @@ public class JProlContext implements AutoCloseable {
       asyncGoal.cutVariants();
       return result;
     }, this.asyncTaskExecutorService).handle((x, e) -> {
-      this.onAsyncTaskCompleted(goal);
+      this.onAsyncTaskCompleted();
       if (e != null) {
         if (!(e instanceof CompletionException) ||
             !(e.getCause() instanceof ProlInterruptException)) {
@@ -640,7 +650,7 @@ public class JProlContext implements AutoCloseable {
     return this.libraries.stream()
         .map(lib -> lib.findSystemOperatorForName(name))
         .filter(Objects::nonNull)
-        .map(x -> x.getForTypePrecisely(associativity))
+        .map(x -> x.getForExactType(associativity))
         .filter(Objects::nonNull)
         .findFirst().orElse(null);
   }
@@ -895,7 +905,7 @@ public class JProlContext implements AutoCloseable {
               if (functor.getTermType() == TermType.OPERATOR) {
                 final TermOperator op = (TermOperator) functor;
                 final String text = op.getText();
-                final OpAssoc type = op.getOperatorType();
+                final OpAssoc type = op.getType();
 
                 if (struct.isClause()) {
                   switch (type) {
@@ -918,7 +928,7 @@ public class JProlContext implements AutoCloseable {
 
                   if (iterator != null && iterator.onFoundInteractiveGoal(this, termGoal)) {
 
-                    final Map<String, TermVar> variableMap = new HashMap<>();
+                    final Map<String, TermVar> variableMap = new LazyMap<>();
                     final AtomicInteger solutionCounter = new AtomicInteger();
 
                     final JProlChoicePoint thisGoal = new JProlChoicePoint(termGoal, this, null);

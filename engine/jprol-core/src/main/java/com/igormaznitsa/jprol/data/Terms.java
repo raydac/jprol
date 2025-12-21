@@ -5,6 +5,7 @@ import static com.igormaznitsa.jprol.data.TermStruct.EMPTY_ARRAY;
 
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
+import com.igormaznitsa.jprol.utils.LazyMap;
 import com.igormaznitsa.jprol.utils.ProlUtils;
 import com.igormaznitsa.prologparser.terms.PrologFloat;
 import com.igormaznitsa.prologparser.terms.PrologInt;
@@ -16,7 +17,6 @@ import com.igormaznitsa.prologparser.terms.PrologVar;
 import com.igormaznitsa.prologparser.terms.Quotation;
 import com.igormaznitsa.prologparser.terms.TermType;
 import com.igormaznitsa.prologparser.tokenizer.Op;
-import java.util.HashMap;
 import java.util.Map;
 
 public final class Terms {
@@ -297,7 +297,7 @@ public final class Terms {
       }
       case OPERATOR: {
         return context.getKnowledgeBase().findOperatorForName(context, term.getText())
-            .getForTypePrecisely(((Op) term).getAssoc());
+            .getForExactType(((Op) term).getAssoc());
       }
       case LIST: {
         final PrologList list = (PrologList) term;
@@ -350,7 +350,7 @@ public final class Terms {
         || term.getType() == com.igormaznitsa.prologparser.terms.TermType.OPERATOR) {
       return convert(context, term, null);
     } else {
-      return convert(context, term, new HashMap<>());
+      return convert(context, term, new LazyMap<>());
     }
   }
 
