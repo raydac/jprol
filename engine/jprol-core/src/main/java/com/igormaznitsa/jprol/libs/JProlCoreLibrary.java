@@ -21,6 +21,7 @@ import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.data.TermType.LIST;
 import static com.igormaznitsa.jprol.data.TermType.STRUCT;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
+import static com.igormaznitsa.jprol.data.Terms.EMPTY_LIST_ATOM;
 import static com.igormaznitsa.jprol.data.Terms.LIST_FUNCTOR;
 import static com.igormaznitsa.jprol.data.Terms.NULL_LIST;
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
@@ -28,7 +29,6 @@ import static com.igormaznitsa.jprol.data.Terms.newDouble;
 import static com.igormaznitsa.jprol.data.Terms.newList;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
-import static com.igormaznitsa.jprol.data.Terms.newVar;
 import static com.igormaznitsa.jprol.utils.ProlUtils.createOrAppendToList;
 import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.FX;
 import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.FY;
@@ -1026,7 +1026,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     if (Objects.requireNonNull(termType) == STRUCT) {
       return true;
     } else if (termType == LIST) {
-      return !((TermList) atom).isNullList();
+      return !atom.isNullList();
     }
     return false;
   }
@@ -1034,8 +1034,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   @JProlPredicate(determined = true, signature = "atomic/1", args = "@term", reference = "atomic(X) is true if and only if X is atomic (that is an atom, an integer or a float).")
   public static boolean predicateATOMIC(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0).findNonVarOrSame();
-    return arg.getTermType() == ATOM ||
-        (arg.getTermType() == LIST && ((TermList) arg).isNullList());
+    return arg.getTermType() == ATOM || arg.isNullList();
   }
 
   @JProlPredicate(determined = true, signature = "arg/3", args = {
@@ -1135,7 +1134,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         if (arity > 0) {
           elements = new Term[arity];
           for (int li = 0; li < arity; li++) {
-            elements[li] = newVar();
+            elements[li] = Terms.newAnonymousVar();
           }
         }
 
@@ -1322,8 +1321,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         return ProlUtils.toCharList(left, left.getSourcePosition()).unifyTo(right);
       }
       case LIST: {
-        if (((TermList) left).isNullList()) {
-          return ProlUtils.toCharList(Terms.newAtom("[]"), left.getSourcePosition()).unifyTo(right);
+        if (left.isNullList()) {
+          return ProlUtils.toCharList(EMPTY_LIST_ATOM, left.getSourcePosition()).unifyTo(right);
         } else {
           throw new ProlTypeErrorException("atom", predicate);
         }
@@ -1466,7 +1465,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       try (final CloseableIterator<TermStruct> knowledgeBaseIterator = choicePoint.getContext()
           .getKnowledgeBase().iterateSignatures(
               predicateIndicator.getTermType() == VAR ?
-                  Terms.newStruct("/", new Term[] {Terms.newVar(), Terms.newVar()}, UNKNOWN) :
+                  Terms.newStruct("/",
+                      new Term[] {Terms.newAnonymousVar(), Terms.newAnonymousVar()}, UNKNOWN) :
                   (TermStruct) predicateIndicator)) {
         while (knowledgeBaseIterator.hasNext()) {
           list.add(knowledgeBaseIterator.next());
@@ -1502,7 +1502,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       try (final CloseableIterator<TermStruct> knowledgeBaseIterator = choicePoint.getContext()
           .getKnowledgeBase().iterateSignatures(
               predicateIndicator.getTermType() == VAR ?
-                  Terms.newStruct("/", new Term[] {Terms.newVar(), Terms.newVar()}, UNKNOWN) :
+                  Terms.newStruct("/",
+                      new Term[] {Terms.newAnonymousVar(), Terms.newAnonymousVar()}, UNKNOWN) :
                   (TermStruct) predicateIndicator)) {
         while (knowledgeBaseIterator.hasNext()) {
           list.add(knowledgeBaseIterator.next());
@@ -2311,7 +2312,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         final int expectedLength = length.toNumber().intValue();
         TermList result = NULL_LIST;
         for (int i = 0; i < expectedLength; i++) {
-          result = Terms.newList(Terms.newVar(), result);
+          result = Terms.newList(Terms.newAnonymousVar(), result);
         }
         return list.unifyTo(result);
       } else {

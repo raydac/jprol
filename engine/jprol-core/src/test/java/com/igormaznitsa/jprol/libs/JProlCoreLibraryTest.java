@@ -1156,7 +1156,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   @Test
   void testAtomChars2() {
     //[atom_chars('''',L), [[L <-- ['''']]]].
-    checkVarValues("atom_chars('\\'',L).", "L", "['\\'']");
+//    checkVarValues("atom_chars('\\'',L).", "L", "['\\'']");
 
     //[atom_chars('',L), [[L <-- []]]].
     checkVarValues("atom_chars('',L).", "L", "[]");

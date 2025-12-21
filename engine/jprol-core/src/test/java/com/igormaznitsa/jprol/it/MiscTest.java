@@ -41,8 +41,7 @@ class MiscTest extends AbstractJProlTest {
 
     final Object testPayload = new Object();
 
-    final Term first = Terms.newAtom("xxx");
-    first.setPayload(testPayload);
+    final Term first = Terms.newAtom("xxx", testPayload);
     final Term second = Terms.newVar("Y");
 
     final Term request = Terms.newStruct(Terms.newAtom("map"), first, second);
@@ -59,8 +58,7 @@ class MiscTest extends AbstractJProlTest {
 
     final Object testPayload = new Object();
 
-    final Term first = TermList.asList(Terms.newAtom("a"));
-    first.setPayload(testPayload);
+    final Term first = TermList.asList(Terms.newAtom("a", testPayload));
     final Term second = Terms.newVar("Y");
 
     final Term request = Terms.newStruct(Terms.newAtom("map"), first, second);
@@ -68,7 +66,8 @@ class MiscTest extends AbstractJProlTest {
     final JProlChoicePoint goal = new JProlChoicePoint(request, context);
     final Term goalResult = goal.prove();
     assertNotNull(goalResult);
-    assertSame(testPayload, goal.findVar("Y").orElseThrow().findNonVarOrSame().getPayload());
+    final TermList result = goal.findVar("Y").orElseThrow().findNonVarOrSame();
+    assertSame(testPayload, result.getHead().getPayload());
   }
 
   @Test

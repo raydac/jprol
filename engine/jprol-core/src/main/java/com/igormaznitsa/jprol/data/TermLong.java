@@ -23,12 +23,19 @@ public final class TermLong extends NumericTerm {
   private final Long value;
 
   TermLong(final String name, final SourcePosition sourcePosition) {
-    super(name, sourcePosition);
-    value = Long.parseLong(name);
+    this(name, null, sourcePosition);
+  }
+
+  TermLong(final String name, final Object payload, final SourcePosition sourcePosition) {
+    this(Long.parseLong(name), payload, sourcePosition);
   }
 
   TermLong(final long value, final SourcePosition sourcePosition) {
-    super("", sourcePosition);
+    this(value, null, sourcePosition);
+  }
+
+  TermLong(final long value, final Object payload, final SourcePosition sourcePosition) {
+    super("", payload, sourcePosition);
     this.value = value;
   }
 

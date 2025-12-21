@@ -43,25 +43,34 @@ public class TermStruct extends CompoundTerm {
   private volatile PredicateInvoker predicateProcessor;
 
   TermStruct(final Term functor, final SourcePosition sourcePosition) {
-    this(functor, EMPTY_ARRAY, sourcePosition);
+    this(functor, EMPTY_ARRAY, null, sourcePosition, PredicateInvoker.NULL_PROCESSOR);
+  }
+
+  TermStruct(final Term functor, final Object payload, final SourcePosition sourcePosition) {
+    this(functor, EMPTY_ARRAY, payload, sourcePosition, PredicateInvoker.NULL_PROCESSOR);
   }
 
   TermStruct(final String functor, final Term[] elements, final SourcePosition sourcePosition) {
-    this(new Term(functor, sourcePosition), elements, sourcePosition);
+    this(new Term(functor, sourcePosition), elements, null, sourcePosition,
+        PredicateInvoker.NULL_PROCESSOR);
   }
 
   TermStruct(final Term functor, final Term[] elements, final SourcePosition sourcePosition) {
-    super(functor.getText(), sourcePosition);
+    this(functor, elements, null, sourcePosition, PredicateInvoker.NULL_PROCESSOR);
+  }
+
+  TermStruct(final Term functor, final Term[] elements, final Object payload,
+             final SourcePosition sourcePosition) {
+    this(functor, elements, payload, sourcePosition, PredicateInvoker.NULL_PROCESSOR);
+  }
+
+  TermStruct(final Term functor, final Term[] elements, final Object payload,
+             final SourcePosition sourcePosition, final PredicateInvoker predicateInvoker) {
+    super(functor.getText(), payload, sourcePosition);
     this.functor = functor;
     this.terms = elements == null ? EMPTY_ARRAY : elements;
     this.structureSignature = functor.getText() + '/' + getArity();
-    this.predicateProcessor = PredicateInvoker.NULL_PROCESSOR;
-  }
-
-  TermStruct(final Term functor, final Term[] elements, final PredicateInvoker processor,
-             final SourcePosition sourcePosition) {
-    this(functor, elements, sourcePosition);
-    this.predicateProcessor = requireNonNull(processor);
+    this.predicateProcessor = predicateInvoker;
   }
 
   @Override
@@ -533,8 +542,7 @@ public class TermStruct extends CompoundTerm {
         destElements[li] = element.doMakeClone(vars);
       }
       result = Terms.newStruct(this.getFunctor(), destElements, this.getPredicateProcessor(),
-          this.getSourcePosition());
-      result.setPayload(this.getPayload());
+          this.payload, this.getSourcePosition());
     }
     return result;
   }

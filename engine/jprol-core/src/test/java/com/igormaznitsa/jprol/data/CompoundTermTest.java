@@ -50,7 +50,7 @@ class CompoundTermTest {
         Terms.newAtom("abc"),
         new Term[] {
             Terms.newVar("T"),
-            Terms.newVar(),
+            Terms.newAnonymousVar(),
             Terms.newStruct(Terms.newLong(1234), new Term[] {Terms.NULL_LIST}),
             TermList.asList(Terms.TRUE, Terms.FALSE)}
     );
@@ -64,7 +64,7 @@ class CompoundTermTest {
         Terms.newAtom("abc"),
         new Term[] {
             Terms.newVar("T"),
-            Terms.newVar(),
+            Terms.newAnonymousVar(),
             Terms.newStruct(Terms.newLong(1234), new Term[] {Terms.NULL_LIST}),
             TermList.asList(Terms.TRUE, Terms.FALSE)}
     );

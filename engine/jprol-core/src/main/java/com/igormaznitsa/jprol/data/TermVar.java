@@ -33,19 +33,24 @@ public final class TermVar extends Term {
   private final boolean anonymous;
   private volatile Term value;
 
-  private TermVar(final String name, final boolean anonymous, final SourcePosition sourcePosition) {
-    super(name, sourcePosition);
+  private TermVar(final String name, final boolean anonymous, final Object payload,
+                  final SourcePosition sourcePosition) {
+    super(name, payload, sourcePosition);
     this.uid = UID_GENERATOR.incrementAndGet();
     this.anonymous = anonymous;
   }
 
   TermVar(final String name, final SourcePosition sourcePosition) {
-    this(name, false, sourcePosition);
+    this(name, false, null, sourcePosition);
+  }
+
+  TermVar(final String name, final Object payload, final SourcePosition sourcePosition) {
+    this(name, false, payload, sourcePosition);
   }
 
   TermVar(final SourcePosition sourcePosition) {
     this("_$" + Long.toHexString(ANONYMITY_GENERATOR.incrementAndGet()), true,
-        sourcePosition);
+        null, sourcePosition);
   }
 
   TermVar() {
@@ -101,7 +106,8 @@ public final class TermVar extends Term {
   public Term makeClone() {
     final Term thisValue = this.getThisValue();
     TermVar result =
-        this.isAnonymous() ? newVar() : newVar(this.getText(), this.getSourcePosition());
+        this.isAnonymous() ? Terms.newAnonymousVar() :
+            newVar(this.getText(), this.payload, this.getSourcePosition());
     if (thisValue != null) {
       final Map<Integer, TermVar> variableMap = new HashMap<>();
       variableMap.put(this.getVarUid(), result);
@@ -146,7 +152,8 @@ public final class TermVar extends Term {
         final int varId = this.getVarUid();
         TermVar newVar = vars.get(varId);
         if (newVar == null) {
-          newVar = this.isAnonymous() ? newVar() : newVar(varName, this.getSourcePosition());
+          newVar = this.isAnonymous() ? Terms.newAnonymousVar() :
+              newVar(varName, this.getSourcePosition());
           vars.put(varId, newVar);
 
           final Term thisVal = this.getThisValue();
@@ -175,11 +182,11 @@ public final class TermVar extends Term {
       final int varId = this.getVarUid();
       TermVar newVariable = mapVariables.get(varId);
       if (newVariable == null) {
-        newVariable = this.isAnonymous() ? newVar() : newVar(varName, this.getSourcePosition());
+        newVariable = this.isAnonymous() ? Terms.newAnonymousVar() :
+            newVar(varName, this.payload, this.getSourcePosition());
         mapVariables.put(varId, newVariable);
       }
       result = newVariable;
-      result.setPayload(this.getPayload());
     } else {
       result = thisValue.doMakeClone(mapVariables);
     }

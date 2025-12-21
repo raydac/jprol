@@ -16,26 +16,37 @@
 
 package com.igormaznitsa.jprol.data;
 
+import java.util.Objects;
+
 public final class TermDouble extends NumericTerm {
 
-  private final Double value;
+  private final double value;
 
   TermDouble(final String name, final SourcePosition sourcePosition) {
-    super(name, sourcePosition);
+    this(name, null, sourcePosition);
+  }
 
-    int len = name.length() - 1;
-    while (len >= 0) {
-      if (Character.isWhitespace(name.charAt(len--))) {
-        throw new NumberFormatException();
-      }
-    }
-
-    value = Double.parseDouble(name);
+  TermDouble(final String name, final Object payload, final SourcePosition sourcePosition) {
+    this(parseDoubleWithCheckWhitespace(name), payload, sourcePosition);
   }
 
   TermDouble(final double value, final SourcePosition sourcePosition) {
-    super("", sourcePosition);
+    this(value, null, sourcePosition);
+  }
+
+  TermDouble(final double value, final Object payload, final SourcePosition sourcePosition) {
+    super("", payload, sourcePosition);
     this.value = value;
+  }
+
+  private static double parseDoubleWithCheckWhitespace(final String text) {
+    int len = text.length() - 1;
+    while (len >= 0) {
+      if (Character.isWhitespace(text.charAt(len--))) {
+        throw new NumberFormatException();
+      }
+    }
+    return Double.parseDouble(text);
   }
 
   @Override
@@ -45,7 +56,7 @@ public final class TermDouble extends NumericTerm {
 
   @Override
   public int hashCode() {
-    return this.value.hashCode();
+    return Objects.hash(this.value);
   }
 
   @Override
@@ -55,7 +66,7 @@ public final class TermDouble extends NumericTerm {
     }
 
     if (obj.getClass() == TermDouble.class) {
-      return ((TermDouble) obj).value.equals(value);
+      return Double.compare(this.value, ((TermDouble) obj).value) == 0;
     }
 
     return super.equals(obj);

@@ -22,6 +22,7 @@ import static com.igormaznitsa.jprol.data.Terms.NULL_LIST;
 import static com.igormaznitsa.jprol.data.Terms.newList;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.utils.ProlUtils.createOrAppendToList;
+import static java.util.Objects.requireNonNull;
 
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import java.util.ArrayList;
@@ -44,19 +45,34 @@ public final class TermList extends TermStruct {
   private static final int INDEX_TAIL = 1;
 
   TermList() {
-    super(Terms.LIST_FUNCTOR, null, SourcePosition.UNKNOWN);
+    this(EMPTY_ARRAY, null, SourcePosition.UNKNOWN);
   }
 
-  TermList(final SourcePosition sourcePosition) {
-    super(Terms.LIST_FUNCTOR, null, sourcePosition);
+  TermList(final Object payload, final SourcePosition sourcePosition) {
+    this(EMPTY_ARRAY, payload, sourcePosition);
   }
 
   TermList(final Term term, final SourcePosition sourcePosition) {
-    super(Terms.LIST_FUNCTOR, new Term[] {term, Terms.NULL_LIST}, sourcePosition);
+    this(new Term[] {requireNonNull(term), Terms.NULL_LIST}, null, sourcePosition);
+  }
+
+  TermList(final Term term, final Object payload, final SourcePosition sourcePosition) {
+    this(new Term[] {requireNonNull(term), Terms.NULL_LIST}, payload, sourcePosition);
   }
 
   TermList(final Term head, final Term tail, final SourcePosition sourcePosition) {
-    super(Terms.LIST_FUNCTOR, new Term[] {head, tail}, sourcePosition);
+    this(new Term[] {requireNonNull(head), requireNonNull(tail)}, null, sourcePosition);
+  }
+
+  TermList(final Term head, final Term tail, final Object payload,
+           final SourcePosition sourcePosition) {
+    this(new Term[] {requireNonNull(head), requireNonNull(tail)}, payload, sourcePosition);
+  }
+
+  private TermList(final Term[] elements, final Object payload,
+                   final SourcePosition sourcePosition) {
+    super(Terms.LIST_FUNCTOR, elements.length == 0 ? EMPTY_ARRAY : elements, payload,
+        sourcePosition);
   }
 
   public static TermList asList(final Term... elements) {
@@ -84,16 +100,21 @@ public final class TermList extends TermStruct {
   }
 
   public static TermList asList(final List<Term> elements, final SourcePosition sourcePosition) {
+    return asList(elements, null, sourcePosition);
+  }
+
+  public static TermList asList(final List<Term> elements, final Object payload,
+                                final SourcePosition sourcePosition) {
     if (elements.isEmpty()) {
-      return Terms.newList(sourcePosition);
+      return Terms.newList(payload, sourcePosition);
     } else if (elements.size() == 1) {
-      return Terms.newList(elements.get(0), NULL_LIST, sourcePosition);
+      return Terms.newList(elements.get(0), NULL_LIST, payload, sourcePosition);
     } else {
-      final TermList result = newList(elements.get(0));
+      final TermList result = newList(elements.get(0), payload);
       TermList next = result;
       final int length = elements.size();
       for (int i = 1; i < length; i++) {
-        next = createOrAppendToList(next, elements.get(i));
+        next = createOrAppendToList(next, elements.get(i), payload);
       }
       return result;
     }
@@ -188,7 +209,7 @@ public final class TermList extends TermStruct {
       @Override
       public boolean hasNext() {
         return current != null &&
-            (current.getTermType() == LIST && !((TermList) current).isNullList());
+            (current.getTermType() == LIST && !current.isNullList());
       }
 
       @Override
@@ -229,7 +250,7 @@ public final class TermList extends TermStruct {
   }
 
   public void setTail(final Term newTail) {
-    this.terms[INDEX_TAIL] = Objects.requireNonNull(newTail, "Null is not allowed as list tail");
+    this.terms[INDEX_TAIL] = requireNonNull(newTail, "Null is not allowed as list tail");
   }
 
   public int calculateLength() {
@@ -259,6 +280,7 @@ public final class TermList extends TermStruct {
     return this.isNullList() ? this : this.doMakeClone(new HashMap<>());
   }
 
+  @Override
   public boolean isNullList() {
     return this.terms == EMPTY_ARRAY;
   }
@@ -280,14 +302,12 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  protected Term doMakeClone(Map<Integer, TermVar> vars) {
+  protected Term doMakeClone(final Map<Integer, TermVar> vars) {
     if (this.isNullList()) {
       return NULL_LIST;
     } else {
-      final Term result =
-          newList(this.getHead().doMakeClone(vars), this.getTail().doMakeClone(vars));
-      result.setPayload(this.getPayload());
-      return result;
+      return Terms.newList(this.getHead().doMakeClone(vars), this.getTail().doMakeClone(vars),
+          this.payload);
     }
   }
 
@@ -333,7 +353,7 @@ public final class TermList extends TermStruct {
     boolean notFirst = false;
     Term list = this;
 
-    while (list != Terms.NULL_LIST) {
+    while (!list.isNullList()) {
       if (list.getTermType() == LIST) {
         if (notFirst) {
           builder.append(',');
@@ -361,7 +381,7 @@ public final class TermList extends TermStruct {
   }
 
   public Term findLastTail() {
-    if (isNullList()) {
+    if (this.isNullList()) {
       return NULL_LIST;
     }
     TermList curList = this;

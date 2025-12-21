@@ -46,19 +46,24 @@ public class Term {
 
   private final String text;
   private final SourcePosition sourcePosition;
-  private volatile Object payload;
+  protected final Object payload;
 
   Term(final String text, final SourcePosition sourcePosition) {
+    this(text, null, sourcePosition);
+  }
+
+  Term(final String text, final Object payload, final SourcePosition sourcePosition) {
     this.text = requireNonNull(text);
+    this.payload = payload;
     this.sourcePosition = requireNonNull(sourcePosition);
+  }
+
+  public boolean isNullList() {
+    return false;
   }
 
   public Object getPayload() {
     return this.payload;
-  }
-
-  public void setPayload(final Object payload) {
-    this.payload = payload;
   }
 
   public Term replaceVar(final String variableName, final Term value) {

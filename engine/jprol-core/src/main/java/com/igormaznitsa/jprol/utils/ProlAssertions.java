@@ -45,7 +45,7 @@ public final class ProlAssertions {
     final boolean result;
     switch (t.getTermType()) {
       case LIST: {
-        result = ((TermList) t).isNullList();
+        result = t.isNullList();
       }
       break;
       case ATOM: {
@@ -121,7 +121,7 @@ public final class ProlAssertions {
     boolean errorType = false;
     switch (t.getTermType()) {
       case LIST: {
-        errorType = !((TermList) t).isNullList();
+        errorType = !t.isNullList();
       }
       break;
       case ATOM: {

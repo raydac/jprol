@@ -21,7 +21,11 @@ import static com.igormaznitsa.jprol.data.TermType.VAR;
 public abstract class NumericTerm extends Term {
 
   NumericTerm(final String text, final SourcePosition sourcePosition) {
-    super(text, sourcePosition);
+    this(text, null, sourcePosition);
+  }
+
+  NumericTerm(final String text, final Object payload, final SourcePosition sourcePosition) {
+    super(text, payload, sourcePosition);
   }
 
   public abstract int compare(NumericTerm term);
