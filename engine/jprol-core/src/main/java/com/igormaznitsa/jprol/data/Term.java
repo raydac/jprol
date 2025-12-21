@@ -62,8 +62,9 @@ public class Term {
     return false;
   }
 
-  public Object getPayload() {
-    return this.payload;
+  @SuppressWarnings("unchecked")
+  public <T> T getPayload() {
+    return (T) this.payload;
   }
 
   public Term replaceVar(final String variableName, final Term value) {
