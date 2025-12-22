@@ -165,7 +165,7 @@ public class Term {
 
   public Map<String, Term> findAllNamedVariableValues() {
     return this.variables()
-        .filter(v -> !v.isFree())
+        .filter(v -> !v.isUnground())
         .collect(toMap(TermVar::getText, e -> e.<Term>findNonVarOrDefault(e), (v1, v2) -> v2));
   }
 
@@ -290,14 +290,19 @@ public class Term {
     return false;
   }
 
-  protected void doArrangeVars(final Map<String, TermVar> variables) {
+  /**
+   * Arrange named variable values for their names.
+   *
+   * @param variables a mutable map as store for found variables.
+   */
+  protected void arrangeVariableValues(final Map<String, TermVar> variables) {
   }
 
-  public final void arrangeVariablesInsideTerms(final Term termTwo) {
+  public final void arrangeVariablesWith(final Term termTwo) {
     if (this.canContainVariables() && termTwo.canContainVariables()) {
-      final Map<String, TermVar> varMap = new LazyMap<>();
-      this.doArrangeVars(varMap);
-      termTwo.doArrangeVars(varMap);
+      final Map<String, TermVar> variables = new LazyMap<>();
+      this.arrangeVariableValues(variables);
+      termTwo.arrangeVariableValues(variables);
     }
   }
 
@@ -323,11 +328,23 @@ public class Term {
     return this;
   }
 
-  protected Term doMakeClone(final Map<Integer, TermVar> vars) {
+  /**
+   * Get cloned version of the term, all named variables will be deduplicated.
+   *
+   * @param variables a mutable map to play a store for deduplication, must not be null
+   * @return cloned term, must not be null
+   */
+  protected Term makeClone(final Map<Integer, TermVar> variables) {
     return this;
   }
 
-  public Term makeCloneAndVarBound(final Map<Integer, TermVar> vars) {
+  /**
+   * Get cloned version of term where grounded variables replaced by their values and non-grounded variables are aligned.
+   *
+   * @param variables a mutual map to be used as store for variables
+   * @return cloned term, must not be null
+   */
+  public Term cloneAndReplaceVariablesByValues(final Map<Integer, TermVar> variables) {
     return this;
   }
 

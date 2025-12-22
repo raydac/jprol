@@ -277,7 +277,7 @@ public final class TermList extends TermStruct {
 
   @Override
   public Term makeClone() {
-    return this.isNullList() ? this : this.doMakeClone(new LazyMap<>());
+    return this.isNullList() ? this : this.makeClone(new LazyMap<>());
   }
 
   @Override
@@ -286,9 +286,22 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public Term makeCloneAndVarBound(final Map<Integer, TermVar> vars) {
-    return this.isNullList() ? NULL_LIST : newList(this.getHead().makeCloneAndVarBound(vars),
-        this.getTail().makeCloneAndVarBound(vars));
+  public Term cloneAndReplaceVariablesByValues(final Map<Integer, TermVar> variables) {
+    if (this.isNullList()) {
+      return NULL_LIST;
+    }
+
+    final Term head = this.getHead();
+    final Term tail = this.getTail();
+
+    final Term headClone = head.cloneAndReplaceVariablesByValues(variables);
+    final Term tailClone = tail.cloneAndReplaceVariablesByValues(variables);
+
+    if (head == headClone && tail == tailClone) {
+      return this;
+    } else {
+      return newList(headClone, tailClone, this.getSourcePosition());
+    }
   }
 
   @Override
@@ -302,11 +315,11 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  protected Term doMakeClone(final Map<Integer, TermVar> vars) {
+  protected Term makeClone(final Map<Integer, TermVar> variables) {
     if (this.isNullList()) {
       return NULL_LIST;
     } else {
-      return Terms.newList(this.getHead().doMakeClone(vars), this.getTail().doMakeClone(vars),
+      return Terms.newList(this.getHead().makeClone(variables), this.getTail().makeClone(variables),
           this.payload);
     }
   }
@@ -429,9 +442,9 @@ public final class TermList extends TermStruct {
       }
       case VAR: {
         final TermVar thatVariable = (TermVar) atom;
-        final Term value = thatVariable.getThisValue();
+        final Term value = thatVariable.getImmediateValue();
         if (value == null) {
-          thatVariable.setThisValue(this);
+          thatVariable.setImmediateValue(this);
           return true;
         } else {
           return thatVariable.unifyTo(this);
@@ -570,15 +583,15 @@ public final class TermList extends TermStruct {
     }
   }
 
-  protected void doArrangeVars(final Map<String, TermVar> variables) {
+  protected void arrangeVariableValues(final Map<String, TermVar> variables) {
     TermList list = this;
     while (!list.isNullList()) {
-      list.getHead().doArrangeVars(variables);
+      list.getHead().arrangeVariableValues(variables);
       final Term tail = list.getTail();
       if (tail.getTermType() == LIST) {
         list = (TermList) tail;
       } else {
-        tail.doArrangeVars(variables);
+        tail.arrangeVariableValues(variables);
         break;
       }
     }

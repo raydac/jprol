@@ -61,7 +61,7 @@ final class VariableStateSnapshot {
         if (!this.processedVariables.contains(uid)) {
           this.processedVariables.add(uid);
           this.containers.add(new VariableContainer(container.variable, null));
-          this.extractAllVariables(container.variable.getThisValue(), null);
+          this.extractAllVariables(container.variable.getImmediateValue(), null);
         }
       }
     }
@@ -104,7 +104,7 @@ final class VariableStateSnapshot {
         if (!this.processedVariables.contains(uid)) {
           this.processedVariables.add(uid);
           this.containers.add(new VariableContainer(var, predefinedValues));
-          final Term value = var.getThisValue();
+          final Term value = var.getImmediateValue();
           if (value != null) {
             this.extractAllVariables(value, predefinedValues);
           }
@@ -167,19 +167,19 @@ final class VariableStateSnapshot {
       this.variable = var;
 
       if (predefinedValues == null) {
-        this.sampleValue = var.getThisValue();
+        this.sampleValue = var.getImmediateValue();
       } else {
         final Term predefined = predefinedValues.get(var.getText());
-        this.sampleValue = predefined == null ? var.getThisValue() : predefined;
+        this.sampleValue = predefined == null ? var.getImmediateValue() : predefined;
       }
     }
 
     void resetToSample() {
-      this.variable.setThisValue(this.sampleValue);
+      this.variable.setImmediateValue(this.sampleValue);
     }
 
     boolean isChanged() {
-      return this.variable.getThisValue() != this.sampleValue;
+      return this.variable.getImmediateValue() != this.sampleValue;
     }
   }
 }

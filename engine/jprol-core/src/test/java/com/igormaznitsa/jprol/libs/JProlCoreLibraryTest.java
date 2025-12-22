@@ -68,8 +68,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
         makeTestContext(":-dynamic(bar/1)."));
     assertNotNull(testCp.prove());
     final TermVar yVar = testCp.findVar("Y").get();
-    assertSame(TermType.VAR, yVar.getThisValue().getTermType());
-    assertEquals("X", yVar.getThisValue().getText());
+    assertSame(TermType.VAR, yVar.getImmediateValue().getTermType());
+    assertEquals("X", yVar.getImmediateValue().getText());
   }
 
   @Test

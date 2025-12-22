@@ -479,11 +479,11 @@ public class TermStruct extends CompoundTerm {
   }
 
   public Term makeClone() {
-    return this.getArity() == 0 ? this : this.doMakeClone(new LazyMap<>());
+    return this.getArity() == 0 ? this : this.makeClone(new LazyMap<>());
   }
 
   @Override
-  public Term makeCloneAndVarBound(final Map<Integer, TermVar> vars) {
+  public Term cloneAndReplaceVariablesByValues(final Map<Integer, TermVar> variables) {
     final Term result;
     if (this.getArity() == 0) {
       result = this;
@@ -492,18 +492,25 @@ public class TermStruct extends CompoundTerm {
       final int arity = elements.length;
       final Term[] targetElements = new Term[arity];
 
-      for (int li = 0; li < arity; li++) {
-        final Term element = elements[li];
-        targetElements[li] = element.makeCloneAndVarBound(vars);
+      boolean changed = false;
+      for (int i = 0; i < arity; i++) {
+        final Term element = elements[i];
+        final Term cloned = element.cloneAndReplaceVariablesByValues(variables);
+        targetElements[i] = element.cloneAndReplaceVariablesByValues(variables);
+        changed |= element != cloned;
       }
-      result = Terms.newStruct(this.getFunctor(), targetElements, this.getPredicateProcessor(),
-          this.getSourcePosition());
+      if (changed) {
+        result = Terms.newStruct(this.getFunctor(), targetElements, this.getPredicateProcessor(),
+            this.getSourcePosition());
+      } else {
+        result = this;
+      }
     }
     return result;
   }
 
   @Override
-  protected void doArrangeVars(final Map<String, TermVar> variables) {
+  protected void arrangeVariableValues(final Map<String, TermVar> variables) {
     final TermStruct struct = this;
     final int arity = struct.getArity();
 
@@ -512,7 +519,7 @@ public class TermStruct extends CompoundTerm {
       if (element.getTermType() == VAR) {
         final TermVar thatVar = (TermVar) element;
         final String variableName = thatVar.getText();
-        if (!thatVar.isAnonymous() && thatVar.isFree()) {
+        if (!thatVar.isAnonymous() && thatVar.isUnground()) {
           final TermVar var = variables.get(variableName);
           if (var == null) {
             variables.put(variableName, (TermVar) element);
@@ -521,14 +528,14 @@ public class TermStruct extends CompoundTerm {
           }
         }
       } else {
-        element.doArrangeVars(variables);
+        element.arrangeVariableValues(variables);
       }
     }
   }
 
 
   @Override
-  protected Term doMakeClone(final Map<Integer, TermVar> vars) {
+  protected Term makeClone(final Map<Integer, TermVar> variables) {
     final Term result;
     if (this.getArity() == 0) {
       result = this;
@@ -538,7 +545,7 @@ public class TermStruct extends CompoundTerm {
       final Term[] targetElements = new Term[arity];
       for (int i = 0; i < arity; i++) {
         final Term element = elements[i];
-        targetElements[i] = element.doMakeClone(vars);
+        targetElements[i] = element.makeClone(variables);
       }
       result = Terms.newStruct(this.getFunctor(), targetElements, this.getPredicateProcessor(),
           this.payload, this.getSourcePosition());

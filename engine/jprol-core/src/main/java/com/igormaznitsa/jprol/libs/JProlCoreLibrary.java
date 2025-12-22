@@ -775,7 +775,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
       if (head.dryUnifyTo(headClause) && body.dryUnifyTo(bodyClause)) {
         final boolean result = assertUnify(head, headClause) && assertUnify(body, bodyClause);
-        head.arrangeVariablesInsideTerms(body);
+        head.arrangeVariablesWith(body);
         return result;
       }
     }
@@ -963,7 +963,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static boolean predicateNONVAR(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getElement(0);
     if (arg.getTermType() == VAR) {
-      return !((TermVar) arg).isFree();
+      return !((TermVar) arg).isUnground();
     } else {
       return true;
     }
@@ -1976,7 +1976,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
       final Term templateCopy = template.makeClone();
       final Term scopeGoalCopy = scopeGoal.makeClone();
-      templateCopy.arrangeVariablesInsideTerms(scopeGoalCopy);
+      templateCopy.arrangeVariablesWith(scopeGoalCopy);
 
       assertUnify(scopeGoalCopy, nextTemplate);
       // good, add to the list
@@ -2097,7 +2097,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
         final Term templateCopy = templateTerm.makeClone();
         final Term scopeGoalCopy = processingGoal.makeClone();
-        templateCopy.arrangeVariablesInsideTerms(scopeGoalCopy);
+        templateCopy.arrangeVariablesWith(scopeGoalCopy);
 
         assertUnify(scopeGoalCopy, nextTemplate);
         final BagOfKey key = new BagOfKey(findGoal, excludedVars);
@@ -2222,7 +2222,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
         final Term templateCopy = template.makeClone();
         final Term scopeGoalCopy = processingGoal.makeClone();
-        templateCopy.arrangeVariablesInsideTerms(scopeGoalCopy);
+        templateCopy.arrangeVariablesWith(scopeGoalCopy);
 
         assertUnify(scopeGoalCopy, nextTemplate);
         final SofKey key = new SofKey(find_goal, excludedVars);

@@ -17,6 +17,7 @@
 package com.igormaznitsa.jprol.data;
 
 import static com.igormaznitsa.jprol.data.TermType.VAR;
+import static com.igormaznitsa.jprol.data.Terms.newAnonymousVar;
 import static com.igormaznitsa.jprol.data.Terms.newVar;
 
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
@@ -29,6 +30,7 @@ public final class TermVar extends Term {
 
   private static final AtomicInteger ANONYMITY_GENERATOR = new AtomicInteger(0);
   private static final AtomicInteger UID_GENERATOR = new AtomicInteger(0);
+  private static final int LOOP_WATCHDOG = 8192;
   private final int uid;
   private final boolean anonymous;
   private volatile Term value;
@@ -104,14 +106,14 @@ public final class TermVar extends Term {
 
   @Override
   public Term makeClone() {
-    final Term thisValue = this.getThisValue();
+    final Term thisValue = this.getImmediateValue();
     TermVar result =
         this.isAnonymous() ? Terms.newAnonymousVar() :
             newVar(this.getText(), this.payload, this.getSourcePosition());
     if (thisValue != null) {
       final Map<Integer, TermVar> variableMap = new LazyMap<>();
       variableMap.put(this.getVarUid(), result);
-      result.setThisValue(this.doMakeClone(variableMap));
+      result.setImmediateValue(this.makeClone(variableMap));
     }
     return result;
   }
@@ -131,40 +133,40 @@ public final class TermVar extends Term {
   }
 
   @Override
-  protected void doArrangeVars(final Map<String, TermVar> variables) {
+  protected void arrangeVariableValues(final Map<String, TermVar> variables) {
     final String name = this.getText();
-    if (variables.containsKey(name)) {
-      final TermVar var = variables.get(name);
-      this.unifyTo(var);
-    } else {
+    final TermVar found = variables.get(name);
+    if (found == null) {
       variables.put(name, this);
+    } else if (!this.unifyTo(found)) {
+      throw new IllegalStateException("Can't unify state between same named variables: " + name);
     }
   }
 
   @Override
-  public Term makeCloneAndVarBound(final Map<Integer, TermVar> vars) {
+  public Term cloneAndReplaceVariablesByValues(final Map<Integer, TermVar> variables) {
     Term value = this.getValue();
     if (value == null) {
       final Term result;
-      final Term val = this.getThisValue();
-      if (val == null) {
+      final Term immediateValue = this.getImmediateValue();
+      if (immediateValue == null) {
         final String varName = this.getText();
         final int varId = this.getVarUid();
-        TermVar newVar = vars.get(varId);
+        TermVar newVar = variables.get(varId);
         if (newVar == null) {
-          newVar = this.isAnonymous() ? Terms.newAnonymousVar() :
-              newVar(varName, this.getSourcePosition());
-          vars.put(varId, newVar);
+          newVar =
+              this.isAnonymous() ? newAnonymousVar() : newVar(varName, this.getSourcePosition());
+          variables.put(varId, newVar);
 
-          final Term thisVal = this.getThisValue();
+          final Term thisVal = this.getImmediateValue();
 
           if (thisVal != null) {
-            newVar.setThisValue(thisVal.makeCloneAndVarBound(vars));
+            newVar.setImmediateValue(thisVal.cloneAndReplaceVariablesByValues(variables));
           }
         }
         result = newVar;
       } else {
-        result = val.doMakeClone(vars);
+        result = immediateValue.makeClone(variables);
       }
       return result;
     } else {
@@ -173,22 +175,22 @@ public final class TermVar extends Term {
   }
 
   @Override
-  protected Term doMakeClone(final Map<Integer, TermVar> mapVariables) {
+  protected Term makeClone(final Map<Integer, TermVar> variables) {
     final Term result;
 
-    final Term thisValue = this.getThisValue();
+    final Term thisValue = this.getImmediateValue();
     if (thisValue == null) {
       final String varName = this.getText();
       final int varId = this.getVarUid();
-      TermVar newVariable = mapVariables.get(varId);
+      TermVar newVariable = variables.get(varId);
       if (newVariable == null) {
-        newVariable = this.isAnonymous() ? Terms.newAnonymousVar() :
+        newVariable = this.isAnonymous() ? newAnonymousVar() :
             newVar(varName, this.payload, this.getSourcePosition());
-        mapVariables.put(varId, newVariable);
+        variables.put(varId, newVariable);
       }
       result = newVariable;
     } else {
-      result = thisValue.doMakeClone(mapVariables);
+      result = thisValue.makeClone(variables);
     }
 
     return result;
@@ -196,12 +198,18 @@ public final class TermVar extends Term {
 
   public Term getValue() {
     Term result = this.value;
+    int watchdog = LOOP_WATCHDOG;
     while (result != null && result.getTermType() == VAR) {
       final Term prev = result;
       result = ((TermVar) result).value;
       if (result == null) {
         result = prev;
         break;
+      }
+      watchdog--;
+      if (watchdog <= 0) {
+        throw new IllegalStateException(
+            "Too deep variable chain detected, may be loop");
       }
     }
     return result;
@@ -213,7 +221,7 @@ public final class TermVar extends Term {
     } else {
       if (value.getTermType() == VAR) {
         TermVar curVar = ((TermVar) value);
-        int watchDogLoop = 16384;
+        int watchDogLoop = LOOP_WATCHDOG;
         while (watchDogLoop > 0) {
           watchDogLoop--;
           if (curVar == this) {
@@ -230,7 +238,7 @@ public final class TermVar extends Term {
 
         if (watchDogLoop <= 0) {
           throw new IllegalStateException(
-              "Detected too deep variable chain, may be it is for a loop");
+              "Too deep variable chain detected, may be loop");
         }
       }
 
@@ -268,9 +276,9 @@ public final class TermVar extends Term {
     return this.value != null && this.value.isGround();
   }
 
-  public boolean isFree() {
+  public boolean isUnground() {
     return this.value == null ||
-        (this.value.getTermType() == VAR && ((TermVar) this.value).isFree());
+        (this.value.getTermType() == VAR && ((TermVar) this.value).isUnground());
   }
 
   @Override
@@ -296,24 +304,37 @@ public final class TermVar extends Term {
     return builder.toString();
   }
 
-  public Term getThisValue() {
+  /**
+   * Get value exactly saved in the variable.
+   *
+   * @return saved value or null
+   */
+  public Term getImmediateValue() {
     return this.value;
   }
 
-  public void setThisValue(final Term value) {
-    this.value = value;
-  }
-
-  private TermVar getDeepestVar() {
-    if (this.value == null) {
-      return this;
-    } else {
-      return this.value.getTermType() == VAR ? ((TermVar) this.value).getDeepestVar() : this;
+  /**
+   * Set value to the variable.
+   *
+   * @param value value to be save, can be null
+   */
+  public void setImmediateValue(final Term value) {
+    if (value != this) {
+      this.value = value;
     }
   }
 
-  public void changeVarChainValue(final Term value) {
-    this.getDeepestVar().setThisValue(value);
+  /**
+   * Examine chain of values and return the first variable without value or this variable if it is unground one.
+   *
+   * @return found unground variable in the variable chain or this variable
+   */
+  public TermVar findUngroundVariable() {
+    if (this.value == null) {
+      return this;
+    } else {
+      return this.value.getTermType() == VAR ? ((TermVar) this.value).findUngroundVariable() : this;
+    }
   }
 
   @Override
@@ -356,16 +377,16 @@ public final class TermVar extends Term {
   }
 
   @Override
-  public boolean unifyTo(final Term atom) {
-    if (this == atom) {
+  public boolean unifyTo(final Term term) {
+    if (this == term) {
       return true;
     } else {
       final Term val = this.getValue();
       final boolean result;
       if (val == null) {
-        result = this.setValue(atom);
+        result = this.setValue(term);
       } else {
-        result = val.unifyTo(atom);
+        result = val.unifyTo(term);
       }
       return result;
     }

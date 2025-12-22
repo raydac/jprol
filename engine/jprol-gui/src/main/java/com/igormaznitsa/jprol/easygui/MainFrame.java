@@ -1814,7 +1814,7 @@ public final class MainFrame extends javax.swing.JFrame
     final String varText = varValues.values().stream()
         .map(termVar ->
             termVar.getText() + '=' +
-                (termVar.isFree() ? termVar.getText() : termVar.getValue().forWrite()))
+                (termVar.isUnground() ? termVar.getText() : termVar.getValue().forWrite()))
         .collect(Collectors.joining("\n"));
 
     context.findResourceWriter("user", true)
