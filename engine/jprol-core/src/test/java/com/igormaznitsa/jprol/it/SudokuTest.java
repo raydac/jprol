@@ -31,25 +31,25 @@ class SudokuTest extends AbstractJProlTest {
       final Term result = choicePoint.prove();
       assertNotNull(result);
 
-      assertEquals("2", choicePoint.findVar("A").get().findNonVarOrSame().getText());
-      assertEquals("5", choicePoint.findVar("B").get().findNonVarOrSame().getText());
-      assertEquals("3", choicePoint.findVar("C").get().findNonVarOrSame().getText());
-      assertEquals("2", choicePoint.findVar("D").get().findNonVarOrSame().getText());
-      assertEquals("8", choicePoint.findVar("E").get().findNonVarOrSame().getText());
-      assertEquals("1", choicePoint.findVar("F").get().findNonVarOrSame().getText());
-      assertEquals("3", choicePoint.findVar("G").get().findNonVarOrSame().getText());
-      assertEquals("9", choicePoint.findVar("H").get().findNonVarOrSame().getText());
-      assertEquals("8", choicePoint.findVar("I").get().findNonVarOrSame().getText());
-      assertEquals("7", choicePoint.findVar("J").get().findNonVarOrSame().getText());
-      assertEquals("3", choicePoint.findVar("K").get().findNonVarOrSame().getText());
-      assertEquals("3", choicePoint.findVar("L").get().findNonVarOrSame().getText());
-      assertEquals("4", choicePoint.findVar("M").get().findNonVarOrSame().getText());
-      assertEquals("1", choicePoint.findVar("N").get().findNonVarOrSame().getText());
-      assertEquals("8", choicePoint.findVar("O").get().findNonVarOrSame().getText());
-      assertEquals("3", choicePoint.findVar("P").get().findNonVarOrSame().getText());
-      assertEquals("6", choicePoint.findVar("Q").get().findNonVarOrSame().getText());
-      assertEquals("1", choicePoint.findVar("R").get().findNonVarOrSame().getText());
-      assertEquals("9", choicePoint.findVar("S").get().findNonVarOrSame().getText());
+      assertEquals("2", choicePoint.findVar("A").get().findGroundOrSame().getText());
+      assertEquals("5", choicePoint.findVar("B").get().findGroundOrSame().getText());
+      assertEquals("3", choicePoint.findVar("C").get().findGroundOrSame().getText());
+      assertEquals("2", choicePoint.findVar("D").get().findGroundOrSame().getText());
+      assertEquals("8", choicePoint.findVar("E").get().findGroundOrSame().getText());
+      assertEquals("1", choicePoint.findVar("F").get().findGroundOrSame().getText());
+      assertEquals("3", choicePoint.findVar("G").get().findGroundOrSame().getText());
+      assertEquals("9", choicePoint.findVar("H").get().findGroundOrSame().getText());
+      assertEquals("8", choicePoint.findVar("I").get().findGroundOrSame().getText());
+      assertEquals("7", choicePoint.findVar("J").get().findGroundOrSame().getText());
+      assertEquals("3", choicePoint.findVar("K").get().findGroundOrSame().getText());
+      assertEquals("3", choicePoint.findVar("L").get().findGroundOrSame().getText());
+      assertEquals("4", choicePoint.findVar("M").get().findGroundOrSame().getText());
+      assertEquals("1", choicePoint.findVar("N").get().findGroundOrSame().getText());
+      assertEquals("8", choicePoint.findVar("O").get().findGroundOrSame().getText());
+      assertEquals("3", choicePoint.findVar("P").get().findGroundOrSame().getText());
+      assertEquals("6", choicePoint.findVar("Q").get().findGroundOrSame().getText());
+      assertEquals("1", choicePoint.findVar("R").get().findGroundOrSame().getText());
+      assertEquals("9", choicePoint.findVar("S").get().findGroundOrSame().getText());
 
       assertNull(choicePoint.prove());
     }

@@ -37,7 +37,7 @@ import java.util.stream.Stream;
 public class TermStruct extends CompoundTerm {
 
   static final Term[] EMPTY_ARRAY = new Term[0];
-  final Term[] terms;
+  final Term[] arguments;
   final Term functor;
   private final String structureSignature;
   private PredicateInvoker predicateProcessor;
@@ -50,25 +50,25 @@ public class TermStruct extends CompoundTerm {
     this(functor, EMPTY_ARRAY, payload, sourcePosition, PredicateInvoker.NULL_PROCESSOR);
   }
 
-  TermStruct(final String functor, final Term[] elements, final SourcePosition sourcePosition) {
-    this(new Term(functor, sourcePosition), elements, null, sourcePosition,
+  TermStruct(final String functor, final Term[] arguments, final SourcePosition sourcePosition) {
+    this(new Term(functor, sourcePosition), arguments, null, sourcePosition,
         PredicateInvoker.NULL_PROCESSOR);
   }
 
-  TermStruct(final Term functor, final Term[] elements, final SourcePosition sourcePosition) {
-    this(functor, elements, null, sourcePosition, PredicateInvoker.NULL_PROCESSOR);
+  TermStruct(final Term functor, final Term[] arguments, final SourcePosition sourcePosition) {
+    this(functor, arguments, null, sourcePosition, PredicateInvoker.NULL_PROCESSOR);
   }
 
-  TermStruct(final Term functor, final Term[] elements, final Object payload,
+  TermStruct(final Term functor, final Term[] arguments, final Object payload,
              final SourcePosition sourcePosition) {
-    this(functor, elements, payload, sourcePosition, PredicateInvoker.NULL_PROCESSOR);
+    this(functor, arguments, payload, sourcePosition, PredicateInvoker.NULL_PROCESSOR);
   }
 
-  TermStruct(final Term functor, final Term[] elements, final Object payload,
+  TermStruct(final Term functor, final Term[] arguments, final Object payload,
              final SourcePosition sourcePosition, final PredicateInvoker predicateInvoker) {
     super(functor.getText(), payload, sourcePosition);
     this.functor = functor;
-    this.terms = elements == null ? EMPTY_ARRAY : elements;
+    this.arguments = arguments == null ? EMPTY_ARRAY : arguments;
     this.structureSignature = functor.getText() + '/' + getArity();
     this.predicateProcessor = predicateInvoker;
   }
@@ -79,20 +79,20 @@ public class TermStruct extends CompoundTerm {
   }
 
   public final Term getFunctor() {
-    return functor;
+    return this.functor;
   }
 
-  public final Term[] getElementArray() {
-    return this.terms;
+  public final Term[] getArguments() {
+    return this.arguments;
   }
 
-  public void setElement(final int index, final Term element) {
-    this.terms[index] = element;
+  public void setArgumentAt(final int index, final Term argument) {
+    this.arguments[index] = argument;
   }
 
   @Override
   public Spliterator<Term> spliteratorChildren() {
-    return Spliterators.spliterator(this.terms, Spliterator.SIZED);
+    return Spliterators.spliterator(this.arguments, Spliterator.SIZED);
   }
 
   @Override
@@ -102,13 +102,13 @@ public class TermStruct extends CompoundTerm {
 
       @Override
       public boolean hasNext() {
-        return this.index < TermStruct.this.terms.length;
+        return this.index < TermStruct.this.arguments.length;
       }
 
       @Override
       public Term next() {
-        if (this.index < TermStruct.this.terms.length) {
-          return TermStruct.this.terms[this.index++];
+        if (this.index < TermStruct.this.arguments.length) {
+          return TermStruct.this.arguments[this.index++];
         } else {
           throw new NoSuchElementException();
         }
@@ -123,16 +123,17 @@ public class TermStruct extends CompoundTerm {
 
   @Override
   public Stream<Term> stream() {
-    return Stream.concat(Stream.of(this.functor), Arrays.stream(this.terms).flatMap(Term::stream));
+    return Stream.concat(Stream.of(this.functor),
+        Arrays.stream(this.arguments).flatMap(Term::stream));
   }
 
   @SuppressWarnings("unchecked")
-  public <T extends Term> T getElement(final int index) {
-    return (T) this.terms[index];
+  public <T extends Term> T getArgumentAt(final int index) {
+    return (T) this.arguments[index];
   }
 
   public final int getArity() {
-    return terms.length;
+    return arguments.length;
   }
 
   public boolean isClause() {
@@ -142,8 +143,8 @@ public class TermStruct extends CompoundTerm {
 
   @Override
   public int getPrecedence() {
-    if (functor.getTermType() == OPERATOR) {
-      return functor.getPrecedence();
+    if (this.functor.getTermType() == OPERATOR) {
+      return this.functor.getPrecedence();
     } else {
       return 0;
     }
@@ -151,26 +152,27 @@ public class TermStruct extends CompoundTerm {
 
   @Override
   public String toString() {
-    return getStringRepresentation(false);
+    return this.makeStringView(false);
   }
 
   @Override
   public String toSrcString() {
-    return getStringRepresentation(true);
+    return this.makeStringView(true);
   }
 
-  private String getStringRepresentation(final boolean sourceLike) {
+  private String makeStringView(final boolean asSources) {
     if (functor.getTermType() != OPERATOR) {
       // just struct
       final StringBuilder buffer = new StringBuilder(ProlUtils.escapeSrc(getText()));
 
-      if (getArity() != 0) {
+      if (this.getArity() != 0) {
         buffer.append('(');
-        for (int li = 0; li < getArity(); li++) {
-          if (li > 0) {
+        for (int i = 0; i < this.getArity(); i++) {
+          if (i > 0) {
             buffer.append(',');
           }
-          buffer.append(sourceLike ? getElement(li).toSrcString() : getElement(li).toString());
+          buffer.append(
+              asSources ? this.getArgumentAt(i).toSrcString() : this.getArgumentAt(i).toString());
         }
         buffer.append(')');
       }
@@ -178,22 +180,22 @@ public class TermStruct extends CompoundTerm {
       return buffer.toString();
     } else {
       // it's an operator
-      final String opName = sourceLike ? functor.toSrcString() : functor.toString();
+      final String opName = asSources ? functor.toSrcString() : functor.toString();
       final StringBuilder builder = new StringBuilder();
 
       final TermOperator OperatorFunctor = (TermOperator) functor;
 
       final int priority = OperatorFunctor.getPrecedence();
 
-      final Term arg1 = this.getElement(0);
-      final Term arg2 = getArity() > 1 ? this.getElement(1) : null;
+      final Term arg1 = this.getArgumentAt(0);
+      final Term arg2 = getArity() > 1 ? this.getArgumentAt(1) : null;
 
       switch (OperatorFunctor.getType()) {
         case FX: {
           builder.append(opName);
           builder.append(' ');
 
-          final String text = sourceLike ? arg1.toSrcString() : arg1.toString();
+          final String text = asSources ? arg1.toSrcString() : arg1.toString();
 
           if (arg1.getPrecedence() >= priority) {
             builder.append('(').append(text).append(')');
@@ -206,7 +208,7 @@ public class TermStruct extends CompoundTerm {
           builder.append(opName);
           builder.append(' ');
 
-          final String text = sourceLike ? arg1.toSrcString() : arg1.toString();
+          final String text = asSources ? arg1.toSrcString() : arg1.toString();
 
           if (arg1.getPrecedence() > priority) {
             builder.append('(').append(text).append(')');
@@ -216,7 +218,7 @@ public class TermStruct extends CompoundTerm {
         }
         break;
         case XF: {
-          final String text = sourceLike ? arg1.toSrcString() : arg1.toString();
+          final String text = asSources ? arg1.toSrcString() : arg1.toString();
 
           if (arg1.getPrecedence() >= priority) {
             builder.append('(').append(text).append(')');
@@ -229,7 +231,7 @@ public class TermStruct extends CompoundTerm {
         }
         break;
         case YF: {
-          final String text = sourceLike ? arg1.toSrcString() : arg1.toString();
+          final String text = asSources ? arg1.toSrcString() : arg1.toString();
 
           if (arg1.getPrecedence() > priority) {
             builder.append('(').append(text).append(')');
@@ -242,8 +244,8 @@ public class TermStruct extends CompoundTerm {
         }
         break;
         case XFX: {
-          final String text = sourceLike ? arg1.toSrcString() : arg1.toString();
-          final String text2 = sourceLike ? arg2.toSrcString() : arg2.toString();
+          final String text = asSources ? arg1.toSrcString() : arg1.toString();
+          final String text2 = asSources ? arg2.toSrcString() : arg2.toString();
 
           if (arg1.getPrecedence() >= priority) {
             builder.append('(').append(text).append(')');
@@ -263,8 +265,8 @@ public class TermStruct extends CompoundTerm {
         }
         break;
         case YFX: {
-          final String text = sourceLike ? arg1.toSrcString() : arg1.toString();
-          final String text2 = sourceLike ? arg2.toSrcString() : arg2.toString();
+          final String text = asSources ? arg1.toSrcString() : arg1.toString();
+          final String text2 = asSources ? arg2.toSrcString() : arg2.toString();
 
           if (arg1.getPrecedence() > priority) {
             builder.append('(').append(text).append(')');
@@ -284,8 +286,8 @@ public class TermStruct extends CompoundTerm {
         }
         break;
         case XFY: {
-          final String text = sourceLike ? arg1.toSrcString() : arg1.toString();
-          final String text2 = sourceLike ? arg2.toSrcString() : arg2.toString();
+          final String text = asSources ? arg1.toSrcString() : arg1.toString();
+          final String text2 = asSources ? arg2.toSrcString() : arg2.toString();
 
           if (arg1.getPrecedence() >= priority) {
             builder.append('(').append(text).append(')');
@@ -324,7 +326,7 @@ public class TermStruct extends CompoundTerm {
           if (li > 0) {
             buffer.append(',');
           }
-          buffer.append(getElement(li).forWrite());
+          buffer.append(getArgumentAt(li).forWrite());
         }
         buffer.append(')');
       }
@@ -342,12 +344,12 @@ public class TermStruct extends CompoundTerm {
         case FY: {
           builder.append(opName);
           builder.append(' ');
-          builder.append(getElement(0).forWrite());
+          builder.append(getArgumentAt(0).forWrite());
         }
         break;
         case XF:
         case YF: {
-          builder.append(getElement(0).forWrite());
+          builder.append(getArgumentAt(0).forWrite());
           builder.append(' ');
           builder.append(opName);
         }
@@ -355,11 +357,11 @@ public class TermStruct extends CompoundTerm {
         case XFX:
         case YFX:
         case XFY: {
-          builder.append(getElement(0).forWrite());
+          builder.append(getArgumentAt(0).forWrite());
           builder.append(' ');
           builder.append(opName);
           builder.append(' ');
-          builder.append(getElement(1).forWrite());
+          builder.append(getArgumentAt(1).forWrite());
         }
         break;
         default:
@@ -409,8 +411,8 @@ public class TermStruct extends CompoundTerm {
         if (arity == thatStruct.getArity() &&
             thisStruct.getFunctor().unifyTo(thatStruct.getFunctor())) {
           for (int li = 0; li < arity; li++) {
-            final Term thisElement = thisStruct.getElement(li);
-            final Term thatElement = thatStruct.getElement(li);
+            final Term thisElement = thisStruct.getArgumentAt(li);
+            final Term thatElement = thatStruct.getArgumentAt(li);
             if (thisElement != thatElement && !thisElement.unifyTo(thatElement)) {
               return false;
             }
@@ -466,7 +468,7 @@ public class TermStruct extends CompoundTerm {
       if (arity == thatStruct.getArity() &&
           thisStruct.getFunctor().dryUnifyTo(thatStruct.getFunctor())) {
         for (int li = 0; li < arity; li++) {
-          if (!thisStruct.getElement(li).dryUnifyTo(thatStruct.getElement(li))) {
+          if (!thisStruct.getArgumentAt(li).dryUnifyTo(thatStruct.getArgumentAt(li))) {
             return false;
           }
         }
@@ -483,20 +485,20 @@ public class TermStruct extends CompoundTerm {
   }
 
   @Override
-  public Term cloneAndReplaceVariablesByValues(final Map<Integer, TermVar> variables) {
+  public Term cloneAndReplaceVariableByValue(final Map<Integer, TermVar> variables) {
     final Term result;
     if (this.getArity() == 0) {
       result = this;
     } else {
-      final Term[] elements = this.getElementArray();
+      final Term[] elements = this.getArguments();
       final int arity = elements.length;
       final Term[] targetElements = new Term[arity];
 
       boolean changed = false;
       for (int i = 0; i < arity; i++) {
         final Term element = elements[i];
-        final Term cloned = element.cloneAndReplaceVariablesByValues(variables);
-        targetElements[i] = element.cloneAndReplaceVariablesByValues(variables);
+        final Term cloned = element.cloneAndReplaceVariableByValue(variables);
+        targetElements[i] = element.cloneAndReplaceVariableByValue(variables);
         changed |= element != cloned;
       }
       if (changed) {
@@ -515,7 +517,7 @@ public class TermStruct extends CompoundTerm {
     final int arity = struct.getArity();
 
     for (int li = 0; li < arity; li++) {
-      final Term element = struct.getElement(li);
+      final Term element = struct.getArgumentAt(li);
       if (element.getTermType() == VAR) {
         final TermVar thatVar = (TermVar) element;
         final String variableName = thatVar.getText();
@@ -524,7 +526,7 @@ public class TermStruct extends CompoundTerm {
           if (var == null) {
             variables.put(variableName, (TermVar) element);
           } else {
-            struct.setElement(li, var);
+            struct.setArgumentAt(li, var);
           }
         }
       } else {
@@ -540,7 +542,7 @@ public class TermStruct extends CompoundTerm {
     if (this.getArity() == 0) {
       result = this;
     } else {
-      final Term[] elements = this.getElementArray();
+      final Term[] elements = this.getArguments();
       final int arity = elements.length;
       final Term[] targetElements = new Term[arity];
       for (int i = 0; i < arity; i++) {
@@ -556,9 +558,9 @@ public class TermStruct extends CompoundTerm {
   @Override
   public Term replaceVar(final String varName, final Term targetTerm) {
     boolean changed = false;
-    final Term[] newTerms = new Term[this.terms.length];
-    for (int i = 0; i < this.terms.length; i++) {
-      final Term next = this.terms[i];
+    final Term[] newTerms = new Term[this.arguments.length];
+    for (int i = 0; i < this.arguments.length; i++) {
+      final Term next = this.arguments[i];
       final Term replaced = next.replaceVar(varName, targetTerm);
       newTerms[i] = replaced;
       changed |= next != replaced;
@@ -572,7 +574,7 @@ public class TermStruct extends CompoundTerm {
 
   @Override
   public boolean containsNamedVariable(final String name) {
-    for (final Term t : this.terms) {
+    for (final Term t : this.arguments) {
       if (t.containsNamedVariable(name)) {
         return true;
       }
@@ -590,9 +592,9 @@ public class TermStruct extends CompoundTerm {
     }
     if (obj instanceof TermStruct) {
       final TermStruct that = (TermStruct) obj;
-      return this.terms.length == that.terms.length
+      return this.arguments.length == that.arguments.length
           && this.functor.equals(that.functor)
-          && Arrays.equals(this.terms, that.terms);
+          && Arrays.equals(this.arguments, that.arguments);
     }
     return false;
   }

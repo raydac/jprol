@@ -289,7 +289,7 @@ public class JProlContext implements AutoCloseable {
     if (flag.isReadOnly()) {
       throw new IllegalStateException("Flag is marked as read-only: " + flag);
     } else {
-      final Term value = requireNonNull(term.findNonVarOrDefault(null));
+      final Term value = requireNonNull(term.findGroundOrDefault(null));
       this.systemFlags.put(flag, value);
       this.onSystemFlagsUpdated();
     }
@@ -831,7 +831,7 @@ public class JProlContext implements AutoCloseable {
         termStruct = newStruct(term);
       }
       signature = termStruct.isClause() ?
-          termStruct.getElement(0).getSignature() : termStruct.getSignature();
+          termStruct.getArgumentAt(0).getSignature() : termStruct.getSignature();
     }
 
     if (this.dynamicSignatures.contains(signature)) {
@@ -863,7 +863,7 @@ public class JProlContext implements AutoCloseable {
   }
 
   public boolean abolish(final Term term) {
-    final Term indicator = term.findNonVarOrSame();
+    final Term indicator = term.findGroundOrSame();
     ProlAssertions.assertIndicator(indicator);
     return this.doClauseInKnowledgeBase(term,
         true,
@@ -916,7 +916,7 @@ public class JProlContext implements AutoCloseable {
                     break;
                     case FX: {
                       // directive
-                      if (!this.processDirective(struct.getElement(0))) {
+                      if (!this.processDirective(struct.getArgumentAt(0))) {
                         throw new ProlHaltExecutionException(2);
                       }
                     }
@@ -924,7 +924,7 @@ public class JProlContext implements AutoCloseable {
                   }
 
                 } else if ("?-".equals(text)) {
-                  final Term termGoal = struct.getElement(0);
+                  final Term termGoal = struct.getArgumentAt(0);
 
                   if (iterator != null && iterator.onFoundInteractiveGoal(this, termGoal)) {
 

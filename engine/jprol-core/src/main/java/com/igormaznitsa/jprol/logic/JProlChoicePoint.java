@@ -85,7 +85,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
     this.goalTerm = goalToSolve.getTermType() == ATOM ? newStruct(goalToSolve) : goalToSolve;
     this.context = context;
 
-    final Term goal = goalToSolve.findNonVarOrSame();
+    final Term goal = goalToSolve.findGroundOrSame();
 
     if (this.validate) {
       ProlAssertions.assertCallable(goal);
@@ -317,7 +317,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
         }
       }
 
-      final Term theTerm = this.goalTerm.findNonVarOrDefault(this.goalTerm);
+      final Term theTerm = this.goalTerm.findGroundOrDefault(this.goalTerm);
 
 
       if (this.clauseIterator != null) {
@@ -327,21 +327,21 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
           final Term goalTermForEqu;
           if (((TermStruct) theTerm).isClause()) {
-            goalTermForEqu = ((TermStruct) theTerm).getElement(0).makeClone();
+            goalTermForEqu = ((TermStruct) theTerm).getArgumentAt(0).makeClone();
           } else {
             goalTermForEqu = theTerm.makeClone();
           }
 
           if (!goalTermForEqu
-              .unifyTo(nextClause.isClause() ? nextClause.getElement(0) : nextClause)) {
+              .unifyTo(nextClause.isClause() ? nextClause.getArgumentAt(0) : nextClause)) {
             throw new ProlCriticalError(
                 "Unexpectedly can't unify term with provided by knowledge base!");
           }
 
           if (nextClause.isClause()) {
             this.thisConnector = theTerm;
-            this.subChoicePointConnector = nextClause.getElement(0);
-            this.subChoicePoint = new JProlChoicePoint(nextClause.getElement(1), this.context);
+            this.subChoicePointConnector = nextClause.getArgumentAt(0);
+            this.subChoicePoint = new JProlChoicePoint(nextClause.getArgumentAt(1), this.context);
             continue;
           } else {
             if (!theTerm.unifyTo(nextClause)) {
@@ -378,13 +378,15 @@ public final class JProlChoicePoint implements Comparator<Term> {
           if (struct.isClause()) {
             final TermStruct structClone = (TermStruct) struct.makeClone();
 
-            this.thisConnector = struct.getElement(0);
-            this.subChoicePointConnector = structClone.getElement(0);
+            this.thisConnector = struct.getArgumentAt(0);
+            this.subChoicePointConnector = structClone.getArgumentAt(0);
 
             if (arity == 1) {
-              this.subChoicePoint = new JProlChoicePoint(structClone.getElement(0), this.context);
+              this.subChoicePoint =
+                  new JProlChoicePoint(structClone.getArgumentAt(0), this.context);
             } else {
-              this.subChoicePoint = new JProlChoicePoint(structClone.getElement(1), this.context);
+              this.subChoicePoint =
+                  new JProlChoicePoint(structClone.getArgumentAt(1), this.context);
             }
           } else {
 
@@ -407,8 +409,9 @@ public final class JProlChoicePoint implements Comparator<Term> {
               final int textLen = functorText.length();
               if (textLen == 1) {
                 if (functorText.charAt(0) == ',') {// and
-                  final JProlChoicePoint leftSubGoal = replaceLastGoalAtChain(struct.getElement(0));
-                  leftSubGoal.nextAndTerm = struct.getElement(1);
+                  final JProlChoicePoint leftSubGoal =
+                      replaceLastGoalAtChain(struct.getArgumentAt(0));
+                  leftSubGoal.nextAndTerm = struct.getArgumentAt(1);
                   leftSubGoal.nextAndTermForNextGoal = this.nextAndTerm;
 
                   result = JProlChoicePointResult.STACK_CHANGED;
@@ -418,12 +421,12 @@ public final class JProlChoicePoint implements Comparator<Term> {
                 } else if (functorText.charAt(0) == ';') {// or
                   if (getPayload() == null) {
                     final JProlChoicePoint leftSubbranch =
-                        new JProlChoicePoint(this.rootChoicePoint, struct.getElement(0),
+                        new JProlChoicePoint(this.rootChoicePoint, struct.getArgumentAt(0),
                             this.context, this.debug, this.validate, null);
                     leftSubbranch.nextAndTerm = this.nextAndTerm;
                     this.setPayload(leftSubbranch);
                   } else {
-                    this.replaceLastGoalAtChain(struct.getElement(1));
+                    this.replaceLastGoalAtChain(struct.getArgumentAt(1));
                   }
                   result = JProlChoicePointResult.STACK_CHANGED;
                   nonConsumed = false;
@@ -514,11 +517,11 @@ public final class JProlChoicePoint implements Comparator<Term> {
       return 0;
     }
 
-    term1 = term1.findNonVarOrSame();
-    term2 = term2.findNonVarOrSame();
+    term1 = term1.findGroundOrSame();
+    term2 = term2.findGroundOrSame();
 
     final int result;
-    switch (term1.findNonVarOrSame().getTermType()) {
+    switch (term1.findGroundOrSame().getTermType()) {
       case ATOM: {
         if (term2 instanceof CompoundTerm) {
           result = -1;
@@ -552,7 +555,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
             res = struct1.getFunctor().getText().compareTo(struct2.getFunctor().getText());
             if (res == 0) {
               for (int i = 0; i < struct1.getArity() && res == 0; i++) {
-                res = this.compare(struct1.getElement(i), struct2.getElement(i));
+                res = this.compare(struct1.getArgumentAt(i), struct2.getArgumentAt(i));
               }
             }
           }

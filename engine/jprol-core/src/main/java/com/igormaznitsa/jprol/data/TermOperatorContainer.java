@@ -23,78 +23,96 @@ import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 
 public final class TermOperatorContainer extends SpecialTerm {
 
+  private final TermOperator opFZ;
+  private final TermOperator opZF;
+  private final TermOperator opZFZ;
+
   private final OpContainer opContainer;
-  private final ReentrantLock locker = new ReentrantLock();
-  private TermOperator opFZ;
-  private TermOperator opZF;
-  private TermOperator opZFZ;
 
-  private TermOperatorContainer(final TermOperatorContainer sample,
-                                final SourcePosition sourcePosition) {
-    super(sample.getText(), sourcePosition);
-    this.opContainer = OpContainer.make(sample.getText(),
-        sample.opFZ == null ? null : sample.opFZ.asOperator(),
-        sample.opZF == null ? null : sample.opZF.asOperator(),
-        sample.opZFZ == null ? null : sample.opZFZ.asOperator());
-    opFZ = sample.opFZ;
-    opZF = sample.opZF;
-    opZFZ = sample.opZFZ;
+  private TermOperatorContainer(
+      final String text,
+      final TermOperator opFZ,
+      final TermOperator opZF,
+      final TermOperator opZFZ,
+      final SourcePosition sourcePosition) {
+    super(text, sourcePosition);
+    this.opFZ = opFZ;
+    this.opZF = opZF;
+    this.opZFZ = opZFZ;
+    this.opContainer = OpContainer.make(text,
+        opFZ == null ? null : opFZ.asOperator(),
+        opZF == null ? null : opZF.asOperator(),
+        opZFZ == null ? null : opZFZ.asOperator());
   }
 
-  public TermOperatorContainer(final TermOperator operator, final SourcePosition sourcePosition) {
-    super(operator.getText(), sourcePosition);
-    this.opContainer = OpContainer.make(operator.asOperator());
-    setOperator(operator);
+  public static TermOperatorContainer makeFor(final TermOperator operator,
+                                              final SourcePosition sourcePosition) {
+    switch (operator.getType()) {
+      case FX:
+      case FY:
+        return new TermOperatorContainer(operator.getText(), operator, null, null, sourcePosition);
+      case XF:
+      case YF:
+        return new TermOperatorContainer(operator.getText(), null, operator, null, sourcePosition);
+      case XFX:
+      case XFY:
+      case YFX:
+        return new TermOperatorContainer(operator.getText(), null, null, operator, sourcePosition);
+      default:
+        throw new Error("Unexpected type, contact developer");
+    }
   }
 
-  public OpContainer asOpContainer() {
-    return this.opContainer;
-  }
-
-  public boolean setOperator(final TermOperator operator) {
-    this.locker.lock();
-    try {
-      switch (operator.getType()) {
-        case FX:
-        case FY: {
-          if (opFZ != null) {
-            return false;
+  public TermOperatorContainer makeFor(final TermOperator operator) {
+    switch (operator.getType()) {
+      case FX:
+      case FY: {
+        if (this.opFZ == null) {
+          return new TermOperatorContainer(this.getText(), operator, this.opZF, this.opZFZ,
+              this.getSourcePosition());
+        } else {
+          if (this.opFZ.equals(operator)) {
+            return this;
+          } else {
+            return null;
           }
-          opFZ = operator;
-          this.opContainer.add(operator.asOperator());
-        }
-        break;
-        case XF:
-        case YF: {
-          if (opZF != null) {
-            return false;
-          }
-          opZF = operator;
-          this.opContainer.add(operator.asOperator());
-        }
-        break;
-        case XFX:
-        case XFY:
-        case YFX: {
-          if (opZFZ != null) {
-            return false;
-          }
-          opZFZ = operator;
-          this.opContainer.add(operator.asOperator());
-        }
-        break;
-        default: {
-          throw new Error("Unsupported operator type");
         }
       }
-      return true;
-    } finally {
-      this.locker.unlock();
+      case XF:
+      case YF: {
+        if (this.opZF == null) {
+          return new TermOperatorContainer(this.getText(), this.opFZ, operator, this.opZFZ,
+              this.getSourcePosition());
+        } else {
+          if (this.opZF.equals(operator)) {
+            return this;
+          } else {
+            return null;
+          }
+        }
+      }
+      case XFX:
+      case XFY:
+      case YFX: {
+        if (this.opZFZ == null) {
+          return new TermOperatorContainer(this.getText(), this.opFZ, this.opZF, operator,
+              this.getSourcePosition());
+        } else {
+          if (this.opZFZ.equals(operator)) {
+            return this;
+          } else {
+            return null;
+          }
+        }
+      }
+      default: {
+        throw new Error("Unexpected operator type, contact developer");
+      }
     }
+
   }
 
   @Override
@@ -103,130 +121,104 @@ public final class TermOperatorContainer extends SpecialTerm {
   }
 
   public void write(final PrintWriter writer) {
-    this.locker.lock();
-    try {
-      if (opFZ != null) {
-        opFZ.write(writer);
-      }
-      if (opZF != null) {
-        opZF.write(writer);
-      }
-      if (opZFZ != null) {
-        opZFZ.write(writer);
-      }
-    } finally {
-      this.locker.unlock();
+    if (this.opFZ != null) {
+      this.opFZ.write(writer);
+    }
+    if (this.opZF != null) {
+      this.opZF.write(writer);
+    }
+    if (this.opZFZ != null) {
+      this.opZFZ.write(writer);
     }
   }
 
   public TermOperator getForExactType(final OpAssoc type) {
-    this.locker.lock();
-    try {
-      TermOperator result = null;
-      switch (type) {
-        case FY:
-        case FX: {
-          if (opFZ != null) {
-            result = opFZ;
-          }
-        }
-        break;
-        case XF:
-        case YF: {
-          if (opZF != null) {
-            result = opZF;
-          }
-        }
-        break;
-        case XFX:
-        case YFX:
-        case XFY: {
-          if (opZFZ != null) {
-            result = opZFZ;
-          }
-        }
-        break;
-        default: {
-          throw new Error("Unsupported operator type");
+    TermOperator result = null;
+    switch (type) {
+      case FY:
+      case FX: {
+        if (opFZ != null) {
+          result = opFZ;
         }
       }
+      break;
+      case XF:
+      case YF: {
+        if (opZF != null) {
+          result = opZF;
+        }
+      }
+      break;
+      case XFX:
+      case YFX:
+      case XFY: {
+        if (opZFZ != null) {
+          result = opZFZ;
+        }
+      }
+      break;
+      default: {
+        throw new Error("Unsupported operator type");
+      }
+    }
 
-      if (result != null && result.getType() == type) {
-        return result;
-      }
-      return null;
-    } finally {
-      this.locker.unlock();
+    if (result != null && result.getType() == type) {
+      return result;
+    }
+    return null;
+  }
+
+  public TermOperatorContainer removeType(final OpAssoc type) {
+    switch (type) {
+      case FX:
+      case FY:
+        if (this.opFZ == null) {
+          return this;
+        } else {
+          return new TermOperatorContainer(this.getText(), null, this.opZF, this.opZFZ,
+              this.getSourcePosition());
+        }
+      case XF:
+      case YF:
+        if (this.opZF == null) {
+          return this;
+        } else {
+          return new TermOperatorContainer(this.getText(), this.opFZ, null, this.opZFZ,
+              this.getSourcePosition());
+        }
+      case YFX:
+      case XFY:
+      case XFX:
+        if (this.opZFZ == null) {
+          return this;
+        } else {
+          return new TermOperatorContainer(this.getText(), this.opFZ, this.opZF, null,
+              this.getSourcePosition());
+        }
+      default:
+        throw new Error("Illegal type, contact developer");
     }
   }
 
-  public boolean removeForType(final OpAssoc type) {
-    this.locker.lock();
-    try {
-      boolean result = false;
-      switch (type) {
-        case FX:
-        case FY: {
-          if (opFZ != null && opFZ.getType() == type) {
-            opFZ = null;
-            this.opContainer.removeForType(type);
-            result = true;
-          }
-        }
-        break;
-        case XF:
-        case YF: {
-          if (opZF != null && opZF.getType() == type) {
-            opZF = null;
-            this.opContainer.removeForType(type);
-            result = true;
-          }
-        }
-        break;
-        case XFX:
-        case YFX:
-        case XFY: {
-          if (opZFZ != null && opZFZ.getType() == type) {
-            opZFZ = null;
-            this.opContainer.removeForType(type);
-            result = true;
-          }
-        }
-        break;
-        default:
-          return false;
-      }
-      return result;
-    } finally {
-      this.locker.unlock();
-    }
+  public OpContainer asOpContainer() {
+    return this.opContainer;
   }
 
   public List<TermOperator> makeList() {
-    this.locker.lock();
-    try {
-      final List<TermOperator> result = new ArrayList<>(3);
-      final TermOperator fz = this.opFZ;
-      final TermOperator zfz = this.opZFZ;
-      final TermOperator zf = this.opZF;
-      if (fz != null) {
-        result.add(fz);
-      }
-      if (zfz != null) {
-        result.add(zfz);
-      }
-      if (zf != null) {
-        result.add(zf);
-      }
-      return result;
-    } finally {
-      this.locker.unlock();
+    final List<TermOperator> result = new ArrayList<>(3);
+    final TermOperator fz = this.opFZ;
+    final TermOperator zfz = this.opZFZ;
+    final TermOperator zf = this.opZF;
+    if (fz != null) {
+      result.add(fz);
     }
-  }
-
-  @Override
-  public Term makeClone() {
-    return new TermOperatorContainer(this, this.getSourcePosition());
+    if (zfz != null) {
+      result.add(zfz);
+    }
+    if (zf != null) {
+      result.add(zf);
+    }
+    return result;
   }
 
 }

@@ -164,10 +164,15 @@ public abstract class AbstractJProlLibrary {
         new TermOperator(operator.priority(), operator.type(), operator.name(), sourcePosition);
     TermOperatorContainer container = operatorMap.get(operator.name());
     if (container == null) {
-      container = new TermOperatorContainer(newOperator, sourcePosition);
+      container = TermOperatorContainer.makeFor(newOperator, sourcePosition);
       operatorMap.put(operator.name(), container);
     } else {
-      container.setOperator(newOperator);
+      final TermOperatorContainer newContainer = container.makeFor(newOperator);
+      if (newContainer == null) {
+        throw new IllegalStateException("Detected duplicated type of operator: " + operator);
+      } else {
+        operatorMap.put(operator.name(), newContainer);
+      }
     }
   }
 
@@ -199,7 +204,7 @@ public abstract class AbstractJProlLibrary {
 
   protected static NumericTerm calcEvaluable(final JProlChoicePoint choicePoint, final Term term) {
     try {
-      final Term thatTerm = term.findNonVarOrSame();
+      final Term thatTerm = term.findGroundOrSame();
       if (thatTerm.getTermType() == VAR) {
         throw new ProlInstantiationErrorException("Non-instantiated var: " + term,
             choicePoint.getGoalTerm());

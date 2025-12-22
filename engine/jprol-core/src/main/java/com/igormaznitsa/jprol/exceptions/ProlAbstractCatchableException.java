@@ -51,7 +51,7 @@ public abstract class ProlAbstractCatchableException extends ProlException {
   ) {
     super(message, cause);
     this.culprit =
-        culprit == null ? UNDEFINED : culprit.cloneAndReplaceVariablesByValues(new HashMap<>());
+        culprit == null ? UNDEFINED : culprit.cloneAndReplaceVariableByValue(new HashMap<>());
     if (sourcePosition == null) {
       this.sourcePosition = this.culprit.getSourcePosition();
     } else {

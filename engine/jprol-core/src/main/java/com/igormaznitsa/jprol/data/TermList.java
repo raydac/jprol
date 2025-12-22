@@ -114,7 +114,7 @@ public final class TermList extends TermStruct {
         TermList curResult = result;
         final int arity = struct.getArity();
         for (int li = 0; li < arity; li++) {
-          curResult = createOrAppendToList(curResult, struct.getElement(li));
+          curResult = createOrAppendToList(curResult, struct.getArgumentAt(li));
         }
         return result;
       }
@@ -167,7 +167,7 @@ public final class TermList extends TermStruct {
       return this;
     } else {
       TermList result = new TermList(this.getHead(), NULL_LIST, this.getSourcePosition());
-      Term tail = this.getTail().findNonVarOrSame();
+      Term tail = this.getTail().findGroundOrSame();
       while (true) {
         if (tail.getTermType() == LIST) {
           final TermList thatList = (TermList) tail;
@@ -231,12 +231,12 @@ public final class TermList extends TermStruct {
 
   @SuppressWarnings("unchecked")
   public <T extends Term> T getHead() {
-    return (T) this.terms[INDEX_HEAD];
+    return (T) this.arguments[INDEX_HEAD];
   }
 
   @SuppressWarnings("unchecked")
   public <T extends Term> T getTail() {
-    final Term tail = this.terms[INDEX_TAIL];
+    final Term tail = this.arguments[INDEX_TAIL];
     switch (tail.getTermType()) {
       case VAR: {
         final TermVar var = (TermVar) tail;
@@ -250,14 +250,14 @@ public final class TermList extends TermStruct {
   }
 
   public void setTail(final Term newTail) {
-    this.terms[INDEX_TAIL] = requireNonNull(newTail, "Null is not allowed as list tail");
+    this.arguments[INDEX_TAIL] = requireNonNull(newTail, "Null is not allowed as list tail");
   }
 
   public int calculateLength() {
     if (this.isNullList()) {
       return 0;
     }
-    final Term tail = this.terms[INDEX_TAIL];
+    final Term tail = this.arguments[INDEX_TAIL];
     if (tail.getTermType() == LIST) {
       return ((TermList) tail).calculateLength() + 1;
     } else {
@@ -282,11 +282,11 @@ public final class TermList extends TermStruct {
 
   @Override
   public boolean isNullList() {
-    return this.terms == EMPTY_ARRAY;
+    return this.arguments == EMPTY_ARRAY;
   }
 
   @Override
-  public Term cloneAndReplaceVariablesByValues(final Map<Integer, TermVar> variables) {
+  public Term cloneAndReplaceVariableByValue(final Map<Integer, TermVar> variables) {
     if (this.isNullList()) {
       return NULL_LIST;
     }
@@ -294,8 +294,8 @@ public final class TermList extends TermStruct {
     final Term head = this.getHead();
     final Term tail = this.getTail();
 
-    final Term headClone = head.cloneAndReplaceVariablesByValues(variables);
-    final Term tailClone = tail.cloneAndReplaceVariablesByValues(variables);
+    final Term headClone = head.cloneAndReplaceVariableByValue(variables);
+    final Term tailClone = tail.cloneAndReplaceVariableByValue(variables);
 
     if (head == headClone && tail == tailClone) {
       return this;
@@ -608,7 +608,7 @@ public final class TermList extends TermStruct {
   public boolean doesContainOnlyCharCodes() {
     TermList current = this;
     while (current != null) {
-      final Term term = current.getHead().findNonVarOrSame();
+      final Term term = current.getHead().findGroundOrSame();
       if (term instanceof TermLong) {
         final long code = term.toNumber().longValue();
         if ((code & 0xFFFFFFFF00000000L) == 0L) {
@@ -620,7 +620,7 @@ public final class TermList extends TermStruct {
           return false;
         }
 
-        final Term tail = current.getTail().findNonVarOrSame();
+        final Term tail = current.getTail().findGroundOrSame();
         if (tail.getTermType() == LIST) {
           final TermList newList = (TermList) tail;
           if (newList.isNullList()) {

@@ -36,7 +36,7 @@ public final class TermVar extends Term {
   private static final int LOOP_WATCHDOG = 8192;
   private final int uid;
   private final boolean anonymous;
-  private Term value;
+  private Term immediateValue;
 
   private TermVar(final String name, final boolean anonymous, final Object payload,
                   final SourcePosition sourcePosition) {
@@ -96,13 +96,15 @@ public final class TermVar extends Term {
       if (this.isAnonymous() || otherVar.isAnonymous()) {
         return false;
       }
-      if (this.value == null || this.value.getTermType() != VAR || this.value == this) {
+      if (this.immediateValue == null || this.immediateValue.getTermType() != VAR ||
+          this.immediateValue == this) {
         return false;
       }
-      if (this.value == otherVar || this.value.getText().equals(otherVar.getText())) {
+      if (this.immediateValue == otherVar ||
+          this.immediateValue.getText().equals(otherVar.getText())) {
         return true;
       }
-      current = (TermVar) this.value;
+      current = (TermVar) this.immediateValue;
     }
     return false;
   }
@@ -147,7 +149,7 @@ public final class TermVar extends Term {
   }
 
   @Override
-  public Term cloneAndReplaceVariablesByValues(final Map<Integer, TermVar> variables) {
+  public Term cloneAndReplaceVariableByValue(final Map<Integer, TermVar> variables) {
     Term value = this.getValue();
     if (value == null) {
       if (this.isAnonymous()) {
@@ -167,7 +169,7 @@ public final class TermVar extends Term {
           final Term thisVal = this.getImmediateValue();
 
           if (thisVal != null) {
-            newVar.setImmediateValue(thisVal.cloneAndReplaceVariablesByValues(variables));
+            newVar.setImmediateValue(thisVal.cloneAndReplaceVariableByValue(variables));
           }
         }
         result = newVar;
@@ -210,11 +212,11 @@ public final class TermVar extends Term {
    * @return null if no value, ground value or another variable if value presented
    */
   public Term getValue() {
-    Term result = this.value;
+    Term result = this.immediateValue;
     int watchdog = LOOP_WATCHDOG;
     while (result != null && result.getTermType() == VAR) {
       final Term prev = result;
-      result = ((TermVar) result).value;
+      result = ((TermVar) result).immediateValue;
       if (result == null) {
         result = prev;
         break;
@@ -245,7 +247,7 @@ public final class TermVar extends Term {
           if (curVar == this) {
             return true;
           } else {
-            final Term nextValue = curVar.value;
+            final Term nextValue = curVar.immediateValue;
             if (nextValue != null && nextValue.getTermType() == VAR) {
               curVar = (TermVar) nextValue;
             } else {
@@ -260,13 +262,13 @@ public final class TermVar extends Term {
         }
       }
 
-      if (this.value == null) {
-        this.value = value;
+      if (this.immediateValue == null) {
+        this.immediateValue = value;
         return true;
       } else {
         final Term curValue = getValue();
         if (curValue == null) {
-          return ((TermVar) this.value).setValue(value);
+          return ((TermVar) this.immediateValue).setValue(value);
         } else {
           return curValue.unifyTo(value);
         }
@@ -291,23 +293,25 @@ public final class TermVar extends Term {
   }
 
   public boolean isGround() {
-    return this.value != null && this.value.isGround();
+    return this.immediateValue != null && this.immediateValue.isGround();
   }
 
   public boolean isUnground() {
-    return this.value == null ||
-        (this.value.getTermType() == VAR && ((TermVar) this.value).isUnground());
+    return this.immediateValue == null ||
+        (this.immediateValue.getTermType() == VAR && ((TermVar) this.immediateValue).isUnground());
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends Term> T findNonVarOrSame() {
-    return this.value == null ? (T) this : (T) this.value.findNonVarOrDefault(this);
+  public <T extends Term> T findGroundOrSame() {
+    return this.immediateValue == null ? (T) this :
+        (T) this.immediateValue.findGroundOrDefault(this);
   }
 
   @Override
-  public <T extends Term> T findNonVarOrDefault(final T term) {
-    return this.value == null ? term : this.value.findNonVarOrDefault(term);
+  public <T extends Term> T findGroundOrDefault(final T defaultTerm) {
+    return this.immediateValue == null ? defaultTerm :
+        this.immediateValue.findGroundOrDefault(defaultTerm);
   }
 
   @Override
@@ -328,7 +332,7 @@ public final class TermVar extends Term {
    * @return saved value or null
    */
   public Term getImmediateValue() {
-    return this.value;
+    return this.immediateValue;
   }
 
   /**
@@ -338,7 +342,7 @@ public final class TermVar extends Term {
    */
   public void setImmediateValue(final Term value) {
     if (value != this) {
-      this.value = value;
+      this.immediateValue = value;
     }
   }
 
@@ -348,10 +352,11 @@ public final class TermVar extends Term {
    * @return found unground variable in the variable chain or this variable
    */
   public TermVar findUngroundVariable() {
-    if (this.value == null) {
+    if (this.immediateValue == null) {
       return this;
     } else {
-      return this.value.getTermType() == VAR ? ((TermVar) this.value).findUngroundVariable() : this;
+      return this.immediateValue.getTermType() == VAR ?
+          ((TermVar) this.immediateValue).findUngroundVariable() : this;
     }
   }
 

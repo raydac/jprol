@@ -111,13 +111,14 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
 
   @Override
   public boolean removeOperator(final String name, final OpAssoc type) {
-    TermOperatorContainer opContainer;
-    opContainer = this.operatorTable.get(name);
-
+    TermOperatorContainer container = this.operatorTable.get(name);
     boolean result = false;
-
-    if (opContainer != null) {
-      result = opContainer.removeForType(type);
+    if (container != null) {
+      final TermOperatorContainer newContainer = container.removeType(type);
+      if (newContainer != container) {
+        this.operatorTable.put(name, newContainer);
+        result = true;
+      }
     }
     return result;
   }
@@ -130,14 +131,17 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
           "Attempt to override a system operator [" + operator.getText() + ']');
     }
 
-    TermOperatorContainer list = this.operatorTable.get(operatorName);
-    if (list == null) {
-      list = new TermOperatorContainer(operator, operator.getSourcePosition());
-      this.operatorTable.put(operatorName, list);
+    TermOperatorContainer container = this.operatorTable.get(operatorName);
+    if (container == null) {
+      container = TermOperatorContainer.makeFor(operator, operator.getSourcePosition());
+      this.operatorTable.put(operatorName, container);
     } else {
-      if (!list.setOperator(operator)) {
-        throw new SecurityException(
-            "Either such one or compatible operator already presented [" + operatorName + ']');
+      container = container.makeFor(operator);
+      if (container == null) {
+        throw new IllegalStateException(
+            "Attempt to redefine operator for type already presented in container: " + operator);
+      } else {
+        this.operatorTable.put(operatorName, container);
       }
     }
   }
@@ -181,9 +185,9 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
     try {
       final String uid;
       if (clause.isClause()) {
-        Term leftPart = clause.getElement(0).findNonVarOrSame();
+        Term leftPart = clause.getArgumentAt(0).findGroundOrSame();
         final Term rightPart =
-            clause.getArity() == 2 ? clause.getElement(1).findNonVarOrSame() : null;
+            clause.getArity() == 2 ? clause.getArgumentAt(1).findGroundOrSame() : null;
 
         if (rightPart != null) {
           if (rightPart.getTermType() == VAR) {
@@ -198,7 +202,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
 
         if (leftPart.getTermType() == ATOM) {
           leftPart = newStruct(leftPart);
-          clause.setElement(0, leftPart);
+          clause.setArgumentAt(0, leftPart);
         }
         uid = leftPart.getSignature();
       } else {
@@ -303,7 +307,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
     TermStruct struct = clause;
     if (struct.isClause()) {
       // it's a clause
-      struct = struct.getElement(0);
+      struct = struct.getArgumentAt(0);
     }
 
     boolean result = false;
@@ -366,7 +370,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
   public boolean retractA(final JProlContext context, final TermStruct clause) {
     TermStruct struct = clause;
     if (struct.isClause()) {
-      final Term head = struct.getElement(0).findNonVarOrSame();
+      final Term head = struct.getArgumentAt(0).findGroundOrSame();
       ProlAssertions.assertStruct(head);
       struct = (TermStruct) head;
     }
@@ -397,7 +401,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
     TermStruct struct = clause;
     if (struct.isClause()) {
       // it's a clause
-      struct = struct.getElement(0);
+      struct = struct.getArgumentAt(0);
     }
 
     boolean result = false;

@@ -163,7 +163,7 @@ public final class ProlAssertions {
       }
       break;
       case VAR: {
-        Term value = t.findNonVarOrSame();
+        Term value = t.findGroundOrSame();
         if (value.getTermType() == VAR) {
           throw new ProlInstantiationErrorException("Expected instantiated callable: " + t, t);
         } else {
@@ -205,7 +205,7 @@ public final class ProlAssertions {
     if (t.getTermType() == TermType.LIST) {
       TermList lst = (TermList) t;
       while (!lst.isNullList() && errorCode == 0) {
-        final Term value = lst.getHead().findNonVarOrSame();
+        final Term value = lst.getHead().findGroundOrSame();
         if (value.getTermType() == TermType.ATOM) {
           if (value instanceof TermLong) {
             if ((value.toNumber().intValue() & 0xFFFF0000) != 0) {
@@ -217,7 +217,7 @@ public final class ProlAssertions {
         } else {
           errorCode = value.getTermType() == VAR ? 3 : 1;
         }
-        final Term tail = lst.getTail().findNonVarOrSame();
+        final Term tail = lst.getTail().findGroundOrSame();
         if (tail.getTermType() == TermType.LIST) {
           lst = (TermList) tail;
         } else {
@@ -249,7 +249,7 @@ public final class ProlAssertions {
     } else if (t.getTermType() == TermType.LIST) {
       TermList lst = (TermList) t;
       while (!lst.isNullList() && errorCode == 0) {
-        final Term value = lst.getHead().findNonVarOrSame();
+        final Term value = lst.getHead().findGroundOrSame();
         if (value.getTermType() == TermType.ATOM) {
           if (value instanceof NumericTerm) {
             errorCode = 1;
@@ -261,7 +261,7 @@ public final class ProlAssertions {
         } else {
           errorCode = value.getTermType() == VAR ? 3 : 1;
         }
-        final Term tail = lst.getTail().findNonVarOrSame();
+        final Term tail = lst.getTail().findGroundOrSame();
         if (tail.getTermType() == TermType.LIST) {
           lst = (TermList) tail;
         } else {
@@ -458,8 +458,8 @@ public final class ProlAssertions {
     if (t.getTermType() == STRUCT) {
       final TermStruct struct = (TermStruct) t;
       if (struct.getArity() == 2 && "/".equals(struct.getFunctor().getText())) {
-        final Term left = struct.getElement(0).findNonVarOrSame();
-        final Term right = struct.getElement(1).findNonVarOrSame();
+        final Term left = struct.getArgumentAt(0).findGroundOrSame();
+        final Term right = struct.getArgumentAt(1).findGroundOrSame();
 
         final boolean leftOk =
             (left.getTermType() == TermType.ATOM && left.getClass() == Term.class)

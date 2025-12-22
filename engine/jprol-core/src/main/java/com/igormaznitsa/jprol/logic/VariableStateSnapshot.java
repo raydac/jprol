@@ -89,7 +89,7 @@ final class VariableStateSnapshot {
       break;
       case STRUCT: {
         final TermStruct struct = (TermStruct) src;
-        final Term[] elements = struct.getElementArray();
+        final Term[] elements = struct.getArguments();
         for (final Term element : elements) {
           this.extractAllVariables(element, predefinedValues);
         }

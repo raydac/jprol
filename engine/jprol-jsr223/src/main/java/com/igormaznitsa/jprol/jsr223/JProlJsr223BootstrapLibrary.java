@@ -47,7 +47,7 @@ public class JProlJsr223BootstrapLibrary extends AbstractJProlLibrary {
   )
   public static boolean predicateWrite(JProlChoicePoint goal, TermStruct predicate) {
     findWriter(WRITER_OUT, goal).ifPresent(out -> {
-      var text = predicate.getElement(0).findNonVarOrSame().getText();
+      var text = predicate.getArgumentAt(0).findGroundOrSame().getText();
       try {
         out.write(text.toCharArray());
         out.flush();
@@ -66,7 +66,7 @@ public class JProlJsr223BootstrapLibrary extends AbstractJProlLibrary {
   )
   public static boolean predicateWriteLn(JProlChoicePoint goal, TermStruct predicate) {
     findWriter(WRITER_OUT, goal).ifPresent(out -> {
-      var text = predicate.getElement(0).findNonVarOrSame().getText();
+      var text = predicate.getArgumentAt(0).findGroundOrSame().getText();
       try {
         out.write(text.toCharArray());
         out.write('\n');

@@ -68,9 +68,9 @@ public class JProlHttpLibrary extends AbstractJProlLibrary {
         .map(f -> (TermStruct) f)
         .filter(f -> f.getArity() == 2
             && "=".equals(f.getFunctor().getText())
-            && f.getElement(0).findNonVarOrSame().getText().equalsIgnoreCase(key))
+            && f.getArgumentAt(0).findGroundOrSame().getText().equalsIgnoreCase(key))
         .findFirst().orElse(null);
-    return found == null ? null : found.getElement(1).findNonVarOrSame();
+    return found == null ? null : found.getArgumentAt(1).findGroundOrSame();
   }
 
   private Term findMandatory(final HttpRequestParameters key, final TermList list) {
@@ -101,8 +101,8 @@ public class JProlHttpLibrary extends AbstractJProlLibrary {
       throw new ProlCriticalError("Can't find required operator =/2 XFX");
     }
 
-    final Term arequest = predicate.getElement(0).findNonVarOrSame();
-    final Term argResponse = predicate.getElement(1).findNonVarOrSame();
+    final Term arequest = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term argResponse = predicate.getArgumentAt(1).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       assertList(arequest);
@@ -139,8 +139,10 @@ public class JProlHttpLibrary extends AbstractJProlLibrary {
           if (h.getTermType() == TermType.STRUCT
               && ((TermStruct) h).getFunctor().getText().equals("=")
               && ((TermStruct) h).getArity() == 2) {
-            final String headerName = ((TermStruct) h).getElement(0).findNonVarOrSame().getText();
-            final String headerValue = ((TermStruct) h).getElement(1).findNonVarOrSame().getText();
+            final String headerName =
+                ((TermStruct) h).getArgumentAt(0).findGroundOrSame().getText();
+            final String headerValue =
+                ((TermStruct) h).getArgumentAt(1).findGroundOrSame().getText();
             httpConnection.setRequestProperty(headerName, headerValue);
           } else {
             throw new ProlDomainErrorException("Expected name=value", h);

@@ -42,8 +42,8 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
       "?atom,?term"}, reference = "Check prolog flag and flag values.", critical = true)
   public static boolean predicateCURRENTPROLOGFLAG(final JProlChoicePoint choicePoint,
                                                    final TermStruct predicate) {
-    final Term atom = predicate.getElement(0).findNonVarOrSame();
-    final Term term = predicate.getElement(1).findNonVarOrSame();
+    final Term atom = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term term = predicate.getArgumentAt(1).findGroundOrSame();
 
     if (choicePoint.isArgsValidate() && atom.getTermType() != TermType.VAR) {
       ProlAssertions.assertAtom(atom);
@@ -96,8 +96,8 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
   )
   public static boolean predicateSETPROLOGFLAG(final JProlChoicePoint choicePoint,
                                                final TermStruct predicate) {
-    final Term atom = predicate.getElement(0).findNonVarOrSame();
-    final Term term = predicate.getElement(1).findNonVarOrSame();
+    final Term atom = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term term = predicate.getArgumentAt(1).findGroundOrSame();
 
     if (choicePoint.isArgsValidate()) {
       ProlAssertions.assertAtom(atom);
@@ -116,8 +116,8 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
       "-number,+evaluable"}, reference = "'is'(Result, Expression) is true if and only if the value of evaluating Expression as an expression is Result")
   public static boolean predicateIS(final JProlChoicePoint choicePoint,
                                     final TermStruct predicate) {
-    final Term left = predicate.getElement(0).findNonVarOrSame();
-    final Term right = predicate.getElement(1).findNonVarOrSame();
+    final Term left = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term right = predicate.getArgumentAt(1).findGroundOrSame();
 
     if (choicePoint.isArgsValidate()) {
       ProlAssertions.assertEvaluable(right);
@@ -142,7 +142,7 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
   public static boolean predicateNOT(final JProlChoicePoint choicePoint,
                                      final TermStruct predicate) {
     return
-        choicePoint.makeForGoal(predicate.getElement(0).findNonVarOrSame())
+        choicePoint.makeForGoal(predicate.getArgumentAt(0).findGroundOrSame())
             .proveWithFailForUnknown() ==
             null;
   }
@@ -150,13 +150,13 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
   @JProlPredicate(determined = true, signature = "=/2", args = "?term,?term", reference = "Unify X and Y terms. It is true if X and Y are unifiable.")
   public static boolean predicateEQU(final JProlChoicePoint choicePoint,
                                      final TermStruct predicate) {
-    return predicate.getElement(0).unifyTo(predicate.getElement(1));
+    return predicate.getArgumentAt(0).unifyTo(predicate.getArgumentAt(1));
   }
 
   @JProlPredicate(determined = true, signature = "\\=/2", args = "@term,@term", reference = "Unify X and Y terms. It is true if X and Y are not-unifiable.")
   public static boolean predicateNOTEQU(final JProlChoicePoint choicePoint,
                                         final TermStruct predicate) {
-    return !predicate.getElement(0).unifyTo(predicate.getElement(1));
+    return !predicate.getArgumentAt(0).unifyTo(predicate.getArgumentAt(1));
   }
 
   @JProlPredicate(signature = ";/2", args = ":goal,:goal", reference = "';'(Either, Or) is true if either Either or Or is true.")

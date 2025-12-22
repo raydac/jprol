@@ -53,9 +53,9 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
       "+atom,?atom,+atom", "?atom,+atom,+atom"},
       reference = "Concat two strings.")
   public static boolean predicateCONCAT(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term argFIRST = predicate.getElement(0).findNonVarOrSame();
-    final Term argSECOND = predicate.getElement(1).findNonVarOrSame();
-    final Term argTHIRD = predicate.getElement(2).findNonVarOrSame();
+    final Term argFIRST = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term argSECOND = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term argTHIRD = predicate.getArgumentAt(2).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       final boolean firstAtom = isAtom(argFIRST);
@@ -111,8 +111,8 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
   @JProlPredicate(determined = true, signature = "str_trim/2", args = {
       "+atom,?atom"}, reference = "Trim string.")
   public static boolean predicateSTRTRIM(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term argLeft = predicate.getElement(0).findNonVarOrSame();
-    final Term argRight = predicate.getElement(1).findNonVarOrSame();
+    final Term argLeft = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term argRight = predicate.getArgumentAt(1).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       assertAtom(argLeft);
@@ -130,10 +130,10 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
   @JProlPredicate(determined = true, signature = "frontstr/4", args = {
       "+integer,+atom,?atom,?atom"}, reference = "Extracts the first n characters from a string.")
   public static boolean predicateFRONTSTR(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term arg1 = predicate.getElement(0).findNonVarOrSame();
-    final Term arg2 = predicate.getElement(1).findNonVarOrSame();
-    final Term arg3 = predicate.getElement(2).findNonVarOrSame();
-    final Term arg4 = predicate.getElement(3).findNonVarOrSame();
+    final Term arg1 = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term arg2 = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term arg3 = predicate.getArgumentAt(2).findGroundOrSame();
+    final Term arg4 = predicate.getArgumentAt(3).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       assertInteger(arg1);
@@ -163,9 +163,9 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
       "+atom,+list,?atom"}, reference = "Fill template by listed terms and unify it with target atom.")
   public static boolean predicateSTR_FORMAT(final JProlChoicePoint goal,
                                             final TermStruct predicate) {
-    final Term template = predicate.getElement(0).findNonVarOrSame();
-    final Term list = predicate.getElement(1).findNonVarOrSame();
-    final Term target = predicate.getElement(2).findNonVarOrSame();
+    final Term template = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term list = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term target = predicate.getArgumentAt(2).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       assertAtom(template);
@@ -178,7 +178,7 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
 
     final Object[] args = ((TermList) list).streamChildren()
         .map(x -> {
-          final Term y = x.findNonVarOrSame();
+          final Term y = x.findGroundOrSame();
           final Object result;
           if (y instanceof NumericTerm) {
             if (y instanceof TermLong) {
@@ -202,8 +202,8 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
       "?atom,+atom"}, reference = "Allows to make upper or lower case text version of an atom.")
   public static boolean predicateUPPERLOWER(final JProlChoicePoint goal,
                                             final TermStruct predicate) {
-    final Term argLeft = predicate.getElement(0).findNonVarOrSame();
-    final Term argRight = predicate.getElement(1).findNonVarOrSame();
+    final Term argLeft = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term argRight = predicate.getArgumentAt(1).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       if (isAtom(argLeft)) {
@@ -230,8 +230,8 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
   @JProlPredicate(determined = true, signature = "str_len/2", args = {
       "+atom,?integer"}, reference = "Get string length.")
   public static boolean predicateSTRLEN(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term argLeft = predicate.getElement(0).findNonVarOrSame();
-    final Term argRight = predicate.getElement(1).findNonVarOrSame();
+    final Term argLeft = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term argRight = predicate.getArgumentAt(1).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       assertAtom(argLeft);
@@ -248,8 +248,8 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
   @JProlPredicate(determined = true, signature = "str_int/2", args = {"+atom,?integer",
       "?atom,+integer"}, reference = "Convert a text atom to an integer atom (or back).")
   public static boolean predicateSTRINT(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term argLeft = predicate.getElement(0).findNonVarOrSame();
-    final Term argRight = predicate.getElement(1).findNonVarOrSame();
+    final Term argLeft = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term argRight = predicate.getArgumentAt(1).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       if (isAtom(argLeft)) {
@@ -281,8 +281,8 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
   @JProlPredicate(determined = true, signature = "str_real/2", args = {"+atom,?number",
       "?atom,+number"}, reference = "Convert a text atom to a real numeric atom (or back).")
   public static boolean predicateSTRREAL(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term argLeft = predicate.getElement(0).findNonVarOrSame();
-    final Term argRight = predicate.getElement(1).findNonVarOrSame();
+    final Term argLeft = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term argRight = predicate.getArgumentAt(1).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       if (isAtom(argLeft)) {

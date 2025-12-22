@@ -426,8 +426,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "dot/2", args = {
       "+number,+number"}, reference = "Draw a point in the coordinates (X,Y) with the current pen color.")
   public void predicateDOT2(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term termArgX = predicate.getElement(0).findNonVarOrSame();
-    final Term termArgY = predicate.getElement(1).findNonVarOrSame();
+    final Term termArgX = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term termArgY = predicate.getArgumentAt(1).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       ProlAssertions.assertNumber(termArgX);
@@ -476,7 +476,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "bindtimer/1", args = {
       "+term"}, reference = "Remove registered timer")
   public void predicateBINDTIMER1(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term timerId = predicate.getElement(0).findNonVarOrSame();
+    final Term timerId = predicate.getArgumentAt(0).findGroundOrSame();
     if (goal.isArgsValidate()) {
       ProlAssertions.assertAtom(timerId);
     }
@@ -490,9 +490,9 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "bindtimer/3", args = {
       "+atom,+integer,+callable"}, reference = "Bind a goal to a timer (timerId, delay, action) which can be selected by user.")
   public void predicateBINDTIMER3(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term timerId = predicate.getElement(0).findNonVarOrSame();
-    final Term delay = predicate.getElement(1).findNonVarOrSame();
-    final Term action = predicate.getElement(2).findNonVarOrSame();
+    final Term timerId = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term delay = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term action = predicate.getArgumentAt(2).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       ProlAssertions.assertAtom(timerId);
@@ -530,8 +530,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       args = "+atom,+callable",
       reference = "List in format [x,y,clicksOrWheel,mouseAction]. Bind mouse actions.")
   public void predicateBINDMOUSE(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term action = predicate.getElement(0).findNonVarOrSame();
-    final Term callable = predicate.getElement(1).findNonVarOrSame();
+    final Term action = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term callable = predicate.getArgumentAt(1).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       ProlAssertions.assertAtom(action);
@@ -558,7 +558,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "bindaction/1", args = {
       "+term"}, reference = "Remove a goal bound to an action menu item.")
   public void predicateBINDACTION1(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term menuItem = predicate.getElement(0).findNonVarOrSame();
+    final Term menuItem = predicate.getArgumentAt(0).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       ProlAssertions.assertNonVar(menuItem);
@@ -586,8 +586,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "bindaction/2", args = {
       "+term,+callable"}, reference = "Bind a goal to an action menu item (menu_item_name, action) which can be selected by user.")
   public void predicateBINDACTION2(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term menuItem = predicate.getElement(0).findNonVarOrSame();
-    final Term action = predicate.getElement(1).findNonVarOrSame();
+    final Term menuItem = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term action = predicate.getArgumentAt(1).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       ProlAssertions.assertNonVar(menuItem);
@@ -649,10 +649,10 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "rectangle/4", args = {
       "+number,+number,+number,+number"}, reference = "Draw a rectangle in the coordinates (X,Y,Width,Height) with the current pen color.")
   public void predicateRECTANGLE(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term term0 = predicate.getElement(0).findNonVarOrSame();
-    final Term term1 = predicate.getElement(1).findNonVarOrSame();
-    final Term term2 = predicate.getElement(2).findNonVarOrSame();
-    final Term term3 = predicate.getElement(3).findNonVarOrSame();
+    final Term term0 = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term term1 = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term term2 = predicate.getArgumentAt(2).findGroundOrSame();
+    final Term term3 = predicate.getArgumentAt(3).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       ProlAssertions.assertNumber(term0);
@@ -681,10 +681,10 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "fillrectangle/4", args = {
       "+number,+number,+number,+number"}, reference = "Fill a rectangle in the coordinates (X,Y,Width,Height) with the current brush color.")
   public void predicateFILLRECTANGLE(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term term0 = predicate.getElement(0).findNonVarOrSame();
-    final Term term1 = predicate.getElement(1).findNonVarOrSame();
-    final Term term2 = predicate.getElement(2).findNonVarOrSame();
-    final Term term3 = predicate.getElement(3).findNonVarOrSame();
+    final Term term0 = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term term1 = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term term2 = predicate.getArgumentAt(2).findGroundOrSame();
+    final Term term3 = predicate.getArgumentAt(3).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       ProlAssertions.assertNumber(term0);
@@ -711,10 +711,10 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "plot/4", args = {
       "+number,+number,+number,+number"}, reference = "Draw a line (X1,Y1,X2,Y2) with the current pen color.")
   public void predicatePLOT(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term targx = predicate.getElement(0).findNonVarOrSame();
-    final Term targy = predicate.getElement(1).findNonVarOrSame();
-    final Term targxx = predicate.getElement(2).findNonVarOrSame();
-    final Term targyy = predicate.getElement(3).findNonVarOrSame();
+    final Term targx = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term targy = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term targxx = predicate.getArgumentAt(2).findGroundOrSame();
+    final Term targyy = predicate.getArgumentAt(3).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       ProlAssertions.assertNumber(targx);
@@ -746,8 +746,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "plot/2", args = {
       "+number,+number"}, reference = "Draw a line from the last point to (X,Y) with the current pen color.")
   public void predicatePLOT2(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term targetX = predicate.getElement(0).findNonVarOrSame();
-    final Term targetY = predicate.getElement(1).findNonVarOrSame();
+    final Term targetX = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term targetY = predicate.getArgumentAt(1).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       ProlAssertions.assertNumber(targetX);
@@ -774,10 +774,10 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "oval/4", args = {
       "+number,+number,+number,+number"}, reference = "Draw an oval into a rectangle area with parameters (X,Y,Width,Height) with the current pen color.")
   public void predicateOVAL(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term termX = predicate.getElement(0).findNonVarOrSame();
-    final Term termY = predicate.getElement(1).findNonVarOrSame();
-    final Term termW = predicate.getElement(2).findNonVarOrSame();
-    final Term termH = predicate.getElement(3).findNonVarOrSame();
+    final Term termX = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term termY = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term termW = predicate.getArgumentAt(2).findGroundOrSame();
+    final Term termH = predicate.getArgumentAt(3).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       ProlAssertions.assertNumber(termX);
@@ -806,10 +806,10 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "filloval/4", args = {
       "+number,+number,+number,+number"}, reference = "Fill an oval into a rectangular area with coordinates (X,Y,Width,Height) with the current pen color.")
   public void predicateFILLOVAL(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term termX = predicate.getElement(0).findNonVarOrSame();
-    final Term termY = predicate.getElement(1).findNonVarOrSame();
-    final Term termW = predicate.getElement(2).findNonVarOrSame();
-    final Term termH = predicate.getElement(3).findNonVarOrSame();
+    final Term termX = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term termY = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term termW = predicate.getArgumentAt(2).findGroundOrSame();
+    final Term termH = predicate.getArgumentAt(3).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       ProlAssertions.assertNumber(termX);
@@ -852,7 +852,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(signature = "brushcolor/1", args = {
       "?atom"}, reference = "Change or get the current brush color. If it can't set color then it will return false")
   public boolean predicateBRUSHCOLOR(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term arg = predicate.getElement(0).findNonVarOrSame();
+    final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
     if (goal.isArgsValidate()) {
       if (arg.getTermType() != VAR) {
         ProlAssertions.assertAtom(arg);
@@ -879,7 +879,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "settitle/1", args = {
       "+atom"}, reference = "Set the title for the current graphic screen")
   public void predicateSETTITLE(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term term = predicate.getElement(0).findNonVarOrSame();
+    final Term term = predicate.getArgumentAt(0).findGroundOrSame();
     if (goal.isArgsValidate()) {
       ProlAssertions.assertAtom(term);
     }
@@ -895,7 +895,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "pencolor/1", args = {
       "?atom"}, reference = "Change or get the current pen color. If it can't set color then it will return false")
   public boolean predicatePENCOLOR(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term arg = predicate.getElement(0).findNonVarOrSame();
+    final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
     if (goal.isArgsValidate()) {
       if (arg.getTermType() != VAR) {
         ProlAssertions.assertAtom(arg);
@@ -953,8 +953,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "play_sound/2", args = {
       "+number,+number"}, reference = "Arguments (frequency_hz,length_ms). Generate sound tone with frequency in hertz and length in milliseconds.")
   public void predicatePLAYSOUND(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term freqHz = predicate.getElement(0).findNonVarOrSame();
-    final Term lengthMs = predicate.getElement(1).findNonVarOrSame();
+    final Term freqHz = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term lengthMs = predicate.getArgumentAt(1).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       ProlAssertions.assertNumber(freqHz);
@@ -1015,9 +1015,9 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "draw_sprite/3", args = {
       "+atom, +number, +number"}, reference = "Arguments (sprite_id, x, y). Draw a sprite by its sprite id at coordinates.")
   public boolean predicateDRAWSPRITE(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term path = predicate.getElement(0).findNonVarOrSame();
-    final Term x = predicate.getElement(1).findNonVarOrSame();
-    final Term y = predicate.getElement(2).findNonVarOrSame();
+    final Term path = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term x = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term y = predicate.getArgumentAt(2).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       ProlAssertions.assertAtom(path);
@@ -1046,8 +1046,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "load_sprite/2", args = {
       "+atom,+atom"}, reference = "Arguments (sprite_id, image_path). Format can be 'png','jpg' or 'gif'. Load sprite from file and keep it as named by sprite id. It can throw 'permission_error' exception if it is not possible to read the image.")
   public boolean predicateLOADSPRITE(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term spriteId = predicate.getElement(0).findNonVarOrSame();
-    final Term path = predicate.getElement(1).findNonVarOrSame();
+    final Term spriteId = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term path = predicate.getArgumentAt(1).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       ProlAssertions.assertAtom(path);
@@ -1076,8 +1076,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "play_soundclip/2", args = {
       "+atom, +number"}, reference = "Arguments (soundclip_id, loop). Play sound clip.")
   public boolean predicatePLAYSOUNDCLIP2(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term soundClipId = predicate.getElement(0).findNonVarOrSame();
-    final Term loop = predicate.getElement(1).findNonVarOrSame();
+    final Term soundClipId = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term loop = predicate.getArgumentAt(1).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       ProlAssertions.assertAtom(soundClipId);
@@ -1096,7 +1096,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "play_soundclip/1", args = {
       "+atom"}, reference = "Arguments (soundclip_id). Play sound clip.")
   public boolean predicatePLAYSOUNDCLIP1(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term soundClipId = predicate.getElement(0).findNonVarOrSame();
+    final Term soundClipId = predicate.getArgumentAt(0).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       ProlAssertions.assertAtom(soundClipId);
@@ -1114,7 +1114,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "stop_soundclip/1", args = {
       "+atom"}, reference = "Arguments (soundclip_id). Stop play sound clip.")
   public boolean predicateSTOPSOUNDCLIP(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term soundClipId = predicate.getElement(0).findNonVarOrSame();
+    final Term soundClipId = predicate.getArgumentAt(0).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       ProlAssertions.assertAtom(soundClipId);
@@ -1133,7 +1133,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       "+atom"}, reference = "Arguments (soundclip_id). Check sound clip play status.")
   public boolean predicateISSOUNDCLIPPLAYING(final JProlChoicePoint goal,
                                              final TermStruct predicate) {
-    final Term soundClipId = predicate.getElement(0).findNonVarOrSame();
+    final Term soundClipId = predicate.getArgumentAt(0).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       ProlAssertions.assertAtom(soundClipId);
@@ -1150,8 +1150,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "load_soundclip/2", args = {
       "+atom,+atom"}, reference = "Arguments (soundclip_id, soundclip_path). Format can be AIFF, AU or WAV. Load sound clip from file and keep it as named by sound clip id. It can throw 'permission_error' exception if it is not possible to read the file.")
   public boolean predicateLOADSOUNDCLIP(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term soundClipId = predicate.getElement(0).findNonVarOrSame();
-    final Term path = predicate.getElement(1).findNonVarOrSame();
+    final Term soundClipId = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term path = predicate.getArgumentAt(1).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       ProlAssertions.assertAtom(path);
@@ -1181,8 +1181,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "saveimage/2", args = {
       "+atom,+atom"}, reference = "Arguments (image_name,format_name). Format can be 'png','jpg' or 'gif'. Save the current graphic buffer state as a named image with the type. It can throw 'permission_error' exception if it is not possible to write the image.")
   public void predicateSAVEIMAGE(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term arg = predicate.getElement(0).findNonVarOrSame();
-    final Term format = predicate.getElement(1).findNonVarOrSame();
+    final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term format = predicate.getArgumentAt(1).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       ProlAssertions.assertAtom(arg);
@@ -1196,8 +1196,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   @JProlPredicate(determined = true, signature = "graphics/2", args = {
       "?integer,?integer"}, reference = "Change or get the graphic screen size (width,height) and fill it with the current background color. Pay attention, the predicate creates the new offscreen buffer so don't use it to clear screen.")
   public boolean predicateGRAPHICS(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term width = predicate.getElement(0).findNonVarOrSame();
-    final Term height = predicate.getElement(1).findNonVarOrSame();
+    final Term width = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term height = predicate.getArgumentAt(1).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       if (width.getTermType() != VAR) {

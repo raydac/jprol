@@ -98,10 +98,10 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
       reference = "Splits the given input sequence around matches of this pattern, it uses Java Pattern.split(). Format is regex_split(regex, text, TargetList, [options]).")
   public static boolean predicateREGEX_SPLIT(final JProlChoicePoint goal,
                                              final TermStruct predicate) {
-    final Term argRegex = predicate.getElement(0).findNonVarOrSame();
-    final Term argString = predicate.getElement(1).findNonVarOrSame();
-    final Term argTargetList = predicate.getElement(2).findNonVarOrSame();
-    final Term argListOptions = predicate.getElement(3).findNonVarOrSame();
+    final Term argRegex = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term argString = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term argTargetList = predicate.getArgumentAt(2).findGroundOrSame();
+    final Term argListOptions = predicate.getArgumentAt(3).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       assertAtom(argRegex);
@@ -130,10 +130,10 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
       reference = "Attempts to find the next subsequence of the input sequence that matches the pattern, it uses Java Matcher.find(). Format is regex_find(regex, text, TargetList, [options]).")
   public static boolean predicateREGEX_FIND(final JProlChoicePoint goal,
                                             final TermStruct predicate) {
-    final Term argRegex = predicate.getElement(0).findNonVarOrSame();
-    final Term argString = predicate.getElement(1).findNonVarOrSame();
-    final Term argTargetList = predicate.getElement(2).findNonVarOrSame();
-    final Term argListOptions = predicate.getElement(3).findNonVarOrSame();
+    final Term argRegex = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term argString = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term argTargetList = predicate.getArgumentAt(2).findGroundOrSame();
+    final Term argListOptions = predicate.getArgumentAt(3).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       assertAtom(argRegex);
@@ -171,10 +171,10 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
       reference = "Replace all text for Java regex. Example: regex_replace_all('\\\\s+','my-url-with-spaces','-',Result).")
   public static boolean predicateREGEX_REPLACE_ALL(final JProlChoicePoint goal,
                                                    final TermStruct predicate) {
-    final Term argRegex = predicate.getElement(0).findNonVarOrSame();
-    final Term argSource = predicate.getElement(1).findNonVarOrSame();
-    final Term argReplacement = predicate.getElement(2).findNonVarOrSame();
-    final Term argTarget = predicate.getElement(3).findNonVarOrSame();
+    final Term argRegex = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term argSource = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term argReplacement = predicate.getArgumentAt(2).findGroundOrSame();
+    final Term argTarget = predicate.getArgumentAt(3).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       assertAtom(argSource);
@@ -197,9 +197,9 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
       reference = "Attempts to match the entire region against the pattern., it uses Java Matcher.matches(). Format is regex_matches(regex, text, [options]).")
   public static boolean predicateREGEX_MATCH(final JProlChoicePoint goal,
                                              final TermStruct predicate) {
-    final Term argRegex = predicate.getElement(0).findNonVarOrSame();
-    final Term argString = predicate.getElement(1).findNonVarOrSame();
-    final Term argListOptions = predicate.getElement(2).findNonVarOrSame();
+    final Term argRegex = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term argString = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term argListOptions = predicate.getArgumentAt(2).findGroundOrSame();
 
     if (goal.isArgsValidate()) {
       assertAtom(argRegex);

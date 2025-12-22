@@ -43,13 +43,13 @@ public final class TermOperator extends Term {
       case FY:
       case XF:
       case YF: {
-        signature = name + "/1";
+        this.signature = name + "/1";
       }
       break;
       case YFX:
       case XFY:
       case XFX: {
-        signature = name + "/2";
+        this.signature = name + "/2";
       }
       break;
       default:
@@ -109,7 +109,7 @@ public final class TermOperator extends Term {
 
   @Override
   public String toString() {
-    return getText();
+    return this.getText();
   }
 
   public String getTypeAsString() {
@@ -128,7 +128,7 @@ public final class TermOperator extends Term {
 
   @Override
   public String getSignature() {
-    return signature;
+    return this.signature;
   }
 
   @Override

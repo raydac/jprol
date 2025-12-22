@@ -19,7 +19,7 @@ public abstract class InMemoryItem {
 
     if (clause.isClause()) {
       this.leftHandSidePresented = true;
-      this.rightHandSide = clause.getElement(0);
+      this.rightHandSide = clause.getArgumentAt(0);
     } else {
       this.leftHandSidePresented = false;
       this.rightHandSide = clause;
@@ -27,7 +27,7 @@ public abstract class InMemoryItem {
   }
 
   public static InMemoryItem fromClause(final TermStruct clause) {
-    final Term rhs = clause.isClause() ? clause.getElement(0) : clause;
+    final Term rhs = clause.isClause() ? clause.getArgumentAt(0) : clause;
 
     final List<String> foundKeyVars = rhs.stream()
         .filter(x -> x.getTermType() == TermType.VAR && !x.isAnonymous())

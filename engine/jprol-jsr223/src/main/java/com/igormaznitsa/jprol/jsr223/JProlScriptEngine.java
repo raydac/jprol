@@ -121,7 +121,7 @@ public class JProlScriptEngine
     if (t instanceof TermStruct) {
       final TermStruct struct = (TermStruct) t;
       if (struct.getArity() == 1 && "?-".equals(struct.getFunctor().getText())) {
-        return struct.getElement(0);
+        return struct.getArgumentAt(0);
       }
     }
     return null;

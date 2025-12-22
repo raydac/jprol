@@ -48,8 +48,8 @@ class OperatorTest extends AbstractJProlTest {
     assertEquals("<===>", root.getText());
     assertEquals(2, root.getArity());
 
-    TermStruct lefttree = root.getElement(0);
-    TermStruct righttree = root.getElement(1);
+    TermStruct lefttree = root.getArgumentAt(0);
+    TermStruct righttree = root.getArgumentAt(1);
 
     assertEquals("~", lefttree.getText());
     assertEquals(1, lefttree.getArity());
@@ -58,27 +58,27 @@ class OperatorTest extends AbstractJProlTest {
 
     final TermStruct prevrighttree = righttree;
 
-    lefttree = lefttree.getElement(0);
-    righttree = righttree.getElement(0);
+    lefttree = lefttree.getArgumentAt(0);
+    righttree = righttree.getArgumentAt(0);
 
     assertEquals("&", lefttree.getText());
     assertEquals(2, lefttree.getArity());
-    assertEquals(ATOM, lefttree.getElement(0).getTermType());
-    assertEquals(ATOM, lefttree.getElement(1).getTermType());
-    assertEquals("xxx", lefttree.getElement(0).getText());
-    assertEquals("yyy", lefttree.getElement(1).getText());
+    assertEquals(ATOM, lefttree.getArgumentAt(0).getTermType());
+    assertEquals(ATOM, lefttree.getArgumentAt(1).getTermType());
+    assertEquals("xxx", lefttree.getArgumentAt(0).getText());
+    assertEquals("yyy", lefttree.getArgumentAt(1).getText());
 
-    lefttree = prevrighttree.getElement(0);
-    righttree = prevrighttree.getElement(1);
+    lefttree = prevrighttree.getArgumentAt(0);
+    righttree = prevrighttree.getArgumentAt(1);
 
     assertEquals(1, lefttree.getArity(), 1);
     assertEquals("~", lefttree.getText(), "~");
     assertEquals(1, righttree.getArity(), 1);
     assertEquals("~", righttree.getText(), "~");
-    assertEquals(ATOM, lefttree.getElement(0).getTermType());
-    assertEquals("xxx", lefttree.getElement(0).getText());
-    assertEquals(ATOM, righttree.getElement(0).getTermType());
-    assertEquals("yyy", righttree.getElement(0).getText());
+    assertEquals(ATOM, lefttree.getArgumentAt(0).getTermType());
+    assertEquals("xxx", lefttree.getArgumentAt(0).getText());
+    assertEquals(ATOM, righttree.getArgumentAt(0).getTermType());
+    assertEquals("yyy", righttree.getArgumentAt(0).getText());
 
     final PreparedGoal prepGoal2 = new PreparedGoal("moon <===> X.", context);
     int solvecounter = 0;

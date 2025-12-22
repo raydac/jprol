@@ -167,7 +167,7 @@ public class Term {
   public Map<String, Term> findAllNamedVariableValues() {
     return this.variables()
         .filter(v -> !v.isUnground())
-        .collect(toMap(TermVar::getText, e -> e.<Term>findNonVarOrDefault(e), (v1, v2) -> v2));
+        .collect(toMap(TermVar::getText, e -> e.<Term>findGroundOrDefault(e), (v1, v2) -> v2));
   }
 
   /**
@@ -180,12 +180,12 @@ public class Term {
   }
 
   @SuppressWarnings("unchecked")
-  public <T extends Term> T findNonVarOrSame() {
+  public <T extends Term> T findGroundOrSame() {
     return (T) this;
   }
 
   @SuppressWarnings("unchecked")
-  public <T extends Term> T findNonVarOrDefault(final T term) {
+  public <T extends Term> T findGroundOrDefault(final T term) {
     return (T) this;
   }
 
@@ -202,17 +202,22 @@ public class Term {
     return Stream.of(this);
   }
 
+  /**
+   * Get stream of all non-anonymous variables in the term.
+   *
+   * @return stream contains all non-anonymous variables.
+   */
   public Stream<TermVar> variables() {
     return Stream.empty();
   }
 
   public String toSrcString() {
-    return String.format("'%s'", escapeSrc(getText()));
+    return '\'' + escapeSrc(getText()) + '\'';
   }
 
   @Override
   public String toString() {
-    return toSrcString();
+    return this.toSrcString();
   }
 
   @Override
@@ -225,11 +230,11 @@ public class Term {
   }
 
   public String getSignature() {
-    return getText() + "/0";
+    return this.getText() + "/0";
   }
 
   public String forWrite() {
-    return getText();
+    return this.getText();
   }
 
   /**
@@ -315,7 +320,7 @@ public class Term {
   }
 
   public int getTextLength() {
-    return this.text == null ? 0 : this.text.length();
+    return this.getText().length();
   }
 
   /**
@@ -352,7 +357,7 @@ public class Term {
    * @param variables a mutual map to be used as store for variables
    * @return cloned term, must not be null
    */
-  public Term cloneAndReplaceVariablesByValues(final Map<Integer, TermVar> variables) {
+  public Term cloneAndReplaceVariableByValue(final Map<Integer, TermVar> variables) {
     return this;
   }
 

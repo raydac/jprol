@@ -280,13 +280,13 @@ public final class ProlUtils {
   }
 
   public static String indicatorAsStringOrNull(final Term term) {
-    final TermStruct struct = term.findNonVarOrSame();
+    final TermStruct struct = term.findGroundOrSame();
 
     if (struct.getArity() != 2) {
       return null;
     }
-    final Term left = struct.getElement(0).findNonVarOrDefault(null);
-    final Term right = struct.getElement(1).findNonVarOrDefault(null);
+    final Term left = struct.getArgumentAt(0).findGroundOrDefault(null);
+    final Term right = struct.getArgumentAt(1).findGroundOrDefault(null);
 
     if (right instanceof TermLong && left.getTermType() == ATOM) {
       return left.getText() + '/' + right.getText();
