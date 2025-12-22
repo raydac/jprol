@@ -126,10 +126,11 @@ public class Term {
   }
 
   /**
-   * Check that the term can be unified with target term without real change of state.
+   * Works like unify but don't change internal state of terms and can be used for check unify possibility.
    *
    * @param target target term to be checked, must not be null
    * @return true if it can be unified with the target term, false otherwise
+   * @see #unifyTo(Term)
    */
   public boolean dryUnifyTo(Term target) {
     if (this == target) {
@@ -231,6 +232,13 @@ public class Term {
     return getText();
   }
 
+  /**
+   * Unify the term with another term. It can change state if a non-ground variable.
+   * We can say that this operation align state of terms.
+   *
+   * @param other term to be unified.
+   * @return true if state aligned successfully, false otherwise.
+   */
   public boolean unifyTo(final Term other) {
     if (this == other) {
       return true;

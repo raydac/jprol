@@ -40,7 +40,7 @@ public class TermStruct extends CompoundTerm {
   final Term[] terms;
   final Term functor;
   private final String structureSignature;
-  private volatile PredicateInvoker predicateProcessor;
+  private PredicateInvoker predicateProcessor;
 
   TermStruct(final Term functor, final SourcePosition sourcePosition) {
     this(functor, EMPTY_ARRAY, null, sourcePosition, PredicateInvoker.NULL_PROCESSOR);

@@ -30,10 +30,13 @@ public final class TermVar extends Term {
 
   private static final AtomicInteger ANONYMITY_GENERATOR = new AtomicInteger(0);
   private static final AtomicInteger UID_GENERATOR = new AtomicInteger(0);
+  /**
+   * Loop counter to detect too long variable chains if someone by mistake made self-loop
+   */
   private static final int LOOP_WATCHDOG = 8192;
   private final int uid;
   private final boolean anonymous;
-  private volatile Term value;
+  private Term value;
 
   private TermVar(final String name, final boolean anonymous, final Object payload,
                   final SourcePosition sourcePosition) {
@@ -147,6 +150,10 @@ public final class TermVar extends Term {
   public Term cloneAndReplaceVariablesByValues(final Map<Integer, TermVar> variables) {
     Term value = this.getValue();
     if (value == null) {
+      if (this.isAnonymous()) {
+        return this;
+      }
+
       final Term result;
       final Term immediateValue = this.getImmediateValue();
       if (immediateValue == null) {
@@ -154,8 +161,7 @@ public final class TermVar extends Term {
         final int varId = this.getVarUid();
         TermVar newVar = variables.get(varId);
         if (newVar == null) {
-          newVar =
-              this.isAnonymous() ? newAnonymousVar() : newVar(varName, this.getSourcePosition());
+          newVar = newVar(varName, this.getSourcePosition());
           variables.put(varId, newVar);
 
           final Term thisVal = this.getImmediateValue();
@@ -180,12 +186,14 @@ public final class TermVar extends Term {
 
     final Term thisValue = this.getImmediateValue();
     if (thisValue == null) {
+      if (this.isAnonymous()) {
+        return newAnonymousVar();
+      }
       final String varName = this.getText();
       final int varId = this.getVarUid();
       TermVar newVariable = variables.get(varId);
       if (newVariable == null) {
-        newVariable = this.isAnonymous() ? newAnonymousVar() :
-            newVar(varName, this.payload, this.getSourcePosition());
+        newVariable = newVar(varName, this.payload, this.getSourcePosition());
         variables.put(varId, newVariable);
       }
       result = newVariable;
@@ -196,6 +204,11 @@ public final class TermVar extends Term {
     return result;
   }
 
+  /**
+   * It looks for value. If value is another variable then it will be processed recursive.
+   *
+   * @return null if no value, ground value or another variable if value presented
+   */
   public Term getValue() {
     Term result = this.value;
     int watchdog = LOOP_WATCHDOG;
@@ -215,6 +228,11 @@ public final class TermVar extends Term {
     return result;
   }
 
+  /**
+   * Set value. if there is already value as variable then chain will be processed recursively and the value will be placed in the last chained non-grounded variable.
+   * @param value value to be set, can't be null
+   * @return true if unification of value successful, false otherwise
+   */
   public boolean setValue(final Term value) {
     if (value == this) {
       return true;
