@@ -3,7 +3,7 @@ package com.igormaznitsa.jprol.libs.extservice;
 /**
  * Descriptor of a property required by the service to start.
  *
- * @since 2.2.2
+ * @since 2.3.0
  */
 public interface JProlExternalServiceStartPropertyDescriptor {
   /**

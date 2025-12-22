@@ -5,7 +5,7 @@ import java.util.Properties;
 /**
  * Factory to make new instance of a service.
  *
- * @since 2.2.2
+ * @since 2.3.0
  */
 public interface JProlExternalServiceFactory extends JProlExternalServiceCommonProperties {
 

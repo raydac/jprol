@@ -198,11 +198,11 @@ public final class Terms {
   }
 
   public static TermVar newAnonymousVar(final SourcePosition sourcePosition) {
-    return new TermVar(sourcePosition);
+    return new TermVar((Term) null, null, sourcePosition);
   }
 
   public static TermVar newAnonymousVar() {
-    return new TermVar();
+    return new TermVar((Term) null, null, SourcePosition.UNKNOWN);
   }
 
   public static TermStruct newStruct(final Term functor) {

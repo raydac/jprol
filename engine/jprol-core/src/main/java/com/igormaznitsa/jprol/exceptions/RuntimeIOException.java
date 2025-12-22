@@ -5,7 +5,7 @@ import java.io.IOException;
 /**
  * Runtime wrapper for IOException
  *
- * @since 2.2.2
+ * @since 2.3.0
  */
 public class RuntimeIOException extends RuntimeException {
 

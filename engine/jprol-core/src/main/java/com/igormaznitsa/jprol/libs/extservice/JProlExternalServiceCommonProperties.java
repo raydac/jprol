@@ -3,7 +3,7 @@ package com.igormaznitsa.jprol.libs.extservice;
 /**
  * Names of common properties expected by service and service factory user.
  *
- * @since 2.2.2
+ * @since 2.3.0
  */
 public interface JProlExternalServiceCommonProperties {
   /**

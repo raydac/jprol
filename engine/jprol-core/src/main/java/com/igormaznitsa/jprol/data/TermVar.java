@@ -17,7 +17,6 @@
 package com.igormaznitsa.jprol.data;
 
 import static com.igormaznitsa.jprol.data.TermType.VAR;
-import static com.igormaznitsa.jprol.data.Terms.newAnonymousVar;
 import static com.igormaznitsa.jprol.data.Terms.newVar;
 
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
@@ -38,28 +37,30 @@ public final class TermVar extends Term {
   private final boolean anonymous;
   private Term immediateValue;
 
-  private TermVar(final String name, final boolean anonymous, final Object payload,
-                  final SourcePosition sourcePosition) {
+  private TermVar(
+      final String name,
+      final boolean anonymous,
+      final Term immediateValue,
+      final Object payload,
+      final SourcePosition sourcePosition
+  ) {
     super(name, payload, sourcePosition);
     this.uid = UID_GENERATOR.incrementAndGet();
+    this.immediateValue = immediateValue;
     this.anonymous = anonymous;
   }
 
   TermVar(final String name, final SourcePosition sourcePosition) {
-    this(name, false, null, sourcePosition);
+    this(name, false, null, null, sourcePosition);
   }
 
   TermVar(final String name, final Object payload, final SourcePosition sourcePosition) {
-    this(name, false, payload, sourcePosition);
+    this(name, false, null, payload, sourcePosition);
   }
 
-  TermVar(final SourcePosition sourcePosition) {
-    this("_$" + Long.toHexString(ANONYMITY_GENERATOR.incrementAndGet()), true,
-        null, sourcePosition);
-  }
-
-  TermVar() {
-    this(SourcePosition.UNKNOWN);
+  TermVar(final Term immediateValue, final Object payload, final SourcePosition sourcePosition) {
+    this("_$" + Long.toHexString(ANONYMITY_GENERATOR.incrementAndGet()), true, immediateValue,
+        payload, sourcePosition);
   }
 
   @Override
@@ -111,16 +112,16 @@ public final class TermVar extends Term {
 
   @Override
   public Term makeClone() {
-    final Term thisValue = this.getImmediateValue();
-    TermVar result =
-        this.isAnonymous() ? Terms.newAnonymousVar() :
-            newVar(this.getText(), this.payload, this.getSourcePosition());
+    Term thisValue = this.getImmediateValue();
     if (thisValue != null) {
       final Map<Integer, TermVar> variableMap = new LazyMap<>();
-      variableMap.put(this.getVarUid(), result);
-      result.setImmediateValue(this.makeClone(variableMap));
+      variableMap.put(this.getVarUid(), this);
+      thisValue = this.makeClone(variableMap);
     }
-    return result;
+
+    return this.isAnonymous() ?
+        new TermVar(thisValue, this.getPayload(), this.getSourcePosition()) :
+        new TermVar(this.getText(), false, thisValue, this.payload, this.getSourcePosition());
   }
 
   @Override
@@ -189,13 +190,13 @@ public final class TermVar extends Term {
     final Term thisValue = this.getImmediateValue();
     if (thisValue == null) {
       if (this.isAnonymous()) {
-        return newAnonymousVar();
+        return new TermVar((Term) null, this.payload, this.getSourcePosition());
       }
       final String varName = this.getText();
       final int varId = this.getVarUid();
       TermVar newVariable = variables.get(varId);
       if (newVariable == null) {
-        newVariable = newVar(varName, this.payload, this.getSourcePosition());
+        newVariable = new TermVar(varName, this.payload, this.getSourcePosition());
         variables.put(varId, newVariable);
       }
       result = newVariable;
@@ -232,6 +233,7 @@ public final class TermVar extends Term {
 
   /**
    * Set value. if there is already value as variable then chain will be processed recursively and the value will be placed in the last chained non-grounded variable.
+   *
    * @param value value to be set, can't be null
    * @return true if unification of value successful, false otherwise
    */

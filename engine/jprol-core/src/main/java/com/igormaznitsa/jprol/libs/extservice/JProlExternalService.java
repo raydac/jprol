@@ -8,7 +8,7 @@ import java.util.Properties;
 /**
  * Interface describes some external service which can communicate with caller through callback.
  *
- * @since 2.2.2
+ * @since 2.3.0
  */
 public interface JProlExternalService extends JProlExternalServiceCommonProperties {
   /**
