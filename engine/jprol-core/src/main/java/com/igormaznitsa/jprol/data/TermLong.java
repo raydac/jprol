@@ -16,6 +16,7 @@
 
 package com.igormaznitsa.jprol.data;
 
+import static com.igormaznitsa.jprol.data.Terms.newDouble;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
 
 import java.util.Objects;
@@ -101,7 +102,7 @@ public final class TermLong extends NumericTerm {
   public NumericTerm add(final NumericTerm atom) {
     if (atom.isDouble()) {
       final double value = atom.toNumber().doubleValue();
-      return Terms.newDouble((double) this.value + value);
+      return newDouble((double) this.value + value);
     } else {
       return newLong(this.value + atom.toNumber().longValue());
     }
@@ -111,7 +112,7 @@ public final class TermLong extends NumericTerm {
   public NumericTerm sub(final NumericTerm atom) {
     if (atom.isDouble()) {
       final double value = atom.toNumber().doubleValue();
-      return Terms.newDouble((double) this.value - value);
+      return newDouble((double) this.value - value);
     } else {
       return newLong(this.value - atom.toNumber().longValue());
     }
@@ -121,7 +122,7 @@ public final class TermLong extends NumericTerm {
   public NumericTerm div(final NumericTerm atom) {
     if (atom.isDouble()) {
       final double value = atom.toNumber().doubleValue();
-      return Terms.newDouble((double) this.value / value);
+      return newDouble((double) this.value / value);
     } else {
       return newLong(this.value / atom.toNumber().longValue());
     }
@@ -131,7 +132,7 @@ public final class TermLong extends NumericTerm {
   public NumericTerm mul(final NumericTerm atom) {
     if (atom.isDouble()) {
       final double value = atom.toNumber().doubleValue();
-      return Terms.newDouble((double) this.value * value);
+      return newDouble((double) this.value * value);
     } else {
       return newLong(this.value * atom.toNumber().longValue());
     }
@@ -139,7 +140,7 @@ public final class TermLong extends NumericTerm {
 
   @Override
   public NumericTerm neg() {
-    return newLong(-this.value);
+    return newLong(-this.value, this.payload);
   }
 
   @Override
@@ -152,7 +153,7 @@ public final class TermLong extends NumericTerm {
     if (this.value >= 0L) {
       return this;
     }
-    return newLong(Math.abs(this.value));
+    return newLong(Math.abs(this.value), this.payload);
   }
 
   @Override
@@ -163,6 +164,6 @@ public final class TermLong extends NumericTerm {
     } else if (this.value > 0L) {
       sign = 1;
     }
-    return newLong(sign);
+    return newLong(sign, this.payload);
   }
 }

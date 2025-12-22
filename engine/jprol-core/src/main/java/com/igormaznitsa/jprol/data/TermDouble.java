@@ -16,6 +16,9 @@
 
 package com.igormaznitsa.jprol.data;
 
+import static com.igormaznitsa.jprol.data.Terms.newDouble;
+import static com.igormaznitsa.jprol.data.Terms.newLong;
+
 import java.util.Objects;
 
 public final class TermDouble extends NumericTerm {
@@ -104,30 +107,30 @@ public final class TermDouble extends NumericTerm {
   @Override
   public NumericTerm add(final NumericTerm atom) {
     final double value = atom.toNumber().doubleValue();
-    return Terms.newDouble(this.value + value);
+    return newDouble(this.value + value);
   }
 
   @Override
   public NumericTerm sub(final NumericTerm atom) {
     final double value = atom.toNumber().doubleValue();
-    return Terms.newDouble(this.value - value);
+    return newDouble(this.value - value);
   }
 
   @Override
   public NumericTerm div(final NumericTerm atom) {
     final double value = atom.toNumber().doubleValue();
-    return Terms.newDouble(this.value / value);
+    return newDouble(this.value / value);
   }
 
   @Override
   public NumericTerm mul(final NumericTerm atom) {
     final double value = atom.toNumber().doubleValue();
-    return Terms.newDouble(this.value * value);
+    return newDouble(this.value * value);
   }
 
   @Override
   public NumericTerm neg() {
-    return Terms.newDouble(-this.value);
+    return newDouble(-this.value, this.payload);
   }
 
   @Override
@@ -140,11 +143,11 @@ public final class TermDouble extends NumericTerm {
     if (Double.compare(this.value, 0.0d) >= 0) {
       return this;
     }
-    return Terms.newDouble(Math.abs(value));
+    return newDouble(Math.abs(value), this.payload);
   }
 
   @Override
   public NumericTerm sign() {
-    return Terms.newLong(Double.compare(this.value, 0.0d));
+    return newLong(Double.compare(this.value, 0.0d), this.payload);
   }
 }
