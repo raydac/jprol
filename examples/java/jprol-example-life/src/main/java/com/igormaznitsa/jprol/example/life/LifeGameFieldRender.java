@@ -178,7 +178,7 @@ public final class LifeGameFieldRender extends JComponent {
 
     gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
     gfx.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-        RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 
     final double cellWidth = max(1.0d, (double) bounds.width / LifeGameField.WIDTH);
     final double cellHeight = max(1.0f, (double) bounds.height / LifeGameField.HEIGHT);

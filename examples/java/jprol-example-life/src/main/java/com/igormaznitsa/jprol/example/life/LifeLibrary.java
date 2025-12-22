@@ -31,29 +31,29 @@ public class LifeLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(signature = "field_width/1", args = "?number", determined = true)
   public boolean fieldWidth(final JProlChoicePoint choicePoint, final TermStruct struct) {
-    final Term term = struct.getElement(0).findNonVarOrSame();
+    final Term term = struct.getArgumentAt(0).findGroundOrSame();
     return term.unifyTo(WIDTH);
   }
 
   @JProlPredicate(signature = "field_height/1", args = "?number", determined = true)
   public boolean fieldHeight(final JProlChoicePoint choicePoint, final TermStruct struct) {
-    final Term term = struct.getElement(0).findNonVarOrSame();
+    final Term term = struct.getArgumentAt(0).findGroundOrSame();
     return term.unifyTo(HEIGHT);
   }
 
   @JProlPredicate(signature = "cell_state/3", args = "+number,+number,?atom", determined = true)
   public boolean isCellSet(final JProlChoicePoint choicePoint, final TermStruct struct) {
-    final int x = struct.getElement(0).findNonVarOrSame().toNumber().intValue();
-    final int y = struct.getElement(1).findNonVarOrSame().toNumber().intValue();
-    final Term state = struct.getElement(2).findNonVarOrSame();
+    final int x = struct.getArgumentAt(0).findGroundOrSame().toNumber().intValue();
+    final int y = struct.getArgumentAt(1).findGroundOrSame().toNumber().intValue();
+    final Term state = struct.getArgumentAt(2).findGroundOrSame();
     return state.unifyTo(this.field.get(x, y) ? CELL_LIVE : CELL_DEAD);
   }
 
   @JProlPredicate(signature = "count_neighbors/3", args = "+number,+number,?number", determined = true)
   public boolean countNeighbors(final JProlChoicePoint choicePoint, final TermStruct struct) {
-    final int x = struct.getElement(0).findNonVarOrSame().toNumber().intValue();
-    final int y = struct.getElement(1).findNonVarOrSame().toNumber().intValue();
-    final Term n = struct.getElement(2).findNonVarOrSame();
+    final int x = struct.getArgumentAt(0).findGroundOrSame().toNumber().intValue();
+    final int y = struct.getArgumentAt(1).findGroundOrSame().toNumber().intValue();
+    final Term n = struct.getArgumentAt(2).findGroundOrSame();
 
     int counter = 0;
     for (int dy = -1; dy <= 1; dy++) {
@@ -69,15 +69,15 @@ public class LifeLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(signature = "set_cell/2", args = "+number,+number", determined = true)
   public void setCell(final JProlChoicePoint choicePoint, final TermStruct struct) {
-    final int x = struct.getElement(0).findNonVarOrSame().toNumber().intValue();
-    final int y = struct.getElement(1).findNonVarOrSame().toNumber().intValue();
+    final int x = struct.getArgumentAt(0).findGroundOrSame().toNumber().intValue();
+    final int y = struct.getArgumentAt(1).findGroundOrSame().toNumber().intValue();
     this.field.setNext(x, y, true);
   }
 
   @JProlPredicate(signature = "reset_cell/2", args = "+number,+number", determined = true)
   public void resetCell(final JProlChoicePoint choicePoint, final TermStruct struct) {
-    final int x = struct.getElement(0).findNonVarOrSame().toNumber().intValue();
-    final int y = struct.getElement(1).findNonVarOrSame().toNumber().intValue();
+    final int x = struct.getArgumentAt(0).findGroundOrSame().toNumber().intValue();
+    final int y = struct.getArgumentAt(1).findGroundOrSame().toNumber().intValue();
     this.field.setNext(x, y, false);
   }
 
