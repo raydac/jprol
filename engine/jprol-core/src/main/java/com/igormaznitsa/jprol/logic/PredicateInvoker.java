@@ -42,11 +42,11 @@ public final class PredicateInvoker {
   private final boolean determined;
   private final boolean evaluable;
   private final boolean changesGoalChain;
-  private final boolean critical;
+  private final boolean guarded;
 
   public PredicateInvoker(
       final AbstractJProlLibrary owner,
-      final boolean critical,
+      final boolean guarded,
       final boolean determined,
       final boolean evaluable,
       final boolean affectsChain,
@@ -56,7 +56,7 @@ public final class PredicateInvoker {
     super();
     this.predicateSignature = signature;
     this.ownerLibrary = owner;
-    this.critical = critical;
+    this.guarded = guarded;
 
     if (method == null) {
       this.methodHandle = null;
@@ -132,9 +132,9 @@ public final class PredicateInvoker {
 
   public boolean execute(final JProlChoicePoint goal, final TermStruct predicate) {
     try {
-      if (this.critical) {
+      if (this.guarded) {
         if (!goal.getContext()
-            .isCriticalPredicateAllowed(this.ownerLibrary.getClass(), goal,
+            .isGuardPredicateAllowed(this.ownerLibrary.getClass(), goal,
                 predicate.getSignature())) {
           throw new ProlPermissionErrorException("access", "prohibited_predicate", predicate);
         }

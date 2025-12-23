@@ -80,10 +80,10 @@ public @interface JProlPredicate {
   boolean changesChooseChain() default false;
 
   /**
-   * Flag shows that the predicate make some critical operation and should be allowed by a checker.
+   * Flag shows that the predicate make some guarded operation and should be allowed by a guard processor.
    *
    * @return true if the predicate can be checked by a critical predicate checked defined in JProl engine.
-   * @since 2.2.3
+   * @since 3.0.0
    */
-  boolean critical() default false;
+  boolean guarded() default false;
 }

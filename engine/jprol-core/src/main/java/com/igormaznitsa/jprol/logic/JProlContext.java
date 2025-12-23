@@ -61,9 +61,10 @@ import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
 import com.igormaznitsa.jprol.logic.triggers.TriggerEvent;
 import com.igormaznitsa.jprol.trace.JProlContextListener;
 import com.igormaznitsa.jprol.trace.TraceEvent;
-import com.igormaznitsa.jprol.utils.LazyConcurrentMap;
 import com.igormaznitsa.jprol.utils.LazyExecutorService;
 import com.igormaznitsa.jprol.utils.LazyMap;
+import com.igormaznitsa.jprol.utils.LazySet;
+import com.igormaznitsa.jprol.utils.LazySynchronizedMap;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.ProlUtils;
 import com.igormaznitsa.prologparser.ParserContext;
@@ -86,7 +87,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -116,11 +116,11 @@ public class JProlContext implements AutoCloseable {
   private static final AtomicLong TASK_COUNTER = new AtomicLong();
   private final String contextId;
   private final Map<String, Map<JProlTriggerType, List<JProlTrigger>>> triggers =
-      new LazyConcurrentMap<>();
+      new LazySynchronizedMap<>();
   private final Map<String, ReentrantLock> namedLockers =
-      new LazyConcurrentMap<>();
+      new LazySynchronizedMap<>();
   private final Map<Long, CompletableFuture<Term>> startedAsyncTasks =
-      new LazyConcurrentMap<>();
+      new LazySynchronizedMap<>();
   private final List<AbstractJProlLibrary> libraries = new CopyOnWriteArrayList<>();
   private final AtomicBoolean disposed = new AtomicBoolean(false);
   private final KnowledgeBase knowledgeBase;
@@ -398,8 +398,14 @@ public class JProlContext implements AutoCloseable {
     }
   }
 
-  @SuppressWarnings("StatementWithEmptyBody")
-  public CompletableFuture<Term> proveAllAsync(final Term goal, final boolean shareKnowledgeBase) {
+  /**
+   * Prove the goal asynchronously, all variants.
+   *
+   * @param goal               the target goal
+   * @param shareKnowledgeBase if true then make copy of
+   * @return a future contains counter of successful goal prove
+   */
+  public CompletableFuture<Term> asyncProveAll(final Term goal, final boolean shareKnowledgeBase) {
     this.assertNotDisposed();
     this.assertConcurrentKnowledgeBase();
 
@@ -437,7 +443,14 @@ public class JProlContext implements AutoCloseable {
             }));
   }
 
-  public CompletableFuture<Term> proveOnceAsync(final Term goal,
+  /**
+   * Prove the goal asynchronously, only once.
+   *
+   * @param goal               the target goal
+   * @param shareKnowledgeBase if true then make copy of
+   * @return a future contains result term of prove
+   */
+  public CompletableFuture<Term> asyncProveOnce(final Term goal,
                                                 final boolean shareKnowledgeBase) {
     this.assertNotDisposed();
     this.assertConcurrentKnowledgeBase();
@@ -465,7 +478,8 @@ public class JProlContext implements AutoCloseable {
             }));
   }
 
-  public ExecutorService getContextExecutorService() {
+  public ExecutorService getAsyncTaskExecutorService() {
+    this.assertNotDisposed();
     return this.asyncTaskExecutorService;
   }
 
@@ -838,7 +852,7 @@ public class JProlContext implements AutoCloseable {
 
   public Set<String> findDynamicSignatures() {
     this.assertNotDisposed();
-    return new HashSet<>(this.dynamicSignatures);
+    return new LazySet<>(this.dynamicSignatures);
   }
 
   public void addDynamicSignatures(final Set<String> signatures,
@@ -1065,15 +1079,15 @@ public class JProlContext implements AutoCloseable {
   }
 
   /**
-   * Check that a critical predicate allowed, a predicate like consult/1 or abolish/1 so mainly working with IO, threads and changing knowledge base.
+   * Check that a guarded predicate allowed, a predicate like consult/1 or abolish/1 so mainly working with IO, threads and changing knowledge base.
    *
    * @param sourceLibrary      source library class where the predicate is defined
    * @param choicePoint        choice point where the predicate is called
    * @param predicateIndicator predicate indicator
    * @return true if allowed false otherwise
-   * @since 2.2.0
+   * @since 3.0.0
    */
-  public boolean isCriticalPredicateAllowed(
+  public boolean isGuardPredicateAllowed(
       final Class<? extends AbstractJProlLibrary> sourceLibrary,
       final JProlChoicePoint choicePoint,
       final String predicateIndicator
@@ -1081,6 +1095,12 @@ public class JProlContext implements AutoCloseable {
     return true;
   }
 
+  /**
+   * Make full context copy.
+   *
+   * @param shareKnowledgeBase if true then share the knowledge base with the new instance, make copy otherwise.
+   * @return copy of the current context state
+   */
   public JProlContext makeCopy(final boolean shareKnowledgeBase) {
     return new JProlContext(
         this,

@@ -402,7 +402,7 @@ public abstract class AbstractJProlLibrary {
         }
 
         final PredicateInvoker invoker =
-            new PredicateInvoker(this, predicateAnnotation.critical(),
+            new PredicateInvoker(this, predicateAnnotation.guarded(),
                 predicateAnnotation.determined(),
                 predicateAnnotation.evaluable(), predicateAnnotation.changesChooseChain(),
                 signature, method);

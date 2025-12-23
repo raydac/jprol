@@ -103,7 +103,7 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     final Term argTargetList = predicate.getArgumentAt(2).findGroundOrSame();
     final Term argListOptions = predicate.getArgumentAt(3).findGroundOrSame();
 
-    if (goal.isArgsValidate()) {
+    if (goal.isValidateArguments()) {
       assertAtom(argRegex);
       assertAtom(argString);
       assertList(argListOptions);
@@ -135,7 +135,7 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     final Term argTargetList = predicate.getArgumentAt(2).findGroundOrSame();
     final Term argListOptions = predicate.getArgumentAt(3).findGroundOrSame();
 
-    if (goal.isArgsValidate()) {
+    if (goal.isValidateArguments()) {
       assertAtom(argRegex);
       assertAtom(argString);
       assertList(argListOptions);
@@ -176,7 +176,7 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     final Term argReplacement = predicate.getArgumentAt(2).findGroundOrSame();
     final Term argTarget = predicate.getArgumentAt(3).findGroundOrSame();
 
-    if (goal.isArgsValidate()) {
+    if (goal.isValidateArguments()) {
       assertAtom(argSource);
       assertAtom(argRegex);
       assertAtom(argReplacement);
@@ -201,7 +201,7 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     final Term argString = predicate.getArgumentAt(1).findGroundOrSame();
     final Term argListOptions = predicate.getArgumentAt(2).findGroundOrSame();
 
-    if (goal.isArgsValidate()) {
+    if (goal.isValidateArguments()) {
       assertAtom(argRegex);
       assertAtom(argString);
       assertList(argListOptions);

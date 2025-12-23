@@ -59,7 +59,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
     final Term oldpath = predicate.getArgumentAt(0).findGroundOrSame();
     final Term newname = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (goal.isArgsValidate()) {
+    if (goal.isValidateArguments()) {
       ProlAssertions.assertNonVar(oldpath);
       ProlAssertions.assertNonVar(newname);
     }
@@ -74,7 +74,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
   public boolean predicateFileStr(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term tfile = predicate.getArgumentAt(0).findGroundOrSame();
 
-    if (goal.isArgsValidate()) {
+    if (goal.isValidateArguments()) {
       ProlAssertions.assertNonVar(tfile);
     }
 
@@ -106,7 +106,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
   @JProlPredicate(determined = true, signature = "deletefile/1", args = {"+term"}, reference = "Delete file for name")
   public boolean predicateDeleteFile(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
-    if (goal.isArgsValidate()) {
+    if (goal.isValidateArguments()) {
       ProlAssertions.assertNonVar(arg);
     }
 
@@ -120,7 +120,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
   public boolean predicateExistFile(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
 
-    if (goal.isArgsValidate()) {
+    if (goal.isValidateArguments()) {
       ProlAssertions.assertNonVar(arg);
     }
 
@@ -135,7 +135,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
     final Term tthePath = predicate.getArgumentAt(0).findGroundOrSame();
     final Term textension = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (goal.isArgsValidate()) {
+    if (goal.isValidateArguments()) {
       ProlAssertions.assertNonVar(tthePath);
       ProlAssertions.assertNonVar(textension);
     }
@@ -196,7 +196,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
   @JProlPredicate(determined = true, signature = "save/1", args = {"+term"}, reference = "Save current data base")
   public boolean predicateSave(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
-    if (goal.isArgsValidate()) {
+    if (goal.isValidateArguments()) {
       ProlAssertions.assertNonVar(arg);
     }
 

@@ -16,7 +16,7 @@ import java.util.function.Supplier;
  *
  * @param <K> key type
  * @param <V> value type
- * @since 2.3.0
+ * @since 3.0.0
  */
 public final class LazyMap<K, V> implements Map<K, V> {
   private final Supplier<Map<K, V>> supplier;

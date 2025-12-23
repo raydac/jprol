@@ -54,7 +54,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
   private final JProlContext context;
   private final JProlChoicePoint rootChoicePoint;
   private final Term goalTerm;
-  private final boolean validate;
+  private final boolean validateArguments;
   private final boolean debug;
   private boolean thereAreVariants;
   private Object payload;
@@ -74,11 +74,11 @@ public final class JProlChoicePoint implements Comparator<Term> {
       final Term goalToSolve,
       final JProlContext context,
       final boolean debug,
-      final boolean validate,
+      final boolean validateArguments,
       final Map<String, Term> presetVarValues
   ) {
     this.thereAreVariants = true;
-    this.validate = validate;
+    this.validateArguments = validateArguments;
     this.debug = debug;
 
     this.rootChoicePoint = rootChoicePoint == null ? this : rootChoicePoint;
@@ -87,7 +87,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
     final Term goal = goalToSolve.findGroundOrSame();
 
-    if (this.validate) {
+    if (this.validateArguments) {
       ProlAssertions.assertCallable(goal);
     }
 
@@ -129,15 +129,15 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public JProlChoicePoint makeForGoal(final Term goal) {
-    return new JProlChoicePoint(null, goal, this.context, this.debug, this.validate, null);
+    return new JProlChoicePoint(null, goal, this.context, this.debug, this.validateArguments, null);
   }
 
   public boolean isDebug() {
     return this.debug;
   }
 
-  public boolean isArgsValidate() {
-    return this.validate;
+  public boolean isValidateArguments() {
+    return this.validateArguments;
   }
 
   public Map<String, Term> findAllGroundedVars() {
@@ -164,7 +164,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
     }
 
     final JProlChoicePoint newGoal =
-        new JProlChoicePoint(this.rootChoicePoint, goal, this.context, this.debug, this.validate,
+        new JProlChoicePoint(this.rootChoicePoint, goal, this.context, this.debug,
+            this.validateArguments,
             null);
     final JProlChoicePoint prevGoal = newGoal.prevChoicePoint;
     if (prevGoal != null) {
@@ -242,7 +243,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                 } else {
                   final JProlChoicePoint nextGoal =
                       new JProlChoicePoint(this.rootChoicePoint, goalToProcess.nextAndTerm,
-                          this.context, this.debug, this.validate, null);
+                          this.context, this.debug, this.validateArguments, null);
                   nextGoal.nextAndTerm = goalToProcess.nextAndTermForNextGoal;
                 }
               }
@@ -422,7 +423,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                   if (getPayload() == null) {
                     final JProlChoicePoint leftSubbranch =
                         new JProlChoicePoint(this.rootChoicePoint, struct.getArgumentAt(0),
-                            this.context, this.debug, this.validate, null);
+                            this.context, this.debug, this.validateArguments, null);
                     leftSubbranch.nextAndTerm = this.nextAndTerm;
                     this.setPayload(leftSubbranch);
                   } else {

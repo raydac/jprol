@@ -1,7 +1,9 @@
 package com.igormaznitsa.jprol.utils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,18 +19,18 @@ import java.util.function.Supplier;
  *
  * @param <K> key type
  * @param <V> value type
- * @since 2.3.0
+ * @since 3.0.0
  */
-public class LazyConcurrentMap<K, V> implements Map<K, V> {
+public class LazySynchronizedMap<K, V> implements Map<K, V> {
   private final Supplier<Map<K, V>> supplier;
   private final ReentrantLock locker = new ReentrantLock();
   private Map<K, V> map;
 
-  public LazyConcurrentMap() {
+  public LazySynchronizedMap() {
     this(HashMap::new);
   }
 
-  public LazyConcurrentMap(final Supplier<Map<K, V>> supplier) {
+  public LazySynchronizedMap(final Supplier<Map<K, V>> supplier) {
     this.supplier = supplier;
   }
 
@@ -258,7 +260,7 @@ public class LazyConcurrentMap<K, V> implements Map<K, V> {
   public Set<K> keySet() {
     this.locker.lock();
     try {
-      return this.map == null ? Set.of() : this.map.keySet();
+      return this.map == null ? Set.of() : new HashSet<>(this.map.keySet());
     } finally {
       this.locker.unlock();
     }
@@ -268,7 +270,7 @@ public class LazyConcurrentMap<K, V> implements Map<K, V> {
   public Collection<V> values() {
     this.locker.lock();
     try {
-      return this.map == null ? List.of() : this.map.values();
+      return this.map == null ? List.of() : new ArrayList<>(this.map.values());
     } finally {
       this.locker.unlock();
     }
@@ -278,7 +280,7 @@ public class LazyConcurrentMap<K, V> implements Map<K, V> {
   public Set<Map.Entry<K, V>> entrySet() {
     this.locker.lock();
     try {
-      return this.map == null ? Set.of() : this.map.entrySet();
+      return this.map == null ? Set.of() : new HashSet<>(this.map.entrySet());
     } finally {
       this.locker.unlock();
     }

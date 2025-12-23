@@ -19,7 +19,7 @@ import java.util.stream.Stream;
  * <b>NOT THREADSAFE!</b>
  *
  * @param <V> value type
- * @since 2.3.0
+ * @since 3.0.0
  */
 public final class LazySet<V> implements Set<V> {
 
@@ -30,6 +30,14 @@ public final class LazySet<V> implements Set<V> {
 
   public LazySet() {
     this(HashSet::new);
+  }
+
+  public LazySet(final Collection<V> collection) {
+    this(HashSet::new);
+    if (!collection.isEmpty()) {
+      this.set = this.supplier.get();
+      this.set.addAll(collection);
+    }
   }
 
   public LazySet(final Supplier<Set<V>> supplier) {

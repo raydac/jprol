@@ -10,6 +10,7 @@ import static com.igormaznitsa.jprol.jsr223.JProlScriptEngineUtils.term2java;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 
+import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
@@ -60,7 +61,7 @@ import javax.script.SimpleBindings;
  * It is possible define in global context listed attributes:
  * - "jprol.global.executor.service" - {@link java.util.concurrent.ExecutorService} service for async tasks
  * - "jprol.global.knowledge.base" - shared {@link KnowledgeBase} between all child engines
- * - "jprol.global.critical.predicate.guard" - can be provided as a {@link JProlCriticalPredicateGuard} to disable execution of predicates marked in library as critical ones
+ * - "jprol.global.critical.predicate.guard" - can be provided as a {@link JProlGuardPredicate} to disable execution of predicates marked in library as critical ones
  *
  * @since 2.2.2
  */
@@ -68,12 +69,13 @@ public class JProlScriptEngine
     implements ScriptEngine, Compilable, Invocable, JProlScriptEngineProvider, AutoCloseable {
 
   /**
-   * Checker to allow execution of critical predicates like knowledge base operations.
+   * Checker to allow guarded predicates which guarded flag is true.
    *
-   * @see JProlCriticalPredicateGuard
+   * @see JProlGuardPredicate
+   * @see JProlPredicate#guarded()
    */
-  public static final String JPROL_GLOBAL_CRITICAL_PREDICATE_GUARD =
-      "jprol.global.critical.predicate.guard";
+  public static final String JPROL_GLOBAL_GUARD_PREDICATE =
+      "jprol.global.guard.predicate";
 
   /**
    * Executor service to be used for all child JProl engines to start async processes. Can be defined only in global scope.

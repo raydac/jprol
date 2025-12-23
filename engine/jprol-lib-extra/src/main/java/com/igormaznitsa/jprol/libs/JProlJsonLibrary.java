@@ -407,7 +407,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
     final Term argLeft = predicate.getArgumentAt(0).findGroundOrSame();
     final Term argRight = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (goal.isArgsValidate()) {
+    if (goal.isValidateArguments()) {
       assertStruct(argLeft);
     }
 
@@ -428,7 +428,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
     final Term argLeft = predicate.getArgumentAt(0).findGroundOrSame();
     final Term argRight = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (goal.isArgsValidate()) {
+    if (goal.isValidateArguments()) {
       assertAtom(argLeft);
     }
 

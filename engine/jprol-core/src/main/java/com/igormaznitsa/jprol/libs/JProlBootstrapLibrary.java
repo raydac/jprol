@@ -39,13 +39,13 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(signature = "current_prolog_flag/2", args = {
-      "?atom,?term"}, reference = "Check prolog flag and flag values.", critical = true)
+      "?atom,?term"}, reference = "Check prolog flag and flag values.", guarded = true)
   public static boolean predicateCURRENTPROLOGFLAG(final JProlChoicePoint choicePoint,
                                                    final TermStruct predicate) {
     final Term atom = predicate.getArgumentAt(0).findGroundOrSame();
     final Term term = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (choicePoint.isArgsValidate() && atom.getTermType() != TermType.VAR) {
+    if (choicePoint.isValidateArguments() && atom.getTermType() != TermType.VAR) {
       ProlAssertions.assertAtom(atom);
     }
 
@@ -92,14 +92,14 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
       signature = "set_prolog_flag/2",
       args = {"+atom,+term"},
       reference = "Set value of flag.",
-      critical = true
+      guarded = true
   )
   public static boolean predicateSETPROLOGFLAG(final JProlChoicePoint choicePoint,
                                                final TermStruct predicate) {
     final Term atom = predicate.getArgumentAt(0).findGroundOrSame();
     final Term term = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (choicePoint.isArgsValidate()) {
+    if (choicePoint.isValidateArguments()) {
       ProlAssertions.assertAtom(atom);
       ProlAssertions.assertNonVar(term);
     }
@@ -119,7 +119,7 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     final Term left = predicate.getArgumentAt(0).findGroundOrSame();
     final Term right = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (choicePoint.isArgsValidate()) {
+    if (choicePoint.isValidateArguments()) {
       ProlAssertions.assertEvaluable(right);
     }
 

@@ -57,7 +57,7 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term argSECOND = predicate.getArgumentAt(1).findGroundOrSame();
     final Term argTHIRD = predicate.getArgumentAt(2).findGroundOrSame();
 
-    if (goal.isArgsValidate()) {
+    if (goal.isValidateArguments()) {
       final boolean firstAtom = isAtom(argFIRST);
       final boolean secondAtom = isAtom(argSECOND);
       if (firstAtom && secondAtom) {
@@ -114,7 +114,7 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term argLeft = predicate.getArgumentAt(0).findGroundOrSame();
     final Term argRight = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (goal.isArgsValidate()) {
+    if (goal.isValidateArguments()) {
       assertAtom(argLeft);
       if (argRight.getTermType() != VAR) {
         assertAtom(argRight);
@@ -135,7 +135,7 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term arg3 = predicate.getArgumentAt(2).findGroundOrSame();
     final Term arg4 = predicate.getArgumentAt(3).findGroundOrSame();
 
-    if (goal.isArgsValidate()) {
+    if (goal.isValidateArguments()) {
       assertInteger(arg1);
       assertAtom(arg2);
       if (arg3.getTermType() != VAR) {
@@ -167,7 +167,7 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term list = predicate.getArgumentAt(1).findGroundOrSame();
     final Term target = predicate.getArgumentAt(2).findGroundOrSame();
 
-    if (goal.isArgsValidate()) {
+    if (goal.isValidateArguments()) {
       assertAtom(template);
       assertList(list);
     }
@@ -205,7 +205,7 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term argLeft = predicate.getArgumentAt(0).findGroundOrSame();
     final Term argRight = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (goal.isArgsValidate()) {
+    if (goal.isValidateArguments()) {
       if (isAtom(argLeft)) {
         if (argRight.getTermType() != VAR) {
           assertAtom(argRight);
@@ -233,7 +233,7 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term argLeft = predicate.getArgumentAt(0).findGroundOrSame();
     final Term argRight = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (goal.isArgsValidate()) {
+    if (goal.isValidateArguments()) {
       assertAtom(argLeft);
       if (argRight.getTermType() != VAR) {
         assertInteger(argRight);
@@ -251,7 +251,7 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term argLeft = predicate.getArgumentAt(0).findGroundOrSame();
     final Term argRight = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (goal.isArgsValidate()) {
+    if (goal.isValidateArguments()) {
       if (isAtom(argLeft)) {
         if (argRight.getTermType() != VAR) {
           assertInteger(argRight);
@@ -284,7 +284,7 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term argLeft = predicate.getArgumentAt(0).findGroundOrSame();
     final Term argRight = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (goal.isArgsValidate()) {
+    if (goal.isValidateArguments()) {
       if (isAtom(argLeft)) {
         if (argLeft.getTermType() != VAR) {
           assertNumber(argRight);

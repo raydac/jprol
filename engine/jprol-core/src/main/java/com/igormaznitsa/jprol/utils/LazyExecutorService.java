@@ -16,7 +16,7 @@ import java.util.function.Supplier;
  * Allows to create a deferred executor service which will be init only during first task.
  * It is a thread safe one.
  *
- * @since 2.3.0
+ * @since 3.0.0
  */
 public final class LazyExecutorService implements ExecutorService {
 

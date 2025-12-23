@@ -82,7 +82,7 @@ public interface KnowledgeBase {
   /**
    * Clear internal states of the knowledge base.
    *
-   * @since 2.3.0
+   * @since 3.0.0
    */
   void clear();
 }

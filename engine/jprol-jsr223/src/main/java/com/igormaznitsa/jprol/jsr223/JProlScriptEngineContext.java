@@ -2,8 +2,8 @@ package com.igormaznitsa.jprol.jsr223;
 
 import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.CONSOLE_IO_PROVIDER;
 import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_CONTEXT_FLAGS;
-import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_GLOBAL_CRITICAL_PREDICATE_GUARD;
 import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_GLOBAL_EXECUTOR_SERVICE;
+import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_GLOBAL_GUARD_PREDICATE;
 import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_GLOBAL_KNOWLEDGE_BASE;
 import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_LIBRARIES;
 import static com.igormaznitsa.jprol.jsr223.JProlScriptEngineUtils.java2term;
@@ -138,10 +138,10 @@ public class JProlScriptEngineContext implements ScriptContext {
     final ExecutorService executorService =
         (ExecutorService) this.factory.getGlobalBindings().get(JPROL_GLOBAL_EXECUTOR_SERVICE);
 
-    final JProlCriticalPredicateGuard foundPredicateAllow =
-        (JProlCriticalPredicateGuard) this.factory.getGlobalBindings()
-            .get(JPROL_GLOBAL_CRITICAL_PREDICATE_GUARD);
-    final JProlCriticalPredicateGuard predicateAllow =
+    final JProlGuardPredicate foundPredicateAllow =
+        (JProlGuardPredicate) this.factory.getGlobalBindings()
+            .get(JPROL_GLOBAL_GUARD_PREDICATE);
+    final JProlGuardPredicate guardPredicate =
         foundPredicateAllow == null ? (a, b, c) -> true : foundPredicateAllow;
 
     final Supplier<ExecutorService> executorServiceSupplier;
@@ -159,10 +159,10 @@ public class JProlScriptEngineContext implements ScriptContext {
         prolLibraries.toArray(AbstractJProlLibrary[]::new)
     ) {
       @Override
-      public boolean isCriticalPredicateAllowed(
+      public boolean isGuardPredicateAllowed(
           Class<? extends AbstractJProlLibrary> sourceLibrary,
           JProlChoicePoint choicePoint, String predicateIndicator) {
-        return predicateAllow.isCriticalPredicateAllowed(sourceLibrary, choicePoint,
+        return guardPredicate.isGuardedPredicateAllowed(sourceLibrary, choicePoint,
             predicateIndicator);
       }
     };

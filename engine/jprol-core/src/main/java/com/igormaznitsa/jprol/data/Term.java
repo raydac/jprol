@@ -63,7 +63,7 @@ public class Term {
    * Check that the term is a null list term.
    *
    * @return true if it is a null list term, false otherwise
-   * @since 2.3.0
+   * @since 3.0.0
    */
   public boolean isNullList() {
     return false;
@@ -73,7 +73,7 @@ public class Term {
    * Check that the term is an anonymous variable.
    *
    * @return true if it is an anonymous variable, false otherwise
-   * @since 2.3.0
+   * @since 3.0.0
    */
   public boolean isAnonymous() {
     return false;
@@ -84,7 +84,7 @@ public class Term {
    *
    * @param <T> type of expected payload object
    * @return the payload object saved in the term, can be null
-   * @since 2.3.0
+   * @since 3.0.0
    */
   @SuppressWarnings("unchecked")
   public <T> T getPayload() {
@@ -97,7 +97,7 @@ public class Term {
    * @param varName    name of variable to be replaced, must not be null
    * @param targetTerm target term to be injected instead of the variable, must not be null
    * @return new version of the term with replaced variables or the same
-   * @since 2.3.0
+   * @since 3.0.0
    */
   public Term replaceVar(final String varName, final Term targetTerm) {
     return this;
