@@ -41,9 +41,13 @@ public final class LazySet<V> implements Set<V> {
     return this.set == null ? Spliterators.emptySpliterator() : this.set.spliterator();
   }
 
-  @Override
-  public <T> T[] toArray(IntFunction<T[]> generator) {
-    return this.set == null ? generator.apply(0) : Set.super.toArray(generator);
+  public <T> T[] toArray(final IntFunction<T[]> generator) {
+    // such approach for Android 32 which has non-correct API implementation
+    if (this.set == null) {
+      return generator.apply(0);
+    } else {
+      return this.set.toArray(generator.apply(this.set.size()));
+    }
   }
 
   @Override
