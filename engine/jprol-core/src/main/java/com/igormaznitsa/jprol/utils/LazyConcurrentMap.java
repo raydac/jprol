@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -27,6 +30,130 @@ public class LazyConcurrentMap<K, V> implements Map<K, V> {
 
   public LazyConcurrentMap(final Supplier<Map<K, V>> supplier) {
     this.supplier = supplier;
+  }
+
+  @Override
+  public void forEach(final BiConsumer<? super K, ? super V> action) {
+    this.locker.lock();
+    try {
+      if (this.map != null) {
+        this.map.forEach(action);
+      }
+    } finally {
+      this.locker.unlock();
+    }
+  }
+
+  @Override
+  public void replaceAll(final BiFunction<? super K, ? super V, ? extends V> function) {
+    this.locker.lock();
+    try {
+      if (this.map != null) {
+        this.map.replaceAll(function);
+      }
+    } finally {
+      this.locker.unlock();
+    }
+  }
+
+  @Override
+  public V getOrDefault(Object key, V defaultValue) {
+    this.locker.lock();
+    try {
+      return this.map == null ? defaultValue : this.map.getOrDefault(key, defaultValue);
+    } finally {
+      this.locker.unlock();
+    }
+  }
+
+  @Override
+  public V putIfAbsent(final K key, final V value) {
+    this.locker.lock();
+    try {
+      if (this.map == null) {
+        this.map = this.supplier.get();
+      }
+      return this.map.putIfAbsent(key, value);
+    } finally {
+      this.locker.unlock();
+    }
+  }
+
+  @Override
+  public boolean remove(Object key, Object value) {
+    this.locker.lock();
+    try {
+      return this.map != null && this.map.remove(key, value);
+    } finally {
+      this.locker.unlock();
+    }
+  }
+
+  @Override
+  public boolean replace(K key, V oldValue, V newValue) {
+    return Map.super.replace(key, oldValue, newValue);
+  }
+
+  @Override
+  public V replace(final K key, final V value) {
+    this.locker.lock();
+    try {
+      return this.map == null ? null : this.map.replace(key, value);
+    } finally {
+      this.locker.unlock();
+    }
+  }
+
+  @Override
+  public V computeIfAbsent(final K key, final Function<? super K, ? extends V> mappingFunction) {
+    this.locker.lock();
+    try {
+      if (this.map == null) {
+        this.map = this.supplier.get();
+      }
+      return this.map.computeIfAbsent(key, mappingFunction);
+    } finally {
+      this.locker.unlock();
+    }
+  }
+
+  @Override
+  public V computeIfPresent(final K key,
+                            final BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+    this.locker.lock();
+    try {
+      return this.map == null ? null : this.map.computeIfPresent(key, remappingFunction);
+    } finally {
+      this.locker.unlock();
+    }
+  }
+
+  @Override
+  public V compute(final K key,
+                   final BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+    this.locker.lock();
+    try {
+      if (this.map == null) {
+        this.map = this.supplier.get();
+      }
+      return this.map.compute(key, remappingFunction);
+    } finally {
+      this.locker.unlock();
+    }
+  }
+
+  @Override
+  public V merge(final K key, final V value,
+                 final BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
+    this.locker.lock();
+    try {
+      if (this.map == null) {
+        this.map = this.supplier.get();
+      }
+      return this.map.merge(key, value, remappingFunction);
+    } finally {
+      this.locker.unlock();
+    }
   }
 
   @Override

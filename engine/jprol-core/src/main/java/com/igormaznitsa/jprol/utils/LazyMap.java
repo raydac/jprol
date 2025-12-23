@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -25,6 +28,17 @@ public final class LazyMap<K, V> implements Map<K, V> {
 
   public LazyMap(final Supplier<Map<K, V>> supplier) {
     this.supplier = supplier;
+  }
+
+  @Override
+  public V computeIfPresent(K key,
+                            BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+    return this.map == null ? null : this.map.computeIfPresent(key, remappingFunction);
+  }
+
+  @Override
+  public V getOrDefault(final Object key, final V defaultValue) {
+    return this.map == null ? defaultValue : this.map.getOrDefault(key, defaultValue);
   }
 
   @Override
@@ -78,6 +92,67 @@ public final class LazyMap<K, V> implements Map<K, V> {
     if (this.map != null) {
       this.map.clear();
     }
+  }
+
+  @Override
+  public void forEach(final BiConsumer<? super K, ? super V> action) {
+    if (this.map != null) {
+      this.map.forEach(action);
+    }
+  }
+
+  @Override
+  public void replaceAll(final BiFunction<? super K, ? super V, ? extends V> function) {
+    if (this.map != null) {
+      this.map.replaceAll(function);
+    }
+  }
+
+  @Override
+  public V putIfAbsent(final K key, final V value) {
+    if (this.map == null) {
+      this.map = this.supplier.get();
+    }
+    return this.map.putIfAbsent(key, value);
+  }
+
+  @Override
+  public boolean remove(final Object key, final Object value) {
+    return this.map != null && this.map.remove(key, value);
+  }
+
+  @Override
+  public boolean replace(final K key, final V oldValue, final V newValue) {
+    return this.map != null && this.map.replace(key, oldValue, newValue);
+  }
+
+  @Override
+  public V replace(final K key, final V value) {
+    return this.map == null ? null : this.map.replace(key, value);
+  }
+
+  @Override
+  public V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
+    if (this.map == null) {
+      this.map = this.supplier.get();
+    }
+    return this.map.computeIfAbsent(key, mappingFunction);
+  }
+
+  @Override
+  public V compute(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+    if (this.map == null) {
+      this.map = this.supplier.get();
+    }
+    return this.map.compute(key, remappingFunction);
+  }
+
+  @Override
+  public V merge(K key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
+    if (this.map == null) {
+      this.map = this.supplier.get();
+    }
+    return this.map.merge(key, value, remappingFunction);
   }
 
   @Override

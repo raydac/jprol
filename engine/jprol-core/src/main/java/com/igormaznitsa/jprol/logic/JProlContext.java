@@ -116,9 +116,11 @@ public class JProlContext implements AutoCloseable {
   private static final AtomicLong TASK_COUNTER = new AtomicLong();
   private final String contextId;
   private final Map<String, Map<JProlTriggerType, List<JProlTrigger>>> triggers =
-      new LazyConcurrentMap<>(ConcurrentHashMap::new);
+      new LazyConcurrentMap<>();
   private final Map<String, ReentrantLock> namedLockers =
-      new LazyConcurrentMap<>(ConcurrentHashMap::new);
+      new LazyConcurrentMap<>();
+  private final Map<Long, CompletableFuture<Term>> startedAsyncTasks =
+      new LazyConcurrentMap<>();
   private final List<AbstractJProlLibrary> libraries = new CopyOnWriteArrayList<>();
   private final AtomicBoolean disposed = new AtomicBoolean(false);
   private final KnowledgeBase knowledgeBase;
@@ -152,8 +154,6 @@ public class JProlContext implements AutoCloseable {
   private final List<IoResourceProvider> ioProviders = new CopyOnWriteArrayList<>();
   private final File currentFolder;
   private final JProlContext parentContext;
-  private final Map<Long, CompletableFuture<Term>> startedAsyncTasks =
-      new LazyConcurrentMap<>(ConcurrentHashMap::new);
   private boolean templateValidate;
   private boolean debug;
   private boolean shareKnowledgeBaseBetweenThreads;

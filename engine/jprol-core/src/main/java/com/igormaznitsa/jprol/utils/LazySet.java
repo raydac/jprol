@@ -1,13 +1,18 @@
 package com.igormaznitsa.jprol.utils;
 
-import static java.util.Collections.emptyList;
-
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.function.Consumer;
+import java.util.function.IntFunction;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * The container allows to organize a lazy set collection where the main set object will not be allocated if there is not write operations.
@@ -19,6 +24,7 @@ import java.util.function.Supplier;
 public final class LazySet<V> implements Set<V> {
 
   private static final Object[] EMPTY_ARRAY = new Object[0];
+
   private final Supplier<Set<V>> supplier;
   private Set<V> set;
 
@@ -28,6 +34,38 @@ public final class LazySet<V> implements Set<V> {
 
   public LazySet(final Supplier<Set<V>> supplier) {
     this.supplier = supplier;
+  }
+
+  @Override
+  public Spliterator<V> spliterator() {
+    return this.set == null ? Spliterators.emptySpliterator() : this.set.spliterator();
+  }
+
+  @Override
+  public <T> T[] toArray(IntFunction<T[]> generator) {
+    return this.set == null ? generator.apply(0) : Set.super.toArray(generator);
+  }
+
+  @Override
+  public boolean removeIf(Predicate<? super V> filter) {
+    return this.set != null && this.set.removeIf(filter);
+  }
+
+  @Override
+  public Stream<V> stream() {
+    return this.set == null ? Stream.empty() : this.set.stream();
+  }
+
+  @Override
+  public Stream<V> parallelStream() {
+    return this.set == null ? Stream.empty() : this.set.parallelStream();
+  }
+
+  @Override
+  public void forEach(Consumer<? super V> action) {
+    if (this.set != null) {
+      this.set.forEach(action);
+    }
   }
 
   @Override
@@ -55,9 +93,17 @@ public final class LazySet<V> implements Set<V> {
     return this.set == null ? EMPTY_ARRAY : this.set.toArray();
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  public <T> T[] toArray(T[] a) {
-    return this.set == null ? emptyList().toArray(a) : this.set.toArray(a);
+  public <T> T[] toArray(final T[] a) {
+    if (set == null) {
+      if (a.length == 0) {
+        return a;
+      }
+      return Arrays.copyOf(a, 0);
+    } else {
+      return this.set.toArray(a);
+    }
   }
 
   @Override
