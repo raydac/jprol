@@ -135,7 +135,11 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
     if (choicePoint.isArgsValidate()) {
       assertAtom(term);
     }
-    choicePoint.getContext().lockFor(term.getText());
+    try {
+      choicePoint.getContext().lockFor(term.getText());
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
+    }
   }
 
   @JProlPredicate(critical = true, determined = true, signature = "waitasync/0", reference = "Blocking waiting until all daemon threads (started with either fork/1 or async/1) of the context will be done.")

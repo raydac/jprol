@@ -39,6 +39,7 @@ import com.igormaznitsa.jprol.data.TermOperatorContainer;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.data.TermVar;
+import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.exceptions.ProlAbstractCatchableException;
 import com.igormaznitsa.jprol.exceptions.ProlChoicePointInterruptedException;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
@@ -60,6 +61,8 @@ import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
 import com.igormaznitsa.jprol.logic.triggers.TriggerEvent;
 import com.igormaznitsa.jprol.trace.JProlContextListener;
 import com.igormaznitsa.jprol.trace.TraceEvent;
+import com.igormaznitsa.jprol.utils.LazyConcurrentMap;
+import com.igormaznitsa.jprol.utils.LazyExecutorService;
 import com.igormaznitsa.jprol.utils.LazyMap;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.ProlUtils;
@@ -80,6 +83,7 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -99,30 +103,31 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class JProlContext implements AutoCloseable {
-  private final String contextId;
 
+  private static final AtomicLong TASK_COUNTER = new AtomicLong();
+  private final String contextId;
   private final Map<String, Map<JProlTriggerType, List<JProlTrigger>>> triggers =
-      new ConcurrentHashMap<>();
-  private final Map<String, ReentrantLock> namedLockers = new ConcurrentHashMap<>();
+      new LazyConcurrentMap<>(ConcurrentHashMap::new);
+  private final Map<String, ReentrantLock> namedLockers =
+      new LazyConcurrentMap<>(ConcurrentHashMap::new);
   private final List<AbstractJProlLibrary> libraries = new CopyOnWriteArrayList<>();
   private final AtomicBoolean disposed = new AtomicBoolean(false);
   private final KnowledgeBase knowledgeBase;
-  private final ExecutorService asyncTaskExecutorService;
+  private final LazyExecutorService asyncTaskExecutorService;
   private final List<JProlContextListener> contextListeners = new CopyOnWriteArrayList<>();
   private final Map<JProlSystemFlag, Term> systemFlags = new ConcurrentHashMap<>();
-  private final AtomicInteger asyncTaskCounter = new AtomicInteger();
   private final Set<String> dynamicSignatures = new ConcurrentSkipListSet<>();
-
   private final ReentrantLock asyncLocker = new ReentrantLock();
   private final Condition asyncCounterCondition = asyncLocker.newCondition();
-
   private final ParserContext parserContext = new ParserContext() {
     @Override
     public boolean hasOpStartsWith(final PrologParser prologParser, final String s) {
@@ -144,10 +149,11 @@ public class JProlContext implements AutoCloseable {
           | ParserContext.FLAG_BLOCK_COMMENTS;
     }
   };
-
   private final List<IoResourceProvider> ioProviders = new CopyOnWriteArrayList<>();
   private final File currentFolder;
   private final JProlContext parentContext;
+  private final Map<Long, CompletableFuture<Term>> startedAsyncTasks =
+      new LazyConcurrentMap<>(ConcurrentHashMap::new);
   private boolean templateValidate;
   private boolean debug;
   private boolean shareKnowledgeBaseBetweenThreads;
@@ -171,7 +177,7 @@ public class JProlContext implements AutoCloseable {
         name,
         currentFolder,
         knowledgeBaseSupplier,
-        ForkJoinPool.commonPool(),
+        ForkJoinPool::commonPool,
         libs
     );
   }
@@ -180,7 +186,7 @@ public class JProlContext implements AutoCloseable {
       final String name,
       final File currentFolder,
       final Function<String, KnowledgeBase> knowledgeBaseSupplier,
-      final ExecutorService asyncTaskExecutorService,
+      final Supplier<ExecutorService> executorServiceSupplier,
       final AbstractJProlLibrary... libs
   ) {
     this(
@@ -188,7 +194,7 @@ public class JProlContext implements AutoCloseable {
         name,
         currentFolder,
         knowledgeBaseSupplier.apply(name + "_kbase"),
-        asyncTaskExecutorService,
+        executorServiceSupplier,
         emptyMap(),
         emptyList(),
         emptyList(),
@@ -213,7 +219,7 @@ public class JProlContext implements AutoCloseable {
       final String contextId,
       final File currentFolder,
       final KnowledgeBase base,
-      final ExecutorService asyncTaskExecutorService,
+      final Supplier<ExecutorService> executorServiceSupplier,
       final Map<JProlSystemFlag, Term> systemFlags,
       final List<JProlContextListener> contextListeners,
       final List<IoResourceProvider> ioProviders,
@@ -225,7 +231,7 @@ public class JProlContext implements AutoCloseable {
     this.contextId = requireNonNull(contextId, "Context Id is null");
     this.currentFolder = requireNonNull(currentFolder);
     this.knowledgeBase = requireNonNull(base, "Knowledge base is null");
-    this.asyncTaskExecutorService = requireNonNull(asyncTaskExecutorService);
+    this.asyncTaskExecutorService = new LazyExecutorService(executorServiceSupplier);
     this.contextListeners.addAll(contextListeners);
 
     if (!triggers.isEmpty()) {
@@ -250,7 +256,11 @@ public class JProlContext implements AutoCloseable {
 
     asList(additionalLibraries).forEach(this::addLibrary);
 
-    this.callInConstructorEnd();
+    this.registerLibraries();
+  }
+
+  private void registerLibraries() {
+    this.libraries.forEach(x -> x.onRegisteredInContext(this));
   }
 
   public boolean isShareKnowledgeBaseBetweenThreads() {
@@ -263,10 +273,6 @@ public class JProlContext implements AutoCloseable {
 
   public File getCurrentFolder() {
     return this.currentFolder;
-  }
-
-  private void callInConstructorEnd() {
-    this.libraries.forEach(x -> x.onRegisteredInContext(this));
   }
 
   public boolean isTemplateValidate() {
@@ -286,6 +292,7 @@ public class JProlContext implements AutoCloseable {
   }
 
   public void setSystemFlag(final JProlSystemFlag flag, final Term term) {
+    this.assertNotDisposed();
     if (flag.isReadOnly()) {
       throw new IllegalStateException("Flag is marked as read-only: " + flag);
     } else {
@@ -310,6 +317,7 @@ public class JProlContext implements AutoCloseable {
   }
 
   public JProlContext addContextListener(final JProlContextListener listener) {
+    this.assertNotDisposed();
     this.contextListeners.add(listener);
     return this;
   }
@@ -320,6 +328,7 @@ public class JProlContext implements AutoCloseable {
   }
 
   public JProlContext addIoResourceProvider(final IoResourceProvider provider) {
+    this.assertNotDisposed();
     this.ioProviders.add(provider);
     return this;
   }
@@ -330,11 +339,13 @@ public class JProlContext implements AutoCloseable {
   }
 
   public Optional<Reader> findResourceReader(final String readerId) {
+    this.assertNotDisposed();
     return this.ioProviders.stream().map(x -> x.findReader(this, readerId)).filter(Objects::nonNull)
         .findFirst();
   }
 
   public Optional<Writer> findResourceWriter(final String writerId, final boolean append) {
+    this.assertNotDisposed();
     return this.ioProviders.stream().map(x -> x.findWriter(this, writerId, append))
         .filter(Objects::nonNull).findFirst();
   }
@@ -350,13 +361,15 @@ public class JProlContext implements AutoCloseable {
   }
 
   public int getCurrentAsyncTaskNumber() {
-    return this.asyncTaskCounter.get();
+    return this.startedAsyncTasks.size();
   }
 
   public void waitAllAsyncTasks() {
+    this.assertNotDisposed();
     this.asyncLocker.lock();
     try {
-      while (this.asyncTaskCounter.get() > 0 && !this.isDisposed()) {
+      while (!this.startedAsyncTasks.isEmpty() && !this.isDisposed() &&
+          !Thread.currentThread().isInterrupted()) {
         try {
           this.asyncCounterCondition.await();
         } catch (InterruptedException ex) {
@@ -369,8 +382,8 @@ public class JProlContext implements AutoCloseable {
     }
   }
 
-  private void onAsyncTaskCompleted() {
-    this.asyncTaskCounter.decrementAndGet();
+  private void onAsyncTaskCompleted(final long id) {
+    this.startedAsyncTasks.remove(id);
     this.asyncLocker.lock();
     try {
       this.asyncCounterCondition.signalAll();
@@ -386,33 +399,42 @@ public class JProlContext implements AutoCloseable {
   }
 
   @SuppressWarnings("StatementWithEmptyBody")
-  public CompletableFuture<Void> proveAllAsync(final Term goal, final boolean shareKnowledgeBase) {
+  public CompletableFuture<Term> proveAllAsync(final Term goal, final boolean shareKnowledgeBase) {
     this.assertNotDisposed();
     this.assertConcurrentKnowledgeBase();
 
-    this.asyncTaskCounter.incrementAndGet();
-    return CompletableFuture.runAsync(() -> {
-          final JProlContext contextCopy = this.makeCopy(shareKnowledgeBase);
-          final JProlChoicePoint asyncGoal =
-              new JProlChoicePoint(requireNonNull(goal), contextCopy);
-          while (asyncGoal.prove() != null && !this.isDisposed() && !contextCopy.isDisposed()) {
-            // do nothing
-          }
-          if (!contextCopy.isDisposed()) {
-            contextCopy.dispose();
-          }
-        }, this.asyncTaskExecutorService)
-        .handle((x, e) -> {
-          this.onAsyncTaskCompleted();
-          if (e != null) {
-            if (!(e instanceof CompletionException) ||
-                !(e.getCause() instanceof ProlInterruptException)) {
-              throw new ProlForkExecutionException("Error during async/1", goal,
-                  new Throwable[] {e});
-            }
-          }
-          return x;
-        });
+    final long taskId = TASK_COUNTER.incrementAndGet();
+    return this.startedAsyncTasks.computeIfAbsent(taskId, id ->
+        CompletableFuture.supplyAsync(() -> {
+              final JProlContext contextCopy = this.makeCopy(shareKnowledgeBase);
+              final JProlChoicePoint asyncGoal =
+                  new JProlChoicePoint(requireNonNull(goal), contextCopy);
+              int proved = 0;
+              while (!this.isDisposed() && !contextCopy.isDisposed()) {
+                if (asyncGoal.prove() == null) {
+                  break;
+                } else {
+                  proved++;
+                }
+              }
+
+              if (!contextCopy.isDisposed()) {
+                contextCopy.dispose();
+              }
+
+              return Terms.newLong(proved);
+            }, this.asyncTaskExecutorService)
+            .handle((x, e) -> {
+              this.onAsyncTaskCompleted(id);
+              if (e != null) {
+                if (!(e instanceof CompletionException) ||
+                    !(e.getCause() instanceof ProlInterruptException)) {
+                  throw new ProlForkExecutionException("Error during async/1", goal,
+                      new Throwable[] {e});
+                }
+              }
+              return x;
+            }));
   }
 
   public CompletableFuture<Term> proveOnceAsync(final Term goal,
@@ -420,23 +442,27 @@ public class JProlContext implements AutoCloseable {
     this.assertNotDisposed();
     this.assertConcurrentKnowledgeBase();
 
-    this.asyncTaskCounter.incrementAndGet();
-    return CompletableFuture.supplyAsync(() -> {
-      final JProlChoicePoint asyncGoal =
-          new JProlChoicePoint(requireNonNull(goal), this.makeCopy(shareKnowledgeBase));
-      final Term result = asyncGoal.prove();
-      asyncGoal.cutVariants();
-      return result;
-    }, this.asyncTaskExecutorService).handle((x, e) -> {
-      this.onAsyncTaskCompleted();
-      if (e != null) {
-        if (!(e instanceof CompletionException) ||
-            !(e.getCause() instanceof ProlInterruptException)) {
-          throw new ProlForkExecutionException("Error during async/1", goal, new Throwable[] {e});
-        }
-      }
-      return x;
-    });
+    final long taskId = TASK_COUNTER.incrementAndGet();
+
+    return this.startedAsyncTasks.computeIfAbsent(taskId, id ->
+        CompletableFuture.supplyAsync(() -> {
+              final JProlChoicePoint asyncGoal =
+                  new JProlChoicePoint(requireNonNull(goal), this.makeCopy(shareKnowledgeBase));
+              final Term result = asyncGoal.prove();
+              asyncGoal.cutVariants();
+              return result;
+            }, this.asyncTaskExecutorService)
+            .handle((x, e) -> {
+              this.onAsyncTaskCompleted(id);
+              if (e != null) {
+                if (!(e instanceof CompletionException) ||
+                    !(e.getCause() instanceof ProlInterruptException)) {
+                  throw new ProlForkExecutionException("Error during async/1", goal,
+                      new Throwable[] {e});
+                }
+              }
+              return x;
+            }));
   }
 
   public ExecutorService getContextExecutorService() {
@@ -452,7 +478,8 @@ public class JProlContext implements AutoCloseable {
     }
   }
 
-  public void lockFor(final String lockId) {
+  public void lockFor(final String lockId) throws InterruptedException {
+    this.assertNotDisposed();
     try {
       this.findLockerForId(lockId, true)
           .orElseThrow(
@@ -460,16 +487,18 @@ public class JProlContext implements AutoCloseable {
           .lockInterruptibly();
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
-      throw new RuntimeException("Locker wait has been interrupted: " + lockId, ex);
+      throw new InterruptedException("Locker wait has been interrupted: " + lockId);
     }
   }
 
   public boolean tryLockFor(final String lockId) {
+    this.assertNotDisposed();
     return this.findLockerForId(lockId, true).orElseThrow(
         () -> new IllegalArgumentException("Named locker is not presented: " + lockId)).tryLock();
   }
 
   public void unlockFor(final String lockId) {
+    this.assertNotDisposed();
     this.findLockerForId(lockId, false).ifPresent(ReentrantLock::unlock);
   }
 
@@ -592,6 +621,7 @@ public class JProlContext implements AutoCloseable {
 
   public boolean removeLibrary(final AbstractJProlLibrary library) {
     this.assertNotDisposed();
+
     if (library == null) {
       throw new IllegalArgumentException("Library must not be null");
     }
@@ -647,6 +677,7 @@ public class JProlContext implements AutoCloseable {
 
   public TermOperator findSystemOperatorForNameAndAssociativity(final String name,
                                                                 final OpAssoc associativity) {
+    this.assertNotDisposed();
     return this.libraries.stream()
         .map(lib -> lib.findSystemOperatorForName(name))
         .filter(Objects::nonNull)
@@ -656,6 +687,7 @@ public class JProlContext implements AutoCloseable {
   }
 
   public Iterator<AbstractJProlLibrary> makeLibraryIterator() {
+    this.assertNotDisposed();
     return this.libraries.iterator();
   }
 
@@ -664,14 +696,38 @@ public class JProlContext implements AutoCloseable {
         .anyMatch(lib -> lib.isSystemOperatorStartsWith(str));
   }
 
+  private boolean waitStartedTasksCompletion(final Duration timeout) {
+    this.asyncLocker.lock();
+    try {
+      final long endTime = System.currentTimeMillis() + timeout.toMillis();
+      while (!this.startedAsyncTasks.isEmpty()) {
+        final long delay = endTime - System.currentTimeMillis();
+        if (delay <= 0L) {
+          break;
+        }
+        this.asyncCounterCondition.await(delay, TimeUnit.MILLISECONDS);
+      }
+      return this.startedAsyncTasks.isEmpty();
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
+      return this.startedAsyncTasks.isEmpty();
+    } finally {
+      this.asyncLocker.unlock();
+    }
+  }
+
+  public void cancelAllAsyncTasks() {
+    this.assertNotDisposed();
+    this.startedAsyncTasks.values().forEach(x -> x.cancel(true));
+  }
+
   public void dispose() {
     if (this.disposed.compareAndSet(false, true)) {
-      this.asyncTaskExecutorService.shutdownNow();
-      try {
-        this.asyncTaskExecutorService.awaitTermination(30, TimeUnit.SECONDS);
-      } catch (InterruptedException ex) {
-        Thread.currentThread().interrupt();
-      }
+
+      this.startedAsyncTasks.values().forEach(x -> x.cancel(true));
+      this.waitStartedTasksCompletion(Duration.ofSeconds(30));
+      this.startedAsyncTasks.clear();
+      this.namedLockers.clear();
 
       this.triggers.values().stream()
           .flatMap(x -> x.values().stream())
@@ -688,8 +744,11 @@ public class JProlContext implements AutoCloseable {
           }
         }
       });
-      this.contextListeners.forEach(listener -> listener.onContextDispose(this));
-      this.contextListeners.clear();
+      try {
+        this.contextListeners.forEach(listener -> listener.onContextDispose(this));
+      } finally {
+        this.contextListeners.clear();
+      }
     }
   }
 
@@ -1028,7 +1087,7 @@ public class JProlContext implements AutoCloseable {
         this.contextId + "_copy",
         this.currentFolder,
         shareKnowledgeBase ? this.knowledgeBase : this.knowledgeBase.makeCopy(),
-        this.asyncTaskExecutorService,
+        this.asyncTaskExecutorService.getSupplier(),
         this.systemFlags,
         this.contextListeners,
         this.ioProviders,

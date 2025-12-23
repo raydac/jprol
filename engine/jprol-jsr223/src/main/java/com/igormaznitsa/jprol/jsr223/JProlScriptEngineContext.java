@@ -32,6 +32,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.SimpleBindings;
@@ -143,11 +144,18 @@ public class JProlScriptEngineContext implements ScriptContext {
     final JProlCriticalPredicateGuard predicateAllow =
         foundPredicateAllow == null ? (a, b, c) -> true : foundPredicateAllow;
 
+    final Supplier<ExecutorService> executorServiceSupplier;
+    if (executorService == null) {
+      executorServiceSupplier = ForkJoinPool::commonPool;
+    } else {
+      executorServiceSupplier = () -> executorService;
+    }
+
     final JProlContext result = new JProlContext(
         "jprol-jsr223-" + identityHashCode(this),
         new File(System.getProperty("user.home")),
         x -> this.findKnowledgeBase(),
-        executorService == null ? ForkJoinPool.commonPool() : executorService,
+        executorServiceSupplier,
         prolLibraries.toArray(AbstractJProlLibrary[]::new)
     ) {
       @Override
