@@ -34,7 +34,6 @@ import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
-import com.igormaznitsa.jprol.utils.ProlAssertions;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -429,11 +428,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final Term termArgX = predicate.getArgumentAt(0).findGroundOrSame();
     final Term termArgY = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertNumber(termArgX);
-      ProlAssertions.assertNumber(termArgY);
-    }
-
     final int x = termArgX.toNumber().intValue();
     final int y = termArgY.toNumber().intValue();
 
@@ -477,9 +471,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       "+term"}, reference = "Remove registered timer")
   public void predicateBINDTIMER1(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term timerId = predicate.getArgumentAt(0).findGroundOrSame();
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertAtom(timerId);
-    }
     final String timerName = timerId.forWrite();
     final TimerActionRecord record = this.registeredTimerActions.remove(timerName);
     if (record != null) {
@@ -493,12 +484,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final Term timerId = predicate.getArgumentAt(0).findGroundOrSame();
     final Term delay = predicate.getArgumentAt(1).findGroundOrSame();
     final Term action = predicate.getArgumentAt(2).findGroundOrSame();
-
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertAtom(timerId);
-      ProlAssertions.assertNumber(delay);
-      ProlAssertions.assertCallable(action);
-    }
 
     final String timerName = timerId.forWrite();
     final int delayMs = delay.toNumber().intValue();
@@ -533,11 +518,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final Term action = predicate.getArgumentAt(0).findGroundOrSame();
     final Term callable = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertAtom(action);
-      ProlAssertions.assertCallable(callable);
-    }
-
     final String actionType = action.getTermType() == ATOM ? action.forWrite() : "";
 
     if (!allowedMouseActions.contains(actionType)) {
@@ -559,10 +539,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       "+term"}, reference = "Remove a goal bound to an action menu item.")
   public void predicateBINDACTION1(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term menuItem = predicate.getArgumentAt(0).findGroundOrSame();
-
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertNonVar(menuItem);
-    }
 
     final String menuItemName = menuItem.forWrite();
     final JProlAction registeredAction = this.registeredActions.remove(menuItemName);
@@ -588,11 +564,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   public void predicateBINDACTION2(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term menuItem = predicate.getArgumentAt(0).findGroundOrSame();
     final Term action = predicate.getArgumentAt(1).findGroundOrSame();
-
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertNonVar(menuItem);
-      ProlAssertions.assertCallable(action);
-    }
 
     if (action.getTermType() != STRUCT || ((TermStruct) action).getArity() != 1) {
       throw new ProlInstantiationErrorException("Expected callable structure with arity 1", action);
@@ -654,13 +625,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final Term term2 = predicate.getArgumentAt(2).findGroundOrSame();
     final Term term3 = predicate.getArgumentAt(3).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertNumber(term0);
-      ProlAssertions.assertNumber(term1);
-      ProlAssertions.assertNumber(term2);
-      ProlAssertions.assertNumber(term3);
-    }
-
     final int x = term0.toNumber().intValue();
     final int y = term1.toNumber().intValue();
     final int w = term2.toNumber().intValue();
@@ -686,13 +650,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final Term term2 = predicate.getArgumentAt(2).findGroundOrSame();
     final Term term3 = predicate.getArgumentAt(3).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertNumber(term0);
-      ProlAssertions.assertNumber(term1);
-      ProlAssertions.assertNumber(term2);
-      ProlAssertions.assertNumber(term3);
-    }
-
     final int argumentTargetX = term0.toNumber().intValue();
     final int argumentTargetY = term1.toNumber().intValue();
     final int argumentTargetWidth = term2.toNumber().intValue();
@@ -715,13 +672,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final Term targy = predicate.getArgumentAt(1).findGroundOrSame();
     final Term targxx = predicate.getArgumentAt(2).findGroundOrSame();
     final Term targyy = predicate.getArgumentAt(3).findGroundOrSame();
-
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertNumber(targx);
-      ProlAssertions.assertNumber(targy);
-      ProlAssertions.assertNumber(targxx);
-      ProlAssertions.assertNumber(targyy);
-    }
 
     final int x1 = targx.toNumber().intValue();
     final int y1 = targy.toNumber().intValue();
@@ -749,11 +699,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final Term targetX = predicate.getArgumentAt(0).findGroundOrSame();
     final Term targetY = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertNumber(targetX);
-      ProlAssertions.assertNumber(targetY);
-    }
-
     final int x = targetX.toNumber().intValue();
     final int y = targetY.toNumber().intValue();
     this.gfxBufferAccessLocker.lock();
@@ -779,13 +724,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final Term termW = predicate.getArgumentAt(2).findGroundOrSame();
     final Term termH = predicate.getArgumentAt(3).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertNumber(termX);
-      ProlAssertions.assertNumber(termY);
-      ProlAssertions.assertNumber(termW);
-      ProlAssertions.assertNumber(termH);
-    }
-
     final int x = termX.toNumber().intValue();
     final int y = termY.toNumber().intValue();
     final int w = termW.toNumber().intValue();
@@ -810,13 +748,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final Term termY = predicate.getArgumentAt(1).findGroundOrSame();
     final Term termW = predicate.getArgumentAt(2).findGroundOrSame();
     final Term termH = predicate.getArgumentAt(3).findGroundOrSame();
-
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertNumber(termX);
-      ProlAssertions.assertNumber(termY);
-      ProlAssertions.assertNumber(termW);
-      ProlAssertions.assertNumber(termH);
-    }
 
     final int x = termX.toNumber().intValue();
     final int y = termY.toNumber().intValue();
@@ -853,12 +784,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       "?atom"}, reference = "Change or get the current brush color. If it can't set color then it will return false")
   public boolean predicateBRUSHCOLOR(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
-    if (goal.isValidateArguments()) {
-      if (arg.getTermType() != VAR) {
-        ProlAssertions.assertAtom(arg);
-      }
-    }
-
     if (arg.getTermType() == VAR) {
       return arg.unifyTo(getColorAsTerm(brushColor.get()));
     }
@@ -880,9 +805,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       "+atom"}, reference = "Set the title for the current graphic screen")
   public void predicateSETTITLE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term term = predicate.getArgumentAt(0).findGroundOrSame();
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertAtom(term);
-    }
     final String title = term.getText();
     this.safeSwingCall(() -> {
       final JFrame frame = this.graphicFrame.get();
@@ -896,12 +818,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       "?atom"}, reference = "Change or get the current pen color. If it can't set color then it will return false")
   public boolean predicatePENCOLOR(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
-    if (goal.isValidateArguments()) {
-      if (arg.getTermType() != VAR) {
-        ProlAssertions.assertAtom(arg);
-      }
-    }
-
     if (arg.getTermType() == VAR) {
       return arg.unifyTo(getColorAsTerm(penColor.get()));
     }
@@ -955,11 +871,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   public void predicatePLAYSOUND(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term freqHz = predicate.getArgumentAt(0).findGroundOrSame();
     final Term lengthMs = predicate.getArgumentAt(1).findGroundOrSame();
-
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertNumber(freqHz);
-      ProlAssertions.assertNumber(lengthMs);
-    }
 
     final int frequency = 44100;
 
@@ -1019,12 +930,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final Term x = predicate.getArgumentAt(1).findGroundOrSame();
     final Term y = predicate.getArgumentAt(2).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertAtom(path);
-      ProlAssertions.assertNumber(x);
-      ProlAssertions.assertNumber(y);
-    }
-
     final BufferedImage sprite = this.imageSpriteMap.get(path.getText());
     if (sprite == null) {
       return false;
@@ -1049,10 +954,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final Term spriteId = predicate.getArgumentAt(0).findGroundOrSame();
     final Term path = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertAtom(path);
-      ProlAssertions.assertAtom(spriteId);
-    }
     final File spriteFile = new File(goal.getContext().getCurrentFolder(), path.getText());
 
     if (!spriteFile.isFile()) {
@@ -1079,11 +980,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final Term soundClipId = predicate.getArgumentAt(0).findGroundOrSame();
     final Term loop = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertAtom(soundClipId);
-      ProlAssertions.assertNumber(loop);
-    }
-
     final SoundClip soundClip = this.soundClipMap.get(soundClipId.getText());
     if (soundClip == null) {
       return false;
@@ -1098,10 +994,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   public boolean predicatePLAYSOUNDCLIP1(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term soundClipId = predicate.getArgumentAt(0).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertAtom(soundClipId);
-    }
-
     final SoundClip soundClip = this.soundClipMap.get(soundClipId.getText());
     if (soundClip == null) {
       return false;
@@ -1115,10 +1007,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       "+atom"}, reference = "Arguments (soundclip_id). Stop play sound clip.")
   public boolean predicateSTOPSOUNDCLIP(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term soundClipId = predicate.getArgumentAt(0).findGroundOrSame();
-
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertAtom(soundClipId);
-    }
 
     final SoundClip soundClip = this.soundClipMap.get(soundClipId.getText());
     if (soundClip == null) {
@@ -1135,10 +1023,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
                                              final TermStruct predicate) {
     final Term soundClipId = predicate.getArgumentAt(0).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertAtom(soundClipId);
-    }
-
     final SoundClip soundClip = this.soundClipMap.get(soundClipId.getText());
     if (soundClip == null) {
       return false;
@@ -1152,11 +1036,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   public boolean predicateLOADSOUNDCLIP(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term soundClipId = predicate.getArgumentAt(0).findGroundOrSame();
     final Term path = predicate.getArgumentAt(1).findGroundOrSame();
-
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertAtom(path);
-      ProlAssertions.assertAtom(soundClipId);
-    }
 
     final File soundClipFile = new File(goal.getContext().getCurrentFolder(), path.getText());
 
@@ -1184,11 +1063,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
     final Term format = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertAtom(arg);
-      ProlAssertions.assertAtom(format);
-    }
-
     saveCurrentBuffer(goal.getContext().getCurrentFolder(), arg.getText(),
         format.getText().trim().toLowerCase(), predicate);
   }
@@ -1198,15 +1072,6 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   public boolean predicateGRAPHICS(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term width = predicate.getArgumentAt(0).findGroundOrSame();
     final Term height = predicate.getArgumentAt(1).findGroundOrSame();
-
-    if (goal.isValidateArguments()) {
-      if (width.getTermType() != VAR) {
-        ProlAssertions.assertInteger(width);
-      }
-      if (height.getTermType() != VAR) {
-        ProlAssertions.assertInteger(height);
-      }
-    }
 
     this.safeSwingSynchroCall(() -> {
       final int widthOrig = bufferedImage.getWidth();

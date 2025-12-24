@@ -5,8 +5,8 @@ import static com.igormaznitsa.jprol.data.TermStruct.EMPTY_ARRAY;
 
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
-import com.igormaznitsa.jprol.utils.LazyMap;
 import com.igormaznitsa.jprol.utils.ProlUtils;
+import com.igormaznitsa.jprol.utils.lazy.LazyMap;
 import com.igormaznitsa.prologparser.terms.PrologFloat;
 import com.igormaznitsa.prologparser.terms.PrologInt;
 import com.igormaznitsa.prologparser.terms.PrologList;

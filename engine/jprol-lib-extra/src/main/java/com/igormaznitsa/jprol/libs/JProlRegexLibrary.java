@@ -16,10 +16,6 @@
 
 package com.igormaznitsa.jprol.libs;
 
-import static com.igormaznitsa.jprol.data.TermType.VAR;
-import static com.igormaznitsa.jprol.utils.ProlAssertions.assertAtom;
-import static com.igormaznitsa.jprol.utils.ProlAssertions.assertList;
-
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
@@ -103,14 +99,6 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     final Term argTargetList = predicate.getArgumentAt(2).findGroundOrSame();
     final Term argListOptions = predicate.getArgumentAt(3).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      assertAtom(argRegex);
-      assertAtom(argString);
-      assertList(argListOptions);
-      if (argTargetList.getTermType() != VAR) {
-        assertList(argTargetList);
-      }
-    }
     final int compileFlags = makePatternCompileFlags(argListOptions);
     final Pattern pattern;
     try {
@@ -135,14 +123,6 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     final Term argTargetList = predicate.getArgumentAt(2).findGroundOrSame();
     final Term argListOptions = predicate.getArgumentAt(3).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      assertAtom(argRegex);
-      assertAtom(argString);
-      assertList(argListOptions);
-      if (argTargetList.getTermType() != VAR) {
-        assertList(argTargetList);
-      }
-    }
     final int compileFlags = makePatternCompileFlags(argListOptions);
     final Pattern pattern;
     try {
@@ -176,12 +156,6 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     final Term argReplacement = predicate.getArgumentAt(2).findGroundOrSame();
     final Term argTarget = predicate.getArgumentAt(3).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      assertAtom(argSource);
-      assertAtom(argRegex);
-      assertAtom(argReplacement);
-    }
-
     final String processed;
     try {
       processed =
@@ -201,11 +175,6 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     final Term argString = predicate.getArgumentAt(1).findGroundOrSame();
     final Term argListOptions = predicate.getArgumentAt(2).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      assertAtom(argRegex);
-      assertAtom(argString);
-      assertList(argListOptions);
-    }
     final int compileFlags = makePatternCompileFlags(argListOptions);
     final Pattern pattern;
     try {

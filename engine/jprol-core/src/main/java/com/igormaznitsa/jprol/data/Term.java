@@ -38,7 +38,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
 
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
-import com.igormaznitsa.jprol.utils.LazyMap;
+import com.igormaznitsa.jprol.utils.lazy.LazyMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;

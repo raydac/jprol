@@ -24,7 +24,7 @@ import static com.igormaznitsa.jprol.utils.ProlUtils.createOrAppendToList;
 import static java.util.Objects.requireNonNull;
 
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
-import com.igormaznitsa.jprol.utils.LazyMap;
+import com.igormaznitsa.jprol.utils.lazy.LazyMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;

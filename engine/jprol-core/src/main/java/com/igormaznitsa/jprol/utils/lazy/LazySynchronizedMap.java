@@ -1,4 +1,4 @@
-package com.igormaznitsa.jprol.utils;
+package com.igormaznitsa.jprol.utils.lazy;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -250,6 +250,7 @@ public class LazySynchronizedMap<K, V> implements Map<K, V> {
     try {
       if (this.map != null) {
         this.map.clear();
+        this.map = null;
       }
     } finally {
       this.locker.unlock();

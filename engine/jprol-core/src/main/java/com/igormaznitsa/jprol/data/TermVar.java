@@ -20,7 +20,7 @@ import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.newVar;
 
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
-import com.igormaznitsa.jprol.utils.LazyMap;
+import com.igormaznitsa.jprol.utils.lazy.LazyMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;

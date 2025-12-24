@@ -1,6 +1,5 @@
 package com.igormaznitsa.jprol.libs;
 
-import static com.igormaznitsa.jprol.utils.ProlAssertions.assertAtom;
 import static com.igormaznitsa.jprol.utils.ProlAssertions.assertCallable;
 import static com.igormaznitsa.jprol.utils.ProlUtils.extractErrors;
 
@@ -13,7 +12,6 @@ import com.igormaznitsa.jprol.exceptions.ProlForkExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
-import com.igormaznitsa.jprol.utils.ProlAssertions;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -41,9 +39,6 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
   public static boolean predicateFORK1(final JProlChoicePoint choicePoint,
                                        final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
-    if (choicePoint.isValidateArguments()) {
-      ProlAssertions.assertList(arg);
-    }
     TermList taskTerms = (TermList) arg;
 
     final List<CompletableFuture<Term>> startedTasks = asyncProveOnce(choicePoint, taskTerms,
@@ -61,9 +56,6 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
   public static boolean predicateIFORK1(final JProlChoicePoint choicePoint,
                                         final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
-    if (choicePoint.isValidateArguments()) {
-      ProlAssertions.assertList(arg);
-    }
     TermList taskTerms = (TermList) arg;
 
     final List<CompletableFuture<Term>> startedTasks = asyncProveOnce(choicePoint, taskTerms,
@@ -86,10 +78,6 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
   public static void predicateASYNC1(final JProlChoicePoint choicePoint,
                                      final TermStruct predicate) {
     final Term term = predicate.getArgumentAt(0).findGroundOrSame();
-    if (choicePoint.isValidateArguments()) {
-      assertCallable(term);
-    }
-
     if (!term.isGround()) {
       throw new ProlInstantiationErrorException("Callable term must be bounded", predicate);
     }
@@ -103,9 +91,6 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
   public static void predicateUNLOCK1(final JProlChoicePoint choicePoint,
                                       final TermStruct predicate) {
     final Term term = predicate.getArgumentAt(0).findGroundOrSame();
-    if (choicePoint.isValidateArguments()) {
-      assertAtom(term);
-    }
 
     try {
       choicePoint.getContext().unlockFor(term.getText());
@@ -121,9 +106,6 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
   public static boolean predicateTRYLOCK1(final JProlChoicePoint choicePoint,
                                           final TermStruct predicate) {
     final Term term = predicate.getArgumentAt(0).findGroundOrSame();
-    if (choicePoint.isValidateArguments()) {
-      assertAtom(term);
-    }
     return choicePoint.getContext().tryLockFor(term.getText());
   }
 
@@ -132,9 +114,6 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
   public static void predicateLOCK1(final JProlChoicePoint choicePoint,
                                     final TermStruct predicate) {
     final Term term = predicate.getArgumentAt(0).findGroundOrSame();
-    if (choicePoint.isValidateArguments()) {
-      assertAtom(term);
-    }
     try {
       choicePoint.getContext().lockFor(term.getText());
     } catch (InterruptedException ex) {

@@ -24,8 +24,8 @@ import static java.util.Objects.requireNonNull;
 
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
-import com.igormaznitsa.jprol.utils.LazyMap;
 import com.igormaznitsa.jprol.utils.ProlUtils;
+import com.igormaznitsa.jprol.utils.lazy.LazyMap;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;

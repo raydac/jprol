@@ -1,4 +1,4 @@
-package com.igormaznitsa.jprol.utils;
+package com.igormaznitsa.jprol.utils.lazy;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -91,6 +91,7 @@ public final class LazyMap<K, V> implements Map<K, V> {
   public void clear() {
     if (this.map != null) {
       this.map.clear();
+      this.map = null;
     }
   }
 

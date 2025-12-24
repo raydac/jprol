@@ -1,4 +1,4 @@
-package com.igormaznitsa.jprol.utils;
+package com.igormaznitsa.jprol.utils.lazy;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -158,6 +158,7 @@ public final class LazySet<V> implements Set<V> {
   public void clear() {
     if (this.set != null) {
       this.set.clear();
+      this.set = null;
     }
   }
 

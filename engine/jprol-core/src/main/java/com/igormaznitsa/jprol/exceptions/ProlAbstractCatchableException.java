@@ -22,7 +22,7 @@ import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
-import com.igormaznitsa.jprol.utils.LazyMap;
+import com.igormaznitsa.jprol.utils.lazy.LazyMap;
 
 public abstract class ProlAbstractCatchableException extends ProlException {
 

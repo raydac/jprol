@@ -104,13 +104,6 @@ public class JProlHttpLibrary extends AbstractJProlLibrary {
     final Term arequest = predicate.getArgumentAt(0).findGroundOrSame();
     final Term argResponse = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      assertList(arequest);
-      if (argResponse.getTermType() != TermType.VAR) {
-        assertList(arequest);
-      }
-    }
-
     final TermList requestList = (TermList) arequest;
 
     HttpURLConnection httpConnection = null;

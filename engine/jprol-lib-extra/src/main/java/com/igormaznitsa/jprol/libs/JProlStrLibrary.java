@@ -18,16 +18,9 @@ package com.igormaznitsa.jprol.libs;
 
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.data.TermType.LIST;
-import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.data.Terms.newDouble;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
-import static com.igormaznitsa.jprol.utils.ProlAssertions.assertAtom;
-import static com.igormaznitsa.jprol.utils.ProlAssertions.assertInteger;
-import static com.igormaznitsa.jprol.utils.ProlAssertions.assertList;
-import static com.igormaznitsa.jprol.utils.ProlAssertions.assertNumber;
-import static com.igormaznitsa.jprol.utils.ProlAssertions.assertVar;
-import static com.igormaznitsa.jprol.utils.ProlAssertions.isAtom;
 
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.NumericTerm;
@@ -56,28 +49,6 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term argFIRST = predicate.getArgumentAt(0).findGroundOrSame();
     final Term argSECOND = predicate.getArgumentAt(1).findGroundOrSame();
     final Term argTHIRD = predicate.getArgumentAt(2).findGroundOrSame();
-
-    if (goal.isValidateArguments()) {
-      final boolean firstAtom = isAtom(argFIRST);
-      final boolean secondAtom = isAtom(argSECOND);
-      if (firstAtom && secondAtom) {
-        if (argTHIRD.getTermType() != VAR) {
-          assertAtom(argTHIRD);
-        }
-      } else if (firstAtom) {
-        if (argSECOND.getTermType() != VAR) {
-          assertAtom(argSECOND);
-        }
-        assertAtom(argTHIRD);
-      } else if (secondAtom) {
-        if (argFIRST.getTermType() != VAR) {
-          assertAtom(argFIRST);
-        }
-        assertAtom(argTHIRD);
-      } else {
-        throw new ProlTypeErrorException("Illegal arguments: " + predicate, predicate);
-      }
-    }
 
     if (argFIRST.getTermType() == ATOM) {
       if (argSECOND.getTermType() == ATOM) {
@@ -114,13 +85,6 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term argLeft = predicate.getArgumentAt(0).findGroundOrSame();
     final Term argRight = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      assertAtom(argLeft);
-      if (argRight.getTermType() != VAR) {
-        assertAtom(argRight);
-      }
-    }
-
     Term result = newAtom(argLeft.getText().trim());
 
     return argRight.unifyTo(result);
@@ -134,17 +98,6 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term arg2 = predicate.getArgumentAt(1).findGroundOrSame();
     final Term arg3 = predicate.getArgumentAt(2).findGroundOrSame();
     final Term arg4 = predicate.getArgumentAt(3).findGroundOrSame();
-
-    if (goal.isValidateArguments()) {
-      assertInteger(arg1);
-      assertAtom(arg2);
-      if (arg3.getTermType() != VAR) {
-        assertAtom(arg3);
-      }
-      if (arg4.getTermType() != VAR) {
-        assertAtom(arg4);
-      }
-    }
 
     final int numberOfChars = arg1.toNumber().intValue();
     final String str1 = arg2.getText();
@@ -166,11 +119,6 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term template = predicate.getArgumentAt(0).findGroundOrSame();
     final Term list = predicate.getArgumentAt(1).findGroundOrSame();
     final Term target = predicate.getArgumentAt(2).findGroundOrSame();
-
-    if (goal.isValidateArguments()) {
-      assertAtom(template);
-      assertList(list);
-    }
 
     if (list.getTermType() != LIST) {
       throw new ProlTypeErrorException("list", list);
@@ -205,17 +153,6 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term argLeft = predicate.getArgumentAt(0).findGroundOrSame();
     final Term argRight = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      if (isAtom(argLeft)) {
-        if (argRight.getTermType() != VAR) {
-          assertAtom(argRight);
-        }
-      } else {
-        assertVar(argLeft);
-        assertAtom(argRight);
-      }
-    }
-
     if (argLeft.getTermType() == ATOM) {
       // the first case
       Term term = newAtom(argLeft.getText().toLowerCase());
@@ -233,13 +170,6 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final Term argLeft = predicate.getArgumentAt(0).findGroundOrSame();
     final Term argRight = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      assertAtom(argLeft);
-      if (argRight.getTermType() != VAR) {
-        assertInteger(argRight);
-      }
-    }
-
     TermLong result = newLong(argLeft.getText().length());
 
     return argRight.unifyTo(result);
@@ -250,17 +180,6 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
   public static boolean predicateSTRINT(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = predicate.getArgumentAt(0).findGroundOrSame();
     final Term argRight = predicate.getArgumentAt(1).findGroundOrSame();
-
-    if (goal.isValidateArguments()) {
-      if (isAtom(argLeft)) {
-        if (argRight.getTermType() != VAR) {
-          assertInteger(argRight);
-        }
-      } else {
-        assertVar(argLeft);
-        assertInteger(argRight);
-      }
-    }
 
     if (argLeft.getTermType() == ATOM) {
       // the first case
@@ -283,17 +202,6 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
   public static boolean predicateSTRREAL(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = predicate.getArgumentAt(0).findGroundOrSame();
     final Term argRight = predicate.getArgumentAt(1).findGroundOrSame();
-
-    if (goal.isValidateArguments()) {
-      if (isAtom(argLeft)) {
-        if (argLeft.getTermType() != VAR) {
-          assertNumber(argRight);
-        }
-      } else {
-        assertVar(argLeft);
-        assertNumber(argRight);
-      }
-    }
 
     if (argLeft.getTermType() == ATOM) {
       // the first case

@@ -10,11 +10,9 @@ import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.NumericTerm;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
-import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlSystemFlag;
-import com.igormaznitsa.jprol.utils.ProlAssertions;
 import java.util.Iterator;
 
 @SuppressWarnings({"EmptyMethod", "unused", "checkstyle:AbbreviationAsWordInName"})
@@ -44,10 +42,6 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
                                                    final TermStruct predicate) {
     final Term atom = predicate.getArgumentAt(0).findGroundOrSame();
     final Term term = predicate.getArgumentAt(1).findGroundOrSame();
-
-    if (choicePoint.isValidateArguments() && atom.getTermType() != TermType.VAR) {
-      ProlAssertions.assertAtom(atom);
-    }
 
     final boolean only = atom.isGround();
 
@@ -99,11 +93,6 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     final Term atom = predicate.getArgumentAt(0).findGroundOrSame();
     final Term term = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (choicePoint.isValidateArguments()) {
-      ProlAssertions.assertAtom(atom);
-      ProlAssertions.assertNonVar(term);
-    }
-
     return JProlSystemFlag.find(atom)
         .filter(x -> !x.isReadOnly())
         .map(x -> {
@@ -118,10 +107,6 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
                                     final TermStruct predicate) {
     final Term left = predicate.getArgumentAt(0).findGroundOrSame();
     final Term right = predicate.getArgumentAt(1).findGroundOrSame();
-
-    if (choicePoint.isValidateArguments()) {
-      ProlAssertions.assertEvaluable(right);
-    }
 
     final NumericTerm rightResult = calcEvaluable(choicePoint, right);
     return rightResult != null && left.unifyTo(rightResult);

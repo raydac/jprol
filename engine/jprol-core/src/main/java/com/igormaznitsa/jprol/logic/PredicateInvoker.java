@@ -28,11 +28,12 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.function.Predicate;
 
 public final class PredicateInvoker {
 
   public static final PredicateInvoker NULL_PROCESSOR =
-      new PredicateInvoker(null, false, true, false, false, null, null);
+      new PredicateInvoker(null, false, true, false, false, x -> true, null, null);
   private static final MethodHandles.Lookup METHOD_LOOKUP = MethodHandles.lookup();
   private static final Class<?> CLASS_RESULT_VOID = void.class;
   private final String predicateSignature;
@@ -43,6 +44,7 @@ public final class PredicateInvoker {
   private final boolean evaluable;
   private final boolean changesGoalChain;
   private final boolean guarded;
+  private final Predicate<TermStruct> termValidator;
 
   public PredicateInvoker(
       final AbstractJProlLibrary owner,
@@ -50,10 +52,12 @@ public final class PredicateInvoker {
       final boolean determined,
       final boolean evaluable,
       final boolean affectsChain,
+      final Predicate<TermStruct> termValidator,
       final String signature,
       final Method method
   ) {
     super();
+    this.termValidator = termValidator;
     this.predicateSignature = signature;
     this.ownerLibrary = owner;
     this.guarded = guarded;
@@ -132,6 +136,10 @@ public final class PredicateInvoker {
 
   public boolean execute(final JProlChoicePoint goal, final TermStruct predicate) {
     try {
+      if (goal.isValidateArguments()) {
+        // TODO
+      }
+
       if (this.guarded) {
         if (!goal.getContext()
             .isGuardPredicateAllowed(this.ownerLibrary.getClass(), goal,

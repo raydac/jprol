@@ -1,8 +1,5 @@
 package com.igormaznitsa.jprol.libs;
 
-import static com.igormaznitsa.jprol.utils.ProlAssertions.assertAtom;
-import static com.igormaznitsa.jprol.utils.ProlAssertions.assertStruct;
-
 import com.igormaznitsa.jprol.annotations.JProlOperator;
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.NumericTerm;
@@ -407,10 +404,6 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
     final Term argLeft = predicate.getArgumentAt(0).findGroundOrSame();
     final Term argRight = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      assertStruct(argLeft);
-    }
-
     try {
       final Term converted = Terms.newAtom(toJson((TermStruct) argLeft));
       return argRight.unifyTo(converted);
@@ -427,10 +420,6 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
                                            final TermStruct predicate) {
     final Term argLeft = predicate.getArgumentAt(0).findGroundOrSame();
     final Term argRight = predicate.getArgumentAt(1).findGroundOrSame();
-
-    if (goal.isValidateArguments()) {
-      assertAtom(argLeft);
-    }
 
     try {
       final TermOperator jsonMarkerOperator =

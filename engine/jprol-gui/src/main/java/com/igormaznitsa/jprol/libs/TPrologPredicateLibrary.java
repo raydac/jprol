@@ -26,7 +26,6 @@ import com.igormaznitsa.jprol.easygui.MainFrame;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.kbase.inmemory.AbstractInMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
-import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.ProlUtils;
 import java.io.CharArrayWriter;
 import java.io.File;
@@ -59,11 +58,6 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
     final Term oldpath = predicate.getArgumentAt(0).findGroundOrSame();
     final Term newname = predicate.getArgumentAt(1).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertNonVar(oldpath);
-      ProlAssertions.assertNonVar(newname);
-    }
-
     final File file = new File(path, oldpath.getText());
     final File newfile = new File(file.getParentFile(), newname.getText());
 
@@ -73,10 +67,6 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
   @JProlPredicate(determined = true, signature = "file_str/2", args = {"+term,?term"}, reference = "Reads string from a file and transfers it to a variable, or creates a file and writes the string into the file.")
   public boolean predicateFileStr(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term tfile = predicate.getArgumentAt(0).findGroundOrSame();
-
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertNonVar(tfile);
-    }
 
     final File file = new File(path, tfile.getText());
     final Term str = predicate.getArgumentAt(1).findGroundOrSame();
@@ -106,9 +96,6 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
   @JProlPredicate(determined = true, signature = "deletefile/1", args = {"+term"}, reference = "Delete file for name")
   public boolean predicateDeleteFile(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertNonVar(arg);
-    }
 
     final String filePath = arg.getText();
     final File file = new File(path, filePath);
@@ -120,10 +107,6 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
   public boolean predicateExistFile(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
 
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertNonVar(arg);
-    }
-
     final String filePath = arg.getText();
     final File file = new File(path, filePath);
 
@@ -134,11 +117,6 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
   public boolean predicateDir(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term tthePath = predicate.getArgumentAt(0).findGroundOrSame();
     final Term textension = predicate.getArgumentAt(1).findGroundOrSame();
-
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertNonVar(tthePath);
-      ProlAssertions.assertNonVar(textension);
-    }
 
     final String thePath = tthePath.getText();
     final String extension = textension.getText();
@@ -196,10 +174,6 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
   @JProlPredicate(determined = true, signature = "save/1", args = {"+term"}, reference = "Save current data base")
   public boolean predicateSave(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
-    if (goal.isValidateArguments()) {
-      ProlAssertions.assertNonVar(arg);
-    }
-
     final String filePath = arg.getText();
 
     Objects.requireNonNull(MainFrame.MAIN_FRAME_INSTANCE.get()).addInfoText("Save data base as file '" + filePath + '\'');

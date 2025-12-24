@@ -2,6 +2,7 @@ package com.igormaznitsa.jprol.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.igormaznitsa.jprol.utils.lazy.LazySet;
 import org.junit.jupiter.api.Test;
 
 class LazySetTest {

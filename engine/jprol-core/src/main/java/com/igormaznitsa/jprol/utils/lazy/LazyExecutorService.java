@@ -1,4 +1,4 @@
-package com.igormaznitsa.jprol.utils;
+package com.igormaznitsa.jprol.utils.lazy;
 
 import java.util.Collection;
 import java.util.List;

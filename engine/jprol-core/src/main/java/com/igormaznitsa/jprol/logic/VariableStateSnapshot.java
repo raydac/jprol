@@ -22,7 +22,7 @@ import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermVar;
-import com.igormaznitsa.jprol.utils.LazySet;
+import com.igormaznitsa.jprol.utils.lazy.LazySet;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -35,6 +35,11 @@ final class VariableStateSnapshot {
   private Set<Integer> processedVariables;
 
   VariableStateSnapshot(final VariableStateSnapshot snapshot) {
+    if (snapshot.containers.isEmpty()) {
+      this.containers = List.of();
+      return;
+    }
+
     this.containers = new ArrayList<>();
 
     final Iterator<VariableContainer> iterator = snapshot.containers.iterator();

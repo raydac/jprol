@@ -1,4 +1,4 @@
-package com.igormaznitsa.jprol.utils;
+package com.igormaznitsa.jprol.utils.lazy;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -265,6 +265,7 @@ public final class LazyList<V> implements List<V> {
   public void clear() {
     if (this.list != null) {
       this.list.clear();
+      this.list = null;
     }
   }
 

@@ -46,11 +46,11 @@ import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
-import com.igormaznitsa.jprol.utils.LazyMap;
-import com.igormaznitsa.jprol.utils.LazySet;
 import com.igormaznitsa.jprol.utils.OperatorIterator;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.ProlUtils;
+import com.igormaznitsa.jprol.utils.lazy.LazyMap;
+import com.igormaznitsa.jprol.utils.lazy.LazySet;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -402,10 +402,14 @@ public abstract class AbstractJProlLibrary {
         }
 
         final PredicateInvoker invoker =
-            new PredicateInvoker(this, predicateAnnotation.guarded(),
+            new PredicateInvoker(this,
+                predicateAnnotation.guarded(),
                 predicateAnnotation.determined(),
-                predicateAnnotation.evaluable(), predicateAnnotation.changesChooseChain(),
-                signature, method);
+                predicateAnnotation.evaluable(),
+                predicateAnnotation.changesChooseChain(),
+                x -> true,
+                signature,
+                method);
         result.put(signature, invoker);
         if (signature.endsWith("/0")) {
           foundZeroArityPredicates.add(signature.substring(0, signature.lastIndexOf('/')));
