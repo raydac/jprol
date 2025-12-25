@@ -79,7 +79,8 @@ public final class AutoArgumentValidator {
     if (result != ANY) {
       if (assertMode) {
         if (parsed.size() == 1) {
-          final ModificatorArgument[] rowArray = parsed.get(0).toArray(ModificatorArgument[]::new);
+          final ModificatorArgument[] rowArray =
+              parsed.get(0).toArray(new ModificatorArgument[parsed.get(0).size()]);
           result = result.or(s -> {
             for (int i = 0; i < rowArray.length; i++) {
               final ProlException exception = rowArray[i].findException(s.getArgumentAt(i));

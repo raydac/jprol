@@ -399,7 +399,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "to_json/2", args = {
-      "+compound,?atom"}, reference = "Convert a structure into JSON text as an atom. Converted structure must be in format json([]).")
+      "+compound,?term"}, reference = "Convert a structure into JSON text as an atom. Converted structure must be in format json([]).")
   public static boolean predicateTO_JSON(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = predicate.getArgumentAt(0).tryGround();
     final Term argRight = predicate.getArgumentAt(1).tryGround();
@@ -415,7 +415,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "from_json/2", args = {
-      "+atom,?compound"}, reference = "Create term on base of a JSON string. The result structure is formatted as structure json([..]).")
+      "+atom,?term"}, reference = "Create term on base of a JSON string. The result structure is formatted as structure json([..]).")
   public static boolean predicateFROM_JSON(final JProlChoicePoint goal,
                                            final TermStruct predicate) {
     final Term argLeft = predicate.getArgumentAt(0).tryGround();

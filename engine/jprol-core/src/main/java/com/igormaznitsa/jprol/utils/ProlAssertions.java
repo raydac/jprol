@@ -152,7 +152,7 @@ public final class ProlAssertions {
     ProlException result = checkNonVar(term);
     if (result == null) {
       if (!isAtom(term)) {
-        return new ProlTypeErrorException("atom", "Atom expected: " + term, term);
+        return new ProlTypeErrorException("atom", "Atom expected: " + term.toSrcString(), term);
       }
     }
     return result;
@@ -529,16 +529,18 @@ public final class ProlAssertions {
   }
 
   public static ProlException checkCompound(final Term t) {
-    switch (t.tryGround().getTermType()) {
+    final Term that = t.tryGround();
+    switch (that.getTermType()) {
       case LIST:
       case STRUCT: {
         return null;
       }
       case VAR: {
-        return new ProlInstantiationErrorException("Expected instantiated compound term: " + t, t);
+        return new ProlInstantiationErrorException("Expected instantiated compound term: " + that,
+            that);
       }
       default:
-        return new ProlTypeErrorException("compound", "Expected compound: " + t, t);
+        return new ProlTypeErrorException("compound", "Expected compound: " + that, that);
     }
   }
 

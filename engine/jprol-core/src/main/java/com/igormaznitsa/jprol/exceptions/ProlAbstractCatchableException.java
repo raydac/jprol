@@ -81,9 +81,9 @@ public abstract class ProlAbstractCatchableException extends ProlException {
 
   @Override
   public String toString() {
-    return this.getClass().getSimpleName() + "{"
+    return this.getClass().getSimpleName() + '{'
         + "culprit=" + this.culprit
-        + ", sourcePosition=" + sourcePosition
-        + '}';
+        + ", sourcePosition=" + this.sourcePosition
+        + (this.getMessage() == null ? "" : ", message=\"" + this.getMessage() + '\"') + '}';
   }
 }

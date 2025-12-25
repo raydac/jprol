@@ -669,7 +669,7 @@ class JProlScriptEngineTest {
 
     @JProlPredicate(
         signature = "str_concat_custom/3",
-        args = {"+atom,+atom,?atom"},
+        args = {"+term,+term,?term"},
         determined = true,
         reference = "Concatenate two strings"
     )

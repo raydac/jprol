@@ -421,7 +421,7 @@ public class JProlScriptEngine
         throw new ScriptException("Error parsing query: " + e.getMessage());
       }
     } catch (Exception e) {
-      throw new ScriptException("Error executing query: " + e.getMessage());
+      throw new ScriptException(e);
     }
     return results;
   }

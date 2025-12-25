@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
-import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import org.junit.jupiter.api.Assertions;
@@ -42,7 +41,7 @@ class JProlJsonLibraryTest extends AbstractJProlTest {
 
   @Test
   void test_ToJson_errorData() {
-    assertToJsonException("[1,2,3]", ProlTypeErrorException.class);
+    assertToJsonException("[1,2,3]", ProlDomainErrorException.class);
     assertToJsonException("json()", ProlDomainErrorException.class);
     assertToJsonException("jsonn([])", ProlDomainErrorException.class);
     assertToJsonException("json([1,2,3])", ProlDomainErrorException.class);
