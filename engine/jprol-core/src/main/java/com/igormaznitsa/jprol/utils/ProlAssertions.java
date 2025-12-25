@@ -687,6 +687,32 @@ public final class ProlAssertions {
     return null;
   }
 
+  public static Term assertOperatorSpecifier(final Term term) {
+    final ProlException exception = checkOperatorSpecifier(term);
+    if (exception != null) {
+      throw exception;
+    }
+    return term;
+  }
+
+  public static ProlException checkOperatorSpecifier(final Term term) {
+    final Term that = term.tryGround();
+    boolean error;
+    if (that.getTermType() == TermType.ATOM && !(that instanceof NumericTerm)) {
+      final String text = that.getText();
+      error = !OpAssoc.findForName(text).isPresent(); // don't change for Android API compatibility
+    } else {
+      error = true;
+    }
+    if (error) {
+      return new ProlDomainErrorException(
+          "Should be only [xfx,yfx,xfy,xf,fx,yf,fy] but '" + that + '\'', that);
+    } else {
+      return null;
+    }
+
+  }
+
   public static NumericTerm assertNumber(final Term t) {
     final ProlException exception = checkNumber(t);
     if (exception == null) {
@@ -695,8 +721,16 @@ public final class ProlAssertions {
     throw exception;
   }
 
-  public static void assertIoMode(final Term t) {
-    assertNonVar(t);
+  public static Term assertIoMode(final Term term) {
+    final ProlException exception = checkIoMode(term);
+    if (exception != null) {
+      throw exception;
+    }
+    return term;
+  }
+
+  public static ProlException checkIoMode(final Term term) {
+    final Term t = term.tryGround();
     boolean error = true;
     if (t.getTermType() == TermType.ATOM) {
       final String text = t.getText();
@@ -705,8 +739,9 @@ public final class ProlAssertions {
       }
     }
     if (error) {
-      throw new ProlDomainErrorException("[read,write,append]", "Wrong io mode: " + t, t);
+      return new ProlDomainErrorException("[read,write,append]", "Wrong io mode: " + t, t);
     }
+    return null;
   }
 
   public static Term assertGoal(final Term t) {
@@ -759,30 +794,15 @@ public final class ProlAssertions {
     return t.tryGround();
   }
 
-  public static void assertOperatorSpecifier(final Term t) {
-    assertNonVar(t);
-    boolean error;
-    if (t.getTermType() == TermType.ATOM && !(t instanceof NumericTerm)) {
-      final String text = t.getText();
-      error = !OpAssoc.findForName(text).isPresent(); // don't change for Android API compatibility
-    } else {
-      error = true;
-    }
-    if (error) {
-      throw new ProlDomainErrorException(
-          "Should be only [xfx,yfx,xfy,xf,fx,yf,fy] but '" + t + '\'', t);
-    }
-  }
-
   public static TermStruct assertIndicator(final Term t) {
-    final ProlException prolException = findIndicatorError(t);
+    final ProlException prolException = checkIndicator(t);
     if (prolException == null) {
-      return (TermStruct) t.tryGround();
+      return t.tryGround();
     }
     throw prolException;
   }
 
-  public static ProlException findIndicatorError(final Term t) {
+  public static ProlException checkIndicator(final Term t) {
     assertNonVar(t);
     int errorCode = 1;
     if (t.getTermType() == STRUCT) {
@@ -829,30 +849,48 @@ public final class ProlAssertions {
     return null;
   }
 
-  public static void assertNonEmptyList(final Term t) {
-    assertNonVar(t);
+  public static Term assertNonEmptyList(final Term term) {
+    final ProlException exception = checkNonEmptyList(term);
+    if (exception != null) {
+      throw exception;
+    }
+    return term;
+  }
+
+  public static ProlException checkNonEmptyList(final Term term) {
+    final Term t = term.tryGround();
     if (t.getTermType() != TermType.LIST) {
-      throw new ProlTypeErrorException("list", "Expected list: " + t, t);
+      return new ProlTypeErrorException("list", "Expected list: " + t, t);
     } else {
       if (t.isNullList()) {
-        throw new ProlDomainErrorException("[]", "Expected non-empty list: " + t, t);
+        return new ProlDomainErrorException("[]", "Expected non-empty list: " + t, t);
       }
     }
+    return null;
   }
 
   @SuppressWarnings("SpellCheckingInspection")
-  public void assertTriggerEvent(final Term t) {
-    assertNonVar(t);
+  public static ProlException checkTriggerEvent(final Term term) {
+    final Term t = term.tryGround();
     if (t.getTermType() != TermType.ATOM) {
-      throw new ProlInstantiationErrorException("Should be an atom '" + t + '\'', t);
+      return new ProlInstantiationErrorException("Should be an atom '" + t + '\'', t);
     } else {
       final String value = t.getText();
       if (!"onassert".equals(value) && !"onretract".equals(value) &&
           !"onassertretract".equals(value)) {
-        throw new ProlDomainErrorException(
+        return new ProlDomainErrorException(
             "Should be a value from the list [onassert, onretract, onassertretract] '" + t + '\'',
             t);
       }
     }
+    return null;
+  }
+
+  public Term assertTriggerEvent(final Term term) {
+    final ProlException exception = checkTriggerEvent(term);
+    if (exception != null) {
+      throw exception;
+    }
+    return term;
   }
 }

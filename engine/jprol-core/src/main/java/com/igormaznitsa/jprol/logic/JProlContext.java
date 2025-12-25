@@ -100,6 +100,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -117,7 +118,7 @@ public class JProlContext implements AutoCloseable {
   private final String contextId;
   private final Map<String, Map<JProlTriggerType, List<JProlTrigger>>> triggers =
       new LazySynchronizedMap<>();
-  private final Map<String, ReentrantLock> namedLockers =
+  private final Map<String, Semaphore> namedLockers =
       new LazySynchronizedMap<>();
   private final Map<Long, CompletableFuture<Term>> startedAsyncTasks =
       new LazySynchronizedMap<>();
@@ -483,10 +484,10 @@ public class JProlContext implements AutoCloseable {
     return this.asyncTaskExecutorService;
   }
 
-  private Optional<ReentrantLock> findLockerForId(final String lockerId,
+  private Optional<Semaphore> findLockerForId(final String lockerId,
                                                   final boolean createIfAbsent) {
     if (createIfAbsent) {
-      return Optional.of(this.namedLockers.computeIfAbsent(lockerId, s -> new ReentrantLock()));
+      return Optional.of(this.namedLockers.computeIfAbsent(lockerId, s -> new Semaphore(1)));
     } else {
       return Optional.ofNullable(this.namedLockers.get(lockerId));
     }
@@ -498,7 +499,7 @@ public class JProlContext implements AutoCloseable {
       this.findLockerForId(lockId, true)
           .orElseThrow(
               () -> new IllegalArgumentException("Named locker is not presented: " + lockId))
-          .lockInterruptibly();
+          .acquire();
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
       throw new InterruptedException("Locker wait has been interrupted: " + lockId);
@@ -508,12 +509,13 @@ public class JProlContext implements AutoCloseable {
   public boolean tryLockFor(final String lockId) {
     this.assertNotDisposed();
     return this.findLockerForId(lockId, true).orElseThrow(
-        () -> new IllegalArgumentException("Named locker is not presented: " + lockId)).tryLock();
+            () -> new IllegalArgumentException("Named locker is not presented: " + lockId))
+        .tryAcquire();
   }
 
   public void unlockFor(final String lockId) {
     this.assertNotDisposed();
-    this.findLockerForId(lockId, false).ifPresent(ReentrantLock::unlock);
+    this.findLockerForId(lockId, false).ifPresent(Semaphore::release);
   }
 
   private void assertNotDisposed() {
@@ -737,29 +739,54 @@ public class JProlContext implements AutoCloseable {
 
   public void dispose() {
     if (this.disposed.compareAndSet(false, true)) {
-
       this.startedAsyncTasks.values().forEach(x -> x.cancel(true));
       this.waitStartedTasksCompletion(Duration.ofSeconds(30));
       this.startedAsyncTasks.clear();
+
+      this.namedLockers.forEach((key, value) -> {
+        try {
+          value.release();
+        } catch (Exception ex) {
+          // do nothing
+        }
+      });
       this.namedLockers.clear();
 
       this.triggers.values().stream()
           .flatMap(x -> x.values().stream())
           .flatMap(Collection::stream)
           .distinct()
-          .forEach(x -> x.onContextDispose(this));
+          .forEach(x -> {
+            try {
+              x.onContextDispose(this);
+            } catch (Exception ex) {
+              // do nothing
+            }
+          });
 
       this.libraries.forEach(library -> {
         try {
           library.onContextDispose(this);
+        } catch (Exception ex) {
+          // do nothing
         } finally {
           if (this.parentContext == null) {
-            library.release();
+            try {
+              library.release();
+            } catch (Exception ex) {
+              // do nothing
+            }
           }
         }
       });
       try {
-        this.contextListeners.forEach(listener -> listener.onContextDispose(this));
+        this.contextListeners.forEach(listener -> {
+          try {
+            listener.onContextDispose(this);
+          } catch (Exception ex) {
+            // do nothing
+          }
+        });
       } finally {
         this.contextListeners.clear();
       }

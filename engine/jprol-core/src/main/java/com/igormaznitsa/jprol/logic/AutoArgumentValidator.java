@@ -1,6 +1,5 @@
 package com.igormaznitsa.jprol.logic;
 
-import com.igormaznitsa.jprol.data.NumericTerm;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermType;
@@ -8,7 +7,6 @@ import com.igormaznitsa.jprol.exceptions.ProlArgumentValidationException;
 import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
-import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -211,17 +209,16 @@ public final class AutoArgumentValidator {
     EVALUABLE("evaluable", s -> ProlAssertions.checkEvaluable(s) == null,
         ProlAssertions::checkEvaluable),
     LIST("list", s -> ProlAssertions.checkList(s) == null, ProlAssertions::checkList),
+    NONEMPTY_LIST("nonempty_list", s -> ProlAssertions.checkNonEmptyList(s) == null,
+        ProlAssertions::checkNonEmptyList),
     CHAR("char", s -> ProlAssertions.checkChar(s) == null, ProlAssertions::checkChar),
-    PREDICATE_INDICATOR("predicate_indicator", s -> ProlAssertions.findIndicatorError(s) == null,
-        ProlAssertions::findIndicatorError),
-    OPERATOR_SPECIFIER("operator_specifier", s -> {
-      final Term that = s.tryGround();
-      if (that.getTermType() == TermType.ATOM && !(that instanceof NumericTerm)) {
-        return OpAssoc.findForName(that.getText())
-            .isPresent(); // don't change for Android API compatibility
-      }
-      return false;
-    }, s -> new ProlException()),
+    TRIGGER_EVENT("trigger_event", s -> ProlAssertions.checkTriggerEvent(s) == null,
+        ProlAssertions::checkTriggerEvent),
+    PREDICATE_INDICATOR("predicate_indicator", s -> ProlAssertions.checkIndicator(s) == null,
+        ProlAssertions::checkIndicator),
+    OPERATOR_SPECIFIER("operator_specifier", s -> ProlAssertions.checkOperatorSpecifier(s) == null,
+        ProlAssertions::checkOperatorSpecifier),
+    IO_MODE("io_mode", s -> ProlAssertions.checkIoMode(s) == null, ProlAssertions::checkIoMode),
     COMPOUND_TERM("compound_term", s -> ProlAssertions.checkCompound(s) == null,
         ProlAssertions::checkCompound),
     COMPOUND("compound", s -> ProlAssertions.checkCompound(s) == null,
