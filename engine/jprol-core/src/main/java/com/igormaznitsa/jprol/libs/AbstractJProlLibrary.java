@@ -42,7 +42,7 @@ import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
-import com.igormaznitsa.jprol.logic.ArgsValidator;
+import com.igormaznitsa.jprol.logic.AutoArgumentValidator;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
@@ -400,7 +400,7 @@ public abstract class AbstractJProlLibrary {
                 predicateAnnotation.determined(),
                 predicateAnnotation.evaluable(),
                 predicateAnnotation.changesChooseChain(),
-                ArgsValidator.makeFor(ProlUtils.parseSignaturePair(signature).getRight(),
+                AutoArgumentValidator.makeFor(ProlUtils.parseSignaturePair(signature).getRight(),
                     predicateAnnotation.args(), true),
                 signature,
                 method);

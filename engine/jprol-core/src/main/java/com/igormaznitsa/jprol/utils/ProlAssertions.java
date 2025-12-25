@@ -3,6 +3,7 @@ package com.igormaznitsa.jprol.utils;
 import static com.igormaznitsa.jprol.data.TermType.STRUCT;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 
+import com.igormaznitsa.jprol.data.CompoundTerm;
 import com.igormaznitsa.jprol.data.NumericTerm;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermDouble;
@@ -18,66 +19,170 @@ import com.igormaznitsa.jprol.exceptions.ProlRepresentationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
+import java.util.Objects;
 
 public final class ProlAssertions {
   private ProlAssertions() {
   }
 
-  public static void assertStruct(final Term term) {
-    assertNonVar(term);
-    if (term.getTermType() != STRUCT) {
-      throw new ProlTypeErrorException("struct", "Expected struct: " + term, term);
+  public static ProlException checkMeta(final Term term) {
+    Term that = term.tryGround();
+    final boolean flag =
+        (that.getTermType() == TermType.ATOM && !(that instanceof NumericTerm)) ||
+            that.getTermType() == TermType.STRUCT;
+    if (flag) {
+      return null;
+    } else {
+      if (that.getTermType() == TermType.VAR) {
+        return new ProlInstantiationErrorException("Expected instantiated: " + that, that);
+      } else {
+        return new ProlTypeErrorException("ground", that);
+      }
     }
   }
 
-  public static void assertArity(final Term term) {
-    assertNonVar(term);
-    if (term instanceof TermLong) {
-      if (term.toNumber().longValue() < 0) {
-        throw new ProlDomainErrorException("integer", "Expected zero or positive: " + term, term);
-      }
+  public static Term assertMeta(final Term term) {
+    final ProlException exception = checkMeta(term);
+    if (exception == null) {
+      return term;
+    }
+    throw exception;
+  }
+
+  public static Term assertNonVar(final Term term) {
+    final ProlException exception = checkNonVar(term);
+    if (exception == null) {
+      return term;
+    }
+    throw exception;
+  }
+
+  public static ProlException checkNonVar(final Term term) {
+    if (term.tryGround().getTermType() == VAR) {
+      return new ProlInstantiationErrorException("Expected non-var value", term);
     } else {
-      throw new ProlTypeErrorException("integer", "Expected arity value: " + term, term);
+      return null;
+    }
+  }
+
+  public static Term assertGround(final Term term) {
+    final ProlException exception = checkGround(term);
+    if (exception == null) {
+      return term;
+    }
+    throw exception;
+  }
+
+  public static ProlException checkGround(final Term term) {
+    if (term.isGround()) {
+      return null;
+    }
+    return new ProlInstantiationErrorException("Expected ground value", term);
+  }
+
+  public static Term assertUnbound(final Term term) {
+    final ProlException exception = checkUnbound(term);
+    if (exception == null) {
+      return term;
+    }
+    throw exception;
+  }
+
+  public static ProlException checkUnbound(final Term term) {
+    if (term.isUnground()) {
+      return null;
+    }
+    return new ProlTypeErrorException("var", "Unbound variable expected: " + term, term);
+  }
+
+  public static TermStruct assertStruct(final Term term) {
+    final ProlException exception = checkStruct(term);
+    if (exception != null) {
+      throw exception;
+    }
+    return term.tryGround();
+  }
+
+  public static ProlException checkStruct(final Term term) {
+    final Term that = term.tryGround();
+    if (that.getTermType() != STRUCT) {
+      return new ProlTypeErrorException("struct", "Expected struct: " + term, term);
+    }
+    return null;
+  }
+
+  public static TermLong assertArity(final Term term) {
+    final ProlException exception = checkArity(term);
+    if (exception != null) {
+      throw exception;
+    }
+    return term.tryGround();
+  }
+
+  public static ProlException checkArity(final Term term) {
+    final Term that = term.tryGround();
+    if (that instanceof TermLong) {
+      final long value = that.toNumber().longValue();
+      if (value < 0) {
+        return new ProlDomainErrorException("integer", "Expected zero or positive: " + term, term);
+      }
+      if (value > Integer.MAX_VALUE) {
+        return new ProlDomainErrorException("integer", "Too big arity: " + term, term);
+      }
+      return null;
+    } else {
+      return new ProlTypeErrorException("integer", "Expected arity value: " + term, term);
     }
   }
 
   public static boolean isAtom(final Term t) {
     final boolean result;
-    switch (t.getTermType()) {
-      case LIST: {
-        result = t.isNullList();
-      }
-      break;
-      case ATOM: {
-        result = !(t instanceof NumericTerm);
-      }
-      break;
-      default:
-        result = false;
-        break;
+    if (Objects.requireNonNull(t.getTermType()) == TermType.ATOM) {
+      result = !(t instanceof NumericTerm);
+    } else {
+      result = false;
     }
     return result;
   }
 
-  public static void assertAtom(final Term t) {
-    assertNonVar(t);
-    if (!isAtom(t)) {
-      throw new ProlTypeErrorException("atom", "Atom expected: " + t, t);
+  public static ProlException checkAtom(final Term term) {
+    ProlException result = checkNonVar(term);
+    if (result == null) {
+      if (!isAtom(term)) {
+        return new ProlTypeErrorException("atom", "Atom expected: " + term, term);
+      }
     }
+    return result;
   }
 
-  public static void assertAtomOrAtomList(final Term t) {
-    assertNonVar(t);
+  public static Term assertAtom(final Term term) {
+    final ProlException exception = checkAtom(term);
+    if (exception == null) {
+      return term;
+    }
+    throw exception;
+  }
+
+  public static Term assertAtomOrAtomList(final Term term) {
+    final ProlException exception = checkAtomOrAtomList(term);
+    if (exception != null) {
+      throw exception;
+    }
+    return term;
+  }
+
+  public static ProlException checkAtomOrAtomList(final Term term) {
+    final Term that = term.tryGround();
     boolean error = true;
-    switch (t.getTermType()) {
+    switch (that.getTermType()) {
       case ATOM: {
-        if (!(t instanceof NumericTerm)) {
+        if (!(that instanceof NumericTerm)) {
           error = false;
         }
       }
       break;
       case LIST: {
-        TermList lst = (TermList) t;
+        TermList lst = (TermList) that;
         if (lst.isNullList()) {
           break;
         }
@@ -112,12 +217,22 @@ public final class ProlAssertions {
       break;
     }
     if (error) {
-      throw new ProlInstantiationErrorException("Should be atom or atom list '" + t + '\'', t);
+      return new ProlInstantiationErrorException("Should be atom or atom list '" + that + '\'',
+          that);
     }
+    return null;
   }
 
-  public static void assertAtomic(final Term t) {
-    assertNonVar(t);
+  public static Term assertAtomic(final Term term) {
+    final ProlException exception = checkAtomic(term);
+    if (exception != null) {
+      throw exception;
+    }
+    return term;
+  }
+
+  public static ProlException checkAtomic(final Term term) {
+    final Term t = term.tryGround();
     boolean errorType = false;
     switch (t.getTermType()) {
       case LIST: {
@@ -134,12 +249,21 @@ public final class ProlAssertions {
     }
 
     if (errorType) {
-      throw new ProlTypeErrorException("atomic", "Atomic type expected: " + t, t);
+      return new ProlTypeErrorException("atomic", "Atomic type expected: " + t, t);
     }
+    return null;
   }
 
-  public static void assertByte(final Term t) {
-    assertNonVar(t);
+  public static TermLong assertByte(final Term term) {
+    final ProlException exception = checkByte(term);
+    if (exception != null) {
+      throw exception;
+    }
+    return term.tryGround();
+  }
+
+  public static ProlException checkByte(final Term term) {
+    final Term t = term.tryGround();
     boolean error = true;
     if (t instanceof TermLong) {
       final int value = t.toNumber().intValue();
@@ -148,11 +272,80 @@ public final class ProlAssertions {
       }
     }
     if (error) {
-      throw new ProlInstantiationErrorException("Should be byte '" + t + '\'', t);
+      return new ProlInstantiationErrorException("Should be byte '" + t + '\'', t);
+    }
+    return null;
+  }
+
+  public static Term assertName(final Term term) {
+    final ProlException exception = checkName(term);
+    if (exception != null) {
+      throw exception;
+    }
+    return term;
+  }
+
+  public static ProlException checkName(final Term term) {
+    final Term that = term.tryGround();
+    if (that.isGround() && (that.isNullList() || !(that instanceof CompoundTerm))) {
+      return null;
+    }
+    return new ProlTypeErrorException("name", that);
+  }
+
+  public static TermList assertString(final Term term) {
+    final ProlException exception = checkString(term);
+    if (exception != null) {
+      throw exception;
+    }
+    return term.tryGround();
+  }
+
+  public static ProlException checkString(final Term term) {
+    final Term that = term.tryGround();
+    if (that.getTermType() == TermType.LIST) {
+      final TermList termList = (TermList) that;
+      if (termList.isNullList()) {
+        return null;
+      }
+      if (!termList.doesContainOnlyCharCodes()) {
+        return new ProlDomainErrorException("string",
+            "List describing list must contain only char codes", term);
+      }
+      return null;
+    } else {
+      return new ProlTypeErrorException("list", "String must be a list of char codes", term);
     }
   }
 
-  public static void assertCallable(final Term t) {
+  public static Term assertBody(final Term term) {
+    final ProlException exception = checkBody(term);
+    if (exception != null) {
+      throw exception;
+    }
+    return term;
+  }
+
+  public static ProlException checkBody(final Term term) {
+    final Term that = term.tryGround();
+    if ((that.getTermType() == TermType.ATOM && !(that instanceof NumericTerm)) ||
+        that.getTermType() == TermType.STRUCT) {
+      return null;
+    } else {
+      throw new ProlTypeErrorException("body", "Expected body term: " + that, that);
+    }
+  }
+
+  public static Term assertCallable(final Term term) {
+    final ProlException exception = checkCallable(term);
+    if (exception != null) {
+      throw exception;
+    }
+    return term;
+  }
+
+  public static ProlException checkCallable(final Term term) {
+    final Term t = term.tryGround();
     final boolean nonCallable;
     switch (t.getTermType()) {
       case STRUCT: {
@@ -166,9 +359,9 @@ public final class ProlAssertions {
       case VAR: {
         Term value = t.tryGround();
         if (value.getTermType() == VAR) {
-          throw new ProlInstantiationErrorException("Expected instantiated callable: " + t, t);
+          return new ProlInstantiationErrorException("Expected instantiated callable: " + t, t);
         } else {
-          assertCallable(value);
+          return checkCallable(value);
         }
       }
       default:
@@ -176,32 +369,60 @@ public final class ProlAssertions {
         break;
     }
     if (nonCallable) {
-      throw new ProlTypeErrorException("callable", "Callable term expected: " + t, t);
+      return new ProlTypeErrorException("callable", "Callable term expected: " + t, t);
     }
+    return null;
   }
 
-  public static void assertCharacter(final Term t) {
-    assertNonVar(t);
+  public static Term assertChar(final Term term) {
+    final ProlException exception = checkChar(term);
+    if (exception != null) {
+      throw exception;
+    }
+    return term;
+  }
+
+  public static ProlException checkChar(final Term term) {
+    final Term t = term.tryGround();
     boolean error = t.getTermType() != TermType.ATOM || t.getText().length() != 1;
     if (error) {
-      throw new ProlTypeErrorException("'character' expected, found an atom: " + t, t);
+      return new ProlTypeErrorException("'character' expected, found an atom: " + t, t);
     }
+    return null;
   }
 
-  public static void assertCharacterCode(final Term t) {
-    assertNonVar(t);
+  public static Term assertCharacterCode(final Term term) {
+    final ProlException exception = checkCharCode(term);
+    if (exception != null) {
+      throw exception;
+    }
+    return term;
+  }
+
+  public static ProlException checkCharCode(final Term term) {
+    final Term t = term.tryGround();
     if (t instanceof TermLong) {
       final int value = t.toNumber().intValue();
       if ((value & 0xFFFF0000) != 0) {
-        throw new ProlRepresentationErrorException("character_code",
+        return new ProlRepresentationErrorException("character_code",
             "Incompatible character code: " + t, t);
       }
     } else {
-      throw new ProlTypeErrorException("character", "Char code expected: " + t, t);
+      return new ProlTypeErrorException("character", "Char code expected: " + t, t);
     }
+    return null;
   }
 
-  public static void assertCharacterCodeList(final Term t) {
+  public static TermList assertCharCodeList(final Term term) {
+    final ProlException exception = checkCharCodeList(term);
+    if (exception != null) {
+      throw exception;
+    }
+    return term.tryGround();
+  }
+
+  public static ProlException checkCharCodeList(final Term term) {
+    final Term t = term.tryGround();
     int errorCode = 0;
     if (t.getTermType() == TermType.LIST) {
       TermList lst = (TermList) t;
@@ -233,17 +454,28 @@ public final class ProlAssertions {
     }
     switch (errorCode) {
       case 1:
-        throw new ProlTypeErrorException("character_code_list",
+        return new ProlTypeErrorException("character_code_list",
             "Character code list expected: " + t, t);
       case 2:
-        throw new ProlRepresentationErrorException("character_code",
+        return new ProlRepresentationErrorException("character_code",
             "Incompatible character code in list: " + t, t);
       case 3:
-        throw new ProlInstantiationErrorException("Must be instantiated: " + t, t);
+        return new ProlInstantiationErrorException("Must be instantiated: " + t, t);
+      default:
+        return null;
     }
   }
 
-  public static void assertCharacterList(final Term t) {
+  public static TermList assertCharList(final Term term) {
+    final ProlException exception = checkCharList(term);
+    if (exception != null) {
+      throw exception;
+    }
+    return term.tryGround();
+  }
+
+  public static ProlException checkCharList(final Term term) {
+    final Term t = term.tryGround();
     int errorCode = 0;
     if (t.getTermType() == VAR) {
       errorCode = 3;
@@ -275,30 +507,48 @@ public final class ProlAssertions {
     }
     switch (errorCode) {
       case 1:
-        throw new ProlTypeErrorException("character_list", "Character list expected: " + t, t);
+        return new ProlTypeErrorException("character_list", "Character list expected: " + t, t);
       case 2:
-        throw new ProlRepresentationErrorException("character", "Character expected: " + t, t);
+        return new ProlRepresentationErrorException("character", "Character expected: " + t, t);
       case 3:
-        throw new ProlInstantiationErrorException("Must be instantiated: " + t, t);
+        return new ProlInstantiationErrorException("Must be instantiated: " + t, t);
+      default:
+        return null;
     }
   }
 
-  public static void assertCompoundTerm(final Term t) {
-    switch (t.getTermType()) {
+  public static Term assertCompound(final Term t) {
+    final ProlException exception = checkCompound(t);
+    if (exception != null) {
+      throw exception;
+    }
+    return t;
+  }
+
+  public static ProlException checkCompound(final Term t) {
+    switch (t.tryGround().getTermType()) {
       case LIST:
       case STRUCT: {
+        return null;
       }
-      break;
       case VAR: {
-        throw new ProlInstantiationErrorException("Expected instantiated compound term: " + t, t);
+        return new ProlInstantiationErrorException("Expected instantiated compound term: " + t, t);
       }
       default:
-        throw new ProlTypeErrorException("compound", "Expected compound: " + t, t);
+        return new ProlTypeErrorException("compound", "Expected compound: " + t, t);
     }
   }
 
-  public static void assertEvaluable(final Term t) {
-    assertNonVar(t);
+  public static Term assertEvaluable(final Term t) {
+    final ProlException exception = checkEvaluable(t);
+    if (exception != null) {
+      throw exception;
+    }
+    return t.tryGround();
+  }
+
+  public static ProlException checkEvaluable(final Term term) {
+    final Term t = term.tryGround();
     boolean error = true;
     if (t instanceof NumericTerm) {
       error = false;
@@ -312,12 +562,21 @@ public final class ProlAssertions {
       }
     }
     if (error) {
-      throw new ProlTypeErrorException("evaluable", "Expected evaluable: " + t, t);
+      return new ProlTypeErrorException("evaluable", "Expected evaluable: " + t, t);
     }
+    return null;
   }
 
-  public static void assertHead(final Term t) {
-    assertNonVar(t);
+  public static Term assertHead(final Term t) {
+    final ProlException exception = checkHead(t);
+    if (exception != null) {
+      throw exception;
+    }
+    return t;
+  }
+
+  public static ProlException checkHead(final Term term) {
+    final Term t = term.tryGround();
     boolean error = true;
     switch (t.getTermType()) {
       case ATOM: {
@@ -335,8 +594,9 @@ public final class ProlAssertions {
       break;
     }
     if (error) {
-      throw new ProlTypeErrorException("Unexpected head: " + t, t);
+      return new ProlTypeErrorException("Unexpected head: " + t, t);
     }
+    return null;
   }
 
   public static void assertInByte(final Term t) {
@@ -387,12 +647,52 @@ public final class ProlAssertions {
     }
   }
 
-  public static TermLong assertInteger(final Term t) {
-    assertNonVar(t);
-    if (!(t instanceof TermLong)) {
-      throw new ProlTypeErrorException("integer", "Integer expected: " + t, t);
+  public static ProlException checkInteger(final Term term) {
+    final Term that = term.tryGround();
+    if (!(that instanceof TermLong)) {
+      return new ProlTypeErrorException("integer", "Integer expected: " + that, that);
     }
-    return (TermLong) t;
+    return null;
+  }
+
+  public static TermLong assertInteger(final Term t) {
+    final ProlException exception = checkInteger(t);
+    if (exception == null) {
+      return t.tryGround();
+    }
+    throw exception;
+  }
+
+  public static ProlException checkFloat(final Term term) {
+    final Term that = term.tryGround();
+    if (!(that instanceof TermDouble)) {
+      return new ProlTypeErrorException("float", "Float expected: " + that, that);
+    }
+    return null;
+  }
+
+  public static TermDouble assertFloat(final Term t) {
+    final ProlException exception = checkFloat(t);
+    if (exception == null) {
+      return t.tryGround();
+    }
+    throw exception;
+  }
+
+  public static ProlException checkNumber(final Term term) {
+    final Term that = term.tryGround();
+    if (!(that instanceof NumericTerm)) {
+      return new ProlTypeErrorException("number", "Numeric term expected: " + that, that);
+    }
+    return null;
+  }
+
+  public static NumericTerm assertNumber(final Term t) {
+    final ProlException exception = checkNumber(t);
+    if (exception == null) {
+      return t.tryGround();
+    }
+    throw exception;
   }
 
   public static void assertIoMode(final Term t) {
@@ -409,33 +709,54 @@ public final class ProlAssertions {
     }
   }
 
-  public static TermList assertList(final Term t) {
-    assertNonVar(t);
-    if (t.getTermType() != TermType.LIST) {
-      throw new ProlTypeErrorException("list", "List expected: " + t, t);
+  public static Term assertGoal(final Term t) {
+    final ProlException exception = checkGoal(t);
+    if (exception != null) {
+      throw exception;
     }
-    return (TermList) t;
+    return t.tryGround();
+  }
+
+  public static ProlException checkGoal(final Term term) {
+    final Term that = term.tryGround();
+    if ((that.getTermType() == TermType.ATOM && !(that instanceof NumericTerm)) ||
+        that.getTermType() == TermType.STRUCT) {
+      return null;
+    } else {
+      return new ProlTypeErrorException("goal",
+          "Expected term which can be called as a goal: " + that, that);
+    }
+  }
+
+  public static TermList assertList(final Term t) {
+    final ProlException exception = checkList(t);
+    if (exception != null) {
+      throw exception;
+    }
+    return t.tryGround();
+  }
+
+  public static ProlException checkList(final Term term) {
+    final Term t = term.tryGround();
+    if (t.getTermType() != TermType.LIST) {
+      return new ProlTypeErrorException("list", "List expected: " + t, t);
+    }
+    return null;
+  }
+
+  public static ProlException checkVar(final Term t) {
+    if (t.isUnground() && t.getTermType() != VAR) {
+      return new ProlTypeErrorException("var", "Unbound variable expected: " + t, t);
+    }
+    return null;
   }
 
   public static TermVar assertVar(final Term t) {
-    if (t.getTermType() != VAR) {
-      throw new ProlTypeErrorException("var", "Unbound variable expected: " + t, t);
+    final ProlException exception = checkVar(t);
+    if (exception != null) {
+      throw exception;
     }
-    return (TermVar) t;
-  }
-
-  public static void assertNonVar(final Term t) {
-    if (t.getTermType() == VAR) {
-      throw new ProlInstantiationErrorException("Grounded value expected: " + t, t);
-    }
-  }
-
-  public static NumericTerm assertNumber(final Term t) {
-    assertNonVar(t);
-    if (!(t instanceof NumericTerm)) {
-      throw new ProlTypeErrorException("number", "Number expected: " + t, t);
-    }
-    return (NumericTerm) t;
+    return t.tryGround();
   }
 
   public static void assertOperatorSpecifier(final Term t) {

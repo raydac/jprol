@@ -188,6 +188,12 @@ public class Term {
     return false;
   }
 
+  /**
+   * Try to find ground value of the term it the term can contain internal values.
+   *
+   * @param <T> type ot expected term
+   * @return a ground term if found as a value or the term, must not be null
+   */
   @SuppressWarnings("unchecked")
   public <T extends Term> T tryGround() {
     return (T) this;

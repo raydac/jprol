@@ -659,7 +659,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
     //[number_codes(A,[ 0'1, 0'2, 1000]), representation_error(character_code)]. % 1000 not a code
     assertProlException("number_codes(A,[ 0'1, 0'2, 100000]).",
-        ProlRepresentationErrorException.class);
+        ProlTypeErrorException.class);
 
     //[number_codes(A,L), instantiation_error].
     assertProlException("number_codes(A,L).", ProlInstantiationErrorException.class);
@@ -937,6 +937,9 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testSubAtom5() {
+    //[sub_atom('Banana', 4, 2, _, 2), type_error(atom,2)].
+    checkOnce("sub_atom('Banana', 4, 2, _, 2).", false);
+
     //[sub_atom(abracadabra, 0, 5, _, S2), [[S2 <-- 'abrac']]].
     checkVarsAfterCall("sub_atom(abracadabra, 0, 5, _, S2).",
         new String[][] {new String[] {"S2"}, new String[] {"abrac"}});
@@ -992,9 +995,6 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
     //[sub_atom(f(a), 2, 2, _, S2), type_error(atom,f(a))].
     assertProlException("sub_atom(f(a), 2, 2, _, S2).", ProlTypeErrorException.class);
-
-    //[sub_atom('Banana', 4, 2, _, 2), type_error(atom,2)].
-    checkOnce("sub_atom('Banana', 4, 2, _, 2).", false);
 
     //[sub_atom('Banana', a, 2, _, S2), type_error(integer,a)].
     assertProlException("sub_atom('Banana', a, 2, _, S2).", ProlTypeErrorException.class);
@@ -1088,7 +1088,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     assertProlException("atom_concat('iso',f(a),A3).", ProlTypeErrorException.class);
 
     //[atom_concat(A1,A2,f(a)), type_error(atom,f(a))].
-    assertProlException("atom_concat(A1,A2,f(a)).", ProlTypeErrorException.class);
+    assertProlException("atom_concat(A1,A2,f(a)).", ProlInstantiationErrorException.class);
   }
 
   @Test
@@ -1260,7 +1260,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
     //[(current_prolog_flag(max_arity,A),X is A + 1,functor(T, foo, X)),representation_error(max_arity)].
     assertProlException("current_prolog_flag(max_arity,A),X is A + 1,functor(T, foo, X).",
-        ProlRepresentationErrorException.class);
+        ProlDomainErrorException.class);
 
     //[functor(T, foo, -1), domain_error(not_less_than_zero,-1)].
     assertProlException("functor(T, foo, -1).", ProlDomainErrorException.class);

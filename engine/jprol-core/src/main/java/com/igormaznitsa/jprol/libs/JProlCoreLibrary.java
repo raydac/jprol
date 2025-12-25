@@ -527,7 +527,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(signature = "sub_atom/5", args = {
-      "+atom,?integer,?integer,?integer,?atom"}, reference = "Breaking atoms")
+      "+atom,?integer,?integer,?integer,?term"}, reference = "Breaking atoms")
   public static boolean predicateSUBATOM(final JProlChoicePoint goal, final TermStruct predicate) {
     class SubAtomIterator {
       final String atom;
@@ -1213,8 +1213,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return right.unifyTo(TermList.asList(concatenated));
   }
 
-  @JProlPredicate(determined = true, signature = "atom_chars/2", args = {"+atom,?string",
-      "?atom,+string"}, reference = "atom_chars(Atom, List) succeeds if and only if List is a list whose elements are the one character atoms that in order make up  Atom.")
+  @JProlPredicate(determined = true, signature = "atom_chars/2", args = {"+atom,?char_list",
+      "?atom,+char_list"}, reference = "atom_chars(Atom, List) succeeds if and only if List is a list whose elements are the one character atoms that in order make up  Atom.")
   public static boolean predicateATOMCHARS(final JProlChoicePoint goal,
                                            final TermStruct predicate) {
     Term left = predicate.getArgumentAt(0).tryGround();
@@ -1278,7 +1278,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "number_codes/2", args = {
-      "?number,?string"}, reference = "number_codes(Number, CodeList) succeeds if and only if CodeList is a list whose elements are the codes for the one character atoms that in order make up Number.")
+      "?number,?code_list"}, reference = "number_codes(Number, CodeList) succeeds if and only if CodeList is a list whose elements are the codes for the one character atoms that in order make up Number.")
   public static boolean predicateNUMBERCODES(final JProlChoicePoint goal,
                                              final TermStruct predicate) {
     Term left = predicate.getArgumentAt(0).tryGround();
@@ -1286,11 +1286,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
     if (goal.isValidateArguments()) {
       if (left.getTermType() == VAR) {
-        ProlAssertions.assertCharacterCodeList(right);
+        ProlAssertions.assertCharCodeList(right);
       } else {
         ProlAssertions.assertNumber(left);
         if (right.getTermType() != VAR) {
-          ProlAssertions.assertCharacterCodeList(right);
+          ProlAssertions.assertCharCodeList(right);
         }
       }
     }
@@ -1503,11 +1503,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
     if (goal.isValidateArguments()) {
       if (left.getTermType() == VAR) {
-        ProlAssertions.assertCharacterList(right);
+        ProlAssertions.assertCharList(right);
       } else {
         ProlAssertions.assertNumber(left);
         if (right.getTermType() != VAR) {
-          ProlAssertions.assertCharacterList(right);
+          ProlAssertions.assertCharList(right);
         }
       }
     }
@@ -1651,7 +1651,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "atom_length/2", args = {
-      "+atom,?integer"}, reference = "atom_length(Atom, Length) is true if and only if the integer Length equals the number of characters in the name of the atom Atom.")
+      "+term,?integer"}, reference = "atom_length(Atom, Length) is true if and only if the integer Length equals the number of characters in the name of the atom Atom.")
   public static boolean predicateATOMLENGTH(final JProlChoicePoint goal,
                                             final TermStruct predicate) {
     Term left = predicate.getArgumentAt(0).tryGround();
@@ -1662,8 +1662,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "atom_codes/2", args = {
-      "+atom,?string",
-      "?atom,+string"}, reference = "atom_codes(Atom, List) succeeds if and only if List is a list whose elements are the character codes that in order correspond to the characters that make up  Atom.")
+      "+atom,?code_list",
+      "?atom,+code_list"}, reference = "atom_codes(Atom, List) succeeds if and only if List is a list whose elements are the character codes that in order correspond to the characters that make up  Atom.")
   public static boolean predicateATOMCHARCODES(final JProlChoicePoint goal,
                                                final TermStruct predicate) {
     Term left = predicate.getArgumentAt(0).tryGround();
