@@ -49,7 +49,7 @@ class MiscTest extends AbstractJProlTest {
     final JProlChoicePoint goal = new JProlChoicePoint(request, context);
     final Term goalResult = goal.prove();
     assertNotNull(goalResult);
-    assertSame(testPayload, goal.findVar("Y").orElseThrow().findGroundOrSame().getPayload());
+    assertSame(testPayload, goal.findVar("Y").orElseThrow().tryGround().getPayload());
   }
 
   @Test
@@ -66,7 +66,7 @@ class MiscTest extends AbstractJProlTest {
     final JProlChoicePoint goal = new JProlChoicePoint(request, context);
     final Term goalResult = goal.prove();
     assertNotNull(goalResult);
-    final TermList result = goal.findVar("Y").orElseThrow().findGroundOrSame();
+    final TermList result = goal.findVar("Y").orElseThrow().tryGround();
     assertSame(testPayload, result.getHead().getPayload());
   }
 

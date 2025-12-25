@@ -16,6 +16,7 @@
 
 package com.igormaznitsa.jprol.data;
 
+import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.data.TermType.LIST;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.newList;
@@ -167,7 +168,7 @@ public final class TermList extends TermStruct {
       return this;
     } else {
       TermList result = new TermList(this.getHead(), NULL_LIST, this.getSourcePosition());
-      Term tail = this.getTail().findGroundOrSame();
+      Term tail = this.getTail().tryGround();
       while (true) {
         if (tail.getTermType() == LIST) {
           final TermList thatList = (TermList) tail;
@@ -306,7 +307,18 @@ public final class TermList extends TermStruct {
 
   @Override
   public boolean isGround() {
-    return this.isNullList() || this.stream().allMatch(Term::isGround);
+    if (this.isNullList()) {
+      return true;
+    }
+    return this.getHead().isGround() && this.getTail().isGround();
+  }
+
+  @Override
+  public boolean isUnground() {
+    if (this.isNullList()) {
+      return false;
+    }
+    return this.getHead().isUnground() || this.getTail().isUnground();
   }
 
   @Override
@@ -608,7 +620,11 @@ public final class TermList extends TermStruct {
   public boolean doesContainOnlyCharCodes() {
     TermList current = this;
     while (current != null) {
-      final Term term = current.getHead().findGroundOrSame();
+      final Term term = current.getHead().tryGround();
+      if (term.getTermType() != ATOM) {
+        return false;
+      }
+
       if (term instanceof TermLong) {
         final long code = term.toNumber().longValue();
         if ((code & 0xFFFFFFFF00000000L) == 0L) {
@@ -619,18 +635,23 @@ public final class TermList extends TermStruct {
         } else {
           return false;
         }
+      } else if (term.getText().length() != 1) {
+        return false;
+      }
 
-        final Term tail = current.getTail().findGroundOrSame();
-        if (tail.getTermType() == LIST) {
-          final TermList newList = (TermList) tail;
-          if (newList.isNullList()) {
-            current = null;
-          } else {
-            current = newList;
-          }
+      final Term tail = current.getTail().tryGround();
+      if (tail.getTermType() == VAR) {
+        return true;
+      }
+      if (tail.getTermType() == LIST) {
+        final TermList newList = (TermList) tail;
+        if (newList.isNullList()) {
+          current = null;
         } else {
-          return false;
+          current = newList;
         }
+      } else {
+        return false;
       }
     }
     return true;

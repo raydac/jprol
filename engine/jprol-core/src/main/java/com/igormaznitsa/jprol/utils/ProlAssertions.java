@@ -12,6 +12,7 @@ import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlRepresentationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
@@ -163,7 +164,7 @@ public final class ProlAssertions {
       }
       break;
       case VAR: {
-        Term value = t.findGroundOrSame();
+        Term value = t.tryGround();
         if (value.getTermType() == VAR) {
           throw new ProlInstantiationErrorException("Expected instantiated callable: " + t, t);
         } else {
@@ -205,7 +206,7 @@ public final class ProlAssertions {
     if (t.getTermType() == TermType.LIST) {
       TermList lst = (TermList) t;
       while (!lst.isNullList() && errorCode == 0) {
-        final Term value = lst.getHead().findGroundOrSame();
+        final Term value = lst.getHead().tryGround();
         if (value.getTermType() == TermType.ATOM) {
           if (value instanceof TermLong) {
             if ((value.toNumber().intValue() & 0xFFFF0000) != 0) {
@@ -217,7 +218,7 @@ public final class ProlAssertions {
         } else {
           errorCode = value.getTermType() == VAR ? 3 : 1;
         }
-        final Term tail = lst.getTail().findGroundOrSame();
+        final Term tail = lst.getTail().tryGround();
         if (tail.getTermType() == TermType.LIST) {
           lst = (TermList) tail;
         } else {
@@ -249,7 +250,7 @@ public final class ProlAssertions {
     } else if (t.getTermType() == TermType.LIST) {
       TermList lst = (TermList) t;
       while (!lst.isNullList() && errorCode == 0) {
-        final Term value = lst.getHead().findGroundOrSame();
+        final Term value = lst.getHead().tryGround();
         if (value.getTermType() == TermType.ATOM) {
           if (value instanceof NumericTerm) {
             errorCode = 1;
@@ -261,7 +262,7 @@ public final class ProlAssertions {
         } else {
           errorCode = value.getTermType() == VAR ? 3 : 1;
         }
-        final Term tail = lst.getTail().findGroundOrSame();
+        final Term tail = lst.getTail().tryGround();
         if (tail.getTermType() == TermType.LIST) {
           lst = (TermList) tail;
         } else {
@@ -453,13 +454,21 @@ public final class ProlAssertions {
   }
 
   public static TermStruct assertIndicator(final Term t) {
+    final ProlException prolException = findIndicatorError(t);
+    if (prolException == null) {
+      return (TermStruct) t.tryGround();
+    }
+    throw prolException;
+  }
+
+  public static ProlException findIndicatorError(final Term t) {
     assertNonVar(t);
     int errorCode = 1;
     if (t.getTermType() == STRUCT) {
       final TermStruct struct = (TermStruct) t;
       if (struct.getArity() == 2 && "/".equals(struct.getFunctor().getText())) {
-        final Term left = struct.getArgumentAt(0).findGroundOrSame();
-        final Term right = struct.getArgumentAt(1).findGroundOrSame();
+        final Term left = struct.getArgumentAt(0).tryGround();
+        final Term right = struct.getArgumentAt(1).tryGround();
 
         final boolean leftOk =
             (left.getTermType() == TermType.ATOM && left.getClass() == Term.class)
@@ -488,15 +497,15 @@ public final class ProlAssertions {
 
     switch (errorCode) {
       case 1:
-        throw new ProlTypeErrorException("predicate_indicator",
+        return new ProlTypeErrorException("predicate_indicator",
             "Predicate indicator expected: " + t, t);
       case 2:
-        throw new ProlDomainErrorException("integer", "Predicate indicator expected: " + t, t);
+        return new ProlDomainErrorException("integer", "Predicate indicator expected: " + t, t);
       case 3:
-        throw new ProlRepresentationErrorException("max_arity", "Wrong arity: " + t, t);
+        return new ProlRepresentationErrorException("max_arity", "Wrong arity: " + t, t);
     }
 
-    return (TermStruct) t;
+    return null;
   }
 
   public static void assertNonEmptyList(final Term t) {

@@ -77,7 +77,7 @@ public final class JProlScriptEngineUtils {
     }
 
     if (term instanceof TermVar) {
-      final Term value = term.findGroundOrSame();
+      final Term value = term.tryGround();
       if (term == value) {
         return term.getText();
       } else {

@@ -55,8 +55,8 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = "renamefile/2", args = {"+term,+term"}, reference = "Rename file")
   public static boolean predicateRenameFile(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term oldpath = predicate.getArgumentAt(0).findGroundOrSame();
-    final Term newname = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term oldpath = predicate.getArgumentAt(0).tryGround();
+    final Term newname = predicate.getArgumentAt(1).tryGround();
 
     final File file = new File(path, oldpath.getText());
     final File newfile = new File(file.getParentFile(), newname.getText());
@@ -66,10 +66,10 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = "file_str/2", args = {"+term,?term"}, reference = "Reads string from a file and transfers it to a variable, or creates a file and writes the string into the file.")
   public boolean predicateFileStr(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term tfile = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term tfile = predicate.getArgumentAt(0).tryGround();
 
     final File file = new File(path, tfile.getText());
-    final Term str = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term str = predicate.getArgumentAt(1).tryGround();
 
     boolean result = false;
 
@@ -95,7 +95,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = "deletefile/1", args = {"+term"}, reference = "Delete file for name")
   public boolean predicateDeleteFile(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term arg = predicate.getArgumentAt(0).tryGround();
 
     final String filePath = arg.getText();
     final File file = new File(path, filePath);
@@ -105,7 +105,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = "existfile/1", args = {"+term"}, reference = "Ceck that a file exists in current directory")
   public boolean predicateExistFile(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term arg = predicate.getArgumentAt(0).tryGround();
 
     final String filePath = arg.getText();
     final File file = new File(path, filePath);
@@ -115,12 +115,12 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = "dir/3", args = {"+term,+term,?term"}, reference = "Open directory to select file")
   public boolean predicateDir(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term tthePath = predicate.getArgumentAt(0).findGroundOrSame();
-    final Term textension = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term tthePath = predicate.getArgumentAt(0).tryGround();
+    final Term textension = predicate.getArgumentAt(1).tryGround();
 
     final String thePath = tthePath.getText();
     final String extension = textension.getText();
-    final Term selected = predicate.getArgumentAt(2).findGroundOrSame();
+    final Term selected = predicate.getArgumentAt(2).tryGround();
 
     final File choosenFile = Objects.requireNonNull(MainFrame.MAIN_FRAME_INSTANCE.get()).chooseFile(new File(thePath), new FileFilter() {
       final String ext = '.' + extension;
@@ -149,7 +149,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = "disk/1", args = {"?term"}, reference = "Set or get current path")
   public boolean predicateDisk(final JProlChoicePoint goal, final TermStruct predicate) {
-    Term thePath = predicate.getArgumentAt(0).findGroundOrSame();
+    Term thePath = predicate.getArgumentAt(0).tryGround();
 
     boolean result = false;
     try {
@@ -173,7 +173,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = "save/1", args = {"+term"}, reference = "Save current data base")
   public boolean predicateSave(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term arg = predicate.getArgumentAt(0).tryGround();
     final String filePath = arg.getText();
 
     Objects.requireNonNull(MainFrame.MAIN_FRAME_INSTANCE.get()).addInfoText("Save data base as file '" + filePath + '\'');

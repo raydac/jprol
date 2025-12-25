@@ -118,7 +118,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
   @JProlPredicate(determined = true, signature = "consult/1", args = {"+atom",
       "+list"}, guarded = true, reference = "Take an atom as URI of resource, or a list contains resource URIs and load all them as Prolog sources. Allowed schemes 'file:', 'resource:', 'classpath'")
   public void predicateCONSULT(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term argument = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term argument = predicate.getArgumentAt(0).tryGround();
 
     switch (argument.getTermType()) {
       case ATOM: {
@@ -137,8 +137,8 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
           if (list.isNullList()) {
             break;
           }
-          final Term head = list.getHead().findGroundOrSame();
-          final Term tail = list.getTail().findGroundOrSame();
+          final Term head = list.getHead().tryGround();
+          final Term tail = list.getTail().tryGround();
           ProlAssertions.assertAtom(head);
           ProlAssertions.assertList(tail);
           this.consultFromResource(goal.getContext(), head.getText(), predicate);
@@ -234,7 +234,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(guarded = true, determined = true, signature = "put/1", args = "+number", reference = "Write a char for its code into the current output stream.")
   public final void predicatePUT(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term arg = predicate.getArgumentAt(0).tryGround();
     final Writer current = getIoWriters(goal.getContext()).get(CURRENT_STREAM_ID);
 
     if (current != null) {
@@ -248,7 +248,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(guarded = true, determined = true, signature = "get/1", args = "?number", reference = "Read next non-blank char code from the current input stream.")
   public final boolean predicateGET(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term arg = predicate.getArgumentAt(0).tryGround();
     return findCurrentInput(goal.getContext(), predicate).map(reader -> {
       try {
         int code = -1;
@@ -277,7 +277,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(guarded = true, determined = true, signature = "get0/1", args = "?number", reference = "Read next char code from the current input stream.")
   public final boolean predicateGET0(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term arg = predicate.getArgumentAt(0).tryGround();
     return findCurrentInput(goal.getContext(), predicate).map(reader -> {
       try {
         int code = -1;
@@ -294,7 +294,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(guarded = true, determined = true, signature = "read/1", args = "-term", reference = "Read  the next Prolog term from the current input stream.")
   public final boolean predicateRead(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term arg = predicate.getArgumentAt(0).tryGround();
     final Optional<InternalReader> current = findCurrentInput(goal.getContext(), arg);
 
     if (current.isPresent()) {
@@ -319,8 +319,8 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
   @JProlPredicate(guarded = true, determined = true, signature = "read_line_to_string/2", args = "-term,?string", reference = "Read line of chars from input as atom.")
   public final boolean predicateReadLineToString(final JProlChoicePoint goal,
                                                  final TermStruct predicate) {
-    final Term readerId = predicate.getArgumentAt(0).findGroundOrSame();
-    final Term stringTerm = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term readerId = predicate.getArgumentAt(0).tryGround();
+    final Term stringTerm = predicate.getArgumentAt(1).tryGround();
 
     final Optional<InternalReader> current = this.findCurrentInput(goal.getContext(), readerId);
 
@@ -387,7 +387,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(guarded = true, determined = true, signature = "see/1", args = "+atom", reference = "Open source for reading and make it the current input")
   public final void predicateSEE(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term arg = predicate.getArgumentAt(0).tryGround();
     final String name = arg.getText();
 
     try {
@@ -454,7 +454,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(guarded = true, determined = true, signature = "seeing/1", synonyms = "current_input/1", args = "?term", reference = "Return the current input stream name.")
   public final boolean predicateSEEING(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term arg = predicate.getArgumentAt(0).tryGround();
     final InternalReader current = this.getIoReaders(goal.getContext()).get(CURRENT_STREAM_ID);
     final Term result = current == null ? NULL_LIST : current.getStreamId();
     return arg.unifyTo(result);
@@ -462,7 +462,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(guarded = true, determined = true, signature = "telling/1", synonyms = "current_output/1", args = "?term", reference = "Return the current output stream name.")
   public final boolean predicateTELLING(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term arg = predicate.getArgumentAt(0).findGroundOrSame();
+    final Term arg = predicate.getArgumentAt(0).tryGround();
     final InternalWriter current = this.getIoWriters(goal.getContext()).get(CURRENT_STREAM_ID);
     final Term result = current == null ? NULL_LIST : current.getStreamId();
     return arg.unifyTo(result);

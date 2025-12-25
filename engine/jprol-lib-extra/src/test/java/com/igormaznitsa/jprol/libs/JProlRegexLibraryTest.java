@@ -94,7 +94,7 @@ class JProlRegexLibraryTest extends AbstractJProlTest {
     final JProlChoicePoint choicePoint = new JProlChoicePoint(goal, context);
     final Term result = choicePoint.prove();
     assertNotNull(result, "Must have prove result");
-    final TermList splitResult = choicePoint.findVar("X").get().findGroundOrSame();
+    final TermList splitResult = choicePoint.findVar("X").get().tryGround();
     final List<String> splitAsList = splitResult.streamChildren().map(Term::getText).collect(
         Collectors.toList());
     assertEquals(expected, splitAsList);
@@ -133,7 +133,7 @@ class JProlRegexLibraryTest extends AbstractJProlTest {
     final JProlChoicePoint choicePoint = new JProlChoicePoint(goal, context);
     final Term result = choicePoint.prove();
     assertNotNull(result, "Must have prove result");
-    final TermList splitResult = choicePoint.findVar("X").get().findGroundOrSame();
+    final TermList splitResult = choicePoint.findVar("X").get().tryGround();
     final List<String> splitAsList = splitResult.streamChildren().map(Term::getText).collect(
         Collectors.toList());
     assertEquals(expected, splitAsList);
@@ -154,7 +154,7 @@ class JProlRegexLibraryTest extends AbstractJProlTest {
     final JProlChoicePoint choicePoint = new JProlChoicePoint(goal, context);
     final Term result = choicePoint.prove();
     assertNotNull(result, "Must have prove result");
-    final Term foundResult = choicePoint.findVar("X").get().findGroundOrSame();
+    final Term foundResult = choicePoint.findVar("X").get().tryGround();
     assertEquals(expectedResult, foundResult.getText());
   }
 

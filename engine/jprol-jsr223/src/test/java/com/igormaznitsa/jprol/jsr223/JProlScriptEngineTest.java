@@ -524,7 +524,7 @@ class JProlScriptEngineTest {
         reference = "Greet someone by name"
     )
     public static boolean predicateGreet(JProlChoicePoint goal, TermStruct predicate) {
-      Term name = predicate.getArgumentAt(0).findGroundOrSame();
+      Term name = predicate.getArgumentAt(0).tryGround();
       System.out.println("  [Library Output] Hello, " + name.getText() + "!");
       return true;
     }
@@ -546,9 +546,9 @@ class JProlScriptEngineTest {
         reference = "Calculate square of a number"
     )
     public static boolean predicateSquare(JProlChoicePoint goal, TermStruct predicate) {
-      NumericTerm input = predicate.getArgumentAt(0).findGroundOrSame();
+      NumericTerm input = predicate.getArgumentAt(0).tryGround();
       long value = input.toNumber().longValue();
-      return predicate.getArgumentAt(1).findGroundOrSame().unifyTo(Terms.newLong(value * value));
+      return predicate.getArgumentAt(1).tryGround().unifyTo(Terms.newLong(value * value));
     }
 
     @JProlPredicate(
@@ -558,9 +558,9 @@ class JProlScriptEngineTest {
         reference = "Calculate cube of a number"
     )
     public static boolean predicateCube(JProlChoicePoint goal, TermStruct predicate) {
-      NumericTerm input = predicate.getArgumentAt(0).findGroundOrSame();
+      NumericTerm input = predicate.getArgumentAt(0).tryGround();
       long value = input.toNumber().longValue();
-      return predicate.getArgumentAt(1).findGroundOrSame()
+      return predicate.getArgumentAt(1).tryGround()
           .unifyTo(Terms.newLong(value * value * value));
     }
 
@@ -571,7 +571,7 @@ class JProlScriptEngineTest {
         reference = "Calculate factorial"
     )
     public static boolean predicateFactorial(JProlChoicePoint goal, TermStruct predicate) {
-      NumericTerm input = predicate.getArgumentAt(0).findGroundOrSame();
+      NumericTerm input = predicate.getArgumentAt(0).tryGround();
       int n = input.toNumber().intValue();
 
       long result = 1;
@@ -579,7 +579,7 @@ class JProlScriptEngineTest {
         result *= i;
       }
 
-      return predicate.getArgumentAt(1).findGroundOrSame().unifyTo(Terms.newLong(result));
+      return predicate.getArgumentAt(1).tryGround().unifyTo(Terms.newLong(result));
     }
 
     @JProlPredicate(
@@ -589,7 +589,7 @@ class JProlScriptEngineTest {
         reference = "Check if number is even"
     )
     public static boolean predicateIsEven(JProlChoicePoint goal, TermStruct predicate) {
-      NumericTerm input = predicate.getArgumentAt(0).findGroundOrSame();
+      NumericTerm input = predicate.getArgumentAt(0).tryGround();
       long value = input.toNumber().longValue();
       return value % 2 == 0;
     }
@@ -601,7 +601,7 @@ class JProlScriptEngineTest {
         reference = "Check if number is odd"
     )
     public static boolean predicateIsOdd(JProlChoicePoint goal, TermStruct predicate) {
-      NumericTerm input = predicate.getArgumentAt(0).findGroundOrSame();
+      NumericTerm input = predicate.getArgumentAt(0).tryGround();
       long value = input.toNumber().longValue();
       return value % 2 != 0;
     }
@@ -623,9 +623,9 @@ class JProlScriptEngineTest {
         reference = "Convert string to uppercase"
     )
     public static boolean predicateStrUpper(JProlChoicePoint goal, TermStruct predicate) {
-      Term input = predicate.getArgumentAt(0).findGroundOrSame();
+      Term input = predicate.getArgumentAt(0).tryGround();
       String text = input.getText();
-      return predicate.getArgumentAt(1).findGroundOrSame()
+      return predicate.getArgumentAt(1).tryGround()
           .unifyTo(Terms.newAtom(text.toUpperCase()));
     }
 
@@ -636,9 +636,9 @@ class JProlScriptEngineTest {
         reference = "Convert string to lowercase"
     )
     public static boolean predicateStrLower(JProlChoicePoint goal, TermStruct predicate) {
-      Term input = predicate.getArgumentAt(0).findGroundOrSame();
+      Term input = predicate.getArgumentAt(0).tryGround();
       String text = input.getText();
-      return predicate.getArgumentAt(1).findGroundOrSame()
+      return predicate.getArgumentAt(1).tryGround()
           .unifyTo(Terms.newAtom(text.toLowerCase()));
     }
 
@@ -649,9 +649,9 @@ class JProlScriptEngineTest {
         reference = "Get length of string"
     )
     public static boolean predicateStrLength(JProlChoicePoint goal, TermStruct predicate) {
-      Term input = predicate.getArgumentAt(0).findGroundOrSame();
+      Term input = predicate.getArgumentAt(0).tryGround();
       String text = input.getText();
-      return predicate.getArgumentAt(1).findGroundOrSame().unifyTo(Terms.newLong(text.length()));
+      return predicate.getArgumentAt(1).tryGround().unifyTo(Terms.newLong(text.length()));
     }
 
     @JProlPredicate(
@@ -661,10 +661,10 @@ class JProlScriptEngineTest {
         reference = "Reverse a string"
     )
     public static boolean predicateStrReverse(JProlChoicePoint goal, TermStruct predicate) {
-      Term input = predicate.getArgumentAt(0).findGroundOrSame();
+      Term input = predicate.getArgumentAt(0).tryGround();
       String text = input.getText();
       String reversed = new StringBuilder(text).reverse().toString();
-      return predicate.getArgumentAt(1).findGroundOrSame().unifyTo(Terms.newAtom(reversed));
+      return predicate.getArgumentAt(1).tryGround().unifyTo(Terms.newAtom(reversed));
     }
 
     @JProlPredicate(
@@ -674,10 +674,10 @@ class JProlScriptEngineTest {
         reference = "Concatenate two strings"
     )
     public static boolean predicateStrConcat(JProlChoicePoint goal, TermStruct predicate) {
-      Term input1 = predicate.getArgumentAt(0).findGroundOrSame();
-      Term input2 = predicate.getArgumentAt(1).findGroundOrSame();
+      Term input1 = predicate.getArgumentAt(0).tryGround();
+      Term input2 = predicate.getArgumentAt(1).tryGround();
       String result = input1.getText() + input2.getText();
-      return predicate.getArgumentAt(2).findGroundOrSame().unifyTo(Terms.newAtom(result));
+      return predicate.getArgumentAt(2).tryGround().unifyTo(Terms.newAtom(result));
     }
   }
 
@@ -697,7 +697,7 @@ class JProlScriptEngineTest {
         reference = "Get current Unix timestamp"
     )
     public static boolean predicateCurrentTimestamp(JProlChoicePoint goal, TermStruct predicate) {
-      final Term term = predicate.getArgumentAt(0).findGroundOrSame();
+      final Term term = predicate.getArgumentAt(0).tryGround();
       return term.unifyTo(Terms.newLong(System.currentTimeMillis() / 1000L));
     }
 
@@ -710,11 +710,11 @@ class JProlScriptEngineTest {
     public static boolean predicateCurrentDate(JProlChoicePoint goal, TermStruct predicate) {
       final Calendar cal = Calendar.getInstance();
       return
-          predicate.getArgumentAt(0).findGroundOrSame()
+          predicate.getArgumentAt(0).tryGround()
               .unifyTo(Terms.newLong(cal.get(Calendar.YEAR)))
-              && predicate.getArgumentAt(1).findGroundOrSame()
+              && predicate.getArgumentAt(1).tryGround()
               .unifyTo(Terms.newLong(cal.get(Calendar.MONTH) + 1))
-              && predicate.getArgumentAt(2).findGroundOrSame()
+              && predicate.getArgumentAt(2).tryGround()
               .unifyTo(Terms.newLong(cal.get(Calendar.DAY_OF_MONTH)));
     }
   }
@@ -735,7 +735,7 @@ class JProlScriptEngineTest {
         reference = "Remove duplicates from list"
     )
     public static boolean predicateListUnique(JProlChoicePoint goal, TermStruct predicate) {
-      TermList inputList = predicate.getArgumentAt(0).findGroundOrSame();
+      TermList inputList = predicate.getArgumentAt(0).tryGround();
 
       Set<String> seen = new LinkedHashSet<>();
       List<Term> uniqueTerms = new ArrayList<>();
@@ -757,7 +757,7 @@ class JProlScriptEngineTest {
       }
 
       // Build result list
-      return predicate.getArgumentAt(1).findGroundOrSame().unifyTo(TermList.asList(uniqueTerms));
+      return predicate.getArgumentAt(1).tryGround().unifyTo(TermList.asList(uniqueTerms));
     }
 
     @JProlPredicate(
@@ -767,18 +767,18 @@ class JProlScriptEngineTest {
         reference = "Calculate sum of numeric list"
     )
     public static boolean predicateListSum(JProlChoicePoint goal, TermStruct predicate) {
-      TermList inputList = predicate.getArgumentAt(0).findGroundOrSame();
+      TermList inputList = predicate.getArgumentAt(0).tryGround();
 
       long sum = 0;
       TermList current = inputList;
 
       while (!current.isNullList()) {
-        Term head = current.getHead().findGroundOrSame();
+        Term head = current.getHead().tryGround();
         if (head instanceof NumericTerm) {
           sum += head.toNumber().longValue();
         }
 
-        Term tail = current.getTail().findGroundOrSame();
+        Term tail = current.getTail().tryGround();
         if (tail instanceof TermList) {
           current = (TermList) tail;
         } else {
@@ -786,7 +786,7 @@ class JProlScriptEngineTest {
         }
       }
 
-      return predicate.getArgumentAt(1).findGroundOrSame().unifyTo(Terms.newLong(sum));
+      return predicate.getArgumentAt(1).tryGround().unifyTo(Terms.newLong(sum));
     }
   }
 }

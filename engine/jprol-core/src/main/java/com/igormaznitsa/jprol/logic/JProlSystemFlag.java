@@ -60,7 +60,7 @@ public enum JProlSystemFlag {
   }
 
   public static Optional<JProlSystemFlag> find(final Term term) {
-    final Term thatTerm = term.findGroundOrSame();
+    final Term thatTerm = term.tryGround();
     if (thatTerm.getTermType() != TermType.ATOM) {
       return Optional.empty();
     }

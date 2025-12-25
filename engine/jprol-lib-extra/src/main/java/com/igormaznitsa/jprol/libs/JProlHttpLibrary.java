@@ -68,9 +68,9 @@ public class JProlHttpLibrary extends AbstractJProlLibrary {
         .map(f -> (TermStruct) f)
         .filter(f -> f.getArity() == 2
             && "=".equals(f.getFunctor().getText())
-            && f.getArgumentAt(0).findGroundOrSame().getText().equalsIgnoreCase(key))
+            && f.getArgumentAt(0).tryGround().getText().equalsIgnoreCase(key))
         .findFirst().orElse(null);
-    return found == null ? null : found.getArgumentAt(1).findGroundOrSame();
+    return found == null ? null : found.getArgumentAt(1).tryGround();
   }
 
   private Term findMandatory(final HttpRequestParameters key, final TermList list) {
@@ -101,8 +101,8 @@ public class JProlHttpLibrary extends AbstractJProlLibrary {
       throw new ProlCriticalError("Can't find required operator =/2 XFX");
     }
 
-    final Term arequest = predicate.getArgumentAt(0).findGroundOrSame();
-    final Term argResponse = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term arequest = predicate.getArgumentAt(0).tryGround();
+    final Term argResponse = predicate.getArgumentAt(1).tryGround();
 
     final TermList requestList = (TermList) arequest;
 
@@ -133,9 +133,9 @@ public class JProlHttpLibrary extends AbstractJProlLibrary {
               && ((TermStruct) h).getFunctor().getText().equals("=")
               && ((TermStruct) h).getArity() == 2) {
             final String headerName =
-                ((TermStruct) h).getArgumentAt(0).findGroundOrSame().getText();
+                ((TermStruct) h).getArgumentAt(0).tryGround().getText();
             final String headerValue =
-                ((TermStruct) h).getArgumentAt(1).findGroundOrSame().getText();
+                ((TermStruct) h).getArgumentAt(1).tryGround().getText();
             httpConnection.setRequestProperty(headerName, headerValue);
           } else {
             throw new ProlDomainErrorException("Expected name=value", h);

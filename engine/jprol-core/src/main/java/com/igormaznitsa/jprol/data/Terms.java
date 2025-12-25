@@ -354,4 +354,11 @@ public final class Terms {
     }
   }
 
+  public static Term newNumber(final String string) {
+    try {
+      return Terms.newLong(Long.parseLong(string));
+    } catch (NumberFormatException ex) {
+      return Terms.newDouble(Double.parseDouble(string));
+    }
+  }
 }

@@ -185,9 +185,9 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
     try {
       final String uid;
       if (clause.isClause()) {
-        Term leftPart = clause.getArgumentAt(0).findGroundOrSame();
+        Term leftPart = clause.getArgumentAt(0).tryGround();
         final Term rightPart =
-            clause.getArity() == 2 ? clause.getArgumentAt(1).findGroundOrSame() : null;
+            clause.getArity() == 2 ? clause.getArgumentAt(1).tryGround() : null;
 
         if (rightPart != null) {
           if (rightPart.getTermType() == VAR) {
@@ -370,7 +370,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
   public boolean retractA(final JProlContext context, final TermStruct clause) {
     TermStruct struct = clause;
     if (struct.isClause()) {
-      final Term head = struct.getArgumentAt(0).findGroundOrSame();
+      final Term head = struct.getArgumentAt(0).tryGround();
       ProlAssertions.assertStruct(head);
       struct = (TermStruct) head;
     }

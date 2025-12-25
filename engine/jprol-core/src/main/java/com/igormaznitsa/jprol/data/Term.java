@@ -179,8 +179,17 @@ public class Term {
     return true;
   }
 
+  /**
+   * Check that the term is non grounded.
+   *
+   * @return true if non grounded term, false otherwise
+   */
+  public boolean isUnground() {
+    return false;
+  }
+
   @SuppressWarnings("unchecked")
-  public <T extends Term> T findGroundOrSame() {
+  public <T extends Term> T tryGround() {
     return (T) this;
   }
 

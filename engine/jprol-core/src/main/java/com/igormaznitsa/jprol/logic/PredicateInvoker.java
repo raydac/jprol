@@ -19,6 +19,7 @@ package com.igormaznitsa.jprol.logic;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.exceptions.ProlAbstractCatchableException;
+import com.igormaznitsa.jprol.exceptions.ProlArgumentValidationException;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlException;
@@ -136,10 +137,6 @@ public final class PredicateInvoker {
 
   public boolean execute(final JProlChoicePoint goal, final TermStruct predicate) {
     try {
-      if (goal.isValidateArguments()) {
-        // TODO
-      }
-
       if (this.guarded) {
         if (!goal.getContext()
             .isGuardPredicateAllowed(this.ownerLibrary.getClass(), goal,
@@ -147,6 +144,14 @@ public final class PredicateInvoker {
           throw new ProlPermissionErrorException("access", "prohibited_predicate", predicate);
         }
       }
+
+      if (goal.isValidateArguments()) {
+        if (!this.termValidator.test(predicate)) {
+          throw new ProlArgumentValidationException(
+              "Violation of argument modificator or type: " + predicate.toSrcString());
+        }
+      }
+
       final Object result = this.methodHandle.invoke(goal, predicate);
       if (this.voidResult) {
         return true;

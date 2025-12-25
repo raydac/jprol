@@ -40,18 +40,18 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
       "?atom,?term"}, reference = "Check prolog flag and flag values.", guarded = true)
   public static boolean predicateCURRENTPROLOGFLAG(final JProlChoicePoint choicePoint,
                                                    final TermStruct predicate) {
-    final Term atom = predicate.getArgumentAt(0).findGroundOrSame();
-    final Term term = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term atom = predicate.getArgumentAt(0).tryGround();
+    final Term term = predicate.getArgumentAt(1).tryGround();
 
     final boolean only = atom.isGround();
 
     boolean found = false;
-    Iterator<JProlSystemFlag> iterator = choicePoint.getPayload();
+    Iterator<JProlSystemFlag> iterator = choicePoint.getInternalObject();
     final boolean firstCall;
     if (iterator == null) {
       firstCall = true;
       iterator = JProlSystemFlag.VALUES.iterator();
-      choicePoint.setPayload(iterator);
+      choicePoint.setInternalObject(iterator);
     } else {
       firstCall = false;
     }
@@ -67,10 +67,10 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
       }
 
       if (only || !iterator.hasNext()) {
-        choicePoint.setPayload(null);
+        choicePoint.setInternalObject(null);
         choicePoint.cutVariants();
       } else {
-        choicePoint.setPayload(iterator);
+        choicePoint.setInternalObject(iterator);
       }
     }
 
@@ -90,8 +90,8 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
   )
   public static boolean predicateSETPROLOGFLAG(final JProlChoicePoint choicePoint,
                                                final TermStruct predicate) {
-    final Term atom = predicate.getArgumentAt(0).findGroundOrSame();
-    final Term term = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term atom = predicate.getArgumentAt(0).tryGround();
+    final Term term = predicate.getArgumentAt(1).tryGround();
 
     return JProlSystemFlag.find(atom)
         .filter(x -> !x.isReadOnly())
@@ -102,11 +102,11 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "is/2", args = {
-      "-number,+evaluable"}, reference = "'is'(Result, Expression) is true if and only if the value of evaluating Expression as an expression is Result")
+      "?term,+evaluable"}, reference = "'is'(Result, Expression) is true if and only if the value of evaluating Expression as an expression is Result")
   public static boolean predicateIS(final JProlChoicePoint choicePoint,
                                     final TermStruct predicate) {
-    final Term left = predicate.getArgumentAt(0).findGroundOrSame();
-    final Term right = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term left = predicate.getArgumentAt(0).tryGround();
+    final Term right = predicate.getArgumentAt(1).tryGround();
 
     final NumericTerm rightResult = calcEvaluable(choicePoint, right);
     return rightResult != null && left.unifyTo(rightResult);
@@ -123,11 +123,11 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     return false;
   }
 
-  @JProlPredicate(determined = true, signature = "not/1", args = ":Goal", reference = "True if goal cannot be proven")
+  @JProlPredicate(determined = true, signature = "not/1", args = ":goal", reference = "True if goal cannot be proven")
   public static boolean predicateNOT(final JProlChoicePoint choicePoint,
                                      final TermStruct predicate) {
     return
-        choicePoint.makeForGoal(predicate.getArgumentAt(0).findGroundOrSame())
+        choicePoint.makeForGoal(predicate.getArgumentAt(0).tryGround())
             .proveWithFailForUnknown() ==
             null;
   }

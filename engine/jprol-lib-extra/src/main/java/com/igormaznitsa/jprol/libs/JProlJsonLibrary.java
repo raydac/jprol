@@ -298,7 +298,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
     } else if (value.getTermType() == TermType.STRUCT) {
       final TermStruct struct = (TermStruct) value;
       if ("@".equals(struct.getFunctor().getText()) && struct.getArity() == 1) {
-        final String text = struct.getArgumentAt(0).findGroundOrSame().getText();
+        final String text = struct.getArgumentAt(0).tryGround().getText();
         if ("null".equalsIgnoreCase(text)) {
           return "null";
         } else if ("true".equalsIgnoreCase(text)) {
@@ -307,7 +307,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
           return "false";
         } else {
           throw new ProlDomainErrorException("[@null,@true,@false]",
-              struct.getArgumentAt(0).findGroundOrSame());
+              struct.getArgumentAt(0).tryGround());
         }
       } else {
         return toJson((TermStruct) value);
@@ -324,23 +324,23 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
   static String toJson(final TermStruct struct) {
     final Term functor = struct.getFunctor();
     if ("json".equals(functor.getText()) && struct.getArity() == 1) {
-      final Term element = struct.getArgumentAt(0).findGroundOrSame();
+      final Term element = struct.getArgumentAt(0).tryGround();
       if (element.isGround() && element.getTermType() == TermType.LIST) {
         final StringBuilder result = new StringBuilder();
         result.append('{');
         final TermList list = (TermList) element;
         for (final Term term : list) {
-          Term grounded = term.findGroundOrSame();
+          Term grounded = term.tryGround();
           if (grounded.isGround()) {
             if (grounded.getTermType() == TermType.STRUCT) {
               final TermStruct termStruct = (TermStruct) grounded;
               if ("=".equals(termStruct.getFunctor().getText()) && termStruct.getArity() == 2) {
-                final String name = termStruct.getArgumentAt(0).findGroundOrSame().getText();
+                final String name = termStruct.getArgumentAt(0).tryGround().getText();
                 if (result.length() > 1) {
                   result.append(',');
                 }
                 result.append('\"').append(jsonEscape(name)).append("\":");
-                result.append(valueConverter(termStruct.getArgumentAt(1).findGroundOrSame()));
+                result.append(valueConverter(termStruct.getArgumentAt(1).tryGround()));
               } else {
                 throw new ProlDomainErrorException("name=value", term);
               }
@@ -401,8 +401,8 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
   @JProlPredicate(determined = true, signature = "to_json/2", args = {
       "+compound,?atom"}, reference = "Convert a structure into JSON text as an atom. Converted structure must be in format json([]).")
   public static boolean predicateTO_JSON(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term argLeft = predicate.getArgumentAt(0).findGroundOrSame();
-    final Term argRight = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term argLeft = predicate.getArgumentAt(0).tryGround();
+    final Term argRight = predicate.getArgumentAt(1).tryGround();
 
     try {
       final Term converted = Terms.newAtom(toJson((TermStruct) argLeft));
@@ -418,8 +418,8 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
       "+atom,?compound"}, reference = "Create term on base of a JSON string. The result structure is formatted as structure json([..]).")
   public static boolean predicateFROM_JSON(final JProlChoicePoint goal,
                                            final TermStruct predicate) {
-    final Term argLeft = predicate.getArgumentAt(0).findGroundOrSame();
-    final Term argRight = predicate.getArgumentAt(1).findGroundOrSame();
+    final Term argLeft = predicate.getArgumentAt(0).tryGround();
+    final Term argRight = predicate.getArgumentAt(1).tryGround();
 
     try {
       final TermOperator jsonMarkerOperator =

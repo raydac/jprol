@@ -21,7 +21,6 @@ import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.data.Terms.newList;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
 
-import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
@@ -47,7 +46,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -280,7 +278,7 @@ public final class ProlUtils {
   }
 
   public static String indicatorAsStringOrNull(final Term term) {
-    final TermStruct struct = term.findGroundOrSame();
+    final TermStruct struct = term.tryGround();
 
     if (struct.getArity() != 2) {
       return null;
@@ -384,90 +382,6 @@ public final class ProlUtils {
     } catch (IllegalArgumentException ex) {
       return null;
     }
-  }
-
-  public static void validateJProlPredicate(final JProlPredicate predicate) {
-    if (reassembleSignatureOrNull(predicate.signature()) == null) {
-      throw new IllegalArgumentException("Wrong signature: " + predicate.signature());
-    }
-    final ProlPair<String, Integer> parsedSignature = parseSignaturePair(predicate.signature());
-    for (final String s : predicate.synonyms()) {
-      if (reassembleSignatureOrNull(s) == null) {
-        throw new IllegalArgumentException("Wrong synonym: " + s);
-      }
-    }
-
-    if (parsedSignature.getRight() > 0 && predicate.args().length == 0) {
-      throw new IllegalArgumentException("Expected arguments description for predicate");
-    }
-
-    for (final String s : predicate.args()) {
-      final String[] parsedArgs = s.split(",");
-      if (parsedArgs.length != parsedSignature.getRight()) {
-        throw new IllegalArgumentException(
-            "Expected " + parsedSignature.getRight() + " arguments: " + s);
-      }
-
-      for (final String a : parsedArgs) {
-        final String text = extractAndNormalize(s, a);
-
-        switch (text) {
-          case "term":
-          case "atom":
-          case "atomic":
-          case "string":
-          case "float":
-          case "integer":
-          case "number":
-          case "callable":
-          case "evaluable":
-          case "list":
-          case "goal":
-          case "char":
-          case "predicate_indicator":
-          case "operator_specifier":
-          case "compound_term":
-          case "compound":
-          case "var": {
-            // all is ok
-          }
-          break;
-          default:
-            throw new IllegalArgumentException("Unexpected type: " + a);
-        }
-      }
-    }
-  }
-
-  private static String extractAndNormalize(final String description, final String srcText) {
-    final String normalized = srcText.trim().toLowerCase(Locale.ROOT);
-    if (normalized.isEmpty()) {
-      throw new IllegalArgumentException("Wrong arguments description: " + description);
-    }
-    final String text;
-    if (normalized.startsWith("--") // At call time, the argument must be unbound.
-        || normalized.startsWith("++") // At call time, the argument must be ground
-    ) {
-      text = normalized.substring(2);
-    } else if (
-        normalized.startsWith("-")
-            // Argument is an output argument. It may or may not be bound at call-time.
-            || normalized.startsWith("+")
-            // At call time, the argument must be instantiated to a term satisfying some (informal) type specification.
-            || normalized.startsWith("?")
-            // At call time, the argument must be bound to a partial term (a term which may or may not be ground) satisfying some (informal) type specification.
-            || normalized.startsWith(":")
-            // Argument is a meta-argument, for example a term that can be called as goal. This flag implies +.
-            || normalized.startsWith("@")
-            // Argument will not be further instantiated than it is at call-time.
-            || normalized.startsWith(
-            "!") // Argument contains a mutable structure that may be modified
-    ) {
-      text = normalized.substring(1);
-    } else {
-      throw new IllegalArgumentException("Unexpected argument mode indicator: " + srcText);
-    }
-    return text;
   }
 
 }

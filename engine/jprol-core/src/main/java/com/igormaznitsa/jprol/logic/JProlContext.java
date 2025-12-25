@@ -936,7 +936,7 @@ public class JProlContext implements AutoCloseable {
   }
 
   public boolean abolish(final Term term) {
-    final Term indicator = term.findGroundOrSame();
+    final Term indicator = term.tryGround();
     ProlAssertions.assertIndicator(indicator);
     return this.doClauseInKnowledgeBase(term,
         true,

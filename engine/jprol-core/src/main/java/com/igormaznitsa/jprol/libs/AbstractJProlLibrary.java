@@ -42,6 +42,7 @@ import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
+import com.igormaznitsa.jprol.logic.ArgsValidator;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
@@ -54,6 +55,7 @@ import com.igormaznitsa.jprol.utils.lazy.LazySet;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -85,50 +87,43 @@ public abstract class AbstractJProlLibrary {
     this.predicateMethodsMap =
         unmodifiableMap(extractAnnotatedMethodsAsPredicates(libraryUid, zeroArityPredicates));
     this.zeroArityPredicateNames = unmodifiableSet(zeroArityPredicates);
-
-    for (final JProlPredicate p : findAllPredicateDescriptors()) {
-      try {
-        ProlUtils.validateJProlPredicate(p);
-      } catch (IllegalArgumentException ex) {
-        throw new IllegalStateException(
-            "A prolog predicate descriptor doesn't meet requirements: " + p, ex);
-      }
-    }
   }
 
-  public List<JProlPredicate> findAllPredicateDescriptors() {
-    final List<JProlPredicate> allLibraryPredicates = new ArrayList<>();
-
-    final JProlConsultText consultText = this.getClass().getAnnotation(JProlConsultText.class);
-    final JProlConsultResource consultResource =
-        this.getClass().getAnnotation(JProlConsultResource.class);
-    final JProlConsultFile consultFile = this.getClass().getAnnotation(JProlConsultFile.class);
-    final JProlConsultUrl consultUrl = this.getClass().getAnnotation(JProlConsultUrl.class);
-
-    if (consultText != null) {
-      allLibraryPredicates.addAll(Arrays.asList(consultText.declaredPredicates()));
-    }
-
-    if (consultFile != null) {
-      allLibraryPredicates.addAll(Arrays.asList(consultFile.declaredPredicates()));
-    }
-
-    if (consultResource != null) {
-      allLibraryPredicates.addAll(Arrays.asList(consultResource.declaredPredicates()));
-    }
-
-    if (consultUrl != null) {
-      allLibraryPredicates.addAll(Arrays.asList(consultUrl.declaredPredicates()));
-    }
-
-    for (final Method method : this.getClass().getMethods()) {
-      final JProlPredicate predicate = method.getAnnotation(JProlPredicate.class);
-      if (predicate != null) {
-        allLibraryPredicates.add(predicate);
+  protected static NumericTerm calcEvaluable(final JProlChoicePoint choicePoint, final Term term) {
+    try {
+      final Term thatTerm = term.tryGround();
+      if (thatTerm.getTermType() == VAR) {
+        throw new ProlInstantiationErrorException("Non-instantiated var: " + term,
+            choicePoint.getGoalTerm());
       }
-    }
 
-    return allLibraryPredicates;
+      final NumericTerm result;
+
+      switch (thatTerm.getTermType()) {
+        case ATOM: {
+          ProlAssertions.assertNumber(thatTerm);
+          result = (NumericTerm) thatTerm;
+        }
+        break;
+        case STRUCT: {
+          final PredicateInvoker processor = ((TermStruct) thatTerm).getPredicateProcessor();
+          if (processor.isEvaluable()) {
+            result = (NumericTerm) processor.executeEvaluable(choicePoint, (TermStruct) thatTerm);
+          } else {
+            throw new ProlTypeErrorException("evaluable", "Non-evaluable item found: " + thatTerm,
+                choicePoint.getGoalTerm());
+          }
+        }
+        break;
+        default:
+          throw new ProlTypeErrorException("evaluable", "Can't evaluate item: " + term,
+              choicePoint.getGoalTerm());
+      }
+      return result;
+    } catch (final ArithmeticException ex) {
+      throw new ProlEvaluationErrorException(ex.getMessage(), "Arithmetic exception",
+          choicePoint.getGoalTerm(), ex);
+    }
   }
 
   private static void assertProlOperator(final JProlOperator operator) {
@@ -202,41 +197,39 @@ public abstract class AbstractJProlLibrary {
     return true;
   }
 
-  protected static NumericTerm calcEvaluable(final JProlChoicePoint choicePoint, final Term term) {
-    try {
-      final Term thatTerm = term.findGroundOrSame();
-      if (thatTerm.getTermType() == VAR) {
-        throw new ProlInstantiationErrorException("Non-instantiated var: " + term,
-            choicePoint.getGoalTerm());
-      }
+  public List<JProlPredicate> findAllJProlPredicates() {
+    final List<JProlPredicate> allLibraryPredicates = new ArrayList<>();
 
-      final NumericTerm result;
+    final JProlConsultText consultText = this.getClass().getAnnotation(JProlConsultText.class);
+    final JProlConsultResource consultResource =
+        this.getClass().getAnnotation(JProlConsultResource.class);
+    final JProlConsultFile consultFile = this.getClass().getAnnotation(JProlConsultFile.class);
+    final JProlConsultUrl consultUrl = this.getClass().getAnnotation(JProlConsultUrl.class);
 
-      switch (thatTerm.getTermType()) {
-        case ATOM: {
-          ProlAssertions.assertNumber(thatTerm);
-          result = (NumericTerm) thatTerm;
-        }
-        break;
-        case STRUCT: {
-          final PredicateInvoker processor = ((TermStruct) thatTerm).getPredicateProcessor();
-          if (processor.isEvaluable()) {
-            result = (NumericTerm) processor.executeEvaluable(choicePoint, (TermStruct) thatTerm);
-          } else {
-            throw new ProlTypeErrorException("evaluable", "Non-evaluable item found: " + thatTerm,
-                choicePoint.getGoalTerm());
-          }
-        }
-        break;
-        default:
-          throw new ProlTypeErrorException("evaluable", "Can't evaluate item: " + term,
-              choicePoint.getGoalTerm());
-      }
-      return result;
-    } catch (final ArithmeticException ex) {
-      throw new ProlEvaluationErrorException(ex.getMessage(), "Arithmetic exception",
-          choicePoint.getGoalTerm(), ex);
+    if (consultText != null) {
+      allLibraryPredicates.addAll(Arrays.asList(consultText.declaredPredicates()));
     }
+
+    if (consultFile != null) {
+      allLibraryPredicates.addAll(Arrays.asList(consultFile.declaredPredicates()));
+    }
+
+    if (consultResource != null) {
+      allLibraryPredicates.addAll(Arrays.asList(consultResource.declaredPredicates()));
+    }
+
+    if (consultUrl != null) {
+      allLibraryPredicates.addAll(Arrays.asList(consultUrl.declaredPredicates()));
+    }
+
+    for (final Method method : this.getClass().getMethods()) {
+      final JProlPredicate predicate = method.getAnnotation(JProlPredicate.class);
+      if (predicate != null) {
+        allLibraryPredicates.add(predicate);
+      }
+    }
+
+    return allLibraryPredicates;
   }
 
   @SuppressWarnings("EmptyMethod")
@@ -382,7 +375,7 @@ public abstract class AbstractJProlLibrary {
 
   private Map<String, PredicateInvoker> extractAnnotatedMethodsAsPredicates(final String libraryUID,
                                                                             final Set<String> foundZeroArityPredicates) {
-    final Map<String, PredicateInvoker> result = new LazyMap<>();
+    final Map<String, PredicateInvoker> result = new HashMap<>();
 
     final Method[] methods = this.getClass().getMethods();
     for (final Method method : methods) {
@@ -407,7 +400,8 @@ public abstract class AbstractJProlLibrary {
                 predicateAnnotation.determined(),
                 predicateAnnotation.evaluable(),
                 predicateAnnotation.changesChooseChain(),
-                x -> true,
+                ArgsValidator.makeFor(ProlUtils.parseSignaturePair(signature).getRight(),
+                    predicateAnnotation.args(), true),
                 signature,
                 method);
         result.put(signature, invoker);

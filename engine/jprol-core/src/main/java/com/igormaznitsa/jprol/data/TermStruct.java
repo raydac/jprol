@@ -133,7 +133,7 @@ public class TermStruct extends CompoundTerm {
   }
 
   public final int getArity() {
-    return arguments.length;
+    return this.arguments.length;
   }
 
   public boolean isClause() {
@@ -382,7 +382,22 @@ public class TermStruct extends CompoundTerm {
 
   @Override
   public boolean isGround() {
-    return this.getArity() == 0 || this.stream().allMatch(Term::isGround);
+    for (final Term t : this.arguments) {
+      if (!t.isGround()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @Override
+  public boolean isUnground() {
+    for (final Term t : this.arguments) {
+      if (t.isUnground()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override

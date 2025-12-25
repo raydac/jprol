@@ -38,7 +38,7 @@ public class ProlException extends RuntimeException {
   public String getMessage() {
     final String message = super.getMessage();
     if (message == null) {
-      return this.toString();
+      return this.getClass().getCanonicalName();
     } else {
       return message;
     }

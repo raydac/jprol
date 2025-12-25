@@ -300,12 +300,12 @@ public final class TermVar extends Term {
 
   public boolean isUnground() {
     return this.immediateValue == null ||
-        (this.immediateValue.getTermType() == VAR && ((TermVar) this.immediateValue).isUnground());
+        (this.immediateValue.getTermType() == VAR && this.immediateValue.isUnground());
   }
 
   @Override
   @SuppressWarnings("unchecked")
-  public <T extends Term> T findGroundOrSame() {
+  public <T extends Term> T tryGround() {
     return this.immediateValue == null ? (T) this :
         (T) this.immediateValue.findGroundOrDefault(this);
   }
