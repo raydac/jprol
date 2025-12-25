@@ -80,6 +80,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -1180,7 +1182,7 @@ public final class MainFrame extends javax.swing.JFrame
     if (context != null) {
       this.menuViewKnowledgeBase.setEnabled(false);
       if (!context.isDisposed()) {
-        context.dispose();
+        context.dispose(true);
       }
     }
   }
@@ -1263,11 +1265,22 @@ public final class MainFrame extends javax.swing.JFrame
             "Current file folder for script: " + currentFolder.getAbsolutePath());
       }
 
+
       try {
         context = new JProlContext(
             "prol-script",
             currentFolder,
-            k -> new ConcurrentInMemoryKnowledgeBase("prol-script-knowledge-base")
+            k -> new ConcurrentInMemoryKnowledgeBase("prol-script-knowledge-base"),
+            () -> Executors.newCachedThreadPool(new ThreadFactory() {
+              @Override
+              public Thread newThread(Runnable r) {
+                final Thread thread = new Thread(r, "jprol-thread-" + System.identityHashCode(r));
+                thread.setUncaughtExceptionHandler((t, e) -> {
+                  e.printStackTrace();
+                });
+                return thread;
+              }
+            })
         ).addIoResourceProvider(this);
         if (setCurrentContext(context)) {
           context.addContextListener(this);
@@ -1462,7 +1475,7 @@ public final class MainFrame extends javax.swing.JFrame
 
         final JProlContext context = this.currentContext.getAndSet(null);
         if (context != null) {
-          context.dispose();
+          context.dispose(true);
         }
         final Thread executingThread = this.currentExecutedScriptThread.get();
         try {
@@ -1867,4 +1880,12 @@ public final class MainFrame extends javax.swing.JFrame
     }
   }
 
+  @Override
+  public void onAsyncUncaughtTaskException(final JProlContext source,
+                                           final long taskId,
+                                           final Throwable error) {
+    this.messageEditor.addErrorText(
+        "Detected exception in async task " + taskId + ": " + error.getMessage());
+    error.printStackTrace();
+  }
 }

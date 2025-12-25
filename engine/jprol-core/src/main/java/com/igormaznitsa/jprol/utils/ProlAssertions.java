@@ -19,7 +19,6 @@ import com.igormaznitsa.jprol.exceptions.ProlRepresentationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
-import java.util.Objects;
 
 public final class ProlAssertions {
   private ProlAssertions() {
@@ -136,9 +135,13 @@ public final class ProlAssertions {
   }
 
   public static boolean isAtom(final Term t) {
+    if (t == null) {
+      return false;
+    }
+    final Term term = t.tryGround();
     final boolean result;
-    if (Objects.requireNonNull(t.getTermType()) == TermType.ATOM) {
-      result = !(t instanceof NumericTerm);
+    if (term.getTermType() == TermType.ATOM) {
+      result = !(term instanceof NumericTerm);
     } else {
       result = false;
     }

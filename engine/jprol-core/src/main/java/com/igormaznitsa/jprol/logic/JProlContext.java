@@ -383,13 +383,23 @@ public class JProlContext implements AutoCloseable {
     }
   }
 
-  private void onAsyncTaskCompleted(final long id) {
+  private void onAsyncTaskCompleted(final long id, final Throwable error) {
     this.startedAsyncTasks.remove(id);
     this.asyncLocker.lock();
     try {
       this.asyncCounterCondition.signalAll();
     } finally {
       this.asyncLocker.unlock();
+    }
+
+    if (error != null && !this.contextListeners.isEmpty()) {
+      this.contextListeners.forEach(x -> {
+        try {
+          x.onAsyncUncaughtTaskException(this, id, error);
+        } catch (Exception ex) {
+          // do nothing
+        }
+      });
     }
   }
 
@@ -432,7 +442,7 @@ public class JProlContext implements AutoCloseable {
               return Terms.newLong(proved);
             }, this.asyncTaskExecutorService)
             .handle((x, e) -> {
-              this.onAsyncTaskCompleted(id);
+              this.onAsyncTaskCompleted(id, e);
               if (e != null) {
                 if (!(e instanceof CompletionException) ||
                     !(e.getCause() instanceof ProlInterruptException)) {
@@ -467,7 +477,7 @@ public class JProlContext implements AutoCloseable {
               return result;
             }, this.asyncTaskExecutorService)
             .handle((x, e) -> {
-              this.onAsyncTaskCompleted(id);
+              this.onAsyncTaskCompleted(id, e);
               if (e != null) {
                 if (!(e instanceof CompletionException) ||
                     !(e.getCause() instanceof ProlInterruptException)) {
@@ -738,9 +748,16 @@ public class JProlContext implements AutoCloseable {
   }
 
   public void dispose() {
+    this.dispose(false);
+  }
+
+  public void dispose(final boolean shutdownExecutor) {
     if (this.disposed.compareAndSet(false, true)) {
+      if (shutdownExecutor) {
+        this.asyncTaskExecutorService.shutdownNow();
+      }
       this.startedAsyncTasks.values().forEach(x -> x.cancel(true));
-      this.waitStartedTasksCompletion(Duration.ofSeconds(30));
+      this.waitStartedTasksCompletion(Duration.ofSeconds(5));
       this.startedAsyncTasks.clear();
 
       this.namedLockers.forEach((key, value) -> {

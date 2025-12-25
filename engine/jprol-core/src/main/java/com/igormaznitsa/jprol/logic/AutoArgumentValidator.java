@@ -50,23 +50,25 @@ public final class AutoArgumentValidator {
     return result;
   }
 
-  public static Predicate<TermStruct> makeFor(final int arity, final String[] arguments,
-                                              final boolean assertMode) {
+  public static Predicate<TermStruct> makeFor(
+      final int arity,
+      final String[] arguments,
+      final boolean assertMode) {
     final List<List<ModificatorArgument>> parsed = parse(arity, arguments, assertMode);
 
     Predicate<TermStruct> result = ANY;
-    ModificatorArgument[] lastRow = null;
     for (final List<ModificatorArgument> row : parsed) {
-      lastRow = row.toArray(ModificatorArgument[]::new);
-      final ModificatorArgument[] finalRow = lastRow;
       final Predicate<TermStruct> newPredicate = s -> {
-        for (int i = 0; i < finalRow.length; i++) {
-          if (!finalRow[i].test(s.getArgumentAt(i))) {
-            return false;
+        if (s.getArity() == row.size()) {
+          for (int i = 0; i < row.size(); i++) {
+            if (!row.get(i).test(s.getArgumentAt(i))) {
+              return false;
+            }
           }
         }
         return true;
       };
+
       if (result == ANY) {
         result = newPredicate;
       } else {
@@ -74,27 +76,28 @@ public final class AutoArgumentValidator {
       }
     }
 
-    if (assertMode && !parsed.isEmpty()) {
-      if (parsed.size() == 1) {
-        final ModificatorArgument[] finalRow = lastRow;
-        result = result.or(s -> {
-          for (int i = 0; i < finalRow.length; i++) {
-            final ProlException exception = finalRow[i].findException(s.getArgumentAt(i));
-            if (exception != null) {
-              throw exception;
+    if (result != ANY) {
+      if (assertMode) {
+        if (parsed.size() == 1) {
+          final ModificatorArgument[] rowArray = parsed.get(0).toArray(ModificatorArgument[]::new);
+          result = result.or(s -> {
+            for (int i = 0; i < rowArray.length; i++) {
+              final ProlException exception = rowArray[i].findException(s.getArgumentAt(i));
+              if (exception != null) {
+                throw exception;
+              }
             }
-          }
-          throw new ProlArgumentValidationException(
-              "Detected inappropriate argument: " + s.toSrcString());
-        });
-      } else {
-        result = result.or(s -> {
-          throw new ProlArgumentValidationException(
-              "There is not any pattern allows such call: " + s.toSrcString());
-        });
+            throw new ProlArgumentValidationException(
+                "Detected inappropriate argument: " + s.toSrcString());
+          });
+        } else {
+          result = result.or(s -> {
+            throw new ProlArgumentValidationException(
+                "There is not any pattern allows such call: " + s.toSrcString());
+          });
+        }
       }
     }
-
     return result;
   }
 

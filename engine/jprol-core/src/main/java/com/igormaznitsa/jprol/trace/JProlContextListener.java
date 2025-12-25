@@ -19,6 +19,9 @@ package com.igormaznitsa.jprol.trace;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 
+/**
+ * Interface of a JProl context listener, allows to catch events from specified context.
+ */
 public interface JProlContextListener {
 
   default void onContextDispose(JProlContext source) {
@@ -30,5 +33,18 @@ public interface JProlContextListener {
 
   default void onUndefinedPredicateWarning(JProlContext source, JProlChoicePoint choicePoint,
                                            String undefinedPredicateSignature) {
+  }
+
+  /**
+   * Notification about exception in an async task.
+   *
+   * @param source source context
+   * @param taskId task id
+   * @param error  exception thrown in async task
+   * @since 3.0.0
+   */
+  default void onAsyncUncaughtTaskException(JProlContext source, final long taskId,
+                                            final Throwable error) {
+
   }
 }
