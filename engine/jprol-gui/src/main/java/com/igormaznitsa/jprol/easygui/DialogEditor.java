@@ -33,6 +33,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.prefs.Preferences;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
@@ -57,7 +58,7 @@ public class DialogEditor extends AbstractProlEditor
   private final Thread dialogThread;
   private final SimpleAttributeSet consoleAttribute;
   private final SimpleAttributeSet userAttribute;
-  private volatile boolean isWorking;
+  private volatile boolean working;
   private volatile boolean cancelCurrentRead;
 
   public DialogEditor() throws IOException {
@@ -65,7 +66,7 @@ public class DialogEditor extends AbstractProlEditor
 
     ((ScalableEditorPane) this.editor).setEventReplacer(this);
 
-    isWorking = true;
+    this.working = true;
 
     removePropertyLink(PROPERTY_ED_FOREGROUND);
     addPropertyLink(new PropertyLink(this, "Output color", "EdOutputColor"));
@@ -265,7 +266,7 @@ public class DialogEditor extends AbstractProlEditor
 
   public synchronized void close() {
     if (dialogThread != null) {
-      isWorking = false;
+      working = false;
       cancelRead();
       dialogThread.interrupt();
     }
@@ -274,12 +275,11 @@ public class DialogEditor extends AbstractProlEditor
   @Override
   public void run() {
     try {
-
       final Thread thisThread = Thread.currentThread();
       final StringBuilder builder = new StringBuilder(256);
 
-      while (!thisThread.isInterrupted() && isWorking) {
-        if (outputReader.ready()) {
+      while (!thisThread.isInterrupted() && this.working) {
+        if (this.outputReader.ready()) {
           synchronized (this) {
             while (outputReader.ready()) {
               final int ch = outputReader.read();
@@ -317,7 +317,7 @@ public class DialogEditor extends AbstractProlEditor
       if (contents != null && contents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
         final String str = (String) contents.getTransferData(DataFlavor.stringFlavor);
         if (str != null && !str.isEmpty()) {
-          inputWriter.write(str.toCharArray(), 0, str.length());
+          this.inputWriter.write(str.toCharArray(), 0, str.length());
         }
       }
     } catch (Exception ex) {
@@ -332,6 +332,8 @@ public class DialogEditor extends AbstractProlEditor
 
   public final static class NonClosableWriter extends PipedWriter {
 
+    private final ReentrantLock bufferLock = new ReentrantLock();
+
     private final List<Character> buffer;
     private final boolean waitEnter;
     private final AtomicInteger foundNextLineCounter = new AtomicInteger();
@@ -343,7 +345,8 @@ public class DialogEditor extends AbstractProlEditor
 
     @Override
     public void write(final int c) {
-      synchronized (buffer) {
+      this.bufferLock.lock();
+      try {
         buffer.add((char) c);
         if (c == '\n') {
           if (this.waitEnter) {
@@ -374,29 +377,39 @@ public class DialogEditor extends AbstractProlEditor
           }
           this.foundNextLineCounter.incrementAndGet();
         }
+      } finally {
+        this.bufferLock.unlock();
       }
     }
 
     @Override
     public void write(final char[] cbuf, final int off, final int len) throws IOException {
-      int start = off;
-      synchronized (buffer) {
+      this.bufferLock.lock();
+      try {
+        int start = off;
+
         for (int li = 0; li < len; li++) {
           this.write(cbuf[start++]);
         }
+      } finally {
+        this.bufferLock.unlock();
       }
     }
 
     public boolean isEmpty() {
-      synchronized (buffer) {
-        return buffer.isEmpty();
+      this.bufferLock.lock();
+      try {
+        return this.buffer.isEmpty();
+      } finally {
+        this.bufferLock.unlock();
       }
     }
 
     private int readChar() {
       int result = -1;
       if (!Thread.currentThread().isInterrupted()) {
-        synchronized (this.buffer) {
+        this.bufferLock.lock();
+        try {
           if (this.waitEnter && this.foundNextLineCounter.get() == 0) {
             return -1;
           } else {
@@ -407,6 +420,8 @@ public class DialogEditor extends AbstractProlEditor
               }
             }
           }
+        } finally {
+          this.bufferLock.unlock();
         }
       }
       return result;
@@ -415,7 +430,8 @@ public class DialogEditor extends AbstractProlEditor
     private int findFirstNonWhitespaceChar() {
       int result = -1;
       if (!Thread.currentThread().isInterrupted()) {
-        synchronized (this.buffer) {
+        this.bufferLock.lock();
+        try {
           if (!this.buffer.isEmpty()) {
             result = buffer.remove(0);
             if (result == '\n') {
@@ -425,6 +441,8 @@ public class DialogEditor extends AbstractProlEditor
               result = -1;
             }
           }
+        } finally {
+          this.bufferLock.unlock();
         }
       }
       return result;
@@ -439,16 +457,19 @@ public class DialogEditor extends AbstractProlEditor
     }
 
     public void clearBuffer() {
-      synchronized (this.buffer) {
+      this.bufferLock.lock();
+      try {
         this.foundNextLineCounter.set(0);
         this.buffer.clear();
+      } finally {
+        this.bufferLock.unlock();
       }
     }
   }
 
   public class NonClosableReader extends PipedReader {
-
     protected final NonClosableWriter src;
+    private final ReentrantLock lock = new ReentrantLock();
 
     protected NonClosableReader(final NonClosableWriter src) throws IOException {
       super(src);
@@ -459,116 +480,136 @@ public class DialogEditor extends AbstractProlEditor
     public void close() {
     }
 
-    public synchronized int findFirstNonWhitespaceChar() throws IOException {
-      if (src == null) {
-        throw new IOException("There is not any connected source.");
-      }
-
-      final Thread thisThread = Thread.currentThread();
-
-      while (isWorking) {
-        final int chr = src.findFirstNonWhitespaceChar();
-
-        if (thisThread.isInterrupted()) {
-          return -1;
+    public int findFirstNonWhitespaceChar() throws IOException {
+      this.lock.lock();
+      try {
+        if (src == null) {
+          throw new IOException("There is not any connected source.");
         }
 
-        if (cancelCurrentRead) {
-          cancelCurrentRead = false;
-          return -1;
-        }
+        final Thread thisThread = Thread.currentThread();
 
-        if (chr >= 0) {
-          return chr;
-        } else {
-          try {
-            Thread.sleep(30);
-          } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
+        while (working) {
+          final int chr = src.findFirstNonWhitespaceChar();
+
+          if (thisThread.isInterrupted()) {
             return -1;
           }
+
+          if (cancelCurrentRead) {
+            cancelCurrentRead = false;
+            return -1;
+          }
+
+          if (chr >= 0) {
+            return chr;
+          } else {
+            try {
+              Thread.sleep(30);
+            } catch (InterruptedException ex) {
+              Thread.currentThread().interrupt();
+              return -1;
+            }
+          }
         }
+        return -1;
+      } finally {
+        this.lock.unlock();
       }
-      return -1;
     }
 
 
     @Override
-    public synchronized int read() throws IOException {
-      if (src == null) {
-        throw new IOException("There is not any connected source.");
-      }
-
-      final Thread thisThread = Thread.currentThread();
-
-      while (isWorking) {
-        final int chr = src.readChar();
-
-        if (thisThread.isInterrupted()) {
-          return -1;
+    public int read() throws IOException {
+      this.lock.lock();
+      try {
+        if (src == null) {
+          throw new IOException("There is not any connected source.");
         }
 
-        if (cancelCurrentRead) {
-          cancelCurrentRead = false;
-          return -1;
-        }
+        final Thread thisThread = Thread.currentThread();
 
-        if (chr >= 0) {
-          return chr;
-        } else {
-          try {
-            Thread.sleep(30);
-          } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
+        while (working) {
+          final int chr = src.readChar();
+
+          if (thisThread.isInterrupted()) {
             return -1;
           }
+
+          if (cancelCurrentRead) {
+            cancelCurrentRead = false;
+            return -1;
+          }
+
+          if (chr >= 0) {
+            return chr;
+          } else {
+            try {
+              Thread.sleep(30);
+            } catch (InterruptedException ex) {
+              Thread.currentThread().interrupt();
+              return -1;
+            }
+          }
         }
+        return -1;
+      } finally {
+        this.lock.unlock();
       }
-      return -1;
     }
 
     @Override
-    public synchronized int read(char[] cbuf, int off, int len) throws IOException {
-      if (src == null) {
-        throw new IOException("There is not defined any source.");
-      }
-      int readLen = 0;
-
-      final Thread thisThread = Thread.currentThread();
-
-      while (editor.isEditable() && len > 0 && isWorking) {
-        int chr = src.readChar();
-
-        if (thisThread.isInterrupted()) {
-          return -1;
+    public int read(char[] cbuf, int off, int len) throws IOException {
+      this.lock.lock();
+      try {
+        if (src == null) {
+          throw new IOException("There is not defined any source.");
         }
+        int readLen = 0;
 
-        if (cancelCurrentRead) {
-          cancelCurrentRead = false;
-          return -1;
-        }
+        final Thread thisThread = Thread.currentThread();
 
-        if (chr < 0) {
-          try {
-            Thread.sleep(10);
-            continue;
-          } catch (InterruptedException ex) {
+        while (editor.isEditable() && len > 0 && working) {
+          int chr = src.readChar();
+
+          if (thisThread.isInterrupted()) {
             return -1;
           }
+
+          if (cancelCurrentRead) {
+            cancelCurrentRead = false;
+            return -1;
+          }
+
+          if (chr < 0) {
+            try {
+              Thread.sleep(10);
+              continue;
+            } catch (InterruptedException ex) {
+              return -1;
+            }
+          }
+          cbuf[off++] = (char) chr;
+          len--;
+          readLen++;
         }
-        cbuf[off++] = (char) chr;
-        len--;
-        readLen++;
+        return readLen;
+      } finally {
+        this.lock.unlock();
       }
-      return readLen;
     }
 
     @Override
-    public synchronized boolean ready() throws IOException {
-      if (src == null) {
-        throw new IOException("There is not defined any source.");
+    public boolean ready() throws IOException {
+      this.lock.lock();
+      try {
+        if (src == null) {
+          throw new IOException("There is not defined any source.");
+        }
+        return !src.isEmpty();
+      } finally {
+        this.lock.unlock();
       }
-      return !src.isEmpty();
     }
   }
 }

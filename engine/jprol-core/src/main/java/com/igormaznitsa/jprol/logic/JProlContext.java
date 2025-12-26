@@ -377,7 +377,7 @@ public class JProlContext implements AutoCloseable {
     try {
       while (!this.startedAsyncTasks.isEmpty() && !Thread.currentThread().isInterrupted()) {
         try {
-          this.asyncCounterCondition.await();
+          this.asyncCounterCondition.await(100, TimeUnit.MILLISECONDS);
         } catch (InterruptedException ex) {
           Thread.currentThread().interrupt();
           break;

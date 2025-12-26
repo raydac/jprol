@@ -122,13 +122,13 @@ public class MessageEditor extends AbstractProlEditor {
 
   private void processQueue() {
     final StringBuilder builder = new StringBuilder();
-    boolean found = false;
-    while (!Thread.currentThread().isInterrupted()) {
+    int counter = 0;
+    while (counter < 100 && !Thread.currentThread().isInterrupted()) {
       final TextRecord record = recordQueue.poll();
       if (record == null) {
         break;
       }
-      found = true;
+      counter++;
       if (record == TextRecord.CLEAR_ALL) {
         this.internalBuffer.setLength(0);
         builder.setLength(0);
@@ -136,7 +136,7 @@ public class MessageEditor extends AbstractProlEditor {
         builder.append(record.toText());
       }
     }
-    if (found) {
+    if (counter > 0) {
       this.internalBuffer.append(builder);
     }
     this.updateEditorText(this.internalBuffer.toString());
