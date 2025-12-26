@@ -435,7 +435,7 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public boolean unifyTo(final Term atom) {
+  public boolean unifyWith(final Term atom) {
     if (this == atom) {
       return true;
     }
@@ -449,8 +449,8 @@ public final class TermList extends TermStruct {
           return false;
         }
 
-        return this.getHead().unifyTo(thatList.getHead()) &&
-            this.getTail().unifyTo(thatList.getTail());
+        return this.getHead().unifyWith(thatList.getHead()) &&
+            this.getTail().unifyWith(thatList.getTail());
       }
       case VAR: {
         final TermVar thatVariable = (TermVar) atom;
@@ -459,7 +459,7 @@ public final class TermList extends TermStruct {
           thatVariable.setImmediateValue(this);
           return true;
         } else {
-          return thatVariable.unifyTo(this);
+          return thatVariable.unifyWith(this);
         }
       }
     }
@@ -467,7 +467,7 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public boolean dryUnifyTo(Term target) {
+  public boolean isUnifiableWith(Term target) {
     if (this == target) {
       return true;
     }
@@ -496,8 +496,8 @@ public final class TermList extends TermStruct {
       }
 
       return thisList
-          .getHead().dryUnifyTo(thatList.getHead())
-          && thisList.getTail().dryUnifyTo(thatList.getTail());
+          .getHead().isUnifiableWith(thatList.getHead())
+          && thisList.getTail().isUnifiableWith(thatList.getTail());
     }
     return false;
   }

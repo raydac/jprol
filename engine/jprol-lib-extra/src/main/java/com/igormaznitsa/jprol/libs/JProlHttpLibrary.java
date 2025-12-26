@@ -91,7 +91,7 @@ public class JProlHttpLibrary extends AbstractJProlLibrary {
     return found;
   }
 
-  @JProlPredicate(determined = true, signature = "http_req/2", args = {
+  @JProlPredicate(determined = true, signature = "http_req/2", validate = {
       "+list,?list"}, reference = "Make HTTP request which parameters from the left list, the response represented as the right list. The format of lists is [name1=value1,name2=value2,..nameN=valueN]")
   public boolean predicateHTTP_REQ(final JProlChoicePoint goal,
                                    final TermStruct predicate) {
@@ -217,7 +217,7 @@ public class JProlHttpLibrary extends AbstractJProlLibrary {
                 bodyAsBin}));
       }
 
-      return argResponse.unifyTo(TermList.asList(responseListTerms));
+      return argResponse.unifyWith(TermList.asList(responseListTerms));
     } catch (ProtocolException ex) {
       throw new ProlDomainErrorException(
           "Expected request method: ['GET', 'POST', 'HEAD', 'OPTIONS', 'PUT', 'DELETE', 'TRACE']",

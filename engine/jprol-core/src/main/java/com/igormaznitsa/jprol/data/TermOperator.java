@@ -132,7 +132,7 @@ public final class TermOperator extends Term {
   }
 
   @Override
-  public boolean unifyTo(final Term atom) {
+  public boolean unifyWith(final Term atom) {
     if (this == atom) {
       return true;
     }
@@ -151,7 +151,7 @@ public final class TermOperator extends Term {
         if (value == null) {
           result = ((TermVar) atom).setValue(this);
         } else {
-          result = unifyTo(value);
+          result = unifyWith(value);
         }
       }
       break;
@@ -163,7 +163,7 @@ public final class TermOperator extends Term {
   }
 
   @Override
-  public boolean dryUnifyTo(final Term target) {
+  public boolean isUnifiableWith(final Term target) {
     if (this == target) {
       return true;
     }
@@ -179,7 +179,7 @@ public final class TermOperator extends Term {
       case VAR: {
         final TermVar var = (TermVar) target;
         final Term value = var.getValue();
-        result = value == null || this.dryUnifyTo(value);
+        result = value == null || this.isUnifiableWith(value);
       }
       break;
       default:

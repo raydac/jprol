@@ -44,11 +44,17 @@ public @interface JProlPredicate {
   String[] synonyms() default {};
 
   /**
-   * Allowed combinations of argument types, like '+atom,?list'
+   * Array of strings where each string contains descriptor of expected pair modificator+type per each predicate argument '+atom,?list'.
+   * List of variants to be validated before predicate call. Empty value meant do not validate.
+   * Check of arguments will be only if verify flag of context is true. Also the field can be empty so it will be recognized as any arguments.
    *
-   * @return array of allowed type combinations
+   * @return array of allowed argument type combinations
+   * @see com.igormaznitsa.jprol.logic.ValidateType
+   * @see com.igormaznitsa.jprol.logic.ValidateModificator
+   * @see com.igormaznitsa.jprol.logic.JProlSystemFlag#VERIFY
+   * @since 3.0.0
    */
-  String[] args() default {};
+  String[] validate() default {};
 
   /**
    * Description of the predicate, it will be used in help system.

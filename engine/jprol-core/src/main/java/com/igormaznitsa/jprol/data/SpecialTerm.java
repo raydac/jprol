@@ -17,12 +17,12 @@ public abstract class SpecialTerm extends Term {
   }
 
   @Override
-  public final boolean dryUnifyTo(final Term target) {
+  public final boolean isUnifiableWith(final Term target) {
     return throwUnsupportedException();
   }
 
   @Override
-  public final boolean unifyTo(final Term other) {
+  public final boolean unifyWith(final Term other) {
     return throwUnsupportedException();
   }
 }

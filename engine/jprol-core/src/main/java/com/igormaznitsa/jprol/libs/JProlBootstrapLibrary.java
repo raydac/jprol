@@ -36,7 +36,7 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     super("jprol-bootstrap-lib");
   }
 
-  @JProlPredicate(signature = "current_prolog_flag/2", args = {
+  @JProlPredicate(signature = "current_prolog_flag/2", validate = {
       "?atom,?term"}, reference = "Check prolog flag and flag values.", guarded = true)
   public static boolean predicateCURRENTPROLOGFLAG(final JProlChoicePoint choicePoint,
                                                    final TermStruct predicate) {
@@ -58,9 +58,9 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
 
     while (iterator.hasNext()) {
       final JProlSystemFlag flag = iterator.next();
-      if (atom.dryUnifyTo(flag.getNameTerm())) {
+      if (atom.isUnifiableWith(flag.getNameTerm())) {
         final Term flagValue = choicePoint.getContext().getSystemFlag(flag);
-        if (term.dryUnifyTo(flagValue)) {
+        if (term.isUnifiableWith(flagValue)) {
           found = assertUnify(atom, flag.getNameTerm()) && assertUnify(term, flagValue);
           break;
         }
@@ -84,7 +84,7 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
   @JProlPredicate(
       determined = true,
       signature = "set_prolog_flag/2",
-      args = {"+atom,+term"},
+      validate = {"+atom,+term"},
       reference = "Set value of flag.",
       guarded = true
   )
@@ -101,7 +101,7 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
         }).orElseThrow(() -> new ProlDomainErrorException("prolog_flag", atom));
   }
 
-  @JProlPredicate(determined = true, signature = "is/2", args = {
+  @JProlPredicate(determined = true, signature = "is/2", validate = {
       "?term,+evaluable"}, reference = "'is'(Result, Expression) is true if and only if the value of evaluating Expression as an expression is Result")
   public static boolean predicateIS(final JProlChoicePoint choicePoint,
                                     final TermStruct predicate) {
@@ -109,7 +109,7 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     final Term right = predicate.getArgumentAt(1).tryGround();
 
     final NumericTerm rightResult = calcEvaluable(choicePoint, right);
-    return rightResult != null && left.unifyTo(rightResult);
+    return rightResult != null && left.unifyWith(rightResult);
   }
 
   @JProlPredicate(determined = true, signature = "true/0", reference = "The predicate is always true.")
@@ -123,7 +123,7 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
     return false;
   }
 
-  @JProlPredicate(determined = true, signature = "not/1", args = ":goal", reference = "True if goal cannot be proven")
+  @JProlPredicate(determined = true, signature = "not/1", validate = ":goal", reference = "True if goal cannot be proven")
   public static boolean predicateNOT(final JProlChoicePoint choicePoint,
                                      final TermStruct predicate) {
     return
@@ -132,24 +132,24 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
             null;
   }
 
-  @JProlPredicate(determined = true, signature = "=/2", args = "?term,?term", reference = "Unify X and Y terms. It is true if X and Y are unifiable.")
+  @JProlPredicate(determined = true, signature = "=/2", validate = "?term,?term", reference = "Unify X and Y terms. It is true if X and Y are unifiable.")
   public static boolean predicateEQU(final JProlChoicePoint choicePoint,
                                      final TermStruct predicate) {
-    return predicate.getArgumentAt(0).unifyTo(predicate.getArgumentAt(1));
+    return predicate.getArgumentAt(0).unifyWith(predicate.getArgumentAt(1));
   }
 
-  @JProlPredicate(determined = true, signature = "\\=/2", args = "@term,@term", reference = "Unify X and Y terms. It is true if X and Y are not-unifiable.")
+  @JProlPredicate(determined = true, signature = "\\=/2", validate = "@term,@term", reference = "Unify X and Y terms. It is true if X and Y are not-unifiable.")
   public static boolean predicateNOTEQU(final JProlChoicePoint choicePoint,
                                         final TermStruct predicate) {
-    return !predicate.getArgumentAt(0).unifyTo(predicate.getArgumentAt(1));
+    return !predicate.getArgumentAt(0).unifyWith(predicate.getArgumentAt(1));
   }
 
-  @JProlPredicate(signature = ";/2", args = ":goal,:goal", reference = "';'(Either, Or) is true if either Either or Or is true.")
+  @JProlPredicate(signature = ";/2", validate = ":goal,:goal", reference = "';'(Either, Or) is true if either Either or Or is true.")
   public static void predicateOR(final JProlChoicePoint choicePoint, final TermStruct predicate) {
     // stub, see Goal#resolve
   }
 
-  @JProlPredicate(signature = ",/2", args = ":goal,:goal", reference = "','(First, Second) is true if and only if First is true and Second is true.")
+  @JProlPredicate(signature = ",/2", validate = ":goal,:goal", reference = "','(First, Second) is true if and only if First is true and Second is true.")
   public static void predicateAND(final JProlChoicePoint choicePoint, final TermStruct predicate) {
     // stub, see Goal#resolve
   }

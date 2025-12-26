@@ -422,7 +422,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     }
   }
 
-  @JProlPredicate(determined = true, signature = "dot/2", args = {
+  @JProlPredicate(determined = true, signature = "dot/2", validate = {
       "+number,+number"}, reference = "Draw a point in the coordinates (X,Y) with the current pen color.")
   public void predicateDOT2(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term termArgX = predicate.getArgumentAt(0).tryGround();
@@ -467,7 +467,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     this.stopAllTimersAndRemoveThem();
   }
 
-  @JProlPredicate(determined = true, signature = "bindtimer/1", args = {
+  @JProlPredicate(determined = true, signature = "bindtimer/1", validate = {
       "+term"}, reference = "Remove registered timer")
   public void predicateBINDTIMER1(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term timerId = predicate.getArgumentAt(0).tryGround();
@@ -478,7 +478,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     }
   }
 
-  @JProlPredicate(determined = true, signature = "bindtimer/3", args = {
+  @JProlPredicate(determined = true, signature = "bindtimer/3", validate = {
       "+atom,+integer,+callable"}, reference = "Bind a goal to a timer (timerId, delay, action) which can be selected by user.")
   public void predicateBINDTIMER3(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term timerId = predicate.getArgumentAt(0).tryGround();
@@ -512,7 +512,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   }
 
   @JProlPredicate(determined = true, signature = "bindmouse/2",
-      args = "+atom,+callable",
+      validate = "+atom,+callable",
       reference = "List in format [x,y,clicksOrWheel,mouseAction]. Bind mouse actions.")
   public void predicateBINDMOUSE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term action = predicate.getArgumentAt(0).tryGround();
@@ -535,7 +535,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     list.add(new JProlMouseAction((TermStruct) callable, goal.getContext()));
   }
 
-  @JProlPredicate(determined = true, signature = "bindaction/1", args = {
+  @JProlPredicate(determined = true, signature = "bindaction/1", validate = {
       "+term"}, reference = "Remove a goal bound to an action menu item.")
   public void predicateBINDACTION1(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term menuItem = predicate.getArgumentAt(0).tryGround();
@@ -559,7 +559,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     }
   }
 
-  @JProlPredicate(determined = true, signature = "bindaction/2", args = {
+  @JProlPredicate(determined = true, signature = "bindaction/2", validate = {
       "+term,+callable"}, reference = "Bind a goal to an action menu item (menu_item_name, action) which can be selected by user.")
   public void predicateBINDACTION2(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term menuItem = predicate.getArgumentAt(0).tryGround();
@@ -617,7 +617,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     });
   }
 
-  @JProlPredicate(determined = true, signature = "rectangle/4", args = {
+  @JProlPredicate(determined = true, signature = "rectangle/4", validate = {
       "+number,+number,+number,+number"}, reference = "Draw a rectangle in the coordinates (X,Y,Width,Height) with the current pen color.")
   public void predicateRECTANGLE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term term0 = predicate.getArgumentAt(0).tryGround();
@@ -642,7 +642,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     this.repaintLabel();
   }
 
-  @JProlPredicate(determined = true, signature = "fillrectangle/4", args = {
+  @JProlPredicate(determined = true, signature = "fillrectangle/4", validate = {
       "+number,+number,+number,+number"}, reference = "Fill a rectangle in the coordinates (X,Y,Width,Height) with the current brush color.")
   public void predicateFILLRECTANGLE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term term0 = predicate.getArgumentAt(0).tryGround();
@@ -665,7 +665,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     this.repaintLabel();
   }
 
-  @JProlPredicate(determined = true, signature = "plot/4", args = {
+  @JProlPredicate(determined = true, signature = "plot/4", validate = {
       "+number,+number,+number,+number"}, reference = "Draw a line (X1,Y1,X2,Y2) with the current pen color.")
   public void predicatePLOT(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term targx = predicate.getArgumentAt(0).tryGround();
@@ -693,7 +693,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     this.repaintLabel();
   }
 
-  @JProlPredicate(determined = true, signature = "plot/2", args = {
+  @JProlPredicate(determined = true, signature = "plot/2", validate = {
       "+number,+number"}, reference = "Draw a line from the last point to (X,Y) with the current pen color.")
   public void predicatePLOT2(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term targetX = predicate.getArgumentAt(0).tryGround();
@@ -716,7 +716,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     this.repaintLabel();
   }
 
-  @JProlPredicate(determined = true, signature = "oval/4", args = {
+  @JProlPredicate(determined = true, signature = "oval/4", validate = {
       "+number,+number,+number,+number"}, reference = "Draw an oval into a rectangle area with parameters (X,Y,Width,Height) with the current pen color.")
   public void predicateOVAL(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term termX = predicate.getArgumentAt(0).tryGround();
@@ -741,7 +741,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     this.repaintLabel();
   }
 
-  @JProlPredicate(determined = true, signature = "filloval/4", args = {
+  @JProlPredicate(determined = true, signature = "filloval/4", validate = {
       "+number,+number,+number,+number"}, reference = "Fill an oval into a rectangular area with coordinates (X,Y,Width,Height) with the current pen color.")
   public void predicateFILLOVAL(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term termX = predicate.getArgumentAt(0).tryGround();
@@ -780,12 +780,12 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     this.repaintLabel();
   }
 
-  @JProlPredicate(signature = "brushcolor/1", args = {
+  @JProlPredicate(signature = "brushcolor/1", validate = {
       "?atom"}, reference = "Change or get the current brush color. If it can't set color then it will return false")
   public boolean predicateBRUSHCOLOR(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).tryGround();
     if (arg.getTermType() == VAR) {
-      return arg.unifyTo(getColorAsTerm(brushColor.get()));
+      return arg.unifyWith(getColorAsTerm(brushColor.get()));
     }
 
     final String text = arg.getText();
@@ -801,7 +801,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     return true;
   }
 
-  @JProlPredicate(determined = true, signature = "settitle/1", args = {
+  @JProlPredicate(determined = true, signature = "settitle/1", validate = {
       "+atom"}, reference = "Set the title for the current graphic screen")
   public void predicateSETTITLE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term term = predicate.getArgumentAt(0).tryGround();
@@ -814,12 +814,12 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     });
   }
 
-  @JProlPredicate(determined = true, signature = "pencolor/1", args = {
+  @JProlPredicate(determined = true, signature = "pencolor/1", validate = {
       "?atom"}, reference = "Change or get the current pen color. If it can't set color then it will return false")
   public boolean predicatePENCOLOR(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).tryGround();
     if (arg.getTermType() == VAR) {
-      return arg.unifyTo(getColorAsTerm(penColor.get()));
+      return arg.unifyWith(getColorAsTerm(penColor.get()));
     }
 
     final String text = arg.getText();
@@ -866,7 +866,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     });
   }
 
-  @JProlPredicate(determined = true, signature = "play_sound/2", args = {
+  @JProlPredicate(determined = true, signature = "play_sound/2", validate = {
       "+number,+number"}, reference = "Arguments (frequency_hz,length_ms). Generate sound tone with frequency in hertz and length in milliseconds.")
   public void predicatePLAYSOUND(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term freqHz = predicate.getArgumentAt(0).tryGround();
@@ -923,7 +923,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     }
   }
 
-  @JProlPredicate(determined = true, signature = "draw_sprite/3", args = {
+  @JProlPredicate(determined = true, signature = "draw_sprite/3", validate = {
       "+atom, +number, +number"}, reference = "Arguments (sprite_id, x, y). Draw a sprite by its sprite id at coordinates.")
   public boolean predicateDRAWSPRITE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term path = predicate.getArgumentAt(0).tryGround();
@@ -948,7 +948,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     }
   }
 
-  @JProlPredicate(determined = true, signature = "load_sprite/2", args = {
+  @JProlPredicate(determined = true, signature = "load_sprite/2", validate = {
       "+atom,+atom"}, reference = "Arguments (sprite_id, image_path). Format can be 'png','jpg' or 'gif'. Load sprite from file and keep it as named by sprite id. It can throw 'permission_error' exception if it is not possible to read the image.")
   public boolean predicateLOADSPRITE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term spriteId = predicate.getArgumentAt(0).tryGround();
@@ -974,7 +974,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     }
   }
 
-  @JProlPredicate(determined = true, signature = "play_soundclip/2", args = {
+  @JProlPredicate(determined = true, signature = "play_soundclip/2", validate = {
       "+atom, +number"}, reference = "Arguments (soundclip_id, loop). Play sound clip.")
   public boolean predicatePLAYSOUNDCLIP2(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term soundClipId = predicate.getArgumentAt(0).tryGround();
@@ -989,7 +989,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     }
   }
 
-  @JProlPredicate(determined = true, signature = "play_soundclip/1", args = {
+  @JProlPredicate(determined = true, signature = "play_soundclip/1", validate = {
       "+atom"}, reference = "Arguments (soundclip_id). Play sound clip.")
   public boolean predicatePLAYSOUNDCLIP1(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term soundClipId = predicate.getArgumentAt(0).tryGround();
@@ -1003,7 +1003,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     }
   }
 
-  @JProlPredicate(determined = true, signature = "stop_soundclip/1", args = {
+  @JProlPredicate(determined = true, signature = "stop_soundclip/1", validate = {
       "+atom"}, reference = "Arguments (soundclip_id). Stop play sound clip.")
   public boolean predicateSTOPSOUNDCLIP(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term soundClipId = predicate.getArgumentAt(0).tryGround();
@@ -1017,7 +1017,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     }
   }
 
-  @JProlPredicate(determined = true, signature = "is_soundclip_playing/1", args = {
+  @JProlPredicate(determined = true, signature = "is_soundclip_playing/1", validate = {
       "+atom"}, reference = "Arguments (soundclip_id). Check sound clip play status.")
   public boolean predicateISSOUNDCLIPPLAYING(final JProlChoicePoint goal,
                                              final TermStruct predicate) {
@@ -1031,7 +1031,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     }
   }
 
-  @JProlPredicate(determined = true, signature = "load_soundclip/2", args = {
+  @JProlPredicate(determined = true, signature = "load_soundclip/2", validate = {
       "+atom,+atom"}, reference = "Arguments (soundclip_id, soundclip_path). Format can be AIFF, AU or WAV. Load sound clip from file and keep it as named by sound clip id. It can throw 'permission_error' exception if it is not possible to read the file.")
   public boolean predicateLOADSOUNDCLIP(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term soundClipId = predicate.getArgumentAt(0).tryGround();
@@ -1057,7 +1057,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     }
   }
 
-  @JProlPredicate(determined = true, signature = "saveimage/2", args = {
+  @JProlPredicate(determined = true, signature = "saveimage/2", validate = {
       "+atom,+atom"}, reference = "Arguments (image_name,format_name). Format can be 'png','jpg' or 'gif'. Save the current graphic buffer state as a named image with the type. It can throw 'permission_error' exception if it is not possible to write the image.")
   public void predicateSAVEIMAGE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).tryGround();
@@ -1067,7 +1067,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         format.getText().trim().toLowerCase(), predicate);
   }
 
-  @JProlPredicate(determined = true, signature = "graphics/2", args = {
+  @JProlPredicate(determined = true, signature = "graphics/2", validate = {
       "?integer,?integer"}, reference = "Change or get the graphic screen size (width,height) and fill it with the current background color. Pay attention, the predicate creates the new offscreen buffer so don't use it to clear screen.")
   public boolean predicateGRAPHICS(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term width = predicate.getArgumentAt(0).tryGround();
@@ -1081,13 +1081,13 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       int height2 = heightOrig;
 
       if (width.getTermType() == VAR) {
-        width.unifyTo(Terms.newLong(widthOrig));
+        width.unifyWith(Terms.newLong(widthOrig));
       } else {
         width2 = width.toNumber().intValue();
       }
 
       if (height.getTermType() == VAR) {
-        height.unifyTo(Terms.newLong(widthOrig));
+        height.unifyWith(Terms.newLong(widthOrig));
       } else {
         height2 = height.toNumber().intValue();
       }
@@ -1361,7 +1361,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
           new Term[] {Terms.newLong(x), Terms.newLong(y), Terms.newAtom(button),
               Terms.newLong(clicksOrWheel),
               Terms.newAtom(actionId)});
-      if (clone.unifyTo(args)) {
+      if (clone.unifyWith(args)) {
         try {
           this.context.asyncProveAll(clone, this.context.isShareKnowledgeBaseBetweenThreads());
           return true;
@@ -1394,7 +1394,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         final TermStruct clone = (TermStruct) this.action.makeClone();
         final TermStruct args = Terms.newStruct(clone.getFunctor(), new Term[] {Terms.newAtom(id)});
 
-        if (clone.unifyTo(args)) {
+        if (clone.unifyWith(args)) {
           this.context.asyncProveAll(clone, this.context.isShareKnowledgeBaseBetweenThreads());
           return true;
         }

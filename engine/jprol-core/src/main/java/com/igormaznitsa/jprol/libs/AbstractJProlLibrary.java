@@ -63,6 +63,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -193,7 +194,7 @@ public abstract class AbstractJProlLibrary {
   }
 
   protected static boolean assertUnify(final Term a, final Term b) {
-    if (!a.unifyTo(b)) {
+    if (!a.unifyWith(b)) {
       throw new ProlCriticalError(
           "Can't unify terms, it's critical unexpected error, contact developer!");
     }
@@ -292,7 +293,7 @@ public abstract class AbstractJProlLibrary {
                       predicateIndicator.getSourcePosition())
               });
         })
-        .filter(predicateIndicator::dryUnifyTo)
+        .filter(predicateIndicator::isUnifiableWith)
         .collect(Collectors.toList());
   }
 
@@ -395,6 +396,9 @@ public abstract class AbstractJProlLibrary {
                     Stream.of(predicateAnnotation.synonyms()))
                 .collect(Collectors.toList());
 
+        final List<List<AutoArgumentValidator.ModificatorArgument>> validateTypes =
+            AutoArgumentValidator.parse(predicateAnnotation.validate());
+
         for (final String s : signatures) {
           final ProlPair<String, Integer> signaturePair = ProlUtils.parseSignaturePair(s);
           final String reassembledSignature =
@@ -405,14 +409,16 @@ public abstract class AbstractJProlLibrary {
                 "Duplicated predicate method " + reassembledSignature + " at " + libraryUID);
           }
 
+          final Predicate<TermStruct> termValidator =
+              AutoArgumentValidator.makeFor(signaturePair.getRight(), validateTypes, true);
+
           final PredicateInvoker invoker =
               new PredicateInvoker(this,
                   predicateAnnotation.guarded(),
                   predicateAnnotation.determined(),
                   predicateAnnotation.evaluable(),
                   predicateAnnotation.changesChooseChain(),
-                  AutoArgumentValidator.makeFor(signaturePair.getRight(),
-                      predicateAnnotation.args(), true),
+                  termValidator,
                   reassembledSignature,
                   method);
 

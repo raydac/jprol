@@ -92,7 +92,12 @@ public class MainForm extends JFrame implements LifeGameFieldRender.ClickCellLis
 
     this.lifeGameFieldRender.addClickCellListener(this);
 
-    this.prolContext = new JProlContext("JProl E-life example", new JProlCoreLibrary());
+    this.prolContext = new JProlContext("JProl E-life example", new JProlCoreLibrary()) {
+      @Override
+      public boolean isVerify() {
+        return false;
+      }
+    };
     this.prolContext.addLibrary(new LifeLibrary(this.lifeGameField));
 
     this.pack();
@@ -101,7 +106,7 @@ public class MainForm extends JFrame implements LifeGameFieldRender.ClickCellLis
   private void startTimer() {
     if (this.startButton.isSelected()) {
       this.currentTimerTask.ifPresent(TimerTask::cancel);
-      final int delay = this.timeSlider.getValue() * 10;
+      final int delay = this.timeSlider.getValue() * 5;
 
       final TimerTask newTimerTask = new TimerTask() {
         @Override
@@ -110,7 +115,7 @@ public class MainForm extends JFrame implements LifeGameFieldRender.ClickCellLis
         }
       };
       this.currentTimerTask = Optional.of(newTimerTask);
-      this.timer.scheduleAtFixedRate(newTimerTask, 0, delay);
+      this.timer.schedule(newTimerTask, 0, delay);
     }
   }
 

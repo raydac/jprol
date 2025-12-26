@@ -29,31 +29,31 @@ public class LifeLibrary extends AbstractJProlLibrary {
     this.field = Objects.requireNonNull(field);
   }
 
-  @JProlPredicate(signature = "field_width/1", args = "?number", determined = true)
+  @JProlPredicate(signature = "field_width/1", validate = "?number", determined = true)
   public boolean fieldWidth(final JProlChoicePoint choicePoint, final TermStruct struct) {
-    final Term term = struct.getArgumentAt(0).findGroundOrSame();
-    return term.unifyTo(WIDTH);
+    final Term term = struct.getArgumentAt(0).tryGround();
+    return term.unifyWith(WIDTH);
   }
 
-  @JProlPredicate(signature = "field_height/1", args = "?number", determined = true)
+  @JProlPredicate(signature = "field_height/1", validate = "?number", determined = true)
   public boolean fieldHeight(final JProlChoicePoint choicePoint, final TermStruct struct) {
-    final Term term = struct.getArgumentAt(0).findGroundOrSame();
-    return term.unifyTo(HEIGHT);
+    final Term term = struct.getArgumentAt(0).tryGround();
+    return term.unifyWith(HEIGHT);
   }
 
-  @JProlPredicate(signature = "cell_state/3", args = "+number,+number,?atom", determined = true)
+  @JProlPredicate(signature = "cell_state/3", validate = "+number,+number,?atom", determined = true)
   public boolean isCellSet(final JProlChoicePoint choicePoint, final TermStruct struct) {
-    final int x = struct.getArgumentAt(0).findGroundOrSame().toNumber().intValue();
-    final int y = struct.getArgumentAt(1).findGroundOrSame().toNumber().intValue();
-    final Term state = struct.getArgumentAt(2).findGroundOrSame();
-    return state.unifyTo(this.field.get(x, y) ? CELL_LIVE : CELL_DEAD);
+    final int x = struct.getArgumentAt(0).tryGround().toNumber().intValue();
+    final int y = struct.getArgumentAt(1).tryGround().toNumber().intValue();
+    final Term state = struct.getArgumentAt(2).tryGround();
+    return state.unifyWith(this.field.get(x, y) ? CELL_LIVE : CELL_DEAD);
   }
 
-  @JProlPredicate(signature = "count_neighbors/3", args = "+number,+number,?number", determined = true)
+  @JProlPredicate(signature = "count_neighbors/3", validate = "+number,+number,?number", determined = true)
   public boolean countNeighbors(final JProlChoicePoint choicePoint, final TermStruct struct) {
-    final int x = struct.getArgumentAt(0).findGroundOrSame().toNumber().intValue();
-    final int y = struct.getArgumentAt(1).findGroundOrSame().toNumber().intValue();
-    final Term n = struct.getArgumentAt(2).findGroundOrSame();
+    final int x = struct.getArgumentAt(0).tryGround().toNumber().intValue();
+    final int y = struct.getArgumentAt(1).tryGround().toNumber().intValue();
+    final Term n = struct.getArgumentAt(2).tryGround();
 
     int counter = 0;
     for (int dy = -1; dy <= 1; dy++) {
@@ -64,20 +64,20 @@ public class LifeLibrary extends AbstractJProlLibrary {
 
     final TermLong counterTerm = Terms.newLong(counter);
 
-    return n.unifyTo(counterTerm);
+    return n.unifyWith(counterTerm);
   }
 
-  @JProlPredicate(signature = "set_cell/2", args = "+number,+number", determined = true)
+  @JProlPredicate(signature = "set_cell/2", validate = "+number,+number", determined = true)
   public void setCell(final JProlChoicePoint choicePoint, final TermStruct struct) {
-    final int x = struct.getArgumentAt(0).findGroundOrSame().toNumber().intValue();
-    final int y = struct.getArgumentAt(1).findGroundOrSame().toNumber().intValue();
+    final int x = struct.getArgumentAt(0).tryGround().toNumber().intValue();
+    final int y = struct.getArgumentAt(1).tryGround().toNumber().intValue();
     this.field.setNext(x, y, true);
   }
 
-  @JProlPredicate(signature = "reset_cell/2", args = "+number,+number", determined = true)
+  @JProlPredicate(signature = "reset_cell/2", validate = "+number,+number", determined = true)
   public void resetCell(final JProlChoicePoint choicePoint, final TermStruct struct) {
-    final int x = struct.getArgumentAt(0).findGroundOrSame().toNumber().intValue();
-    final int y = struct.getArgumentAt(1).findGroundOrSame().toNumber().intValue();
+    final int x = struct.getArgumentAt(0).tryGround().toNumber().intValue();
+    final int y = struct.getArgumentAt(1).tryGround().toNumber().intValue();
     this.field.setNext(x, y, false);
   }
 

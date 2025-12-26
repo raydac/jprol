@@ -11,6 +11,6 @@ final class RhsItemComplex extends InMemoryItem {
 
   @Override
   public boolean matches(final Term rightHandSide) {
-    return this.rightHandSide.makeClone().unifyTo(rightHandSide.makeClone());
+    return this.rightHandSide.makeClone().unifyWith(rightHandSide.makeClone());
   }
 }

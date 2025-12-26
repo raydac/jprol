@@ -519,7 +519,7 @@ class JProlScriptEngineTest {
 
     @JProlPredicate(
         signature = "greet/1",
-        args = {"+atom"},
+        validate = {"+atom"},
         determined = true,
         reference = "Greet someone by name"
     )
@@ -541,19 +541,19 @@ class JProlScriptEngineTest {
 
     @JProlPredicate(
         signature = "square/2",
-        args = {"+number,?number"},
+        validate = {"+number,?number"},
         determined = true,
         reference = "Calculate square of a number"
     )
     public static boolean predicateSquare(JProlChoicePoint goal, TermStruct predicate) {
       NumericTerm input = predicate.getArgumentAt(0).tryGround();
       long value = input.toNumber().longValue();
-      return predicate.getArgumentAt(1).tryGround().unifyTo(Terms.newLong(value * value));
+      return predicate.getArgumentAt(1).tryGround().unifyWith(Terms.newLong(value * value));
     }
 
     @JProlPredicate(
         signature = "cube/2",
-        args = {"+number,?number"},
+        validate = {"+number,?number"},
         determined = true,
         reference = "Calculate cube of a number"
     )
@@ -561,12 +561,12 @@ class JProlScriptEngineTest {
       NumericTerm input = predicate.getArgumentAt(0).tryGround();
       long value = input.toNumber().longValue();
       return predicate.getArgumentAt(1).tryGround()
-          .unifyTo(Terms.newLong(value * value * value));
+          .unifyWith(Terms.newLong(value * value * value));
     }
 
     @JProlPredicate(
         signature = "factorial_custom/2",
-        args = {"+integer,?integer"},
+        validate = {"+integer,?integer"},
         determined = true,
         reference = "Calculate factorial"
     )
@@ -579,12 +579,12 @@ class JProlScriptEngineTest {
         result *= i;
       }
 
-      return predicate.getArgumentAt(1).tryGround().unifyTo(Terms.newLong(result));
+      return predicate.getArgumentAt(1).tryGround().unifyWith(Terms.newLong(result));
     }
 
     @JProlPredicate(
         signature = "is_even/1",
-        args = {"+integer"},
+        validate = {"+integer"},
         determined = true,
         reference = "Check if number is even"
     )
@@ -596,7 +596,7 @@ class JProlScriptEngineTest {
 
     @JProlPredicate(
         signature = "is_odd/1",
-        args = {"+integer"},
+        validate = {"+integer"},
         determined = true,
         reference = "Check if number is odd"
     )
@@ -618,7 +618,7 @@ class JProlScriptEngineTest {
 
     @JProlPredicate(
         signature = "str_upper/2",
-        args = {"+atom,?atom"},
+        validate = {"+atom,?atom"},
         determined = true,
         reference = "Convert string to uppercase"
     )
@@ -626,12 +626,12 @@ class JProlScriptEngineTest {
       Term input = predicate.getArgumentAt(0).tryGround();
       String text = input.getText();
       return predicate.getArgumentAt(1).tryGround()
-          .unifyTo(Terms.newAtom(text.toUpperCase()));
+          .unifyWith(Terms.newAtom(text.toUpperCase()));
     }
 
     @JProlPredicate(
         signature = "str_lower/2",
-        args = {"+atom,?atom"},
+        validate = {"+atom,?atom"},
         determined = true,
         reference = "Convert string to lowercase"
     )
@@ -639,24 +639,24 @@ class JProlScriptEngineTest {
       Term input = predicate.getArgumentAt(0).tryGround();
       String text = input.getText();
       return predicate.getArgumentAt(1).tryGround()
-          .unifyTo(Terms.newAtom(text.toLowerCase()));
+          .unifyWith(Terms.newAtom(text.toLowerCase()));
     }
 
     @JProlPredicate(
         signature = "str_length/2",
-        args = {"+atom,?integer"},
+        validate = {"+atom,?integer"},
         determined = true,
         reference = "Get length of string"
     )
     public static boolean predicateStrLength(JProlChoicePoint goal, TermStruct predicate) {
       Term input = predicate.getArgumentAt(0).tryGround();
       String text = input.getText();
-      return predicate.getArgumentAt(1).tryGround().unifyTo(Terms.newLong(text.length()));
+      return predicate.getArgumentAt(1).tryGround().unifyWith(Terms.newLong(text.length()));
     }
 
     @JProlPredicate(
         signature = "str_reverse/2",
-        args = {"+atom,?atom"},
+        validate = {"+atom,?atom"},
         determined = true,
         reference = "Reverse a string"
     )
@@ -664,12 +664,12 @@ class JProlScriptEngineTest {
       Term input = predicate.getArgumentAt(0).tryGround();
       String text = input.getText();
       String reversed = new StringBuilder(text).reverse().toString();
-      return predicate.getArgumentAt(1).tryGround().unifyTo(Terms.newAtom(reversed));
+      return predicate.getArgumentAt(1).tryGround().unifyWith(Terms.newAtom(reversed));
     }
 
     @JProlPredicate(
         signature = "str_concat_custom/3",
-        args = {"+term,+term,?term"},
+        validate = {"+term,+term,?term"},
         determined = true,
         reference = "Concatenate two strings"
     )
@@ -677,7 +677,7 @@ class JProlScriptEngineTest {
       Term input1 = predicate.getArgumentAt(0).tryGround();
       Term input2 = predicate.getArgumentAt(1).tryGround();
       String result = input1.getText() + input2.getText();
-      return predicate.getArgumentAt(2).tryGround().unifyTo(Terms.newAtom(result));
+      return predicate.getArgumentAt(2).tryGround().unifyWith(Terms.newAtom(result));
     }
   }
 
@@ -692,18 +692,18 @@ class JProlScriptEngineTest {
 
     @JProlPredicate(
         signature = "current_timestamp/1",
-        args = {"?integer"},
+        validate = {"?integer"},
         determined = true,
         reference = "Get current Unix timestamp"
     )
     public static boolean predicateCurrentTimestamp(JProlChoicePoint goal, TermStruct predicate) {
       final Term term = predicate.getArgumentAt(0).tryGround();
-      return term.unifyTo(Terms.newLong(System.currentTimeMillis() / 1000L));
+      return term.unifyWith(Terms.newLong(System.currentTimeMillis() / 1000L));
     }
 
     @JProlPredicate(
         signature = "current_date/3",
-        args = {"?integer,?integer,?integer"},
+        validate = {"?integer,?integer,?integer"},
         determined = true,
         reference = "Get current date as year, month, day"
     )
@@ -711,11 +711,11 @@ class JProlScriptEngineTest {
       final Calendar cal = Calendar.getInstance();
       return
           predicate.getArgumentAt(0).tryGround()
-              .unifyTo(Terms.newLong(cal.get(Calendar.YEAR)))
+              .unifyWith(Terms.newLong(cal.get(Calendar.YEAR)))
               && predicate.getArgumentAt(1).tryGround()
-              .unifyTo(Terms.newLong(cal.get(Calendar.MONTH) + 1))
+              .unifyWith(Terms.newLong(cal.get(Calendar.MONTH) + 1))
               && predicate.getArgumentAt(2).tryGround()
-              .unifyTo(Terms.newLong(cal.get(Calendar.DAY_OF_MONTH)));
+              .unifyWith(Terms.newLong(cal.get(Calendar.DAY_OF_MONTH)));
     }
   }
 
@@ -730,7 +730,7 @@ class JProlScriptEngineTest {
 
     @JProlPredicate(
         signature = "list_unique/2",
-        args = {"+list,?list"},
+        validate = {"+list,?list"},
         determined = true,
         reference = "Remove duplicates from list"
     )
@@ -757,12 +757,12 @@ class JProlScriptEngineTest {
       }
 
       // Build result list
-      return predicate.getArgumentAt(1).tryGround().unifyTo(TermList.asList(uniqueTerms));
+      return predicate.getArgumentAt(1).tryGround().unifyWith(TermList.asList(uniqueTerms));
     }
 
     @JProlPredicate(
         signature = "list_sum_custom/2",
-        args = {"+list,?number"},
+        validate = {"+list,?number"},
         determined = true,
         reference = "Calculate sum of numeric list"
     )
@@ -786,7 +786,7 @@ class JProlScriptEngineTest {
         }
       }
 
-      return predicate.getArgumentAt(1).tryGround().unifyTo(Terms.newLong(sum));
+      return predicate.getArgumentAt(1).tryGround().unifyWith(Terms.newLong(sum));
     }
   }
 }

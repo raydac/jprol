@@ -411,7 +411,7 @@ public class TermStruct extends CompoundTerm {
   }
 
   @Override
-  public boolean unifyTo(final Term atom) {
+  public boolean unifyWith(final Term atom) {
     if (this == atom) {
       return true;
     }
@@ -424,11 +424,11 @@ public class TermStruct extends CompoundTerm {
         final int arity = thisStruct.getArity();
 
         if (arity == thatStruct.getArity() &&
-            thisStruct.getFunctor().unifyTo(thatStruct.getFunctor())) {
+            thisStruct.getFunctor().unifyWith(thatStruct.getFunctor())) {
           for (int li = 0; li < arity; li++) {
             final Term thisElement = thisStruct.getArgumentAt(li);
             final Term thatElement = thatStruct.getArgumentAt(li);
-            if (thisElement != thatElement && !thisElement.unifyTo(thatElement)) {
+            if (thisElement != thatElement && !thisElement.unifyWith(thatElement)) {
               return false;
             }
           }
@@ -446,7 +446,7 @@ public class TermStruct extends CompoundTerm {
           if (value == this) {
             return true;
           }
-          return value.unifyTo(this);
+          return value.unifyWith(this);
         }
       }
       case ATOM: {
@@ -457,7 +457,7 @@ public class TermStruct extends CompoundTerm {
   }
 
   @Override
-  public boolean dryUnifyTo(Term target) {
+  public boolean isUnifiableWith(Term target) {
     if (this == target) {
       return true;
     }
@@ -481,9 +481,9 @@ public class TermStruct extends CompoundTerm {
       final int arity = thisStruct.getArity();
 
       if (arity == thatStruct.getArity() &&
-          thisStruct.getFunctor().dryUnifyTo(thatStruct.getFunctor())) {
+          thisStruct.getFunctor().isUnifiableWith(thatStruct.getFunctor())) {
         for (int li = 0; li < arity; li++) {
-          if (!thisStruct.getArgumentAt(li).dryUnifyTo(thatStruct.getArgumentAt(li))) {
+          if (!thisStruct.getArgumentAt(li).isUnifiableWith(thatStruct.getArgumentAt(li))) {
             return false;
           }
         }

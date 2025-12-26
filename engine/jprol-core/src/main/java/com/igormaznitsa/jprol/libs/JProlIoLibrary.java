@@ -115,7 +115,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @JProlPredicate(determined = true, signature = "consult/1", args = {"+atom",
+  @JProlPredicate(determined = true, signature = "consult/1", validate = {"+atom",
       "+list"}, guarded = true, reference = "Take an atom as URI of resource, or a list contains resource URIs and load all them as Prolog sources. Allowed schemes 'file:', 'resource:', 'classpath'")
   public void predicateCONSULT(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term argument = predicate.getArgumentAt(0).tryGround();
@@ -232,7 +232,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     return this.findContextObject(context, READERS_MAP, id -> new ConcurrentHashMap<>());
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "put/1", args = "+number", reference = "Write a char for its code into the current output stream.")
+  @JProlPredicate(guarded = true, determined = true, signature = "put/1", validate = "+number", reference = "Write a char for its code into the current output stream.")
   public final void predicatePUT(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).tryGround();
     final Writer current = getIoWriters(goal.getContext()).get(CURRENT_STREAM_ID);
@@ -246,7 +246,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "get/1", args = "?number", reference = "Read next non-blank char code from the current input stream.")
+  @JProlPredicate(guarded = true, determined = true, signature = "get/1", validate = "?number", reference = "Read next non-blank char code from the current input stream.")
   public final boolean predicateGET(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).tryGround();
     return findCurrentInput(goal.getContext(), predicate).map(reader -> {
@@ -268,14 +268,14 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
           return false;
         }
 
-        return arg.unifyTo(Terms.newLong(code));
+        return arg.unifyWith(Terms.newLong(code));
       } catch (IOException ex) {
         throw new ProlPermissionErrorException("read", "text_input", predicate);
       }
     }).orElseThrow(() -> new ProlPermissionErrorException("read", "text_input", predicate));
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "get0/1", args = "?number", reference = "Read next char code from the current input stream.")
+  @JProlPredicate(guarded = true, determined = true, signature = "get0/1", validate = "?number", reference = "Read next char code from the current input stream.")
   public final boolean predicateGET0(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).tryGround();
     return findCurrentInput(goal.getContext(), predicate).map(reader -> {
@@ -285,14 +285,14 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
         if (nextCode >= 0) {
           code = nextCode;
         }
-        return arg.unifyTo(Terms.newLong(code));
+        return arg.unifyWith(Terms.newLong(code));
       } catch (IOException ex) {
         throw new ProlPermissionErrorException("read", "text_input", predicate);
       }
     }).orElseThrow(() -> new ProlPermissionErrorException("read", "text_input", predicate));
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "read/1", args = "-term", reference = "Read  the next Prolog term from the current input stream.")
+  @JProlPredicate(guarded = true, determined = true, signature = "read/1", validate = "-term", reference = "Read  the next Prolog term from the current input stream.")
   public final boolean predicateRead(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).tryGround();
     final Optional<InternalReader> current = findCurrentInput(goal.getContext(), arg);
@@ -310,13 +310,13 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
       final Term asTerm =
           nextTerm == null ? END_OF_FILE : Terms.fromParsed(goal.getContext(), nextTerm);
 
-      return arg.unifyTo(asTerm);
+      return arg.unifyWith(asTerm);
     } else {
       throw new ProlPermissionErrorException("read", "text_input", predicate);
     }
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "read_line_to_string/2", args = "-term,?string", reference = "Read line of chars from input as atom.")
+  @JProlPredicate(guarded = true, determined = true, signature = "read_line_to_string/2", validate = "-term,?string", reference = "Read line of chars from input as atom.")
   public final boolean predicateReadLineToString(final JProlChoicePoint goal,
                                                  final TermStruct predicate) {
     final Term readerId = predicate.getArgumentAt(0).tryGround();
@@ -342,7 +342,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
       if (goal.getContext().isDisposed()) {
         return false;
       }
-      return stringTerm.unifyTo(newAtom(buffer.toString()));
+      return stringTerm.unifyWith(newAtom(buffer.toString()));
     } else {
       throw new ProlPermissionErrorException("read", "text_input", goal.getGoalTerm());
     }
@@ -385,7 +385,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
   }
 
 
-  @JProlPredicate(guarded = true, determined = true, signature = "see/1", args = "+atom", reference = "Open source for reading and make it the current input")
+  @JProlPredicate(guarded = true, determined = true, signature = "see/1", validate = "+atom", reference = "Open source for reading and make it the current input")
   public final void predicateSEE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).tryGround();
     final String name = arg.getText();
@@ -406,7 +406,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "tell/1", args = "+atom", reference = "Open SrcDest for writing and make it the current output")
+  @JProlPredicate(guarded = true, determined = true, signature = "tell/1", validate = "+atom", reference = "Open SrcDest for writing and make it the current output")
   public final void predicateTELL(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).findGroundOrDefault(null);
     final String name = arg.getText();
@@ -427,7 +427,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "write/1", args = "+term", reference = "Write a term into the current output stream.")
+  @JProlPredicate(guarded = true, determined = true, signature = "write/1", validate = "+term", reference = "Write a term into the current output stream.")
   public final boolean predicateWrite(final JProlChoicePoint goal, final TermStruct predicate) {
     return findCurrentOutput(goal.getContext(), predicate).map(writer -> {
       try {
@@ -439,7 +439,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }).orElseThrow(() -> new ProlPermissionErrorException("write", "text_output", predicate));
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "writeln/1", args = "+term", reference = "Write a term and next line into the current output stream.")
+  @JProlPredicate(guarded = true, determined = true, signature = "writeln/1", validate = "+term", reference = "Write a term and next line into the current output stream.")
   public final boolean predicateWriteln(final JProlChoicePoint goal, final TermStruct predicate) {
     return findCurrentOutput(goal.getContext(), predicate).map(writer -> {
       try {
@@ -452,20 +452,20 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }).orElseThrow(() -> new ProlPermissionErrorException("writeln", "text_output", predicate));
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "seeing/1", synonyms = "current_input/1", args = "?term", reference = "Return the current input stream name.")
+  @JProlPredicate(guarded = true, determined = true, signature = "seeing/1", synonyms = "current_input/1", validate = "?term", reference = "Return the current input stream name.")
   public final boolean predicateSEEING(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).tryGround();
     final InternalReader current = this.getIoReaders(goal.getContext()).get(CURRENT_STREAM_ID);
     final Term result = current == null ? NULL_LIST : current.getStreamId();
-    return arg.unifyTo(result);
+    return arg.unifyWith(result);
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "telling/1", synonyms = "current_output/1", args = "?term", reference = "Return the current output stream name.")
+  @JProlPredicate(guarded = true, determined = true, signature = "telling/1", synonyms = "current_output/1", validate = "?term", reference = "Return the current output stream name.")
   public final boolean predicateTELLING(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).tryGround();
     final InternalWriter current = this.getIoWriters(goal.getContext()).get(CURRENT_STREAM_ID);
     final Term result = current == null ? NULL_LIST : current.getStreamId();
-    return arg.unifyTo(result);
+    return arg.unifyWith(result);
   }
 
   @JProlPredicate(guarded = true, determined = true, signature = "told/0", reference = "Close the current output stream.")
@@ -492,7 +492,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }).orElseThrow(() -> new ProlPermissionErrorException("write", "text_stream", predicate));
   }
 
-  @JProlPredicate(guarded = true, signature = "time/1", args = "+callable", reference = "Execute  Goal just but  print used time, It supports choice point (!) for inside goal.")
+  @JProlPredicate(guarded = true, signature = "time/1", validate = "+callable", reference = "Execute  Goal just but  print used time, It supports choice point (!) for inside goal.")
   public boolean predicateTime(final JProlChoicePoint goal, final TermStruct predicate) {
     final long time = System.nanoTime();
     final boolean result = predicateCALL(goal, predicate);
@@ -515,7 +515,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
   }
 
   @SuppressWarnings("resource")
-  @JProlPredicate(guarded = true, determined = true, signature = "tab/1", args = {
+  @JProlPredicate(guarded = true, determined = true, signature = "tab/1", validate = {
       "+integer"}, reference = "Out a number of space symbols into current output stream")
   public final boolean predicateTAB(final JProlChoicePoint goal, final TermStruct predicate)
       throws IOException {

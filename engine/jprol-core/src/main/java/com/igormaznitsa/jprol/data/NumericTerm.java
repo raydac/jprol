@@ -48,7 +48,7 @@ public abstract class NumericTerm extends Term {
   }
 
   @Override
-  public final boolean dryUnifyTo(Term target) {
+  public final boolean isUnifiableWith(Term target) {
     if (this == target) {
       return true;
     }
@@ -68,7 +68,7 @@ public abstract class NumericTerm extends Term {
   }
 
   @Override
-  public final boolean unifyTo(Term atom) {
+  public final boolean unifyWith(Term atom) {
     if (this == atom) {
       return true;
     }
@@ -87,7 +87,7 @@ public abstract class NumericTerm extends Term {
         if (value == null) {
           return ((TermVar) atom).setValue(this);
         } else {
-          return unifyTo(value);
+          return unifyWith(value);
         }
       }
     }

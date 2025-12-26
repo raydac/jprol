@@ -398,7 +398,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
     return sb.toString();
   }
 
-  @JProlPredicate(determined = true, signature = "to_json/2", args = {
+  @JProlPredicate(determined = true, signature = "to_json/2", validate = {
       "+compound,?term"}, reference = "Convert a structure into JSON text as an atom. Converted structure must be in format json([]).")
   public static boolean predicateTO_JSON(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = predicate.getArgumentAt(0).tryGround();
@@ -406,7 +406,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
 
     try {
       final Term converted = Terms.newAtom(toJson((TermStruct) argLeft));
-      return argRight.unifyTo(converted);
+      return argRight.unifyWith(converted);
     } catch (ProlException ex) {
       throw ex;
     } catch (Exception ex) {
@@ -414,7 +414,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @JProlPredicate(determined = true, signature = "from_json/2", args = {
+  @JProlPredicate(determined = true, signature = "from_json/2", validate = {
       "+atom,?term"}, reference = "Create term on base of a JSON string. The result structure is formatted as structure json([..]).")
   public static boolean predicateFROM_JSON(final JProlChoicePoint goal,
                                            final TermStruct predicate) {
@@ -434,7 +434,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
       }
 
       final Term converted = fromJson(argLeft.getText(), equalsOperator, jsonMarkerOperator);
-      return argRight.unifyTo(converted);
+      return argRight.unifyWith(converted);
     } catch (ProlException ex) {
       throw ex;
     } catch (IllegalArgumentException ex) {

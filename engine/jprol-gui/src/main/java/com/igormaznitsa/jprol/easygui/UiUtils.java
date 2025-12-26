@@ -169,7 +169,7 @@ public final class UiUtils {
 
           targetPrintStream.println();
 
-          final String[] templates = predicate.args();
+          final String[] templates = predicate.validate();
           for (String template : templates) {
             targetPrintStream.println('[' + template + ']');
           }

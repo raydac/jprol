@@ -42,7 +42,7 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     super("jprol-str-lib");
   }
 
-  @JProlPredicate(determined = true, signature = "concat/3", args = {"+atom,+atom,?atom",
+  @JProlPredicate(determined = true, signature = "concat/3", validate = {"+atom,+atom,?atom",
       "+atom,?atom,+atom", "?atom,+atom,+atom"},
       reference = "Concat two strings.")
   public static boolean predicateCONCAT(final JProlChoicePoint goal, final TermStruct predicate) {
@@ -54,7 +54,7 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
       if (argSECOND.getTermType() == ATOM) {
         // the first case
         Term term = newAtom(argFIRST.getText() + argSECOND.getText());
-        return argTHIRD.unifyTo(term);
+        return argTHIRD.unifyWith(term);
       } else {
         // the second case
         String startText = argFIRST.getText();
@@ -64,7 +64,7 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
         }
         String endText = fullText.substring(startText.length());
         Term second = newAtom(endText);
-        return argSECOND.unifyTo(second);
+        return argSECOND.unifyWith(second);
       }
     } else {
       // the third case
@@ -75,11 +75,11 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
       }
       String startText = fullText.substring(0, fullText.length() - endText.length());
       Term first = newAtom(startText);
-      return argFIRST.unifyTo(first);
+      return argFIRST.unifyWith(first);
     }
   }
 
-  @JProlPredicate(determined = true, signature = "str_trim/2", args = {
+  @JProlPredicate(determined = true, signature = "str_trim/2", validate = {
       "+atom,?atom"}, reference = "Trim string.")
   public static boolean predicateSTRTRIM(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = predicate.getArgumentAt(0).tryGround();
@@ -87,11 +87,11 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
 
     Term result = newAtom(argLeft.getText().trim());
 
-    return argRight.unifyTo(result);
+    return argRight.unifyWith(result);
   }
 
   @SuppressWarnings("SpellCheckingInspection")
-  @JProlPredicate(determined = true, signature = "frontstr/4", args = {
+  @JProlPredicate(determined = true, signature = "frontstr/4", validate = {
       "+integer,+atom,?atom,?atom"}, reference = "Extracts the first n characters from a string.")
   public static boolean predicateFRONTSTR(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg1 = predicate.getArgumentAt(0).tryGround();
@@ -109,10 +109,10 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     final String fstr = str1.substring(0, numberOfChars);
     final String rstr = str1.substring(numberOfChars);
 
-    return arg3.unifyTo(newAtom(fstr)) && arg4.unifyTo(newAtom(rstr));
+    return arg3.unifyWith(newAtom(fstr)) && arg4.unifyWith(newAtom(rstr));
   }
 
-  @JProlPredicate(determined = true, signature = "str_format/3", args = {
+  @JProlPredicate(determined = true, signature = "str_format/3", validate = {
       "+atom,+list,?atom"}, reference = "Fill template by listed terms and unify it with target atom.")
   public static boolean predicateSTR_FORMAT(final JProlChoicePoint goal,
                                             final TermStruct predicate) {
@@ -140,13 +140,13 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
           return result;
         }).toArray();
     try {
-      return target.unifyTo(Terms.newAtom(String.format(template.getText(), args)));
+      return target.unifyWith(Terms.newAtom(String.format(template.getText(), args)));
     } catch (IllegalFormatException ex) {
       throw new ProlDomainErrorException("Expected valid Java format", template, ex);
     }
   }
 
-  @JProlPredicate(determined = true, signature = "upper_lower/2", args = {"+atom,?atom",
+  @JProlPredicate(determined = true, signature = "upper_lower/2", validate = {"+atom,?atom",
       "?atom,+atom"}, reference = "Allows to make upper or lower case text version of an atom.")
   public static boolean predicateUPPERLOWER(final JProlChoicePoint goal,
                                             final TermStruct predicate) {
@@ -156,15 +156,15 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
     if (argLeft.getTermType() == ATOM) {
       // the first case
       Term term = newAtom(argLeft.getText().toLowerCase());
-      return argRight.unifyTo(term);
+      return argRight.unifyWith(term);
     } else {
       // the second case
       Term term = newAtom(argRight.getText().toUpperCase());
-      return argLeft.unifyTo(term);
+      return argLeft.unifyWith(term);
     }
   }
 
-  @JProlPredicate(determined = true, signature = "str_len/2", args = {
+  @JProlPredicate(determined = true, signature = "str_len/2", validate = {
       "+atom,?integer"}, reference = "Get string length.")
   public static boolean predicateSTRLEN(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = predicate.getArgumentAt(0).tryGround();
@@ -172,10 +172,10 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
 
     TermLong result = newLong(argLeft.getText().length());
 
-    return argRight.unifyTo(result);
+    return argRight.unifyWith(result);
   }
 
-  @JProlPredicate(determined = true, signature = "str_int/2", args = {"+atom,?integer",
+  @JProlPredicate(determined = true, signature = "str_int/2", validate = {"+atom,?integer",
       "?atom,+integer"}, reference = "Convert a text atom to an integer atom (or back).")
   public static boolean predicateSTRINT(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = predicate.getArgumentAt(0).tryGround();
@@ -189,15 +189,15 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
       } catch (NumberFormatException ex) {
         return false;
       }
-      return argRight.unifyTo(result);
+      return argRight.unifyWith(result);
     } else {
       // the second case
       Term result = newAtom(argRight.getText());
-      return argLeft.unifyTo(result);
+      return argLeft.unifyWith(result);
     }
   }
 
-  @JProlPredicate(determined = true, signature = "str_real/2", args = {"+atom,?number",
+  @JProlPredicate(determined = true, signature = "str_real/2", validate = {"+atom,?number",
       "?atom,+number"}, reference = "Convert a text atom to a real numeric atom (or back).")
   public static boolean predicateSTRREAL(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term argLeft = predicate.getArgumentAt(0).tryGround();
@@ -211,11 +211,11 @@ public class JProlStrLibrary extends AbstractJProlLibrary {
       } catch (NumberFormatException ex) {
         return false;
       }
-      return argRight.unifyTo(result);
+      return argRight.unifyWith(result);
     } else {
       // the second case
       Term result = newAtom(argRight.getText());
-      return argLeft.unifyTo(result);
+      return argLeft.unifyWith(result);
     }
   }
 }

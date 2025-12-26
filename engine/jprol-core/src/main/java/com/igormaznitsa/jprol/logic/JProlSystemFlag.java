@@ -64,7 +64,7 @@ public enum JProlSystemFlag {
     if (thatTerm.getTermType() != TermType.ATOM) {
       return Optional.empty();
     }
-    return JProlSystemFlag.VALUES.stream().filter(x -> term.unifyTo(x.nameTerm))
+    return JProlSystemFlag.VALUES.stream().filter(x -> term.unifyWith(x.nameTerm))
         .findFirst();
   }
 

@@ -256,7 +256,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
                   Terms.newLong(parseInt(key.substring(index + 1)))
               });
         })
-        .filter(indicator::dryUnifyTo)
+        .filter(indicator::isUnifiableWith)
         .collect(Collectors.toList()).iterator(), () -> {
     });
   }

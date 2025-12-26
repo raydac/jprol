@@ -237,10 +237,10 @@ class PrimitiveTest extends AbstractJProlTest {
     final Term term2 = new JProlChoicePoint("replace(['a','b','c','d','e','f','g'],'a',N,[N|Lt]).", context).getGoalTerm();
     final Term term3 = new JProlChoicePoint("replace(['a','b','c','d','e','f','g'],'e',N,[N|Lt]).", context).getGoalTerm();
 
-    assertFalse(term1.dryUnifyTo(term2));
-    assertFalse(term2.dryUnifyTo(term1));
-    assertTrue(term1.dryUnifyTo(term3));
-    assertTrue(term3.dryUnifyTo(term1));
+    assertFalse(term1.isUnifiableWith(term2));
+    assertFalse(term2.isUnifiableWith(term1));
+    assertTrue(term1.isUnifiableWith(term3));
+    assertTrue(term3.isUnifiableWith(term1));
   }
 
   @Test

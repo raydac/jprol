@@ -144,7 +144,7 @@ public final class TermVar extends Term {
     final TermVar found = variables.get(name);
     if (found == null) {
       variables.put(name, this);
-    } else if (!this.unifyTo(found)) {
+    } else if (!this.unifyWith(found)) {
       throw new IllegalStateException("Can't unify state between same named variables: " + name);
     }
   }
@@ -272,7 +272,7 @@ public final class TermVar extends Term {
         if (curValue == null) {
           return ((TermVar) this.immediateValue).setValue(value);
         } else {
-          return curValue.unifyTo(value);
+          return curValue.unifyWith(value);
         }
       }
     }
@@ -402,7 +402,7 @@ public final class TermVar extends Term {
   }
 
   @Override
-  public boolean unifyTo(final Term term) {
+  public boolean unifyWith(final Term term) {
     if (this == term) {
       return true;
     } else {
@@ -411,19 +411,19 @@ public final class TermVar extends Term {
       if (val == null) {
         result = this.setValue(term);
       } else {
-        result = val.unifyTo(term);
+        result = val.unifyWith(term);
       }
       return result;
     }
   }
 
   @Override
-  public boolean dryUnifyTo(final Term target) {
+  public boolean isUnifiableWith(final Term target) {
     if (this == target) {
       return true;
     } else {
       final Term varValue = this.getValue();
-      return varValue == null || varValue.dryUnifyTo(target);
+      return varValue == null || varValue.isUnifiableWith(target);
     }
   }
 

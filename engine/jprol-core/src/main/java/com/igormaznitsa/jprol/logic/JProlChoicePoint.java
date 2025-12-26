@@ -362,7 +362,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
             break;
           }
         } else {
-          if (!this.thisConnector.unifyTo(this.subChoicePointConnector)) {
+          if (!this.thisConnector.unifyWith(this.subChoicePointConnector)) {
             throw new ProlCriticalError("Critical error #980234");
           }
           result = JProlChoicePointResult.SUCCESS;
@@ -386,7 +386,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
           }
 
           if (!goalTermForEqu
-              .unifyTo(nextClause.isClause() ? nextClause.getArgumentAt(0) : nextClause)) {
+              .unifyWith(nextClause.isClause() ? nextClause.getArgumentAt(0) : nextClause)) {
             throw new ProlCriticalError(
                 "Unexpectedly can't unify term with provided by knowledge base!");
           }
@@ -398,7 +398,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                 new JProlChoicePoint(nextClause.getArgumentAt(1), this.context, this.payload);
             continue;
           } else {
-            if (!theTerm.unifyTo(nextClause)) {
+            if (!theTerm.unifyWith(nextClause)) {
               throw new ProlCriticalError("Impossible situation #0009824");
             }
             result = JProlChoicePointResult.SUCCESS;

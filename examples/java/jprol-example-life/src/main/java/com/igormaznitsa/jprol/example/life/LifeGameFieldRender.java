@@ -176,7 +176,7 @@ public final class LifeGameFieldRender extends JComponent {
 
     final Graphics2D gfx = (Graphics2D) g;
 
-    gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    gfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_DEFAULT);
     gfx.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
         RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 
@@ -241,7 +241,7 @@ public final class LifeGameFieldRender extends JComponent {
         }
       }
     }
-    this.repaint();
+    this.paintImmediately(0,0, this.getWidth(), this.getHeight());
   }
 
   public interface ClickCellListener {

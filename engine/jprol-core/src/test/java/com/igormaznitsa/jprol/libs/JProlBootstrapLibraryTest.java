@@ -30,14 +30,14 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
         "current_prolog_flag(" + JProlSystemFlag.VERIFY.getNameTerm().getText() + ",X).");
     assertNotNull(point.prove());
     final TermVar xVar = point.findVar("X").get();
-    assertTrue(JProlSystemFlag.VERIFY.getDefaultValue().unifyTo(xVar.getValue()));
+    assertTrue(JProlSystemFlag.VERIFY.getDefaultValue().unifyWith(xVar.getValue()));
     assertNull(point.prove());
 
     final JProlChoicePoint all = prepareGoal("current_prolog_flag(A,B).");
     for (final JProlSystemFlag f : JProlSystemFlag.VALUES) {
       assertNotNull(all.prove());
-      assertTrue(f.getNameTerm().dryUnifyTo(all.findVar("A").get()));
-      assertTrue(f.getDefaultValue().dryUnifyTo(all.findVar("B").get()));
+      assertTrue(f.getNameTerm().isUnifiableWith(all.findVar("A").get()));
+      assertTrue(f.getDefaultValue().isUnifiableWith(all.findVar("B").get()));
     }
     assertNull(all.prove());
 

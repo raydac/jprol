@@ -89,7 +89,7 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     return compileFlags;
   }
 
-  @JProlPredicate(determined = true, signature = "regex_split/4", args = {
+  @JProlPredicate(determined = true, signature = "regex_split/4", validate = {
       "+atom,+atom,?list,+list"},
       reference = "Splits the given input sequence around matches of this pattern, it uses Java Pattern.split(). Format is regex_split(regex, text, TargetList, [options]).")
   public static boolean predicateREGEX_SPLIT(final JProlChoicePoint goal,
@@ -110,10 +110,10 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     final TermList resultList = TermList.asList(
         Arrays.stream(pattern.split(argString.getText())).map(Terms::newAtom)
             .collect(Collectors.toList()));
-    return argTargetList.unifyTo(resultList);
+    return argTargetList.unifyWith(resultList);
   }
 
-  @JProlPredicate(determined = true, signature = "regex_find/4", args = {
+  @JProlPredicate(determined = true, signature = "regex_find/4", validate = {
       "+atom,+atom,?list,+list"},
       reference = "Attempts to find the next subsequence of the input sequence that matches the pattern, it uses Java Matcher.find(). Format is regex_find(regex, text, TargetList, [options]).")
   public static boolean predicateREGEX_FIND(final JProlChoicePoint goal,
@@ -143,10 +143,10 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
         }
       }
     }
-    return argTargetList.unifyTo(TermList.asList(foundGroups));
+    return argTargetList.unifyWith(TermList.asList(foundGroups));
   }
 
-  @JProlPredicate(determined = true, signature = "regex_replace_all/4", args = {
+  @JProlPredicate(determined = true, signature = "regex_replace_all/4", validate = {
       "+atom,+atom,+atom,?atom"},
       reference = "Replace all text for Java regex. Example: regex_replace_all('\\\\s+','my-url-with-spaces','-',Result).")
   public static boolean predicateREGEX_REPLACE_ALL(final JProlChoicePoint goal,
@@ -163,10 +163,10 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     } catch (PatternSyntaxException ex) {
       throw new ProlDomainErrorException("Expected valid Java regular expression", argRegex, ex);
     }
-    return argTarget.unifyTo(Terms.newAtom(processed));
+    return argTarget.unifyWith(Terms.newAtom(processed));
   }
 
-  @JProlPredicate(determined = true, signature = "regex_matches/3", args = {
+  @JProlPredicate(determined = true, signature = "regex_matches/3", validate = {
       "+atom,+atom,+list"},
       reference = "Attempts to match the entire region against the pattern., it uses Java Matcher.matches(). Format is regex_matches(regex, text, [options]).")
   public static boolean predicateREGEX_MATCH(final JProlChoicePoint goal,

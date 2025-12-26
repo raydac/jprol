@@ -130,9 +130,9 @@ public class Term {
    *
    * @param target target term to be checked, must not be null
    * @return true if it can be unified with the target term, false otherwise
-   * @see #unifyTo(Term)
+   * @see #unifyWith(Term)
    */
-  public boolean dryUnifyTo(Term target) {
+  public boolean isUnifiableWith(Term target) {
     if (this == target) {
       return true;
     }
@@ -140,7 +140,7 @@ public class Term {
     switch (target.getTermType()) {
       case VAR: {
         target = ((TermVar) target).getValue();
-        return target == null || this.dryUnifyTo(target);
+        return target == null || this.isUnifiableWith(target);
       }
       case ATOM: {
         return target.getClass() == Term.class && getText().equals(target.getText());
@@ -259,7 +259,7 @@ public class Term {
    * @param other term to be unified.
    * @return true if state aligned successfully, false otherwise.
    */
-  public boolean unifyTo(final Term other) {
+  public boolean unifyWith(final Term other) {
     if (this == other) {
       return true;
     }
@@ -273,7 +273,7 @@ public class Term {
         if (value == null) {
           result = ((TermVar) other).setValue(this);
         } else {
-          result = unifyTo(value);
+          result = this.unifyWith(value);
         }
       }
       break;
