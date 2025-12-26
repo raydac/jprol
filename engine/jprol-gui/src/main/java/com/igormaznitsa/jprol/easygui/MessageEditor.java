@@ -41,18 +41,6 @@ public class MessageEditor extends AbstractProlEditor {
   private final StringBuilder internalBuffer = new StringBuilder();
   private final Queue<TextRecord> recordQueue = new ConcurrentLinkedQueue<>();
 
-  private static String colorToHtml(Color color) {
-    final String str = Integer.toHexString(color.getRGB() & 0xFFFFFF).toUpperCase();
-    if (str.length() < 6) {
-      return "#" + "00000".substring(str.length() - 1) + str;
-    }
-    return "#" + str;
-  }
-
-  public Color getEdInfoColor() {
-    return StyleConstants.getForeground(ATTRSET_INFO);
-  }
-
   public MessageEditor() {
     super("Messages", false, false);
     this.editor.setEditable(false);
@@ -76,8 +64,16 @@ public class MessageEditor extends AbstractProlEditor {
     editor.setFont(DEFAULT_FONT);
   }
 
-  public Color getEdWarningColor() {
-    return StyleConstants.getForeground(ATTRSET_WARNING);
+  private static String colorToHtml(Color color) {
+    final String str = Integer.toHexString(color.getRGB() & 0xFFFFFF).toUpperCase();
+    if (str.length() < 6) {
+      return "#" + "00000".substring(str.length() - 1) + str;
+    }
+    return "#" + str;
+  }
+
+  public Color getEdInfoColor() {
+    return StyleConstants.getForeground(ATTRSET_INFO);
   }
 
   public void setEdInfoColor(final Color color) {
@@ -85,13 +81,22 @@ public class MessageEditor extends AbstractProlEditor {
     StyleConstants.setForeground(ATTRSET_INFO, color);
   }
 
-  public Color getEdErrorColor() {
-    return StyleConstants.getForeground(ATTRSET_ERROR);
+  public Color getEdWarningColor() {
+    return StyleConstants.getForeground(ATTRSET_WARNING);
   }
 
   public void setEdWarningColor(final Color color) {
     this.clearText();
     StyleConstants.setForeground(ATTRSET_WARNING, color);
+  }
+
+  public Color getEdErrorColor() {
+    return StyleConstants.getForeground(ATTRSET_ERROR);
+  }
+
+  public void setEdErrorColor(final Color color) {
+    this.clearText();
+    StyleConstants.setForeground(ATTRSET_ERROR, color);
   }
 
   public void addInfoText(String text) {
@@ -106,11 +111,6 @@ public class MessageEditor extends AbstractProlEditor {
     addText(text, TYPE_ERROR, null, null);
   }
 
-  public void setEdErrorColor(final Color color) {
-    this.clearText();
-    StyleConstants.setForeground(ATTRSET_ERROR, color);
-  }
-
   @Override
   public void clearText() {
     this.recordQueue.add(TextRecord.CLEAR_ALL);
@@ -123,7 +123,7 @@ public class MessageEditor extends AbstractProlEditor {
   private void processQueue() {
     final StringBuilder builder = new StringBuilder();
     boolean found = false;
-    while (!this.recordQueue.isEmpty()) {
+    while (!Thread.currentThread().isInterrupted()) {
       final TextRecord record = recordQueue.poll();
       if (record == null) {
         break;
@@ -150,6 +150,37 @@ public class MessageEditor extends AbstractProlEditor {
 
   public void addText(String text, int type, String linkRef, String linkText) {
     this.recordQueue.add(new TextRecord(text, type, linkRef, linkText));
+  }
+
+  @Override
+  public void loadPreferences(Preferences prefs) {
+    final Color bgColor = extractColor(prefs, "messagesbackcolor", Color.BLACK);
+    final Color errColor = extractColor(prefs, "messageserrorcolor", Color.RED);
+    final Color infColor = extractColor(prefs, "messagesinfocolor", Color.GREEN);
+    final Color wrnColor = extractColor(prefs, "messageswarningcolor", Color.YELLOW);
+
+    if (bgColor != null) {
+      setEdBackground(bgColor);
+    }
+    if (errColor != null) {
+      setEdErrorColor(errColor);
+    }
+    if (infColor != null) {
+      setEdInfoColor(infColor);
+    }
+    if (wrnColor != null) {
+      setEdWarningColor(wrnColor);
+    }
+    setEdFont(loadFontFromPrefs(prefs, "messagesfont", this.editor.getFont()));
+  }
+
+  @Override
+  public void savePreferences(Preferences prefs) {
+    prefs.putInt("messagesbackcolor", getEdBackground().getRGB());
+    prefs.putInt("messageserrorcolor", getEdErrorColor().getRGB());
+    prefs.putInt("messagesinfocolor", getEdInfoColor().getRGB());
+    prefs.putInt("messageswarningcolor", getEdWarningColor().getRGB());
+    saveFontToPrefs(prefs, "messagesfont", editor.getFont());
   }
 
   private static final class TextRecord {
@@ -221,36 +252,5 @@ public class MessageEditor extends AbstractProlEditor {
 
       return buffer.toString();
     }
-  }
-
-  @Override
-  public void loadPreferences(Preferences prefs) {
-    final Color bgColor = extractColor(prefs, "messagesbackcolor", Color.BLACK);
-    final Color errColor = extractColor(prefs, "messageserrorcolor", Color.RED);
-    final Color infColor = extractColor(prefs, "messagesinfocolor", Color.GREEN);
-    final Color wrnColor = extractColor(prefs, "messageswarningcolor", Color.YELLOW);
-
-    if (bgColor != null) {
-      setEdBackground(bgColor);
-    }
-    if (errColor != null) {
-      setEdErrorColor(errColor);
-    }
-    if (infColor != null) {
-      setEdInfoColor(infColor);
-    }
-    if (wrnColor != null) {
-      setEdWarningColor(wrnColor);
-    }
-    setEdFont(loadFontFromPrefs(prefs, "messagesfont", this.editor.getFont()));
-  }
-
-  @Override
-  public void savePreferences(Preferences prefs) {
-    prefs.putInt("messagesbackcolor", getEdBackground().getRGB());
-    prefs.putInt("messageserrorcolor", getEdErrorColor().getRGB());
-    prefs.putInt("messagesinfocolor", getEdInfoColor().getRGB());
-    prefs.putInt("messageswarningcolor", getEdWarningColor().getRGB());
-    saveFontToPrefs(prefs, "messagesfont", editor.getFont());
   }
 }

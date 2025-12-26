@@ -301,7 +301,7 @@ public final class MainFrame extends javax.swing.JFrame
       action.putValue(Action.ACCELERATOR_KEY, escKey);
       this.buttonCloseFind.getActionMap().put("closeFind", action);
       this.buttonCloseFind.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escKey, "closeFind");
-      this.buttonCloseFind.addActionListener(e -> action.actionPerformed(e));
+      this.buttonCloseFind.addActionListener(action::actionPerformed);
 
       this.panelFindText.setVisible(false);
     } finally {
@@ -317,6 +317,7 @@ public final class MainFrame extends javax.swing.JFrame
 
     this.swingTimer = new Timer(300, a -> {
       this.messageEditor.onTimer();
+      this.traceEditor.onTimer();
     });
     this.swingTimer.start();
   }
@@ -1076,7 +1077,7 @@ public final class MainFrame extends javax.swing.JFrame
     }
   }
 
-  private void startExecution(final boolean tracing) {
+  private void startExecution(final boolean trace) {
     final Thread executingThread = this.currentExecutedScriptThread.get();
 
     if (executingThread != null && executingThread.isAlive()) {
@@ -1089,11 +1090,11 @@ public final class MainFrame extends javax.swing.JFrame
 
       final Thread newThread =
           new Thread(this.executingScripts, this,
-              tracing ? "thread-jprol-tracing" : "jprol-running");
+              trace ? "thread-jprol-traced" : "jprol-running");
       newThread.setDaemon(false);
 
       if (this.currentExecutedScriptThread.compareAndSet(null, newThread)) {
-        this.startedInTracing.set(tracing);
+        this.startedInTracing.set(trace);
         SwingUtilities.invokeLater(() -> {
           clearTextAtAllWindowsExcludeSource();
           dialogEditor.initBeforeSession();
@@ -1105,7 +1106,7 @@ public final class MainFrame extends javax.swing.JFrame
   }
 
   private void menuTraceScriptActionPerformed(ActionEvent evt) {
-    startExecution(true);
+    this.startExecution(true);
   }
 
   private void menuFileRecentFilesMenuSelected(MenuEvent evt) {
@@ -1284,9 +1285,9 @@ public final class MainFrame extends javax.swing.JFrame
         if (setCurrentContext(context)) {
           context.addContextListener(this);
           if (this.startedInTracing.get()) {
-            context.setSystemFlag(JProlSystemFlag.DEBUG, Terms.TRUE);
+            context.setSystemFlag(JProlSystemFlag.TRACE, Terms.TRUE);
           } else {
-            context.setSystemFlag(JProlSystemFlag.DEBUG, Terms.FALSE);
+            context.setSystemFlag(JProlSystemFlag.TRACE, Terms.FALSE);
           }
 
           boolean errorLoad = false;

@@ -155,7 +155,7 @@ public class JProlContext implements AutoCloseable {
   private final File currentFolder;
   private final JProlContext parentContext;
   private boolean verify;
-  private boolean debug;
+  private boolean trace;
   private boolean shareKnowledgeBaseBetweenThreads;
   private UndefinedPredicateBehavior undefinedPredicateBehaviour;
 
@@ -290,8 +290,8 @@ public class JProlContext implements AutoCloseable {
     return this.undefinedPredicateBehaviour;
   }
 
-  public boolean isDebug() {
-    return this.debug;
+  public boolean isTrace() {
+    return this.trace;
   }
 
   public Term getSystemFlag(final JProlSystemFlag flag) {
@@ -314,7 +314,7 @@ public class JProlContext implements AutoCloseable {
         Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.SHARE_KNOWLEDGE_BASE).getText());
     this.verify =
         Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.VERIFY).getText());
-    this.debug = Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.DEBUG).getText());
+    this.trace = Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.TRACE).getText());
     this.undefinedPredicateBehaviour = UndefinedPredicateBehavior
         .find(this.systemFlags.get(JProlSystemFlag.UNKNOWN).getText())
         .orElseThrow(() -> new ProlDomainErrorException(

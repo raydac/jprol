@@ -55,7 +55,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
   private final JProlChoicePoint rootChoicePoint;
   private final Term goalTerm;
   private final boolean validateArguments;
-  private final boolean debug;
+  private final boolean trace;
   private boolean thereAreVariants;
   private Object internalObject;
   private Object payload;
@@ -74,7 +74,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
       final JProlChoicePoint rootChoicePoint,
       final Term goalToSolve,
       final JProlContext context,
-      final boolean debug,
+      final boolean trace,
       final boolean validateArguments,
       final Map<String, Term> presetVarValues,
       final Object internalObject,
@@ -85,7 +85,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
     this.thereAreVariants = true;
     this.validateArguments = validateArguments;
-    this.debug = debug;
+    this.trace = trace;
 
     this.rootChoicePoint = rootChoicePoint == null ? this : rootChoicePoint;
     this.goalTerm = goalToSolve.getTermType() == ATOM ? newStruct(goalToSolve) : goalToSolve;
@@ -127,34 +127,34 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public JProlChoicePoint(final Term goal, final JProlContext context) {
-    this(null, goal, context, context.isDebug(), context.isVerify(), null, null, null);
+    this(null, goal, context, context.isTrace(), context.isVerify(), null, null, null);
   }
 
   public JProlChoicePoint(final Term goal, final JProlContext context, final Object payload) {
-    this(null, goal, context, context.isDebug(), context.isVerify(), null, null, payload);
+    this(null, goal, context, context.isTrace(), context.isVerify(), null, null, payload);
   }
 
   public JProlChoicePoint(final Term goal, final JProlContext context,
                           final Map<String, Term> predefinedVarValues) {
-    this(null, goal, context, context.isDebug(), context.isVerify(), predefinedVarValues, null,
+    this(null, goal, context, context.isTrace(), context.isVerify(), predefinedVarValues, null,
         null);
   }
 
   public JProlChoicePoint(final Term goal, final JProlContext context,
                           final Map<String, Term> predefinedVarValues, final Object payload) {
-    this(null, goal, context, context.isDebug(), context.isVerify(), predefinedVarValues, null,
+    this(null, goal, context, context.isTrace(), context.isVerify(), predefinedVarValues, null,
         payload);
   }
 
   public JProlChoicePoint makeForGoal(final Term goal) {
     final JProlChoicePoint result =
-        new JProlChoicePoint(null, goal, this.context, this.debug, this.validateArguments, null,
+        new JProlChoicePoint(null, goal, this.context, this.trace, this.validateArguments, null,
             null, this.payload);
     return result;
   }
 
   public boolean isDebug() {
-    return this.debug;
+    return this.trace;
   }
 
   public boolean isValidateArguments() {
@@ -180,12 +180,12 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public JProlChoicePoint replaceLastGoalAtChain(final Term goal) {
-    if (this.debug) {
+    if (this.trace) {
       this.context.fireTraceEvent(EXIT, this.rootChoicePoint.rootLastGoalAtChain);
     }
 
     final JProlChoicePoint newGoal =
-        new JProlChoicePoint(this.rootChoicePoint, goal, this.context, this.debug,
+        new JProlChoicePoint(this.rootChoicePoint, goal, this.context, this.trace,
             this.validateArguments,
             null, null, this.payload);
 
@@ -277,7 +277,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
           try {
             switch (goalToProcess.resolve(unknownPredicateConsumer)) {
               case FAIL: {
-                if (this.debug) {
+                if (this.trace) {
                   this.context.fireTraceEvent(TraceEvent.FAIL, goalToProcess);
                   this.context.fireTraceEvent(EXIT, goalToProcess);
                 }
@@ -294,7 +294,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                 } else {
                   final JProlChoicePoint nextGoal =
                       new JProlChoicePoint(this.rootChoicePoint, goalToProcess.nextAndTerm,
-                          this.context, this.debug, this.validateArguments, null, null,
+                          this.context, this.trace, this.validateArguments, null, null,
                           this.payload);
                   nextGoal.nextAndTerm = goalToProcess.nextAndTermForNextGoal;
                 }
@@ -311,7 +311,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                 "Caught stack overflow error during prove", this);
           }
         } else {
-          if (this.debug) {
+          if (this.trace) {
             this.context.fireTraceEvent(EXIT, goalToProcess);
           }
           this.rootChoicePoint.rootLastGoalAtChain = goalToProcess.prevChoicePoint;
@@ -330,7 +330,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
     } else {
       traceEvent = TraceEvent.REDO;
     }
-    if (this.debug) {
+    if (this.trace) {
       this.context.fireTraceEvent(traceEvent, this);
     }
 
@@ -476,7 +476,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                   if (getInternalObject() == null) {
                     final JProlChoicePoint leftSubbranch =
                         new JProlChoicePoint(this.rootChoicePoint, struct.getArgumentAt(0),
-                            this.context, this.debug, this.validateArguments, null, null,
+                            this.context, this.trace, this.validateArguments, null, null,
                             this.payload);
                     leftSubbranch.nextAndTerm = this.nextAndTerm;
                     this.setInternalObject(leftSubbranch);

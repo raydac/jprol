@@ -399,10 +399,10 @@ class JProlScriptEngineTest {
     JProlScriptEngine engine = (JProlScriptEngine) factory.getScriptEngine();
 
     // Test setting and getting debug flag
-    engine.setFlag("debug", false);
-    Object debugValue = engine.getFlag("debug");
-    assertNotNull(debugValue, "Debug flag should be set");
-    System.out.println("✓ Set debug flag: " + debugValue);
+    engine.setFlag("trace", false);
+    Object traceValue = engine.getFlag("trace");
+    assertNotNull(traceValue, "Debug flag should be set");
+    System.out.println("✓ Set debug flag: " + traceValue);
 
     // Test setting and getting unknown flag
     engine.setFlag("unknown", "fail");

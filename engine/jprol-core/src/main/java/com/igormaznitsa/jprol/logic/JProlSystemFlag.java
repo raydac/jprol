@@ -24,7 +24,7 @@ public enum JProlSystemFlag {
   OS(true, Terms.newAtom("os"), Terms.newAtom(System.getProperty("os.name", "unknown"))),
   ARCH(true, Terms.newAtom("arch"), Terms.newAtom(System.getProperty("os.arch", "unknown"))),
   BOUNDED(true, Terms.newAtom("bounded"), TRUE),
-  DEBUG(false, Terms.newAtom("debug"), FALSE),
+  TRACE(false, Terms.newAtom("trace"), FALSE),
   DIALECT(true, Terms.newAtom("dialect"), Terms.newAtom("jprol")),
   ENCODING(false, Terms.newAtom("encoding"), Terms.newAtom(StandardCharsets.UTF_8.name())),
   GC(true, Terms.newAtom("gc"), TRUE),

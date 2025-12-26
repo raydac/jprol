@@ -19,8 +19,9 @@ package com.igormaznitsa.jprol.easygui;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.prefs.Preferences;
-import javax.swing.SwingUtilities;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
@@ -39,6 +40,7 @@ public class TraceDialog extends AbstractProlEditor implements ActionListener {
   private static final SimpleAttributeSet ATTRSET_REDO = new SimpleAttributeSet();
   private static final SimpleAttributeSet ATTRSET_FAIL = new SimpleAttributeSet();
   private static final SimpleAttributeSet ATTRSET_EXIT = new SimpleAttributeSet();
+  private final Queue<TextMessage> messageQueue = new ConcurrentLinkedQueue<>();
 
   public TraceDialog() {
     super("Trace", false, false);
@@ -127,33 +129,43 @@ public class TraceDialog extends AbstractProlEditor implements ActionListener {
   }
 
   @Override
-  public synchronized void clearText() {
-    super.clearText();
+  public void clearText() {
+    this.messageQueue.clear();
+    this.messageQueue.add(TextMessage.CLEAR_ALL);
+  }
+
+  public void onTimer() {
+    final Document document = this.editor.getDocument();
+    int loaded = 0;
+    while (loaded < 100 && !Thread.currentThread().isInterrupted()) {
+      final TextMessage next = messageQueue.poll();
+      if (next == null) {
+        break;
+      }
+      loaded++;
+
+      if (next == TextMessage.CLEAR_ALL) {
+        try {
+          document.remove(0, document.getLength());
+        } catch (BadLocationException ex) {
+          // ignore
+        }
+      } else {
+        try {
+          document.insertString(document.getLength(), next.text + '\n', next.type);
+        } catch (BadLocationException ex) {
+          // ignore
+        }
+      }
+    }
+    if (loaded > 0) {
+      this.editor.setCaretPosition(document.getLength());
+    }
   }
 
   public void addText(final String text, final AttributeSet type) {
-    final Thread thr = Thread.currentThread();
-
-    try {
-      SwingUtilities.invokeAndWait(() -> {
-        if (thr.isInterrupted()) {
-          return;
-        }
-        final Document doc = editor.getDocument();
-        if (doc != null) {
-          try {
-            doc.insertString(doc.getLength(), text + '\n', type);
-            editor.setCaretPosition(doc.getLength());
-          } catch (BadLocationException ex) {
-            ex.printStackTrace();
-          }
-        }
-      });
-    } catch (Exception ex) {
-      ex.printStackTrace();
-      if (ex instanceof InterruptedException) {
-        Thread.currentThread().interrupt();
-      }
+    if (text != null && type != null) {
+      this.messageQueue.add(new TextMessage(text, type));
     }
   }
 
@@ -207,5 +219,16 @@ public class TraceDialog extends AbstractProlEditor implements ActionListener {
     prefs.putInt("traceothercolor", getEdOtherColor().getRGB());
     prefs.putBoolean("tracewordwrap", getEdWordWrap());
     saveFontToPrefs(prefs, "tracefont", editor.getFont());
+  }
+
+  private static final class TextMessage {
+    private static final TextMessage CLEAR_ALL = new TextMessage(null, null);
+    final String text;
+    final AttributeSet type;
+
+    TextMessage(final String text, final AttributeSet type) {
+      this.text = text;
+      this.type = type;
+    }
   }
 }

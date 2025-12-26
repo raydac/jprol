@@ -5,6 +5,7 @@
     - Refactored API, renamed methods, some contants moved between classes, restored support of payload in terms.
     - Internal optimizations to decrease memory footstep.
     - Added support for Java Scripting API (JSR 223) as module `jprol-jsr223`.
+    - Library predicates `dispose/0` and `dispose/1` replaced by more safe variant `abort/0` and `abort/1`.
     - Bugfixing.
 
 2.2.1 (2025-02-05)
