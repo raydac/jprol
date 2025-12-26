@@ -121,9 +121,13 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public JProlChoicePoint(final String goal, final JProlContext context) {
+    this(goal, context, null);
+  }
+
+  public JProlChoicePoint(final String goal, final JProlContext context, final Object payload) {
     this(new JProlTreeBuilder(context, new StringReader(goal), true).readPhraseAndMakeTree(),
         context,
-        null);
+        null, payload);
   }
 
   public JProlChoicePoint(final Term goal, final JProlContext context) {
