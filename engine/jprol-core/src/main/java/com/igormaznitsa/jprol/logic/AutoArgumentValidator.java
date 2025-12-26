@@ -21,8 +21,8 @@ public final class AutoArgumentValidator {
 
   private static final Predicate<TermStruct> ANY = x -> true;
 
-  private static List<List<ModificatorArgument>> parse(final int arity, final String[] arguments,
-                                                       final boolean assertMode) {
+  private static List<List<ModificatorArgument>> parse(final int forArity,
+                                                       final String[] arguments) {
     final List<List<ModificatorArgument>> result = new ArrayList<>();
     for (final String s : arguments) {
       if (s != null) {
@@ -41,10 +41,9 @@ public final class AutoArgumentValidator {
               .orElseThrow(() -> new IllegalArgumentException("Unsupported argument type:" + a));
           current.add(new ModificatorArgument(modificator, argument));
         }
-        if (current.size() != arity) {
-          throw new IllegalArgumentException("Expected " + arity + " arguments: " + s);
+        if (current.size() == forArity) {
+          result.add(current);
         }
-        result.add(current);
       }
     }
     return result;
@@ -52,27 +51,29 @@ public final class AutoArgumentValidator {
 
   public static Predicate<TermStruct> makeFor(
       final int arity,
-      final String[] arguments,
+      final String[] allArguments,
       final boolean assertMode) {
-    final List<List<ModificatorArgument>> parsed = parse(arity, arguments, assertMode);
+    final List<List<ModificatorArgument>> parsed = parse(arity, allArguments);
 
     Predicate<TermStruct> result = ANY;
     for (final List<ModificatorArgument> row : parsed) {
-      final Predicate<TermStruct> newPredicate = s -> {
-        if (s.getArity() == row.size()) {
-          for (int i = 0; i < row.size(); i++) {
-            if (!row.get(i).test(s.getArgumentAt(i))) {
-              return false;
+      if (row.size() == arity) {
+        final Predicate<TermStruct> newPredicate = s -> {
+          if (s.getArity() == arity) {
+            for (int i = 0; i < row.size(); i++) {
+              if (!row.get(i).test(s.getArgumentAt(i))) {
+                return false;
+              }
             }
           }
-        }
-        return true;
-      };
+          return true;
+        };
 
-      if (result == ANY) {
-        result = newPredicate;
-      } else {
-        result = result.or(newPredicate);
+        if (result == ANY) {
+          result = newPredicate;
+        } else {
+          result = result.or(newPredicate);
+        }
       }
     }
 

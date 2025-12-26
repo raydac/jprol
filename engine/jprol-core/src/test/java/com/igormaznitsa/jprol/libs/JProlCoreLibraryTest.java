@@ -14,6 +14,7 @@ import com.igormaznitsa.jprol.exceptions.ProlCustomErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlRepresentationErrorException;
@@ -1021,7 +1022,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
     //[current_predicate(run_tests/1), success].
     checkOnce("current_predicate_all(atom/1).", true);
-    checkVarValues("current_predicate_all(dispose/X).", "X", "0", "1");
+    checkVarValues("current_predicate_all(abort/X).", "X", "0", "1");
 
     //[current_predicate(4), type_error(predicate_indicator, 4)].
     assertProlException("current_predicate(4).", ProlTypeErrorException.class);
@@ -1092,14 +1093,11 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
   }
 
   @Test
-  void testDispose1() {
-    //todo improve test
-    //[dispose, impl_defined].
-//    checkException("dispose.");
-    //[dispose(1), impl_defined].
-//    checkException("dispose(1).");
-    //[dispose(a), type_error(integer, a)].
-    assertProlException("dispose(a).", ProlTypeErrorException.class);
+  void testAbort() {
+    assertProlException("abort(a).", ProlHaltExecutionException.class);
+    assertProlException("abort('hello').", ProlHaltExecutionException.class);
+    assertProlException("abort(111).", ProlHaltExecutionException.class);
+    assertProlException("abort.", ProlHaltExecutionException.class);
   }
 
   @Test

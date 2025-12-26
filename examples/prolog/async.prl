@@ -10,5 +10,5 @@ threadRed(P):-for(I,0,P),lock(gfx),pencolor(red),rnd(500,X),rnd(400,Y),dot(X,Y),
 threadGreen(P):-for(I,0,P),lock(gfx),pencolor(green),rnd(500,X),rnd(400,Y),dot(X,Y),unlock(gfx),fail.
 threadBlue(P):-for(I,0,P),lock(gfx),pencolor(blue),rnd(500,X),rnd(400,Y),dot(X,Y),unlock(gfx),fail.
 
-?-time((P=1000000, graphics(500,400), async(threadRed(P)),async(threadGreen(P)),async(threadBlue(P)),waitasync)), dispose, fail.
+?-time((P=1000000, graphics(500,400), async(threadRed(P)),async(threadGreen(P)),async(threadBlue(P)),waitasync)), abort, fail.
 

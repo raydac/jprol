@@ -49,6 +49,7 @@ import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
 import com.igormaznitsa.jprol.utils.OperatorIterator;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
+import com.igormaznitsa.jprol.utils.ProlPair;
 import com.igormaznitsa.jprol.utils.ProlUtils;
 import com.igormaznitsa.jprol.utils.lazy.LazyMap;
 import com.igormaznitsa.jprol.utils.lazy.LazySet;
@@ -58,10 +59,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class AbstractJProlLibrary {
 
@@ -380,44 +383,50 @@ public abstract class AbstractJProlLibrary {
     final Method[] methods = this.getClass().getMethods();
     for (final Method method : methods) {
       final JProlPredicate predicateAnnotation = method.getAnnotation(JProlPredicate.class);
+      if (predicateAnnotation == null) {
+        continue;
+      }
 
-      if (predicateAnnotation != null) {
-        final String signature = ProlUtils.normalizeSignature(predicateAnnotation.signature());
+      try {
+        final List<String> signatures =
+            Stream.concat(
+                    Stream.of(Objects.requireNonNull(predicateAnnotation.signature(),
+                        "Signature must not be null")),
+                    Stream.of(predicateAnnotation.synonyms()))
+                .collect(Collectors.toList());
 
-        if (signature == null) {
-          throw new ProlCriticalError(
-              "Wrong signature of a predicate method " + method.getName() + " at " + libraryUID);
-        }
+        for (final String s : signatures) {
+          final ProlPair<String, Integer> signaturePair = ProlUtils.parseSignaturePair(s);
+          final String reassembledSignature =
+              signaturePair.getLeft() + '/' + signaturePair.getRight();
 
-        if (result.containsKey(signature)) {
-          throw new ProlCriticalError(
-              "Duplicated predicate method " + signature + " at " + libraryUID);
-        }
+          if (result.containsKey(reassembledSignature)) {
+            throw new ProlCriticalError(
+                "Duplicated predicate method " + reassembledSignature + " at " + libraryUID);
+          }
 
-        final PredicateInvoker invoker =
-            new PredicateInvoker(this,
-                predicateAnnotation.guarded(),
-                predicateAnnotation.determined(),
-                predicateAnnotation.evaluable(),
-                predicateAnnotation.changesChooseChain(),
-                AutoArgumentValidator.makeFor(ProlUtils.parseSignaturePair(signature).getRight(),
-                    predicateAnnotation.args(), true),
-                signature,
-                method);
-        result.put(signature, invoker);
-        if (signature.endsWith("/0")) {
-          foundZeroArityPredicates.add(signature.substring(0, signature.lastIndexOf('/')));
-        }
+          final PredicateInvoker invoker =
+              new PredicateInvoker(this,
+                  predicateAnnotation.guarded(),
+                  predicateAnnotation.determined(),
+                  predicateAnnotation.evaluable(),
+                  predicateAnnotation.changesChooseChain(),
+                  AutoArgumentValidator.makeFor(signaturePair.getRight(),
+                      predicateAnnotation.args(), true),
+                  reassembledSignature,
+                  method);
 
-        final String[] synonymSignatures = predicateAnnotation.synonyms();
-        for (final String s : synonymSignatures) {
-          final String trimmed = s.trim();
-          result.put(trimmed, invoker);
-          if (trimmed.endsWith("/0")) {
-            foundZeroArityPredicates.add(trimmed.substring(0, trimmed.lastIndexOf('/')));
+          result.put(reassembledSignature, invoker);
+          if (signaturePair.getRight() == 0) {
+            foundZeroArityPredicates.add(signaturePair.getLeft());
           }
         }
+      } catch (Exception ex) {
+        throw new IllegalArgumentException(
+            String.format("Can't register predicate %s from library %s for error",
+                predicateAnnotation, libraryUID), ex);
       }
+
     }
 
     return result;

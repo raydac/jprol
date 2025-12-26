@@ -1714,16 +1714,21 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(guarded = true, determined = true, signature = "abort/1", synonyms = "abort/0", args = {
-      "+integer"}, reference = "Self-dispose current JProl context, not affecting root context if presented.")
+      "+term"}, reference = "Self-dispose current JProl context, not affecting root context if presented.")
   public static void predicateAbort(final JProlChoicePoint goal, final TermStruct predicate) {
     if (predicate.getArity() == 0) {
-      goal.getContext().dispose();
-      throw new ProlHaltExecutionException();
+      throw new ProlHaltExecutionException("Abort", 0L);
     } else {
       final Term arg = predicate.getArgumentAt(0).tryGround();
-      final long status = arg.toNumber().longValue();
-      goal.getContext().dispose();
-      throw new ProlHaltExecutionException(status);
+      String abortMessage = null;
+      long abortStatus = 0;
+      if (arg instanceof NumericTerm) {
+        abortStatus = arg.toNumber().longValue();
+      } else {
+        abortMessage = arg.getText();
+      }
+      throw new ProlHaltExecutionException(Objects.requireNonNullElse(abortMessage, "Abort"),
+          abortStatus);
     }
   }
 
