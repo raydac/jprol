@@ -17,8 +17,8 @@
 package com.igormaznitsa.jprol.easygui;
 
 import java.awt.Color;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.prefs.Preferences;
 import javax.swing.JEditorPane;
 import javax.swing.text.SimpleAttributeSet;
@@ -38,7 +38,20 @@ public class MessageEditor extends AbstractProlEditor {
   private static final SimpleAttributeSet ATTRSET_INFO = new SimpleAttributeSet();
   private static final SimpleAttributeSet ATTRSET_WARNING = new SimpleAttributeSet();
   private static final SimpleAttributeSet ATTRSET_ERROR = new SimpleAttributeSet();
-  private String insideBuffer;
+  private final StringBuilder internalBuffer = new StringBuilder();
+  private final Queue<TextRecord> recordQueue = new ConcurrentLinkedQueue<>();
+
+  private static String colorToHtml(Color color) {
+    final String str = Integer.toHexString(color.getRGB() & 0xFFFFFF).toUpperCase();
+    if (str.length() < 6) {
+      return "#" + "00000".substring(str.length() - 1) + str;
+    }
+    return "#" + str;
+  }
+
+  public Color getEdInfoColor() {
+    return StyleConstants.getForeground(ATTRSET_INFO);
+  }
 
   public MessageEditor() {
     super("Messages", false, false);
@@ -55,7 +68,7 @@ public class MessageEditor extends AbstractProlEditor {
 
     setContentType("text/html");
 
-    insideBuffer = "";
+    this.internalBuffer.setLength(0);
 
     editor.setBackground(Color.BLUE.darker().darker().darker().darker());
     editor.setForeground(Color.WHITE);
@@ -63,39 +76,22 @@ public class MessageEditor extends AbstractProlEditor {
     editor.setFont(DEFAULT_FONT);
   }
 
-  private static String colorToHtml(Color color) {
-    final String str = Integer.toHexString(color.getRGB() & 0xFFFFFF).toUpperCase();
-    if (str.length() < 6) {
-      return "#" + "00000".substring(str.length() - 1) + str;
-    }
-    return "#" + str;
-  }
-
-  public Color getEdInfoColor() {
-    return StyleConstants.getForeground(ATTRSET_INFO);
-  }
-
-  public void setEdInfoColor(final Color color) {
-    clearText();
-    StyleConstants.setForeground(ATTRSET_INFO, color);
-  }
-
   public Color getEdWarningColor() {
     return StyleConstants.getForeground(ATTRSET_WARNING);
   }
 
-  public void setEdWarningColor(final Color color) {
-    clearText();
-    StyleConstants.setForeground(ATTRSET_WARNING, color);
+  public void setEdInfoColor(final Color color) {
+    this.clearText();
+    StyleConstants.setForeground(ATTRSET_INFO, color);
   }
 
   public Color getEdErrorColor() {
     return StyleConstants.getForeground(ATTRSET_ERROR);
   }
 
-  public void setEdErrorColor(final Color color) {
-    clearText();
-    StyleConstants.setForeground(ATTRSET_ERROR, color);
+  public void setEdWarningColor(final Color color) {
+    this.clearText();
+    StyleConstants.setForeground(ATTRSET_WARNING, color);
   }
 
   public void addInfoText(String text) {
@@ -110,27 +106,76 @@ public class MessageEditor extends AbstractProlEditor {
     addText(text, TYPE_ERROR, null, null);
   }
 
-  @Override
-  public void clearText() {
-    UiUtils.doInSwingThread(() -> {
-      super.clearText();
-      insideBuffer = "";
-    });
+  public void setEdErrorColor(final Color color) {
+    this.clearText();
+    StyleConstants.setForeground(ATTRSET_ERROR, color);
   }
 
-  private final Lock addTextLocker = new ReentrantLock();
+  @Override
+  public void clearText() {
+    this.recordQueue.add(TextRecord.CLEAR_ALL);
+  }
+
+  public void onTimer() {
+    this.processQueue();
+  }
+
+  private void processQueue() {
+    final StringBuilder builder = new StringBuilder();
+    boolean found = false;
+    while (!this.recordQueue.isEmpty()) {
+      final TextRecord record = recordQueue.poll();
+      if (record == null) {
+        break;
+      }
+      found = true;
+      if (record == TextRecord.CLEAR_ALL) {
+        this.internalBuffer.setLength(0);
+        builder.setLength(0);
+      } else {
+        builder.append(record.toText());
+      }
+    }
+    if (found) {
+      this.internalBuffer.append(builder);
+    }
+    this.updateEditorText(this.internalBuffer.toString());
+  }
+
+  private void updateEditorText(final String text) {
+    this.editor.setText(
+        "<html><body bgcolor=\"" + colorToHtml(this.editor.getBackground()) + "\">" + text +
+            "</body><html>");
+  }
 
   public void addText(String text, int type, String linkRef, String linkText) {
-    addTextLocker.lock();
-    try {
-      text = escapeHTML(text);
+    this.recordQueue.add(new TextRecord(text, type, linkRef, linkText));
+  }
+
+  private static final class TextRecord {
+    static final TextRecord CLEAR_ALL = new TextRecord("", -1, "", "");
+
+    final String text;
+    final int type;
+    final String linkRef;
+    final String linkText;
+
+    TextRecord(final String text, final int type, final String linkRef, final String linkText) {
+      this.text = text;
+      this.type = type;
+      this.linkRef = linkRef;
+      this.linkText = linkText;
+    }
+
+    private String toText() {
+      final String text = escapeHTML(this.text);
 
       String color;
 
       boolean bold;
       boolean italic = false;
 
-      switch (type) {
+      switch (this.type) {
         case TYPE_INFO: {
           color = colorToHtml(StyleConstants.getForeground(ATTRSET_INFO));
           bold = true;
@@ -151,35 +196,30 @@ public class MessageEditor extends AbstractProlEditor {
           throw new IllegalArgumentException("Unsupported message type");
       }
 
-      final StringBuilder bldr = new StringBuilder();
+      final StringBuilder buffer = new StringBuilder();
 
       if (italic) {
-        bldr.append("<i>");
+        buffer.append("<i>");
       }
       if (bold) {
-        bldr.append("<b>");
+        buffer.append("<b>");
       }
 
-      bldr.append("<span style=\"color:").append(color).append("\">").append(text);
-      if (linkRef != null) {
-        bldr.append("&nbsp;<a href=\"").append(linkRef).append("\">");
-        bldr.append(linkText == null ? escapeHTML(linkRef) : escapeHTML(linkText));
-        bldr.append("</a>");
+      buffer.append("<span style=\"color:").append(color).append("\">").append(text);
+      if (this.linkRef != null) {
+        buffer.append("&nbsp;<a href=\"").append(this.linkRef).append("\">");
+        buffer.append(this.linkText == null ? escapeHTML(this.linkRef) : escapeHTML(this.linkText));
+        buffer.append("</a>");
       }
-      bldr.append("</span><br>");
+      buffer.append("</span><br>");
       if (italic) {
-        bldr.append("</i>");
+        buffer.append("</i>");
       }
       if (bold) {
-        bldr.append("</b>");
+        buffer.append("</b>");
       }
 
-      insideBuffer += bldr.toString();
-      editor.setText(
-          "<html><body bgcolor=\"" + colorToHtml(editor.getBackground()) + "\">" + insideBuffer +
-              "</body><html>");
-    } finally {
-      this.addTextLocker.unlock();
+      return buffer.toString();
     }
   }
 

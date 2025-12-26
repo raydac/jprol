@@ -76,8 +76,13 @@ public final class JProlChoicePoint implements Comparator<Term> {
       final JProlContext context,
       final boolean debug,
       final boolean validateArguments,
-      final Map<String, Term> presetVarValues
+      final Map<String, Term> presetVarValues,
+      final Object internalObject,
+      final Object payload
   ) {
+    this.internalObject = internalObject;
+    this.payload = payload;
+
     this.thereAreVariants = true;
     this.validateArguments = validateArguments;
     this.debug = debug;
@@ -122,18 +127,29 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public JProlChoicePoint(final Term goal, final JProlContext context) {
-    this(null, goal, context, context.isDebug(), context.isTemplateValidate(), null);
+    this(null, goal, context, context.isDebug(), context.isVerify(), null, null, null);
+  }
+
+  public JProlChoicePoint(final Term goal, final JProlContext context, final Object payload) {
+    this(null, goal, context, context.isDebug(), context.isVerify(), null, null, payload);
   }
 
   public JProlChoicePoint(final Term goal, final JProlContext context,
                           final Map<String, Term> predefinedVarValues) {
-    this(null, goal, context, context.isDebug(), context.isTemplateValidate(), predefinedVarValues);
+    this(null, goal, context, context.isDebug(), context.isVerify(), predefinedVarValues, null,
+        null);
+  }
+
+  public JProlChoicePoint(final Term goal, final JProlContext context,
+                          final Map<String, Term> predefinedVarValues, final Object payload) {
+    this(null, goal, context, context.isDebug(), context.isVerify(), predefinedVarValues, null,
+        payload);
   }
 
   public JProlChoicePoint makeForGoal(final Term goal) {
     final JProlChoicePoint result =
-        new JProlChoicePoint(null, goal, this.context, this.debug, this.validateArguments, null);
-    result.payload = this.payload;
+        new JProlChoicePoint(null, goal, this.context, this.debug, this.validateArguments, null,
+            null, this.payload);
     return result;
   }
 
@@ -171,8 +187,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
     final JProlChoicePoint newGoal =
         new JProlChoicePoint(this.rootChoicePoint, goal, this.context, this.debug,
             this.validateArguments,
-            null);
-    newGoal.payload = this.payload;
+            null, null, this.payload);
 
     final JProlChoicePoint prevGoal = newGoal.prevChoicePoint;
     if (prevGoal != null) {
@@ -279,8 +294,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
                 } else {
                   final JProlChoicePoint nextGoal =
                       new JProlChoicePoint(this.rootChoicePoint, goalToProcess.nextAndTerm,
-                          this.context, this.debug, this.validateArguments, null);
-                  nextGoal.payload = this.payload;
+                          this.context, this.debug, this.validateArguments, null, null,
+                          this.payload);
                   nextGoal.nextAndTerm = goalToProcess.nextAndTermForNextGoal;
                 }
               }
@@ -379,8 +394,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
           if (nextClause.isClause()) {
             this.thisConnector = theTerm;
             this.subChoicePointConnector = nextClause.getArgumentAt(0);
-            this.subChoicePoint = new JProlChoicePoint(nextClause.getArgumentAt(1), this.context);
-            this.subChoicePoint.payload = this.payload;
+            this.subChoicePoint =
+                new JProlChoicePoint(nextClause.getArgumentAt(1), this.context, this.payload);
             continue;
           } else {
             if (!theTerm.unifyTo(nextClause)) {
@@ -422,12 +437,10 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
             if (arity == 1) {
               this.subChoicePoint =
-                  new JProlChoicePoint(structClone.getArgumentAt(0), this.context);
-              this.subChoicePoint.payload = this.payload;
+                  new JProlChoicePoint(structClone.getArgumentAt(0), this.context, this.payload);
             } else {
               this.subChoicePoint =
-                  new JProlChoicePoint(structClone.getArgumentAt(1), this.context);
-              this.subChoicePoint.payload = this.payload;
+                  new JProlChoicePoint(structClone.getArgumentAt(1), this.context, this.payload);
             }
           } else {
 
@@ -463,8 +476,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
                   if (getInternalObject() == null) {
                     final JProlChoicePoint leftSubbranch =
                         new JProlChoicePoint(this.rootChoicePoint, struct.getArgumentAt(0),
-                            this.context, this.debug, this.validateArguments, null);
-                    leftSubbranch.payload = this.payload;
+                            this.context, this.debug, this.validateArguments, null, null,
+                            this.payload);
                     leftSubbranch.nextAndTerm = this.nextAndTerm;
                     this.setInternalObject(leftSubbranch);
                   } else {

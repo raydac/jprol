@@ -81,7 +81,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -117,6 +116,7 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.Painter;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -250,6 +250,8 @@ public final class MainFrame extends javax.swing.JFrame
   private JLabel labelEditorCol;
   private JLabel labelOpenedFile;
 
+  private final Timer swingTimer;
+
   /**
    * Creates new form MainFrame
    */
@@ -312,6 +314,11 @@ public final class MainFrame extends javax.swing.JFrame
         }
       }
     }
+
+    this.swingTimer = new Timer(300, a -> {
+      this.messageEditor.onTimer();
+    });
+    this.swingTimer.start();
   }
 
   private static Throwable findRootCause(final Throwable throwable) {
@@ -1271,16 +1278,8 @@ public final class MainFrame extends javax.swing.JFrame
             "prol-script",
             currentFolder,
             k -> new ConcurrentInMemoryKnowledgeBase("prol-script-knowledge-base"),
-            () -> Executors.newCachedThreadPool(new ThreadFactory() {
-              @Override
-              public Thread newThread(Runnable r) {
-                final Thread thread = new Thread(r, "jprol-thread-" + System.identityHashCode(r));
-                thread.setUncaughtExceptionHandler((t, e) -> {
-                  e.printStackTrace();
-                });
-                return thread;
-              }
-            })
+            () -> Executors.newCachedThreadPool(
+                r -> new Thread(r, "jprol-thread-" + System.identityHashCode(r)))
         ).addIoResourceProvider(this);
         if (setCurrentContext(context)) {
           context.addContextListener(this);
@@ -1309,13 +1308,13 @@ public final class MainFrame extends javax.swing.JFrame
             }
           }
           if (errorLoad) {
-            context.dispose();
+            context.dispose(true);
             showMessageDialog(this, "Can't create context, for library load error",
                 "Error", JOptionPane.ERROR_MESSAGE);
             return;
           }
         } else {
-          context.dispose();
+          context.dispose(true);
           showMessageDialog(this, "Can't create new context, may be started already",
               "Error", JOptionPane.ERROR_MESSAGE);
           return;
@@ -1415,12 +1414,9 @@ public final class MainFrame extends javax.swing.JFrame
             sourcePosition =
                 SourcePosition.positionOf(parserException.getLine(), parserException.getPos());
             message = String.format("Halted [%s]", parserException.getMessage());
-          } else if (haltException != null) {
+          } else {
             sourcePosition = haltException.getSourcePosition();
             message = String.format("Halted [%s]", haltException.getMessage());
-          } else {
-            message = "Error";
-            sourcePosition = SourcePosition.UNKNOWN;
           }
 
           this.messageEditor.addText(message,
@@ -1457,6 +1453,8 @@ public final class MainFrame extends javax.swing.JFrame
 
   @Override
   public void windowClosing(final WindowEvent e) {
+    this.swingTimer.stop();
+
     if (this.documentHasBeenChangedFlag) {
       if (JOptionPane.showConfirmDialog(this,
           "Document is changed but not saved. Do you really want to exit?", "Confirmation",

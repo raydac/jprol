@@ -66,7 +66,6 @@ import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
-import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.JProlTreeBuilder;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
@@ -1714,20 +1713,16 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return false;
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "dispose/1", synonyms = "dispose/0", args = {
-      "+integer"}, reference = " These predicate terminate JProl root context even if started through async.")
-  public static void predicateDispose(final JProlChoicePoint goal, final TermStruct predicate) {
-    JProlContext rootContext = goal.getContext();
-    while (rootContext.getParentContext() != null) {
-      rootContext = rootContext.getParentContext();
-    }
+  @JProlPredicate(guarded = true, determined = true, signature = "abort/1", synonyms = "abort/0", args = {
+      "+integer"}, reference = "Self-dispose current JProl context, not affecting root context if presented.")
+  public static void predicateAbort(final JProlChoicePoint goal, final TermStruct predicate) {
     if (predicate.getArity() == 0) {
-      rootContext.dispose();
+      goal.getContext().dispose();
       throw new ProlHaltExecutionException();
     } else {
       final Term arg = predicate.getArgumentAt(0).tryGround();
       final long status = arg.toNumber().longValue();
-      rootContext.dispose();
+      goal.getContext().dispose();
       throw new ProlHaltExecutionException(status);
     }
   }

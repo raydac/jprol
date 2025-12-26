@@ -351,7 +351,7 @@ public abstract class AbstractJProlLibrary {
   }
 
   public final void onContextDispose(final JProlContext context) {
-    if (context.getParentContext() == null) {
+    if (context.isRootContext()) {
       // make disposing notification only for root context
       this.onCallContextDispose(context, this.contextNamedObjects.remove(context));
     }

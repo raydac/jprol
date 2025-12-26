@@ -118,8 +118,7 @@ public class JProlContext implements AutoCloseable {
   private final String contextId;
   private final Map<String, Map<JProlTriggerType, List<JProlTrigger>>> triggers =
       new LazySynchronizedMap<>();
-  private final Map<String, Semaphore> namedLockers =
-      new LazySynchronizedMap<>();
+  private final Map<String, Semaphore> namedSemaphores;
   private final Map<Long, CompletableFuture<Term>> startedAsyncTasks =
       new LazySynchronizedMap<>();
   private final List<AbstractJProlLibrary> libraries = new CopyOnWriteArrayList<>();
@@ -155,7 +154,7 @@ public class JProlContext implements AutoCloseable {
   private final List<IoResourceProvider> ioProviders = new CopyOnWriteArrayList<>();
   private final File currentFolder;
   private final JProlContext parentContext;
-  private boolean templateValidate;
+  private boolean verify;
   private boolean debug;
   private boolean shareKnowledgeBaseBetweenThreads;
   private UndefinedPredicateBehavior undefinedPredicateBehaviour;
@@ -201,6 +200,7 @@ public class JProlContext implements AutoCloseable {
         emptyList(),
         emptySet(),
         emptyMap(),
+        new ConcurrentHashMap<>(),
         libs
     );
   }
@@ -226,8 +226,10 @@ public class JProlContext implements AutoCloseable {
       final List<IoResourceProvider> ioProviders,
       final Set<String> dynamicSignatures,
       final Map<String, Map<JProlTriggerType, List<JProlTrigger>>> triggers,
+      final Map<String, Semaphore> namedSemaphores,
       final AbstractJProlLibrary... additionalLibraries
   ) {
+    this.namedSemaphores = namedSemaphores;
     this.parentContext = parentContext;
     this.contextId = requireNonNull(contextId, "Context Id is null");
     this.currentFolder = requireNonNull(currentFolder);
@@ -268,6 +270,10 @@ public class JProlContext implements AutoCloseable {
     return this.shareKnowledgeBaseBetweenThreads;
   }
 
+  public boolean isRootContext() {
+    return this.parentContext == null;
+  }
+
   public JProlContext getParentContext() {
     return this.parentContext;
   }
@@ -276,8 +282,8 @@ public class JProlContext implements AutoCloseable {
     return this.currentFolder;
   }
 
-  public boolean isTemplateValidate() {
-    return this.templateValidate;
+  public boolean isVerify() {
+    return this.verify;
   }
 
   public UndefinedPredicateBehavior getUndefinedPredicateBehavior() {
@@ -306,7 +312,7 @@ public class JProlContext implements AutoCloseable {
   private void onSystemFlagsUpdated() {
     this.shareKnowledgeBaseBetweenThreads =
         Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.SHARE_KNOWLEDGE_BASE).getText());
-    this.templateValidate =
+    this.verify =
         Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.VERIFY).getText());
     this.debug = Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.DEBUG).getText());
     this.undefinedPredicateBehaviour = UndefinedPredicateBehavior
@@ -369,8 +375,7 @@ public class JProlContext implements AutoCloseable {
     this.assertNotDisposed();
     this.asyncLocker.lock();
     try {
-      while (!this.startedAsyncTasks.isEmpty() && !this.isDisposed() &&
-          !Thread.currentThread().isInterrupted()) {
+      while (!this.startedAsyncTasks.isEmpty() && !Thread.currentThread().isInterrupted()) {
         try {
           this.asyncCounterCondition.await();
         } catch (InterruptedException ex) {
@@ -383,23 +388,37 @@ public class JProlContext implements AutoCloseable {
     }
   }
 
-  private void onAsyncTaskCompleted(final long id, final Throwable error) {
-    this.startedAsyncTasks.remove(id);
+  private void sinalAllConditions() {
     this.asyncLocker.lock();
     try {
       this.asyncCounterCondition.signalAll();
     } finally {
       this.asyncLocker.unlock();
     }
+  }
 
-    if (error != null && !this.contextListeners.isEmpty()) {
-      this.contextListeners.forEach(x -> {
-        try {
-          x.onAsyncUncaughtTaskException(this, id, error);
-        } catch (Exception ex) {
-          // do nothing
-        }
-      });
+  private void onAsyncTaskCompleted(
+      final long id,
+      final JProlContext copyContext,
+      final JProlContextListener contextListener,
+      final Throwable error) {
+    try {
+      this.removeContextListener(contextListener);
+
+      this.startedAsyncTasks.remove(id);
+      this.sinalAllConditions();
+
+      if (error != null && !this.contextListeners.isEmpty()) {
+        this.contextListeners.forEach(x -> {
+          try {
+            x.onAsyncUncaughtTaskException(this, id, error);
+          } catch (Exception ex) {
+            // do nothing
+          }
+        });
+      }
+    } finally {
+      copyContext.dispose();
     }
   }
 
@@ -421,37 +440,49 @@ public class JProlContext implements AutoCloseable {
     this.assertConcurrentKnowledgeBase();
 
     final long taskId = TASK_COUNTER.incrementAndGet();
+    final JProlContext contextCopy = this.makeCopy(shareKnowledgeBase, false);
+    final JProlContextListener rootContextListener = new JProlContextListener() {
+      @Override
+      public void onContextDispose(final JProlContext source) {
+        source.removeContextListener(this);
+        Thread.currentThread().interrupt();
+        contextCopy.dispose();
+      }
+    };
+    this.addContextListener(rootContextListener);
+
     return this.startedAsyncTasks.computeIfAbsent(taskId, id ->
         CompletableFuture.supplyAsync(() -> {
-              final JProlContext contextCopy = this.makeCopy(shareKnowledgeBase);
-              final JProlChoicePoint asyncGoal =
-                  new JProlChoicePoint(requireNonNull(goal), contextCopy);
-              int proved = 0;
-              while (!this.isDisposed() && !contextCopy.isDisposed()) {
-                if (asyncGoal.prove() == null) {
-                  break;
-                } else {
-                  proved++;
-                }
+          Exception error = null;
+          try {
+            final JProlChoicePoint asyncGoal =
+                new JProlChoicePoint(requireNonNull(goal), contextCopy);
+            int proved = 0;
+            while (!this.isDisposed() && !contextCopy.isDisposed()) {
+              if (asyncGoal.prove() == null) {
+                break;
+              } else {
+                proved++;
               }
+            }
 
-              if (!contextCopy.isDisposed()) {
-                contextCopy.dispose();
-              }
-
-              return Terms.newLong(proved);
-            }, this.asyncTaskExecutorService)
-            .handle((x, e) -> {
-              this.onAsyncTaskCompleted(id, e);
-              if (e != null) {
-                if (!(e instanceof CompletionException) ||
-                    !(e.getCause() instanceof ProlInterruptException)) {
-                  throw new ProlForkExecutionException("Error during async/1", goal,
-                      new Throwable[] {e});
-                }
-              }
-              return x;
-            }));
+            if (!contextCopy.isDisposed()) {
+              contextCopy.dispose();
+            }
+            return Terms.newLong(proved);
+          } catch (Exception ex) {
+            error = ex;
+            if (!(ex instanceof CompletionException) ||
+                !(ex.getCause() instanceof ProlInterruptException)) {
+              throw new ProlForkExecutionException("Error during async/1", goal,
+                  new Throwable[] {ex});
+            } else {
+              throw ex;
+            }
+          } finally {
+            this.onAsyncTaskCompleted(id, contextCopy, rootContextListener, error);
+          }
+        }, this.asyncTaskExecutorService));
   }
 
   /**
@@ -468,25 +499,39 @@ public class JProlContext implements AutoCloseable {
 
     final long taskId = TASK_COUNTER.incrementAndGet();
 
+    final JProlContext contextCopy = this.makeCopy(shareKnowledgeBase, false);
+    final JProlContextListener rootContextListener = new JProlContextListener() {
+      @Override
+      public void onContextDispose(final JProlContext source) {
+        source.removeContextListener(this);
+        Thread.currentThread().interrupt();
+        contextCopy.dispose();
+      }
+    };
+    this.addContextListener(rootContextListener);
     return this.startedAsyncTasks.computeIfAbsent(taskId, id ->
         CompletableFuture.supplyAsync(() -> {
-              final JProlChoicePoint asyncGoal =
-                  new JProlChoicePoint(requireNonNull(goal), this.makeCopy(shareKnowledgeBase));
-              final Term result = asyncGoal.prove();
-              asyncGoal.cutVariants();
-              return result;
-            }, this.asyncTaskExecutorService)
-            .handle((x, e) -> {
-              this.onAsyncTaskCompleted(id, e);
-              if (e != null) {
-                if (!(e instanceof CompletionException) ||
-                    !(e.getCause() instanceof ProlInterruptException)) {
-                  throw new ProlForkExecutionException("Error during async/1", goal,
-                      new Throwable[] {e});
-                }
-              }
-              return x;
-            }));
+          Exception error = null;
+          try {
+            final JProlChoicePoint asyncGoal =
+                new JProlChoicePoint(requireNonNull(goal), contextCopy);
+
+            final Term result = asyncGoal.prove();
+            asyncGoal.cutVariants();
+            return result;
+          } catch (Exception ex) {
+            error = ex;
+            if (!(ex instanceof CompletionException) ||
+                !(ex.getCause() instanceof ProlInterruptException)) {
+              throw new ProlForkExecutionException("Error during async/1", goal,
+                  new Throwable[] {ex});
+            } else {
+              throw ex;
+            }
+          } finally {
+            this.onAsyncTaskCompleted(id, contextCopy, rootContextListener, error);
+          }
+        }, this.asyncTaskExecutorService));
   }
 
   public ExecutorService getAsyncTaskExecutorService() {
@@ -495,11 +540,11 @@ public class JProlContext implements AutoCloseable {
   }
 
   private Optional<Semaphore> findLockerForId(final String lockerId,
-                                                  final boolean createIfAbsent) {
+                                              final boolean createIfAbsent) {
     if (createIfAbsent) {
-      return Optional.of(this.namedLockers.computeIfAbsent(lockerId, s -> new Semaphore(1)));
+      return Optional.of(this.namedSemaphores.computeIfAbsent(lockerId, s -> new Semaphore(1)));
     } else {
-      return Optional.ofNullable(this.namedLockers.get(lockerId));
+      return Optional.ofNullable(this.namedSemaphores.get(lockerId));
     }
   }
 
@@ -524,7 +569,6 @@ public class JProlContext implements AutoCloseable {
   }
 
   public void unlockFor(final String lockId) {
-    this.assertNotDisposed();
     this.findLockerForId(lockId, false).ifPresent(Semaphore::release);
   }
 
@@ -753,21 +797,33 @@ public class JProlContext implements AutoCloseable {
 
   public void dispose(final boolean shutdownExecutor) {
     if (this.disposed.compareAndSet(false, true)) {
-      if (shutdownExecutor) {
-        this.asyncTaskExecutorService.shutdownNow();
-      }
-      this.startedAsyncTasks.values().forEach(x -> x.cancel(true));
-      this.waitStartedTasksCompletion(Duration.ofSeconds(5));
-      this.startedAsyncTasks.clear();
-
-      this.namedLockers.forEach((key, value) -> {
+      this.contextListeners.forEach(listener -> {
         try {
-          value.release();
+          listener.onContextDispose(this);
         } catch (Exception ex) {
           // do nothing
         }
       });
-      this.namedLockers.clear();
+
+      this.startedAsyncTasks.values().forEach(x -> x.cancel(true));
+
+      if (this.isRootContext()) {
+        this.namedSemaphores.forEach((key, value) -> {
+          try {
+            value.release();
+          } catch (Exception ex) {
+            // do nothing
+          }
+        });
+        this.namedSemaphores.clear();
+      }
+
+      if (shutdownExecutor) {
+        this.asyncTaskExecutorService.shutdownNow();
+      }
+      this.sinalAllConditions();
+      this.waitStartedTasksCompletion(Duration.ofSeconds(15));
+      this.startedAsyncTasks.clear();
 
       this.triggers.values().stream()
           .flatMap(x -> x.values().stream())
@@ -780,6 +836,7 @@ public class JProlContext implements AutoCloseable {
               // do nothing
             }
           });
+      this.triggers.clear();
 
       this.libraries.forEach(library -> {
         try {
@@ -794,31 +851,15 @@ public class JProlContext implements AutoCloseable {
               // do nothing
             }
           }
-        }
-      });
-      try {
-        this.contextListeners.forEach(listener -> {
-          try {
-            listener.onContextDispose(this);
-          } catch (Exception ex) {
-            // do nothing
           }
         });
-      } finally {
+      this.libraries.clear();
         this.contextListeners.clear();
-      }
     }
   }
 
   public boolean isDisposed() {
-    final boolean parentDisposed = this.parentContext != null && this.parentContext.isDisposed();
-    final boolean thisDisposed = this.disposed.get();
-
-    if (parentDisposed && !thisDisposed) {
-      this.dispose();
-    }
-
-    return thisDisposed;
+    return this.disposed.get();
   }
 
   public void addTrigger(final JProlTrigger trigger) {
@@ -1143,20 +1184,23 @@ public class JProlContext implements AutoCloseable {
    * Make full context copy.
    *
    * @param shareKnowledgeBase if true then share the knowledge base with the new instance, make copy otherwise.
+   * @param copyContextListeners make copy of context listeners
    * @return copy of the current context state
    */
-  public JProlContext makeCopy(final boolean shareKnowledgeBase) {
+  public JProlContext makeCopy(final boolean shareKnowledgeBase,
+                               final boolean copyContextListeners) {
     return new JProlContext(
         this,
-        this.contextId + "_copy",
+        this.contextId + "::copy" + System.nanoTime(),
         this.currentFolder,
         shareKnowledgeBase ? this.knowledgeBase : this.knowledgeBase.makeCopy(),
         this.asyncTaskExecutorService.getSupplier(),
         this.systemFlags,
-        this.contextListeners,
+        copyContextListeners ? this.contextListeners : List.of(),
         this.ioProviders,
         this.dynamicSignatures,
-        this.triggers
+        this.triggers,
+        this.namedSemaphores
     );
   }
 

@@ -124,9 +124,12 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
   @JProlPredicate(guarded = true, determined = true, signature = "waitasync/0", reference = "Blocking waiting until all daemon threads (started with either fork/1 or async/1) of the context will be done.")
   public static void predicateWAITASYNC0(final JProlChoicePoint choicePoint,
                                          final TermStruct predicate) {
-    choicePoint.getContext().waitAllAsyncTasks();
-    if (Thread.currentThread().isInterrupted() || choicePoint.getContext().isDisposed()) {
-      choicePoint.getContext().getAsyncTaskExecutorService().shutdown();
+    try {
+      choicePoint.getContext().waitAllAsyncTasks();
+    } catch (Exception ex) {
+      // ignore
+    }
+    if (Thread.currentThread().isInterrupted()) {
       throw new ProlForkExecutionException("Execution interrupted", predicate, null);
     }
   }
