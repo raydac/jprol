@@ -40,6 +40,7 @@ import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.data.Terms;
+import com.igormaznitsa.jprol.exceptions.ProlAbortExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlAbstractCatchableException;
 import com.igormaznitsa.jprol.exceptions.ProlChoicePointInterruptedException;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
@@ -262,6 +263,21 @@ public class JProlContext implements AutoCloseable {
     this.registerLibraries();
   }
 
+  /**
+   * Method called for uncaught exception to not lost it.
+   *
+   * @param source exception context, must not be null
+   * @param error  caught error, must not be null
+   * @since 3.0.0
+   */
+  protected void onUncaughtException(final JProlContext source, final Throwable error) {
+    if (this.isRootContext()) {
+      error.printStackTrace();
+    } else {
+      this.parentContext.onUncaughtException(source, error);
+    }
+  }
+
   private void registerLibraries() {
     this.libraries.forEach(x -> x.onRegisteredInContext(this));
   }
@@ -377,7 +393,7 @@ public class JProlContext implements AutoCloseable {
     try {
       while (!this.startedAsyncTasks.isEmpty() && !Thread.currentThread().isInterrupted()) {
         try {
-          this.asyncCounterCondition.await(100, TimeUnit.MILLISECONDS);
+          this.asyncCounterCondition.await(10, TimeUnit.MILLISECONDS);
         } catch (InterruptedException ex) {
           Thread.currentThread().interrupt();
           break;
@@ -404,18 +420,23 @@ public class JProlContext implements AutoCloseable {
       final Throwable error) {
     try {
       this.removeContextListener(contextListener);
-
       this.startedAsyncTasks.remove(id);
       this.sinalAllConditions();
 
       if (error != null && !this.contextListeners.isEmpty()) {
-        this.contextListeners.forEach(x -> {
-          try {
-            x.onAsyncUncaughtTaskException(this, id, error);
-          } catch (Exception ex) {
-            // do nothing
-          }
-        });
+        if (!(error instanceof ProlChoicePointInterruptedException)) {
+          this.contextListeners.forEach(x -> {
+            try {
+              if (error instanceof ProlAbortExecutionException) {
+                x.onAsyncTaskAborted(this, copyContext, id, (ProlAbortExecutionException) error);
+              } else {
+                x.onAsyncUncaughtTaskException(this, copyContext, id, error);
+              }
+            } catch (Exception ex) {
+              this.onUncaughtException(this, ex);
+            }
+          });
+        }
       }
     } finally {
       copyContext.dispose();
@@ -451,38 +472,49 @@ public class JProlContext implements AutoCloseable {
     };
     this.addContextListener(rootContextListener);
 
-    return this.startedAsyncTasks.computeIfAbsent(taskId, id ->
-        CompletableFuture.supplyAsync(() -> {
-          Exception error = null;
-          try {
-            final JProlChoicePoint asyncGoal =
-                new JProlChoicePoint(requireNonNull(goal), contextCopy);
-            int proved = 0;
-            while (!this.isDisposed() && !contextCopy.isDisposed()) {
-              if (asyncGoal.prove() == null) {
-                break;
-              } else {
-                proved++;
-              }
-            }
-
-            if (!contextCopy.isDisposed()) {
-              contextCopy.dispose();
-            }
-            return Terms.newLong(proved);
-          } catch (Exception ex) {
-            error = ex;
-            if (!(ex instanceof CompletionException) ||
-                !(ex.getCause() instanceof ProlInterruptException)) {
-              throw new ProlForkExecutionException("Error during async/1", goal,
-                  new Throwable[] {ex});
+    return this.startedAsyncTasks.computeIfAbsent(taskId, id -> {
+      final CompletableFuture<Term> future = CompletableFuture.supplyAsync(() -> {
+        Exception error = null;
+        try {
+          final JProlChoicePoint asyncGoal =
+              new JProlChoicePoint(requireNonNull(goal), contextCopy);
+          int proved = 0;
+          while (!this.isDisposed() && !contextCopy.isDisposed()) {
+            if (asyncGoal.prove() == null) {
+              break;
             } else {
-              throw ex;
+              proved++;
             }
-          } finally {
-            this.onAsyncTaskCompleted(id, contextCopy, rootContextListener, error);
           }
-        }, this.asyncTaskExecutorService));
+
+          if (!contextCopy.isDisposed()) {
+            contextCopy.dispose();
+          }
+          return Terms.newLong(proved);
+        } catch (Exception ex) {
+          error = ex;
+          if (!(ex instanceof CompletionException) ||
+              !(ex.getCause() instanceof ProlInterruptException)) {
+            throw new ProlForkExecutionException("Error during async/1", goal,
+                new Throwable[] {ex});
+          } else {
+            throw ex;
+          }
+        } finally {
+          this.onAsyncTaskCompleted(id, contextCopy, rootContextListener, error);
+        }
+      }, this.asyncTaskExecutorService);
+
+      this.contextListeners.forEach(x -> {
+        try {
+          x.onAsyncTaskStarted(JProlContext.this, contextCopy, taskId, future);
+        } catch (Throwable ex) {
+          this.onUncaughtException(this, ex);
+        }
+      });
+
+      return future;
+    });
   }
 
   /**
@@ -509,29 +541,40 @@ public class JProlContext implements AutoCloseable {
       }
     };
     this.addContextListener(rootContextListener);
-    return this.startedAsyncTasks.computeIfAbsent(taskId, id ->
-        CompletableFuture.supplyAsync(() -> {
-          Exception error = null;
-          try {
-            final JProlChoicePoint asyncGoal =
-                new JProlChoicePoint(requireNonNull(goal), contextCopy);
+    return this.startedAsyncTasks.computeIfAbsent(taskId, id -> {
+      final CompletableFuture<Term> future = CompletableFuture.supplyAsync(() -> {
+        Exception error = null;
+        try {
+          final JProlChoicePoint asyncGoal =
+              new JProlChoicePoint(requireNonNull(goal), contextCopy);
 
-            final Term result = asyncGoal.prove();
-            asyncGoal.cutVariants();
-            return result;
-          } catch (Exception ex) {
-            error = ex;
-            if (!(ex instanceof CompletionException) ||
-                !(ex.getCause() instanceof ProlInterruptException)) {
-              throw new ProlForkExecutionException("Error during async/1", goal,
-                  new Throwable[] {ex});
-            } else {
-              throw ex;
-            }
-          } finally {
-            this.onAsyncTaskCompleted(id, contextCopy, rootContextListener, error);
+          final Term result = asyncGoal.prove();
+          asyncGoal.cutVariants();
+          return result;
+        } catch (Exception ex) {
+          error = ex;
+          if (!(ex instanceof CompletionException) ||
+              !(ex.getCause() instanceof ProlInterruptException)) {
+            throw new ProlForkExecutionException("Error during async/1", goal,
+                new Throwable[] {ex});
+          } else {
+            throw ex;
           }
-        }, this.asyncTaskExecutorService));
+        } finally {
+          this.onAsyncTaskCompleted(id, contextCopy, rootContextListener, error);
+        }
+      }, this.asyncTaskExecutorService);
+
+      this.contextListeners.forEach(x -> {
+        try {
+          x.onAsyncTaskStarted(JProlContext.this, contextCopy, taskId, future);
+        } catch (Throwable ex) {
+          this.onUncaughtException(this, ex);
+        }
+      });
+
+      return future;
+    });
   }
 
   public ExecutorService getAsyncTaskExecutorService() {
@@ -801,7 +844,7 @@ public class JProlContext implements AutoCloseable {
         try {
           listener.onContextDispose(this);
         } catch (Exception ex) {
-          // do nothing
+          this.onUncaughtException(this, ex);
         }
       });
 
@@ -812,13 +855,13 @@ public class JProlContext implements AutoCloseable {
           try {
             value.release();
           } catch (Exception ex) {
-            // do nothing
+            this.onUncaughtException(this, ex);
           }
         });
         this.namedSemaphores.clear();
       }
 
-      if (shutdownExecutor) {
+      if (this.isRootContext() && shutdownExecutor) {
         this.asyncTaskExecutorService.shutdownNow();
       }
       this.sinalAllConditions();
@@ -833,7 +876,7 @@ public class JProlContext implements AutoCloseable {
             try {
               x.onContextDispose(this);
             } catch (Exception ex) {
-              // do nothing
+              this.onUncaughtException(this, ex);
             }
           });
       this.triggers.clear();
@@ -851,10 +894,10 @@ public class JProlContext implements AutoCloseable {
               // do nothing
             }
           }
-          }
-        });
+        }
+      });
       this.libraries.clear();
-        this.contextListeners.clear();
+      this.contextListeners.clear();
     }
   }
 
@@ -900,12 +943,11 @@ public class JProlContext implements AutoCloseable {
     switch (this.getUndefinedPredicateBehavior()) {
       case ERROR: {
         throw new ProlExistenceErrorException("predicate",
-            "Undefined predicate: " + term.getSignature(),
-            term);
+            "Undefined predicate: " + signature, term);
       }
       case WARNING: {
         this.contextListeners
-            .forEach(x -> x.onUndefinedPredicateWarning(this, choicePoint, term.getSignature()));
+            .forEach(x -> x.onUndefinedPredicateWarning(this, choicePoint, signature));
       }
       break;
       case FAIL: {
@@ -1132,7 +1174,10 @@ public class JProlContext implements AutoCloseable {
 
           throw new PrologParserException(
               message,
-              errorPosition.getLine(), errorPosition.getPosition(), ex);
+              errorPosition.getLine(),
+              errorPosition.getPosition(),
+              ex
+          );
         } catch (Exception ex) {
           throw new PrologParserException(
               ex.getCause() == null ? ex.getMessage() : ex.getCause().getMessage(),
@@ -1183,7 +1228,7 @@ public class JProlContext implements AutoCloseable {
   /**
    * Make full context copy.
    *
-   * @param shareKnowledgeBase if true then share the knowledge base with the new instance, make copy otherwise.
+   * @param shareKnowledgeBase   if true then share the knowledge base with the new instance, make copy otherwise.
    * @param copyContextListeners make copy of context listeners
    * @return copy of the current context state
    */

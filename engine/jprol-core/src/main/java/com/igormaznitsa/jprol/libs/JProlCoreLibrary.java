@@ -51,13 +51,13 @@ import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.data.Terms;
+import com.igormaznitsa.jprol.exceptions.ProlAbortExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlAbstractCatchableException;
 import com.igormaznitsa.jprol.exceptions.ProlChoicePointInterruptedException;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlCustomErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
-import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlKnowledgeBaseException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
@@ -1721,7 +1721,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       "+term"}, reference = "Self-dispose current JProl context, not affecting root context if presented.")
   public static void predicateAbort(final JProlChoicePoint goal, final TermStruct predicate) {
     if (predicate.getArity() == 0) {
-      throw new ProlHaltExecutionException("Abort", 0L);
+      throw new ProlAbortExecutionException("Aborted", 0L);
     } else {
       final Term arg = predicate.getArgumentAt(0).tryGround();
       String abortMessage = null;
@@ -1731,7 +1731,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       } else {
         abortMessage = arg.getText();
       }
-      throw new ProlHaltExecutionException(Objects.requireNonNullElse(abortMessage, "Abort"),
+      throw new ProlAbortExecutionException(Objects.requireNonNullElse(abortMessage, "Aborted"),
           abortStatus);
     }
   }

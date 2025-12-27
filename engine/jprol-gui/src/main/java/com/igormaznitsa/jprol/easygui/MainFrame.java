@@ -1378,8 +1378,9 @@ public final class MainFrame extends javax.swing.JFrame
       } catch (Throwable ex) {
         LOGGER.log(Level.WARNING, "ExecutionThread.run()", ex);
 
-        if (ex instanceof ProlInterruptException ||
-            ex.getCause() instanceof ProlInterruptException) {
+        if (ex instanceof ProlInterruptException
+            || ex.getCause() instanceof ProlInterruptException
+        ) {
           if (ex instanceof ProlInterruptException) {
             haltException = (ProlInterruptException) ex;
           } else {
@@ -1880,9 +1881,12 @@ public final class MainFrame extends javax.swing.JFrame
   }
 
   @Override
-  public void onAsyncUncaughtTaskException(final JProlContext source,
-                                           final long taskId,
-                                           final Throwable error) {
+  public void onAsyncUncaughtTaskException(
+      final JProlContext source,
+      final JProlContext taskContext,
+      final long taskId,
+      final Throwable error
+  ) {
     this.messageEditor.addErrorText(
         "Detected exception in async task " + taskId + ": " + error.getMessage());
     error.printStackTrace();

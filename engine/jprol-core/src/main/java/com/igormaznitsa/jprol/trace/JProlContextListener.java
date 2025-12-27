@@ -16,23 +16,69 @@
 
 package com.igormaznitsa.jprol.trace;
 
+import com.igormaznitsa.jprol.data.Term;
+import com.igormaznitsa.jprol.exceptions.ProlAbortExecutionException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Interface of a JProl context listener, allows to catch events from specified context.
  */
 public interface JProlContextListener {
 
+  /**
+   * Get notification on context dispose.
+   *
+   * @param source disposing context
+   */
   default void onContextDispose(JProlContext source) {
   }
 
+  /**
+   * Get trace events from choice points if trace mode is on
+   * @param source source context
+   * @param choicePoint source choice point
+   * @param event event
+   */
   default void onChoicePointTraceEvent(JProlContext source, JProlChoicePoint choicePoint,
                                        TraceEvent event) {
   }
 
+  /**
+   * Get notification about some undefined predicate meet
+   * @param source source context
+   * @param choicePoint source choice point
+   * @param undefinedPredicateSignature signature of undefined predicate like 'abort/1'
+   */
   default void onUndefinedPredicateWarning(JProlContext source, JProlChoicePoint choicePoint,
                                            String undefinedPredicateSignature) {
+  }
+
+  /**
+   * Notification about start of async task
+   *
+   * @param source      source context, must not be null
+   * @param taskContext context to be used for the task
+   * @param taskId      task id
+   * @param startedTask future for the task
+   * @since 3.0.0
+   */
+  default void onAsyncTaskStarted(JProlContext source, JProlContext taskContext, long taskId,
+                                  CompletableFuture<Term> startedTask) {
+
+  }
+
+  /**
+   * Notification that an async task was aborted.
+   *
+   * @param source    the source context for aborted task
+   * @param taskId    the task id
+   * @param exception an abort exception, must not be null
+   */
+  default void onAsyncTaskAborted(JProlContext source, JProlContext taskContext, long taskId,
+                                  ProlAbortExecutionException exception) {
+
   }
 
   /**
@@ -43,8 +89,9 @@ public interface JProlContextListener {
    * @param error  exception thrown in async task
    * @since 3.0.0
    */
-  default void onAsyncUncaughtTaskException(JProlContext source, final long taskId,
-                                            final Throwable error) {
+  default void onAsyncUncaughtTaskException(JProlContext source, JProlContext taskContext,
+                                            final long taskId,
+                                            Throwable error) {
 
   }
 }

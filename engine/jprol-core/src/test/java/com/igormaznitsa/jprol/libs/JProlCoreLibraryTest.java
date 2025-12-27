@@ -9,12 +9,12 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.data.TermVar;
+import com.igormaznitsa.jprol.exceptions.ProlAbortExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlArgumentValidationException;
 import com.igormaznitsa.jprol.exceptions.ProlCustomErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
-import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlRepresentationErrorException;
@@ -1094,10 +1094,10 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testAbort() {
-    assertProlException("abort(a).", ProlHaltExecutionException.class);
-    assertProlException("abort('hello').", ProlHaltExecutionException.class);
-    assertProlException("abort(111).", ProlHaltExecutionException.class);
-    assertProlException("abort.", ProlHaltExecutionException.class);
+    assertProlException("abort(a).", ProlAbortExecutionException.class);
+    assertProlException("abort('hello').", ProlAbortExecutionException.class);
+    assertProlException("abort(111).", ProlAbortExecutionException.class);
+    assertProlException("abort.", ProlAbortExecutionException.class);
   }
 
   @Test
