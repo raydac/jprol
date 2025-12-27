@@ -301,7 +301,7 @@ public class Term {
       return true;
     }
 
-    if (obj.getClass() == Term.class) {
+    if (obj.getClass() == Term.class || obj.getClass() == TermOperator.class) {
       final Term that = (Term) obj;
       return this.text.equals(that.text);
     }

@@ -157,7 +157,7 @@ public class JProlContext implements AutoCloseable {
   private final JProlContext parentContext;
   private boolean verify;
   private boolean trace;
-  private boolean shareKnowledgeBaseBetweenThreads;
+  private boolean shareKnowledgeBaseWithAsyncTasks;
   private UndefinedPredicateBehavior undefinedPredicateBehaviour;
 
   public JProlContext(
@@ -282,8 +282,8 @@ public class JProlContext implements AutoCloseable {
     this.libraries.forEach(x -> x.onRegisteredInContext(this));
   }
 
-  public boolean isShareKnowledgeBaseBetweenThreads() {
-    return this.shareKnowledgeBaseBetweenThreads;
+  public boolean isShareKnowledgeBaseWithAsyncTasks() {
+    return this.shareKnowledgeBaseWithAsyncTasks;
   }
 
   public boolean isRootContext() {
@@ -326,7 +326,7 @@ public class JProlContext implements AutoCloseable {
   }
 
   private void onSystemFlagsUpdated() {
-    this.shareKnowledgeBaseBetweenThreads =
+    this.shareKnowledgeBaseWithAsyncTasks =
         Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.SHARE_KNOWLEDGE_BASE).getText());
     this.verify =
         Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.VERIFY).getText());

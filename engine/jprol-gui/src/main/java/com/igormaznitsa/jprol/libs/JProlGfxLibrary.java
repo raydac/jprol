@@ -1363,7 +1363,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
               Terms.newAtom(actionId)});
       if (clone.unifyWith(args)) {
         try {
-          this.context.asyncProveAll(clone, this.context.isShareKnowledgeBaseBetweenThreads());
+          this.context.asyncProveAll(clone, this.context.isShareKnowledgeBaseWithAsyncTasks());
           return true;
         } catch (Throwable thr) {
           LOGGER.log(Level.SEVERE, "Can't execute registered mouse action " + actionId, thr);
@@ -1395,7 +1395,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         final TermStruct args = Terms.newStruct(clone.getFunctor(), new Term[] {Terms.newAtom(id)});
 
         if (clone.unifyWith(args)) {
-          this.context.asyncProveAll(clone, this.context.isShareKnowledgeBaseBetweenThreads());
+          this.context.asyncProveAll(clone, this.context.isShareKnowledgeBaseWithAsyncTasks());
           return true;
         }
       } catch (Throwable thr) {

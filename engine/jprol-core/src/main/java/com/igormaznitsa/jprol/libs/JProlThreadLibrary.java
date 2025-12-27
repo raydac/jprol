@@ -42,7 +42,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
     TermList taskTerms = (TermList) arg;
 
     final List<CompletableFuture<Term>> startedTasks = asyncProveOnce(choicePoint, taskTerms,
-        choicePoint.getContext().isShareKnowledgeBaseBetweenThreads());
+        choicePoint.getContext().isShareKnowledgeBaseWithAsyncTasks());
     CompletableFuture.allOf(startedTasks.toArray(new CompletableFuture<?>[0])).join();
     final Throwable[] errors = extractErrors(startedTasks);
     if (errors.length != 0) {
@@ -59,7 +59,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
     TermList taskTerms = (TermList) arg;
 
     final List<CompletableFuture<Term>> startedTasks = asyncProveOnce(choicePoint, taskTerms,
-        choicePoint.getContext().isShareKnowledgeBaseBetweenThreads());
+        choicePoint.getContext().isShareKnowledgeBaseWithAsyncTasks());
 
     CompletableFuture.anyOf(startedTasks.toArray(new CompletableFuture<?>[0])).join();
     startedTasks.stream().filter(x -> !x.isDone()).forEach(x -> x.cancel(true));
@@ -82,7 +82,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
       throw new ProlInstantiationErrorException("Callable term must be bounded", predicate);
     }
     choicePoint.getContext()
-        .asyncProveAll(term, choicePoint.getContext().isShareKnowledgeBaseBetweenThreads());
+        .asyncProveAll(term, choicePoint.getContext().isShareKnowledgeBaseWithAsyncTasks());
   }
 
   @JProlPredicate(determined = true, signature = "unlock/1", validate = {
