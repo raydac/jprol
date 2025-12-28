@@ -66,7 +66,7 @@ public final class JProlScriptEngineUtils {
     if (obj instanceof Collection) {
       final List<Term> terms = ((Collection<?>) obj).stream().map(JProlScriptEngineUtils::java2term)
           .collect(Collectors.toList());
-      return TermList.asList(terms);
+      return TermList.listOf(terms);
     }
     return Terms.newAtom(obj.toString());
   }

@@ -74,8 +74,8 @@ public class ProlPermissionErrorException extends ProlAbstractCatchableException
   @Override
   public TermStruct getAsStruct() {
     return this.makeErrorStruct(TERM_ERROR,
-        TermList.asList(
-            TermList.asList(newAtom(this.operation), newAtom(permissionType), getCulprit())));
+        TermList.listOf(
+            TermList.listOf(newAtom(this.operation), newAtom(permissionType), getCulprit())));
   }
 
 }

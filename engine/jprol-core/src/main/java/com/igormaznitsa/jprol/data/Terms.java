@@ -132,6 +132,10 @@ public final class Terms {
     return result;
   }
 
+  public static TermList newList() {
+    return NULL_LIST;
+  }
+
   public static TermList newList(final Term term) {
     return new TermList(term, term.getSourcePosition());
   }

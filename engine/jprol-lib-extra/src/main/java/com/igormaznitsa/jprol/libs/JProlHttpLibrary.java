@@ -194,14 +194,14 @@ public class JProlHttpLibrary extends AbstractJProlLibrary {
           if (e.getKey() != null && e.getValue() != null) {
             responseHeaders.add(
                 Terms.newStruct(equalsOperator, new Term[] {Terms.newAtom(e.getKey()),
-                    TermList.asList(
+                    TermList.listOf(
                         e.getValue().stream().map(Terms::newAtom).collect(Collectors.toList()))}));
           }
         }
         responseListTerms.add(Terms.newStruct(equalsOperator,
             new Term[] {
                 Terms.newAtom(HttpRespnseParameters.HEADERS.name().toLowerCase(Locale.ROOT)),
-                TermList.asList(responseHeaders)}));
+                TermList.listOf(responseHeaders)}));
 
         final List<Term> listBody = new ArrayList<>();
         try (final InputStream inputStream = httpConnection.getInputStream()) {
@@ -210,14 +210,14 @@ public class JProlHttpLibrary extends AbstractJProlLibrary {
             listBody.add(Terms.newLong(value));
           }
         }
-        final TermList bodyAsBin = TermList.asList(listBody);
+        final TermList bodyAsBin = TermList.listOf(listBody);
         responseListTerms.add(Terms.newStruct(equalsOperator,
             new Term[] {
                 Terms.newAtom(HttpRespnseParameters.BODY.name().toLowerCase(Locale.ROOT)),
                 bodyAsBin}));
       }
 
-      return argResponse.unifyWith(TermList.asList(responseListTerms));
+      return argResponse.unifyWith(TermList.listOf(responseListTerms));
     } catch (ProtocolException ex) {
       throw new ProlDomainErrorException(
           "Expected request method: ['GET', 'POST', 'HEAD', 'OPTIONS', 'PUT', 'DELETE', 'TRACE']",

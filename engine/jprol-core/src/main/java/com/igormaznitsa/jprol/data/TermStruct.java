@@ -16,7 +16,6 @@
 
 package com.igormaznitsa.jprol.data;
 
-import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.data.TermType.OPERATOR;
 import static com.igormaznitsa.jprol.data.TermType.STRUCT;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
@@ -462,37 +461,39 @@ public class TermStruct extends CompoundTerm {
       return true;
     }
 
-    if (target.getTermType() == VAR) {
-      target = ((TermVar) target).getValue();
-    }
-
-    if (target == null) {
-      return true;
-    } else {
-      if (target == this) {
-        return true;
+    boolean result = false;
+    switch (target.getTermType()) {
+      case VAR: {
+        target = ((TermVar) target).getValue();
+        if (target == null) {
+          result = true;
+        } else {
+          result = target == this || this.isUnifiableWith(target);
+        }
       }
-    }
+      break;
+      case STRUCT: {
+        final TermStruct that = (TermStruct) target;
+        final int arity = this.getArity();
 
-    if (target.getTermType() == STRUCT) {
-      final TermStruct thisStruct = this;
-      final TermStruct thatStruct = (TermStruct) target;
-
-      final int arity = thisStruct.getArity();
-
-      if (arity == thatStruct.getArity() &&
-          thisStruct.getFunctor().isUnifiableWith(thatStruct.getFunctor())) {
-        for (int li = 0; li < arity; li++) {
-          if (!thisStruct.getArgumentAt(li).isUnifiableWith(thatStruct.getArgumentAt(li))) {
-            return false;
+        if (arity == that.getArity() &&
+            this.getFunctor().isUnifiableWith(that.getFunctor())) {
+          result = true;
+          for (int i = 0; i < arity; i++) {
+            if (!this.arguments[i].isUnifiableWith(that.arguments[i])) {
+              result = false;
+              break;
+            }
           }
         }
-        return true;
       }
-    } else if (this.getArity() == 0 && target.getTermType() == ATOM) {
-      return this.getFunctor().getText().equals(target.getText());
+      break;
+      case ATOM: {
+        result = this.getArity() == 0 && this.getFunctor().getText().equals(target.getText());
+      }
+      break;
     }
-    return false;
+    return result;
   }
 
   public Term makeClone() {

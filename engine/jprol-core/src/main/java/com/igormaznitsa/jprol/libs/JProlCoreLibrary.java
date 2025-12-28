@@ -1164,7 +1164,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       for (final byte b : argString.getText().getBytes(charset)) {
         codes.add(Terms.newLong(b & 0xFF));
       }
-      final TermList list = TermList.asList(codes);
+      final TermList list = TermList.listOf(codes);
       return argListBytes.unifyWith(list);
     }
   }
@@ -1212,7 +1212,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         })
         .collect(Collectors.toList());
 
-    return right.unifyWith(TermList.asList(concatenated));
+    return right.unifyWith(TermList.listOf(concatenated));
   }
 
   @JProlPredicate(determined = true, signature = "atom_chars/2", validate = {"+atom,?char_list",
@@ -2046,7 +2046,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       preparedMap.forEach((key, value) -> {
         final Term[] tmpArray = value.toArray(true);
         Arrays.sort(tmpArray, choicePoint);
-        final TermList sortedList = TermList.asList(
+        final TermList sortedList = TermList.listOf(
             Arrays.stream(tmpArray)
                 .distinct().collect(Collectors.toList()));
 

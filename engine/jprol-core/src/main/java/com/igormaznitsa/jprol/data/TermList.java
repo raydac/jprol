@@ -76,11 +76,11 @@ public final class TermList extends TermStruct {
         sourcePosition);
   }
 
-  public static TermList asList(final Term... elements) {
+  public static TermList listOf(final Term... elements) {
     return asList(Arrays.asList(elements), SourcePosition.UNKNOWN);
   }
 
-  public static TermList asList(final List<Term> elements) {
+  public static TermList listOf(final List<Term> elements) {
     return asList(elements, SourcePosition.UNKNOWN);
   }
 
@@ -155,10 +155,10 @@ public final class TermList extends TermStruct {
         }
       }
       sortedList =
-          TermList.asList(
+          TermList.listOf(
               Arrays.stream(terms).filter(Objects::nonNull).collect(Collectors.toList()));
     } else {
-      sortedList = TermList.asList(Arrays.asList(terms));
+      sortedList = TermList.listOf(Arrays.asList(terms));
     }
     return sortedList;
   }

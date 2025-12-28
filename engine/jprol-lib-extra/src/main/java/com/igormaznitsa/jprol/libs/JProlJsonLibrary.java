@@ -165,7 +165,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
       }
     }
     if (endFound) {
-      return TermList.asList(values);
+      return TermList.listOf(values);
     } else {
       throw new IllegalArgumentException("Unclosed JSON array");
     }
@@ -264,7 +264,7 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
 
       if (nextChar == '}') {
         return Terms.newStruct(JSON_TERM,
-            new Term[] {TermList.asList(terms)});
+            new Term[] {TermList.listOf(terms)});
       } else if (nextChar == '\"') {
         final String fieldName = readJsonString(json, index);
         nextChar = skipWhitespaceAndReadChar(json, index);

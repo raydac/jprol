@@ -10,10 +10,10 @@ class CompoundTermTest {
 
   @Test
   void testReplaceVarInDeepStructure() {
-    TermList list = TermList.asList(
+    TermList list = TermList.listOf(
         Terms.newAtom("a"),
-        TermList.asList(Terms.newAtom("b"),
-            Terms.newStruct("aaa", new Term[] {TermList.asList(Terms.newVar("X"))},
+        TermList.listOf(Terms.newAtom("b"),
+            Terms.newStruct("aaa", new Term[] {TermList.listOf(Terms.newVar("X"))},
                 SourcePosition.UNKNOWN))
     );
 
@@ -23,11 +23,11 @@ class CompoundTermTest {
 
   @Test
   void testList_streamChildren() {
-    final TermList list = TermList.asList(
+    final TermList list = TermList.listOf(
         Terms.newAtom("a"),
         Terms.newAtom("b"),
         Terms.newStruct(Terms.newAtom("s"),
-            new Term[] {TermList.asList(Terms.TRUE, Terms.FALSE)}),
+            new Term[] {TermList.listOf(Terms.TRUE, Terms.FALSE)}),
         Terms.newAtom("c")
     );
     assertEquals("'a';'b';s(['true','false']);'c'",
@@ -38,9 +38,9 @@ class CompoundTermTest {
 
   @Test
   void testList_stream() {
-    final TermList list = TermList.asList(Terms.newAtom("a"), Terms.newAtom("b"),
+    final TermList list = TermList.listOf(Terms.newAtom("a"), Terms.newAtom("b"),
         Terms.newStruct(Terms.newAtom("s"),
-            new Term[] {TermList.asList(Terms.TRUE, Terms.FALSE)}), Terms.newAtom("c"));
+            new Term[] {TermList.listOf(Terms.TRUE, Terms.FALSE)}), Terms.newAtom("c"));
     assertEquals("'.';'a';'.';'b';'.';'s';'.';'true';'.';'false';'.';'.';'c';'.'",
         list.stream().map(Term::toSrcString).collect(Collectors.joining(";")));
   }
@@ -52,7 +52,7 @@ class CompoundTermTest {
         Terms.newVar("T"),
         Terms.newAnonymousVar(),
         Terms.newStruct(Terms.newLong(1234), new Term[] {NULL_LIST}),
-        TermList.asList(Terms.TRUE, Terms.FALSE));
+        TermList.listOf(Terms.TRUE, Terms.FALSE));
     assertEquals("'abc';T;_;1234;'.';'.';'true';'.';'false';'.'",
         struct.stream().map(Term::toSrcString).collect(Collectors.joining(";")));
   }
@@ -64,7 +64,7 @@ class CompoundTermTest {
         Terms.newVar("T"),
         Terms.newAnonymousVar(),
         Terms.newStruct(Terms.newLong(1234), new Term[] {NULL_LIST}),
-        TermList.asList(Terms.TRUE, Terms.FALSE));
+        TermList.listOf(Terms.TRUE, Terms.FALSE));
     assertEquals("T;_;1234([]);['true','false']",
         struct.streamChildren().map(Term::toSrcString).collect(Collectors.joining(";")));
   }

@@ -89,7 +89,7 @@ class JProlRegexLibraryTest extends AbstractJProlTest {
             .orElseThrow(() -> new IllegalStateException("Can't find regex_split/4 in libraries"));
     final Term goal = Terms.newStruct(Terms.newAtom("regex_split"),
         new Term[] {Terms.newAtom(regex), Terms.newAtom(text), Terms.newVar("X"),
-            TermList.asList(flags.stream().map(Terms::newAtom).collect(Collectors.toList()))},
+            TermList.listOf(flags.stream().map(Terms::newAtom).collect(Collectors.toList()))},
         invoker);
     final JProlChoicePoint choicePoint = new JProlChoicePoint(goal, context);
     final Term result = choicePoint.prove();
@@ -109,7 +109,7 @@ class JProlRegexLibraryTest extends AbstractJProlTest {
                 () -> new IllegalStateException("Can't find regex_matches/3 in libraries"));
     final Term goal = Terms.newStruct(Terms.newAtom("regex_matches"),
         new Term[] {Terms.newAtom(regex), Terms.newAtom(text),
-            TermList.asList(flags.stream().map(Terms::newAtom).collect(Collectors.toList()))},
+            TermList.listOf(flags.stream().map(Terms::newAtom).collect(Collectors.toList()))},
         invoker);
     final JProlChoicePoint choicePoint = new JProlChoicePoint(goal, context);
     final Term result = choicePoint.prove();
@@ -128,7 +128,7 @@ class JProlRegexLibraryTest extends AbstractJProlTest {
             .orElseThrow(() -> new IllegalStateException("Can't find regex_find/4 in libraries"));
     final Term goal = Terms.newStruct(Terms.newAtom("regex_find"),
         new Term[] {Terms.newAtom(regex), Terms.newAtom(text), Terms.newVar("X"),
-            TermList.asList(flags.stream().map(Terms::newAtom).collect(Collectors.toList()))},
+            TermList.listOf(flags.stream().map(Terms::newAtom).collect(Collectors.toList()))},
         invoker);
     final JProlChoicePoint choicePoint = new JProlChoicePoint(goal, context);
     final Term result = choicePoint.prove();

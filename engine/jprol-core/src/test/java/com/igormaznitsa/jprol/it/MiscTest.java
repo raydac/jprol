@@ -58,7 +58,7 @@ class MiscTest extends AbstractJProlTest {
 
     final Object testPayload = new Object();
 
-    final Term first = TermList.asList(Terms.newAtom("a", testPayload));
+    final Term first = TermList.listOf(Terms.newAtom("a", testPayload));
     final Term second = Terms.newVar("Y");
 
     final Term request = Terms.newStruct(Terms.newAtom("map"), first, second);

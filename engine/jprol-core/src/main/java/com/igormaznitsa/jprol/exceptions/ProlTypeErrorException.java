@@ -61,8 +61,8 @@ public class ProlTypeErrorException extends ProlAbstractCatchableException {
 
   @Override
   public TermStruct getAsStruct() {
-    return this.makeErrorStruct(TERM_ERROR, TermList.asList(
-        TermList.asList(newAtom(this.validType), getCulprit())));
+    return this.makeErrorStruct(TERM_ERROR, TermList.listOf(
+        TermList.listOf(newAtom(this.validType), getCulprit())));
   }
 
 }

@@ -757,7 +757,7 @@ class JProlScriptEngineTest {
       }
 
       // Build result list
-      return predicate.getArgumentAt(1).tryGround().unifyWith(TermList.asList(uniqueTerms));
+      return predicate.getArgumentAt(1).tryGround().unifyWith(TermList.listOf(uniqueTerms));
     }
 
     @JProlPredicate(

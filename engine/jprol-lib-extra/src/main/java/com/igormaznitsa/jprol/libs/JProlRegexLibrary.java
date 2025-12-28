@@ -44,7 +44,7 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
     for (final String s : pattern.split(text)) {
       array.add(Terms.newAtom(s));
     }
-    return TermList.asList(array);
+    return TermList.listOf(array);
   }
 
   public static int makePatternCompileFlags(final Term flags) {
@@ -107,7 +107,7 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
       throw new ProlDomainErrorException("Expected valid Java regular expression", argRegex, ex);
     }
 
-    final TermList resultList = TermList.asList(
+    final TermList resultList = TermList.listOf(
         Arrays.stream(pattern.split(argString.getText())).map(Terms::newAtom)
             .collect(Collectors.toList()));
     return argTargetList.unifyWith(resultList);
@@ -143,7 +143,7 @@ public class JProlRegexLibrary extends AbstractJProlLibrary {
         }
       }
     }
-    return argTargetList.unifyWith(TermList.asList(foundGroups));
+    return argTargetList.unifyWith(TermList.listOf(foundGroups));
   }
 
   @JProlPredicate(determined = true, signature = "regex_replace_all/4", validate = {

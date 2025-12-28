@@ -84,6 +84,6 @@ public class ProlDomainErrorException extends ProlAbstractCatchableException {
   @Override
   public TermStruct getAsStruct() {
     return this.makeErrorStruct(ERROR_TERM,
-        TermList.asList(TermList.asList(newAtom(this.validDomain), this.getCulprit())));
+        TermList.listOf(TermList.listOf(newAtom(this.validDomain), this.getCulprit())));
   }
 }
