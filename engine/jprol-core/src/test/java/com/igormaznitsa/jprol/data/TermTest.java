@@ -13,6 +13,7 @@ class TermTest {
     final Term one1 = Terms.newAtom("one");
     final Term one2 = Terms.newAtom("one");
     final Term two = Terms.newAtom("two");
+    assertEquals(one1.hashCode(), one2.hashCode());
     assertEquals(one1, one2);
     assertEquals(one2, one1);
     assertNotEquals(one1, two);
@@ -23,6 +24,7 @@ class TermTest {
   void testEqualsContract_TermOperator() {
     final Term one1 = Terms.newAtom("one");
     final TermOperator op1 = new TermOperator(1000, OpAssoc.FX, "one", SourcePosition.UNKNOWN);
+    assertEquals(one1.hashCode(), op1.hashCode());
     assertEquals(op1, one1);
     assertEquals(one1, op1);
   }

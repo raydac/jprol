@@ -54,14 +54,14 @@ public abstract class NumericTerm extends Term {
     }
 
     if (target.getTermType() == VAR) {
-      target = ((TermVar) target).getValue();
+      if (target.isUnground()) {
+        return true;
+      } else {
+        target = target.tryGround();
+      }
     }
 
-    if (target == null) {
-      return true;
-    }
-
-    if (target.getClass() == this.getClass()) {
+    if (target instanceof NumericTerm) {
       return this.compare((NumericTerm) target) == 0;
     }
     return false;
@@ -82,12 +82,13 @@ public abstract class NumericTerm extends Term {
         }
       }
       case VAR: {
-        final TermVar var = (TermVar) atom;
-        final Term value = var.getValue();
-        if (value == null) {
-          return ((TermVar) atom).setValue(this);
+        final TermVar ungrounded = ((TermVar) atom).findUngroundVariable();
+
+        if (ungrounded == null) {
+          return this.unifyWith(atom.tryGround());
         } else {
-          return unifyWith(value);
+          ungrounded.setImmediateValue(this);
+          return true;
         }
       }
     }

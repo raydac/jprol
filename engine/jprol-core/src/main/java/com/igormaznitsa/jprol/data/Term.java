@@ -40,7 +40,6 @@ import static java.util.stream.Collectors.toMap;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.utils.lazy.LazyMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 public class Term {
@@ -237,7 +236,7 @@ public class Term {
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.text);
+    return this.text.hashCode();
   }
 
   public Number toNumber() {

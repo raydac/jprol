@@ -78,11 +78,6 @@ public final class TermOperator extends Term {
   }
 
   @Override
-  public int hashCode() {
-    return this.op.hashCode();
-  }
-
-  @Override
   public boolean equals(final Object obj) {
     if (obj == null) {
       return false;

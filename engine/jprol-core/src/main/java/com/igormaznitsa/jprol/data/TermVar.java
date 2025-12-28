@@ -351,14 +351,14 @@ public final class TermVar extends Term {
   /**
    * Examine chain of values and return the first variable without value or this variable if it is unground one.
    *
-   * @return found unground variable in the variable chain or this variable
+   * @return found unground variable in the variable chain or this variable, null if no ungrounded var in chain
    */
   public TermVar findUngroundVariable() {
     if (this.immediateValue == null) {
       return this;
     } else {
       return this.immediateValue.getTermType() == VAR ?
-          ((TermVar) this.immediateValue).findUngroundVariable() : this;
+          ((TermVar) this.immediateValue).findUngroundVariable() : null;
     }
   }
 
@@ -406,12 +406,16 @@ public final class TermVar extends Term {
     if (this == term) {
       return true;
     } else {
-      final Term val = this.getValue();
+      if (this.immediateValue == null && term.getTermType() != VAR) {
+        this.immediateValue = term;
+        return true;
+      }
+      final Term foundValue = this.getValue();
       final boolean result;
-      if (val == null) {
+      if (foundValue == null) {
         result = this.setValue(term);
       } else {
-        result = val.unifyWith(term);
+        result = foundValue.unifyWith(term);
       }
       return result;
     }
