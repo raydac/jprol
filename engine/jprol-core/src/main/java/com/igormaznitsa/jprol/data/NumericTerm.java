@@ -68,24 +68,24 @@ public abstract class NumericTerm extends Term {
   }
 
   @Override
-  public final boolean unifyWith(Term atom) {
-    if (this == atom) {
+  public final boolean unifyWith(final Term other) {
+    if (this == other) {
       return true;
     }
 
-    switch (atom.getTermType()) {
+    switch (other.getTermType()) {
       case ATOM: {
-        if (atom.getClass() == this.getClass()) {
-          return this.compare((NumericTerm) atom) == 0;
+        if (other.getClass() == this.getClass()) {
+          return this.compare((NumericTerm) other) == 0;
         } else {
           return false;
         }
       }
       case VAR: {
-        final TermVar ungrounded = ((TermVar) atom).findUngroundVariable();
+        final TermVar ungrounded = ((TermVar) other).findUngroundVariable();
 
         if (ungrounded == null) {
-          return this.unifyWith(atom.tryGround());
+          return this.unifyWith(other.tryGround());
         } else {
           ungrounded.setImmediateValue(this);
           return true;
