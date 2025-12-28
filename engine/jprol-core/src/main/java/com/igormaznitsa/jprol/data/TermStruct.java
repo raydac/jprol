@@ -131,7 +131,7 @@ public class TermStruct extends CompoundTerm {
     return (T) this.arguments[index];
   }
 
-  public final int getArity() {
+  public int getArity() {
     return this.arguments.length;
   }
 

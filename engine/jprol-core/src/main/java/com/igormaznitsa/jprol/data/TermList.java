@@ -125,6 +125,11 @@ public final class TermList extends TermStruct {
   }
 
   @Override
+  public int getArity() {
+    return 2;
+  }
+
+  @Override
   public Term replaceVar(final String varName, final Term targetTerm) {
     if (this.isNullList()) {
       return this;
