@@ -264,6 +264,86 @@ public class JProlContext implements AutoCloseable {
   }
 
   /**
+   * Create new string based choice point.
+   *
+   * @param goal the goal as a string, like "some(A,b)."
+   * @return new choice point, must not be null
+   * @throws PrologParserException if error during goal parse
+   * @since 3.0.0
+   */
+  public JProlChoicePoint makeChoicePoint(final String goal) {
+    return this.makeChoicePoint(goal, null);
+  }
+
+  /**
+   * Create new string based choice point.
+   *
+   * @param goal    the goal as a string, like "some(A,b)."
+   * @param payload payload object for the goal, can be null
+   * @return new choice point, must not be null
+   * @throws PrologParserException if error during goal parse
+   * @since 3.0.0
+   */
+  public JProlChoicePoint makeChoicePoint(final String goal, final Object payload) {
+    return this.makeChoicePoint(goal, payload, null);
+  }
+
+  /**
+   * Create new string based choice point.
+   *
+   * @param goal                the goal as a string, like "some(A,b)."
+   * @param payload             payload object for the goal, can be null
+   * @param predefinedVarValues map of predefined variable values to be used for goal, can be null
+   * @return new choice point, must not be null
+   * @throws PrologParserException if error during goal parse
+   * @since 3.0.0
+   */
+  public JProlChoicePoint makeChoicePoint(final String goal, final Object payload,
+                                          final Map<String, Term> predefinedVarValues) {
+    final Term parsedGoal =
+        new JProlTreeBuilder(this, new StringReader(goal), true).readPhraseAndMakeTree();
+    return this.makeChoicePoint(parsedGoal, payload, predefinedVarValues);
+
+  }
+
+  /**
+   * Create new string based choice point.
+   *
+   * @param goal the goal as a term, must not be null
+   * @return new choice point, must not be null
+   * @since 3.0.0
+   */
+  public JProlChoicePoint makeChoicePoint(final Term goal) {
+    return this.makeChoicePoint(goal, null);
+  }
+
+  /**
+   * Create new string based choice point.
+   *
+   * @param goal    the goal as a term, must not be null
+   * @param payload payload object for the goal, can be null
+   * @return new choice point, must not be null
+   * @since 3.0.0
+   */
+  public JProlChoicePoint makeChoicePoint(final Term goal, final Object payload) {
+    return this.makeChoicePoint(goal, payload, null);
+  }
+
+  /**
+   * Create new string based choice point.
+   *
+   * @param goal                the goal as a term, must not be null
+   * @param payload             payload object for the goal, can be null
+   * @param predefinedVarValues map of predefined variable values to be used for goal, can be null
+   * @return new choice point, must not be null
+   * @since 3.0.0
+   */
+  public JProlChoicePoint makeChoicePoint(final Term goal, final Object payload,
+                                          final Map<String, Term> predefinedVarValues) {
+    return new JProlChoicePoint(goal, this, predefinedVarValues, payload);
+  }
+
+  /**
    * Method called for uncaught exception to not lost it.
    *
    * @param source exception context, must not be null

@@ -145,7 +145,7 @@ public final class PredicateInvoker {
         }
       }
 
-      if (goal.isValidateArguments()) {
+      if (goal.isVerify()) {
         if (!this.termValidator.test(predicate)) {
           throw new ProlArgumentValidationException(
               "Violation of argument modificator or type: " + predicate.toSrcString());

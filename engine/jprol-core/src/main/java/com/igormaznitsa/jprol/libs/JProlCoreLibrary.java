@@ -305,7 +305,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
 
-    if (goal.isValidateArguments()) {
+    if (goal.isVerify()) {
       assertInteger(left);
       assertInteger(right);
     }
@@ -317,7 +317,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       "+evaluable"}, reference = "Bitwise 'not'")
   public static Term predicateBITWISENOT(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getArgumentAt(0));
-    if (goal.isValidateArguments()) {
+    if (goal.isVerify()) {
       assertInteger(arg);
     }
     return newLong(~arg.toNumber().longValue(), UNKNOWN);
@@ -329,7 +329,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0));
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1));
 
-    if (goal.isValidateArguments()) {
+    if (goal.isVerify()) {
       assertInteger(left);
       assertInteger(right);
     }
@@ -343,7 +343,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
 
-    if (goal.isValidateArguments()) {
+    if (goal.isVerify()) {
       assertInteger(left);
       assertInteger(right);
     }
@@ -357,7 +357,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
 
-    if (goal.isValidateArguments()) {
+    if (goal.isVerify()) {
       assertInteger(left);
       assertInteger(right);
     }
@@ -375,7 +375,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
 
-    if (goal.isValidateArguments()) {
+    if (goal.isVerify()) {
       assertInteger(left);
       assertInteger(right);
     }
@@ -677,7 +677,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
 
-    if (goal.isValidateArguments()) {
+    if (goal.isVerify()) {
       assertInteger(left);
       assertInteger(right);
     }
@@ -870,7 +870,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
     JProlChoicePoint newChoicePoint = goal.getInternalObject();
     if (newChoicePoint == null) {
-      newChoicePoint = goal.makeForGoal(argument);
+      newChoicePoint = goal.getContext().makeChoicePoint(argument);
       goal.setInternalObject(newChoicePoint);
     }
     final Term nextResult = newChoicePoint.prove();
@@ -1286,7 +1286,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     Term left = predicate.getArgumentAt(0).tryGround();
     final Term right = predicate.getArgumentAt(1).tryGround();
 
-    if (goal.isValidateArguments()) {
+    if (goal.isVerify()) {
       if (left.getTermType() == VAR) {
         ProlAssertions.assertCharCodeList(right);
       } else {
@@ -1504,7 +1504,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     Term left = predicate.getArgumentAt(0).tryGround();
     final Term right = predicate.getArgumentAt(1).tryGround();
 
-    if (goal.isValidateArguments()) {
+    if (goal.isVerify()) {
       if (left.getTermType() == VAR) {
         ProlAssertions.assertCharList(right);
       } else {
@@ -1544,7 +1544,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       builder.append('.');
 
       final String text = builder.toString();
-      if (goal.isValidateArguments()) {
+      if (goal.isVerify()) {
         for (int i = 0; i < text.length(); i++) {
           final char chr = text.charAt(i);
           if (Character.isISOControl(chr) || Character.isWhitespace(chr)) {
@@ -2219,7 +2219,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final Term solver = predicate.getArgumentAt(2).tryGround();
 
     if (catchGoal == null) {
-      catchGoal = goal.makeForGoal(catching);
+      catchGoal = goal.getContext().makeChoicePoint(catching);
       goal.setInternalObject(catchGoal);
     }
 
