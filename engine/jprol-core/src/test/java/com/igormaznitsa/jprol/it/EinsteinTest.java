@@ -38,7 +38,7 @@ class EinsteinTest extends AbstractJProlTest {
             + "member2(E,[E|_])."
             + "member2(E,[_|L]) :- member2(E,L).");
 
-    final JProlChoicePoint goal = new JProlChoicePoint("einstein(_,X).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("einstein(_,X).");
     assertNotNull(goal.prove());
     assertEquals("'german'", getVarAsText(goal, "X"));
     assertNull(goal.prove());

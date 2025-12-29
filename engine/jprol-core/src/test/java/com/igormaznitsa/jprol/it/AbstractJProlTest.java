@@ -139,17 +139,17 @@ public abstract class AbstractJProlTest {
   }
 
   protected JProlChoicePoint prepareGoal(String goal, final JProlContext context) {
-    return new JProlChoicePoint(goal, context);
+    return context.makeChoicePoint(goal);
   }
 
   protected JProlChoicePoint prepareGoal(String consult, String goal) {
-    return new JProlChoicePoint(goal, makeContextAndConsult(consult));
+    return makeContextAndConsult(consult).makeChoicePoint(goal);
   }
 
   protected void assertProlException(final String goal,
                                      final Class<? extends ProlException> exceptionClass) {
     final JProlContext context = makeTestContext();
-    final JProlChoicePoint thisGoal = new JProlChoicePoint(goal, context);
+    final JProlChoicePoint thisGoal = context.makeChoicePoint(goal);
     assertThrows(exceptionClass, thisGoal::prove);
   }
 
@@ -159,7 +159,7 @@ public abstract class AbstractJProlTest {
       final Class<? extends ProlException> exceptionClass) {
     final JProlContext context = makeTestContext();
     context.consult(new StringReader(consult));
-    final JProlChoicePoint thisGoal = new JProlChoicePoint(goal, context);
+    final JProlChoicePoint thisGoal = context.makeChoicePoint(goal);
     assertThrows(exceptionClass, thisGoal::prove);
   }
 
@@ -187,7 +187,7 @@ public abstract class AbstractJProlTest {
 
   protected void checkVarValues(JProlContext context, String goal, String varName,
                                 Object... results) {
-    final JProlChoicePoint thisGoal = new JProlChoicePoint(goal, context);
+    final JProlChoicePoint thisGoal = context.makeChoicePoint(goal);
 
     for (final Object res : results) {
       assertNotNull(thisGoal.prove());
@@ -215,7 +215,7 @@ public abstract class AbstractJProlTest {
     if (consult != null) {
       context.consult(new StringReader(consult));
     }
-    final JProlChoicePoint thisGoal = new JProlChoicePoint(goal, context);
+    final JProlChoicePoint thisGoal = context.makeChoicePoint(goal);
 
     for (int i = 0; i < varsAndValues.length / 2; i++) {
       assertNotNull(thisGoal.prove(), "Index " + i);
@@ -239,7 +239,7 @@ public abstract class AbstractJProlTest {
 
   protected void checkOnce(String consult, String goal, boolean expectedResult) {
     final JProlContext context = makeContextAndConsult(consult);
-    final JProlChoicePoint thisGoal = new JProlChoicePoint(goal, context);
+    final JProlChoicePoint thisGoal = context.makeChoicePoint(goal);
     if (expectedResult) {
       assertNotNull(thisGoal.prove());
       assertNull(thisGoal.prove());

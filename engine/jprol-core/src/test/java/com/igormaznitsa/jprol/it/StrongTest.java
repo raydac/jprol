@@ -43,7 +43,7 @@ class StrongTest extends AbstractJProlTest {
         "['milan','zurich','ljubljana','az459','sr623','jp323','jp211']"
     };
 
-    JProlChoicePoint goal = new JProlChoicePoint("M=[A,B,C,D,E,F,G],query3(A,B,C,D,E,F,G).", context);
+    JProlChoicePoint goal = context.makeChoicePoint("M=[A,B,C,D,E,F,G],query3(A,B,C,D,E,F,G).");
 
     for (final String c : test1etal) {
       assertNotNull(goal.prove());
@@ -51,7 +51,7 @@ class StrongTest extends AbstractJProlTest {
     }
     assertNull(goal.prove());
 
-    goal = new JProlChoicePoint("route(ljubljana,edinburgh,th,R).", context);
+    goal = context.makeChoicePoint("route(ljubljana,edinburgh,th,R).");
     assertNotNull(goal.prove());
     assertEquals(
         "['ljubljana' / 'zurich' / 'jp322' / 11 : 30,'zurich' / 'london' / 'sr806' / 16 : 10,'london' / 'edinburgh' / 'ba4822' / 18 : 40]",
@@ -117,7 +117,8 @@ class StrongTest extends AbstractJProlTest {
         "[[5,'yellow'],[4,'blue'],[3,'yellow'],[1,'red'],[2,'green']]",
         "[[5,'yellow'],[4,'blue'],[3,'yellow'],[1,'green'],[2,'red']]"};
 
-    final JProlChoicePoint goal = new JProlChoicePoint("color([[1,2],[1,3],[1,4],[1,5],[2,3],[2,4],[3,4],[4,5]],[red,green,blue,yellow],Coloring).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint(
+        "color([[1,2],[1,3],[1,4],[1,5],[2,3],[2,4],[3,4],[4,5]],[red,green,blue,yellow],Coloring).");
     for (final String e : etal) {
       assertNotNull(goal.prove());
       assertEquals(getVarAsText(goal, "Coloring"), e);

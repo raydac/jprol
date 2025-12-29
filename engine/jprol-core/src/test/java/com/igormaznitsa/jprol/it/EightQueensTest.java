@@ -117,9 +117,8 @@ class EightQueensTest extends AbstractJProlTest {
             "notattack(X/Y,[X1/Y1 | Others]):- Y=\\=Y1, Y1-Y=\\=X1-X, Y1-Y=\\=X-X1, notattack(X/Y,Others). " +
             "template([1/Y1,2/Y2,3/Y3,4/Y4,5/Y5,6/Y6,7/Y7,8/Y8])."
     ));
-    final JProlChoicePoint goal = new JProlChoicePoint(
-        "solution([1/Y1,2/Y2,3/Y3,4/Y4,5/Y5,6/Y6,7/Y7,8/Y8]),Res = [Y1,Y2,Y3,Y4,Y5,Y6,Y7,Y8].",
-        context);
+    final JProlChoicePoint goal = context.makeChoicePoint(
+        "solution([1/Y1,2/Y2,3/Y3,4/Y4,5/Y5,6/Y6,7/Y7,8/Y8]),Res = [Y1,Y2,Y3,Y4,Y5,Y6,Y7,Y8].");
 
     for (final String e : etalonResults) {
       assertNotNull(goal.prove());

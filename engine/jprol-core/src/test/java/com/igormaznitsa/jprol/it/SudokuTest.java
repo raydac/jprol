@@ -14,7 +14,7 @@ class SudokuTest extends AbstractJProlTest {
   @Test
   void testSudoku() throws Exception {
     try (final JProlContext context = this.makeContextAndConsultFromResource("sudoku9x9.pl")) {
-      final JProlChoicePoint choicePoint = new JProlChoicePoint("sudoku(" +
+      final JProlChoicePoint choicePoint = context.makeChoicePoint("sudoku(" +
           "7, 3, 6,  8, 4, 9,  1, 5, A,"
           + "1, B, 4,  2, 7, C,  6, 8, 9,"
           + "D, 8, 9,  1, 5, 6,  3, 4, 7,"
@@ -26,7 +26,7 @@ class SudokuTest extends AbstractJProlTest {
           + "6, 2, L,  5, 8, M,  7, 9, N,"
           + "O, 9, 7,  P, 1, 2,  5, Q, 4,"
           + "4, R, 5,  6, S, 7,  8, 2, 3"
-          + ").", context);
+          + ").");
 
       final Term result = choicePoint.prove();
       assertNotNull(result);

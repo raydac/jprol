@@ -27,15 +27,14 @@ class JProlJsonLibraryTest extends AbstractJProlTest {
   @Test
   void test_ToJson_noUnify() {
     JProlContext context = makeTestContext();
-    JProlChoicePoint cp = new JProlChoicePoint("X = 1,  to_json(json([a=1,b=2,c=3]), X).", context);
+    JProlChoicePoint cp = context.makeChoicePoint("X = 1,  to_json(json([a=1,b=2,c=3]), X).");
     assertNull(cp.prove());
   }
 
   @Test
   void test_FromJson_noUnify() {
     JProlContext context = prepareContext("", new JProlJsonLibrary());
-    JProlChoicePoint cp =
-        new JProlChoicePoint("X = 1,  from_json('{\"hello\":\"world\"}', X).", context);
+    JProlChoicePoint cp = context.makeChoicePoint("X = 1,  from_json('{\"hello\":\"world\"}', X).");
     assertNull(cp.prove());
   }
 
@@ -112,8 +111,7 @@ class JProlJsonLibraryTest extends AbstractJProlTest {
   private void assertToJsonException(final String term,
                                      final Class<? extends Throwable> expectedException) {
     final JProlContext context = makeTestContext();
-    final JProlChoicePoint cp =
-        new JProlChoicePoint(String.format("to_json(%s, X).", term), context);
+    final JProlChoicePoint cp = context.makeChoicePoint(String.format("to_json(%s, X).", term));
     Assertions.assertThrowsExactly(expectedException, () -> {
       cp.prove();
       fail("Must throw exception");
@@ -123,8 +121,7 @@ class JProlJsonLibraryTest extends AbstractJProlTest {
   private void assertFromJsonException(final String json,
                                        final Class<? extends Throwable> expectedException) {
     final JProlContext context = makeTestContext();
-    final JProlChoicePoint cp =
-        new JProlChoicePoint(String.format("from_json('%s', X).", json), context);
+    final JProlChoicePoint cp = context.makeChoicePoint(String.format("from_json('%s', X).", json));
     Assertions.assertThrowsExactly(expectedException, () -> {
       cp.prove();
       fail("Must throw exception");
@@ -133,7 +130,7 @@ class JProlJsonLibraryTest extends AbstractJProlTest {
 
   private void assertToJson(final String term, final String expectedJson) {
     JProlContext context = makeTestContext();
-    JProlChoicePoint cp = new JProlChoicePoint(String.format("to_json(%s, X).", term), context);
+    JProlChoicePoint cp = context.makeChoicePoint(String.format("to_json(%s, X).", term));
     assertNotNull(cp.prove());
     assertEquals(
         expectedJson,
@@ -144,7 +141,7 @@ class JProlJsonLibraryTest extends AbstractJProlTest {
     JProlContext context = makeTestContext();
     final String prepared = String.format("from_json('%s', X), X=%s .",
         escapeSrc(json), expectedTerm);
-    JProlChoicePoint cp = new JProlChoicePoint(prepared, context);
+    JProlChoicePoint cp = context.makeChoicePoint(prepared);
     assertNotNull(cp.prove(), "Can't prove goal or not expected value");
   }
 

@@ -132,7 +132,7 @@ public class MainForm extends JFrame implements LifeGameFieldRender.ClickCellLis
 
   @SuppressWarnings({"StatementWithEmptyBody", "UnusedAssignment"})
   private void doIteration() {
-    final JProlChoicePoint choicePoint = new JProlChoicePoint("life().", this.prolContext);
+    final JProlChoicePoint choicePoint = this.prolContext.makeChoicePoint("life().");
     Term term;
     while ((term = choicePoint.prove()) != null) {
       // do nothing

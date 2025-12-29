@@ -91,7 +91,7 @@ class JProlRegexLibraryTest extends AbstractJProlTest {
         new Term[] {Terms.newAtom(regex), Terms.newAtom(text), Terms.newVar("X"),
             TermList.listOf(flags.stream().map(Terms::newAtom).collect(Collectors.toList()))},
         invoker);
-    final JProlChoicePoint choicePoint = new JProlChoicePoint(goal, context);
+    final JProlChoicePoint choicePoint = context.makeChoicePoint(goal);
     final Term result = choicePoint.prove();
     assertNotNull(result, "Must have prove result");
     final TermList splitResult = choicePoint.findVar("X").get().tryGround();
@@ -111,7 +111,7 @@ class JProlRegexLibraryTest extends AbstractJProlTest {
         new Term[] {Terms.newAtom(regex), Terms.newAtom(text),
             TermList.listOf(flags.stream().map(Terms::newAtom).collect(Collectors.toList()))},
         invoker);
-    final JProlChoicePoint choicePoint = new JProlChoicePoint(goal, context);
+    final JProlChoicePoint choicePoint = context.makeChoicePoint(goal);
     final Term result = choicePoint.prove();
     if (expected) {
       assertNotNull(result);
@@ -130,7 +130,7 @@ class JProlRegexLibraryTest extends AbstractJProlTest {
         new Term[] {Terms.newAtom(regex), Terms.newAtom(text), Terms.newVar("X"),
             TermList.listOf(flags.stream().map(Terms::newAtom).collect(Collectors.toList()))},
         invoker);
-    final JProlChoicePoint choicePoint = new JProlChoicePoint(goal, context);
+    final JProlChoicePoint choicePoint = context.makeChoicePoint(goal);
     final Term result = choicePoint.prove();
     assertNotNull(result, "Must have prove result");
     final TermList splitResult = choicePoint.findVar("X").get().tryGround();
@@ -151,7 +151,7 @@ class JProlRegexLibraryTest extends AbstractJProlTest {
         new Term[] {Terms.newAtom(regex), Terms.newAtom(text), Terms.newAtom(replacement),
             Terms.newVar("X")},
         invoker);
-    final JProlChoicePoint choicePoint = new JProlChoicePoint(goal, context);
+    final JProlChoicePoint choicePoint = context.makeChoicePoint(goal);
     final Term result = choicePoint.prove();
     assertNotNull(result, "Must have prove result");
     final Term foundResult = choicePoint.findVar("X").get().tryGround();

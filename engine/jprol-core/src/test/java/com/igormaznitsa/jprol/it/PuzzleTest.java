@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 class PuzzleTest extends AbstractJProlTest {
 
   @Test
-  void testPuzzle() throws Exception {
+  void testPuzzle() {
     final JProlContext context = makeContextAndConsult("sum(N1,N2,N):-sum1(N1,N2,N,0,0,[0,1,2,3,4,5,6,7,8,9],_)."
         + "sum1([],[],[],C,C,Digits,Digits)."
         + "sum1([D1|N1],[D2|N2],[D|N],C1,C,Digs1,Digs):-sum1(N1,N2,N,C1,C2,Digs1,Digs2),digitsum(D1,D2,C2,D,C,Digs2,Digs)."
@@ -21,7 +21,7 @@ class PuzzleTest extends AbstractJProlTest {
         + "del_var(A,[B|L],[B|L1]):-del_var(A,L,L1)."
         + "puzzle1([D,O,N,A,L,D],[G,E,R,A,L,D],[R,O,B,E,R,T])."
         + "puzzle2([0,S,E,N,D],[0,M,O,R,E],[M,O,N,E,Y]).");
-    final JProlChoicePoint goal = new JProlChoicePoint("puzzle1(X,Y,Z),sum(X,Y,Z).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("puzzle1(X,Y,Z),sum(X,Y,Z).");
 
     final String[] puzzle1solXYZ = new String[] {"[5,2,6,4,8,5]", "[1,9,7,4,8,5]", "[7,2,3,9,7,0]"};
 
@@ -33,7 +33,7 @@ class PuzzleTest extends AbstractJProlTest {
     assertEquals(getVarAsText(goal, "Y"), puzzle1solXYZ[1]);
     assertEquals(getVarAsText(goal, "Z"), puzzle1solXYZ[2]);
     assertNull(goal.prove());
-    final JProlChoicePoint goal2 = new JProlChoicePoint("puzzle2(X,Y,Z),sum(X,Y,Z).", context);
+    final JProlChoicePoint goal2 = context.makeChoicePoint("puzzle2(X,Y,Z),sum(X,Y,Z).");
 
     for (final String aPuzzle2solZ : puzzle2solZ) {
       assertNotNull(goal2.prove());

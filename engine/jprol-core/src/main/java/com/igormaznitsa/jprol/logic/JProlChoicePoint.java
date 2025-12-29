@@ -37,7 +37,6 @@ import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.trace.TraceEvent;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
-import java.io.StringReader;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
@@ -120,51 +119,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
     }
   }
 
-  @Deprecated
-  public JProlChoicePoint(final String goal, final JProlContext context) {
-    this(goal, context, null);
-  }
-
-  @Deprecated
-  public JProlChoicePoint(final String goal, final JProlContext context,
-                          final Map<String, Term> predefinedVarValues) {
-    this(goal, context, null, predefinedVarValues);
-  }
-
-  @Deprecated
-  public JProlChoicePoint(final String goal, final JProlContext context, final Object payload) {
-    this(new JProlTreeBuilder(context, new StringReader(goal), true).readPhraseAndMakeTree(),
-        context,
-        null, payload);
-  }
-
-  @Deprecated
-  public JProlChoicePoint(final String goal, final JProlContext context, final Object payload,
-                          final Map<String, Term> predefinedVarValues) {
-    this(new JProlTreeBuilder(context, new StringReader(goal), true).readPhraseAndMakeTree(),
-        context,
-        predefinedVarValues, payload);
-  }
-
-  @Deprecated
-  public JProlChoicePoint(final Term goal, final JProlContext context) {
-    this(null, goal, context, context.isTrace(), context.isVerify(), null, null, null);
-  }
-
-  @Deprecated
-  public JProlChoicePoint(final Term goal, final JProlContext context, final Object payload) {
-    this(null, goal, context, context.isTrace(), context.isVerify(), null, null, payload);
-  }
-
-  @Deprecated
-  public JProlChoicePoint(final Term goal, final JProlContext context,
-                          final Map<String, Term> predefinedVarValues) {
-    this(null, goal, context, context.isTrace(), context.isVerify(), predefinedVarValues, null,
-        null);
-  }
-
-  @Deprecated
-  public JProlChoicePoint(final Term goal, final JProlContext context,
+  JProlChoicePoint(final Term goal, final JProlContext context,
                           final Map<String, Term> predefinedVarValues, final Object payload) {
     this(null, goal, context, context.isTrace(), context.isVerify(), predefinedVarValues, null,
         payload);
@@ -412,7 +367,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
             this.thisConnector = theTerm;
             this.subChoicePointConnector = nextClause.getArgumentAt(0);
             this.subChoicePoint =
-                new JProlChoicePoint(nextClause.getArgumentAt(1), this.context, this.payload);
+                this.context.makeChoicePoint(nextClause.getArgumentAt(1), this.payload);
             continue;
           } else {
             if (!theTerm.unifyWith(nextClause)) {
@@ -454,13 +409,12 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
             if (arity == 1) {
               this.subChoicePoint =
-                  new JProlChoicePoint(structClone.getArgumentAt(0), this.context, this.payload);
+                  this.context.makeChoicePoint(structClone.getArgumentAt(0), this.payload);
             } else {
               this.subChoicePoint =
-                  new JProlChoicePoint(structClone.getArgumentAt(1), this.context, this.payload);
+                  this.context.makeChoicePoint(structClone.getArgumentAt(1), this.payload);
             }
           } else {
-
             final Term functor = struct.getFunctor();
             final String functorText = functor.getText();
 

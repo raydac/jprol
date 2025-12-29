@@ -34,7 +34,8 @@ public class JProlTriggeringEventObserver extends AbstractJProlTrigger {
   @Override
   public void onTriggerEvent(final TriggerEvent event) {
     if (this.goal != null) {
-      final JProlChoicePoint choicePoint = this.goal.makeChoicePoint(event.getContext());
+      final JProlChoicePoint choicePoint =
+          event.getContext().makeChoicePoint(this.goal.getPreparedGoalTerm().makeClone());
 
       while (choicePoint.proveWithFailForUnknown() != null) {
         if (event.getContext().isDisposed()) {

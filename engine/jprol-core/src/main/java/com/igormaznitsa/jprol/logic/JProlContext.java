@@ -557,7 +557,7 @@ public class JProlContext implements AutoCloseable {
         Exception error = null;
         try {
           final JProlChoicePoint asyncGoal =
-              new JProlChoicePoint(requireNonNull(goal), contextCopy);
+              contextCopy.makeChoicePoint(requireNonNull(goal), goal.getPayload());
           int proved = 0;
           while (!this.isDisposed() && !contextCopy.isDisposed()) {
             if (asyncGoal.prove() == null) {
@@ -626,7 +626,7 @@ public class JProlContext implements AutoCloseable {
         Exception error = null;
         try {
           final JProlChoicePoint asyncGoal =
-              new JProlChoicePoint(requireNonNull(goal), contextCopy);
+              contextCopy.makeChoicePoint(requireNonNull(goal), goal.getPayload());
 
           final Term result = asyncGoal.prove();
           asyncGoal.cutVariants();
@@ -1211,7 +1211,7 @@ public class JProlContext implements AutoCloseable {
                     final Map<String, TermVar> variableMap = new LazyMap<>();
                     final AtomicInteger solutionCounter = new AtomicInteger();
 
-                    final JProlChoicePoint thisGoal = new JProlChoicePoint(termGoal, this, null);
+                    final JProlChoicePoint thisGoal = this.makeChoicePoint(termGoal);
 
                     boolean doFindNextSolution;
                     do {
@@ -1278,7 +1278,7 @@ public class JProlContext implements AutoCloseable {
   }
 
   private boolean processDirective(final Term directive) {
-    final JProlChoicePoint goal = new JProlChoicePoint(directive, this, null);
+    final JProlChoicePoint goal = this.makeChoicePoint(directive);
     return goal.prove() != null;
   }
 

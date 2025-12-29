@@ -80,7 +80,7 @@ public final class PreparedGoal {
 
   public Term once(final JProlContext context) {
     final Term target = this.preparedGoalTerm.makeClone();
-    final JProlChoicePoint goal = new JProlChoicePoint(target, context);
+    final JProlChoicePoint goal = context.makeChoicePoint(target);
     return goal.prove();
   }
 
@@ -118,7 +118,7 @@ public final class PreparedGoal {
           .setValue(parameter);
     }
 
-    return new JProlChoicePoint(clonedGoal, context);
+    return context.makeChoicePoint(clonedGoal, clonedGoal.getPayload());
   }
 
   public JProlChoicePoint makeChoicePoint(final JProlContext context,
@@ -131,10 +131,10 @@ public final class PreparedGoal {
             () -> new IllegalArgumentException(String.format("Can't find variable '%s'", key)))
         .setValue(value));
 
-    return new JProlChoicePoint(clonedGoal, context);
+    return context.makeChoicePoint(clonedGoal, clonedGoal.getPayload());
   }
 
-  public JProlChoicePoint makeChoicePoint(final JProlContext context) {
-    return new JProlChoicePoint(this.preparedGoalTerm.makeClone(), context);
+  public Term getPreparedGoalTerm() {
+    return this.preparedGoalTerm;
   }
 }

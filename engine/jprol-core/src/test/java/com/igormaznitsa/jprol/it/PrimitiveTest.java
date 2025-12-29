@@ -19,7 +19,7 @@ class PrimitiveTest extends AbstractJProlTest {
   @Test
   void testAccList() {
     final JProlContext context = makeContextAndConsult("list(X):-X=A,A=B,B=C,C=D,D=E,A=[_,_,_,_],B=[a,_,_,_],C=[_,b,_,_],D=[_,_,c,_],E=[_,_,_,e].");
-    final JProlChoicePoint goal = new JProlChoicePoint("list(F).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("list(F).");
 
     assertNotNull(goal.prove());
     assertEquals("['a','b','c','e']", getVarAsText(goal, "F"));
@@ -29,7 +29,7 @@ class PrimitiveTest extends AbstractJProlTest {
   @Test
   void testPermutation() {
     final JProlContext context = makeContextAndConsult("del(X,[X|Tail],Tail).del(X,[Y|Tail],[Y|Tail1]):-del(X,Tail,Tail1).insert(X,List,BiggerList):-del(X,BiggerList,List).permutation([],[]).permutation([X|L],P):-permutation(L,L1),insert(X,L1,P).");
-    final JProlChoicePoint goal = new JProlChoicePoint("permutation([red,blue,green],X).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("permutation([red,blue,green],X).");
 
     final String[] etalon = new String[] {
         "['red','blue','green']",
@@ -50,7 +50,7 @@ class PrimitiveTest extends AbstractJProlTest {
   @Test
   void testVarLoop() {
     final JProlContext context = makeContextAndConsult("a(a1).a(X):-X=100. a(2).");
-    final JProlChoicePoint goal = new JProlChoicePoint("X=Y,Y=X,Y=2.", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("X=Y,Y=X,Y=2.");
 
     assertNotNull(goal.prove());
     assertEquals("2", getVarAsText(goal, "Y"));
@@ -60,7 +60,7 @@ class PrimitiveTest extends AbstractJProlTest {
   @Test
   void testClause() {
     final JProlContext context = makeContextAndConsult("a(a1).a(X):-X=100. a(2).");
-    final JProlChoicePoint goal = new JProlChoicePoint("clause(a(X),Y).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("clause(a(X),Y).");
 
     assertNotNull(goal.prove());
     assertEquals("'a1'", getVarAsText(goal, "X"));
@@ -81,7 +81,7 @@ class PrimitiveTest extends AbstractJProlTest {
   @Test
   void testThrowCatch() {
     final JProlContext context = makeContextAndConsult("a(X):-X=999;throw(some_exception).");
-    final JProlChoicePoint goal = new JProlChoicePoint("catch(a(X),error(Err,_),Y='exc').", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("catch(a(X),error(Err,_),Y='exc').");
 
     assertNotNull(goal.prove());
     assertEquals("999", getVarAsText(goal, "X"));
@@ -100,7 +100,7 @@ class PrimitiveTest extends AbstractJProlTest {
   void testIfThen() {
     final JProlContext context = makeContextAndConsult("b(b1).b(b2).a(a1).a(a2).");
 
-    final JProlChoicePoint goal = new JProlChoicePoint("b(B)->a(A);b(C).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("b(B)->a(A);b(C).");
 
     assertNotNull(goal.prove());
     assertEquals("'b1'", getVarAsText(goal, "B"));
@@ -119,7 +119,7 @@ class PrimitiveTest extends AbstractJProlTest {
   void testTrue() {
     final JProlContext context = makeContextAndConsult("a(a1).a(a2).a(a3).a(a4).");
 
-    final JProlChoicePoint goal = new JProlChoicePoint("(true,true;fail),a(X).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("(true,true;fail),a(X).");
 
     final String[] results = new String[] {"a1", "a2", "a3", "a4"};
 
@@ -136,7 +136,7 @@ class PrimitiveTest extends AbstractJProlTest {
   void testOr1() {
     final JProlContext context = makeContextAndConsult("a([]).");
 
-    final JProlChoicePoint goal = new JProlChoicePoint("X=a;X=b;X=c;X=d.", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("X=a;X=b;X=c;X=d.");
 
     final String[] results = new String[] {"'a'", "'b'", "'c'", "'d'"};
 
@@ -171,7 +171,7 @@ class PrimitiveTest extends AbstractJProlTest {
       }
     });
 
-    final JProlChoicePoint goal = new JProlChoicePoint("testor(X,Y).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("testor(X,Y).");
 
     final String[] results = new String[] {"a1", "b1", "a2", "b2", "a3", "b3", "a4", "b4", "a5", "b5"};
 
@@ -188,14 +188,13 @@ class PrimitiveTest extends AbstractJProlTest {
   void testAnonimousVar() {
     final JProlContext context = makeContextAndConsult("a(a1,b1).a(a2,b2).a(a3,b3).a(a4,b4).");
 
-    final JProlChoicePoint goal = new JProlChoicePoint("a(X,_).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("a(X,_).");
 
     final String[] results = new String[] {"'a1'", "'a2'", "'a3'", "'a4'"};
 
-    int index = 0;
     for (final String result : results) {
       assertNotNull(goal.prove());
-      assertEquals(results[index++], getVarAsText(goal, "X"));
+      assertEquals(result, getVarAsText(goal, "X"));
     }
     assertNull(goal.prove());
   }
@@ -204,7 +203,7 @@ class PrimitiveTest extends AbstractJProlTest {
   void testAtom() {
     final JProlContext context = makeContextAndConsult("a(a1).a(a2).a(a3).a(a4).");
 
-    final JProlChoicePoint goal = new JProlChoicePoint("a(X).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("a(X).");
 
     final String[] results = new String[] {"'a1'", "'a2'", "'a3'", "'a4'"};
 
@@ -214,7 +213,7 @@ class PrimitiveTest extends AbstractJProlTest {
     }
     assertNull(goal.prove());
 
-    final JProlChoicePoint goal2 = new JProlChoicePoint("aa(X).", context);
+    final JProlChoicePoint goal2 = context.makeChoicePoint("aa(X).");
     assertNull(goal2.proveWithFailForUnknown());
   }
 
@@ -222,7 +221,7 @@ class PrimitiveTest extends AbstractJProlTest {
   void testAtom2() {
     final JProlContext context = makeContextAndConsult("a(a1,b1).a(a2,b2).a(a3,b3).");
 
-    final JProlChoicePoint goal = new JProlChoicePoint("a(a3,X).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("a(a3,X).");
 
     assertNotNull(goal.prove());
     assertEquals("'b3'", getVarAsText(goal, "X"));
@@ -233,9 +232,14 @@ class PrimitiveTest extends AbstractJProlTest {
   void testDryUnify() {
     final JProlContext context = makeContextAndConsult("a(a1,b1).a(a2,b2).a(a3,b3).");
 
-    final Term term1 = new JProlChoicePoint("replace(['a','b','c','d','e','f','g'],'e',1,X).", context).getGoalTerm();
-    final Term term2 = new JProlChoicePoint("replace(['a','b','c','d','e','f','g'],'a',N,[N|Lt]).", context).getGoalTerm();
-    final Term term3 = new JProlChoicePoint("replace(['a','b','c','d','e','f','g'],'e',N,[N|Lt]).", context).getGoalTerm();
+    final Term term1 =
+        context.makeChoicePoint("replace(['a','b','c','d','e','f','g'],'e',1,X).").getGoalTerm();
+    final Term term2 =
+        context.makeChoicePoint("replace(['a','b','c','d','e','f','g'],'a',N,[N|Lt]).")
+            .getGoalTerm();
+    final Term term3 =
+        context.makeChoicePoint("replace(['a','b','c','d','e','f','g'],'e',N,[N|Lt]).")
+            .getGoalTerm();
 
     assertFalse(term1.isUnifiableWith(term2));
     assertFalse(term2.isUnifiableWith(term1));
@@ -247,7 +251,7 @@ class PrimitiveTest extends AbstractJProlTest {
   void testSingleRule() {
     final JProlContext context = makeContextAndConsult("a(a1).a(a2).a(a3).a(a4).");
 
-    final JProlChoicePoint goal = new JProlChoicePoint("b(X):-a(X).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("b(X):-a(X).");
 
     final String[] results = new String[] {"'a1'", "'a2'", "'a3'", "'a4'"};
 
@@ -262,7 +266,7 @@ class PrimitiveTest extends AbstractJProlTest {
   void testSingleInsideRule() {
     final JProlContext context = makeContextAndConsult("a(a1).a(a2).a(a3).a(a4).b(X):-a(X).");
 
-    final JProlChoicePoint goal = new JProlChoicePoint("b(X).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("b(X).");
 
     final String[] results = new String[] {"'a1'", "'a2'", "'a3'", "'a4'"};
 
@@ -277,7 +281,7 @@ class PrimitiveTest extends AbstractJProlTest {
   void testSingleInsideRule2() {
     final JProlContext context = makeContextAndConsult("c(c1).c(c2).a(X):-c(X).a(a2).a(a3).a(a4).b(X):-a(X).");
 
-    final JProlChoicePoint goal = new JProlChoicePoint("b(X).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("b(X).");
 
     final String[] results = new String[] {"'c1'", "'c2'", "'a2'", "'a3'", "'a4'"};
 
@@ -292,7 +296,7 @@ class PrimitiveTest extends AbstractJProlTest {
   void testANDGoal() {
     final JProlContext context = makeContextAndConsult("a(a1).a(a2).b(b1).b(b2).");
 
-    final JProlChoicePoint goal = new JProlChoicePoint("a(A),b(B).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("a(A),b(B).");
 
     final String[] resultsA = new String[] {"'a1'", "'a2'"};
     final String[] resultsB = new String[] {"'b1'", "'b2'"};
@@ -311,7 +315,7 @@ class PrimitiveTest extends AbstractJProlTest {
   void testORGoal() {
     final JProlContext context = makeContextAndConsult("a(a1).a(a2).b(b1).b(b2).");
 
-    final JProlChoicePoint goal = new JProlChoicePoint("a(A);b(A).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("a(A);b(A).");
     final String[] results = new String[] {"'a1'", "'a2'", "'b1'", "'b2'"};
 
     for (final String result : results) {
@@ -325,7 +329,7 @@ class PrimitiveTest extends AbstractJProlTest {
   void testCutAnd() {
     final JProlContext context = makeContextAndConsult("a(a1).a(a2).b(b1).b(b2).");
 
-    final JProlChoicePoint goal = new JProlChoicePoint("a(A),!,b(B).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("a(A),!,b(B).");
 
     final String[] resultsA = new String[] {"'a1'"};
     final String[] resultsB = new String[] {"'b1'", "'b2'"};
@@ -345,7 +349,7 @@ class PrimitiveTest extends AbstractJProlTest {
   void testCut1() {
     final JProlContext context = makeContextAndConsult("a(a1):-!.a(a2).a(a3).a(a4).");
 
-    final JProlChoicePoint goal = new JProlChoicePoint("a(X).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("a(X).");
     assertNotNull(goal.prove());
     assertEquals("'a1'", getVarAsText(goal, "X"));
     assertNull(goal.prove());
@@ -355,7 +359,7 @@ class PrimitiveTest extends AbstractJProlTest {
   void testCut2() {
     final JProlContext context = makeContextAndConsult("c(c1).c(c2).a(X):-c(X).a(a2):-!.a(a3).a(a4).b(X):-a(X).");
 
-    final JProlChoicePoint goal = new JProlChoicePoint("b(X).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("b(X).");
 
     final String[] results = new String[] {"'c1'", "'c2'", "'a2'"};
 
@@ -370,7 +374,7 @@ class PrimitiveTest extends AbstractJProlTest {
   void testCut3() {
     final JProlContext context = makeContextAndConsult("c(c1).c(c2).a(X):-!,c(X).a(a2).a(a3).a(a4).b(X):-a(X).");
 
-    final JProlChoicePoint goal = new JProlChoicePoint("b(X).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("b(X).");
 
     final String[] results = new String[] {"'c1'", "'c2'"};
 
@@ -385,7 +389,7 @@ class PrimitiveTest extends AbstractJProlTest {
   void testCut4() {
     final JProlContext context = makeContextAndConsult("f(f1).f(f2).c(c1).c(c2).c(c3).a(X):-c(X);!,f(X).a(a2).a(a3).a(a4).b(X):-a(X).");
 
-    final JProlChoicePoint goal = new JProlChoicePoint("b(X).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("b(X).");
 
     final String[] results = new String[] {"'c1'", "'c2'", "'c3'", "'f1'", "'f2'"};
 

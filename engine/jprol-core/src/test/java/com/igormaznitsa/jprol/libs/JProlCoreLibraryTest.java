@@ -74,8 +74,8 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     assertProlException("asserta((atom(_) :- true)).", ProlPermissionErrorException.class);
 
     //[(asserta((bar(X) :- X)), clause(bar(X), B)), [[B <-- call(X)]]].
-    final JProlChoicePoint testCp = new JProlChoicePoint("asserta((bar(X):-X)), clause(bar(X),Y).",
-        makeTestContext(":-dynamic(bar/1)."));
+    final JProlChoicePoint testCp = makeTestContext(":-dynamic(bar/1).").makeChoicePoint(
+        "asserta((bar(X):-X)), clause(bar(X),Y).");
     assertNotNull(testCp.prove());
     final TermVar yVar = testCp.findVar("Y").get();
     assertSame(TermType.VAR, yVar.getImmediateValue().getTermType());

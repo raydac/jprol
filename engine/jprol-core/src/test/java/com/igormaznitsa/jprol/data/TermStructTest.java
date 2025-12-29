@@ -21,7 +21,7 @@ class TermStructTest extends AbstractJProlTest {
       final TermVar result = Terms.newVar("Y");
       final TermStruct goal = Terms.newStruct(Terms.newAtom("a"), valX, result);
 
-      final JProlChoicePoint choicePoint = new JProlChoicePoint(goal, context);
+      final JProlChoicePoint choicePoint = context.makeChoicePoint(goal);
 
       assertNotNull(choicePoint.prove());
 

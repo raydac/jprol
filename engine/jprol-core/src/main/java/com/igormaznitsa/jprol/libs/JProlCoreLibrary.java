@@ -889,7 +889,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       "+callable"}, reference = "once(Term) is true. once/1 is not re-executable.")
   public static boolean predicateONCE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term argument = predicate.getArgumentAt(0).tryGround();
-    final JProlChoicePoint currentGoal = new JProlChoicePoint(argument, goal.getContext());
+    final JProlChoicePoint currentGoal =
+        goal.getContext().makeChoicePoint(argument, goal.getPayload());
     final Term nextResult = currentGoal.prove();
 
     return nextResult != null;
@@ -899,7 +900,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static boolean predicateIFTHEN(final JProlChoicePoint goal, final TermStruct predicate) {
     // if-then
     final JProlChoicePoint leftSubbranch =
-        new JProlChoicePoint(predicate.getArgumentAt(0), goal.getContext());
+        goal.getContext().makeChoicePoint(predicate.getArgumentAt(0), goal.getPayload());
     boolean result = false;
     if (leftSubbranch.prove() != null) {
       // replace current goal by the 'then' goal
@@ -1782,7 +1783,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final Term instances = predicate.getArgumentAt(2).tryGround();
 
     final JProlChoicePoint find_goal =
-        new JProlChoicePoint(scopeGoal.makeClone(), goal.getContext());
+        goal.getContext().makeChoicePoint(scopeGoal.makeClone(), goal.getPayload());
 
     TermList result = null;
     TermList currentList = null;
@@ -1899,7 +1900,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
 
       final JProlChoicePoint findGoal =
-          new JProlChoicePoint(processingGoal.makeClone(), goal.getContext());
+          goal.getContext().makeChoicePoint(processingGoal.makeClone(), goal.getPayload());
 
       while (true) {
         final Term nextTemplate = findGoal.proveWithFailForUnknown();
@@ -2016,8 +2017,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         processingGoal = theStruct.getArgumentAt(1);
       }
 
-      final JProlChoicePoint find_goal =
-          new JProlChoicePoint(processingGoal.makeClone(), choicePoint.getContext());
+      final JProlChoicePoint find_goal = choicePoint.getContext()
+          .makeChoicePoint(processingGoal.makeClone(), choicePoint.getPayload());
 
       while (true) {
         final Term nextTemplate = find_goal.proveWithFailForUnknown();
@@ -2250,7 +2251,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         }
       } catch (final ProlAbstractCatchableException ex) {
         if (catcher.unifyWith(ex.getAsStruct())) {
-          catchGoal = new JProlChoicePoint(solver, goal.getContext());
+          catchGoal = goal.getContext().makeChoicePoint(solver, goal.getPayload());
           goal.setInternalObject(catchGoal);
           final Term result = catchGoal.prove();
           if (result == null) {
@@ -2389,7 +2390,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public boolean predicateCannotBeProven1(final JProlChoicePoint goal,
                                           final TermStruct predicate) {
     final Term argument = predicate.getArgumentAt(0).tryGround();
-    final JProlChoicePoint subGoal = new JProlChoicePoint(argument, goal.getContext());
+    final JProlChoicePoint subGoal = goal.getContext().makeChoicePoint(argument, goal.getPayload());
     return subGoal.proveWithFailForUnknown() == null;
   }
 }

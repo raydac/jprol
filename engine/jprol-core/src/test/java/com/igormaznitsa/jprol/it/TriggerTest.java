@@ -36,7 +36,7 @@ class TriggerTest extends AbstractJProlTest {
   private void execute(final String goal, final TestTriggerCallCounter counter) {
     try (final JProlContext context = makeContext()) {
       context.addTrigger(counter);
-      final JProlChoicePoint choicePoint = new JProlChoicePoint(goal, context);
+      final JProlChoicePoint choicePoint = context.makeChoicePoint(goal);
       assertNotNull(choicePoint.prove());
       assertNull(choicePoint.prove());
     }

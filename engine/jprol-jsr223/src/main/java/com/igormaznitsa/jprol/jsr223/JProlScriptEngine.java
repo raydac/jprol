@@ -409,7 +409,7 @@ public class JProlScriptEngine
     final List<Map<String, Object>> results = new ArrayList<>();
     final JProlContext prolContext = this.engineContext.get().findOrMakeJProlContext();
     try {
-      final JProlChoicePoint goal = new JProlChoicePoint(queryString, prolContext);
+      final JProlChoicePoint goal = prolContext.makeChoicePoint(queryString);
       while (goal.prove() != null) {
         results.add(extractGroundedVariables(goal));
       }
@@ -470,7 +470,7 @@ public class JProlScriptEngine
                       final Bindings bindings) {
     this.assertNotClosed();
     final JProlContext prolContext = asJProlContext(context).findOrMakeJProlContext();
-    final JProlChoicePoint goal = new JProlChoicePoint(queryString, prolContext);
+    final JProlChoicePoint goal = prolContext.makeChoicePoint(queryString);
     final Term result = goal.prove();
     if (result != null) {
       final Map<String, Object> groundedVars = extractGroundedVariables(goal);
@@ -485,7 +485,7 @@ public class JProlScriptEngine
   Object executeQuery(final Term queryTerm, final ScriptContext context, final Bindings bindings) {
     this.assertNotClosed();
     final JProlContext prolContext = asJProlContext(context).findOrMakeJProlContext();
-    final JProlChoicePoint goal = new JProlChoicePoint(queryTerm, prolContext);
+    final JProlChoicePoint goal = prolContext.makeChoicePoint(queryTerm);
     final Term result = goal.prove();
     if (result != null) {
       final Map<String, Object> groundedVars = extractGroundedVariables(goal);
@@ -500,7 +500,7 @@ public class JProlScriptEngine
   Object executeQuery(final Term queryTerm, final JProlContext prolContext,
                       final Bindings bindings) {
     this.assertNotClosed();
-    final JProlChoicePoint goal = new JProlChoicePoint(queryTerm, prolContext);
+    final JProlChoicePoint goal = prolContext.makeChoicePoint(queryTerm);
     final Term result = goal.prove();
     if (result != null) {
       final Map<String, Object> groundedVars = extractGroundedVariables(goal);

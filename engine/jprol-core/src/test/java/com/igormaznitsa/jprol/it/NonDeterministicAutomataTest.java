@@ -87,7 +87,7 @@ class NonDeterministicAutomataTest extends AbstractJProlTest {
         "['b','b','b','b','b','a','b']"
     };
 
-    final JProlChoicePoint goal = new JProlChoicePoint("X=[_,_,_,_,_,_,_],accepts(s1,X).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("X=[_,_,_,_,_,_,_],accepts(s1,X).");
 
     for (final String e : etal) {
       assertNotNull(goal.prove());

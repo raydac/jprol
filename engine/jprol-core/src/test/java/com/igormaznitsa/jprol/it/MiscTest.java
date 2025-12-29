@@ -46,7 +46,7 @@ class MiscTest extends AbstractJProlTest {
 
     final Term request = Terms.newStruct(Terms.newAtom("map"), first, second);
 
-    final JProlChoicePoint goal = new JProlChoicePoint(request, context);
+    final JProlChoicePoint goal = context.makeChoicePoint(request);
     final Term goalResult = goal.prove();
     assertNotNull(goalResult);
     assertSame(testPayload, goal.findVar("Y").orElseThrow().tryGround().getPayload());
@@ -63,7 +63,7 @@ class MiscTest extends AbstractJProlTest {
 
     final Term request = Terms.newStruct(Terms.newAtom("map"), first, second);
 
-    final JProlChoicePoint goal = new JProlChoicePoint(request, context);
+    final JProlChoicePoint goal = context.makeChoicePoint(request);
     final Term goalResult = goal.prove();
     assertNotNull(goalResult);
     final TermList result = goal.findVar("Y").orElseThrow().tryGround();
@@ -74,7 +74,7 @@ class MiscTest extends AbstractJProlTest {
   void testGetAllGoalsAndConvertThem() {
     final JProlContext context = makeContextAndConsult("map(one,1,a). map(two,2,b). map(three,3,c).");
 
-    final JProlChoicePoint goal = new JProlChoicePoint("map(X,Y,_).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("map(X,Y,_).");
 
     final class Result {
       final String name;
@@ -111,7 +111,7 @@ class MiscTest extends AbstractJProlTest {
   void findAllTest() {
     JProlContext context;
     context = makeContextAndConsult("powerSet([],[]).powerSet([_|Xt],Y) :- powerSet(Xt,Y).powerSet([Xh|Xt],[Xh|Yt]) :- powerSet(Xt,Yt).");
-    final JProlChoicePoint goal = new JProlChoicePoint("findall(X,powerSet([a,b],X),Y).", context);
+    final JProlChoicePoint goal = context.makeChoicePoint("findall(X,powerSet([a,b],X),Y).");
 
     TermVar result = null;
     while (goal.prove() != null) {

@@ -26,7 +26,7 @@ class JProlStrLibraryTest extends AbstractJProlTest {
   private void assertStrFormat(final String template, final String args, final String expected) {
     final JProlContext context = makeTestContext();
     final String clause = String.format("str_format(%s,%s,X).", template, args);
-    final JProlChoicePoint cp = new JProlChoicePoint(clause, context);
+    final JProlChoicePoint cp = context.makeChoicePoint(clause);
     assertNotNull(cp.prove());
     assertEquals(expected, cp.findVar("X").get().getValue().getText());
   }

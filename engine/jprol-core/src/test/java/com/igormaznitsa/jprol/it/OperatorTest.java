@@ -42,7 +42,7 @@ class OperatorTest extends AbstractJProlTest {
     );
 
     final JProlChoicePoint prepGoal =
-        new JProlChoicePoint("~(xxx & yyy) <===> ~xxx v ~yyy.", context);
+        context.makeChoicePoint("~(xxx & yyy) <===> ~xxx v ~yyy.");
     TermStruct root = (TermStruct) prepGoal.getGoalTerm();
 
     assertEquals("<===>", root.getText());
@@ -82,7 +82,8 @@ class OperatorTest extends AbstractJProlTest {
 
     final PreparedGoal prepGoal2 = new PreparedGoal("moon <===> X.", context);
     int solvecounter = 0;
-    final JProlChoicePoint gl = prepGoal2.makeChoicePoint(context);
+    final JProlChoicePoint gl =
+        context.makeChoicePoint(prepGoal2.getPreparedGoalTerm().makeClone());
     String text = null;
     Term curresult;
     while ((curresult = gl.prove()) != null) {
@@ -93,7 +94,7 @@ class OperatorTest extends AbstractJProlTest {
     assertEquals("earth", text);
 
     final PreparedGoal prepGoal3 = new PreparedGoal("hello::world.", context);
-    assertNull(prepGoal3.makeChoicePoint(context).prove(),
+    assertNull(context.makeChoicePoint(prepGoal3.getPreparedGoalTerm().makeClone()).prove(),
         "Use of operator without any definition in knowledge base must not be recognized as error, as fail only");
   }
 }
