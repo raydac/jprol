@@ -1216,7 +1216,7 @@ public class JProlContext implements AutoCloseable {
                     boolean doFindNextSolution;
                     do {
                       variableMap.clear();
-                      if (solveGoal(thisGoal, variableMap)) {
+                      if (prove(thisGoal, variableMap)) {
                         doFindNextSolution = iterator
                             .onSolution(this, termGoal, variableMap,
                                 solutionCounter.incrementAndGet());
@@ -1267,8 +1267,8 @@ public class JProlContext implements AutoCloseable {
     }
   }
 
-  private boolean solveGoal(final JProlChoicePoint goal, final Map<String, TermVar> varTable) {
-    final Term result = goal.prove();
+  private boolean prove(final JProlChoicePoint goalCp, final Map<String, TermVar> varTable) {
+    final Term result = goalCp.prove();
 
     if (result != null && varTable != null) {
       result.variables().forEach(e -> varTable.put(e.getText(), e));

@@ -292,7 +292,7 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public Term cloneAndReplaceVariableByValue(final Map<Integer, TermVar> variables) {
+  public Term cloneAndReplaceVariableByValue(final Map<Long, TermVar> variables) {
     if (this.isNullList()) {
       return NULL_LIST;
     }
@@ -332,7 +332,7 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  protected Term makeClone(final Map<Integer, TermVar> variables) {
+  protected Term makeClone(final Map<Long, TermVar> variables) {
     if (this.isNullList()) {
       return NULL_LIST;
     } else {

@@ -22,18 +22,19 @@ import static com.igormaznitsa.jprol.data.Terms.newVar;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.utils.lazy.LazyMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 public final class TermVar extends Term {
 
-  private static final AtomicInteger ANONYMITY_GENERATOR = new AtomicInteger(0);
-  private static final AtomicInteger UID_GENERATOR = new AtomicInteger(0);
+  private static final AtomicLong UID_GENERATOR = new AtomicLong(0);
+
   /**
    * Loop counter to detect too long variable chains if someone by mistake made self-loop
    */
   private static final int LOOP_WATCHDOG = 8192;
-  private final int uid;
+  private final long uid;
   private final boolean anonymous;
   private Term immediateValue;
 
@@ -59,7 +60,7 @@ public final class TermVar extends Term {
   }
 
   TermVar(final Term immediateValue, final Object payload, final SourcePosition sourcePosition) {
-    this("_$" + Long.toHexString(ANONYMITY_GENERATOR.incrementAndGet()), true, immediateValue,
+    this(Long.toString(UID_GENERATOR.incrementAndGet()), true, immediateValue,
         payload, sourcePosition);
   }
 
@@ -75,7 +76,7 @@ public final class TermVar extends Term {
     }
   }
 
-  public int getVarUid() {
+  public long getVarUid() {
     return this.uid;
   }
 
@@ -114,7 +115,7 @@ public final class TermVar extends Term {
   public Term makeClone() {
     Term thisValue = this.getImmediateValue();
     if (thisValue != null) {
-      final Map<Integer, TermVar> variableMap = new LazyMap<>();
+      final Map<Long, TermVar> variableMap = new LazyMap<>();
       variableMap.put(this.getVarUid(), this);
       thisValue = this.makeClone(variableMap);
     }
@@ -150,7 +151,7 @@ public final class TermVar extends Term {
   }
 
   @Override
-  public Term cloneAndReplaceVariableByValue(final Map<Integer, TermVar> variables) {
+  public Term cloneAndReplaceVariableByValue(final Map<Long, TermVar> variables) {
     Term value = this.getValue();
     if (value == null) {
       if (this.isAnonymous()) {
@@ -161,7 +162,7 @@ public final class TermVar extends Term {
       final Term immediateValue = this.getImmediateValue();
       if (immediateValue == null) {
         final String varName = this.getText();
-        final int varId = this.getVarUid();
+        final long varId = this.getVarUid();
         TermVar newVar = variables.get(varId);
         if (newVar == null) {
           newVar = newVar(varName, this.getSourcePosition());
@@ -184,7 +185,7 @@ public final class TermVar extends Term {
   }
 
   @Override
-  protected Term makeClone(final Map<Integer, TermVar> variables) {
+  protected Term makeClone(final Map<Long, TermVar> variables) {
     final Term result;
 
     final Term thisValue = this.getImmediateValue();
@@ -193,7 +194,7 @@ public final class TermVar extends Term {
         return new TermVar((Term) null, this.payload, this.getSourcePosition());
       }
       final String varName = this.getText();
-      final int varId = this.getVarUid();
+      final long varId = this.getVarUid();
       TermVar newVariable = variables.get(varId);
       if (newVariable == null) {
         newVariable = new TermVar(varName, this.payload, this.getSourcePosition());
@@ -364,22 +365,13 @@ public final class TermVar extends Term {
 
   @Override
   public int hashCode() {
-    return uid;
+    return Objects.hashCode(this.uid);
   }
 
   @Override
   public boolean equals(Object obj) {
-    if (obj == null) {
-      return false;
-    }
-    if (this == obj) {
-      return true;
-    }
-    if (obj.getClass() == TermVar.class) {
-      final TermVar that = (TermVar) obj;
-      return (uid == that.uid && that.getText().hashCode() == getText().hashCode());
-    }
-    return false;
+    // every variable is unique for its uid, we can call them as a singleton so it can be equals only to itself
+    return this == obj;
   }
 
   @Override

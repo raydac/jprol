@@ -32,7 +32,7 @@ import java.util.Set;
 final class VariableStateSnapshot {
 
   private final List<VariableContainer> containers;
-  private Set<Integer> processedVariables;
+  private Set<Long> processedVariables;
 
   VariableStateSnapshot(final VariableStateSnapshot snapshot) {
     if (snapshot.containers.isEmpty()) {
@@ -62,7 +62,7 @@ final class VariableStateSnapshot {
 
     if (changed != null) {
       for (final VariableContainer container : changed) {
-        final int uid = container.variable.getVarUid();
+        final Long uid = container.variable.getVarUid();
         if (!this.processedVariables.contains(uid)) {
           this.processedVariables.add(uid);
           this.containers.add(new VariableContainer(container.variable, null));
@@ -105,7 +105,7 @@ final class VariableStateSnapshot {
           this.processedVariables = new LazySet<>();
         }
         final TermVar var = (TermVar) src;
-        final Integer uid = var.getVarUid();
+        final Long uid = var.getVarUid();
         if (!this.processedVariables.contains(uid)) {
           this.processedVariables.add(uid);
           this.containers.add(new VariableContainer(var, predefinedValues));

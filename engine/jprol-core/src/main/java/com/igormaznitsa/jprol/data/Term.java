@@ -361,7 +361,7 @@ public class Term {
    * @param variables a mutable map to play a store for deduplication, must not be null
    * @return cloned term, must not be null
    */
-  protected Term makeClone(final Map<Integer, TermVar> variables) {
+  protected Term makeClone(final Map<Long, TermVar> variables) {
     return this;
   }
 
@@ -371,7 +371,7 @@ public class Term {
    * @param variables a mutual map to be used as store for variables
    * @return cloned term, must not be null
    */
-  public Term cloneAndReplaceVariableByValue(final Map<Integer, TermVar> variables) {
+  public Term cloneAndReplaceVariableByValue(final Map<Long, TermVar> variables) {
     return this;
   }
 
