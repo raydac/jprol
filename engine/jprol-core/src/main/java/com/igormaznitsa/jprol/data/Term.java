@@ -35,10 +35,10 @@ package com.igormaznitsa.jprol.data;
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.utils.ProlUtils.escapeSrc;
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toMap;
 
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.utils.lazy.LazyMap;
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -154,19 +154,11 @@ public class Term {
   }
 
   public Map<String, TermVar> findAllNamedVariables() {
-    return this.variables()
-        .collect(
-            toMap(TermVar::getText,
-                e -> e,
-                (v1, v2) -> v2
-            )
-        );
+    return Collections.emptyMap();
   }
 
   public Map<String, Term> findAllNamedVariableValues() {
-    return this.variables()
-        .filter(v -> !v.isUnground())
-        .collect(toMap(TermVar::getText, e -> e.<Term>findGroundOrDefault(e), (v1, v2) -> v2));
+    return Collections.emptyMap();
   }
 
   /**
@@ -371,7 +363,7 @@ public class Term {
    * @param variables a mutual map to be used as store for variables
    * @return cloned term, must not be null
    */
-  public Term cloneAndReplaceVariableByValue(final Map<Long, TermVar> variables) {
+  public Term cloneAndReplaceVariables(final Map<Long, TermVar> variables) {
     return this;
   }
 

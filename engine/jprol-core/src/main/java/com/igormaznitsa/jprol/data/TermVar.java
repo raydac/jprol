@@ -151,7 +151,7 @@ public final class TermVar extends Term {
   }
 
   @Override
-  public Term cloneAndReplaceVariableByValue(final Map<Long, TermVar> variables) {
+  public Term cloneAndReplaceVariables(final Map<Long, TermVar> variables) {
     Term value = this.getValue();
     if (value == null) {
       if (this.isAnonymous()) {
@@ -171,7 +171,7 @@ public final class TermVar extends Term {
           final Term thisVal = this.getImmediateValue();
 
           if (thisVal != null) {
-            newVar.setImmediateValue(thisVal.cloneAndReplaceVariableByValue(variables));
+            newVar.setImmediateValue(thisVal.cloneAndReplaceVariables(variables));
           }
         }
         result = newVar;
@@ -277,6 +277,22 @@ public final class TermVar extends Term {
         }
       }
     }
+  }
+
+  @Override
+  public Map<String, TermVar> findAllNamedVariables() {
+    if (this.isAnonymous()) {
+      return Map.of();
+    }
+    return Map.of(this.getText(), this);
+  }
+
+  @Override
+  public Map<String, Term> findAllNamedVariableValues() {
+    if (this.isAnonymous()) {
+      return Map.of();
+    }
+    return Map.of(this.getText(), this.findGroundOrDefault(this));
   }
 
   @Override

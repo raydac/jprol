@@ -292,7 +292,7 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public Term cloneAndReplaceVariableByValue(final Map<Long, TermVar> variables) {
+  public Term cloneAndReplaceVariables(final Map<Long, TermVar> variables) {
     if (this.isNullList()) {
       return NULL_LIST;
     }
@@ -300,8 +300,8 @@ public final class TermList extends TermStruct {
     final Term head = this.getHead();
     final Term tail = this.getTail();
 
-    final Term headClone = head.cloneAndReplaceVariableByValue(variables);
-    final Term tailClone = tail.cloneAndReplaceVariableByValue(variables);
+    final Term headClone = head.cloneAndReplaceVariables(variables);
+    final Term tailClone = tail.cloneAndReplaceVariables(variables);
 
     if (head == headClone && tail == tailClone) {
       return this;

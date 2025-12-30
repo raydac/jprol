@@ -233,6 +233,9 @@ public class LazySynchronizedMap<K, V> implements Map<K, V> {
 
   @Override
   public void putAll(Map<? extends K, ? extends V> m) {
+    if (m.isEmpty()) {
+      return;
+    }
     this.locker.lock();
     try {
       if (this.map == null) {

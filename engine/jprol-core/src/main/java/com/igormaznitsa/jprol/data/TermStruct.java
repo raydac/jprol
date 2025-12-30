@@ -501,7 +501,7 @@ public class TermStruct extends CompoundTerm {
   }
 
   @Override
-  public Term cloneAndReplaceVariableByValue(final Map<Long, TermVar> variables) {
+  public Term cloneAndReplaceVariables(final Map<Long, TermVar> variables) {
     final Term result;
     if (this.getArity() == 0) {
       result = this;
@@ -513,8 +513,8 @@ public class TermStruct extends CompoundTerm {
       boolean changed = false;
       for (int i = 0; i < arity; i++) {
         final Term element = elements[i];
-        final Term cloned = element.cloneAndReplaceVariableByValue(variables);
-        targetElements[i] = element.cloneAndReplaceVariableByValue(variables);
+        final Term cloned = element.cloneAndReplaceVariables(variables);
+        targetElements[i] = element.cloneAndReplaceVariables(variables);
         changed |= element != cloned;
       }
       if (changed) {
