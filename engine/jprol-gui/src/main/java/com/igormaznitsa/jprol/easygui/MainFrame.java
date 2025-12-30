@@ -79,6 +79,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -1812,7 +1813,7 @@ public final class MainFrame extends javax.swing.JFrame
   public boolean onFoundInteractiveGoal(final JProlContext context, final Term goal) {
     return context.findResourceWriter("user", true).map(writer -> {
       try {
-        writer.write(format("Goal: '%s'%n", goal.forWrite()));
+        writer.write(format("Goal: %s%n", goal.toSrcString()));
         return true;
       } catch (IOException ex) {
         ex.printStackTrace();
@@ -1827,7 +1828,7 @@ public final class MainFrame extends javax.swing.JFrame
     final String varText = varValues.values().stream()
         .map(termVar ->
             termVar.getText() + '=' +
-                (termVar.isUnground() ? termVar.getText() : termVar.getValue().forWrite()))
+                (Objects.requireNonNullElse(termVar.getValue(), termVar).forWrite()))
         .collect(Collectors.joining("\n"));
 
     context.findResourceWriter("user", true)

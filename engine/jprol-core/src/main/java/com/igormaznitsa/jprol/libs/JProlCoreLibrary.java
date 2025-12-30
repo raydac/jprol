@@ -2137,7 +2137,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         final Term tail = asList.findLastTail().tryGround();
         if (tail.getTermType() == VAR) {
           final TermVar tailVar = (TermVar) tail;
-          if (tailVar.hasAmongValues(asVar) || asVar.hasAmongValues(tailVar)) {
+          if (tailVar.isPresentedInVarChain(asVar) || asVar.isPresentedInVarChain(tailVar)) {
             return false;
           }
         }

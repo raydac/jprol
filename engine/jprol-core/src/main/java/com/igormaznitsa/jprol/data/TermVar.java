@@ -86,13 +86,13 @@ public final class TermVar extends Term {
   }
 
   /**
-   * Check that a variable presented in among variables in values.
+   * Check that a variable presented in variable chain.
    *
    * @param otherVar variable to be checked
    * @return true if var presented among variables in hosted variable chain.
-   * @since 2.2.0
+   * @since 3.0.0
    */
-  public boolean hasAmongValues(final TermVar otherVar) {
+  public boolean isPresentedInVarChain(final TermVar otherVar) {
     TermVar current = this;
     while (current != null) {
       if (this.isAnonymous() || otherVar.isAnonymous()) {
@@ -335,14 +335,11 @@ public final class TermVar extends Term {
 
   @Override
   public String toString() {
-    final StringBuilder builder = new StringBuilder();
-    final Term val = getValue();
-    if (val == null) {
-      builder.append(isAnonymous() ? '_' : getText());
+    if (this.isGround()) {
+      return this.getValue().toString();
     } else {
-      builder.append(val);
+      return this.isAnonymous() ? "_" : this.getText();
     }
-    return builder.toString();
   }
 
   /**
@@ -400,7 +397,7 @@ public final class TermVar extends Term {
     final Term val = this.getValue();
     if (val == null) {
       if (this.isAnonymous()) {
-        return "_";
+        return "_G" + this.getText();
       } else {
         return this.getText();
       }
