@@ -58,6 +58,7 @@ import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlCustomErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlKnowledgeBaseException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
@@ -66,6 +67,7 @@ import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.JProlTreeBuilder;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
@@ -1719,7 +1721,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(guarded = true, determined = true, signature = "abort/1", synonyms = "abort/0", validate = {
-      "+term"}, reference = "Self-dispose current JProl context, not affecting root context if presented.")
+      "+term"}, reference = "Self-dispose current JProl context, it doesn't affect the root context.")
   public static void predicateAbort(final JProlChoicePoint goal, final TermStruct predicate) {
     if (predicate.getArity() == 0) {
       throw new ProlAbortExecutionException("Aborted", 0L);
@@ -1734,6 +1736,28 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
       throw new ProlAbortExecutionException(Objects.requireNonNullElse(abortMessage, "Aborted"),
           abortStatus);
+    }
+  }
+
+  @JProlPredicate(guarded = true, determined = true, signature = "halt/1", synonyms = "halt/0", validate = {
+      "+number"}, reference = "Dispose the root JProl context.")
+  public static void predicateHalt(final JProlChoicePoint goal, final TermStruct predicate) {
+    JProlContext rootContext = goal.getContext();
+    while (!rootContext.isRootContext()) {
+      rootContext = rootContext.getParentContext();
+    }
+
+    if (predicate.getArity() == 0) {
+      rootContext.dispose();
+      throw new ProlHaltExecutionException("Halt called in code", 0L);
+    } else {
+      final Term arg = predicate.getArgumentAt(0).tryGround();
+      long abortStatus = 0;
+      if (arg instanceof NumericTerm) {
+        abortStatus = arg.toNumber().longValue();
+      }
+      rootContext.dispose();
+      throw new ProlHaltExecutionException("Halt called in code", abortStatus);
     }
   }
 

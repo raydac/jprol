@@ -11,7 +11,7 @@ mouse_action(X,Y,'left',Clicks,'pressed') :- pencolor(green),plot(X,Y,X,Y),updat
 mouse_action(X,Y,'right',Clicks,'pressed') :- pencolor(red),plot(X,Y,X,Y),update_last_mouse(X,Y),!.
 
 on_menu_action('Clear') :- brushcolor(black), fillscreen, brushcolor(green), !.
-on_menu_action('Exit') :- dispose,!.
+on_menu_action('Exit') :- halt,!.
 
 on_drawRandomOvalOrange(_) :- rnd(600, X), rnd(600,Y), rnd(30,R), brushcolor(orange), filloval(X,Y,R,R),!.
 on_drawRandomOvalBlue(_) :- rnd(600, X), rnd(600,Y), rnd(30,R), brushcolor(blue), filloval(X,Y,R,R),!.
