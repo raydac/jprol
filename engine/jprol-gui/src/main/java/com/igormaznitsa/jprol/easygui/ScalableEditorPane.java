@@ -22,6 +22,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextPane;
+import javax.swing.text.Document;
 
 /**
  * The class implements the Editor pane for the IDE.
@@ -36,7 +37,8 @@ public class ScalableEditorPane extends JTextPane {
   private Font baseFont;
 
   public ScalableEditorPane(final boolean scalable) {
-    super();
+    super(new JProlStyledDocument());
+
     this.baseFont = this.getFont();
     this.setOpaque(true);
 
@@ -68,6 +70,11 @@ public class ScalableEditorPane extends JTextPane {
         showMenuIfPopupTrigger(e);
       }
     });
+  }
+
+  @Override
+  public void setDocument(Document doc) {
+    super.setDocument(doc);
   }
 
   public Font getBaseFont() {

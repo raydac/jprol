@@ -39,10 +39,10 @@ import com.igormaznitsa.jprol.libs.JProlRegexLibrary;
 import com.igormaznitsa.jprol.libs.JProlStrLibrary;
 import com.igormaznitsa.jprol.libs.JProlThreadLibrary;
 import com.igormaznitsa.jprol.libs.TPrologPredicateLibrary;
-import com.igormaznitsa.jprol.logic.ConsultInteract;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.JProlSystemFlag;
+import com.igormaznitsa.jprol.logic.QueryInteractor;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
 import com.igormaznitsa.jprol.trace.JProlContextListener;
 import com.igormaznitsa.jprol.trace.TraceEvent;
@@ -80,7 +80,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -137,13 +136,10 @@ import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 
 public final class MainFrame extends javax.swing.JFrame
-    implements ConsultInteract, IoResourceProvider, Runnable, UndoableEditListener, WindowListener,
+    implements QueryInteractor, IoResourceProvider, Runnable, UndoableEditListener, WindowListener,
     DocumentListener, HyperlinkListener, JProlContextListener {
 
-  private static final String PROL_EXTENSION = ".prl";
-
   public static final AtomicReference<MainFrame> MAIN_FRAME_INSTANCE = new AtomicReference<>();
-
   public static final String[] PROL_LIBRARIES = new String[] {
       JProlCoreLibrary.class.getCanonicalName(),
       JProlThreadLibrary.class.getCanonicalName(),
@@ -156,8 +152,8 @@ public final class MainFrame extends javax.swing.JFrame
       TPrologPredicateLibrary.class.getCanonicalName(),
       LogLibrary.class.getCanonicalName()
   };
-
   public static final Logger LOGGER = Logger.getLogger(MainFrame.class.getName());
+  private static final String PROL_EXTENSION = ".prl";
   private static final FileFilter PROL_FILE_FILTER = new FileFilter() {
 
     @Override
@@ -190,15 +186,17 @@ public final class MainFrame extends javax.swing.JFrame
   private final ThreadGroup executingScripts = new ThreadGroup("ProlExecutingScripts");
   private final RecentlyOpenedFileFixedList recentFiles =
       new RecentlyOpenedFileFixedList(MAX_RECENT_FILES);
+  private final AtomicReference<JProlContext> currentContext = new AtomicReference<>();
+  private final Timer swingTimer;
+  public MessageEditor messageEditor;
   private Map<String, LookAndFeelInfo> lookAndFeelMap;
   private File currentOpenedFile;
   private File lastOpenedFile;
   private boolean documentHasBeenChangedFlag;
-  private final AtomicReference<JProlContext> currentContext = new AtomicReference<>();
   // Variables declaration - do not modify
   private JButton buttonCloseFind;
   private JButton buttonStopExecuting;
-  private com.igormaznitsa.jprol.easygui.DialogEditor dialogEditor;
+  private DialogEditor dialogEditor;
   private JPanel editorPanel;
   private Filler filler1;
   private JMenuBar jMenuBar1;
@@ -236,7 +234,6 @@ public final class MainFrame extends javax.swing.JFrame
   private JMenu menuView;
   private JMenuItem menuViewKnowledgeBase;
   private JMenuItem menuItemFindText;
-  public MessageEditor messageEditor;
   private JPanel panelFindText;
   private JPanel panelProgress;
   private JProgressBar progressBarTask;
@@ -251,39 +248,35 @@ public final class MainFrame extends javax.swing.JFrame
   private JLabel labelEditorCol;
   private JLabel labelOpenedFile;
 
-  private final Timer swingTimer;
-
   /**
    * Creates new form MainFrame
    */
   public MainFrame(GraphicsConfiguration graphicsConfiguration) {
     super(graphicsConfiguration);
     try {
-      initComponents();
+      this.initComponents();
 
       this.setTitle("JProl editor v" + VERSION);
 
       this.sourceEditor.getEditor().addCaretListener(e -> this.updateCaretPositionIndication());
       this.updateCaretPositionIndication();
 
-      Rectangle screenBounds =
+      final Rectangle screenBounds =
           graphicsConfiguration == null ? null : graphicsConfiguration.getBounds();
       if (screenBounds != null) {
         setSize((screenBounds.width * 10) / 12, (screenBounds.height * 10) / 12);
       }
-      sourceEditor.addUndoableEditListener(this);
-      sourceEditor.addDocumentListener(this);
-      messageEditor.addHyperlinkListener(this);
-      addWindowListener(this);
-      panelProgress.setVisible(false);
+      this.sourceEditor.addUndoableEditListener(this);
+      this.sourceEditor.addDocumentListener(this);
+      this.messageEditor.addHyperlinkListener(this);
+      this.addWindowListener(this);
+      this.panelProgress.setVisible(false);
 
       this.setAppIcon(UiUtils.loadIcon("appico").getImage());
 
-      fillLFMenuItem();
-
-      loadPreferences();
-
-      newFile();
+      this.fillLFMenuItem();
+      this.loadPreferences();
+      this.newFile();
 
       this.menuItemWordWrapSources.setState(sourceEditor.getEdWordWrap());
 
@@ -295,14 +288,13 @@ public final class MainFrame extends javax.swing.JFrame
             textFind.setText("");
           }
         }
-
       };
 
       final KeyStroke escKey = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
       action.putValue(Action.ACCELERATOR_KEY, escKey);
       this.buttonCloseFind.getActionMap().put("closeFind", action);
       this.buttonCloseFind.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escKey, "closeFind");
-      this.buttonCloseFind.addActionListener(action::actionPerformed);
+      this.buttonCloseFind.addActionListener(action);
 
       this.panelFindText.setVisible(false);
     } finally {
@@ -316,11 +308,17 @@ public final class MainFrame extends javax.swing.JFrame
       }
     }
 
-    this.swingTimer = new Timer(300, a -> {
+    this.swingTimer = new Timer(150, a -> {
+      this.dialogEditor.onTimer();
       this.messageEditor.onTimer();
       this.traceEditor.onTimer();
     });
     this.swingTimer.start();
+  }
+
+  public MainFrame(final GraphicsConfiguration config, final File initFile) {
+    this(config);
+    loadFile(initFile, true);
   }
 
   private static Throwable findRootCause(final Throwable throwable) {
@@ -332,11 +330,6 @@ public final class MainFrame extends javax.swing.JFrame
       final Throwable thatError = findRootCause(throwable.getCause());
       return thatError == null ? throwable : thatError;
     }
-  }
-
-  public MainFrame(final GraphicsConfiguration config, final File initFile) {
-    this(config);
-    loadFile(initFile, true);
   }
 
   private void updateCaretPositionIndication() {
@@ -497,7 +490,7 @@ public final class MainFrame extends javax.swing.JFrame
     splitPaneMain = new JSplitPane();
     splitPaneTop = new JSplitPane();
     try {
-      dialogEditor = new com.igormaznitsa.jprol.easygui.DialogEditor();
+      dialogEditor = new DialogEditor();
     } catch (java.io.IOException e1) {
       e1.printStackTrace();
     }
@@ -964,7 +957,7 @@ public final class MainFrame extends javax.swing.JFrame
         this.releaseContext();
 
         try {
-          dialogEditor.cancelRead();
+          dialogEditor.interruptBlockedOperations();
           executingThread.join();
         } catch (Throwable tr) {
           tr.printStackTrace();
@@ -1098,7 +1091,7 @@ public final class MainFrame extends javax.swing.JFrame
         this.startedInTracing.set(trace);
         SwingUtilities.invokeLater(() -> {
           clearTextAtAllWindowsExcludeSource();
-          dialogEditor.initBeforeSession();
+          dialogEditor.onStartNewSession();
           showTaskControlPanel();
           newThread.start();
         });
@@ -1209,7 +1202,7 @@ public final class MainFrame extends javax.swing.JFrame
   public Reader findReader(final JProlContext context, final String id) {
     if (id.equals("user")) {
       this.messageEditor.addInfoText(format("Reader for '%s' has been opened.", id));
-      return this.dialogEditor.getInputReader();
+      return this.dialogEditor.getInput();
     } else {
       throw new ProlCriticalError("Can't provide reader: " + id);
     }
@@ -1224,7 +1217,7 @@ public final class MainFrame extends javax.swing.JFrame
       if (id.equals("user")) {
         successful = true;
         notTraceable = true;
-        return this.dialogEditor.getOutputWriter();
+        return this.dialogEditor.getOutput();
       } else {
         final Writer writer = new FileWriter(id, append);
         successful = true;
@@ -1406,7 +1399,7 @@ public final class MainFrame extends javax.swing.JFrame
               this.messageEditor.addInfoText("Completed successfully.");
             } else {
               this.messageEditor.addErrorText("Completed with errors or not started.");
-              this.dialogEditor.addText(format("%nERROR! see 'Messages' log%n"));
+              this.dialogEditor.addSystemText(format("%nERROR! see 'Messages' log%n"));
             }
           }
         } else {
@@ -1427,7 +1420,7 @@ public final class MainFrame extends javax.swing.JFrame
                   : ("source://" + sourcePosition.getLine() + ';' + sourcePosition.getPosition()),
               sourcePosition.isUnknown() ? null :
                   ("line " + sourcePosition.getLine() + ":" + sourcePosition.getPosition()));
-          this.dialogEditor.addText(
+          this.dialogEditor.addSystemText(
               format("%nScript execution stopped: %s%n", message));
         }
         this.dialogEditor.setEnabled(false);
@@ -1470,8 +1463,6 @@ public final class MainFrame extends javax.swing.JFrame
       if (JOptionPane.showConfirmDialog(this,
           "Detected active task. Do you really want to force exit?", "Confirmation",
           JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-
-        this.dialogEditor.cancelRead();
         this.dialogEditor.close();
 
         final JProlContext context = this.currentContext.getAndSet(null);
@@ -1489,7 +1480,6 @@ public final class MainFrame extends javax.swing.JFrame
         return;
       }
     } else {
-      this.dialogEditor.cancelRead();
       this.dialogEditor.close();
     }
 
@@ -1810,10 +1800,10 @@ public final class MainFrame extends javax.swing.JFrame
   }
 
   @Override
-  public boolean onFoundInteractiveGoal(final JProlContext context, final Term goal) {
-    return context.findResourceWriter("user", true).map(writer -> {
+  public boolean isQueryAllowed(final JProlContext source, final Term query) {
+    return source.findResourceWriter("user", true).map(writer -> {
       try {
-        writer.write(format("Goal: %s%n", goal.toSrcString()));
+        writer.write(format("Goal: %s%n", query.toSrcString()));
         return true;
       } catch (IOException ex) {
         ex.printStackTrace();
@@ -1823,8 +1813,8 @@ public final class MainFrame extends javax.swing.JFrame
   }
 
   @Override
-  public boolean onSolution(final JProlContext context, final Term goal,
-                            final Map<String, TermVar> varValues, final int solutionCounter) {
+  public boolean onQuerySuccess(final JProlContext source, final Term query,
+                                final Map<String, TermVar> varValues, final int successCounter) {
     final String varText = varValues.values().stream()
         .map(variable -> {
           final Term value = Objects.requireNonNullElse(variable.getValue(), variable);
@@ -1836,40 +1826,53 @@ public final class MainFrame extends javax.swing.JFrame
         })
         .collect(Collectors.joining("\n"));
 
-    context.findResourceWriter("user", true)
-        .ifPresent(writer -> {
-          try {
-            writer.write(format("%nYES%n%s%nNext solution?:", varText));
-          } catch (IOException ex) {
-            ex.printStackTrace();
-          }
-        });
+    final Writer userWriter = source.findResourceWriter("user", true)
+        .orElseThrow(
+            () -> new IllegalStateException("Can't find IO output for 'user' in the context"));
 
-    return context.findResourceReader("user").map(reader -> {
-      try {
-        final DialogEditor.NonClosableReader dialogReader = (DialogEditor.NonClosableReader) reader;
-        final int chr = dialogReader.findFirstNonWhitespaceChar();
-        final Optional<Writer> out = context.findResourceWriter("user", true);
-        if (out.isPresent()) {
-          out.get().write("\n");
-        }
-        return chr == 'y' || chr == 'Y' || chr == ';';
-      } catch (IOException ex) {
-        ex.printStackTrace();
+    try {
+      userWriter.write(format("%nYES%n%s%nNext solution?:", varText));
+
+      final String text = this.dialogEditor.blockingRead(
+          c -> !Character.isWhitespace(c) && !Character.isISOControl(c), false);
+
+      if (text == null) {
         return false;
       }
-    }).orElse(false);
+
+      if (text.chars().anyMatch(
+          chr -> chr == 'y' || chr == 'Y' || chr == ';' || chr == 'Ж' || chr == 'ж' || chr == 'Н' ||
+              chr == 'н')) {
+        userWriter.write('\n');
+        return true;
+      }
+    } catch (IOException ex) {
+      this.messageEditor.addErrorText("IOError for 'user': " + ex.getMessage());
+    }
+    return false;
   }
 
   @Override
-  public void onFail(final JProlContext context, final Term goal, final int foundSolutionCounter) {
-    context.findResourceWriter("user", true).ifPresent(writer -> {
+  public void onQueryFail(final JProlContext source, final Term query, final int successCounter) {
+    source.findResourceWriter("user", true).ifPresent(writer -> {
       try {
         writer.write(format("%nNO%n"));
       } catch (IOException ex) {
         ex.printStackTrace();
       }
     });
+  }
+
+  @Override
+  public void onAsyncUncaughtTaskException(
+      final JProlContext source,
+      final JProlContext taskContext,
+      final long taskId,
+      final Throwable error
+  ) {
+    this.messageEditor.addErrorText(
+        "Detected exception in async task " + taskId + ": " + error.getMessage());
+    error.printStackTrace();
   }
 
   private static final class JLFRadioButtonItem extends JRadioButtonMenuItem {
@@ -1884,17 +1887,5 @@ public final class MainFrame extends javax.swing.JFrame
     public String getLfClassName() {
       return this.lfClassName;
     }
-  }
-
-  @Override
-  public void onAsyncUncaughtTaskException(
-      final JProlContext source,
-      final JProlContext taskContext,
-      final long taskId,
-      final Throwable error
-  ) {
-    this.messageEditor.addErrorText(
-        "Detected exception in async task " + taskId + ": " + error.getMessage());
-    error.printStackTrace();
   }
 }

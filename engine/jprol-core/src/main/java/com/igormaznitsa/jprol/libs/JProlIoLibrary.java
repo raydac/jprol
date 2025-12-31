@@ -292,7 +292,8 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }).orElseThrow(() -> new ProlPermissionErrorException("read", "text_input", predicate));
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "read/1", validate = "-term", reference = "Read  the next Prolog term from the current input stream.")
+  @JProlPredicate(guarded = true, determined = true, signature = "read/1", validate = "-term",
+      reference = "Read  the next Prolog term from the current input stream.")
   public final boolean predicateRead(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0).tryGround();
     final Optional<InternalReader> current = findCurrentInput(goal.getContext(), arg);

@@ -16,15 +16,17 @@
 
 package com.igormaznitsa.jprol.easygui;
 
+import static com.igormaznitsa.jprol.easygui.JProlStyledDocument.StyledText.CLEAR;
+
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.prefs.Preferences;
 import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 
@@ -35,149 +37,151 @@ import javax.swing.text.StyleConstants;
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public class TraceDialog extends AbstractProlEditor implements ActionListener {
-  private static final SimpleAttributeSet ATTRSET_OTHER = new SimpleAttributeSet();
-  private static final SimpleAttributeSet ATTRSET_CALL = new SimpleAttributeSet();
-  private static final SimpleAttributeSet ATTRSET_REDO = new SimpleAttributeSet();
-  private static final SimpleAttributeSet ATTRSET_FAIL = new SimpleAttributeSet();
-  private static final SimpleAttributeSet ATTRSET_EXIT = new SimpleAttributeSet();
-  private final Queue<TextMessage> messageQueue = new ConcurrentLinkedQueue<>();
+  private static final SimpleAttributeSet ATTRIBUTE_OTHER = new SimpleAttributeSet();
+  private static final SimpleAttributeSet ATTRIBUTE_CALL = new SimpleAttributeSet();
+  private static final SimpleAttributeSet ATTRIBUTE_REDO = new SimpleAttributeSet();
+  private static final SimpleAttributeSet ATTRIBUTE_FAIL = new SimpleAttributeSet();
+  private static final SimpleAttributeSet ATTRIBUTE_EXIT = new SimpleAttributeSet();
+
+  private final Queue<JProlStyledDocument.StyledText> messageQueue = new ConcurrentLinkedQueue<>();
 
   public TraceDialog() {
     super("Trace", false, false);
 
     this.editor.setEditable(false);
 
-    removePropertyLink("EdForeground");
-    removePropertyLink("EdCaretColor");
+    this.removePropertyLink("EdForeground");
+    this.removePropertyLink("EdCaretColor");
 
-    addPropertyLink(new PropertyLink(this, "Call color", "EdCallColor"));
-    addPropertyLink(new PropertyLink(this, "Redo color", "EdRedoColor"));
-    addPropertyLink(new PropertyLink(this, "Fail color", "EdFailColor"));
-    addPropertyLink(new PropertyLink(this, "Exit color", "EdExitColor"));
-    addPropertyLink(new PropertyLink(this, "Other color", "EdOtherColor"));
+    this.addPropertyLink(new PropertyLink(this, "Call color", "EdCallColor"));
+    this.addPropertyLink(new PropertyLink(this, "Redo color", "EdRedoColor"));
+    this.addPropertyLink(new PropertyLink(this, "Fail color", "EdFailColor"));
+    this.addPropertyLink(new PropertyLink(this, "Exit color", "EdExitColor"));
+    this.addPropertyLink(new PropertyLink(this, "Other color", "EdOtherColor"));
 
-    setEnabled(false);
-    setContentType("text/rtf");
+    this.setEnabled(false);
+    this.setContentType("text/plain");
 
-    editor.setBackground(Color.BLUE.darker().darker().darker().darker());
-    editor.setForeground(Color.WHITE);
+    this.editor.setBackground(Color.BLUE.darker().darker().darker().darker());
+    this.editor.setForeground(Color.WHITE);
   }
 
   public Color getEdOtherColor() {
-    return StyleConstants.getForeground(ATTRSET_OTHER);
+    return StyleConstants.getForeground(ATTRIBUTE_OTHER);
   }
 
   public void setEdOtherColor(final Color color) {
-    clearText();
-    StyleConstants.setForeground(ATTRSET_OTHER, color);
+    StyleConstants.setForeground(ATTRIBUTE_OTHER, color);
+    this.clearText();
   }
 
   public Color getEdCallColor() {
-    return StyleConstants.getForeground(ATTRSET_CALL);
+    return StyleConstants.getForeground(ATTRIBUTE_CALL);
   }
 
   public void setEdCallColor(final Color color) {
-    clearText();
-    StyleConstants.setForeground(ATTRSET_CALL, color);
+    StyleConstants.setForeground(ATTRIBUTE_CALL, color);
+    this.clearText();
   }
 
   public Color getEdRedoColor() {
-    return StyleConstants.getForeground(ATTRSET_REDO);
+    return StyleConstants.getForeground(ATTRIBUTE_REDO);
   }
 
   public void setEdRedoColor(final Color color) {
-    clearText();
-    StyleConstants.setForeground(ATTRSET_REDO, color);
+    StyleConstants.setForeground(ATTRIBUTE_REDO, color);
+    this.clearText();
   }
 
   public Color getEdExitColor() {
-    return StyleConstants.getForeground(ATTRSET_EXIT);
+    return StyleConstants.getForeground(ATTRIBUTE_EXIT);
   }
 
   public void setEdExitColor(final Color color) {
-    clearText();
-    StyleConstants.setForeground(ATTRSET_EXIT, color);
+    StyleConstants.setForeground(ATTRIBUTE_EXIT, color);
+    this.clearText();
   }
 
   public Color getEdFailColor() {
-    return StyleConstants.getForeground(ATTRSET_FAIL);
+    return StyleConstants.getForeground(ATTRIBUTE_FAIL);
   }
 
   public void setEdFailColor(final Color color) {
-    clearText();
-    StyleConstants.setForeground(ATTRSET_FAIL, color);
+    StyleConstants.setForeground(ATTRIBUTE_FAIL, color);
+    this.clearText();
   }
 
   public void addCallText(String text) {
-    addText("CALL: " + text, ATTRSET_CALL);
+    this.addText("CALL: " + text, ATTRIBUTE_CALL);
   }
 
   public void addRedoText(String text) {
-    addText("REDO: " + text, ATTRSET_REDO);
+    this.addText("REDO: " + text, ATTRIBUTE_REDO);
   }
 
   public void addFailText(String text) {
-    addText("FAIL: " + text, ATTRSET_FAIL);
+    this.addText("FAIL: " + text, ATTRIBUTE_FAIL);
   }
 
   public void addExitText(String text) {
-    addText("EXIT: " + text, ATTRSET_EXIT);
+    this.addText("EXIT: " + text, ATTRIBUTE_EXIT);
   }
 
   public void addText(String text) {
-    addText(text, ATTRSET_OTHER);
+    this.addText(text, ATTRIBUTE_OTHER);
   }
 
   @Override
   public void clearText() {
     this.messageQueue.clear();
-    this.messageQueue.add(TextMessage.CLEAR_ALL);
+    this.messageQueue.add(CLEAR);
   }
 
   public void onTimer() {
-    final Document document = this.editor.getDocument();
+    final JProlStyledDocument document = (JProlStyledDocument) this.editor.getDocument();
     int loaded = 0;
+
+    List<JProlStyledDocument.StyledText> foundTexts = null;
+
     while (loaded < 100 && !Thread.currentThread().isInterrupted()) {
-      final TextMessage next = messageQueue.poll();
+      final JProlStyledDocument.StyledText next = this.messageQueue.poll();
       if (next == null) {
         break;
       }
       loaded++;
 
-      if (next == TextMessage.CLEAR_ALL) {
-        try {
-          document.remove(0, document.getLength());
-        } catch (BadLocationException ex) {
-          // ignore
-        }
+      if (foundTexts == null) {
+        foundTexts = new ArrayList<>();
+      }
+
+      if (next == CLEAR) {
+        foundTexts.add(next);
       } else {
-        try {
-          document.insertString(document.getLength(), next.text + '\n', next.type);
-        } catch (BadLocationException ex) {
-          // ignore
-        }
+        foundTexts.add(next.copyWith(next.getText() + '\n'));
       }
     }
-    if (loaded > 0) {
+
+    if (foundTexts != null) {
+      document.insertBunch(foundTexts);
       this.editor.setCaretPosition(document.getLength());
     }
   }
 
   public void addText(final String text, final AttributeSet type) {
     if (text != null && type != null) {
-      this.messageQueue.add(new TextMessage(text, type));
+      this.messageQueue.add(new JProlStyledDocument.StyledText(type, text));
     }
   }
 
   @Override
   public void actionPerformed(ActionEvent e) {
     if (e.getActionCommand().equals("CLEAR")) {
-      clearText();
+      this.clearText();
     }
   }
 
   @Override
-  public void loadPreferences(Preferences prefs) {
+  public void loadPreferences(final Preferences prefs) {
     final Color bgColor = extractColor(prefs, "tracebackcolor", Color.LIGHT_GRAY);
     final Color callColor = extractColor(prefs, "tracecallcolor", Color.BLACK);
     final Color redoColor = extractColor(prefs, "traceredocolor", Color.DARK_GRAY);
@@ -204,13 +208,13 @@ public class TraceDialog extends AbstractProlEditor implements ActionListener {
       setEdOtherColor(otherColor);
     }
 
-    setEdWordWrap(prefs.getBoolean("tracewordwrap", false));
+    this.setEdWordWrap(prefs.getBoolean("tracewordwrap", false));
 
-    setEdFont(loadFontFromPrefs(prefs, "tracefont", this.editor.getFont()));
+    this.setEdFont(loadFontFromPrefs(prefs, "tracefont", this.editor.getFont()));
   }
 
   @Override
-  public void savePreferences(Preferences prefs) {
+  public void savePreferences(final Preferences prefs) {
     prefs.putInt("tracebackcolor", getEdBackground().getRGB());
     prefs.putInt("tracecallcolor", getEdCallColor().getRGB());
     prefs.putInt("traceredocolor", getEdRedoColor().getRGB());
@@ -221,14 +225,4 @@ public class TraceDialog extends AbstractProlEditor implements ActionListener {
     saveFontToPrefs(prefs, "tracefont", editor.getFont());
   }
 
-  private static final class TextMessage {
-    private static final TextMessage CLEAR_ALL = new TextMessage(null, null);
-    final String text;
-    final AttributeSet type;
-
-    TextMessage(final String text, final AttributeSet type) {
-      this.text = text;
-      this.type = type;
-    }
-  }
 }

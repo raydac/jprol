@@ -115,6 +115,7 @@ import java.util.stream.Collectors;
 
 public class JProlContext implements AutoCloseable {
 
+  protected static final String QUERY = "?-";
   private static final AtomicLong TASK_COUNTER = new AtomicLong();
   private final String contextId;
   private final Map<String, Map<JProlTriggerType, List<JProlTrigger>>> triggers =
@@ -1162,7 +1163,7 @@ public class JProlContext implements AutoCloseable {
         (signature, struct) -> this.knowledgeBase.retractZ(this, struct));
   }
 
-  public void consult(final Reader source, final ConsultInteract iterator) {
+  public void consult(final Reader source, final QueryInteractor queryInteractor) {
     try (final JProlTreeBuilder treeBuilder = new JProlTreeBuilder(this, source, false)) {
       do {
         final Term nextItem = treeBuilder.readPhraseAndMakeTree();
@@ -1203,28 +1204,26 @@ public class JProlContext implements AutoCloseable {
                     break;
                   }
 
-                } else if ("?-".equals(text)) {
-                  final Term termGoal = struct.getArgumentAt(0);
-
-                  if (iterator != null && iterator.onFoundInteractiveGoal(this, termGoal)) {
-
+                } else if (QUERY.equals(text)) {
+                  final Term query = struct.getArgumentAt(0);
+                  if (queryInteractor != null && queryInteractor.isQueryAllowed(this, query)) {
                     final Map<String, TermVar> variableMap = new LazyMap<>();
                     final AtomicInteger solutionCounter = new AtomicInteger();
 
-                    final JProlChoicePoint thisGoal = this.makeChoicePoint(termGoal);
+                    final JProlChoicePoint thisGoal = this.makeChoicePoint(query);
 
                     boolean doFindNextSolution;
                     do {
                       variableMap.clear();
                       if (prove(thisGoal, variableMap)) {
-                        doFindNextSolution = iterator
-                            .onSolution(this, termGoal, variableMap,
+                        doFindNextSolution = queryInteractor
+                            .onQuerySuccess(this, query, variableMap,
                                 solutionCounter.incrementAndGet());
                         if (!doFindNextSolution) {
                           throw new ProlHaltExecutionException("search halted or stopped", 1);
                         }
                       } else {
-                        iterator.onFail(this, termGoal, solutionCounter.get());
+                        queryInteractor.onQueryFail(this, query, solutionCounter.get());
                         doFindNextSolution = false;
                       }
                     } while (doFindNextSolution);
