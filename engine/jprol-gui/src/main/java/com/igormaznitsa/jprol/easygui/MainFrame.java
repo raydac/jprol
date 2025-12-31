@@ -1826,9 +1826,14 @@ public final class MainFrame extends javax.swing.JFrame
   public boolean onSolution(final JProlContext context, final Term goal,
                             final Map<String, TermVar> varValues, final int solutionCounter) {
     final String varText = varValues.values().stream()
-        .map(termVar ->
-            termVar.getText() + '=' +
-                (Objects.requireNonNullElse(termVar.getValue(), termVar).forWrite()))
+        .map(variable -> {
+          final Term value = Objects.requireNonNullElse(variable.getValue(), variable);
+          if (variable == value) {
+            return variable.getText() + " uninstantiated";
+          } else {
+            return variable.getText() + " = " + value.forWrite();
+          }
+        })
         .collect(Collectors.joining("\n"));
 
     context.findResourceWriter("user", true)
