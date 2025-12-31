@@ -26,6 +26,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.function.Function;
 import java.util.prefs.Preferences;
 import javax.swing.JEditorPane;
 import javax.swing.JMenuItem;
@@ -73,7 +74,14 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
 
   public AbstractProlEditor(final String title, final boolean scalable,
                             final boolean lineNumeration) {
-    this(title, new ScalableEditorPane(scalable), lineNumeration, false);
+    this(title, ScalableEditorPane::new, scalable, lineNumeration);
+  }
+
+  public AbstractProlEditor(final String title,
+                            final Function<Boolean, JTextComponent> textComponentSupplier,
+                            final boolean scalable,
+                            final boolean lineNumeration) {
+    this(title, textComponentSupplier.apply(scalable), lineNumeration, false);
   }
 
   public AbstractProlEditor(
