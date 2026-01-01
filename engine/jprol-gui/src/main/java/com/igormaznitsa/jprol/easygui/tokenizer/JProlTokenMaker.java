@@ -241,6 +241,9 @@ public class JProlTokenMaker extends AbstractTokenMaker {
             }
             break;
             default: {
+              if (backslash) {
+                backslash = false;
+              }
               if (RSyntaxUtilities.isLetter(c)) {
                 currentTokenType = Character.isUpperCase(c) ? Token.VARIABLE : Token.IDENTIFIER;
                 break;
