@@ -70,8 +70,8 @@ import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.JProlTreeBuilder;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
+import com.igormaznitsa.jprol.logic.triggers.JProlContextTriggeringEventObserver;
 import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
-import com.igormaznitsa.jprol.logic.triggers.JProlTriggeringEventObserver;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.ProlUtils;
@@ -252,7 +252,17 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       "?term,?term"}, reference = "Check term strict identity.")
   public static boolean predicateTermEqu(final JProlChoicePoint choicePoint,
                                          final TermStruct predicate) {
-    return choicePoint.compare(predicate.getArgumentAt(0), predicate.getArgumentAt(1)) == 0;
+    final Term termA = predicate.getArgumentAt(0).tryGround();
+    final Term termB = predicate.getArgumentAt(1).tryGround();
+
+    int result = choicePoint.compare(termA, termB);
+
+    if (termA instanceof NumericTerm && result == 0) {
+      if (termA.getClass() != termB.getClass()) {
+        result = 1;
+      }
+    }
+    return result == 0;
   }
 
   @JProlPredicate(determined = true, signature = "\\==/2", validate = {
@@ -2443,8 +2453,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
           }
         }).collect(Collectors.toSet());
 
-    final JProlTriggeringEventObserver triggeringEventObserver =
-        new JProlTriggeringEventObserver(callable);
+    final JProlContextTriggeringEventObserver triggeringEventObserver =
+        new JProlContextTriggeringEventObserver(callable);
 
     triggeringEventObserver.register(signature, types);
     goal.getContext().addTrigger(triggeringEventObserver);

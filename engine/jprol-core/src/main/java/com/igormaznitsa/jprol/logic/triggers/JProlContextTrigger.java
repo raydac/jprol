@@ -20,11 +20,20 @@ import com.igormaznitsa.jprol.logic.JProlContext;
 import java.util.Map;
 import java.util.Set;
 
-public interface JProlTrigger {
+/**
+ * Interface describes a trigger which can catch events about knowledge base change and context state change events.
+ *
+ * @since 3.0.0
+ */
+public interface JProlContextTrigger {
 
   Map<String, Set<JProlTriggerType>> getSignatures();
 
-  void onTriggerEvent(TriggerEvent event);
+  default void onTriggerEvent(TriggerEvent event) {
 
-  void onContextDispose(JProlContext context);
+  }
+
+  default void onContextDispose(JProlContext context) {
+
+  }
 }

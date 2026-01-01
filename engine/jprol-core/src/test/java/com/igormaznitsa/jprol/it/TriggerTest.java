@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
-import com.igormaznitsa.jprol.logic.triggers.AbstractJProlTrigger;
+import com.igormaznitsa.jprol.logic.triggers.AbstractJProlContextTrigger;
 import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
 import com.igormaznitsa.jprol.logic.triggers.TriggerEvent;
 import java.util.EnumSet;
@@ -18,8 +18,8 @@ import org.junit.jupiter.api.Test;
 
 class TriggerTest extends AbstractJProlTest {
 
-  private TestTriggerCallCounter makeCounter() {
-    final TestTriggerCallCounter trigger = new TestTriggerCallCounter();
+  private TestContextTriggerCallCounter makeCounter() {
+    final TestContextTriggerCallCounter trigger = new TestContextTriggerCallCounter();
     trigger.register("testassert/1", EnumSet.of(JProlTriggerType.TRIGGER_ASSERT));
     trigger.register("testretract/1", EnumSet.of(JProlTriggerType.TRIGGER_RETRACT));
     trigger.register("testassertretract/1",
@@ -33,7 +33,7 @@ class TriggerTest extends AbstractJProlTest {
         ":- dynamic [testassert/1,testretract/1,testassertretract/1,testabolish/1].");
   }
 
-  private void execute(final String goal, final TestTriggerCallCounter counter) {
+  private void execute(final String goal, final TestContextTriggerCallCounter counter) {
     try (final JProlContext context = makeContext()) {
       context.addTrigger(counter);
       final JProlChoicePoint choicePoint = context.makeChoicePoint(goal);
@@ -45,7 +45,7 @@ class TriggerTest extends AbstractJProlTest {
 
   @Test
   void testTriggersAssertRetract1() {
-    final TestTriggerCallCounter counter = makeCounter();
+    final TestContextTriggerCallCounter counter = makeCounter();
     execute(
         "asserta(testassertretract(0)),assert(testassert(_)), asserta(testassert(1)), assertz(testassert(2))," +
             "retract(testassert(2)),retractz(testassert(1)),retracta(testassertretract(0))."
@@ -63,7 +63,7 @@ class TriggerTest extends AbstractJProlTest {
 
   @Test
   void testTriggersAssertRetract2() {
-    final TestTriggerCallCounter counter = makeCounter();
+    final TestContextTriggerCallCounter counter = makeCounter();
     execute(
         "asserta(testassertretract(0)),"
             + "assert(testretract(0)),"
@@ -85,7 +85,7 @@ class TriggerTest extends AbstractJProlTest {
 
   @Test
   void testTriggersAbolish() {
-    final TestTriggerCallCounter counter = makeCounter();
+    final TestContextTriggerCallCounter counter = makeCounter();
     execute(
         "asserta(testassertretract(0)),"
             + "assert(testretract(0)),"
@@ -108,14 +108,14 @@ class TriggerTest extends AbstractJProlTest {
   }
 
 
-  private static class TestTriggerCallCounter extends AbstractJProlTrigger {
+  private static class TestContextTriggerCallCounter extends AbstractJProlContextTrigger {
 
     private final AtomicInteger haltCounter = new AtomicInteger();
     private final Map<String, AtomicInteger> assertCounter = new HashMap<>();
     private final Map<String, AtomicInteger> retractCounter = new HashMap<>();
     private final Map<String, AtomicInteger> abolishCounter = new HashMap<>();
 
-    TestTriggerCallCounter() {
+    TestContextTriggerCallCounter() {
       super();
     }
 

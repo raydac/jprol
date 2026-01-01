@@ -18,6 +18,7 @@ package com.igormaznitsa.jprol.logic.triggers;
 
 import static com.igormaznitsa.jprol.utils.ProlUtils.normalizeSignature;
 import static com.igormaznitsa.jprol.utils.ProlUtils.reassembleSignatureOrNull;
+import static java.util.Collections.unmodifiableMap;
 
 import java.util.Collections;
 import java.util.EnumSet;
@@ -25,14 +26,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public abstract class AbstractJProlTrigger implements JProlTrigger {
+public abstract class AbstractJProlContextTrigger implements JProlContextTrigger {
 
   private final Map<String, Set<JProlTriggerType>> signatureMap;
   private final Map<String, Set<JProlTriggerType>> immutableMap;
 
-  public AbstractJProlTrigger() {
+  public AbstractJProlContextTrigger() {
     this.signatureMap = new ConcurrentHashMap<>();
-    this.immutableMap = Collections.unmodifiableMap(this.signatureMap);
+    this.immutableMap = unmodifiableMap(this.signatureMap);
   }
 
   public void register(final String signature,

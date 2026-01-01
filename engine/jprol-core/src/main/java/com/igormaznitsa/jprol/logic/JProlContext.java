@@ -57,7 +57,7 @@ import com.igormaznitsa.jprol.kbase.inmemory.ConcurrentInMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.libs.JProlBootstrapLibrary;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
-import com.igormaznitsa.jprol.logic.triggers.JProlTrigger;
+import com.igormaznitsa.jprol.logic.triggers.JProlContextTrigger;
 import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
 import com.igormaznitsa.jprol.logic.triggers.TriggerEvent;
 import com.igormaznitsa.jprol.trace.JProlContextListener;
@@ -118,7 +118,7 @@ public class JProlContext implements AutoCloseable {
   protected static final String QUERY = "?-";
   private static final AtomicLong TASK_COUNTER = new AtomicLong();
   private final String contextId;
-  private final Map<String, Map<JProlTriggerType, List<JProlTrigger>>> triggers =
+  private final Map<String, Map<JProlTriggerType, List<JProlContextTrigger>>> triggers =
       new LazySynchronizedMap<>();
   private final Map<String, Semaphore> namedSemaphores;
   private final Map<Long, CompletableFuture<Term>> startedAsyncTasks =
@@ -227,7 +227,7 @@ public class JProlContext implements AutoCloseable {
       final List<JProlContextListener> contextListeners,
       final List<IoResourceProvider> ioProviders,
       final Set<String> dynamicSignatures,
-      final Map<String, Map<JProlTriggerType, List<JProlTrigger>>> triggers,
+      final Map<String, Map<JProlTriggerType, List<JProlContextTrigger>>> triggers,
       final Map<String, Semaphore> namedSemaphores,
       final AbstractJProlLibrary... additionalLibraries
   ) {
@@ -241,7 +241,8 @@ public class JProlContext implements AutoCloseable {
 
     if (!triggers.isEmpty()) {
       triggers.forEach((k, v) -> {
-        final Map<JProlTriggerType, List<JProlTrigger>> triggerMap = new ConcurrentHashMap<>();
+        final Map<JProlTriggerType, List<JProlContextTrigger>> triggerMap =
+            new ConcurrentHashMap<>();
         v.forEach((t, r) -> triggerMap.put(t, new CopyOnWriteArrayList<>(r)));
         this.triggers.put(k, triggerMap);
       });
@@ -986,7 +987,7 @@ public class JProlContext implements AutoCloseable {
     return this.disposed.get();
   }
 
-  public void addTrigger(final JProlTrigger trigger) {
+  public void addTrigger(final JProlContextTrigger trigger) {
     assertNotDisposed();
     trigger.getSignatures().forEach((signature, types) -> {
       String validatedSignature = ProlUtils.reassembleSignatureOrNull(signature);
@@ -994,13 +995,13 @@ public class JProlContext implements AutoCloseable {
         throw new IllegalArgumentException("Illegal signature format: " + signature);
       }
       validatedSignature = ProlUtils.normalizeSignature(validatedSignature);
-      final Map<JProlTriggerType, List<JProlTrigger>> map =
+      final Map<JProlTriggerType, List<JProlContextTrigger>> map =
           this.triggers.computeIfAbsent(validatedSignature, key -> new ConcurrentHashMap<>());
       types.forEach(x -> map.computeIfAbsent(x, key -> new CopyOnWriteArrayList<>()).add(trigger));
     });
   }
 
-  public void removeTrigger(final JProlTrigger trigger) {
+  public void removeTrigger(final JProlContextTrigger trigger) {
     this.assertNotDisposed();
     this.triggers.values()
         .forEach(map -> map.values().forEach(x -> x.removeIf(next -> next == trigger)));
@@ -1014,7 +1015,7 @@ public class JProlContext implements AutoCloseable {
   public boolean hasTrigger(final String signature,
                             final JProlTriggerType triggerType) {
     this.assertNotDisposed();
-    final Map<JProlTriggerType, List<JProlTrigger>> map = this.triggers.get(signature);
+    final Map<JProlTriggerType, List<JProlContextTrigger>> map = this.triggers.get(signature);
     return map != null && map.containsKey(triggerType);
   }
 
@@ -1048,9 +1049,10 @@ public class JProlContext implements AutoCloseable {
                                          final JProlTriggerType triggerType) {
     this.assertNotDisposed();
 
-    final Map<JProlTriggerType, List<JProlTrigger>> triggerMap = this.triggers.get(signature);
+    final Map<JProlTriggerType, List<JProlContextTrigger>> triggerMap =
+        this.triggers.get(signature);
     if (triggerMap != null && triggerMap.containsKey(triggerType)) {
-      final List<JProlTrigger> triggers = triggerMap.get(triggerType);
+      final List<JProlContextTrigger> triggers = triggerMap.get(triggerType);
       if (triggers != null && !triggers.isEmpty()) {
         final TriggerEvent triggerEvent = new TriggerEvent(this, struct, signature, triggerType);
         triggers.forEach(x -> x.onTriggerEvent(triggerEvent));

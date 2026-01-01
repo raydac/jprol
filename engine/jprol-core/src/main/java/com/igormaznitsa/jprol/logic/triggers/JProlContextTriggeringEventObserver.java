@@ -22,11 +22,11 @@ import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PreparedGoal;
 
-public class JProlTriggeringEventObserver extends AbstractJProlTrigger {
+public class JProlContextTriggeringEventObserver extends AbstractJProlContextTrigger {
 
   private final PreparedGoal goal;
 
-  public JProlTriggeringEventObserver(final Term goal) {
+  public JProlContextTriggeringEventObserver(final Term goal) {
     super();
     this.goal = new PreparedGoal(goal);
   }
