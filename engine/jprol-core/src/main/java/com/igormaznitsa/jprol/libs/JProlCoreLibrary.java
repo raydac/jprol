@@ -167,6 +167,29 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return left.compare(right) == 0;
   }
 
+  @JProlPredicate(determined = true, signature = "compare/3", validate = {
+      "?atom,@term,@term"}, reference = "Determine or test the order between two terms in the standard order of terms. Order is one of <, > or =, with the obvious meaning.")
+  public static boolean predicateORDER3(final JProlChoicePoint choicePoint,
+                                        final TermStruct predicate) {
+    final Term order = predicate.getArgumentAt(0).tryGround();
+    final Term termA = predicate.getArgumentAt(1).tryGround();
+    final Term termB = predicate.getArgumentAt(2).tryGround();
+
+    final Term resultOrder;
+    switch (choicePoint.compare(termA, termB)) {
+      case -1:
+        resultOrder = Terms.newAtom("<");
+        break;
+      case 1:
+        resultOrder = Terms.newAtom(">");
+        break;
+      default:
+        resultOrder = Terms.newAtom("=");
+        break;
+    }
+    return order.unifyWith(resultOrder);
+  }
+
   @JProlPredicate(determined = true, signature = "@</2", validate = {
       "?term,?term"}, reference = "Term less than")
   public static boolean predicateTermLess(final JProlChoicePoint choicePoint,

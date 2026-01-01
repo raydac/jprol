@@ -1,0 +1,151 @@
+/* =========================================
+   Comprehensive term order tests (ISO)
+   with explicit [] awareness
+   ========================================= */
+
+assert_true(Goal) :-
+    (   call(Goal)
+    ->  true
+    ;   write('FAILED: '),
+        writeln(Goal),
+        fail
+    ).
+
+run_goal_list([]).
+run_goal_list([G|Gs]) :-
+    assert_true(G),
+    run_goal_list(Gs).
+
+test(Name, Goals) :-
+    write('TEST: '),
+    writeln(Name),
+    run_goal_list(Goals).
+
+run_tests :-
+    /* ---------- basic classification ---------- */
+    test(basic_classification, [
+        atomic([]),
+        \+ atom([]),
+        \+ compound([]),
+        atom(a),
+        atomic(a),
+        number(1),
+        \+ atomic(_X)
+    ]),
+
+    /* ---------- variables ---------- */
+    test(variable_ordering, [
+        _X @< 0,
+        _X @< a,
+        _X @< [],
+        _X @< f(a),
+        _X @< [a]
+    ]),
+
+    /* ---------- numbers ---------- */
+    test(number_ordering, [
+        -1 @< 0,
+        0 @< 1,
+        1 @< 1.5,
+        2 @> 1
+    ]),
+
+    /* ---------- atoms ---------- */
+    test(atom_ordering, [
+        a @< b,
+        a @< aa,
+        'A' @< a,
+        '[]' @< a,
+        foo @> bar
+    ]),
+
+    /* ---------- [] vs atoms ---------- */
+    test(empty_list_vs_atoms, [
+        [] @< a,
+        [] @< '[]',
+        [] @< foo,
+        \+ (a @< [])
+    ]),
+
+    /* ---------- [] vs numbers ---------- */
+    test(empty_list_vs_numbers, [
+        0 @< [],
+        -1 @< [],
+        \+ ([] @< 0)
+    ]),
+
+    /* ---------- [] vs compound ---------- */
+    test(empty_list_vs_compound, [
+        [] @< f(a),
+        [] @< g,
+        [] @< '.'(a, []),
+        \+ (f(a) @< [])
+    ]),
+
+    /* ---------- list ordering ---------- */
+    test(list_ordering_basic, [
+        [] @< [a],
+        [] @< [[]],
+        [a] @< [b],
+        [a] @< [a,b],
+        [a,b] @< [a,c],
+        [a,b] @> [a]
+    ]),
+
+    /* ---------- empty list as element ---------- */
+    test(empty_list_inside_lists, [
+        [[]] @< [[a]],
+        [[]] @< [[[]]],
+        [[a],[]] @> [[a]]
+    ]),
+
+    /* ---------- improper lists ---------- */
+    test(improper_lists, [
+        [a|b] @> [a],
+        [a] @< [a|b],
+        [a|b] @< [b|a],
+        [a|b] @< [a|c]
+    ]),
+
+    /* ---------- functor & arity ---------- */
+    test(functor_and_arity, [
+        f(a) @< f(a,b),
+        f(a) @< g(a),
+        f(a,b) @> f(a),
+        '.'(a,[]) @< '.'(b,[])
+    ]),
+
+    /* ---------- compound vs atom ---------- */
+    test(compound_vs_atom, [
+        a @< f(a),
+        foo @< [a],
+        bar @< g(a,b)
+    ]),
+
+    /* ---------- deeply nested terms ---------- */
+    test(deep_terms, [
+        f(g(a)) @< f(g(b)),
+        f(g(a)) @< f(h(a)),
+        f(g(a,b)) @> f(g(a)),
+        [a,[b,[c]]] @< [a,[b,[d]]]
+    ]),
+
+    /* ---------- mixed structures ---------- */
+    test(mixed_structures, [
+        [a,f(a)] @< [a,g(a)],
+        [a,1] @< [a,a],
+        [a,[]] @< [a,[a]],
+        f([a]) @< f([b])
+    ]),
+
+    /* ---------- compare/3 consistency ---------- */
+    test(compare_consistency, [
+        compare(<, [], [a]),
+        compare(>, [a], []),
+        compare(=, a, a),
+        compare(<, a, f(a))
+    ]),
+
+    writeln('ALL TESTS PASSED').
+
+?- run_tests.

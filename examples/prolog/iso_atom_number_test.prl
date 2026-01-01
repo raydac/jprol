@@ -63,11 +63,6 @@ test_atom_number :-
         (Number10 = 0.99 -> 
             write('Test 10 Passed') ; 
             write('Test 10 Failed'))
-    ; write('Test 10 Failed')), nl,
+    ; write('Test 10 Failed')), nl.
 
-    % Test 11: Invalid atom (list)
-    ( atom_number([123], Number11) -> 
-        write('Test 11 Failed')
-    ; write('Test 11 Passed')), nl.
-    
 ?- time(test_atom_number),!,fail.

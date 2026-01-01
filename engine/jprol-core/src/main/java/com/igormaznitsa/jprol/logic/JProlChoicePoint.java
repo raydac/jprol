@@ -120,7 +120,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   JProlChoicePoint(final Term goal, final JProlContext context,
-                          final Map<String, Term> predefinedVarValues, final Object payload) {
+                   final Map<String, Term> predefinedVarValues, final Object payload) {
     this(null, goal, context, context.isTrace(), context.isVerify(), predefinedVarValues, null,
         payload);
   }
@@ -546,11 +546,19 @@ public final class JProlChoicePoint implements Comparator<Term> {
     term1 = term1.tryGround();
     term2 = term2.tryGround();
 
+    if (term1 == term2) {
+      return 0;
+    }
+
     final int result;
-    switch (term1.tryGround().getTermType()) {
+    switch (term1.getTermType()) {
       case ATOM: {
         if (term2 instanceof CompoundTerm) {
-          result = -1;
+          if (term2.isNullList()) {
+            result = term1 instanceof NumericTerm ? -1 : 1;
+          } else {
+            result = -1;
+          }
         } else if (term2.getTermType() == ATOM) {
           if (term1 instanceof NumericTerm) {
             if (term2 instanceof NumericTerm) {
@@ -576,18 +584,26 @@ public final class JProlChoicePoint implements Comparator<Term> {
         if (term2 instanceof CompoundTerm) {
           final TermStruct struct1 = (TermStruct) term1;
           final TermStruct struct2 = (TermStruct) term2;
-          int res = Integer.compare(struct1.getArity(), struct2.getArity());
-          if (res == 0) {
-            res = struct1.getFunctor().getText().compareTo(struct2.getFunctor().getText());
-            if (res == 0) {
-              for (int i = 0; i < struct1.getArity() && res == 0; i++) {
-                res = this.compare(struct1.getArgumentAt(i), struct2.getArgumentAt(i));
+          final int arity1 = struct1.isNullList() ? 0 : struct1.getArity();
+          final int arity2 = struct2.isNullList() ? 0 : struct2.getArity();
+
+          int compareResult = Integer.compare(arity1, arity2);
+          if (compareResult == 0) {
+            compareResult =
+                struct1.getFunctor().getText().compareTo(struct2.getFunctor().getText());
+            if (compareResult == 0) {
+              for (int i = 0; i < arity1 && compareResult == 0; i++) {
+                compareResult = this.compare(struct1.getArgumentAt(i), struct2.getArgumentAt(i));
               }
             }
           }
-          result = res;
+          result = compareResult;
         } else {
-          result = 1;
+          if (term1.isNullList()) {
+            result = term2 instanceof NumericTerm ? 1 : -1;
+          } else {
+            result = -1;
+          }
         }
       }
       break;
