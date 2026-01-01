@@ -27,7 +27,7 @@ final class RhsItemSimple extends InMemoryItem {
 
   @Override
   public boolean matches(final Term rightHandSide) {
-    return this.rightHandSide.isUnifiableWith(rightHandSide);
+    return this.head.isUnifiableWith(rightHandSide);
   }
 
 }

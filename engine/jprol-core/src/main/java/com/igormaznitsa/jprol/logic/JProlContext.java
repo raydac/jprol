@@ -1023,9 +1023,12 @@ public class JProlContext implements AutoCloseable {
     this.assertNotDisposed();
     switch (this.getUndefinedPredicateBehavior()) {
       case ERROR: {
-        throw new ProlExistenceErrorException("predicate",
-            "Undefined predicate: " + signature, term);
+        if (!this.dynamicSignatures.contains(signature)) {
+          throw new ProlExistenceErrorException("predicate",
+              "Undefined predicate: " + signature, term);
+        }
       }
+      break;
       case WARNING: {
         this.contextListeners
             .forEach(x -> x.onUndefinedPredicateWarning(this, choicePoint, signature));
@@ -1041,6 +1044,7 @@ public class JProlContext implements AutoCloseable {
   }
 
   public void notifyTriggersForSignature(final String signature,
+                                         final Term struct,
                                          final JProlTriggerType triggerType) {
     this.assertNotDisposed();
 
@@ -1048,7 +1052,7 @@ public class JProlContext implements AutoCloseable {
     if (triggerMap != null && triggerMap.containsKey(triggerType)) {
       final List<JProlTrigger> triggers = triggerMap.get(triggerType);
       if (triggers != null && !triggers.isEmpty()) {
-        final TriggerEvent triggerEvent = new TriggerEvent(this, signature, triggerType);
+        final TriggerEvent triggerEvent = new TriggerEvent(this, struct, signature, triggerType);
         triggers.forEach(x -> x.onTriggerEvent(triggerEvent));
       }
     }
@@ -1092,7 +1096,8 @@ public class JProlContext implements AutoCloseable {
 
   private boolean doClauseInKnowledgeBase(final Term term,
                                           final boolean expectedIndicator,
-                                          final BiFunction<String, TermStruct, Boolean> processingFunction) {
+                                          final BiFunction<String, TermStruct, Boolean> processingFunction,
+                                          final boolean falseOnViolation) {
     this.assertNotDisposed();
     final boolean operationResult;
     final String signature;
@@ -1118,6 +1123,9 @@ public class JProlContext implements AutoCloseable {
     if (this.dynamicSignatures.contains(signature)) {
       operationResult = processingFunction.apply(signature, termStruct);
     } else {
+      if (falseOnViolation) {
+        return false;
+      }
       throw new ProlPermissionErrorException("modify", "static_procedure",
           "Allowed only for dynamic predicates " + signature,
           newAtom(signature, term.getSourcePosition()));
@@ -1128,19 +1136,19 @@ public class JProlContext implements AutoCloseable {
   public boolean assertA(final Term term) {
     return this.doClauseInKnowledgeBase(term,
         false,
-        (signature, struct) -> knowledgeBase.assertA(this, struct));
+        (signature, struct) -> knowledgeBase.assertA(this, struct), false);
   }
 
   public boolean assertZ(final Term term) {
     return this.doClauseInKnowledgeBase(term,
         false,
-        (signature, struct) -> this.knowledgeBase.assertZ(this, struct));
+        (signature, struct) -> this.knowledgeBase.assertZ(this, struct), false);
   }
 
   public boolean retractAll(final Term term) {
     return this.doClauseInKnowledgeBase(term,
         false,
-        (signature, struct) -> this.knowledgeBase.retractAll(this, struct));
+        (signature, struct) -> this.knowledgeBase.retractAll(this, struct), true);
   }
 
   public boolean abolish(final Term term) {
@@ -1148,19 +1156,19 @@ public class JProlContext implements AutoCloseable {
     ProlAssertions.assertIndicator(indicator);
     return this.doClauseInKnowledgeBase(term,
         true,
-        (signature, struct) -> this.knowledgeBase.abolish(this, signature));
+        (signature, struct) -> this.knowledgeBase.abolish(this, signature), false);
   }
 
   public boolean retractA(final Term term) {
     return this.doClauseInKnowledgeBase(term,
         false,
-        (signature, struct) -> this.knowledgeBase.retractA(this, struct));
+        (signature, struct) -> this.knowledgeBase.retractA(this, struct), false);
   }
 
   public boolean retractZ(final Term term) {
     return this.doClauseInKnowledgeBase(term,
         false,
-        (signature, struct) -> this.knowledgeBase.retractZ(this, struct));
+        (signature, struct) -> this.knowledgeBase.retractZ(this, struct), false);
   }
 
   public void consult(final Reader source, final QueryInteractor queryInteractor) {

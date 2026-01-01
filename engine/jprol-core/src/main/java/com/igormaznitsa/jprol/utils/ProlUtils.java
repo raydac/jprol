@@ -355,6 +355,11 @@ public final class ProlUtils {
         throw new NumberFormatException("Arity is negative one: " + signature);
       }
     }
+
+    if (arity == null) {
+      throw new IllegalArgumentException("Signature must include arity: " + signature);
+    }
+
     return ProlPair.makeOf(namePart, arity);
   }
 

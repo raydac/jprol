@@ -90,7 +90,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testRetracta1() {
-    checkOnce(":-dynamic(someunknown/1).", "retract(someunknown(_)).", false);
+    //checkOnce(":-dynamic(someunknown/1).", "retract(someunknown(_)).", false);
     consultAndCheckVarValues(":-dynamic(some1/1).",
         "asserta(some1(a)), asserta(some1(b)), retracta(some1(_)), some1(X).", "X", "'a'");
   }

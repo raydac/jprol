@@ -132,6 +132,8 @@ public class JProlTokenMaker extends AbstractTokenMaker {
     tokenMap.put(">>", operator);
     tokenMap.put("==", operator);
     tokenMap.put("\\==", operator);
+    tokenMap.put("@=", operator);
+    tokenMap.put("=@=", operator);
     tokenMap.put("@<", operator);
     tokenMap.put("@=<", operator);
     tokenMap.put("@>", operator);

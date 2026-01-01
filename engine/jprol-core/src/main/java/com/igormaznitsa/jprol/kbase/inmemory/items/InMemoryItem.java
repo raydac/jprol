@@ -11,18 +11,18 @@ import java.util.stream.Collectors;
 
 public abstract class InMemoryItem {
   protected final TermStruct clause;
-  protected final Term rightHandSide;
-  protected final boolean leftHandSidePresented;
+  protected final Term head;
+  protected final boolean bodyPresented;
 
   InMemoryItem(final TermStruct clause) {
     this.clause = clause;
 
     if (clause.isClause()) {
-      this.leftHandSidePresented = true;
-      this.rightHandSide = clause.getArgumentAt(0);
+      this.bodyPresented = true;
+      this.head = clause.getArgumentAt(0);
     } else {
-      this.leftHandSidePresented = false;
-      this.rightHandSide = clause;
+      this.bodyPresented = false;
+      this.head = clause;
     }
   }
 
@@ -42,12 +42,12 @@ public abstract class InMemoryItem {
     return complex ? new RhsItemComplex(clause) : new RhsItemSimple(clause);
   }
 
-  public boolean isLeftHandSidePresented() {
-    return this.leftHandSidePresented;
+  public boolean isBodyPresented() {
+    return this.bodyPresented;
   }
 
-  public Term getRightHandSide() {
-    return this.rightHandSide;
+  public Term getHead() {
+    return this.head;
   }
 
   public TermStruct getClause() {
@@ -63,15 +63,15 @@ public abstract class InMemoryItem {
 
   @Override
   public String toString() {
-    return this.rightHandSide.toString();
+    return this.head.toString();
   }
 
   public boolean isFact() {
-    return !this.leftHandSidePresented && this.rightHandSide.isGround();
+    return !this.bodyPresented && this.head.isGround();
   }
 
   public boolean isRule() {
-    return this.leftHandSidePresented || !this.rightHandSide.isGround();
+    return this.bodyPresented || !this.head.isGround();
   }
 
 }

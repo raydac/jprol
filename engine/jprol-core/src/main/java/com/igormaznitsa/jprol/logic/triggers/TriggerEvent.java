@@ -18,19 +18,30 @@ package com.igormaznitsa.jprol.logic.triggers;
 
 import static java.util.Objects.requireNonNull;
 
+import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.logic.JProlContext;
 
 public class TriggerEvent {
 
   private final JProlContext context;
+  private final Term term;
   private final String signature;
   private final JProlTriggerType eventType;
 
-  public TriggerEvent(final JProlContext context, final String signature,
-                      final JProlTriggerType eventType) {
+  public TriggerEvent(
+      final JProlContext context,
+      final Term term,
+      final String signature,
+      final JProlTriggerType eventType
+  ) {
     this.context = requireNonNull(context);
+    this.term = term;
     this.signature = requireNonNull(signature);
     this.eventType = requireNonNull(eventType);
+  }
+
+  public Term getTerm() {
+    return this.term;
   }
 
   public JProlContext getContext() {
@@ -47,7 +58,9 @@ public class TriggerEvent {
 
   @Override
   public String toString() {
-    return "Trigger Event (context=" + context.toString() + ',' + "signature='" +
-        signature + "',event=" + eventType.name() + ')';
+    return "Trigger Event ("
+        + "context=" + context.getName()
+        + ", term=" + this.term
+        + ", signature='" + signature + "',event=" + eventType.name() + ')';
   }
 }

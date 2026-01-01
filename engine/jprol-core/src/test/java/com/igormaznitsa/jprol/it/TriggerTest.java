@@ -65,8 +65,13 @@ class TriggerTest extends AbstractJProlTest {
   void testTriggersAssertRetract2() {
     final TestTriggerCallCounter counter = makeCounter();
     execute(
-        "asserta(testassertretract(0)),assert(testretract(_)), asserta(testretract(1)), assertz(testretract(2))," +
-            "retract(testretract(2)),retractz(testretract(1)),retracta(testassertretract(0))."
+        "asserta(testassertretract(0)),"
+            + "assert(testretract(0)),"
+            + "asserta(testretract(1)),"
+            + "assertz(testretract(2)),"
+            + "retract(testretract(2)),"
+            + "retractz(testretract(1)),"
+            + "retracta(testassertretract(0))."
         , counter);
 
     assertEquals(0, counter.findDetected(JProlTriggerType.TRIGGER_ABOLISH));
@@ -82,8 +87,15 @@ class TriggerTest extends AbstractJProlTest {
   void testTriggersAbolish() {
     final TestTriggerCallCounter counter = makeCounter();
     execute(
-        "asserta(testassertretract(0)),assert(testretract(_)), asserta(testretract(1)), assertz(testretract(2)), asserta(testabolish(1))," +
-            "retract(testretract(2)),retractz(testretract(1)),retracta(testassertretract(0)), abolish(testabolish/1)."
+        "asserta(testassertretract(0)),"
+            + "assert(testretract(0)),"
+            + "asserta(testretract(1)),"
+            + "assertz(testretract(2)),"
+            + " asserta(testabolish(1)),"
+            + "retract(testretract(2)),"
+            + "retractz(testretract(1)),"
+            + "retracta(testassertretract(0)),"
+            + "abolish(testabolish/1)."
         , counter);
 
     assertEquals(1, counter.findDetected(JProlTriggerType.TRIGGER_ABOLISH));
@@ -136,7 +148,8 @@ class TriggerTest extends AbstractJProlTest {
     }
 
     @Override
-    public void onTriggerEvent(TriggerEvent event) {
+    public void onTriggerEvent(final TriggerEvent event) {
+      System.out.println(event);
       final String signature = event.getSignature();
       switch (event.getEventType()) {
         case TRIGGER_ASSERT:

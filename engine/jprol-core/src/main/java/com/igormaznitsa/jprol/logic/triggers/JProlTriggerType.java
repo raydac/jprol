@@ -22,7 +22,6 @@ package com.igormaznitsa.jprol.logic.triggers;
  * @author Igor Maznitsa (igor.maznitsa@igormaznitsa.com)
  */
 public enum JProlTriggerType {
-
   TRIGGER_ASSERT,
   TRIGGER_RETRACT,
   TRIGGER_ABOLISH

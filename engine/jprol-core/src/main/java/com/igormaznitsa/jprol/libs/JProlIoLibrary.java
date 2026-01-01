@@ -428,7 +428,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "write/1", validate = "+term", reference = "Write a term into the current output stream.")
+  @JProlPredicate(guarded = true, determined = true, signature = "write/1", validate = "?term", reference = "Write a term into the current output stream.")
   public final boolean predicateWrite(final JProlChoicePoint goal, final TermStruct predicate) {
     return findCurrentOutput(goal.getContext(), predicate).map(writer -> {
       try {
@@ -440,7 +440,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     }).orElseThrow(() -> new ProlPermissionErrorException("write", "text_output", predicate));
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "writeln/1", validate = "+term", reference = "Write a term and next line into the current output stream.")
+  @JProlPredicate(guarded = true, determined = true, signature = "writeln/1", validate = "?term", reference = "Write a term and next line into the current output stream.")
   public final boolean predicateWriteln(final JProlChoicePoint goal, final TermStruct predicate) {
     return findCurrentOutput(goal.getContext(), predicate).map(writer -> {
       try {

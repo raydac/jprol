@@ -94,6 +94,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -109,6 +110,8 @@ import java.util.stream.Stream;
 @JProlOperator(priority = 700, type = XFX, name = "==")
 @JProlOperator(priority = 700, type = XFX, name = "=\\=")
 @JProlOperator(priority = 700, type = XFX, name = "\\==")
+@JProlOperator(priority = 700, type = XFX, name = "@=")
+@JProlOperator(priority = 700, type = XFX, name = "=@=")
 @JProlOperator(priority = 700, type = XFX, name = "@<")
 @JProlOperator(priority = 700, type = XFX, name = "@>")
 @JProlOperator(priority = 700, type = XFX, name = "@=<")
@@ -197,6 +200,33 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return choicePoint.compare(predicate.getArgumentAt(0), predicate.getArgumentAt(1)) < 0;
   }
 
+  @JProlPredicate(determined = true, signature = "@=/2", synonyms = "=@=/2", validate = {
+      "?term,?term"}, reference = "Check term standard order equality.")
+  public static boolean predicateTermEquals(final JProlChoicePoint choicePoint,
+                                            final TermStruct predicate) {
+    final Term term1 = predicate.getArgumentAt(0).tryGround();
+    final Term term2 = predicate.getArgumentAt(1).tryGround();
+
+    final Term cloned1 = term1.makeClone();
+    final Term cloned2 = term2.makeClone();
+
+    final AtomicInteger counter = new AtomicInteger(0);
+    cloned1.variables().forEach(x -> {
+      if (x.isUnground()) {
+        x.setValue(Terms.newLong(counter.incrementAndGet()));
+      }
+    });
+
+    counter.set(0);
+    cloned2.variables().forEach(x -> {
+      if (x.isUnground()) {
+        x.setValue(Terms.newLong(counter.incrementAndGet()));
+      }
+    });
+
+    return cloned1.unifyWith(cloned2);
+  }
+
   @JProlPredicate(determined = true, signature = "@=</2", validate = {
       "?term,?term"}, reference = "Term less than or equal to.")
   public static boolean predicateTermLessOrEqu(final JProlChoicePoint choicePoint,
@@ -219,7 +249,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "==/2", validate = {
-      "?term,?term"}, reference = "Term identical")
+      "?term,?term"}, reference = "Check term strict identity.")
   public static boolean predicateTermEqu(final JProlChoicePoint choicePoint,
                                          final TermStruct predicate) {
     return choicePoint.compare(predicate.getArgumentAt(0), predicate.getArgumentAt(1)) == 0;
@@ -2121,36 +2151,38 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(guarded = true, determined = true, signature = "asserta/1", validate = {
-      "+callable"}, reference = "Addition of a clause into the knowlwde base before all other clauses.")
+      "+callable"}, reference = "Addition of a clause into the knowledge base before all other clauses.")
   public static boolean predicateASSERTA1(final JProlChoicePoint goal, final TermStruct predicate) {
     return goal.getContext().assertA(predicate.getArgumentAt(0).tryGround());
   }
 
   @JProlPredicate(guarded = true, determined = true, signature = "assertz/1", synonyms = {
       "assert/1"}, validate = {
-      "+callable"}, reference = "Addition of a clause into the knowlwde base after all other clauses.")
+      "+callable"}, reference = "Addition of a clause into the knowledge base after all other clauses.")
   public static boolean predicateASSERTZ1(final JProlChoicePoint goal, final TermStruct predicate) {
     return goal.getContext().assertZ(predicate.getArgumentAt(0).tryGround());
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "retract/1", synonyms = {
+  @JProlPredicate(guarded = true, signature = "retract/1", synonyms = {
       "retracta/1"}, validate = {
       "+callable"}, reference = "Retract the first clause which can be unified with argument. True if there is such clause in the knowledge base.")
   public static boolean predicateRETRACT1(final JProlChoicePoint goal, final TermStruct predicate) {
-    return goal.getContext().retractA(predicate.getArgumentAt(0).tryGround());
+    final Term retracting = predicate.getArgumentAt(0).tryGround();
+    return goal.getContext().retractA(retracting);
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "retractz/1", validate = {
+  @JProlPredicate(guarded = true, signature = "retractz/1", validate = {
       "+callable"}, reference = "Retract the last clause which can be unified with argument. True if there is such clause in the knowledge base.")
   public static boolean predicateRETRACTZ(final JProlChoicePoint goal, final TermStruct predicate) {
     return goal.getContext().retractZ(predicate.getArgumentAt(0).tryGround());
   }
 
   @JProlPredicate(guarded = true, determined = true, signature = "retractall/1", validate = {
-      "+callable"}, reference = "Retract all clauses which can be unified with argument. True if there is as minimum one clause in the knowledge base.")
+      "+callable"}, reference = "Retract all clauses which can be unified with argument. Always succeeds.")
   public static boolean predicateRETRACTALL(final JProlChoicePoint goal,
                                             final TermStruct predicate) {
-    return goal.getContext().retractAll(predicate.getArgumentAt(0).tryGround());
+    goal.getContext().retractAll(predicate.getArgumentAt(0).tryGround());
+    return true;
   }
 
   @JProlPredicate(determined = true, signature = "length/2", validate = {

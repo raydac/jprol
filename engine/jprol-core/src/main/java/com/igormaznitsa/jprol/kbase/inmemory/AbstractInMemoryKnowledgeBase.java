@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -180,8 +181,11 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
     return new OperatorIterator(this.operatorTable.values().iterator());
   }
 
-  private boolean assertClause(final JProlContext context, final TermStruct clause,
-                               final boolean asFirst) {
+  private boolean assertClause(
+      final JProlContext context,
+      final TermStruct clause,
+      final boolean asFirst
+  ) {
     try {
       final String uid;
       if (clause.isClause()) {
@@ -218,7 +222,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
       }
       // notify triggers if they are presented
       if (context.hasTrigger(uid, JProlTriggerType.TRIGGER_ASSERT)) {
-        context.notifyTriggersForSignature(uid, JProlTriggerType.TRIGGER_ASSERT);
+        context.notifyTriggersForSignature(uid, clause, JProlTriggerType.TRIGGER_ASSERT);
       }
 
       return true;
@@ -316,58 +320,83 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
     final List<InMemoryItem> list = this.predicateTable.get(signature);
 
     if (list != null) {
-      result = internalRetractAll(list, struct);
+      if (context.hasTrigger(signature, JProlTriggerType.TRIGGER_RETRACT)) {
+        result = this.internalRetractAll(list, struct, x ->
+            context.notifyTriggersForSignature(signature, x.getHead(),
+                JProlTriggerType.TRIGGER_RETRACT));
+      } else {
+        result = this.internalRetractAll(list, struct, x -> {
+        });
+      }
       if (result && list.isEmpty()) {
         // delete from base
         this.predicateTable.remove(signature);
       }
     }
 
-    // notify triggers if they are presented
-    if (result &&
-        context.hasTrigger(signature, JProlTriggerType.TRIGGER_RETRACT)) {
-      context.notifyTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT);
-    }
-
     return result;
   }
 
-  private boolean internalRetractAll(final List<InMemoryItem> list, final TermStruct clause) {
-    try (final InMemoryClauseIterator iterator =
-             new InMemoryClauseIterator(IteratorType.ANY, list, clause)) {
-      final List<InMemoryItem> toRemove = new ArrayList<>();
+  private boolean internalRetractAll(
+      final List<InMemoryItem> list,
+      final TermStruct clause,
+      final Consumer<InMemoryItem> removeConsumer
+  ) {
+    final List<InMemoryItem> foundForRemove = new ArrayList<>();
+    boolean result;
+    try (InMemoryClauseIterator iterator = new InMemoryClauseIterator(IteratorType.ANY, list,
+        clause)) {
       while (iterator.hasNext()) {
-        toRemove.add(iterator.nextItem());
+        foundForRemove.add(iterator.nextItem());
       }
-      return list.removeAll(toRemove);
+      result = list.removeAll(foundForRemove);
     }
+    foundForRemove.forEach(removeConsumer);
+    return result;
   }
 
-  private boolean internalRetractA(final List<InMemoryItem> list, final TermStruct clause) {
+  private InMemoryItem internalRetractA(final List<InMemoryItem> list, final TermStruct clause) {
     try (final InMemoryClauseIterator iterator =
              new InMemoryClauseIterator(IteratorType.ANY, list, clause)) {
       if (iterator.hasNext()) {
         final InMemoryItem item = iterator.nextItem();
-        return list.remove(item);
+        list.remove(item);
+        return item;
       } else {
-        return false;
+        return null;
       }
     }
   }
 
-  private boolean internalRetractZ(final List<InMemoryItem> list, final TermStruct clause) {
+  private InMemoryItem internalRetractZ(final List<InMemoryItem> list, final TermStruct clause) {
     try (final InMemoryClauseIterator iterator =
              new InMemoryClauseIterator(IteratorType.ANY, list, clause)) {
-      InMemoryItem toRemove = null;
+      InMemoryItem foundLastItem = null;
       while (iterator.hasNext()) {
-        toRemove = iterator.nextItem();
+        foundLastItem = iterator.nextItem();
       }
-      return toRemove != null && list.remove(toRemove);
+
+      if (foundLastItem == null) {
+        return null;
+      } else {
+        list.remove(foundLastItem);
+        return foundLastItem;
+      }
     }
   }
 
   @Override
   public boolean retractA(final JProlContext context, final TermStruct clause) {
+    return this.makeRetract(context, clause, this::internalRetractA);
+  }
+
+  @Override
+  public boolean retractZ(final JProlContext context, final TermStruct clause) {
+    return this.makeRetract(context, clause, this::internalRetractZ);
+  }
+
+  private boolean makeRetract(final JProlContext context, final TermStruct clause,
+                              final BiFunction<List<InMemoryItem>, TermStruct, InMemoryItem> searchFunction) {
     TermStruct struct = clause;
     if (struct.isClause()) {
       final Term head = struct.getArgumentAt(0).tryGround();
@@ -375,55 +404,34 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
       struct = (TermStruct) head;
     }
 
-    boolean result = false;
+    InMemoryItem result = null;
     final String signature = struct.getSignature();
-    final List<InMemoryItem> list = predicateTable.get(signature);
-
-    if (list != null) {
-      result = internalRetractA(list, struct);
-      if (result && list.isEmpty()) {
-        // delete from base
-        predicateTable.remove(signature);
-      }
-    }
-
-    // notify triggers if they are presented
-    if (result &&
-        context.hasTrigger(signature, JProlTriggerType.TRIGGER_RETRACT)) {
-      context.notifyTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT);
-    }
-
-    return result;
-  }
-
-  @Override
-  public boolean retractZ(final JProlContext context, final TermStruct clause) {
-    TermStruct struct = clause;
-    if (struct.isClause()) {
-      // it's a clause
-      struct = struct.getArgumentAt(0);
-    }
-
-    boolean result = false;
-    String signature;
-    signature = struct.getSignature();
     final List<InMemoryItem> list = this.predicateTable.get(signature);
 
     if (list != null) {
-      result = internalRetractZ(list, struct);
-      if (result && list.isEmpty()) {
-        // delete from base
-        this.predicateTable.remove(signature);
+      result = searchFunction.apply(list, struct);
+      if (result != null) {
+        if (list.isEmpty()) {
+          // delete from base
+          this.predicateTable.remove(signature);
+        }
       }
     }
 
-    // notify triggers if they are presented
-    if (result &&
-        context.hasTrigger(signature, JProlTriggerType.TRIGGER_RETRACT)) {
-      context.notifyTriggersForSignature(signature, JProlTriggerType.TRIGGER_RETRACT);
+    if (result != null) {
+      if (!result.getHead().unifyWith(struct)) {
+        throw new Error(
+            "Detected unexpected state when found record can't be unify with search! Contact developer: " +
+                clause);
+      }
+      if (context.hasTrigger(signature, JProlTriggerType.TRIGGER_RETRACT)) {
+        context.notifyTriggersForSignature(signature, result.getHead(),
+            JProlTriggerType.TRIGGER_RETRACT);
+      }
+      return true;
+    } else {
+      return false;
     }
-
-    return result;
   }
 
   @Override
@@ -439,7 +447,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
 
     if (result && context
         .hasTrigger(normalSignature, JProlTriggerType.TRIGGER_ABOLISH)) {
-      context.notifyTriggersForSignature(normalSignature, JProlTriggerType.TRIGGER_ABOLISH);
+      context.notifyTriggersForSignature(normalSignature, null, JProlTriggerType.TRIGGER_ABOLISH);
     }
     return result;
   }

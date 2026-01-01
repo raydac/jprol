@@ -41,7 +41,7 @@ public class JProlJsr223BootstrapLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(
       signature = "write/1",
-      validate = {"+term"},
+      validate = "?term",
       determined = true,
       reference = "Print the message to the standard output stream"
   )
@@ -60,7 +60,7 @@ public class JProlJsr223BootstrapLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(
       signature = "writeln/1",
-      validate = {"+term"},
+      validate = "?term",
       determined = true,
       reference = "Print the message to the output followed by a newline"
   )
