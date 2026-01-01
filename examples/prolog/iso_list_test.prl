@@ -93,4 +93,4 @@ run_tests :-
     test_non_list,
     writeln('All tests completed.').
 
-?- time(run_tests),!,fail.
+?- time(run_tests),!.

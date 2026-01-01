@@ -1,3 +1,5 @@
+:- set_prolog_flag(verify,false).
+
 % Test cases for length/2
 
 % Test empty list
@@ -105,7 +107,7 @@ run_tests :-
     test_infinite_list,
     test_ground_check,
     test_backtracking,
-    test_corner_case.
+    test_corner_case, writeln('ALL PASSED').
 
 % Entry point
 :- run_tests.

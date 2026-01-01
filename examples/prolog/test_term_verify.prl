@@ -95,4 +95,4 @@ run_tests :-
     run_test(string_false),
     run_test(string_empty_list).
 
-:- run_tests.
+:- run_tests, writeln('------'),writeln('ALL PASSED').
