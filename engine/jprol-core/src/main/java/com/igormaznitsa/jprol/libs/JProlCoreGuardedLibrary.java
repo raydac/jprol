@@ -329,7 +329,7 @@ public class JProlCoreGuardedLibrary extends AbstractJProlLibrary {
       guarded = true,
       determined = true,
       signature = "dynamic/1",
-      validate = "+predicate_indicator",
+      validate = "+compound",
       reference = "Provide signature of predicate allowed dynamic knowledge base operations."
   )
   public static void predicateDYNAMIC1(final JProlChoicePoint goal,
