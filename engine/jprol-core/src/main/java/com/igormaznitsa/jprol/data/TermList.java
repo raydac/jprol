@@ -283,7 +283,7 @@ public final class TermList extends TermStruct {
 
   @Override
   public Term makeClone() {
-    return this.isNullList() ? this : this.makeClone(new LazyMap<>());
+    return this.arguments.length == 0 ? this : this.makeClone(new LazyMap<>());
   }
 
   @Override

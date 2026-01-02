@@ -497,13 +497,13 @@ public class TermStruct extends CompoundTerm {
   }
 
   public Term makeClone() {
-    return this.getArity() == 0 ? this : this.makeClone(new LazyMap<>());
+    return this.arguments.length == 0 ? this : this.makeClone(new LazyMap<>());
   }
 
   @Override
   public Term cloneAndReplaceVariables(final Map<Long, TermVar> variables) {
     final Term result;
-    if (this.getArity() == 0) {
+    if (this.arguments.length == 0) {
       result = this;
     } else {
       final Term[] elements = this.getArguments();

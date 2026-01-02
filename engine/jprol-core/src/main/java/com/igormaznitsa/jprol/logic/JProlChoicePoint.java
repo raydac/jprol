@@ -228,7 +228,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
     return this.proveNext((s, t) -> this.context.notifyAboutUndefinedPredicate(this, s, t));
   }
 
-  public Term proveWithFailForUnknown() {
+  public Term proveIgnoreUnknownPredicates() {
     return this.proveNext(NULL_UNDEFINED_PREDICATE_CONSUMER);
   }
 

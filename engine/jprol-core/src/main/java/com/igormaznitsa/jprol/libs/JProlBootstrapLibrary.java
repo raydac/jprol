@@ -128,7 +128,7 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
                                      final TermStruct predicate) {
     return
         choicePoint.getContext().makeChoicePoint(predicate.getArgumentAt(0).tryGround())
-            .proveWithFailForUnknown() ==
+            .proveIgnoreUnknownPredicates() ==
             null;
   }
 

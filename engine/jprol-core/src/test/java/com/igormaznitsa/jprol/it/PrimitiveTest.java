@@ -214,7 +214,7 @@ class PrimitiveTest extends AbstractJProlTest {
     assertNull(goal.prove());
 
     final JProlChoicePoint goal2 = context.makeChoicePoint("aa(X).");
-    assertNull(goal2.proveWithFailForUnknown());
+    assertNull(goal2.proveIgnoreUnknownPredicates());
   }
 
   @Test

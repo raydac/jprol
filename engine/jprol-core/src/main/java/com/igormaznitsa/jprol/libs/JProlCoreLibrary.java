@@ -1990,7 +1990,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
           goal.getContext().makeChoicePoint(processingGoal.makeClone(), goal.getPayload());
 
       while (true) {
-        final Term nextTemplate = findGoal.proveWithFailForUnknown();
+        final Term nextTemplate = findGoal.proveIgnoreUnknownPredicates();
 
         if (nextTemplate == null) {
           break;
@@ -2108,7 +2108,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
           .makeChoicePoint(processingGoal.makeClone(), choicePoint.getPayload());
 
       while (true) {
-        final Term nextTemplate = find_goal.proveWithFailForUnknown();
+        final Term nextTemplate = find_goal.proveIgnoreUnknownPredicates();
 
         if (nextTemplate == null) {
           break;
@@ -2480,6 +2480,6 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
                                           final TermStruct predicate) {
     final Term argument = predicate.getArgumentAt(0).tryGround();
     final JProlChoicePoint subGoal = goal.getContext().makeChoicePoint(argument, goal.getPayload());
-    return subGoal.proveWithFailForUnknown() == null;
+    return subGoal.proveIgnoreUnknownPredicates() == null;
   }
 }

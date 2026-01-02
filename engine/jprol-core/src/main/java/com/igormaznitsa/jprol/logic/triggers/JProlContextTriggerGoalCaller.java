@@ -55,7 +55,7 @@ public class JProlContextTriggerGoalCaller extends AbstractJProlContextTrigger {
           event.getContext().makeChoicePoint(cloned);
 
       while (!Thread.currentThread().isInterrupted() &&
-          choicePoint.proveWithFailForUnknown() != null) {
+          choicePoint.proveIgnoreUnknownPredicates() != null) {
         if (event.getContext().isDisposed()) {
           throw new ProlChoicePointInterruptedException("context disposed", choicePoint);
         }
