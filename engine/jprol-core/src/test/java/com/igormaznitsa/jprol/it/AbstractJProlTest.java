@@ -26,6 +26,7 @@ import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeBase;
+import com.igormaznitsa.jprol.libs.JProlCoreGuardedLibrary;
 import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
 import com.igormaznitsa.jprol.libs.JProlIoLibrary;
 import com.igormaznitsa.jprol.libs.JProlThreadLibrary;
@@ -80,6 +81,7 @@ public abstract class AbstractJProlTest {
         "test-context",
         InMemoryKnowledgeBase::new,
         new JProlCoreLibrary(),
+        new JProlCoreGuardedLibrary(),
         new JProlIoLibrary(),
         new JProlThreadLibrary()
     );

@@ -10,11 +10,11 @@ import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.NumericTerm;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
-import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
-import com.igormaznitsa.jprol.logic.JProlSystemFlag;
-import java.util.Iterator;
 
+/**
+ * Bootstrap library to provide strongly required definitions for base Prolog operations.
+ */
 @SuppressWarnings({"EmptyMethod", "unused", "checkstyle:AbbreviationAsWordInName"})
 @JProlOperator(priority = 700, type = XFX, name = "is")
 @JProlOperator(priority = 700, type = XFX, name = "=")
@@ -32,73 +32,9 @@ import java.util.Iterator;
 @JProlOperator(priority = 1200, type = XFX, name = ":-")
 @JProlOperator(priority = 500, type = FX, name = "not")
 public class JProlBootstrapLibrary extends AbstractJProlLibrary {
+
   public JProlBootstrapLibrary() {
     super("jprol-bootstrap-lib");
-  }
-
-  @JProlPredicate(signature = "current_prolog_flag/2", validate = {
-      "?atom,?term"}, reference = "Check prolog flag and flag values.", guarded = true)
-  public static boolean predicateCURRENTPROLOGFLAG(final JProlChoicePoint choicePoint,
-                                                   final TermStruct predicate) {
-    final Term atom = predicate.getArgumentAt(0).tryGround();
-    final Term term = predicate.getArgumentAt(1).tryGround();
-
-    final boolean only = atom.isGround();
-
-    boolean found = false;
-    Iterator<JProlSystemFlag> iterator = choicePoint.getInternalObject();
-    final boolean firstCall;
-    if (iterator == null) {
-      firstCall = true;
-      iterator = JProlSystemFlag.VALUES.iterator();
-      choicePoint.setInternalObject(iterator);
-    } else {
-      firstCall = false;
-    }
-
-    while (iterator.hasNext()) {
-      final JProlSystemFlag flag = iterator.next();
-      if (atom.isUnifiableWith(flag.getNameTerm())) {
-        final Term flagValue = choicePoint.getContext().getSystemFlag(flag);
-        if (term.isUnifiableWith(flagValue)) {
-          found = assertUnify(atom, flag.getNameTerm()) && assertUnify(term, flagValue);
-          break;
-        }
-      }
-
-      if (only || !iterator.hasNext()) {
-        choicePoint.setInternalObject(null);
-        choicePoint.cutVariants();
-      } else {
-        choicePoint.setInternalObject(iterator);
-      }
-    }
-
-    if (only && firstCall && !found) {
-      throw new ProlDomainErrorException("prolog_flag", atom);
-    }
-
-    return found;
-  }
-
-  @JProlPredicate(
-      determined = true,
-      signature = "set_prolog_flag/2",
-      validate = {"+atom,+term"},
-      reference = "Set value of flag.",
-      guarded = true
-  )
-  public static boolean predicateSETPROLOGFLAG(final JProlChoicePoint choicePoint,
-                                               final TermStruct predicate) {
-    final Term atom = predicate.getArgumentAt(0).tryGround();
-    final Term term = predicate.getArgumentAt(1).tryGround();
-
-    return JProlSystemFlag.find(atom)
-        .filter(x -> !x.isReadOnly())
-        .map(x -> {
-          choicePoint.getContext().setSystemFlag(x, term);
-          return true;
-        }).orElseThrow(() -> new ProlDomainErrorException("prolog_flag", atom));
   }
 
   @JProlPredicate(determined = true, signature = "is/2", validate = {
@@ -124,8 +60,10 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "not/1", validate = ":goal", reference = "True if goal cannot be proven")
-  public static boolean predicateNOT(final JProlChoicePoint choicePoint,
-                                     final TermStruct predicate) {
+  public static boolean predicateNOT(
+      final JProlChoicePoint choicePoint,
+      final TermStruct predicate
+  ) {
     return
         choicePoint.getContext().makeChoicePoint(predicate.getArgumentAt(0).tryGround())
             .proveIgnoreUnknownPredicates() ==

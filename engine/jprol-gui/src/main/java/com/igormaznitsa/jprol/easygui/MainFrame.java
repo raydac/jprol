@@ -30,6 +30,7 @@ import com.igormaznitsa.jprol.exceptions.ProlInterruptException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.kbase.inmemory.ConcurrentInMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
+import com.igormaznitsa.jprol.libs.JProlCoreGuardedLibrary;
 import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
 import com.igormaznitsa.jprol.libs.JProlGfxLibrary;
 import com.igormaznitsa.jprol.libs.JProlHttpLibrary;
@@ -142,6 +143,7 @@ public final class MainFrame extends javax.swing.JFrame
   public static final AtomicReference<MainFrame> MAIN_FRAME_INSTANCE = new AtomicReference<>();
   public static final String[] PROL_LIBRARIES = new String[] {
       JProlCoreLibrary.class.getCanonicalName(),
+      JProlCoreGuardedLibrary.class.getCanonicalName(),
       JProlThreadLibrary.class.getCanonicalName(),
       JProlIoLibrary.class.getCanonicalName(),
       JProlStrLibrary.class.getCanonicalName(),
