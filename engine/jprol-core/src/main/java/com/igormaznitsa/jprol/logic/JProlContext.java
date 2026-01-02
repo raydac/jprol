@@ -120,7 +120,7 @@ public class JProlContext implements AutoCloseable {
   private final String contextId;
   private final Map<String, Map<JProlTriggerType, List<JProlContextTrigger>>> triggers =
       new LazySynchronizedMap<>();
-  private final Map<String, Semaphore> namedSemaphores;
+  private final Map<String, JProlNamedLock> namedLocks;
   private final Map<Long, CompletableFuture<Term>> startedAsyncTasks =
       new LazySynchronizedMap<>();
   private final List<AbstractJProlLibrary> libraries = new CopyOnWriteArrayList<>();
@@ -228,10 +228,10 @@ public class JProlContext implements AutoCloseable {
       final List<IoResourceProvider> ioProviders,
       final Set<String> dynamicSignatures,
       final Map<String, Map<JProlTriggerType, List<JProlContextTrigger>>> triggers,
-      final Map<String, Semaphore> namedSemaphores,
+      final Map<String, JProlNamedLock> namedLocks,
       final AbstractJProlLibrary... additionalLibraries
   ) {
-    this.namedSemaphores = namedSemaphores;
+    this.namedLocks = namedLocks;
     this.parentContext = parentContext;
     this.contextId = requireNonNull(contextId, "Context Id is null");
     this.currentFolder = requireNonNull(currentFolder);
@@ -664,12 +664,12 @@ public class JProlContext implements AutoCloseable {
     return this.asyncTaskExecutorService;
   }
 
-  private Optional<Semaphore> findLockerForId(final String lockerId,
-                                              final boolean createIfAbsent) {
+  private Optional<JProlNamedLock> findLockerForId(final String lockerId,
+                                                   final boolean createIfAbsent) {
     if (createIfAbsent) {
-      return Optional.of(this.namedSemaphores.computeIfAbsent(lockerId, s -> new Semaphore(1)));
+      return Optional.of(this.namedLocks.computeIfAbsent(lockerId, s -> new JProlNamedLock()));
     } else {
-      return Optional.ofNullable(this.namedSemaphores.get(lockerId));
+      return Optional.ofNullable(this.namedLocks.get(lockerId));
     }
   }
 
@@ -694,7 +694,7 @@ public class JProlContext implements AutoCloseable {
   }
 
   public void unlockFor(final String lockId) {
-    this.findLockerForId(lockId, false).ifPresent(Semaphore::release);
+    this.findLockerForId(lockId, false).ifPresent(JProlNamedLock::release);
   }
 
   private void assertNotDisposed() {
@@ -933,14 +933,14 @@ public class JProlContext implements AutoCloseable {
       this.startedAsyncTasks.values().forEach(x -> x.cancel(true));
 
       if (this.isRootContext()) {
-        this.namedSemaphores.forEach((key, value) -> {
+        this.namedLocks.forEach((key, value) -> {
           try {
             value.release();
           } catch (Exception ex) {
             this.onUncaughtException(this, ex);
           }
         });
-        this.namedSemaphores.clear();
+        this.namedLocks.clear();
       }
 
       if (this.isRootContext() && shutdownExecutor) {
@@ -1291,7 +1291,6 @@ public class JProlContext implements AutoCloseable {
     return goal.prove() != null;
   }
 
-
   @Override
   public String toString() {
     return "ProlContext(" + contextId + ')' + '[' + super.toString() + ']';
@@ -1334,7 +1333,7 @@ public class JProlContext implements AutoCloseable {
         this.ioProviders,
         this.dynamicSignatures,
         this.triggers,
-        this.namedSemaphores
+        this.namedLocks
     );
   }
 
@@ -1345,5 +1344,37 @@ public class JProlContext implements AutoCloseable {
   @Override
   public void close() {
     this.dispose();
+  }
+
+  private static final class JProlNamedLock {
+    private final Semaphore semaphore = new Semaphore(1);
+    private final AtomicLong ownerThreadId = new AtomicLong(-1L);
+
+    public void acquire() throws InterruptedException {
+      final long id = Thread.currentThread().getId();
+      if (ownerThreadId.get() == id) {
+        return;
+      }
+      this.semaphore.acquire();
+      this.ownerThreadId.set(id);
+    }
+
+    public void release() {
+      if (this.ownerThreadId.compareAndSet(Thread.currentThread().getId(), -1L)) {
+        this.semaphore.release();
+      }
+    }
+
+    public boolean tryAcquire() {
+      final long id = Thread.currentThread().getId();
+      if (ownerThreadId.get() == id) {
+        return true;
+      }
+      if (this.semaphore.tryAcquire()) {
+        this.ownerThreadId.set(id);
+        return true;
+      }
+      return false;
+    }
   }
 }
