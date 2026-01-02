@@ -158,4 +158,10 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
   public static void predicateCUT(final JProlChoicePoint choicePoint, final TermStruct predicate) {
     // it is a stub function for embedded inside operator
   }
+
+  @JProlPredicate(determined = true, signature = "!!/0", reference = "A cut with local scope: commits to the current goal’s choices without cutting alternatives in enclosing goals.")
+  public static void predicateCUTLOCAL(final JProlChoicePoint choicePoint,
+                                       final TermStruct predicate) {
+    // it is a stub function for embedded inside operator
+  }
 }

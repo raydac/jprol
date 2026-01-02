@@ -55,18 +55,18 @@ public final class JProlChoicePoint implements Comparator<Term> {
   private final Term goalTerm;
   private final boolean verify;
   private final boolean trace;
-  private boolean thereAreVariants;
-  private Object internalObject;
+  private boolean hasLogicalAlternatives;
+  private Object internalAuxiliaryObject;
   private Object payload;
   private JProlChoicePoint prevChoicePoint;
-  private JProlChoicePoint rootLastGoalAtChain;
-  private JProlChoicePoint subChoicePoint;
-  private Term subChoicePointConnector;
+  private JProlChoicePoint parentChoicePoint;
+  private JProlChoicePoint childChoicePoint;
+  private Term childConnectingTerm;
   private Term thisConnector;
   private Term nextAndTerm;
   private Term nextAndTermForNextGoal;
   private Iterator<TermStruct> clauseIterator;
-  private boolean cutMeet;
+  private boolean cutActivated;
   private boolean firstResolveCall = true;
 
   private JProlChoicePoint(
@@ -76,13 +76,13 @@ public final class JProlChoicePoint implements Comparator<Term> {
       final boolean trace,
       final boolean verify,
       final Map<String, Term> presetVarValues,
-      final Object internalObject,
+      final Object internalAuxiliaryObject,
       final Object payload
   ) {
-    this.internalObject = internalObject;
+    this.internalAuxiliaryObject = internalAuxiliaryObject;
     this.payload = payload;
 
-    this.thereAreVariants = true;
+    this.hasLogicalAlternatives = true;
     this.verify = verify;
     this.trace = trace;
 
@@ -104,7 +104,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
         this.variables = goal.findAllNamedVariables();
         this.varSnapshot = new VariableStateSnapshot(goal, presetVarValues);
       }
-      this.rootLastGoalAtChain = this;
+      this.parentChoicePoint = this;
       this.prevChoicePoint = null;
     } else {
       this.variables = null;
@@ -113,8 +113,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
       } else {
         this.varSnapshot = new VariableStateSnapshot(rootChoicePoint.varSnapshot);
       }
-      this.prevChoicePoint = rootChoicePoint.rootLastGoalAtChain;
-      rootChoicePoint.rootLastGoalAtChain = this;
+      this.prevChoicePoint = rootChoicePoint.parentChoicePoint;
+      rootChoicePoint.parentChoicePoint = this;
       this.payload = rootChoicePoint.payload;
     }
   }
@@ -153,7 +153,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
   public JProlChoicePoint replaceLastGoalAtChain(final Term goal) {
     if (this.trace) {
-      this.context.fireTraceEvent(EXIT, this.rootChoicePoint.rootLastGoalAtChain);
+      this.context.fireTraceEvent(EXIT, this.rootChoicePoint.parentChoicePoint);
     }
 
     final JProlChoicePoint newGoal =
@@ -196,7 +196,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
    */
   @SuppressWarnings("unchecked")
   public <T> T getInternalObject() {
-    return (T) this.internalObject;
+    return (T) this.internalAuxiliaryObject;
   }
 
   /**
@@ -205,7 +205,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
    * @param obj object to be saved, can be null
    */
   public void setInternalObject(final Object obj) {
-    this.internalObject = obj;
+    this.internalAuxiliaryObject = obj;
   }
 
   public Term getGoalTerm() {
@@ -241,11 +241,11 @@ public final class JProlChoicePoint implements Comparator<Term> {
         throw new ProlChoicePointInterruptedException("context disposed", this);
       }
 
-      JProlChoicePoint goalToProcess = this.rootChoicePoint.rootLastGoalAtChain;
+      JProlChoicePoint goalToProcess = this.rootChoicePoint.parentChoicePoint;
       if (goalToProcess == null) {
         break;
       } else {
-        if (goalToProcess.thereAreVariants) {
+        if (goalToProcess.hasLogicalAlternatives) {
           try {
             switch (goalToProcess.resolve(unknownPredicateConsumer)) {
               case FAIL: {
@@ -253,12 +253,12 @@ public final class JProlChoicePoint implements Comparator<Term> {
                   this.context.fireTraceEvent(TraceEvent.FAIL, goalToProcess);
                   this.context.fireTraceEvent(EXIT, goalToProcess);
                 }
-                this.rootChoicePoint.rootLastGoalAtChain = goalToProcess.prevChoicePoint;
+                this.rootChoicePoint.parentChoicePoint = goalToProcess.prevChoicePoint;
               }
               break;
               case SUCCESS: {
                 // we have to renew data about last chain goal because it can be changed during the operation
-                goalToProcess = this.rootChoicePoint.rootLastGoalAtChain;
+                goalToProcess = this.rootChoicePoint.parentChoicePoint;
 
                 if (goalToProcess.nextAndTerm == null) {
                   result = this.rootChoicePoint.goalTerm;
@@ -286,7 +286,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
           if (this.trace) {
             this.context.fireTraceEvent(EXIT, goalToProcess);
           }
-          this.rootChoicePoint.rootLastGoalAtChain = goalToProcess.prevChoicePoint;
+          this.rootChoicePoint.parentChoicePoint = goalToProcess.prevChoicePoint;
         }
       }
     }
@@ -320,21 +320,21 @@ public final class JProlChoicePoint implements Comparator<Term> {
         this.varSnapshot.resetToState();
       }
 
-      if (this.subChoicePoint != null) {
+      if (this.childChoicePoint != null) {
         // solve sub-goal
-        final Term solvedTerm = this.subChoicePoint.proveNext(unknownPredicateConsumer);
+        final Term solvedTerm = this.childChoicePoint.proveNext(unknownPredicateConsumer);
 
-        if (this.subChoicePoint.cutMeet) {
+        if (this.childChoicePoint.cutActivated) {
           this.clauseIterator = null;
         }
 
         if (solvedTerm == null) {
-          this.subChoicePoint = null;
+          this.childChoicePoint = null;
           if (this.clauseIterator == null) {
             break;
           }
         } else {
-          if (!this.thisConnector.unifyWith(this.subChoicePointConnector)) {
+          if (!this.thisConnector.unifyWith(this.childConnectingTerm)) {
             throw new ProlCriticalError("Critical error #980234");
           }
           result = JProlChoicePointResult.SUCCESS;
@@ -365,8 +365,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
           if (nextClause.isClause()) {
             this.thisConnector = theTerm;
-            this.subChoicePointConnector = nextClause.getArgumentAt(0);
-            this.subChoicePoint =
+            this.childConnectingTerm = nextClause.getArgumentAt(0);
+            this.childChoicePoint =
                 this.context.makeChoicePoint(nextClause.getArgumentAt(1), this.payload);
             continue;
           } else {
@@ -405,59 +405,80 @@ public final class JProlChoicePoint implements Comparator<Term> {
             final TermStruct structClone = (TermStruct) struct.makeClone();
 
             this.thisConnector = struct.getArgumentAt(0);
-            this.subChoicePointConnector = structClone.getArgumentAt(0);
+            this.childConnectingTerm = structClone.getArgumentAt(0);
 
             if (arity == 1) {
-              this.subChoicePoint =
+              this.childChoicePoint =
                   this.context.makeChoicePoint(structClone.getArgumentAt(0), this.payload);
             } else {
-              this.subChoicePoint =
+              this.childChoicePoint =
                   this.context.makeChoicePoint(structClone.getArgumentAt(1), this.payload);
             }
           } else {
             final Term functor = struct.getFunctor();
             final String functorText = functor.getText();
-
             boolean nonConsumed = true;
 
-            if (arity == 0) {
+            if (arity < 3) {
               final int functorTextLength = functorText.length();
-              if (functorTextLength == 1 && functorText.charAt(0) == '!') {
-                // cut
-                cut();
-                nonConsumed = false;
-                doLoop = false;
-                result = JProlChoicePointResult.SUCCESS;
-                this.thereAreVariants = false;
-              }
-            } else if (arity == 2) {
-              final int textLen = functorText.length();
-              if (textLen == 1) {
-                if (functorText.charAt(0) == ',') {// and
-                  final JProlChoicePoint leftSubGoal =
-                      replaceLastGoalAtChain(struct.getArgumentAt(0));
-                  leftSubGoal.nextAndTerm = struct.getArgumentAt(1);
-                  leftSubGoal.nextAndTermForNextGoal = this.nextAndTerm;
-
-                  result = JProlChoicePointResult.STACK_CHANGED;
-
-                  doLoop = false;
-                  nonConsumed = false;
-                } else if (functorText.charAt(0) == ';') {// or
-                  if (getInternalObject() == null) {
-                    final JProlChoicePoint leftSubbranch =
-                        new JProlChoicePoint(this.rootChoicePoint, struct.getArgumentAt(0),
-                            this.context, this.trace, this.verify, null, null,
-                            this.payload);
-                    leftSubbranch.nextAndTerm = this.nextAndTerm;
-                    this.setInternalObject(leftSubbranch);
-                  } else {
-                    this.replaceLastGoalAtChain(struct.getArgumentAt(1));
+              switch (functorText.charAt(0)) {
+                case '!': {
+                  if (arity == 0) {
+                    switch (functorTextLength) {
+                      case 1: { // standard cut
+                        this.cut();
+                        nonConsumed = false;
+                        doLoop = false;
+                        result = JProlChoicePointResult.SUCCESS;
+                        this.hasLogicalAlternatives = false;
+                      }
+                      break;
+                      case 2: { // local cut
+                        if (functorText.charAt(1) == '!') {
+                          this.localCut();
+                          nonConsumed = false;
+                          doLoop = false;
+                          result = JProlChoicePointResult.SUCCESS;
+                          this.hasLogicalAlternatives = false;
+                        }
+                      }
+                      break;
+                    }
                   }
-                  result = JProlChoicePointResult.STACK_CHANGED;
-                  nonConsumed = false;
-                  doLoop = false;
                 }
+                break;
+                case ',': { // and
+                  if (arity == 2 && functorTextLength == 1) {
+                    final JProlChoicePoint leftSubGoal =
+                        replaceLastGoalAtChain(struct.getArgumentAt(0));
+                    leftSubGoal.nextAndTerm = struct.getArgumentAt(1);
+                    leftSubGoal.nextAndTermForNextGoal = this.nextAndTerm;
+
+                    result = JProlChoicePointResult.STACK_CHANGED;
+
+                    doLoop = false;
+                    nonConsumed = false;
+                  }
+                }
+                break;
+                case ';': { // or
+                  if (arity == 2 && functorTextLength == 1) {
+                    if (getInternalObject() == null) {
+                      final JProlChoicePoint leftSubbranch =
+                          new JProlChoicePoint(this.rootChoicePoint, struct.getArgumentAt(0),
+                              this.context, this.trace, this.verify, null, null,
+                              this.payload);
+                      leftSubbranch.nextAndTerm = this.nextAndTerm;
+                      this.setInternalObject(leftSubbranch);
+                    } else {
+                      this.replaceLastGoalAtChain(struct.getArgumentAt(1));
+                    }
+                    result = JProlChoicePointResult.STACK_CHANGED;
+                    nonConsumed = false;
+                    doLoop = false;
+                  }
+                }
+                break;
               }
             }
 
@@ -499,7 +520,6 @@ public final class JProlChoicePoint implements Comparator<Term> {
         }
         break;
         default: {
-          result = JProlChoicePointResult.FAIL;
           doLoop = false;
           this.cutVariants();
         }
@@ -511,16 +531,16 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public void cutVariants() {
-    this.thereAreVariants = false;
+    this.hasLogicalAlternatives = false;
   }
 
   public void cut() {
-    this.rootChoicePoint.cutMeet = true;
+    this.rootChoicePoint.cutActivated = true;
     this.rootChoicePoint.clauseIterator = null;
     this.prevChoicePoint = null;
   }
 
-  public void cutLocally() {
+  public void localCut() {
     this.prevChoicePoint = null;
   }
 
@@ -534,7 +554,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public boolean isCompleted() {
-    return this.rootChoicePoint.rootLastGoalAtChain == null || !this.thereAreVariants;
+    return this.rootChoicePoint.parentChoicePoint == null || !this.hasLogicalAlternatives;
   }
 
   @Override

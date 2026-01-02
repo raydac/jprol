@@ -110,6 +110,7 @@ public class JProlTokenMaker extends AbstractTokenMaker {
     tokenMap.put("quot", reservedWord);
     tokenMap.put("rem", reservedWord);
     tokenMap.put("!", reservedWord);
+    tokenMap.put("!!", reservedWord);
 
     int function = Token.FUNCTION;
     tokenMap.put("op", function);

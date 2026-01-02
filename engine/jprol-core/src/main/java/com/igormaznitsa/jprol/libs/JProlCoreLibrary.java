@@ -970,7 +970,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     if (leftSubbranch.prove() != null) {
       // replace current goal by the 'then' goal
       final JProlChoicePoint thenPart = goal.replaceLastGoalAtChain(predicate.getArgumentAt(1));
-      thenPart.cutLocally(); // remove all previous choice points
+      thenPart.localCut(); // remove all previous choice points
       result = true;
     } else {
       goal.cutVariants();
