@@ -19,6 +19,7 @@ package com.igormaznitsa.jprol.data;
 import static com.igormaznitsa.jprol.data.TermType.OPERATOR;
 import static com.igormaznitsa.jprol.data.TermType.STRUCT;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
+import static java.util.Collections.emptyIterator;
 import static java.util.Objects.requireNonNull;
 
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
@@ -96,6 +97,9 @@ public class TermStruct extends CompoundTerm {
 
   @Override
   public Iterator<Term> iterator() {
+    if (this.arguments.length == 0) {
+      return emptyIterator();
+    }
     return new Iterator<>() {
       int index = 0;
 
@@ -121,9 +125,20 @@ public class TermStruct extends CompoundTerm {
   }
 
   @Override
-  public Stream<Term> stream() {
-    return Stream.concat(Stream.of(this.functor),
-        Arrays.stream(this.arguments).flatMap(Term::stream));
+  public final Stream<Term> stream() {
+    switch (this.arguments.length) {
+      case 0:
+        return Stream.of(this.functor);
+      case 1:
+        return Stream.concat(Stream.of(this.functor), this.arguments[0].stream());
+      case 2:
+        return Stream.concat(Stream.of(this.functor),
+            Stream.concat(this.arguments[0].stream(), this.arguments[1].stream()));
+      default: {
+        return Stream.concat(Stream.of(this.functor),
+            Arrays.stream(this.arguments).flatMap(Term::stream));
+      }
+    }
   }
 
   @SuppressWarnings("unchecked")

@@ -28,6 +28,7 @@ import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.utils.lazy.LazyMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -197,6 +198,9 @@ public final class TermList extends TermStruct {
 
   @Override
   public Iterator<Term> iterator() {
+    if (this.isNullList()) {
+      return Collections.emptyIterator();
+    }
     return new Iterator<Term>() {
       Term current = TermList.this;
 
@@ -269,11 +273,6 @@ public final class TermList extends TermStruct {
     } else {
       return 1;
     }
-  }
-
-  @Override
-  public Stream<Term> stream() {
-    return this.isNullList() ? Stream.of(this.functor) : super.stream();
   }
 
   @Override
