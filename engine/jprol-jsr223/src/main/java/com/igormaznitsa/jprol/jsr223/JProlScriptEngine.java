@@ -18,9 +18,9 @@ import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
+import com.igormaznitsa.jprol.logic.JProlSystemFlag;
 import com.igormaznitsa.jprol.logic.JProlTreeBuilder;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
-import com.igormaznitsa.jprol.utils.ProlUtils;
 import com.igormaznitsa.jprol.utils.lazy.LazyMap;
 import com.igormaznitsa.prologparser.ParserContext;
 import com.igormaznitsa.prologparser.exceptions.PrologParserException;
@@ -208,15 +208,6 @@ public class JProlScriptEngine
     }
   }
 
-  /**
-   * Disposing existing thread local JProl context and create new one from current context parameters.
-   * Knowledge base can be affected.
-   */
-  public void reinitJProlContext() {
-    this.assertNotClosed();
-    this.engineContext.get().reinitJProlContext();
-  }
-
   static String joinSources(
       final List<Term> parsed,
       final Function<Term, Term> processor,
@@ -237,6 +228,15 @@ public class JProlScriptEngine
         .map(Term::toSrcString)
         .collect(joining(". "));
     return resultString.isEmpty() ? resultString : resultString + ".";
+  }
+
+  /**
+   * Disposing existing thread local JProl context and create new one from current context parameters.
+   * Knowledge base can be affected.
+   */
+  public void reinitJProlContext() {
+    this.assertNotClosed();
+    this.engineContext.get().reinitJProlContext();
   }
 
   private void assertNotClosed() {
@@ -437,13 +437,11 @@ public class JProlScriptEngine
 
   public Object getFlag(final String flagName) throws ScriptException {
     this.assertNotClosed();
+    final JProlSystemFlag flag = JProlSystemFlag.find(Terms.newAtom(flagName))
+        .orElseThrow(() -> new IllegalArgumentException("Unsupported flag: " + flagName));
     try {
-      final List<Map<String, Object>> results =
-          this.query("current_prolog_flag(" + flagName + ", Value).");
-      if (!results.isEmpty()) {
-        return results.get(0).get("Value");
-      }
-      return null;
+      final JProlContext prolContext = this.engineContext.get().findOrMakeJProlContext();
+      return prolContext.getSystemFlag(flag);
     } catch (Exception e) {
       if (e instanceof ScriptException) {
         throw (ScriptException) e;
@@ -593,10 +591,10 @@ public class JProlScriptEngine
 
   public void setFlag(final String name, final Object value) {
     this.assertNotClosed();
-    final String text = String.format(":- set_prolog_flag('%s', %s).", ProlUtils.escapeSrc(name),
-        java2term(value).toSrcString());
+    final JProlSystemFlag flag = JProlSystemFlag.find(Terms.newAtom(name))
+        .orElseThrow(() -> new IllegalArgumentException("Unsupported flag: " + name));
     final JProlContext prolContext = this.engineContext.get().findOrMakeJProlContext();
-    prolContext.consult(new StringReader(text));
+    prolContext.setSystemFlag(flag, java2term(value));
   }
 
   public int size() {

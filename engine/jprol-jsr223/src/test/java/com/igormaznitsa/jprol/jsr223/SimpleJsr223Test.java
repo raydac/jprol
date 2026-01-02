@@ -3,12 +3,12 @@ package com.igormaznitsa.jprol.jsr223;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.igormaznitsa.jprol.data.Terms;
+import com.igormaznitsa.jprol.libs.JProlCoreGuardedLibrary;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,15 +26,20 @@ import org.junit.jupiter.api.Test;
 public class SimpleJsr223Test {
 
   private ScriptEngine findScriptEngine() {
-    var manager = new ScriptEngineManager();
-    var engine = manager.getEngineByName("jprol.prolog");
-    assertNotNull(engine);
-    return engine;
+    return this.findScriptEngine(false);
+  }
+
+  private ScriptEngine findScriptEngine(final boolean addGuardedLibrary) {
+    final JProlScriptEngineFactory factory =
+        (JProlScriptEngineFactory) new ScriptEngineManager().getEngineFactories()
+            .stream().filter(x -> x.getNames().contains("jprol.prolog")).findFirst().orElseThrow();
+    return addGuardedLibrary ? factory.getScriptEngine(new JProlCoreGuardedLibrary()) :
+        factory.getScriptEngine();
   }
 
   @Test
   void testDisableCriticalPredicateClause() throws Exception {
-    final ScriptEngine engine = findScriptEngine();
+    final ScriptEngine engine = findScriptEngine(true);
     engine.getBindings(ScriptContext.GLOBAL_SCOPE).put(
         JProlScriptEngine.JPROL_GLOBAL_GUARD_PREDICATE,
         (JProlGuardPredicate) (sourceLibrary, choicePoint, predicateIndicator) -> !"clause/2".equals(
@@ -43,7 +48,7 @@ public class SimpleJsr223Test {
     assertThrowsExactly(ScriptException.class, () ->
         engine.eval("?-clause(a(X),(X = 10))."));
 
-    final ScriptEngine engineWithoutRestriction = findScriptEngine();
+    final ScriptEngine engineWithoutRestriction = findScriptEngine(true);
     assertDoesNotThrow(() ->
         engineWithoutRestriction.eval("?-clause(a(X),(X = 10))."));
 

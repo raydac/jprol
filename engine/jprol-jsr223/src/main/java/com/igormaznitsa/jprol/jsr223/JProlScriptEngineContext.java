@@ -40,7 +40,10 @@ import javax.script.SimpleBindings;
 public class JProlScriptEngineContext implements ScriptContext {
 
   static final List<AbstractJProlLibrary> BOOTSTRAP_LIBRARIES =
-      List.of(new JProlCoreLibrary(), new JProlJsr223BootstrapLibrary());
+      List.of(
+          new JProlCoreLibrary(),
+          new JProlJsr223BootstrapLibrary()
+      );
   private static final List<Integer> SCOPES = List.of(GLOBAL_SCOPE, ENGINE_SCOPE);
   private final AtomicReference<Writer> writer = new AtomicReference<>();
   private final AtomicReference<Reader> reader =
