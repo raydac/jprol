@@ -47,8 +47,11 @@ public class JProlCoreGuardedLibrary extends AbstractJProlLibrary {
     super("jprol-core-guarded-lib");
   }
 
-  @JProlPredicate(signature = "clause/2", validate = {
-      ":head,?body"}, guarded = true, reference = "clause(Head, Body) is true if and only if\n* The predicate of Head is public (the standard does not specify how a predicate is declared public but dynamic predicates are public, and\n* There is a clause in the database which corresponds to a term H:- B which unifies with Head :- Body.")
+  @JProlPredicate(
+      guarded = true,
+      signature = "clause/2",
+      validate = ":head,?body",
+      reference = "clause(Head, Body) is true if and only if\n* The predicate of Head is public (the standard does not specify how a predicate is declared public but dynamic predicates are public, and\n* There is a clause in the database which corresponds to a term H:- B which unifies with Head :- Body.")
   public static boolean predicateCLAUSE2(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term head = predicate.getArgumentAt(0).tryGround();
     final Term body = predicate.getArgumentAt(1).tryGround();
@@ -97,8 +100,14 @@ public class JProlCoreGuardedLibrary extends AbstractJProlLibrary {
     return false;
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "abort/1", synonyms = "abort/0", validate = {
-      "+term"}, reference = "Self-dispose current JProl context, it doesn't affect the root context.")
+  @JProlPredicate(
+      guarded = true,
+      determined = true,
+      signature = "abort/1",
+      synonyms = "abort/0",
+      validate = "+term",
+      reference = "Self-dispose current JProl context, it doesn't affect the root context."
+  )
   public static void predicateAbort(final JProlChoicePoint goal, final TermStruct predicate) {
     if (predicate.getArity() == 0) {
       throw new ProlAbortExecutionException("Aborted", 0L);
@@ -116,8 +125,14 @@ public class JProlCoreGuardedLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "halt/1", synonyms = "halt/0", validate = {
-      "+number"}, reference = "Dispose the root JProl context.")
+  @JProlPredicate(
+      guarded = true,
+      determined = true,
+      signature = "halt/1",
+      synonyms = "halt/0",
+      validate = "+number",
+      reference = "Dispose the root JProl context."
+  )
   public static void predicateHalt(final JProlChoicePoint goal, final TermStruct predicate) {
     JProlContext rootContext = goal.getContext();
     while (!rootContext.isRootContext()) {
@@ -138,13 +153,22 @@ public class JProlCoreGuardedLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "abolish/1", validate = {
-      "+predicate_indicator"}, reference = "abolish(Pred/2) is true. It has for side effect the removal of all clauses of the predicate indicated by Pred. After abolish/1 the predicate is not found by current_predicate.")
+  @JProlPredicate(
+      guarded = true,
+      determined = true,
+      signature = "abolish/1",
+      validate = "+predicate_indicator",
+      reference = "Removes all clauses of a predicate with functor Functor and arity Arity from the database. Abolishing an imported predicate only removes the import link; the predicate will keep its old definition in its definition module."
+  )
   public static boolean predicateABOLISH1(final JProlChoicePoint goal, final TermStruct predicate) {
     return goal.getContext().abolish(predicate.getArgumentAt(0).tryGround());
   }
 
-  @JProlPredicate(guarded = true, signature = "current_op/3", validate = "?integer,?operator_specifier,?atom", reference = "current_op(Priority, Op_specifier, TermOperator) is true if and only if TermOperator is an operator with properties given by Op_specifier and Priority")
+  @JProlPredicate(guarded = true,
+      signature = "current_op/3",
+      validate = "?integer,?operator_specifier,?atom",
+      reference = "current_op(Priority, Op_specifier, TermOperator) is true if and only if TermOperator is an operator with properties given by Op_specifier and Priority"
+  )
   public static boolean predicateCURRENTOP3(final JProlChoicePoint goal,
                                             final TermStruct predicate) {
     final Term priority = predicate.getArgumentAt(0).tryGround();
@@ -182,11 +206,15 @@ public class JProlCoreGuardedLibrary extends AbstractJProlLibrary {
     return false;
   }
 
-  @JProlPredicate(determined = true, signature = "op/3",
+  @JProlPredicate(
       guarded = true,
+      determined = true,
+      signature = "op/3",
       validate = {
           "+integer,+operator_specifier,+atom", "+integer,+operator_specifier,+list",
-      }, reference = "Predicate allows to alter operators.\nop(Priority, Op_Specifier, TermOperator) is true, with the side effect that\n1. if Priority is 0 then TermOperator is removed from operators\n2. TermOperator is added into operators, with priority (lower binds tighter) Priority and associativity determined by Op_Specifier")
+      },
+      reference = "Predicate allows to alter operators.\nop(Priority, Op_Specifier, TermOperator) is true, with the side effect that\n1. if Priority is 0 then TermOperator is removed from operators\n2. TermOperator is added into operators, with priority (lower binds tighter) Priority and associativity determined by Op_Specifier"
+  )
   public static boolean predicateOP(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg1 = predicate.getArgumentAt(0).tryGround();
     final Term arg2 = predicate.getArgumentAt(1).tryGround();
@@ -239,44 +267,72 @@ public class JProlCoreGuardedLibrary extends AbstractJProlLibrary {
     return true;
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "asserta/1", validate = {
-      "+callable"}, reference = "Addition of a clause into the knowledge base before all other clauses.")
+  @JProlPredicate(
+      guarded = true,
+      determined = true,
+      signature = "asserta/1",
+      validate = "+callable",
+      reference = "Addition of a clause into the knowledge base before all other clauses."
+  )
   public static boolean predicateASSERTA1(final JProlChoicePoint goal, final TermStruct predicate) {
     return goal.getContext().assertA(predicate.getArgumentAt(0).tryGround());
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "assertz/1", synonyms = {
-      "assert/1"}, validate = {
-      "+callable"}, reference = "Addition of a clause into the knowledge base after all other clauses.")
+  @JProlPredicate(
+      guarded = true,
+      determined = true,
+      signature = "assertz/1",
+      synonyms = "assert/1",
+      validate = "+callable",
+      reference = "Addition of a clause into the knowledge base after all other clauses."
+  )
   public static boolean predicateASSERTZ1(final JProlChoicePoint goal, final TermStruct predicate) {
     return goal.getContext().assertZ(predicate.getArgumentAt(0).tryGround());
   }
 
-  @JProlPredicate(guarded = true, signature = "retract/1", synonyms = {
-      "retracta/1"}, validate = {
-      "+callable"}, reference = "Retract the first clause which can be unified with argument. True if there is such clause in the knowledge base.")
+  @JProlPredicate(
+      guarded = true,
+      signature = "retract/1",
+      synonyms = "retracta/1",
+      validate = "+callable",
+      reference = "Retract the first clause which can be unified with argument. True if there is such clause in the knowledge base."
+  )
   public static boolean predicateRETRACT1(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term retracting = predicate.getArgumentAt(0).tryGround();
     return goal.getContext().retractA(retracting);
   }
 
-  @JProlPredicate(guarded = true, signature = "retractz/1", validate = {
-      "+callable"}, reference = "Retract the last clause which can be unified with argument. True if there is such clause in the knowledge base.")
+  @JProlPredicate(
+      guarded = true,
+      signature = "retractz/1",
+      validate = "+callable",
+      reference = "Retract the last clause which can be unified with argument. True if there is such clause in the knowledge base."
+  )
   public static boolean predicateRETRACTZ(final JProlChoicePoint goal, final TermStruct predicate) {
     return goal.getContext().retractZ(predicate.getArgumentAt(0).tryGround());
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "retractall/1", validate = {
-      "+callable"}, reference = "Retract all clauses which can be unified with argument. Always succeeds.")
+  @JProlPredicate(
+      guarded = true,
+      determined = true,
+      signature = "retractall/1",
+      validate = "+callable",
+      reference = "Retract all clauses which can be unified with argument. Always succeeds."
+  )
   public static boolean predicateRETRACTALL(final JProlChoicePoint goal,
                                             final TermStruct predicate) {
     goal.getContext().retractAll(predicate.getArgumentAt(0).tryGround());
     return true;
   }
 
-  @JProlPredicate(guarded = true, determined = true, signature = "dynamic/1", validate = {
-      "+term"}, reference = "Informs the interpreter that the definition of the predicate(s) may change during execution.")
-  public static void predicateDYNAMIC(final JProlChoicePoint goal,
+  @JProlPredicate(
+      guarded = true,
+      determined = true,
+      signature = "dynamic/1",
+      validate = "+predicate_indicator",
+      reference = "Provide signature of predicate allowed dynamic knowledge base operations."
+  )
+  public static void predicateDYNAMIC1(final JProlChoicePoint goal,
                                       final TermStruct predicate) {
     final Term term = predicate.getArgumentAt(0).tryGround();
     final Set<String> indicators = new LazySet<>();
@@ -301,9 +357,13 @@ public class JProlCoreGuardedLibrary extends AbstractJProlLibrary {
     goal.getContext().addDynamicSignatures(indicators, goal.getGoalTerm().getSourcePosition());
   }
 
-  @JProlPredicate(signature = "current_prolog_flag/2", validate = {
-      "?atom,?term"}, reference = "Check prolog flag and flag values.", guarded = true)
-  public static boolean predicateCURRENTPROLOGFLAG(final JProlChoicePoint choicePoint,
+  @JProlPredicate(
+      guarded = true,
+      signature = "current_prolog_flag/2",
+      validate = "?atom,-term",
+      reference = "Get current context prolog flag value."
+  )
+  public static boolean predicateCURRENTPROLOGFLAG2(final JProlChoicePoint choicePoint,
                                                    final TermStruct predicate) {
     final Term atom = predicate.getArgumentAt(0).tryGround();
     final Term term = predicate.getArgumentAt(1).tryGround();
@@ -347,13 +407,13 @@ public class JProlCoreGuardedLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(
+      guarded = true,
       determined = true,
       signature = "set_prolog_flag/2",
-      validate = {"+atom,+term"},
-      reference = "Set value of flag.",
-      guarded = true
+      validate = "+atom,+term",
+      reference = "Set value of current context non-readonly flag, it will affect following calls."
   )
-  public static boolean predicateSETPROLOGFLAG(final JProlChoicePoint choicePoint,
+  public static boolean predicateSETPROLOGFLAG2(final JProlChoicePoint choicePoint,
                                                final TermStruct predicate) {
     final Term atom = predicate.getArgumentAt(0).tryGround();
     final Term term = predicate.getArgumentAt(1).tryGround();

@@ -158,7 +158,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = "=:=/2", validate = {
       "@evaluable,@evaluable"}, reference = "Arithmetic equal")
-  public static boolean predicateArithEqu(final JProlChoicePoint goal, final TermStruct predicate) {
+  public static boolean predicateARITHMETICEQU2(final JProlChoicePoint goal,
+                                                final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0));
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1));
     return left.compare(right) == 0;
@@ -189,8 +190,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = "@</2", validate = {
       "?term,?term"}, reference = "Term less than")
-  public static boolean predicateTermLess(final JProlChoicePoint choicePoint,
-                                          final TermStruct predicate) {
+  public static boolean predicateTERMLESS2(final JProlChoicePoint choicePoint,
+                                           final TermStruct predicate) {
     return choicePoint.compare(predicate.getArgumentAt(0), predicate.getArgumentAt(1)) < 0;
   }
 
@@ -223,29 +224,29 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = "@=</2", validate = {
       "?term,?term"}, reference = "Term less than or equal to.")
-  public static boolean predicateTermLessOrEqu(final JProlChoicePoint choicePoint,
-                                               final TermStruct predicate) {
+  public static boolean predicateTERMLESSEQU2(final JProlChoicePoint choicePoint,
+                                              final TermStruct predicate) {
     return choicePoint.compare(predicate.getArgumentAt(0), predicate.getArgumentAt(1)) <= 0;
   }
 
   @JProlPredicate(determined = true, signature = "@>/2", validate = {
       "?term,?term"}, reference = "Term greater than")
-  public static boolean predicateTermMore(final JProlChoicePoint choicePoint,
-                                          final TermStruct predicate) {
+  public static boolean predicateTERMGREATER2(final JProlChoicePoint choicePoint,
+                                              final TermStruct predicate) {
     return choicePoint.compare(predicate.getArgumentAt(0), predicate.getArgumentAt(1)) > 0;
   }
 
   @JProlPredicate(determined = true, signature = "@>=/2", validate = {
       "?term,?term"}, reference = "Term greater than or equal to.")
-  public static boolean predicateTermMoreOrEqu(final JProlChoicePoint choicePoint,
-                                               final TermStruct predicate) {
+  public static boolean predicateTERMGREATEREQU2(final JProlChoicePoint choicePoint,
+                                                 final TermStruct predicate) {
     return choicePoint.compare(predicate.getArgumentAt(0), predicate.getArgumentAt(1)) >= 0;
   }
 
   @JProlPredicate(determined = true, signature = "==/2", validate = {
       "?term,?term"}, reference = "Check term strict identity.")
-  public static boolean predicateTermEqu(final JProlChoicePoint choicePoint,
-                                         final TermStruct predicate) {
+  public static boolean predicateEQU2(final JProlChoicePoint choicePoint,
+                                      final TermStruct predicate) {
     final Term termA = predicate.getArgumentAt(0).tryGround();
     final Term termB = predicate.getArgumentAt(1).tryGround();
 
@@ -261,8 +262,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = "\\==/2", validate = {
       "?term,?term"}, reference = "Term not identical")
-  public static boolean predicateNotTermEqu(final JProlChoicePoint choicePoint,
-                                            final TermStruct predicate) {
+  public static boolean predicateNOTEQU2(final JProlChoicePoint choicePoint,
+                                         final TermStruct predicate) {
     return choicePoint.compare(predicate.getArgumentAt(0), predicate.getArgumentAt(1)) != 0;
   }
 
@@ -315,8 +316,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = ">/2", validate = {
       "+evaluable,+evaluable"}, reference = "Arithmetic greater than")
-  public static boolean predicateArithMore(final JProlChoicePoint goal,
-                                           final TermStruct predicate) {
+  public static boolean predicateARITHGREATER2(final JProlChoicePoint goal,
+                                               final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
     return left.compare(right) > 0;
@@ -324,8 +325,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = "</2", validate = {
       "+evaluable,+evaluable"}, reference = "Arithmetic less than")
-  public static boolean predicateArithLess(final JProlChoicePoint goal,
-                                           final TermStruct predicate) {
+  public static boolean predicateARITHLESS2(final JProlChoicePoint goal,
+                                            final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
     return left.compare(right) < 0;
@@ -333,8 +334,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = ">=/2", validate = {
       "+evaluable,+evaluable"}, reference = "Arithmetic greater than or equal to")
-  public static boolean predicateArithMoreOrEqu(final JProlChoicePoint goal,
-                                                final TermStruct predicate) {
+  public static boolean predicateARITHGREATEREQU2(final JProlChoicePoint goal,
+                                                  final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
     return left.compare(right) >= 0;
@@ -342,8 +343,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = "=</2", validate = {
       "+evaluable,+evaluable"}, reference = "Arithmetic less than or equal to")
-  public static boolean predicateArithLessOrEqu(final JProlChoicePoint goal,
-                                                final TermStruct predicate) {
+  public static boolean predicateARITHLESSEQU2(final JProlChoicePoint goal,
+                                               final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
     return left.compare(right) <= 0;
@@ -351,8 +352,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(determined = true, signature = "=\\=/2", validate = {
       "+evaluable,+evaluable"}, reference = "Arithmetic Not equal")
-  public static boolean predicateArithNotEqu(final JProlChoicePoint goal,
-                                             final TermStruct predicate) {
+  public static boolean predicateARITHNOTEQU2(final JProlChoicePoint goal,
+                                              final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
     return left.compare(right) != 0;
@@ -360,7 +361,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(evaluable = true, signature = "xor/2", validate = {
       "+evaluable,+evaluable"}, reference = "Bitwise exclusive or.")
-  public static Term predicateXOR(final JProlChoicePoint goal, final TermStruct predicate) {
+  public static Term predicateXOR2(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
 
@@ -374,7 +375,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(evaluable = true, signature = "\\/1", validate = {
       "+evaluable"}, reference = "Bitwise 'not'")
-  public static Term predicateBITWISENOT(final JProlChoicePoint goal, final TermStruct predicate) {
+  public static Term predicateBITWISENOT1(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getArgumentAt(0));
     if (goal.isVerify()) {
       assertInteger(arg);
@@ -384,7 +385,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(evaluable = true, signature = "\\//2", validate = {
       "+evaluable,+evaluable"}, reference = "Bitwise 'or'")
-  public static Term predicateBITWISEOR(final JProlChoicePoint goal, final TermStruct predicate) {
+  public static Term predicateBITWISEOR2(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0));
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1));
 
@@ -398,7 +399,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(evaluable = true, signature = "/\\/2", validate = {
       "+evaluable,+evaluable"}, reference = "Bitwise 'and'")
-  public static Term predicateBITWISEAND(final JProlChoicePoint goal, final TermStruct predicate) {
+  public static Term predicateBITWISEAND2(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
 
@@ -412,7 +413,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(evaluable = true, signature = "mod/2", validate = {
       "+evaluable,+evaluable"}, reference = "Modulus")
-  public static Term predicateMOD(final JProlChoicePoint goal, final TermStruct predicate) {
+  public static Term predicateMOD2(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
 
@@ -430,7 +431,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(evaluable = true, signature = "rem/2", validate = {
       "+evaluable,+evaluable"}, reference = "Remainder")
-  public static Term predicateREM(final JProlChoicePoint goal, final TermStruct predicate) {
+  public static Term predicateREM2(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
 
@@ -458,7 +459,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(evaluable = true, synonyms = "^/2", signature = "**/2", validate = {
       "+evaluable,+evaluable"}, reference = "Power")
-  public static Term predicatePOWER(final JProlChoicePoint goal, final TermStruct predicate) {
+  public static Term predicatePOWER2(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
 
@@ -470,7 +471,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(evaluable = true, signature = "+/2", validate = {
       "+evaluable,+evaluable"}, reference = "Addition")
-  public static Term predicateADDTWO(final JProlChoicePoint goal, final TermStruct predicate) {
+  public static Term predicateADDTWO2(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
     return left.add(right);
@@ -478,23 +479,23 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(evaluable = true, signature = "sin/1", validate = {
       "+evaluable"}, reference = "Sine")
-  public static Term predicateSIN(final JProlChoicePoint goal, final TermStruct predicate) {
+  public static Term predicateSIN1(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     return tryAsLong(Math.sin(arg.toNumber().doubleValue()));
   }
 
   @JProlPredicate(evaluable = true, signature = "float_integer_part/1", validate = {
       "+evaluable"}, reference = "Integer part")
-  public static Term predicateFLOATINTEGERPART(final JProlChoicePoint goal,
-                                               final TermStruct predicate) {
+  public static Term predicateFLOATINTEGERPART1(final JProlChoicePoint goal,
+                                                final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     return newLong(arg.toNumber().longValue(), UNKNOWN);
   }
 
   @JProlPredicate(evaluable = true, signature = "float_fractional_part/1", validate = {
       "+evaluable"}, reference = "Fractional part")
-  public static Term predicateFLOATFRACTIONALPART(final JProlChoicePoint goal,
-                                                  final TermStruct predicate) {
+  public static Term predicateFLOATFRACTIONALPART1(final JProlChoicePoint goal,
+                                                   final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final double value = arg.toNumber().doubleValue();
     final long valueInt = (long) value;
@@ -503,7 +504,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(evaluable = true, signature = "floor/1", validate = {
       "+evaluable"}, reference = "Floor")
-  public static Term predicateFLOOR(final JProlChoicePoint goal, final TermStruct predicate) {
+  public static Term predicateFLOOR1(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final double value = arg.toNumber().doubleValue();
     return newLong((long) Math.floor(value), UNKNOWN);
@@ -511,7 +512,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(evaluable = true, signature = "truncate/1", validate = {
       "+evaluable"}, reference = "Truncate")
-  public static Term predicateTRUNCATE(final JProlChoicePoint goal, final TermStruct predicate) {
+  public static Term predicateTRUNCATE1(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final double value = arg.toNumber().doubleValue();
     return newLong(value < 0 ? (long) Math.ceil(value) : (long) Math.floor(value), UNKNOWN);
@@ -519,7 +520,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(evaluable = true, signature = "round/1", validate = {
       "+evaluable"}, reference = "Round")
-  public static Term predicateROUND(final JProlChoicePoint goal, final TermStruct predicate) {
+  public static Term predicateROUND1(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final double value = arg.toNumber().doubleValue();
     return newLong(Math.round(value), UNKNOWN);
@@ -527,7 +528,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(evaluable = true, signature = "ceiling/1", validate = {
       "+evaluable"}, reference = "Ceiling")
-  public static Term predicateCEILING(final JProlChoicePoint goal, final TermStruct predicate) {
+  public static Term predicateCEILING1(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final double value = arg.toNumber().doubleValue();
     return newLong((long) Math.ceil(value), UNKNOWN);
@@ -535,7 +536,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(evaluable = true, signature = "cos/1", validate = {
       "+evaluable"}, reference = "Cosine")
-  public static Term predicateCOS(final JProlChoicePoint goal, final TermStruct predicate) {
+  public static Term predicateCOS1(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final double value = arg.toNumber().doubleValue();
     return tryAsLong(Math.cos(value));
