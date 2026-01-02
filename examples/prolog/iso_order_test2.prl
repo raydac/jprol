@@ -1,0 +1,130 @@
+% Test suite for term ordering and comparison in ISO Prolog
+test_term_ordering :-
+    writeln('=== ISO Prolog Term Ordering Test Suite ==='),
+    nl,
+    
+    % Test 1: Basic type ordering
+    writeln('Test 1: Basic type ordering (Variables < Numbers < Atoms < Compounds)'),
+    (\+ (1 @< _X) -> writeln('  ✓ Number not less than variable') ; writeln('  ✗ FAILED')),
+    (_Y @< 42 -> writeln('  ✓ Variable less than number') ; writeln('  ✗ FAILED')),
+    (42 @< atom -> writeln('  ✓ Number less than atom') ; writeln('  ✗ FAILED')),
+    (atom @< f(1) -> writeln('  ✓ Atom less than compound') ; writeln('  ✗ FAILED')),
+    nl,
+    
+    % Test 2: Number comparisons
+    writeln('Test 2: Number comparisons'),
+    (-5 @< 0 -> writeln('  ✓ -5 @< 0') ; writeln('  ✗ FAILED')),
+    (0 @< 3.14 -> writeln('  ✓ 0 @< 3.14') ; writeln('  ✗ FAILED')),
+    (3.14 @< 100 -> writeln('  ✓ 3.14 @< 100') ; writeln('  ✗ FAILED')),
+    (-1.5 @< -1 -> writeln('  ✓ -1.5 @< -1') ; writeln('  ✗ FAILED')),
+    nl,
+    
+    % Test 3: Atom ordering
+    writeln('Test 3: Atom ordering (alphabetical)'),
+    (a @< b -> writeln('  ✓ a @< b') ; writeln('  ✗ FAILED')),
+    (b @< z -> writeln('  ✓ b @< z') ; writeln('  ✗ FAILED')),
+    (abc @< abd -> writeln('  ✓ abc @< abd') ; writeln('  ✗ FAILED')),
+    (atom1 @< atom2 -> writeln('  ✓ atom1 @< atom2') ; writeln('  ✗ FAILED')),
+    nl,
+    
+    % Test 4: Compound term ordering
+    writeln('Test 4: Compound term ordering (arity, functor, arguments)'),
+    (f(1) @< g(1) -> writeln('  ✓ f(1) @< g(1) - functor comparison') ; writeln('  ✗ FAILED')),
+    (f(1) @< f(2) -> writeln('  ✓ f(1) @< f(2) - argument comparison') ; writeln('  ✗ FAILED')),
+    (f(1) @< f(1, 2) -> writeln('  ✓ f(1) @< f(1,2) - arity comparison') ; writeln('  ✗ FAILED')),
+    (f(a, b) @< f(a, c) -> writeln('  ✓ f(a,b) @< f(a,c) - second arg') ; writeln('  ✗ FAILED')),
+    (f(1, 2, 3) @< f(1, 2, 4) -> writeln('  ✓ f(1,2,3) @< f(1,2,4)') ; writeln('  ✗ FAILED')),
+    nl,
+    
+    % Test 5: Nested structures
+    writeln('Test 5: Nested structures'),
+    (f(g(1), 2) @< f(g(2), 1) -> writeln('  ✓ f(g(1),2) @< f(g(2),1)') ; writeln('  ✗ FAILED')),
+    ([1, 2, 3] @< [1, 2, 4] -> writeln('  ✓ [1,2,3] @< [1,2,4]') ; writeln('  ✗ FAILED')),
+    ([1] @< [1, 2] -> writeln('  ✓ [1] @< [1,2]') ; writeln('  ✗ FAILED')),
+    (f(g(h(1))) @< f(g(h(2))) -> writeln('  ✓ Deep nesting comparison') ; writeln('  ✗ FAILED')),
+    nl,
+    
+    % Test 6: Mixed type ordering
+    writeln('Test 6: Mixed type ordering'),
+    (_V @< 0 -> writeln('  ✓ Variable @< number') ; writeln('  ✗ FAILED')),
+    (0 @< a -> writeln('  ✓ Number @< atom') ; writeln('  ✗ FAILED')),
+    (a @< f(_) -> writeln('  ✓ Atom @< compound') ; writeln('  ✗ FAILED')),
+    (f(1) @< f(a) -> writeln('  ✓ f(1) @< f(a)') ; writeln('  ✗ FAILED')),
+    nl,
+    
+    % Test 7: Equality (@=)
+    writeln('Test 7: Equality tests (@=)'),
+    (42 @= 42 -> writeln('  ✓ 42 @= 42') ; writeln('  ✗ FAILED')),
+    (atom @= atom -> writeln('  ✓ atom @= atom') ; writeln('  ✗ FAILED')),
+    (f(1, 2) @= f(1, 2) -> writeln('  ✓ f(1,2) @= f(1,2)') ; writeln('  ✗ FAILED')),
+    ([a, b, c] @= [a, b, c] -> writeln('  ✓ [a,b,c] @= [a,b,c]') ; writeln('  ✗ FAILED')),
+    nl,
+    
+    % Test 8: Greater than (@>)
+    writeln('Test 8: Greater than tests (@>)'),
+    (100 @> 1 -> writeln('  ✓ 100 @> 1') ; writeln('  ✗ FAILED')),
+    (z @> a -> writeln('  ✓ z @> a') ; writeln('  ✗ FAILED')),
+    (f(2) @> f(1) -> writeln('  ✓ f(2) @> f(1)') ; writeln('  ✗ FAILED')),
+    ([2] @> [1] -> writeln('  ✓ [2] @> [1]') ; writeln('  ✗ FAILED')),
+    nl,
+    
+    % Test 9: Less than or equal (@=<)
+    writeln('Test 9: Less than or equal (@=<)'),
+    (1 @=< 1 -> writeln('  ✓ 1 @=< 1') ; writeln('  ✗ FAILED')),
+    (1 @=< 2 -> writeln('  ✓ 1 @=< 2') ; writeln('  ✗ FAILED')),
+    (a @=< a -> writeln('  ✓ a @=< a') ; writeln('  ✗ FAILED')),
+    (f(1) @=< f(2) -> writeln('  ✓ f(1) @=< f(2)') ; writeln('  ✗ FAILED')),
+    nl,
+    
+    % Test 10: Greater than or equal (@>=)
+    writeln('Test 10: Greater than or equal (@>=)'),
+    (2 @>= 1 -> writeln('  ✓ 2 @>= 1') ; writeln('  ✗ FAILED')),
+    (2 @>= 2 -> writeln('  ✓ 2 @>= 2') ; writeln('  ✗ FAILED')),
+    (b @>= a -> writeln('  ✓ b @>= a') ; writeln('  ✗ FAILED')),
+    (f(2) @>= f(1) -> writeln('  ✓ f(2) @>= f(1)') ; writeln('  ✗ FAILED')),
+    nl,
+    
+    % Test 11: Empty structures
+    writeln('Test 11: Empty structures'),
+    ([] @< [_] -> writeln('  ✓ [] @< [_]') ; writeln('  ✗ FAILED')),
+    (f() @< f(1) -> writeln('  ✓ f() @< f(1)') ; writeln('  ✗ FAILED')),
+    nl,
+    
+    % Test 12: Negative tests (should fail)
+    writeln('Test 12: Negative tests (should fail)'),
+    (\+ (2 @< 1) -> writeln('  ✓ NOT(2 @< 1)') ; writeln('  ✗ FAILED')),
+    (\+ (b @< a) -> writeln('  ✓ NOT(b @< a)') ; writeln('  ✗ FAILED')),
+    (\+ (f(2) @< f(1)) -> writeln('  ✓ NOT(f(2) @< f(1))') ; writeln('  ✗ FAILED')),
+    (\+ (atom @< 1) -> writeln('  ✓ NOT(atom @< 1)') ; writeln('  ✗ FAILED')),
+    (\+ (1 @< _X) -> writeln('  ✓ NOT(1 @< variable)') ; writeln('  ✗ FAILED')),
+    nl,
+    
+    % Test 13: List comparisons
+    writeln('Test 13: List comparisons'),
+    ([1, a, f(1)] @< [1, a, f(2)] -> writeln('  ✓ [1,a,f(1)] @< [1,a,f(2)]') ; writeln('  ✗ FAILED')),
+    ([1, a] @< [1, b] -> writeln('  ✓ [1,a] @< [1,b]') ; writeln('  ✗ FAILED')),
+    ([f(1), g(2)] @< [f(1), g(3)] -> writeln('  ✓ [f(1),g(2)] @< [f(1),g(3)]') ; writeln('  ✗ FAILED')),
+    nl,
+    
+    % Test 14: String atoms
+    writeln('Test 14: String atoms'),
+    ('hello' @< 'world' -> writeln('  ✓ hello @< world') ; writeln('  ✗ FAILED')),
+    ('abc' @< 'abcd' -> writeln('  ✓ abc @< abcd') ; writeln('  ✗ FAILED')),
+    nl,
+    
+    % Test 15: Different arities
+    writeln('Test 15: Different arities'),
+    (test(1) @< test(1, 2) -> writeln('  ✓ test(1) @< test(1,2)') ; writeln('  ✗ FAILED')),
+    (test(1, 2) @< test(1, 2, 3) -> writeln('  ✓ test(1,2) @< test(1,2,3)') ; writeln('  ✗ FAILED')),
+    (pair(1, 2) @< triple(1, 2, 3) -> writeln('  ✓ pair(1,2) @< triple(1,2,3)') ; writeln('  ✗ FAILED')),
+    nl,
+    
+    % Test 16: Complex scenarios
+    writeln('Test 16: Complex scenarios'),
+    (aaa(1) @< bbb(1) -> writeln('  ✓ aaa(1) @< bbb(1) - functor ordering') ; writeln('  ✗ FAILED')),
+    ([[[1]]] @< [[[2]]] -> writeln('  ✓ [[[1]]] @< [[[2]]]') ; writeln('  ✗ FAILED')),
+    nl,
+    
+    writeln('=== Test Suite Complete ===').
+
+?- test_term_ordering.

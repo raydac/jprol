@@ -1,0 +1,530 @@
+% Test Suite for ISO Prolog retract/1, retractall/1, asserta/1, assertz/1
+% Run with: ?- run_all_tests.
+
+% Test counter
+:- dynamic(test_count/1).
+:- dynamic(pass_count/1).
+:- dynamic(fail_count/1).
+
+% Test predicates (dynamic)
+:- dynamic(fact/1).
+:- dynamic(rule/2).
+:- dynamic(multi/1).
+:- dynamic(ordered/1).
+:- dynamic(person/2).
+:- dynamic(student/1).
+:- dynamic(edge/2).
+:- dynamic(data/3).
+:- dynamic(temp/1).
+
+init_counters :-
+    retractall(test_count(_)),
+    retractall(pass_count(_)),
+    retractall(fail_count(_)),
+    assert(test_count(0)),
+    assert(pass_count(0)),
+    assert(fail_count(0)).
+
+increment_test :-
+    retract(test_count(N)),
+    N1 is N + 1,
+    assert(test_count(N1)).
+
+increment_pass :-
+    retract(pass_count(N)),
+    N1 is N + 1,
+    assert(pass_count(N1)).
+
+increment_fail :-
+    retract(fail_count(N)),
+    N1 is N + 1,
+    assert(fail_count(N1)).
+
+% Test predicate with error handling
+test(Name, Goal, Expected) :-
+    increment_test,
+    write('Testing: '), writeln(Name),
+    catch(
+        (call(Goal) -> Result = true ; Result = false),
+        Error,
+        (write('  ERROR: '), writeln(Error), Result = error)
+    ),
+    (   Result == Expected
+    ->  write('  PASS'), nl,
+        increment_pass
+    ;   write('  FAIL - Expected: '), write(Expected),
+        write(', Got: '), writeln(Result),
+        increment_fail
+    ).
+
+% Test that expects an error
+test_error(Name, Goal, ExpectedError) :-
+    increment_test,
+    write('Testing: '), writeln(Name),
+    catch(
+        (call(Goal), Result = no_error),
+        Error,
+        (Error = ExpectedError -> Result = correct_error ; Result = wrong_error(Error))
+    ),
+    (   Result == correct_error
+    ->  write('  PASS (correct error)'), nl,
+        increment_pass
+    ;   Result == no_error
+    ->  write('  FAIL - Expected error but succeeded'), nl,
+        increment_fail
+    ;   write('  FAIL - Wrong error: '), writeln(Result),
+        increment_fail
+    ).
+
+% Count solutions
+count_solutions(Goal, Count) :-
+    findall(1, Goal, List),
+    length(List, Count).
+
+% Print section header
+section(Title) :-
+    nl,
+    write('========================================'), nl,
+    write('  '), writeln(Title),
+    write('========================================'), nl.
+
+% Cleanup all test predicates
+cleanup_all :-
+    retractall(fact(_)),
+    retractall(rule(_,_)),
+    retractall(multi(_)),
+    retractall(ordered(_)),
+    retractall(person(_,_)),
+    retractall(student(_)),
+    retractall(edge(_,_)),
+    retractall(data(_,_,_)),
+    retractall(temp(_)).
+
+% retract/1 Tests
+test_retract :-
+    section('retract/1 TESTS'),
+    
+    % Basic retraction
+    cleanup_all,
+    assertz(fact(x)),
+    test('retract single fact', retract(fact(x)), true),
+    test('fact removed after retract', \+ fact(x), true),
+    
+    % Retract non-existent fails
+    cleanup_all,
+    test('retract non-existent fails', retract(fact(nonexistent)), false),
+    
+    % Retract with unification
+    cleanup_all,
+    assertz(fact(a)),
+    assertz(fact(b)),
+    test('retract with var unifies', 
+         (retract(fact(X)), X == a), true),
+    test('second fact still exists', fact(b), true),
+    
+    % Retract first of multiple
+    cleanup_all,
+    assertz(multi(1)),
+    assertz(multi(2)),
+    assertz(multi(3)),
+    test('retract first of multiple', retract(multi(1)), true),
+    test('others remain', (multi(2), multi(3)), true),
+    test('first gone', \+ multi(1), true),
+    
+    % Retract with backtracking
+    cleanup_all,
+    assertz(multi(a)),
+    assertz(multi(b)),
+    assertz(multi(c)),
+    test('retract removes all on backtrack', 
+         (retract(multi(_)), fail ; \+ multi(_)), true),
+    
+    % Reset for next test
+    cleanup_all,
+    assertz(multi(a)),
+    assertz(multi(b)),
+    assertz(multi(c)),
+    test('retract counts correctly with findall',
+         count_solutions(retract(multi(_)), 3), true),
+    
+    % Retract compound terms
+    cleanup_all,
+    assertz(person(john, 30)),
+    assertz(person(jane, 25)),
+    test('retract compound', retract(person(john, 30)), true),
+    test('specific compound gone', \+ person(john, 30), true),
+    test('other compound remains', person(jane, 25), true),
+    
+    % Retract with partial instantiation
+    cleanup_all,
+    assertz(person(bob, 40)),
+    assertz(person(alice, 35)),
+    test('retract partial match', retract(person(bob, _)), true),
+    test('partial match removed', \+ person(bob, _), true),
+    test('other remains', person(alice, 35), true),
+    
+    % Retract rules (clauses with bodies)
+    cleanup_all,
+    assertz((rule(X, Y) :- X > Y)),
+    test('retract rule with body', 
+         retract((rule(A, B) :- A > B)), true),
+    test('rule removed', 
+         \+ clause(rule(_,_), _), true),
+    
+    % Retract only matches head when body not specified
+    cleanup_all,
+    assertz((rule(a, b) :- true)),
+    assertz(rule(c, d)),
+    test('retract without body matches any',
+         retract(rule(a, b)), true),
+    test('fact still remains', rule(c, d), true).
+
+% retractall/1 Tests
+test_retractall :-
+    section('retractall/1 TESTS'),
+    
+    % Basic retractall
+    cleanup_all,
+    assertz(fact(1)),
+    assertz(fact(2)),
+    assertz(fact(3)),
+    test('retractall multiple facts', retractall(fact(_)), true),
+    test('all facts removed', \+ fact(_), true),
+    
+    % Retractall non-existent (always succeeds)
+    cleanup_all,
+    test('retractall non-existent succeeds', 
+         retractall(fact(nonexistent)), true),
+    
+    % Retractall on empty database succeeds
+    cleanup_all,
+    test('retractall on empty succeeds', retractall(fact(_)), true),
+    
+    % Retractall specific pattern
+    cleanup_all,
+    assertz(data(a, 1, x)),
+    assertz(data(a, 2, y)),
+    assertz(data(b, 1, z)),
+    assertz(data(b, 2, w)),
+    test('retractall specific pattern', retractall(data(a, _, _)), true),
+    test('pattern removed', \+ data(a, _, _), true),
+    test('others remain', (data(b, 1, z), data(b, 2, w)), true),
+    
+    % Retractall with ground term
+    cleanup_all,
+    assertz(fact(a)),
+    assertz(fact(b)),
+    assertz(fact(a)),
+    assertz(fact(c)),
+    assertz(fact(a)),
+    test('retractall ground term', retractall(fact(a)), true),
+    test('all matching removed', \+ fact(a), true),
+    test('non-matching remain', (fact(b), fact(c)), true),
+    
+    % Retractall doesn't backtrack
+    cleanup_all,
+    assertz(temp(1)),
+    assertz(temp(2)),
+    assertz(temp(3)),
+    test('retractall no backtrack solutions',
+         count_solutions(retractall(temp(_)), 1), true),
+    test('all removed at once', \+ temp(_), true),
+    
+    % Retractall complex structures
+    cleanup_all,
+    assertz(edge(a, b)),
+    assertz(edge(b, c)),
+    assertz(edge(a, c)),
+    assertz(edge(c, d)),
+    test('retractall from node', retractall(edge(a, _)), true),
+    test('edges from a gone', \+ edge(a, _), true),
+    test('count remaining edges', 
+         count_solutions(edge(_,_), 2), true),
+    
+    % Retractall rules and facts mixed
+    cleanup_all,
+    assertz((rule(X, Y) :- X > Y)),
+    assertz(rule(a, b)),
+    assertz((rule(X, Y) :- X < Y)),
+    test('retractall removes all clauses', 
+         retractall(rule(_, _)), true),
+    test('all rules removed', \+ clause(rule(_,_), _), true),
+    
+    % Retractall with complex unification
+    cleanup_all,
+    assertz(data(f(a), g(b), 1)),
+    assertz(data(f(a), g(c), 2)),
+    assertz(data(f(b), g(b), 3)),
+    test('retractall complex pattern',
+         retractall(data(f(a), _, _)), true),
+    test('complex pattern removed',
+         \+ data(f(a), _, _), true),
+    test('other complex remains',
+         data(f(b), g(b), 3), true).
+
+% asserta/1 Tests
+test_asserta :-
+
+    section('asserta/1 TESTS'),
+    
+    % Basic asserta (adds to beginning)
+    cleanup_all,
+    assertz(ordered(3)),
+    assertz(ordered(2)),
+    asserta(ordered(1)),
+    test('asserta adds first', 
+         (ordered(X), !, X == 1), true),
+
+    % Verify order with asserta
+    cleanup_all,
+    assertz(ordered(c)),
+    asserta(ordered(b)),
+    asserta(ordered(a)),
+    test('asserta order check', 
+         (findall(X1, ordered(X1), L), L = [a,b,c]), true),
+    
+    % Asserta compound terms
+    cleanup_all,
+    assertz(person(bob, 30)),
+    asserta(person(alice, 25)),
+    test('asserta compound first', 
+         (person(Name1, _), !, Name1 == alice), true),
+    
+    % Asserta rules
+    cleanup_all,
+    asserta((rule(X, Y) :- X > Y)),
+    asserta((rule(X, Y) :- X < Y)),
+    test('asserta rules order',
+         (clause(rule(A1,B1), Body1), !, Body1 = (A1 < B)), true),
+    
+    % Multiple assertas
+    cleanup_all,
+    asserta(ordered(1)),
+    asserta(ordered(2)),
+    asserta(ordered(3)),
+    test('multiple assertas reverse order',
+         (findall(X2, ordered(X2), L2), L2 = [3,2,1]), true),
+    
+    % Asserta empty clause
+    cleanup_all,
+    asserta(fact(x)),
+    test('asserta simple fact', fact(x), true),
+    
+    % Asserta to empty database
+    cleanup_all,
+    asserta(temp(first)),
+    test('asserta to empty', temp(first), true).
+
+% assertz/1 Tests
+test_assertz :-
+    section('assertz/1 TESTS'),
+    
+    % Basic assertz (adds to end)
+    cleanup_all,
+    asserta(ordered(1)),
+    assertz(ordered(2)),
+    assertz(ordered(3)),
+    test('assertz order check',
+         (findall(X, ordered(X), L), L = [1,2,3]), true),
+    
+    % Assertz compound terms
+    cleanup_all,
+    assertz(person(john, 30)),
+    assertz(person(jane, 25)),
+    test('assertz preserves order',
+         (findall(N1, person(N1,_), L1), L1 = [john, jane]), true),
+    
+    % Assertz rules
+    cleanup_all,
+    assertz((rule(X, Y) :- X > Y)),
+    assertz((rule(X, Y) :- X < Y)),
+    test('assertz rules order',
+         (clause(rule(A,B), Body), !, Body = (A > B)), true),
+    
+    % Mixed asserta/assertz
+    cleanup_all,
+    assertz(ordered(3)),
+    asserta(ordered(1)),
+    assertz(ordered(4)),
+    asserta(ordered(0)),
+    assertz(ordered(5)),
+    test('mixed assert order',
+         (findall(X2, ordered(X2), L2), L2 = [0,1,3,4,5]), true),
+    
+    % Assertz to empty database
+    cleanup_all,
+    assertz(temp(last)),
+    test('assertz to empty', temp(last), true),
+    
+    % Assertz multiple same facts
+    cleanup_all,
+    assertz(fact(a)),
+    assertz(fact(a)),
+    assertz(fact(a)),
+    test('assertz duplicates',
+         count_solutions(fact(a), 3), true).
+
+% Corner Cases
+test_corner_cases :-
+    section('CORNER CASES'),
+    
+    % Empty database
+    cleanup_all,
+    test('retract from empty fails', retract(fact(_)), false),
+    test('retractall on empty succeeds', retractall(fact(_)), true),
+    
+    % Retract during iteration issue
+    cleanup_all,
+    assertz(temp(1)),
+    assertz(temp(2)),
+    assertz(temp(3)),
+    test('findall captures state',
+         (findall(X, temp(X), L1),
+          retract(temp(2)),
+          findall(Y, temp(Y), L2),
+          L1 = [1,2,3], L2 = [1,3]), true),
+    
+    % Retractall with unbound variables
+    cleanup_all,
+    assertz(data(a, b, c)),
+    assertz(data(d, e, f)),
+    test('retractall with fresh vars', 
+         retractall(data(_, _, _)), true),
+    test('all data gone', \+ data(_,_,_), true),
+    
+    % Complex unification in retract
+    cleanup_all,
+    assertz(fact(f(a, b))),
+    assertz(fact(f(c, d))),
+    test('retract with unification',
+         (retract(fact(f(X, Y))), X == a, Y == b), true),
+    test('second remains', fact(f(c, d)), true),
+    
+    % Duplicate facts
+    cleanup_all,
+    assertz(fact(a)),
+    assertz(fact(a)),
+    assertz(fact(a)),
+    test('count duplicates', count_solutions(fact(a), 3), true),
+    retract(fact(a)),
+    test('retract one duplicate', count_solutions(fact(a), 2), true),
+    retractall(fact(a)),
+    test('retractall removes all duplicates', \+ fact(a), true),
+    
+    % Nested structures
+    cleanup_all,
+    assertz(fact([a, [b, [c]]])),
+    test('retract nested', retract(fact([a, [b, [c]]])), true),
+    test('nested removed', \+ fact([a, [b, [c]]]), true),
+    
+    % Retract with cuts
+    cleanup_all,
+    assertz(temp(1)),
+    assertz(temp(2)),
+    assertz(temp(3)),
+    test('retract with cut stops backtrack', 
+         (retract(temp(_)), !), true),
+    test('only one retracted with cut', 
+         count_solutions(temp(_), 2), true),
+    
+    % Assert facts with variables
+    cleanup_all,
+    assertz(fact(X11)),
+    test('assert with unbound var',
+         (fact(Y11), var(Y11)), true),
+    
+    % Retract facts with variables
+    cleanup_all,
+    assertz(fact(X22)),
+    assertz(fact(a)),
+    test('retract unbound',
+         (retract(fact(Y22)), var(Y22)), true),
+    test('ground fact remains', fact(a), true).
+
+% Interaction tests
+test_interactions :-
+    section('INTERACTION TESTS'),
+    
+    % Retract then assert
+    cleanup_all,
+    assertz(fact(a)),
+    retract(fact(a)),
+    assertz(fact(a)),
+    test('retract then assert', fact(a), true),
+    
+    % Retractall then assert
+    cleanup_all,
+    assertz(fact(1)),
+    assertz(fact(2)),
+    retractall(fact(_)),
+    assertz(fact(3)),
+    test('after retractall only new',
+         (findall(X, fact(X), L), L = [3]), true),
+    
+    % Asserta after assertz
+    cleanup_all,
+    assertz(ordered(2)),
+    asserta(ordered(1)),
+    assertz(ordered(3)),
+    test('mixed assert types',
+         (findall(X1, ordered(X1), L1), L1 = [1,2,3]), true),
+    
+    % Multiple retractalls idempotent
+    cleanup_all,
+    assertz(fact(a)),
+    assertz(fact(b)),
+    retractall(fact(_)),
+    retractall(fact(_)),
+    test('multiple retractalls idempotent', 
+         \+ fact(_), true),
+    
+    % Assert after partial retract
+    cleanup_all,
+    assertz(data(1, a, x)),
+    assertz(data(2, b, y)),
+    assertz(data(3, c, z)),
+    retract(data(2, _, _)),
+    assertz(data(4, d, w)),
+    test('assert after partial retract',
+         (findall(X2, data(X2,_,_), L2), L2 = [1,3,4]), true),
+    
+    % Interleaved operations
+    cleanup_all,
+    assertz(temp(1)),
+    asserta(temp(0)),
+    retract(temp(1)),
+    assertz(temp(2)),
+    test('complex interleaving',
+         (findall(X3, temp(X3), L3), L3 = [0,2]), true).
+
+% Run all tests
+run_all_tests :-
+    init_counters,
+    write('Starting ISO Prolog Retract/Assert Test Suite'), nl,
+    write('================================================'), nl, nl,
+    
+    test_retract,
+    test_retractall,
+    test_asserta,
+    test_assertz,
+    test_corner_cases,
+    test_interactions,
+    
+    section('TEST SUMMARY'),
+    test_count(Total),
+    pass_count(Passed),
+    fail_count(Failed),
+    write('Total tests: '), writeln(Total),
+    write('Passed: '), writeln(Passed),
+    write('Failed: '), writeln(Failed),
+    nl,
+    (   Failed =:= 0
+    ->  writeln('All tests passed!')
+    ;   writeln('Some tests failed.')
+    ),
+    
+    % Final cleanup
+    cleanup_all.
+
+% Entry point
+?- run_all_tests, fail.

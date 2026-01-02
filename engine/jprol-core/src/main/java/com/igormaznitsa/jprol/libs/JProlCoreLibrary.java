@@ -70,7 +70,7 @@ import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.JProlTreeBuilder;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
-import com.igormaznitsa.jprol.logic.triggers.JProlContextTriggeringEventObserver;
+import com.igormaznitsa.jprol.logic.triggers.JProlContextTriggerGoalCaller;
 import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
@@ -2453,8 +2453,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
           }
         }).collect(Collectors.toSet());
 
-    final JProlContextTriggeringEventObserver triggeringEventObserver =
-        new JProlContextTriggeringEventObserver(callable);
+    final JProlContextTriggerGoalCaller triggeringEventObserver =
+        new JProlContextTriggerGoalCaller(callable);
 
     triggeringEventObserver.register(signature, types);
     goal.getContext().addTrigger(triggeringEventObserver);

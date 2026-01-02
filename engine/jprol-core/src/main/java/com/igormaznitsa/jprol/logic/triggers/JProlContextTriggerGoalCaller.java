@@ -17,16 +17,23 @@
 package com.igormaznitsa.jprol.logic.triggers;
 
 import com.igormaznitsa.jprol.data.Term;
+import com.igormaznitsa.jprol.data.TermStruct;
+import com.igormaznitsa.jprol.data.TermType;
+import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.exceptions.ProlChoicePointInterruptedException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
-import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PreparedGoal;
 
-public class JProlContextTriggeringEventObserver extends AbstractJProlContextTrigger {
+/**
+ * Wrapper around a goal to be called on a trigger event. Goal will be proven until prove fail.
+ *
+ * @since 3.0.0
+ */
+public class JProlContextTriggerGoalCaller extends AbstractJProlContextTrigger {
 
   private final PreparedGoal goal;
 
-  public JProlContextTriggeringEventObserver(final Term goal) {
+  public JProlContextTriggerGoalCaller(final Term goal) {
     super();
     this.goal = new PreparedGoal(goal);
   }
@@ -34,10 +41,21 @@ public class JProlContextTriggeringEventObserver extends AbstractJProlContextTri
   @Override
   public void onTriggerEvent(final TriggerEvent event) {
     if (this.goal != null) {
-      final JProlChoicePoint choicePoint =
-          event.getContext().makeChoicePoint(this.goal.getPreparedGoalTerm().makeClone());
+      final Term cloned = this.goal.getPreparedGoalTerm().makeClone();
+      if (cloned.getTermType() == TermType.STRUCT) {
+        final TermStruct struct = (TermStruct) cloned;
+        if (struct.getArity() > 0) {
+          if (!struct.getArgumentAt(0).unifyWith(Terms.newAtom(event.getSignature()))) {
+            return;
+          }
+        }
+      }
 
-      while (choicePoint.proveWithFailForUnknown() != null) {
+      final JProlChoicePoint choicePoint =
+          event.getContext().makeChoicePoint(cloned);
+
+      while (!Thread.currentThread().isInterrupted() &&
+          choicePoint.proveWithFailForUnknown() != null) {
         if (event.getContext().isDisposed()) {
           throw new ProlChoicePointInterruptedException("context disposed", choicePoint);
         }
@@ -45,8 +63,4 @@ public class JProlContextTriggeringEventObserver extends AbstractJProlContextTri
     }
   }
 
-  @Override
-  public void onContextDispose(final JProlContext context) {
-
-  }
 }

@@ -1,0 +1,232 @@
+% Test Suite for ISO Prolog ==/2 and =@=/2
+% Run with: ?- run_all_tests.
+
+%:- initialization(run_all_tests).
+
+% Test counter
+:- dynamic(test_count/1).
+:- dynamic(pass_count/1).
+:- dynamic(fail_count/1).
+
+init_counters :-
+    retractall(test_count(_)),
+    retractall(pass_count(_)),
+    retractall(fail_count(_)),
+    assert(test_count(0)),
+    assert(pass_count(0)),
+    assert(fail_count(0)).
+
+increment_test :-
+    retract(test_count(N)),
+    N1 is N + 1,
+    assert(test_count(N1)).
+
+increment_pass :-
+    retract(pass_count(N)),
+    N1 is N + 1,
+    assert(pass_count(N1)).
+
+increment_fail :-
+    retract(fail_count(N)),
+    N1 is N + 1,
+    assert(fail_count(N1)).
+
+% Test predicate
+test(Name, Goal, Expected) :-
+    increment_test,
+    write('Testing: '), writeln(Name),
+    (   call(Goal)
+    ->  Result = true
+    ;   Result = false
+    ),
+    (   Result == Expected
+    ->  write('  PASS'), nl,
+        increment_pass
+    ;   write('  FAIL - Expected: '), write(Expected),
+        write(', Got: '), writeln(Result),
+        increment_fail
+    ).
+
+% Print section header
+section(Title) :-
+    nl,
+    write('========================================'), nl,
+    write('  '), writeln(Title),
+    write('========================================'), nl.
+
+% ==/2 Tests (Strict Equality - Same Term, No Unification)
+test_strict_equality :-
+    section('==/2 STRICT EQUALITY TESTS'),
+    
+    % Basic identity tests
+    test('atom == atom', a == a, true),
+    test('different atoms', a == b, false),
+    test('integer == integer', 42 == 42, true),
+    test('different integers', 42 == 43, false),
+    test('float == float', 3.14 == 3.14, true),
+    test('different floats', 3.14 == 3.15, false),
+    
+    % Variable tests
+    test('unbound var == same var', (X1 == X1), true),
+    test('different unbound vars', (X2 == Y2), false),
+    test('bound var == bound var same value', (X3 = 5, Y3 = 5, X3 == Y3), true),
+    test('var bound to atom', (X4 = a, X4 == a), true),
+    test('var bound then compared', (X5 = a, Y5 = X5, Y5 == X5), true),
+    
+    % Number type distinctions
+    test('integer vs float same value', 1 == 1.0, false),
+    %test('positive vs negative zero float', 0.0 == -0.0, false),
+    
+    % String and atom tests
+    test('empty list == []', [] == [], true),
+    test('string vs atom', "abc" == abc, false),
+    
+    % Compound term tests
+    test('identical compound terms', f(a,b) == f(a,b), true),
+    test('different functors', f(a) == g(a), false),
+    test('different arity', f(a) == f(a,b), false),
+    test('different arguments', f(a,b) == f(a,c), false),
+    test('nested compounds', f(g(a)) == f(g(a)), true),
+    
+    % List tests
+    test('identical lists', [1,2,3] == [1,2,3], true),
+    test('different lists', [1,2,3] == [1,2,4], false),
+    %test('list vs dot notation', [a|[]] == .(a,[]), true),
+    test('nested lists', [[1,2],[3,4]] == [[1,2],[3,4]], true),
+    
+    % Variables in compound terms
+    test('compound with unbound vars', f(X6,X6) == f(Y6,Y6), false),
+    test('compound same var twice', (X7 = a, f(X7,X7) == f(a,a)), true),
+    test('partially instantiated', f(X8,a) == f(Y8,a), false).
+
+% =@=/2 Tests (Structural Equality - Variant Check)
+test_structural_equality :-
+    section('=@=/2 STRUCTURAL EQUALITY TESTS'),
+    
+    % Basic identity (should match ==)
+    test('atom =@= atom', a =@= a, true),
+    test('different atoms variant', a =@= b, false),
+    test('integer =@= integer', 42 =@= 42, true),
+    test('float =@= float', 3.14 =@= 3.14, true),
+    
+    % Key difference: Variable renaming
+    test('unbound var =@= same var', (X1 =@= X1), true),
+    test('different unbound vars variant', (X2 =@= Y2), true),
+    test('f(X,X) =@= f(Y,Y)', f(X3,X3) =@= f(Y3,Y3), true),
+    test('f(X,Y) =@= f(A,B)', f(X4,Y4) =@= f(A4,B4), true),
+    test('f(X,X) =@= f(Y,Z)', f(X5,X5) =@= f(Y5,Z5), false),
+    test('f(X,Y) =@= f(A,A)', f(X6,Y6) =@= f(A6,A6), false),
+    
+    % Bound variables
+    test('bound vars same value variant', (X7 = 5, Y7 = 5, X7 =@= Y7), true),
+    test('bound to different values', (X8 = 5, Y8 = 6, X8 =@= Y8), false),
+    
+    % Number types
+    test('integer vs float variant', 1 =@= 1.0, false),
+    
+    % Compound terms with variables
+    test('g(X,a,X) =@= g(Y,a,Y)', g(X9,a,X9) =@= g(Y9,a,Y9), true),
+    test('g(X,a,Y) =@= g(Z,a,W)', g(XA,a,YA) =@= g(ZA,a,WA), true),
+    test('h(X,X,Y) =@= h(A,A,B)', h(XB,XB,YB) =@= h(AB,AB,BB), true),
+    test('h(X,Y,X) =@= h(A,A,B)', h(XC,YC,XC) =@= h(AC,AC,BC), false),
+    
+    % Lists with variables
+    test('[X,Y] =@= [A,B]', [XD,YD] =@= [AD,BD], true),
+    test('[X,X] =@= [Y,Y]', [XE,XE] =@= [YE,YE], true),
+    test('[X,X] =@= [Y,Z]', [XF,XF] =@= [YF,ZF], false),
+    test('[X|Y] =@= [A|B]', [X10|Y10] =@= [A10|B10], true),
+    test('[X|X] =@= [Y|Y]', [X11|X11] =@= [Y11|Y11], true),
+    
+    % Nested structures
+    test('nested variant', f(g(X12,Y12),h(X12)) =@= f(g(A12,B12),h(A12)), true),
+    test('nested non-variant', f(g(X13,X13),h(X13)) =@= f(g(A13,B13),h(A13)), false),
+    
+    % Mixed bound and unbound
+    test('mixed bound/unbound', (X14 = a, f(X14,Y14) =@= f(a,Z14)), true),
+    test('all bound same', (X15 = a, Y15 = b, f(X15,Y15) =@= f(a,b)), true).
+
+% Corner Cases
+test_corner_cases :-
+    section('CORNER CASES'),
+    
+    % Empty structures
+    test('empty atoms', '' == '', true),
+    test('empty atoms variant', '' =@= '', true),
+    test('empty list identity', [] == [], true),
+    test('empty list variant', [] =@= [], true),
+    
+    % Deep nesting
+    test('deeply nested ==', f(f(f(a))) == f(f(f(a))), true),
+    test('deeply nested =@=', f(f(f(X))) =@= f(f(f(Y))), true),
+    
+    % Large numbers
+    test('large integer ==', 999999999999 == 999999999999, true),
+    test('large integer =@=', 999999999999 =@= 999999999999, true),
+    
+    % Special floats (if supported)
+    %test('negative zero ==', 0.0 == -0.0, false),
+    %test('negative zero =@=', 0.0 =@= -0.0, false),
+    
+    % Complex variable sharing
+    test('shared var structure ==', (f(X,X,g(X)) == f(Y,Y,g(Y))), false),
+    test('shared var structure =@=', (f(X,X,g(X)) =@= f(Y,Y,g(Y))), true),
+    test('partial sharing ==', (f(X,Y,X) == f(A,B,A)), false),
+    test('partial sharing =@=', (f(X,Y,X) =@= f(A,B,A)), true),
+    
+    % Circular structures (if supported)
+    test('self vs different var ==', (X == Y), false),
+    test('self vs different var =@=', (X =@= Y), true),
+    
+    % Mixed types in compounds
+    test('mixed types ==', f(1,a,3.14) == f(1,a,3.14), true),
+    test('mixed types =@=', f(1,a,3.14) =@= f(1,a,3.14), true),
+    test('mixed with vars =@=', f(1,X,3.14) =@= f(1,Y,3.14), true).
+
+% Asymmetry and transitivity tests
+test_properties :-
+    section('PROPERTY TESTS'),
+    
+    % Reflexivity
+    test('== reflexive constant', a == a, true),
+    test('=@= reflexive constant', a =@= a, true),
+    test('== reflexive var', (X == X), true),
+    test('=@= reflexive var', (X1 =@= X1), true),
+    
+    % Symmetry
+    test('== symmetric', ((a == b) = (b == a)), false),
+    test('=@= symmetric', ((a =@= b) = (b =@= a)), false),
+    
+    % Not transitive for variables with ==
+    test('== not unifying', (X2 = a, Y2 = a, X2 == Y2), true),
+    
+    % Variable renaming consistency
+    test('consistent renaming 1', f(X3,Y3,X3) =@= f(A,B,A), true),
+    test('consistent renaming 2', f(X4,Y4,Z4) =@= f(A4,B4,C4), true),
+    test('inconsistent renaming', f(X5,Y5,X5,Y5) =@= f(A5,B5,C5,D5), false).
+
+% Run all tests
+run_all_tests :-
+    init_counters,
+    write('Starting ISO Prolog ==/2 and =@=/2 Test Suite'), nl,
+    write('================================================'), nl, nl,
+    
+    test_strict_equality,
+    test_structural_equality,
+    test_corner_cases,
+    test_properties,
+    
+    section('TEST SUMMARY'),
+    test_count(Total),
+    pass_count(Passed),
+    fail_count(Failed),
+    write('Total tests: '), writeln(Total),
+    write('Passed: '), writeln(Passed),
+    write('Failed: '), writeln(Failed),
+    nl,
+    (   Failed =:= 0
+    ->  writeln('All tests passed!')
+    ;   writeln('Some tests failed.')
+    ).
+
+% Entry point
+?- run_all_tests.
