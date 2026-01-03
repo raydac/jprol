@@ -1,5 +1,7 @@
 3.0.0 (SNAPSHOT)
 
+    - Guarded predicates moved from core library to JProlCoreGuardedLibrary.
+    - Added `format/1`,`format/2` and `format/3` into JProlIoLibrary.
     - Internal random generator switched to SecureRandom.
     - Updated embedded JDK to 25.0.1+13.
     - Refactored API, renamed methods, some contants moved between classes, restored support of payload in terms.
