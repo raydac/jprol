@@ -18,9 +18,11 @@ package com.igormaznitsa.jprol.utils;
 
 import static com.igormaznitsa.jprol.data.TermList.NULL_LIST;
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
+import static com.igormaznitsa.jprol.data.TermType.LIST;
 import static com.igormaznitsa.jprol.data.Terms.newList;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
 
+import com.igormaznitsa.jprol.data.NumericTerm;
 import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
@@ -74,6 +76,35 @@ public final class ProlUtils {
       }
     }
     return builder.toString();
+  }
+
+  public static String fromCharCodeList(final TermList list) {
+    if (list.isNullList()) {
+      return "";
+    }
+
+    final StringBuilder buffer = new StringBuilder();
+    TermList current = list;
+    while (!current.isNullList()) {
+      final Term head = current.getHead().tryGround();
+      final Term tail = current.getTail().tryGround();
+
+      if (head instanceof NumericTerm) {
+        buffer.append((char) head.toNumber().intValue());
+      } else {
+        if (head.getTermType() == ATOM && head.getText().length() == 1) {
+          buffer.append(head.getText());
+        } else {
+          throw new IllegalArgumentException("Expected char code: " + head);
+        }
+      }
+
+      if (tail.getTermType() != LIST) {
+        break;
+      }
+      current = (TermList) tail;
+    }
+    return buffer.toString();
   }
 
   public static TermList toCharCodeList(final Term term) {

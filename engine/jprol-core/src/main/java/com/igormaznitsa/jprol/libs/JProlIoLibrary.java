@@ -1,8 +1,10 @@
 package com.igormaznitsa.jprol.libs;
 
 import static com.igormaznitsa.jprol.data.TermList.NULL_LIST;
+import static com.igormaznitsa.jprol.data.TermType.LIST;
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.libs.JProlCoreLibrary.predicateCALL;
+import static com.igormaznitsa.jprol.utils.ProlUtils.fromCharCodeList;
 import static com.igormaznitsa.jprol.utils.ProlUtils.readAsString;
 import static java.util.Objects.requireNonNullElse;
 
@@ -14,10 +16,13 @@ import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlRepresentationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
+import com.igormaznitsa.jprol.utils.ProlPair;
+import com.igormaznitsa.jprol.utils.PrologFormatConverter;
 import com.igormaznitsa.prologparser.GenericPrologParser;
 import com.igormaznitsa.prologparser.PrologParser;
 import com.igormaznitsa.prologparser.terms.PrologTerm;
@@ -273,6 +278,64 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
         throw new ProlPermissionErrorException("read", "text_input", predicate);
       }
     }).orElseThrow(() -> new ProlPermissionErrorException("read", "text_input", predicate));
+  }
+
+  @JProlPredicate(
+      signature = "format/1",
+      synonyms = {"format/2", "format/3"},
+      validate = {"+format", "+format,+list", "+atom,+format,+list"},
+      determined = true,
+      reference = "Print the message to the standard output stream"
+  )
+  public final boolean predicateFORMAT1_2_3(final JProlChoicePoint goal,
+                                            final TermStruct predicate) {
+    final Term output = predicate.getArity() == 3 ? predicate.getArgumentAt(0).tryGround() : null;
+    final Term format = predicate.getArity() == 3 ? predicate.getArgumentAt(1).tryGround() :
+        predicate.getArgumentAt(0).tryGround();
+
+    final Term arguments;
+    if (predicate.getArity() == 1) {
+      arguments = TermList.NULL_LIST;
+    } else {
+      arguments = predicate.getArity() == 3 ? predicate.getArgumentAt(2).tryGround() :
+          predicate.getArgumentAt(1).tryGround();
+    }
+
+    final String prologFormat;
+    final String javaStringFormat;
+    if (goal.getInternalObject() == null) {
+      prologFormat =
+          format instanceof TermList ? fromCharCodeList((TermList) format) : format.getText();
+      javaStringFormat = PrologFormatConverter.convertFormat(prologFormat);
+      goal.setInternalObject(ProlPair.makeOf(prologFormat, javaStringFormat));
+    } else {
+      final ProlPair<String, String> pair = goal.getInternalObject();
+      prologFormat = pair.getLeft();
+      javaStringFormat = pair.getRight();
+    }
+
+    if (arguments.getTermType() != LIST) {
+      throw new ProlTypeErrorException("list", "Expected list", arguments);
+    }
+
+    final Term[] prepared = ((TermList) arguments).toArray(true);
+    final String formatted;
+    try {
+      final Object[] convertedArgs = PrologFormatConverter.convertArguments(prologFormat, prepared);
+      formatted = String.format(javaStringFormat, convertedArgs);
+    } catch (Exception ex) {
+      throw new ProlRepresentationErrorException("format", "Format error: " + ex.getMessage(),
+          predicate);
+    }
+
+    return findCurrentOutput(goal.getContext(), predicate).map(writer -> {
+      try {
+        writer.write(formatted.toCharArray());
+        return true;
+      } catch (Exception ex) {
+        throw new ProlPermissionErrorException("format", "text_output", predicate, ex);
+      }
+    }).orElseThrow(() -> new ProlPermissionErrorException("format", "text_output", predicate));
   }
 
   @JProlPredicate(guarded = true, determined = true, signature = "get0/1", validate = "?number", reference = "Read next char code from the current input stream.")

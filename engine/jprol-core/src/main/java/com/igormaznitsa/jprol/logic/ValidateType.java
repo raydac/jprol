@@ -20,6 +20,7 @@ import java.util.function.Predicate;
 public enum ValidateType {
   TERM("term", s -> true, s -> null),
   ATOM("atom", s -> ProlAssertions.checkAtom(s) == null, ProlAssertions::checkAtom),
+  FORMAT("format", s -> ProlAssertions.checkFormat(s) == null, ProlAssertions::checkFormat),
   NAME("name", s -> ProlAssertions.checkName(s) == null, ProlAssertions::checkName),
   ARITY("arity", s -> ProlAssertions.checkArity(s) == null, ProlAssertions::checkArity),
   ATOMIC("atomic", s -> ProlAssertions.assertAtomic(s) == null, ProlAssertions::checkAtomic),

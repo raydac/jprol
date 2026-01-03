@@ -1,5 +1,7 @@
 package com.igormaznitsa.jprol.utils;
 
+import static com.igormaznitsa.jprol.data.TermType.ATOM;
+import static com.igormaznitsa.jprol.data.TermType.LIST;
 import static com.igormaznitsa.jprol.data.TermType.STRUCT;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 
@@ -148,6 +150,20 @@ public final class ProlAssertions {
     return result;
   }
 
+  public static ProlException checkFormat(final Term term) {
+    ProlException result = checkNonVar(term);
+    if (result == null) {
+      final Term ground = term.tryGround();
+      if (ground.getTermType() != LIST
+          && !(ground.getTermType() == ATOM && !(ground instanceof NumericTerm))
+          && checkString(term) != null) {
+        result = new ProlTypeErrorException("format",
+            "Atom, string or list expected: " + term.toSrcString(), term);
+      }
+    }
+    return result;
+  }
+
   public static ProlException checkAtom(final Term term) {
     ProlException result = checkNonVar(term);
     if (result == null) {
@@ -209,7 +225,7 @@ public final class ProlAssertions {
           if (tail.isNullList()) {
             break;
           }
-          if (tail.getTermType() == TermType.LIST) {
+          if (tail.getTermType() == LIST) {
             lst = (TermList) tail;
           } else {
             error = true;
@@ -306,7 +322,7 @@ public final class ProlAssertions {
 
   public static ProlException checkString(final Term term) {
     final Term that = term.tryGround();
-    if (that.getTermType() == TermType.LIST) {
+    if (that.getTermType() == LIST) {
       final TermList termList = (TermList) that;
       if (termList.isNullList()) {
         return null;
@@ -427,7 +443,7 @@ public final class ProlAssertions {
   public static ProlException checkCharCodeList(final Term term) {
     final Term t = term.tryGround();
     int errorCode = 0;
-    if (t.getTermType() == TermType.LIST) {
+    if (t.getTermType() == LIST) {
       TermList lst = (TermList) t;
       while (!lst.isNullList() && errorCode == 0) {
         final Term value = lst.getHead().tryGround();
@@ -443,7 +459,7 @@ public final class ProlAssertions {
           errorCode = value.getTermType() == VAR ? 3 : 1;
         }
         final Term tail = lst.getTail().tryGround();
-        if (tail.getTermType() == TermType.LIST) {
+        if (tail.getTermType() == LIST) {
           lst = (TermList) tail;
         } else {
           errorCode = tail.getTermType() == VAR ? 0 : 1;
@@ -482,7 +498,7 @@ public final class ProlAssertions {
     int errorCode = 0;
     if (t.getTermType() == VAR) {
       errorCode = 3;
-    } else if (t.getTermType() == TermType.LIST) {
+    } else if (t.getTermType() == LIST) {
       TermList lst = (TermList) t;
       while (!lst.isNullList() && errorCode == 0) {
         final Term value = lst.getHead().tryGround();
@@ -498,7 +514,7 @@ public final class ProlAssertions {
           errorCode = value.getTermType() == VAR ? 3 : 1;
         }
         final Term tail = lst.getTail().tryGround();
-        if (tail.getTermType() == TermType.LIST) {
+        if (tail.getTermType() == LIST) {
           lst = (TermList) tail;
         } else {
           errorCode = tail.getTermType() == VAR ? 0 : 1;
@@ -778,7 +794,7 @@ public final class ProlAssertions {
 
   public static ProlException checkList(final Term term) {
     final Term t = term.tryGround();
-    if (t.getTermType() != TermType.LIST) {
+    if (t.getTermType() != LIST) {
       return new ProlTypeErrorException("list", "List expected: " + t, t);
     }
     return null;
@@ -864,7 +880,7 @@ public final class ProlAssertions {
 
   public static ProlException checkNonEmptyList(final Term term) {
     final Term t = term.tryGround();
-    if (t.getTermType() != TermType.LIST) {
+    if (t.getTermType() != LIST) {
       return new ProlTypeErrorException("list", "Expected list: " + t, t);
     } else {
       if (t.isNullList()) {

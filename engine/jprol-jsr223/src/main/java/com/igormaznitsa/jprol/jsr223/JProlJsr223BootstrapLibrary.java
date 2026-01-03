@@ -1,7 +1,11 @@
 package com.igormaznitsa.jprol.jsr223;
 
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
+import com.igormaznitsa.jprol.data.Term;
+import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermStruct;
+import com.igormaznitsa.jprol.data.TermType;
+import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import java.io.IOException;
@@ -53,6 +57,45 @@ public class JProlJsr223BootstrapLibrary extends AbstractJProlLibrary {
         out.flush();
       } catch (IOException ex) {
         // ignore
+      }
+    });
+    return true;
+  }
+
+  @JProlPredicate(
+      signature = "format/1",
+      synonyms = {"format/2", "format/3"},
+      validate = {"+format", "+format,+list", "+atom,+format,+list"},
+      determined = true,
+      reference = "Print the message to the standard output stream"
+  )
+  public static boolean predicateFORMAT1_2_3(final JProlChoicePoint goal,
+                                             final TermStruct predicate) {
+    final Term output = predicate.getArity() == 3 ? predicate.getArgumentAt(0).tryGround() : null;
+    final Term format = predicate.getArity() == 3 ? predicate.getArgumentAt(1).tryGround() :
+        predicate.getArgumentAt(0).tryGround();
+
+    final Term arguments;
+    if (predicate.getArity() == 1) {
+      arguments = TermList.NULL_LIST;
+    } else {
+      arguments = predicate.getArity() == 3 ? predicate.getArgumentAt(2).tryGround() :
+          predicate.getArgumentAt(1).tryGround();
+    }
+
+    final String formatText = format.getText();
+
+    if (arguments.getTermType() != TermType.LIST) {
+      throw new ProlTypeErrorException("list", "Expected list", arguments);
+    }
+
+    findWriter(output == null ? WRITER_OUT : output.getText(), goal).ifPresent(out -> {
+      final String formatted = "";
+      try {
+        out.write(formatted.toCharArray());
+        out.flush();
+      } catch (IOException ex) {
+
       }
     });
     return true;
