@@ -21,7 +21,6 @@ import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
-import com.igormaznitsa.jprol.utils.ProlPair;
 import com.igormaznitsa.jprol.utils.PrologFormatConverter;
 import com.igormaznitsa.prologparser.GenericPrologParser;
 import com.igormaznitsa.prologparser.PrologParser;
@@ -301,22 +300,13 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
           predicate.getArgumentAt(1).tryGround();
     }
 
-    final String prologFormat;
-    final String javaStringFormat;
-    if (goal.getInternalObject() == null) {
-      prologFormat =
-          format instanceof TermList ? fromCharCodeList((TermList) format) : format.getText();
-      javaStringFormat = PrologFormatConverter.convertFormat(prologFormat);
-      goal.setInternalObject(ProlPair.makeOf(prologFormat, javaStringFormat));
-    } else {
-      final ProlPair<String, String> pair = goal.getInternalObject();
-      prologFormat = pair.getLeft();
-      javaStringFormat = pair.getRight();
+    if (arguments.getTermType() != LIST) {
+      throw new ProlTypeErrorException("list", "expected list", arguments);
     }
 
-    if (arguments.getTermType() != LIST) {
-      throw new ProlTypeErrorException("list", "Expected list", arguments);
-    }
+    final String prologFormat = format.getTermType() == LIST ?
+        fromCharCodeList((TermList) format).orElseGet(format::getText) : format.getText();
+    final String javaStringFormat = PrologFormatConverter.convertFormat(prologFormat);
 
     final Term[] prepared = ((TermList) arguments).toArray(true);
     final String formatted;
@@ -324,7 +314,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
       final Object[] convertedArgs = PrologFormatConverter.convertArguments(prologFormat, prepared);
       formatted = String.format(javaStringFormat, convertedArgs);
     } catch (Exception ex) {
-      throw new ProlRepresentationErrorException("format", "Format error: " + ex.getMessage(),
+      throw new ProlRepresentationErrorException("format", "format error: " + ex.getMessage(),
           predicate);
     }
 

@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -78,9 +79,9 @@ public final class ProlUtils {
     return builder.toString();
   }
 
-  public static String fromCharCodeList(final TermList list) {
+  public static Optional<String> fromCharCodeList(final TermList list) {
     if (list.isNullList()) {
-      return "";
+      return Optional.of("");
     }
 
     final StringBuilder buffer = new StringBuilder();
@@ -95,16 +96,16 @@ public final class ProlUtils {
         if (head.getTermType() == ATOM && head.getText().length() == 1) {
           buffer.append(head.getText());
         } else {
-          throw new IllegalArgumentException("Expected char code: " + head);
+          return Optional.empty();
         }
       }
 
       if (tail.getTermType() != LIST) {
-        break;
+        return Optional.empty();
       }
       current = (TermList) tail;
     }
-    return buffer.toString();
+    return Optional.of(buffer.toString());
   }
 
   public static TermList toCharCodeList(final Term term) {
