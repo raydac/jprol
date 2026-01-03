@@ -16,14 +16,24 @@
 
 package com.igormaznitsa.jprol.easygui;
 
+import static com.igormaznitsa.jprol.utils.ProlUtils.repeat;
+import static java.util.Objects.requireNonNull;
+
+import com.igormaznitsa.jprol.logic.JProlSystemFlag;
+import com.igormaznitsa.jprol.logic.ValidateModificator;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
+import java.util.Arrays;
+import java.util.Comparator;
 import javax.swing.AbstractAction;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -92,8 +102,28 @@ public final class LibraryInfoDialog extends JDialog {
   }
 
   public String fillTextInfoFromLibraries(final String[] libraries) throws Exception {
-    final ByteArrayOutputStream baos = new ByteArrayOutputStream(16384);
-    try (PrintStream out = new PrintStream(baos)) {
+    final ByteArrayOutputStream output = new ByteArrayOutputStream(16384);
+    try (PrintStream out = new PrintStream(output)) {
+      out.println(" System flags");
+      out.println("---------------------------");
+      Arrays.stream(JProlSystemFlag.values()).sorted(Comparator.comparing(JProlSystemFlag::asText))
+          .forEach(x -> {
+            out.println(
+                " * " + x.asText() + repeat(' ', 32 - x.asText().length()) + x.getReference());
+          });
+      out.println();
+      out.println(" Type validating modificators");
+      out.println("---------------------------");
+      Arrays.stream(ValidateModificator.values())
+          .sorted(Comparator.comparing(ValidateModificator::getText))
+          .forEach(x -> {
+            out.println(
+                " * " + x.getText() + repeat(' ', 16 - x.getText().length()) + x.getDescription());
+          });
+      out.println();
+      out.println(" Library definitions");
+      out.println("---------------------------");
+
       for (String library : libraries) {
         final Class<?> libraryClass = Class.forName(library);
         UiUtils.printPredicatesForLibrary(out, libraryClass);
@@ -101,11 +131,11 @@ public final class LibraryInfoDialog extends JDialog {
       }
     }
 
-    return baos.toString(StandardCharsets.UTF_8);
+    return output.toString(StandardCharsets.UTF_8);
   }
 
   private void initComponents() {
-    java.awt.GridBagConstraints gridBagConstraints;
+    GridBagConstraints gridBagConstraints;
 
     textPaneLibText = new ScalableRsyntaxTextArea("text/plain");
     textPaneScroll = new RTextScrollPane(textPaneLibText, false);
@@ -126,61 +156,61 @@ public final class LibraryInfoDialog extends JDialog {
     textPaneLibText.setCaretColor(new java.awt.Color(153, 153, 255));
     textPaneScroll.setViewportView(textPaneLibText);
 
-    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints = new GridBagConstraints();
     gridBagConstraints.gridx = 0;
     gridBagConstraints.gridy = 0;
     gridBagConstraints.gridwidth = 3;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+    gridBagConstraints.fill = GridBagConstraints.BOTH;
     gridBagConstraints.weightx = 1000.0;
     gridBagConstraints.weighty = 1000.0;
     getContentPane().add(textPaneScroll, gridBagConstraints);
 
-    buttonClose.setIcon(new javax.swing.ImageIcon(Objects.requireNonNull(
+    buttonClose.setIcon(new ImageIcon(requireNonNull(
         getClass().getResource("/com/igormaznitsa/jprol/easygui/icons/cross.png")))); // NOI18N
     buttonClose.setText("Close");
     buttonClose.setToolTipText("Close the dialog");
     buttonClose.addActionListener(this::ButtonCloseActionPerformed);
-    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints = new GridBagConstraints();
     gridBagConstraints.gridx = 2;
     gridBagConstraints.gridy = 1;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-    gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 0);
+    gridBagConstraints.fill = GridBagConstraints.BOTH;
+    gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+    gridBagConstraints.insets = new Insets(0, 8, 0, 0);
     getContentPane().add(buttonClose, gridBagConstraints);
 
     textFieldTextToSearch.setFont(new java.awt.Font("Dialog", Font.BOLD, 12)); // NOI18N
     textFieldTextToSearch.setToolTipText("Enter word to find and press enter (? and * wildcard characters are supported)");
-    textFieldTextToSearch.addKeyListener(new java.awt.event.KeyAdapter() {
+    textFieldTextToSearch.addKeyListener(new KeyAdapter() {
       @Override
-      public void keyReleased(java.awt.event.KeyEvent evt) {
+      public void keyReleased(KeyEvent evt) {
         textFieldTextToSearchKeyReleased(evt);
       }
     });
-    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints = new GridBagConstraints();
     gridBagConstraints.gridx = 1;
     gridBagConstraints.gridy = 1;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+    gridBagConstraints.fill = GridBagConstraints.BOTH;
+    gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
     gridBagConstraints.weightx = 1000.0;
     getContentPane().add(textFieldTextToSearch, gridBagConstraints);
 
     labelTextToSearch.setText("Text to search:");
-    gridBagConstraints = new java.awt.GridBagConstraints();
+    gridBagConstraints = new GridBagConstraints();
     gridBagConstraints.gridx = 0;
     gridBagConstraints.gridy = 1;
-    gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-    gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-    gridBagConstraints.insets = new java.awt.Insets(0, 8, 0, 8);
+    gridBagConstraints.fill = GridBagConstraints.BOTH;
+    gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+    gridBagConstraints.insets = new Insets(0, 8, 0, 8);
     getContentPane().add(labelTextToSearch, gridBagConstraints);
 
     pack();
   }
 
-  private void ButtonCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ButtonCloseActionPerformed
+  private void ButtonCloseActionPerformed(ActionEvent evt) {
     setVisible(false);
   }
 
-  private void textFieldTextToSearchKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_textFieldTextToSearchKeyReleased
+  private void textFieldTextToSearchKeyReleased(KeyEvent evt) {
     if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
       searchCurrentTextFromPosition();
     }
