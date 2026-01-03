@@ -3,13 +3,22 @@ package com.igormaznitsa.jprol.jsr223;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.igormaznitsa.jprol.data.Terms;
+import com.igormaznitsa.jprol.kbase.KnowledgeBase;
+import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.libs.JProlCoreGuardedLibrary;
+import com.igormaznitsa.jprol.libs.JProlIoLibrary;
+import com.igormaznitsa.jprol.logic.JProlContext;
+import com.igormaznitsa.jprol.logic.JProlSystemFlag;
+import com.igormaznitsa.prologparser.ParserContext;
+import java.io.Writer;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.script.Bindings;
@@ -26,29 +35,35 @@ import org.junit.jupiter.api.Test;
 public class SimpleJsr223Test {
 
   private ScriptEngine findScriptEngine() {
-    return this.findScriptEngine(false);
+    return this.findScriptEngine(List.of());
   }
 
-  private ScriptEngine findScriptEngine(final boolean addGuardedLibrary) {
+  private ScriptEngine findScriptEngine(final List<AbstractJProlLibrary> additionalLibraries) {
     final JProlScriptEngineFactory factory =
         (JProlScriptEngineFactory) new ScriptEngineManager().getEngineFactories()
             .stream().filter(x -> x.getNames().contains("jprol.prolog")).findFirst().orElseThrow();
-    return addGuardedLibrary ? factory.getScriptEngine(new JProlCoreGuardedLibrary()) :
-        factory.getScriptEngine();
+    final ScriptEngine engine = factory.createScriptEngine(additionalLibraries);
+    engine.getBindings(ScriptContext.ENGINE_SCOPE)
+        .put(JProlScriptEngine.JPROL_CONTEXT_FLAGS, Map.of(
+            JProlSystemFlag.VERIFY.asText(), false));
+    return engine;
   }
 
   @Test
-  void testDisableCriticalPredicateClause() throws Exception {
-    final ScriptEngine engine = findScriptEngine(true);
+  void testDisableCriticalPredicateClause() {
+    final ScriptEngine engine =
+        findScriptEngine(List.of(new JProlCoreGuardedLibrary(), new JProlIoLibrary()));
     engine.getBindings(ScriptContext.GLOBAL_SCOPE).put(
         JProlScriptEngine.JPROL_GLOBAL_GUARD_PREDICATE,
         (JProlGuardPredicate) (sourceLibrary, choicePoint, predicateIndicator) -> !"clause/2".equals(
             predicateIndicator));
 
+    assertDoesNotThrow(() -> engine.eval("?-write('hello')."));
     assertThrowsExactly(ScriptException.class, () ->
         engine.eval("?-clause(a(X),(X = 10))."));
 
-    final ScriptEngine engineWithoutRestriction = findScriptEngine(true);
+    final ScriptEngine engineWithoutRestriction =
+        findScriptEngine(List.of(new JProlCoreGuardedLibrary(), new JProlIoLibrary()));
     assertDoesNotThrow(() ->
         engineWithoutRestriction.eval("?-clause(a(X),(X = 10))."));
 
@@ -101,6 +116,23 @@ public class SimpleJsr223Test {
     assertTrue((boolean) invocable.invokeFunction("list_length", List.of(1, 2, 3, 4, 5),
         Terms.newVar("Length")));
     assertEquals(5L, engine.get("Length"));
+    assertTrue((boolean) invocable.invokeMethod(null, "list_length", List.of(1, 2, 3, 4, 5, 6),
+        Terms.newVar("Length")));
+    assertEquals(6L, engine.get("Length"));
+
+    assertNotNull(invocable.getInterface(JProlScriptEngine.class));
+    assertNotNull(invocable.getInterface(ScriptContext.class));
+    assertNotNull(invocable.getInterface(JProlScriptEngineContext.class).getKnowledgeBase());
+    assertNotNull(invocable.getInterface(KnowledgeBase.class));
+    assertNotNull(invocable.getInterface(JProlContext.class));
+    assertNotNull(invocable.getInterface(ParserContext.class));
+    assertNull(invocable.getInterface(Writer.class));
+
+    invocable.getInterface(JProlScriptEngineContext.class).clear(true);
+    invocable.getInterface(JProlScriptEngine.class).close();
+    assertThrowsExactly(IllegalStateException.class,
+        () -> invocable.invokeMethod(null, "list_length", List.of(1, 2, 3, 4, 5, 6),
+            Terms.newVar("Length")));
   }
 
   @Test

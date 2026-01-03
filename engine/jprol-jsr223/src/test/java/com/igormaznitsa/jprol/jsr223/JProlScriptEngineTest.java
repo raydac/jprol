@@ -15,6 +15,7 @@ import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -54,7 +55,7 @@ class JProlScriptEngineTest {
     System.out.println("Test 1: Basic Custom Library");
     System.out.println("-----------------------------");
 
-    JProlScriptEngine engine = (JProlScriptEngine) factory.getScriptEngine(
+    JProlScriptEngine engine = (JProlScriptEngine) factory.createScriptEngine(
         new BasicCustomLibrary()
     );
 
@@ -82,7 +83,7 @@ class JProlScriptEngineTest {
     System.out.println("Test 2: Math Library");
     System.out.println("--------------------");
 
-    JProlScriptEngine engine = (JProlScriptEngine) factory.getScriptEngine(
+    JProlScriptEngine engine = (JProlScriptEngine) factory.createScriptEngine(
         new MathLibrary()
     );
 
@@ -128,7 +129,7 @@ class JProlScriptEngineTest {
     System.out.println("Test 3: String Library");
     System.out.println("----------------------");
 
-    JProlScriptEngine engine = (JProlScriptEngine) factory.getScriptEngine(
+    JProlScriptEngine engine = (JProlScriptEngine) factory.createScriptEngine(
         new StringLibrary()
     );
 
@@ -173,7 +174,7 @@ class JProlScriptEngineTest {
     System.out.println("Test 4: Multiple Libraries");
     System.out.println("--------------------------");
 
-    JProlScriptEngine engine = (JProlScriptEngine) factory.getScriptEngine(
+    JProlScriptEngine engine = (JProlScriptEngine) factory.createScriptEngine(
         new MathLibrary(),
         new StringLibrary()
     );
@@ -213,7 +214,7 @@ class JProlScriptEngineTest {
     final Bindings engineBindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
     engineBindings.put("A", 7);
 
-    engine.eval("?- square(A, X).", context);
+    engine.eval(new StringReader("?- square(A, X)."), context);
 
     Bindings bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
     Object result = bindings.get("X");
@@ -263,7 +264,7 @@ class JProlScriptEngineTest {
     System.out.println("Test 7: DateTime Library");
     System.out.println("------------------------");
 
-    JProlScriptEngine engine = (JProlScriptEngine) factory.getScriptEngine(
+    JProlScriptEngine engine = (JProlScriptEngine) factory.createScriptEngine(
         new DateTimeLibrary()
     );
 
@@ -307,7 +308,7 @@ class JProlScriptEngineTest {
     System.out.println("Test 8: Collection Library");
     System.out.println("--------------------------");
 
-    JProlScriptEngine engine = (JProlScriptEngine) factory.getScriptEngine(
+    JProlScriptEngine engine = (JProlScriptEngine) factory.createScriptEngine(
         new CollectionLibrary()
     );
 
@@ -341,7 +342,7 @@ class JProlScriptEngineTest {
     System.out.println("Test 9: Complex Integration");
     System.out.println("---------------------------");
 
-    JProlScriptEngine engine = (JProlScriptEngine) factory.getScriptEngine(
+    JProlScriptEngine engine = (JProlScriptEngine) factory.createScriptEngine(
         new MathLibrary(),
         new StringLibrary(),
         new CollectionLibrary()
@@ -449,7 +450,7 @@ class JProlScriptEngineTest {
     System.out.println("Test 12: Compiled Scripts");
     System.out.println("-------------------------");
 
-    JProlScriptEngine engine = (JProlScriptEngine) factory.getScriptEngine(
+    JProlScriptEngine engine = (JProlScriptEngine) factory.createScriptEngine(
         new MathLibrary()
     );
 

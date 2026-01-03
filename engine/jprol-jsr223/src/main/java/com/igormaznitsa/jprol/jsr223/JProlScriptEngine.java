@@ -1,8 +1,9 @@
 package com.igormaznitsa.jprol.jsr223;
 
-import static com.igormaznitsa.jprol.jsr223.JProlJsr223BootstrapLibrary.READER_IN;
+import static com.igormaznitsa.jprol.data.Terms.newAtom;
+import static com.igormaznitsa.jprol.jsr223.JProlJsr223BootstrapLibrary.READER_USER;
 import static com.igormaznitsa.jprol.jsr223.JProlJsr223BootstrapLibrary.WRITER_ERR;
-import static com.igormaznitsa.jprol.jsr223.JProlJsr223BootstrapLibrary.WRITER_OUT;
+import static com.igormaznitsa.jprol.jsr223.JProlJsr223BootstrapLibrary.WRITER_USER;
 import static com.igormaznitsa.jprol.jsr223.JProlScriptEngineUtils.asJProlContext;
 import static com.igormaznitsa.jprol.jsr223.JProlScriptEngineUtils.isValidPrologVariableName;
 import static com.igormaznitsa.jprol.jsr223.JProlScriptEngineUtils.java2term;
@@ -101,7 +102,7 @@ public class JProlScriptEngine
     @Override
     public Reader findReader(JProlContext context, String readerId) {
       Reader result = null;
-      if (READER_IN.equals(readerId)) {
+      if (READER_USER.equals(readerId)) {
         result = new InputStreamReader(System.in, Charset.defaultCharset());
       }
       return result;
@@ -110,7 +111,7 @@ public class JProlScriptEngine
     @Override
     public Writer findWriter(final JProlContext context, final String writerId,
                              final boolean append) {
-      if (WRITER_OUT.equals(writerId)) {
+      if (WRITER_USER.equals(writerId)) {
         return new PrintWriter(System.out, true, Charset.defaultCharset());
       } else if (WRITER_ERR.equals(writerId)) {
         return new PrintWriter(System.err, true, Charset.defaultCharset());
@@ -350,18 +351,7 @@ public class JProlScriptEngine
 
   @Override
   public Object eval(final Reader reader, final ScriptContext context) throws ScriptException {
-    this.assertNotClosed();
-    try {
-      StringBuilder sb = new StringBuilder();
-      char[] buffer = new char[8192];
-      int len;
-      while ((len = reader.read(buffer)) != -1) {
-        sb.append(buffer, 0, len);
-      }
-      return this.eval(sb.toString(), context);
-    } catch (IOException e) {
-      throw new ScriptException(e);
-    }
+    return this.eval(reader, context, null);
   }
 
   @Override
@@ -418,7 +408,7 @@ public class JProlScriptEngine
         throw new ScriptException(
             "Error parsing query: " + e.getMessage() + " " + e.getLine() + ':' + e.getPos());
       } else {
-        throw new ScriptException("Error parsing query: " + e.getMessage());
+        throw new ScriptException(e);
       }
     } catch (Exception e) {
       throw new ScriptException(e);
@@ -431,23 +421,19 @@ public class JProlScriptEngine
     try {
       this.engineContext.get().findOrMakeJProlContext().consult(new StringReader(source));
     } catch (Exception e) {
-      throw new ScriptException("Error consulting Prolog source: " + e.getMessage());
+      throw new ScriptException(e);
     }
   }
 
   public Object getFlag(final String flagName) throws ScriptException {
     this.assertNotClosed();
-    final JProlSystemFlag flag = JProlSystemFlag.find(Terms.newAtom(flagName))
+    final JProlSystemFlag flag = JProlSystemFlag.find(newAtom(flagName))
         .orElseThrow(() -> new IllegalArgumentException("Unsupported flag: " + flagName));
     try {
       final JProlContext prolContext = this.engineContext.get().findOrMakeJProlContext();
       return prolContext.getSystemFlag(flag);
     } catch (Exception e) {
-      if (e instanceof ScriptException) {
-        throw (ScriptException) e;
-      } else {
-        throw new ScriptException("Error getting flag: " + e.getMessage());
-      }
+      throw new ScriptException(e);
     }
   }
 
@@ -557,7 +543,15 @@ public class JProlScriptEngine
       if (targetClass.isAssignableFrom(JProlScriptEngine.class)) {
         result = (T) engine;
       } else {
-        final JProlContext prolContext = this.engineContext.get().findJProlContext();
+        final JProlScriptEngineContext scriptEngineContext = this.engineContext.get();
+        if (scriptEngineContext != null
+            && (targetClass.isAssignableFrom(ScriptContext.class) ||
+            targetClass.isAssignableFrom(JProlScriptEngineContext.class))) {
+          return (T) scriptEngineContext;
+        }
+
+        final JProlContext prolContext = scriptEngineContext == null ? null
+            : scriptEngineContext.findJProlContext();
         if (prolContext != null && targetClass.isAssignableFrom(JProlContext.class)) {
           result = (T) prolContext;
         } else if (prolContext != null && targetClass.isAssignableFrom(ParserContext.class)) {
@@ -591,7 +585,7 @@ public class JProlScriptEngine
 
   public void setFlag(final String name, final Object value) {
     this.assertNotClosed();
-    final JProlSystemFlag flag = JProlSystemFlag.find(Terms.newAtom(name))
+    final JProlSystemFlag flag = JProlSystemFlag.find(newAtom(name))
         .orElseThrow(() -> new IllegalArgumentException("Unsupported flag: " + name));
     final JProlContext prolContext = this.engineContext.get().findOrMakeJProlContext();
     prolContext.setSystemFlag(flag, java2term(value));

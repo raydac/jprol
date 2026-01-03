@@ -140,15 +140,15 @@ public class JProlScriptEngineFactory implements ScriptEngineFactory {
 
   @Override
   public ScriptEngine getScriptEngine() {
-    return this.getScriptEngine(List.of());
+    return this.createScriptEngine(List.of());
   }
 
-  public ScriptEngine getScriptEngine(final AbstractJProlLibrary... libraries) {
-    return this.getScriptEngine(
+  public ScriptEngine createScriptEngine(final AbstractJProlLibrary... libraries) {
+    return this.createScriptEngine(
         Arrays.stream(libraries).filter(Objects::nonNull).collect(Collectors.toList()));
   }
 
-  public ScriptEngine getScriptEngine(final List<AbstractJProlLibrary> libraries) {
+  public ScriptEngine createScriptEngine(final List<AbstractJProlLibrary> libraries) {
     final JProlScriptEngine engine = new JProlScriptEngine(this);
     if (libraries != null && !libraries.isEmpty()) {
       engine.getBindings(ScriptContext.ENGINE_SCOPE)

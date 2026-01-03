@@ -360,6 +360,25 @@ public final class ProlUtils {
     return String.format("%02d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds);
   }
 
+  public static String repeat(final String s, final int counter) {
+    if (s == null || s.length() == 0) {
+      return s;
+    }
+    final StringBuilder result = new StringBuilder();
+    for (int i = 0; i < counter; i++) {
+      result.append(s);
+    }
+    return result.toString();
+  }
+
+  public static String repeat(final char c, final int counter) {
+    final StringBuilder result = new StringBuilder();
+    for (int i = 0; i < counter; i++) {
+      result.append(c);
+    }
+    return result.toString();
+  }
+
   public static ProlPair<String, Integer> parseSignaturePair(final String signature) {
     if (signature == null) {
       throw new NullPointerException("Null signature not allowed");

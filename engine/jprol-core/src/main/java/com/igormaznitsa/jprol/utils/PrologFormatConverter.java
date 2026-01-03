@@ -1,6 +1,7 @@
 package com.igormaznitsa.jprol.utils;
 
 import static com.igormaznitsa.jprol.utils.ProlUtils.fromCharCodeList;
+import static com.igormaznitsa.jprol.utils.ProlUtils.repeat;
 import static java.lang.Character.isDigit;
 
 import com.igormaznitsa.jprol.data.NumericTerm;
@@ -190,7 +191,7 @@ public final class PrologFormatConverter {
           case '+': {// column position - approximate
             if (!modifier.isEmpty()) {
               int width = Integer.parseInt(modifier);
-              result.append(" ".repeat(width));
+              result.append(repeat(" ", width));
             }
           }
           break;
@@ -306,7 +307,7 @@ public final class PrologFormatConverter {
             switch (directive) {
               case 'c': { // char code
                 final int repeat = number == null ? 1 : number.intValue();
-                javaObject = ("" + (char) arg.toNumber().intValue()).repeat(repeat);
+                javaObject = repeat((char) arg.toNumber().intValue(), repeat);
               }
               break;
               case 'R':

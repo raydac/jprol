@@ -10,18 +10,18 @@ import static com.igormaznitsa.jprol.jsr223.JProlScriptEngineUtils.java2term;
 import static java.lang.System.identityHashCode;
 import static java.util.Objects.requireNonNull;
 
+import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
 import com.igormaznitsa.jprol.kbase.inmemory.ConcurrentInMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
-import com.igormaznitsa.jprol.utils.ProlUtils;
+import com.igormaznitsa.jprol.logic.JProlSystemFlag;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
-import java.io.StringReader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
@@ -174,14 +174,13 @@ public class JProlScriptEngineContext implements ScriptContext {
     Object flagAttributes = this.getAttribute(JPROL_CONTEXT_FLAGS);
     if (flagAttributes != null) {
       if (flagAttributes instanceof Map) {
-        final StringBuilder buffer = new StringBuilder();
         final Map<String, Object> flags = (Map<String, Object>) flagAttributes;
         for (Map.Entry<String, Object> entry : flags.entrySet()) {
-          buffer.append(":- set_prolog_flag('").append(ProlUtils.escapeSrc(entry.getKey()))
-              .append("', ").append(java2term(entry.getValue()).toSrcString())
-              .append("). ");
+          final JProlSystemFlag systemFlag = JProlSystemFlag.find(Terms.newAtom(entry.getKey()))
+              .orElseThrow(
+                  () -> new IllegalArgumentException("Unknown system flag: " + entry.getKey()));
+          result.setSystemFlag(systemFlag, java2term(entry.getValue()));
         }
-        result.consult(new StringReader(buffer.toString()));
       } else {
         throw new IllegalArgumentException("Expected Map<String,Object> for flags but found " +
             flagAttributes.getClass().getCanonicalName());
