@@ -191,7 +191,7 @@ public class Term {
   }
 
   @SuppressWarnings("unchecked")
-  public <T extends Term> T findGroundOrDefault(final T term) {
+  public <T extends Term> T tryGroundOrDefault(final T defaultValue) {
     return (T) this;
   }
 

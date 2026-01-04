@@ -292,7 +292,7 @@ public final class TermVar extends Term {
     if (this.isAnonymous()) {
       return Map.of();
     }
-    return Map.of(this.getText(), this.findGroundOrDefault(this));
+    return Map.of(this.getText(), this.tryGroundOrDefault(this));
   }
 
   @Override
@@ -324,13 +324,13 @@ public final class TermVar extends Term {
   @SuppressWarnings("unchecked")
   public <T extends Term> T tryGround() {
     return this.immediateValue == null ? (T) this :
-        (T) this.immediateValue.findGroundOrDefault(this);
+        (T) this.immediateValue.tryGroundOrDefault(this);
   }
 
   @Override
-  public <T extends Term> T findGroundOrDefault(final T defaultTerm) {
-    return this.immediateValue == null ? defaultTerm :
-        this.immediateValue.findGroundOrDefault(defaultTerm);
+  public <T extends Term> T tryGroundOrDefault(final T defaultValue) {
+    return this.immediateValue == null ? defaultValue :
+        this.immediateValue.tryGroundOrDefault(defaultValue);
   }
 
   @Override

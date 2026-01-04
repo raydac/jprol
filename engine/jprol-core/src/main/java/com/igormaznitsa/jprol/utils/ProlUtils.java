@@ -315,8 +315,8 @@ public final class ProlUtils {
     if (struct.getArity() != 2) {
       return null;
     }
-    final Term left = struct.getArgumentAt(0).findGroundOrDefault(null);
-    final Term right = struct.getArgumentAt(1).findGroundOrDefault(null);
+    final Term left = struct.getArgumentAt(0).tryGroundOrDefault(null);
+    final Term right = struct.getArgumentAt(1).tryGroundOrDefault(null);
 
     if (right instanceof TermLong && left.getTermType() == ATOM) {
       return left.getText() + '/' + right.getText();

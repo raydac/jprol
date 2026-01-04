@@ -342,7 +342,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
         }
       }
 
-      final Term theTerm = this.goalTerm.findGroundOrDefault(this.goalTerm);
+      final Term theTerm = this.goalTerm.tryGroundOrDefault(this.goalTerm);
 
 
       if (this.clauseIterator != null) {

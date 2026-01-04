@@ -401,7 +401,7 @@ public class JProlContext implements AutoCloseable {
     if (flag.isReadOnly()) {
       throw new IllegalStateException("Flag is marked as read-only: " + flag);
     } else {
-      final Term value = requireNonNull(term.findGroundOrDefault(null));
+      final Term value = requireNonNull(term.tryGroundOrDefault(null));
       this.systemFlags.put(flag, value);
       this.onSystemFlagsUpdated();
     }

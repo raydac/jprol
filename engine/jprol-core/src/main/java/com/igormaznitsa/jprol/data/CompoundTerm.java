@@ -33,6 +33,6 @@ public abstract class CompoundTerm extends Term implements Iterable<Term> {
   public Map<String, Term> findAllNamedVariableValues() {
     return this.variables()
         .filter(v -> !v.isUnground())
-        .collect(toMap(TermVar::getText, e -> e.<Term>findGroundOrDefault(e), (v1, v2) -> v2));
+        .collect(toMap(TermVar::getText, e -> e.<Term>tryGroundOrDefault(e), (v1, v2) -> v2));
   }
 }

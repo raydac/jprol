@@ -462,7 +462,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(guarded = true, determined = true, signature = "tell/1", validate = "+atom", reference = "Open SrcDest for writing and make it the current output")
   public final void predicateTELL(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term arg = predicate.getArgumentAt(0).findGroundOrDefault(null);
+    final Term arg = predicate.getArgumentAt(0).tryGroundOrDefault(null);
     final String name = arg.getText();
 
     try {
