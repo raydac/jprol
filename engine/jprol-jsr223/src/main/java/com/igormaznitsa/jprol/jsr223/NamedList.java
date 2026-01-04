@@ -1,5 +1,6 @@
 package com.igormaznitsa.jprol.jsr223;
 
+import com.igormaznitsa.jprol.data.Term;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -8,6 +9,15 @@ import java.util.ListIterator;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * Auxiliary object to represent prolog structures as a Java collection. Internally it is a wrapped immutable list of objects with added name field.
+ * Instantiation is allowed only by factory methods.
+ *
+ * @see #namedListOf(String, List)
+ * @see #namedListOf(String, Object...)
+ * @see JProlScriptEngineUtils#java2term(Object)
+ * @see JProlScriptEngineUtils#term2java(Term)
+ */
 public final class NamedList implements List<Object> {
 
   private final String name;
