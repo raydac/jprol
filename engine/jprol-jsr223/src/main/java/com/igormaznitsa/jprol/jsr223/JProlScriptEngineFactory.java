@@ -26,7 +26,8 @@ public class JProlScriptEngineFactory implements ScriptEngineFactory {
   private static final String LANGUAGE_VERSION = "JProl";
 
   private static final List<String> EXTENSIONS = List.of("pl", "pro", "prolog");
-  private static final List<String> MIME = List.of("text/x-prolog", "application/x-prolog");
+  private static final List<String> MIME =
+      List.of("text/x-prolog", "application/x-prolog", "application/jprol");
   private static final List<String> NAMES =
       List.of("jprol", "JPROL", "JProl", "jprol.prolog", "JProl.Prolog", "JPROL.PROLOG");
 

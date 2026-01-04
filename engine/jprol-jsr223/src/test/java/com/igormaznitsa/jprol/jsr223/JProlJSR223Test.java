@@ -42,14 +42,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class JProlJSR223Test {
+public class JProlJSR223Test {
 
-  private static final String[] COMMON_LANGUAGES = {"jprol.prolog"};
   private ScriptEngineManager manager;
 
   @BeforeEach
   void setUp() {
-    manager = new ScriptEngineManager();
+    this.manager = new ScriptEngineManager();
   }
 
   // ==================== Engine Discovery Tests ====================
@@ -69,7 +68,7 @@ class JProlJSR223Test {
     assertNotNull(factories, "Engine factories list should not be null");
 
     System.out.println("\n=== Available Script Engines ===");
-    for (ScriptEngineFactory factory : factories) {
+    for (final ScriptEngineFactory factory : factories) {
       System.out.printf("Engine: %s %s (%s)%n",
           factory.getEngineName(),
           factory.getEngineVersion(),
@@ -81,37 +80,34 @@ class JProlJSR223Test {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"JavaScript", "js", "ecmascript", "nashorn", "graal.js"})
+  @ValueSource(strings = {"jprol", "jprol.prolog"})
   @DisplayName("Test engine lookup by different names")
   void testEngineByName(String name) {
-    ScriptEngine engine = manager.getEngineByName(name);
-    if (engine != null) {
-      System.out.printf("Found engine for name '%s': %s%n", name,
-          engine.getFactory().getEngineName());
-      assertNotNull(engine.getFactory());
-    }
+    ScriptEngine engine = this.manager.getEngineByName(name);
+    assertNotNull(engine, name);
+    System.out.printf("Found engine for name '%s': %s%n", name,
+        engine.getFactory().getEngineName());
+    assertNotNull(engine.getFactory());
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"application/javascript", "text/javascript", "application/ecmascript"})
+  @ValueSource(strings = {"application/x-prolog", "application/jprol", "text/x-prolog"})
   @DisplayName("Test engine lookup by MIME type")
   void testEngineByMimeType(String mimeType) {
     ScriptEngine engine = manager.getEngineByMimeType(mimeType);
-    if (engine != null) {
+    assertNotNull(engine, mimeType);
       System.out.printf("Found engine for MIME type '%s': %s%n", mimeType,
           engine.getFactory().getEngineName());
-    }
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"js", "javascript", "groovy", "py"})
+  @ValueSource(strings = {"pl", "pro", "prolog"})
   @DisplayName("Test engine lookup by extension")
   void testEngineByExtension(String extension) {
     ScriptEngine engine = manager.getEngineByExtension(extension);
-    if (engine != null) {
+    assertNotNull(engine, extension);
       System.out.printf("Found engine for extension '%s': %s%n", extension,
           engine.getFactory().getEngineName());
-    }
   }
 
   // ==================== Basic Evaluation Tests ====================
@@ -139,9 +135,7 @@ class JProlJSR223Test {
   @DisplayName("Test variable declaration and usage")
   void testVariableUsage() throws ScriptException {
     ScriptEngine engine = getAvailableEngine();
-    if (engine == null) {
-      return;
-    }
+    assertNotNull(engine);
 
     assertTrue((boolean) engine.eval("valueX(10). valueY(20)."));
     assertTrue((boolean) engine.eval("?- valueX(X), valueY(Y), Z is X + Y."));
@@ -182,9 +176,7 @@ class JProlJSR223Test {
   @DisplayName("Test global scope bindings")
   void testGlobalBindings() throws ScriptException {
     ScriptEngine engine = getAvailableEngine();
-    if (engine == null) {
-      return;
-    }
+    assertNotNull(engine);
     manager.put("GlobalVar", 100);
     engine.getBindings(ScriptContext.ENGINE_SCOPE).put("LocalVar", 50);
 
@@ -197,9 +189,7 @@ class JProlJSR223Test {
   @DisplayName("Test bindings scope hierarchy")
   void testBindingsScopeHierarchy() throws ScriptException {
     ScriptEngine engine = getAvailableEngine();
-    if (engine == null) {
-      return;
-    }
+    assertNotNull(engine);
 
     engine.put("Test", "engine_scope");
     Bindings bindings = engine.createBindings();
@@ -214,9 +204,7 @@ class JProlJSR223Test {
   @DisplayName("Test object binding")
   void testObjectBinding() throws ScriptException {
     ScriptEngine engine = getAvailableEngine();
-    if (engine == null) {
-      return;
-    }
+    assertNotNull(engine);
 
     List<String> list = List.of("A", "B", "C");
     engine.put("X", list);
@@ -231,9 +219,7 @@ class JProlJSR223Test {
   @DisplayName("Test ScriptContext manipulation")
   void testScriptContext() throws ScriptException {
     ScriptEngine engine = getAvailableEngine();
-    if (engine == null) {
-      return;
-    }
+    assertNotNull(engine);
 
     ScriptContext context = new SimpleScriptContext();
     context.setAttribute("contextVar", 999, ScriptContext.ENGINE_SCOPE);
@@ -352,9 +338,7 @@ class JProlJSR223Test {
   @DisplayName("Test syntax error handling")
   void testSyntaxError() {
     ScriptEngine engine = getAvailableEngine();
-    if (engine == null) {
-      return;
-    }
+    assertNotNull(engine);
 
     assertThrows(ScriptException.class, () -> {
       engine.eval("this is not valid syntax @#$");
@@ -365,9 +349,7 @@ class JProlJSR223Test {
   @DisplayName("Test runtime error handling")
   void testRuntimeError() {
     ScriptEngine engine = getAvailableEngine();
-    if (engine == null) {
-      return;
-    }
+    assertNotNull(engine);
 
     assertThrows(ScriptException.class, () -> {
       engine.eval("throw new Error('Test error');");
@@ -378,9 +360,7 @@ class JProlJSR223Test {
   @DisplayName("Test undefined variable access")
   void testUndefinedVariable() {
     ScriptEngine engine = getAvailableEngine();
-    if (engine == null) {
-      return;
-    }
+    assertNotNull(engine);
 
     assertThrows(ScriptException.class, () -> {
       engine.eval("undefinedVariable + 1");
@@ -393,9 +373,7 @@ class JProlJSR223Test {
   @DisplayName("Test object creation and property access")
   void testObjectCreation() throws ScriptException {
     ScriptEngine engine = getAvailableEngine();
-    if (engine == null) {
-      return;
-    }
+    assertNotNull(engine);
 
     String script = "?- Person = [name/'John', age/30].";
 
@@ -431,9 +409,7 @@ class JProlJSR223Test {
   @DisplayName("Test conditional execution")
   void testConditionalExecution() throws ScriptException {
     ScriptEngine engine = getAvailableEngine();
-    if (engine == null) {
-      return;
-    }
+    assertNotNull(engine);
 
     engine.put("X", Terms.newLong(15));
     String script = "test(X,Y):- X > 10 -> Y = 'high' ; Y = 'low'. ?- test(X,Y).";
@@ -448,9 +424,7 @@ class JProlJSR223Test {
   @DisplayName("Test concurrent script execution")
   void testConcurrentExecution() throws InterruptedException, ExecutionException {
     ScriptEngine engine = getAvailableEngine();
-    if (engine == null) {
-      return;
-    }
+    assertNotNull(engine);
 
     final ExecutorService executor = Executors.newFixedThreadPool(3);
     try {
@@ -487,9 +461,7 @@ class JProlJSR223Test {
   @DisplayName("Test Java to Script type conversion")
   void testJavaToScriptConversion() throws ScriptException {
     ScriptEngine engine = getAvailableEngine();
-    if (engine == null) {
-      return;
-    }
+    assertNotNull(engine);
 
     engine.put("intVal", 42);
     engine.put("doubleVal", 3.14);
@@ -523,15 +495,8 @@ class JProlJSR223Test {
     return this.manager.getEngineByName("jprol");
   }
 
-  private int convertToInt(Object value) {
-    if (value instanceof Number) {
-      return ((Number) value).intValue();
-    }
-    return Integer.parseInt(value.toString());
-  }
-
   @AfterEach
   void tearDown() {
-    manager = null;
+    this.manager = null;
   }
 }
