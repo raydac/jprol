@@ -26,7 +26,6 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
@@ -58,15 +57,21 @@ public class JProlScriptEngineContext implements ScriptContext {
   private final ClearableThreadLocal<JProlContext> jprolContext =
       new ClearableThreadLocal<>(this::newInitedJProlContext);
 
+  private final AtomicReference<Bindings> globalBindingsRef = new AtomicReference<>();
   private final AtomicReference<KnowledgeBase> prolKnowledgeBase = new AtomicReference<>();
 
   JProlScriptEngineContext(final JProlScriptEngineFactory factory) {
-    this(factory, new InputStreamReader(System.in), new PrintWriter(System.out),
+    this(factory, factory.getFactoryGlobalBindings());
+  }
+
+  JProlScriptEngineContext(final JProlScriptEngineFactory factory, final Bindings globalBindings) {
+    this(factory, globalBindings, new InputStreamReader(System.in), new PrintWriter(System.out),
         new PrintWriter(System.err));
   }
 
   JProlScriptEngineContext(
       final JProlScriptEngineFactory factory,
+      final Bindings globalBindings,
       final Reader reader,
       final Writer outWriter,
       final Writer errWriter
@@ -75,9 +80,14 @@ public class JProlScriptEngineContext implements ScriptContext {
     this.writer.set(outWriter);
     this.writerErr.set(errWriter);
     this.reader.set(reader);
+    this.globalBindingsRef.set(globalBindings);
 
     this.prolKnowledgeBase.set(new ConcurrentInMemoryKnowledgeBase(
         "jprol-script-engine-context-" + System.identityHashCode(this)));
+  }
+
+  public JProlScriptEngineFactory getFactory() {
+    return this.factory;
   }
 
   private static void checkName(final String name) {
@@ -121,8 +131,9 @@ public class JProlScriptEngineContext implements ScriptContext {
   }
 
   private KnowledgeBase findKnowledgeBase() {
-    KnowledgeBase result =
-        (KnowledgeBase) this.factory.getGlobalBindings().get(JPROL_GLOBAL_KNOWLEDGE_BASE);
+    final Bindings globalBindings = this.globalBindingsRef.get();
+    KnowledgeBase result = globalBindings == null ? null :
+        (KnowledgeBase) globalBindings.get(JPROL_GLOBAL_KNOWLEDGE_BASE);
     if (result == null) {
       result = this.prolKnowledgeBase.get();
     }
@@ -138,12 +149,14 @@ public class JProlScriptEngineContext implements ScriptContext {
       prolLibraries.addAll(libraries);
     }
 
-    final ExecutorService executorService =
-        (ExecutorService) this.factory.getGlobalBindings().get(JPROL_GLOBAL_EXECUTOR_SERVICE);
+    final Bindings globalBindings = this.globalBindingsRef.get();
+
+    final ExecutorService executorService = globalBindings == null ? null :
+        (ExecutorService) globalBindings.get(JPROL_GLOBAL_EXECUTOR_SERVICE);
 
     final JProlGuardPredicate foundPredicateAllow =
-        (JProlGuardPredicate) this.factory.getGlobalBindings()
-            .get(JPROL_GLOBAL_GUARD_PREDICATE);
+        globalBindings == null ? null :
+            (JProlGuardPredicate) globalBindings.get(JPROL_GLOBAL_GUARD_PREDICATE);
     final JProlGuardPredicate guardPredicate =
         foundPredicateAllow == null ? (a, b, c) -> true : foundPredicateAllow;
 
@@ -205,15 +218,7 @@ public class JProlScriptEngineContext implements ScriptContext {
       }
       break;
       case GLOBAL_SCOPE: {
-        final Set<String> currentKeys = Set.copyOf(this.factory.getGlobalBindings().keySet());
-        currentKeys.forEach(x -> {
-          if (!bindings.containsKey(x)) {
-            {
-              this.factory.getGlobalBindings().remove(x);
-            }
-          }
-        });
-        this.factory.getGlobalBindings().putAll(bindings);
+        this.globalBindingsRef.set(bindings);
       }
       break;
       default:
@@ -227,8 +232,9 @@ public class JProlScriptEngineContext implements ScriptContext {
     switch (scope) {
       case ENGINE_SCOPE:
         return this.engineBindings.get();
-      case GLOBAL_SCOPE:
-        return this.factory.getGlobalBindings();
+      case GLOBAL_SCOPE: {
+        return this.globalBindingsRef.get();
+      }
       default:
         throw new IllegalArgumentException("Invalid scope value.");
     }
@@ -260,7 +266,7 @@ public class JProlScriptEngineContext implements ScriptContext {
     if (engine.containsKey(name)) {
       return engine.get(name);
     }
-    return global.get(name);
+    return global == null ? null : global.get(name);
   }
 
   @Override
@@ -271,7 +277,7 @@ public class JProlScriptEngineContext implements ScriptContext {
     if (engine.containsKey(name)) {
       return ENGINE_SCOPE;
     }
-    if (global.containsKey(name)) {
+    if (global != null && global.containsKey(name)) {
       return GLOBAL_SCOPE;
     }
     return -1;

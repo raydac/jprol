@@ -6,9 +6,11 @@ import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermDouble;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermLong;
+import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.utils.ProlUtils;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,7 +44,21 @@ public final class JProlScriptEngineUtils {
     if (string == null || string.isEmpty()) {
       return false;
     }
-    return string.startsWith("_") || Character.isUpperCase(string.charAt(0));
+
+    if (string.startsWith("_")) {
+      if (string.length() == 1) {
+        return false;
+      }
+    } else {
+      if (!Character.isAlphabetic(string.charAt(0)) || !Character.isUpperCase(string.charAt(0))) {
+        return false;
+      }
+    }
+    if (string.chars()
+        .allMatch(x -> Character.isDigit(x) || Character.isAlphabetic(x) || x == '_')) {
+      return true;
+    }
+    return true;
   }
 
   /**
@@ -63,10 +79,17 @@ public final class JProlScriptEngineUtils {
       }
       return Terms.newLong(((Number) obj).longValue());
     }
+
     if (obj instanceof Collection) {
       final List<Term> terms = ((Collection<?>) obj).stream().map(JProlScriptEngineUtils::java2term)
           .collect(Collectors.toList());
-      return TermList.listOf(terms);
+
+      if (obj instanceof NamedList) {
+        final NamedList namedList = (NamedList) obj;
+        return Terms.newStruct(Terms.newAtom(namedList.getName()), terms);
+      } else {
+        return TermList.listOf(terms);
+      }
     }
     return Terms.newAtom(obj.toString());
   }
@@ -96,6 +119,28 @@ public final class JProlScriptEngineUtils {
     if (term instanceof TermList) {
       return ProlUtils.listToMappedValues((TermList) term, true,
           JProlScriptEngineUtils::term2java);
+    }
+
+    if (term instanceof TermStruct) {
+      final TermStruct struct = (TermStruct) term;
+      final String functor = struct.getFunctor().getText();
+      final List<Object> terms;
+      switch (struct.getArity()) {
+        case 0:
+          terms = List.of();
+          break;
+        case 1:
+          terms = List.of(term2java(struct.getArgumentAt(0)));
+          break;
+        default: {
+          terms = new ArrayList<>();
+          for (int i = 0; i < struct.getArity(); i++) {
+            terms.add(term2java(struct.getArgumentAt(i)));
+          }
+        }
+        break;
+      }
+      return NamedList.namedListOf(functor, terms);
     }
 
     return term.getText();

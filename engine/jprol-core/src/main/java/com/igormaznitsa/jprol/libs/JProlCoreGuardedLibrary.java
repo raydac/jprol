@@ -57,7 +57,7 @@ public class JProlCoreGuardedLibrary extends AbstractJProlLibrary {
     final Term body = predicate.getArgumentAt(1).tryGround();
 
     final TermStruct struct = head.getTermType() == STRUCT ? (TermStruct) head : newStruct(head);
-    if (goal.getContext().findProcessor(struct) != PredicateInvoker.NULL_PROCESSOR) {
+    if (goal.getContext().findProcessor(struct) != PredicateInvoker.NULL_INVOKER) {
       throw new ProlPermissionErrorException("access", "private_procedure", predicate);
     }
 

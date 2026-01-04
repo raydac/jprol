@@ -301,10 +301,15 @@ public abstract class AbstractJProlLibrary {
     return this.predicateMethodsMap.containsKey(signature);
   }
 
-  public PredicateInvoker findProcessorForPredicate(final TermStruct predicate) {
+  public PredicateInvoker findPredicateProcessor(final TermStruct predicate) {
     final String signature = predicate.getSignature();
-    PredicateInvoker result = onBeforeFindProcessorForPredicate(signature);
-    return result == null ? this.predicateMethodsMap.get(predicate.getSignature()) : result;
+    PredicateInvoker result = this.onBeforeFindPredicateProcessor(signature);
+    if (result == null) {
+      {
+        result = this.predicateMethodsMap.get(predicate.getSignature());
+      }
+    }
+    return result;
   }
 
   public boolean hasZeroArityPredicate(final String predicateName) {
@@ -329,7 +334,7 @@ public abstract class AbstractJProlLibrary {
     return this.libraryUid.hashCode();
   }
 
-  protected PredicateInvoker onBeforeFindProcessorForPredicate(final String signature) {
+  protected PredicateInvoker onBeforeFindPredicateProcessor(final String signature) {
     return null;
   }
 

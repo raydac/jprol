@@ -20,7 +20,7 @@ import static com.igormaznitsa.jprol.data.SourcePosition.UNKNOWN;
 import static com.igormaznitsa.jprol.data.TermType.STRUCT;
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
-import static com.igormaznitsa.jprol.logic.PredicateInvoker.NULL_PROCESSOR;
+import static com.igormaznitsa.jprol.logic.PredicateInvoker.NULL_INVOKER;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
@@ -830,10 +830,10 @@ public class JProlContext implements AutoCloseable {
   public PredicateInvoker findProcessor(final TermStruct predicate) {
     return this.libraries
         .stream()
-        .map(lib -> lib.findProcessorForPredicate(predicate))
+        .map(lib -> lib.findPredicateProcessor(predicate))
         .filter(Objects::nonNull)
         .findFirst()
-        .orElse(NULL_PROCESSOR);
+        .orElse(NULL_INVOKER);
   }
 
   public boolean hasZeroArityPredicateForName(final String name) {

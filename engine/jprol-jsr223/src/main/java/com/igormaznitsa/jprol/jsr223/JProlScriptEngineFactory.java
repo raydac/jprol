@@ -4,11 +4,11 @@ import static java.lang.Double.parseDouble;
 import static java.lang.Long.parseLong;
 
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
+import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
 import com.igormaznitsa.jprol.utils.ProlUtils;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.script.Bindings;
@@ -30,7 +30,12 @@ public class JProlScriptEngineFactory implements ScriptEngineFactory {
   private static final List<String> NAMES =
       List.of("jprol", "JPROL", "JProl", "jprol.prolog", "JProl.Prolog", "JPROL.PROLOG");
 
-  private final Bindings globalBindings = new SimpleBindings(new ConcurrentHashMap<>());
+  private final Bindings factoryGlobalBindings = new SimpleBindings();
+
+  public JProlScriptEngineFactory() {
+    this.factoryGlobalBindings.put(JProlScriptEngine.JPROL_LIBRARIES,
+        List.of(new JProlCoreLibrary()));
+  }
 
   @Override
   public String getEngineName() {
@@ -65,10 +70,6 @@ public class JProlScriptEngineFactory implements ScriptEngineFactory {
   @Override
   public String getLanguageVersion() {
     return LANGUAGE_VERSION;
-  }
-
-  public Bindings getGlobalBindings() {
-    return this.globalBindings;
   }
 
   @Override
@@ -157,4 +158,7 @@ public class JProlScriptEngineFactory implements ScriptEngineFactory {
     return engine;
   }
 
+  public Bindings getFactoryGlobalBindings() {
+    return this.factoryGlobalBindings;
+  }
 }

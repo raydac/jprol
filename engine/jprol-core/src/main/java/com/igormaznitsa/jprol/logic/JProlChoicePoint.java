@@ -484,7 +484,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
             if (nonConsumed) {
               final PredicateInvoker foundProcessor = findProcessorInLibraries(struct);
-              if (foundProcessor == PredicateInvoker.NULL_PROCESSOR ||
+              if (foundProcessor == PredicateInvoker.NULL_INVOKER ||
                   foundProcessor.isEvaluable()) {
                 this.clauseIterator = this.context.getKnowledgeBase().iterate(
                     IteratorType.ANY,

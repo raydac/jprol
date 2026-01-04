@@ -53,6 +53,9 @@ public class SimpleJsr223Test {
   void testDisableCriticalPredicateClause() {
     final ScriptEngine engine =
         findScriptEngine(List.of(new JProlCoreGuardedLibrary(), new JProlIoLibrary()));
+    final Bindings globalBindings = new SimpleBindings();
+    engine.setBindings(globalBindings, ScriptContext.GLOBAL_SCOPE);
+
     engine.getBindings(ScriptContext.GLOBAL_SCOPE).put(
         JProlScriptEngine.JPROL_GLOBAL_GUARD_PREDICATE,
         (JProlGuardPredicate) (sourceLibrary, choicePoint, predicateIndicator) -> !"clause/2".equals(

@@ -33,7 +33,7 @@ import java.util.function.Predicate;
 
 public final class PredicateInvoker {
 
-  public static final PredicateInvoker NULL_PROCESSOR =
+  public static final PredicateInvoker NULL_INVOKER =
       new PredicateInvoker(null, false, true, false, false, x -> true, null, null);
   private static final MethodHandles.Lookup METHOD_LOOKUP = MethodHandles.lookup();
   private static final Class<?> CLASS_RESULT_VOID = void.class;
@@ -182,6 +182,10 @@ public final class PredicateInvoker {
 
   @Override
   public String toString() {
-    return "Predicate processor " + predicateSignature + ' ' + methodHandle;
+    if (this.predicateSignature == null) {
+      return "PredicateInvoker(NULL)";
+    }
+    return "PredicateInvoker(signature=" + this.predicateSignature + ",methodHandle=" +
+        methodHandle + ')';
   }
 }

@@ -43,25 +43,25 @@ public class TermStruct extends CompoundTerm {
   private PredicateInvoker predicateProcessor;
 
   TermStruct(final Term functor, final SourcePosition sourcePosition) {
-    this(functor, EMPTY_ARRAY, null, sourcePosition, PredicateInvoker.NULL_PROCESSOR);
+    this(functor, EMPTY_ARRAY, null, sourcePosition, PredicateInvoker.NULL_INVOKER);
   }
 
   TermStruct(final Term functor, final Object payload, final SourcePosition sourcePosition) {
-    this(functor, EMPTY_ARRAY, payload, sourcePosition, PredicateInvoker.NULL_PROCESSOR);
+    this(functor, EMPTY_ARRAY, payload, sourcePosition, PredicateInvoker.NULL_INVOKER);
   }
 
   TermStruct(final String functor, final Term[] arguments, final SourcePosition sourcePosition) {
     this(new Term(functor, sourcePosition), arguments, null, sourcePosition,
-        PredicateInvoker.NULL_PROCESSOR);
+        PredicateInvoker.NULL_INVOKER);
   }
 
   TermStruct(final Term functor, final Term[] arguments, final SourcePosition sourcePosition) {
-    this(functor, arguments, null, sourcePosition, PredicateInvoker.NULL_PROCESSOR);
+    this(functor, arguments, null, sourcePosition, PredicateInvoker.NULL_INVOKER);
   }
 
   TermStruct(final Term functor, final Term[] arguments, final Object payload,
              final SourcePosition sourcePosition) {
-    this(functor, arguments, payload, sourcePosition, PredicateInvoker.NULL_PROCESSOR);
+    this(functor, arguments, payload, sourcePosition, PredicateInvoker.NULL_INVOKER);
   }
 
   TermStruct(final Term functor, final Term[] arguments, final Object payload,
@@ -597,7 +597,8 @@ public class TermStruct extends CompoundTerm {
       changed |= next != replaced;
     }
     if (changed) {
-      return Terms.newStruct(this.functor, newTerms);
+      return Terms.newStruct(this.getFunctor(), newTerms, this.getPredicateProcessor(),
+          this.payload, this.getSourcePosition());
     } else {
       return this;
     }

@@ -484,16 +484,17 @@ public class JProlScriptEngine
   Object executeQuery(final Term queryTerm, final JProlContext prolContext,
                       final Bindings bindings) {
     this.assertNotClosed();
-    final JProlChoicePoint goal = prolContext.makeChoicePoint(queryTerm);
-    final Term result = goal.prove();
-    if (result != null) {
-      final Map<String, Object> groundedVars = extractGroundedVariables(goal);
+    final JProlChoicePoint choicePoint = prolContext.makeChoicePoint(queryTerm);
+    final Term result = choicePoint.prove();
+    if (result == null) {
+      return Boolean.FALSE;
+    } else {
+      final Map<String, Object> groundedVars = extractGroundedVariables(choicePoint);
       if (bindings != null) {
         bindings.putAll(groundedVars);
       }
       return Boolean.TRUE;
     }
-    return Boolean.FALSE;
   }
 
   @Override
