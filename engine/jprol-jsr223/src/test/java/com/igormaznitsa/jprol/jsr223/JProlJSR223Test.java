@@ -209,7 +209,7 @@ public class JProlJSR223Test {
     List<String> list = List.of("A", "B", "C");
     engine.put("X", list);
 
-    assertNotNull(engine.eval("?- length(X,Y)."));
+    assertTrue((boolean) engine.eval("?- length(X,Y)."));
     assertEquals(3L, engine.get("Y"));
   }
 
@@ -217,7 +217,7 @@ public class JProlJSR223Test {
 
   @Test
   @DisplayName("Test ScriptContext manipulation")
-  void testScriptContext() throws ScriptException {
+  void testScriptContext() {
     ScriptEngine engine = getAvailableEngine();
     assertNotNull(engine);
 
@@ -357,14 +357,11 @@ public class JProlJSR223Test {
   }
 
   @Test
-  @DisplayName("Test undefined variable access")
-  void testUndefinedVariable() {
+  @DisplayName("Test non-instantiated variable")
+  void testNonInstantiatedVariable() throws ScriptException {
     ScriptEngine engine = getAvailableEngine();
     assertNotNull(engine);
-
-    assertThrows(ScriptException.class, () -> {
-      engine.eval("undefinedVariable + 1");
-    });
+    assertThrows(ScriptException.class, () -> engine.eval("?-X."));
   }
 
   // ==================== Advanced Features Tests ====================
@@ -414,7 +411,7 @@ public class JProlJSR223Test {
     engine.put("X", Terms.newLong(15));
     String script = "test(X,Y):- X > 10 -> Y = 'high' ; Y = 'low'. ?- test(X,Y).";
 
-    assertNotNull(engine.eval(script));
+    assertTrue((boolean) engine.eval(script));
     assertEquals("high", engine.get("Y"));
   }
 
@@ -430,14 +427,14 @@ public class JProlJSR223Test {
     try {
       List<Future<Bindings>> futures = new ArrayList<>();
 
-      for (int i = 0; i < 5; i++) {
+      for (int i = 0; i < 55; i++) {
         final int value = i;
         futures.add(executor.submit(() -> {
           try {
             Bindings bindings = engine.createBindings();
             bindings.put("N", value);
             Object result = engine.eval("?- Y is N * N.", bindings);
-            return result == null ? null : bindings;
+            return (boolean) result ? bindings : null;
           } catch (ScriptException e) {
             throw new RuntimeException(e);
           }
