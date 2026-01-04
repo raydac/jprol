@@ -62,10 +62,11 @@ public final class JProlScriptEngineUtils {
   }
 
   /**
-   * Convert a Java object into JProl Term
+   * Convert a Java object into JProl Term. Null will be recognized as empty prolog list.
    *
    * @param obj source object, can be null
    * @return converted object, null will be returned as null list
+   * @see NamedList
    */
   public static Term java2term(final Object obj) {
     if (obj == null) {
@@ -94,6 +95,12 @@ public final class JProlScriptEngineUtils {
     return Terms.newAtom(obj.toString());
   }
 
+  /**
+   * Convert a term into appropriate Java object.
+   *
+   * @param term a term, can be null.
+   * @return if term is null then null, else converted object.
+   */
   public static Object term2java(final Term term) {
     if (term == null) {
       return null;

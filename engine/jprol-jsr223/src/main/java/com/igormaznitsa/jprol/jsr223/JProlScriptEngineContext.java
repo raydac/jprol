@@ -1,11 +1,6 @@
 package com.igormaznitsa.jprol.jsr223;
 
 import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.CONSOLE_IO_PROVIDER;
-import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_CONTEXT_FLAGS;
-import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_GLOBAL_EXECUTOR_SERVICE;
-import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_GLOBAL_GUARD_PREDICATE;
-import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_GLOBAL_KNOWLEDGE_BASE;
-import static com.igormaznitsa.jprol.jsr223.JProlScriptEngine.JPROL_LIBRARIES;
 import static com.igormaznitsa.jprol.jsr223.JProlScriptEngineUtils.java2term;
 import static java.lang.System.identityHashCode;
 import static java.util.Objects.requireNonNull;
@@ -36,7 +31,12 @@ import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.SimpleBindings;
 
-public class JProlScriptEngineContext implements ScriptContext {
+/**
+ * JProl script engine context.
+ *
+ * @since 3.0.0
+ */
+public class JProlScriptEngineContext implements ScriptContext, JProlBindingsConstants {
 
   static final List<AbstractJProlLibrary> BOOTSTRAP_LIBRARIES =
       List.of(

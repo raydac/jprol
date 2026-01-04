@@ -11,7 +11,6 @@ import static com.igormaznitsa.jprol.jsr223.JProlScriptEngineUtils.term2java;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 
-import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
@@ -64,39 +63,10 @@ import javax.script.SimpleBindings;
  * - "jprol.global.knowledge.base" - shared {@link KnowledgeBase} between all child engines
  * - "jprol.global.critical.predicate.guard" - can be provided as a {@link JProlGuardPredicate} to disable execution of predicates marked in library as critical ones
  *
- * @since 2.2.2
+ * @since 3.0.0
  */
 public class JProlScriptEngine
     implements ScriptEngine, Compilable, Invocable, JProlScriptEngineProvider, AutoCloseable {
-
-  /**
-   * Checker to allow guarded predicates which guarded flag is true.
-   *
-   * @see JProlGuardPredicate
-   * @see JProlPredicate#guarded()
-   */
-  public static final String JPROL_GLOBAL_GUARD_PREDICATE =
-      "jprol.global.guard.predicate";
-
-  /**
-   * Executor service to be used for all child JProl engines to start async processes. Can be defined only in global scope.
-   */
-  public static final String JPROL_GLOBAL_EXECUTOR_SERVICE = "jprol.global.executor.service";
-
-  /**
-   * Knowledge base to be used for all child JProl engines. Can be defined only in global scope.
-   */
-  public static final String JPROL_GLOBAL_KNOWLEDGE_BASE = "jprol.global.knowledge.base";
-
-  /**
-   * Array of JProl libraries which will be applied to JProl engine context during create. Can be defined in both global and engine context.
-   */
-  public static final String JPROL_LIBRARIES = "jprol.libraries";
-
-  /**
-   * Map of JProl flag names as String and their values as objects to be applied during JProl engine initialization. Can be defined in both global and engine context.
-   */
-  public static final String JPROL_CONTEXT_FLAGS = "jprol.context.flags";
 
   static final IoResourceProvider CONSOLE_IO_PROVIDER = new IoResourceProvider() {
     @Override

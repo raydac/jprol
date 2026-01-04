@@ -794,7 +794,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     if (nextResult != null) {
       result = assertUnify(argument, nextResult);
       if (newChoicePoint.isCompleted()) {
-        goal.cutVariants();
+        goal.resetLogicalAlternativesFlag();
       }
     }
     return result;
@@ -820,10 +820,10 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     if (leftSubbranch.prove() != null) {
       // replace current goal by the 'then' goal
       final JProlChoicePoint thenPart = goal.replaceLastGoalAtChain(predicate.getArgumentAt(1));
-      thenPart.localCut(); // remove all previous choice points
+      thenPart.resetPreviousChoicePoint(); // remove all previous choice points
       result = true;
     } else {
-      goal.cutVariants();
+      goal.resetLogicalAlternativesFlag();
     }
     return result;
   }
@@ -1371,17 +1371,17 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       final AtomConcatState state = goal.getInternalObject();
       if (state == null) {
         if (atom1.isGround() && atom2.isGround()) {
-          goal.cutVariants();
+          goal.resetLogicalAlternativesFlag();
           return atom3.unifyWith(newAtom(atom1.getText() + atom2.getText(), UNKNOWN));
         } else if (atom1.isGround()) {
-          goal.cutVariants();
+          goal.resetLogicalAlternativesFlag();
           final String text1 = atom1.getText();
           final String text3 = atom3.getText();
           if (text3.startsWith(text1)) {
             return atom2.unifyWith(newAtom(text3.substring(text1.length()), UNKNOWN));
           }
         } else if (atom2.isGround()) {
-          goal.cutVariants();
+          goal.resetLogicalAlternativesFlag();
           final String text2 = atom2.getText();
           final String text3 = atom3.getText();
           if (text3.endsWith(text2)) {
@@ -1400,7 +1400,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         if (result) {
           result = atom1.unifyWith(state.getSeq1AsTerm()) && atom2.unifyWith(state.getSeq2AsTerm());
         } else {
-          goal.cutVariants();
+          goal.resetLogicalAlternativesFlag();
         }
         return result;
       }
@@ -1540,7 +1540,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
     final long value = counter.value;
     if (counter.isEnd()) {
-      choicePoint.cutVariants();
+      choicePoint.resetLogicalAlternativesFlag();
       return false;
     } else {
       return term.unifyWith(Terms.newLong(value, UNKNOWN));
@@ -1793,7 +1793,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
           goal.getContext().makeChoicePoint(processingGoal.makeClone(), goal.getPayload());
 
       while (true) {
-        final Term nextTemplate = findGoal.proveIgnoreUnknownPredicates();
+        final Term nextTemplate = findGoal.proveIgnoringUnknownPredicates();
 
         if (nextTemplate == null) {
           break;
@@ -1911,7 +1911,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
           .makeChoicePoint(processingGoal.makeClone(), choicePoint.getPayload());
 
       while (true) {
-        final Term nextTemplate = find_goal.proveIgnoreUnknownPredicates();
+        final Term nextTemplate = find_goal.proveIgnoringUnknownPredicates();
 
         if (nextTemplate == null) {
           break;
@@ -2058,11 +2058,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       final Term result = catchGoal.prove();
 
       if (result == null) {
-        goal.cutVariants();
+        goal.resetLogicalAlternativesFlag();
         return false;
       } else {
         if (catchGoal.isCompleted()) {
-          goal.cutVariants();
+          goal.resetLogicalAlternativesFlag();
         }
         return true;
       }
@@ -2071,11 +2071,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       try {
         final Term result = catchGoal.prove();
         if (result == null) {
-          goal.cutVariants();
+          goal.resetLogicalAlternativesFlag();
           return false;
         } else {
           if (catchGoal.isCompleted()) {
-            goal.cutVariants();
+            goal.resetLogicalAlternativesFlag();
           }
           return true;
         }
@@ -2085,11 +2085,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
           goal.setInternalObject(catchGoal);
           final Term result = catchGoal.prove();
           if (result == null) {
-            goal.cutVariants();
+            goal.resetLogicalAlternativesFlag();
             return false;
           } else {
             if (catchGoal.isCompleted()) {
-              goal.cutVariants();
+              goal.resetLogicalAlternativesFlag();
             }
             goal.setInternalObject(catchGoal);
             return true;
@@ -2221,6 +2221,6 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
                                           final TermStruct predicate) {
     final Term argument = predicate.getArgumentAt(0).tryGround();
     final JProlChoicePoint subGoal = goal.getContext().makeChoicePoint(argument, goal.getPayload());
-    return subGoal.proveIgnoreUnknownPredicates() == null;
+    return subGoal.proveIgnoringUnknownPredicates() == null;
   }
 }

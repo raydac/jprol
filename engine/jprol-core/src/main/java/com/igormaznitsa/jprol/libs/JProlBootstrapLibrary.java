@@ -66,7 +66,7 @@ public class JProlBootstrapLibrary extends AbstractJProlLibrary {
   ) {
     return
         choicePoint.getContext().makeChoicePoint(predicate.getArgumentAt(0).tryGround())
-            .proveIgnoreUnknownPredicates() ==
+            .proveIgnoringUnknownPredicates() ==
             null;
   }
 

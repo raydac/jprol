@@ -631,7 +631,7 @@ public class JProlContext implements AutoCloseable {
               contextCopy.makeChoicePoint(requireNonNull(goal), goal.getPayload());
 
           final Term result = asyncGoal.prove();
-          asyncGoal.cutVariants();
+          asyncGoal.resetLogicalAlternativesFlag();
           return result;
         } catch (Exception ex) {
           error = ex;

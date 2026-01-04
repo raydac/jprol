@@ -552,7 +552,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
     final boolean result = predicateCALL(goal, predicate);
 
     if (!result) {
-      goal.cutVariants();
+      goal.resetLogicalAlternativesFlag();
     }
 
     final long timeInterval = ((System.nanoTime() - time) + 500L) / 1000L; //microseconds

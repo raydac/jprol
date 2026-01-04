@@ -228,7 +228,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
     return this.proveNext((s, t) -> this.context.notifyAboutUndefinedPredicate(this, s, t));
   }
 
-  public Term proveIgnoreUnknownPredicates() {
+  public Term proveIgnoringUnknownPredicates() {
     return this.proveNext(NULL_UNDEFINED_PREDICATE_CONSUMER);
   }
 
@@ -378,7 +378,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
           }
         } else {
           this.clauseIterator = null;
-          cutVariants();
+          resetLogicalAlternativesFlag();
           break;
         }
       }
@@ -393,7 +393,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                 theTerm);
             result = JProlChoicePointResult.FAIL;
           }
-          cutVariants();
+          resetLogicalAlternativesFlag();
           doLoop = false;
         }
         break;
@@ -425,21 +425,19 @@ public final class JProlChoicePoint implements Comparator<Term> {
                 case '!': {
                   if (arity == 0) {
                     switch (functorTextLength) {
-                      case 1: { // standard cut
-                        this.cut();
+                      case 1: { // standard cut !/0
+                        this.fullCut();
                         nonConsumed = false;
                         doLoop = false;
                         result = JProlChoicePointResult.SUCCESS;
-                        this.hasLogicalAlternatives = false;
                       }
                       break;
-                      case 2: { // local cut
+                      case 2: { // local cut !!/9
                         if (functorText.charAt(1) == '!') {
                           this.localCut();
                           nonConsumed = false;
                           doLoop = false;
                           result = JProlChoicePointResult.SUCCESS;
-                          this.hasLogicalAlternatives = false;
                         }
                       }
                       break;
@@ -447,7 +445,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                   }
                 }
                 break;
-                case ',': { // and
+                case ',': { // and ,/2
                   if (arity == 2 && functorTextLength == 1) {
                     final JProlChoicePoint leftSubGoal =
                         replaceLastGoalAtChain(struct.getArgumentAt(0));
@@ -461,7 +459,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                   }
                 }
                 break;
-                case ';': { // or
+                case ';': { // or  ;/2
                   if (arity == 2 && functorTextLength == 1) {
                     if (getInternalObject() == null) {
                       final JProlChoicePoint leftSubbranch =
@@ -494,12 +492,12 @@ public final class JProlChoicePoint implements Comparator<Term> {
                 );
                 if (!this.clauseIterator.hasNext()) {
                   doLoop = false;
-                  this.cutVariants();
+                  this.resetLogicalAlternativesFlag();
                   result = JProlChoicePointResult.FAIL;
                 }
               } else {
                 if (foundProcessor.isDetermined()) {
-                  this.cutVariants();
+                  this.resetLogicalAlternativesFlag();
                 }
 
                 if (foundProcessor.execute(this, struct)) {
@@ -521,7 +519,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
         break;
         default: {
           doLoop = false;
-          this.cutVariants();
+          this.resetLogicalAlternativesFlag();
         }
         break;
       }
@@ -530,17 +528,26 @@ public final class JProlChoicePoint implements Comparator<Term> {
     return result;
   }
 
-  public void cutVariants() {
+  /**
+   * Reset only internal flag that the choice point has logical alternatives.
+   */
+  public void resetLogicalAlternativesFlag() {
     this.hasLogicalAlternatives = false;
   }
 
-  public void cut() {
+  public void localCut() {
+    this.hasLogicalAlternatives = false;
+    this.prevChoicePoint = null;
+  }
+
+  public void fullCut() {
+    this.hasLogicalAlternatives = false;
     this.rootChoicePoint.cutActivated = true;
     this.rootChoicePoint.clauseIterator = null;
     this.prevChoicePoint = null;
   }
 
-  public void localCut() {
+  public void resetPreviousChoicePoint() {
     this.prevChoicePoint = null;
   }
 

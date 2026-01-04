@@ -23,8 +23,14 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
+/**
+ * Allows to compile a script for further usage. Allows to decrease overheads and increase call speed.
+ *
+ * @since 3.0.0
+ */
 public class JProlCompiledScript extends CompiledScript
     implements Invocable, AutoCloseable, JProlScriptEngineProvider {
+
   private final JProlScriptEngine engine;
   private final List<Term> queryList;
   private final String scriptSources;

@@ -71,7 +71,7 @@ public class JProlCoreGuardedLibrary extends AbstractJProlLibrary {
           }
       );
       if (!clIterator.hasNext()) {
-        goal.cutVariants();
+        goal.resetLogicalAlternativesFlag();
         return false;
       }
 
@@ -96,7 +96,7 @@ public class JProlCoreGuardedLibrary extends AbstractJProlLibrary {
         return result;
       }
     }
-    goal.cutVariants();
+    goal.resetLogicalAlternativesFlag();
     return false;
   }
 
@@ -202,7 +202,7 @@ public class JProlCoreGuardedLibrary extends AbstractJProlLibrary {
       }
       list.remove(0);
     }
-    goal.cutVariants();
+    goal.resetLogicalAlternativesFlag();
     return false;
   }
 
@@ -393,7 +393,7 @@ public class JProlCoreGuardedLibrary extends AbstractJProlLibrary {
 
       if (only || !iterator.hasNext()) {
         choicePoint.setInternalObject(null);
-        choicePoint.cutVariants();
+        choicePoint.resetLogicalAlternativesFlag();
       } else {
         choicePoint.setInternalObject(iterator);
       }

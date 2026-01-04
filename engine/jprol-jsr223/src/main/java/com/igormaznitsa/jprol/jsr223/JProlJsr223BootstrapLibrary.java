@@ -5,7 +5,7 @@ import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 /**
  * Bootstrap JProl library to be used in JSR 223 engine wrapper.
  *
- * @since 2.2.2
+ * @since 3.0.0
  */
 public class JProlJsr223BootstrapLibrary extends AbstractJProlLibrary {
 
