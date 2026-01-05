@@ -26,19 +26,12 @@ public final class TermDouble extends NumericTerm {
   private final double value;
 
   TermDouble(final String name, final SourcePosition sourcePosition) {
-    this(name, null, sourcePosition);
+    this(parseDoubleWithCheckWhitespace(name), sourcePosition);
   }
 
-  TermDouble(final String name, final Object payload, final SourcePosition sourcePosition) {
-    this(parseDoubleWithCheckWhitespace(name), payload, sourcePosition);
-  }
 
   TermDouble(final double value, final SourcePosition sourcePosition) {
-    this(value, null, sourcePosition);
-  }
-
-  TermDouble(final double value, final Object payload, final SourcePosition sourcePosition) {
-    super("", payload, sourcePosition);
+    super("", sourcePosition);
     this.value = value;
   }
 
@@ -130,7 +123,7 @@ public final class TermDouble extends NumericTerm {
 
   @Override
   public NumericTerm neg() {
-    return newDouble(-this.value, this.payload);
+    return newDouble(-this.value);
   }
 
   @Override
@@ -143,11 +136,11 @@ public final class TermDouble extends NumericTerm {
     if (Double.compare(this.value, 0.0d) >= 0) {
       return this;
     }
-    return newDouble(Math.abs(value), this.payload);
+    return newDouble(Math.abs(value));
   }
 
   @Override
   public NumericTerm sign() {
-    return newLong(Double.compare(this.value, 0.0d), this.payload);
+    return newLong(Double.compare(this.value, 0.0d));
   }
 }

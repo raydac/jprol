@@ -30,7 +30,8 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
     final Term[] terms = list.toArray(false);
     Arrays.stream(terms).forEach(x -> assertCallable(x.tryGround()));
     return Arrays.stream(terms)
-        .map(x -> choicePoint.getContext().asyncProveOnce(x.makeClone(), shareKnowledgeBase))
+        .map(x -> choicePoint.getContext()
+            .asyncProveOnce(x.makeClone(), choicePoint.getAssociatedObject(), shareKnowledgeBase))
         .collect(Collectors.toList());
   }
 
@@ -82,7 +83,8 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
       throw new ProlInstantiationErrorException("Callable term must be bounded", predicate);
     }
     choicePoint.getContext()
-        .asyncProveAll(term, choicePoint.getContext().isShareKnowledgeBaseWithAsyncTasks());
+        .asyncProveAll(term, choicePoint.getAssociatedObject(),
+            choicePoint.getContext().isShareKnowledgeBaseWithAsyncTasks());
   }
 
   @JProlPredicate(determined = true, signature = "unlock/1", validate = {

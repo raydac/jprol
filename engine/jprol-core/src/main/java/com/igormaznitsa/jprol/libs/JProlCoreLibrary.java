@@ -805,7 +805,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static boolean predicateONCE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term argument = predicate.getArgumentAt(0).tryGround();
     final JProlChoicePoint currentGoal =
-        goal.getContext().makeChoicePoint(argument, goal.getPayload());
+        goal.getContext().makeChoicePoint(argument, goal.getAssociatedObject());
     final Term nextResult = currentGoal.prove();
 
     return nextResult != null;
@@ -815,7 +815,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static boolean predicateIFTHEN(final JProlChoicePoint goal, final TermStruct predicate) {
     // if-then
     final JProlChoicePoint leftSubbranch =
-        goal.getContext().makeChoicePoint(predicate.getArgumentAt(0), goal.getPayload());
+        goal.getContext().makeChoicePoint(predicate.getArgumentAt(0), goal.getAssociatedObject());
     boolean result = false;
     if (leftSubbranch.prove() != null) {
       // replace current goal by the 'then' goal
@@ -837,7 +837,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static boolean predicateNONVAR(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term arg = predicate.getArgumentAt(0);
     if (arg.getTermType() == VAR) {
-      return !((TermVar) arg).isUnground();
+      return !arg.isUnground();
     } else {
       return true;
     }
@@ -1593,7 +1593,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         return ProlUtils.toCharCodeList(left).unifyWith(right);
       }
       case LIST: {
-        if (((TermList) left).isNullList()) {
+        if (left.isNullList()) {
           return ProlUtils.toCharCodeList(newAtom("[]", UNKNOWN)).unifyWith(right);
         } else {
           throw new ProlTypeErrorException("atom", predicate);
@@ -1673,7 +1673,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final Term instances = predicate.getArgumentAt(2).tryGround();
 
     final JProlChoicePoint find_goal =
-        goal.getContext().makeChoicePoint(scopeGoal.makeClone(), goal.getPayload());
+        goal.getContext().makeChoicePoint(scopeGoal.makeClone(), goal.getAssociatedObject());
 
     TermList result = null;
     TermList currentList = null;
@@ -1790,7 +1790,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
 
       final JProlChoicePoint findGoal =
-          goal.getContext().makeChoicePoint(processingGoal.makeClone(), goal.getPayload());
+          goal.getContext().makeChoicePoint(processingGoal.makeClone(), goal.getAssociatedObject());
 
       while (true) {
         final Term nextTemplate = findGoal.proveIgnoringUnknownPredicates();
@@ -1908,7 +1908,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
 
       final JProlChoicePoint find_goal = choicePoint.getContext()
-          .makeChoicePoint(processingGoal.makeClone(), choicePoint.getPayload());
+          .makeChoicePoint(processingGoal.makeClone(), choicePoint.getAssociatedObject());
 
       while (true) {
         final Term nextTemplate = find_goal.proveIgnoringUnknownPredicates();
@@ -2081,7 +2081,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         }
       } catch (final ProlAbstractCatchableException ex) {
         if (catcher.unifyWith(ex.getAsStruct())) {
-          catchGoal = goal.getContext().makeChoicePoint(solver, goal.getPayload());
+          catchGoal = goal.getContext().makeChoicePoint(solver, goal.getAssociatedObject());
           goal.setInternalObject(catchGoal);
           final Term result = catchGoal.prove();
           if (result == null) {
@@ -2152,6 +2152,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       try {
         Thread.sleep(milliseconds);
       } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt();
         throw new ProlChoicePointInterruptedException("thread interrupted", goal);
       }
     }
@@ -2220,7 +2221,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public boolean predicateCannotBeProven1(final JProlChoicePoint goal,
                                           final TermStruct predicate) {
     final Term argument = predicate.getArgumentAt(0).tryGround();
-    final JProlChoicePoint subGoal = goal.getContext().makeChoicePoint(argument, goal.getPayload());
+    final JProlChoicePoint subGoal =
+        goal.getContext().makeChoicePoint(argument, goal.getAssociatedObject());
     return subGoal.proveIgnoringUnknownPredicates() == null;
   }
 }

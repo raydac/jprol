@@ -245,12 +245,7 @@ public final class ProlUtils {
   }
 
   public static TermList createOrAppendToList(final TermList nullableList, final Term term) {
-    return createOrAppendToList(nullableList, term, null);
-  }
-
-  public static TermList createOrAppendToList(final TermList nullableList, final Term term,
-                                              final Object payload) {
-    final TermList newList = Terms.newList(term, payload, term.getSourcePosition());
+    final TermList newList = Terms.newList(term, term.getSourcePosition());
 
     if (nullableList != null && !nullableList.isNullList()) {
       newList.setTail(nullableList.getTail());

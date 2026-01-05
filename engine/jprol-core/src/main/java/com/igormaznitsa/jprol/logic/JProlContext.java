@@ -88,6 +88,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -123,6 +124,7 @@ public class JProlContext implements AutoCloseable {
   private final Map<String, JProlNamedLock> namedLocks;
   private final Map<Long, CompletableFuture<Term>> startedAsyncTasks =
       new LazySynchronizedMap<>();
+
   private final List<AbstractJProlLibrary> libraries = new CopyOnWriteArrayList<>();
   private final AtomicBoolean disposed = new AtomicBoolean(false);
   private final KnowledgeBase knowledgeBase;
@@ -132,6 +134,8 @@ public class JProlContext implements AutoCloseable {
   private final Set<String> dynamicSignatures = new ConcurrentSkipListSet<>();
   private final ReentrantLock asyncLocker = new ReentrantLock();
   private final Condition asyncCounterCondition = asyncLocker.newCondition();
+  private final Map<Term, Object> payloads;
+
   private final ParserContext parserContext = new ParserContext() {
     @Override
     public boolean hasOpStartsWith(final PrologParser prologParser, final String s) {
@@ -231,6 +235,7 @@ public class JProlContext implements AutoCloseable {
       final Map<String, JProlNamedLock> namedLocks,
       final AbstractJProlLibrary... additionalLibraries
   ) {
+    this.payloads = parentContext == null ? new ConcurrentHashMap<>() : parentContext.payloads;
     this.namedLocks = namedLocks;
     this.parentContext = parentContext;
     this.contextId = requireNonNull(contextId, "Context Id is null");
@@ -266,6 +271,49 @@ public class JProlContext implements AutoCloseable {
   }
 
   /**
+   * Find payload associated with a term in the context.
+   *
+   * @param term a term for which to find payload, can be null
+   * @param <T>  type of expected payload
+   * @return optional found value
+   * @since 3.0.0
+   */
+  @SuppressWarnings("unchecked")
+  public <T> Optional<T> findPayload(final Term term) {
+    this.assertNotDisposed();
+    if (term == null) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable((T) this.payloads.get(term));
+  }
+
+  /**
+   * Set payload associated with a term or remove if null value.
+   *
+   * @param term  target term, must not be null
+   * @param value associated value, if it is null then remove value
+   * @since 3.0.0
+   */
+  public void setPayload(final Term term, final Object value) {
+    this.assertNotDisposed();
+    if (value == null) {
+      this.payloads.remove(term);
+    } else {
+      this.payloads.put(term, value);
+    }
+  }
+
+  /**
+   * Get unmodifiable map of payloads for the context.
+   *
+   * @return unmodifable payload map, can't be null
+   * @since 3.0.0
+   */
+  public Map<Term, Object> getPayloadsMap() {
+    return Collections.unmodifiableMap(this.payloads);
+  }
+
+  /**
    * Create new string based choice point.
    *
    * @param goal the goal as a string, like "some(A,b)."
@@ -280,31 +328,36 @@ public class JProlContext implements AutoCloseable {
   /**
    * Create new string based choice point.
    *
-   * @param goal    the goal as a string, like "some(A,b)."
-   * @param payload payload object for the goal, can be null
+   * @param goal                        the goal as a string, like "some(A,b)."
+   * @param choicePointAssociatedObject any object which will be saved in choice point and can be used in predicates, can be null
    * @return new choice point, must not be null
    * @throws PrologParserException if error during goal parse
    * @since 3.0.0
    */
-  public JProlChoicePoint makeChoicePoint(final String goal, final Object payload) {
-    return this.makeChoicePoint(goal, payload, null);
+  public JProlChoicePoint makeChoicePoint(final String goal,
+                                          final Object choicePointAssociatedObject) {
+    return this.makeChoicePoint(goal, choicePointAssociatedObject, null);
   }
 
   /**
    * Create new string based choice point.
    *
-   * @param goal                the goal as a string, like "some(A,b)."
-   * @param payload             payload object for the goal, can be null
-   * @param predefinedVarValues map of predefined variable values to be used for goal, can be null
+   * @param goal                        the goal as a string, like "some(A,b)."
+   * @param choicePointAssociatedObject any object which will be saved in choice point and can be used in predicates, can be null
+   * @param predefinedVarValues         map of predefined variable values to be used for goal, can be null
    * @return new choice point, must not be null
    * @throws PrologParserException if error during goal parse
    * @since 3.0.0
    */
-  public JProlChoicePoint makeChoicePoint(final String goal, final Object payload,
+  public JProlChoicePoint makeChoicePoint(final String goal,
+                                          final Object choicePointAssociatedObject,
                                           final Map<String, Term> predefinedVarValues) {
-    final Term parsedGoal =
-        new JProlTreeBuilder(this, new StringReader(goal), true).readPhraseAndMakeTree();
-    return this.makeChoicePoint(parsedGoal, payload, predefinedVarValues);
+    final Term parsedGoal = new JProlTreeBuilder(
+        this,
+        new StringReader(goal),
+        true
+    ).readPhraseAndMakeTree();
+    return this.makeChoicePoint(parsedGoal, choicePointAssociatedObject, predefinedVarValues);
 
   }
 
@@ -322,27 +375,30 @@ public class JProlContext implements AutoCloseable {
   /**
    * Create new string based choice point.
    *
-   * @param goal    the goal as a term, must not be null
-   * @param payload payload object for the goal, can be null
+   * @param goal                        the goal as a term, must not be null
+   * @param choicePointAssociatedObject any object which will be saved in choice point and can be used in predicates, can be null
    * @return new choice point, must not be null
    * @since 3.0.0
    */
-  public JProlChoicePoint makeChoicePoint(final Term goal, final Object payload) {
-    return this.makeChoicePoint(goal, payload, null);
+  public JProlChoicePoint makeChoicePoint(final Term goal,
+                                          final Object choicePointAssociatedObject) {
+    return this.makeChoicePoint(goal, choicePointAssociatedObject, null);
   }
 
   /**
    * Create new string based choice point.
    *
-   * @param goal                the goal as a term, must not be null
-   * @param payload             payload object for the goal, can be null
-   * @param predefinedVarValues map of predefined variable values to be used for goal, can be null
+   * @param goal                        the goal as a term, must not be null
+   * @param choicePointAssociatedObject any object which will be saved in choice point and can be used in predicates, can be null
+   * @param predefinedVarValues         map of predefined variable values to be used for goal, can be null
    * @return new choice point, must not be null
    * @since 3.0.0
    */
-  public JProlChoicePoint makeChoicePoint(final Term goal, final Object payload,
-                                          final Map<String, Term> predefinedVarValues) {
-    return new JProlChoicePoint(goal, this, predefinedVarValues, payload);
+  public JProlChoicePoint makeChoicePoint(
+      final Term goal,
+      final Object choicePointAssociatedObject,
+      final Map<String, Term> predefinedVarValues) {
+    return new JProlChoicePoint(goal, this, predefinedVarValues, choicePointAssociatedObject);
   }
 
   /**
@@ -534,11 +590,14 @@ public class JProlContext implements AutoCloseable {
   /**
    * Prove the goal asynchronously, all variants.
    *
-   * @param goal               the target goal
-   * @param shareKnowledgeBase if true then make copy of
+   * @param goal                        the target goal
+   * @param choicePointAssociatedObject any object to be associated with created choice points, can be null
+   * @param shareKnowledgeBase          if true then make copy of
    * @return a future contains counter of successful goal prove
    */
-  public CompletableFuture<Term> asyncProveAll(final Term goal, final boolean shareKnowledgeBase) {
+  public CompletableFuture<Term> asyncProveAll(final Term goal,
+                                               final Object choicePointAssociatedObject,
+                                               final boolean shareKnowledgeBase) {
     this.assertNotDisposed();
     this.assertConcurrentKnowledgeBase();
 
@@ -559,7 +618,7 @@ public class JProlContext implements AutoCloseable {
         Exception error = null;
         try {
           final JProlChoicePoint asyncGoal =
-              contextCopy.makeChoicePoint(requireNonNull(goal), goal.getPayload());
+              contextCopy.makeChoicePoint(requireNonNull(goal), choicePointAssociatedObject);
           int proved = 0;
           while (!this.isDisposed() && !contextCopy.isDisposed()) {
             if (asyncGoal.prove() == null) {
@@ -602,11 +661,13 @@ public class JProlContext implements AutoCloseable {
   /**
    * Prove the goal asynchronously, only once.
    *
-   * @param goal               the target goal
-   * @param shareKnowledgeBase if true then make copy of
+   * @param goal                        the target goal
+   * @param choicePointAssociatedObject any object to be associated with created choice points, can be null
+   * @param shareKnowledgeBase          if true then make copy of
    * @return a future contains result term of prove
    */
   public CompletableFuture<Term> asyncProveOnce(final Term goal,
+                                                final Object choicePointAssociatedObject,
                                                 final boolean shareKnowledgeBase) {
     this.assertNotDisposed();
     this.assertConcurrentKnowledgeBase();
@@ -628,7 +689,7 @@ public class JProlContext implements AutoCloseable {
         Exception error = null;
         try {
           final JProlChoicePoint asyncGoal =
-              contextCopy.makeChoicePoint(requireNonNull(goal), goal.getPayload());
+              contextCopy.makeChoicePoint(requireNonNull(goal), choicePointAssociatedObject);
 
           final Term result = asyncGoal.prove();
           asyncGoal.resetLogicalAlternativesFlag();
@@ -980,6 +1041,10 @@ public class JProlContext implements AutoCloseable {
       });
       this.libraries.clear();
       this.contextListeners.clear();
+
+      if (this.isRootContext()) {
+        this.payloads.clear();
+      }
     }
   }
 

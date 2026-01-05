@@ -118,7 +118,7 @@ public final class PreparedGoal {
           .setValue(parameter);
     }
 
-    return context.makeChoicePoint(clonedGoal, clonedGoal.getPayload());
+    return context.makeChoicePoint(clonedGoal);
   }
 
   public JProlChoicePoint makeChoicePoint(final JProlContext context,
@@ -131,7 +131,7 @@ public final class PreparedGoal {
             () -> new IllegalArgumentException(String.format("Can't find variable '%s'", key)))
         .setValue(value));
 
-    return context.makeChoicePoint(clonedGoal, clonedGoal.getPayload());
+    return context.makeChoicePoint(clonedGoal);
   }
 
   public Term getPreparedGoalTerm() {

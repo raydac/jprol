@@ -2,6 +2,7 @@ package com.igormaznitsa.jprol.jsr223;
 
 import static com.igormaznitsa.jprol.data.TermList.NULL_LIST;
 
+import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermDouble;
 import com.igormaznitsa.jprol.data.TermList;
@@ -87,7 +88,7 @@ public final class JProlScriptEngineUtils {
 
       if (obj instanceof NamedList) {
         final NamedList namedList = (NamedList) obj;
-        return Terms.newStruct(Terms.newAtom(namedList.getName()), terms);
+        return Terms.newStruct(Terms.newAtom(namedList.getName()), terms, SourcePosition.UNKNOWN);
       } else {
         return TermList.listOf(terms);
       }

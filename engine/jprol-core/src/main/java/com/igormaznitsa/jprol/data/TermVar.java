@@ -42,26 +42,20 @@ public final class TermVar extends Term {
       final String name,
       final boolean anonymous,
       final Term immediateValue,
-      final Object payload,
       final SourcePosition sourcePosition
   ) {
-    super(name, payload, sourcePosition);
+    super(name, sourcePosition);
     this.uid = UID_GENERATOR.incrementAndGet();
     this.immediateValue = immediateValue;
     this.anonymous = anonymous;
   }
 
   TermVar(final String name, final SourcePosition sourcePosition) {
-    this(name, false, null, null, sourcePosition);
+    this(name, false, null, sourcePosition);
   }
 
-  TermVar(final String name, final Object payload, final SourcePosition sourcePosition) {
-    this(name, false, null, payload, sourcePosition);
-  }
-
-  TermVar(final Term immediateValue, final Object payload, final SourcePosition sourcePosition) {
-    this(Long.toString(UID_GENERATOR.incrementAndGet()), true, immediateValue,
-        payload, sourcePosition);
+  TermVar(final Term immediateValue, final SourcePosition sourcePosition) {
+    this(Long.toString(UID_GENERATOR.incrementAndGet()), true, immediateValue, sourcePosition);
   }
 
   @Override
@@ -121,8 +115,8 @@ public final class TermVar extends Term {
     }
 
     return this.isAnonymous() ?
-        new TermVar(thisValue, this.getPayload(), this.getSourcePosition()) :
-        new TermVar(this.getText(), false, thisValue, this.payload, this.getSourcePosition());
+        new TermVar(thisValue, this.getSourcePosition()) :
+        new TermVar(this.getText(), false, thisValue, this.getSourcePosition());
   }
 
   @Override
@@ -191,13 +185,13 @@ public final class TermVar extends Term {
     final Term thisValue = this.getImmediateValue();
     if (thisValue == null) {
       if (this.isAnonymous()) {
-        return new TermVar((Term) null, this.payload, this.getSourcePosition());
+        return new TermVar((Term) null, this.getSourcePosition());
       }
       final String varName = this.getText();
       final long varId = this.getVarUid();
       TermVar newVariable = variables.get(varId);
       if (newVariable == null) {
-        newVariable = new TermVar(varName, this.payload, this.getSourcePosition());
+        newVariable = new TermVar(varName, this.getSourcePosition());
         variables.put(varId, newVariable);
       }
       result = newVariable;
@@ -233,7 +227,7 @@ public final class TermVar extends Term {
   }
 
   /**
-   * Set value. if there is already value as variable then chain will be processed recursively and the value will be placed in the last chained non-grounded variable.
+   * Set value. if there is already value as variable as chain will be processed recursively and the value will be placed in the last chained non-grounded variable.
    *
    * @param value value to be set, can't be null
    * @return true if unification of value successful, false otherwise
@@ -354,7 +348,7 @@ public final class TermVar extends Term {
   /**
    * Set value to the variable.
    *
-   * @param value value to be save, can be null
+   * @param value value to be stored as immediate value, old value will be lost, can be null
    */
   public void setImmediateValue(final Term value) {
     if (value != this) {

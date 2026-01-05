@@ -55,9 +55,9 @@ public final class JProlChoicePoint implements Comparator<Term> {
   private final Term goalTerm;
   private final boolean verify;
   private final boolean trace;
+  private final Object associatedObject;
   private boolean hasLogicalAlternatives;
   private Object internalAuxiliaryObject;
-  private Object payload;
   private JProlChoicePoint prevChoicePoint;
   private JProlChoicePoint parentChoicePoint;
   private JProlChoicePoint childChoicePoint;
@@ -77,10 +77,10 @@ public final class JProlChoicePoint implements Comparator<Term> {
       final boolean verify,
       final Map<String, Term> presetVarValues,
       final Object internalAuxiliaryObject,
-      final Object payload
+      final Object associatedObject
   ) {
     this.internalAuxiliaryObject = internalAuxiliaryObject;
-    this.payload = payload;
+    this.associatedObject = associatedObject;
 
     this.hasLogicalAlternatives = true;
     this.verify = verify;
@@ -115,14 +115,21 @@ public final class JProlChoicePoint implements Comparator<Term> {
       }
       this.prevChoicePoint = rootChoicePoint.parentChoicePoint;
       rootChoicePoint.parentChoicePoint = this;
-      this.payload = rootChoicePoint.payload;
     }
   }
 
   JProlChoicePoint(final Term goal, final JProlContext context,
-                   final Map<String, Term> predefinedVarValues, final Object payload) {
-    this(null, goal, context, context.isTrace(), context.isVerify(), predefinedVarValues, null,
-        payload);
+                   final Map<String, Term> predefinedVarValues, final Object associatedObject) {
+    this(
+        null,
+        goal,
+        context,
+        context.isTrace(),
+        context.isVerify(),
+        predefinedVarValues,
+        null,
+        associatedObject
+    );
   }
 
   public boolean isTrace() {
@@ -157,9 +164,16 @@ public final class JProlChoicePoint implements Comparator<Term> {
     }
 
     final JProlChoicePoint newGoal =
-        new JProlChoicePoint(this.rootChoicePoint, goal, this.context, this.trace,
+        new JProlChoicePoint(
+            this.rootChoicePoint,
+            goal,
+            this.context,
+            this.trace,
             this.verify,
-            null, null, this.payload);
+            null,
+            null,
+            this.associatedObject
+        );
 
     final JProlChoicePoint prevGoal = newGoal.prevChoicePoint;
     if (prevGoal != null) {
@@ -171,22 +185,14 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   /**
-   * Get payload object.
+   * Get associated object.
    *
-   * @return payload object, can be null
+   * @return associated object, can be null
+   * @since 3.0.0
    */
   @SuppressWarnings("unchecked")
-  public <T> T getPayload() {
-    return (T) this.payload;
-  }
-
-  /**
-   * Payload value to be carried and accessible.
-   *
-   * @param payload payload object, can be null
-   */
-  public void setPayload(Object payload) {
-    this.payload = payload;
+  public <T> T getAssociatedObject() {
+    return (T) this.associatedObject;
   }
 
   /**
@@ -265,9 +271,15 @@ public final class JProlChoicePoint implements Comparator<Term> {
                   loop = false;
                 } else {
                   final JProlChoicePoint nextGoal =
-                      new JProlChoicePoint(this.rootChoicePoint, goalToProcess.nextAndTerm,
-                          this.context, this.trace, this.verify, null, null,
-                          this.payload);
+                      new JProlChoicePoint(
+                          this.rootChoicePoint,
+                          goalToProcess.nextAndTerm,
+                          this.context,
+                          this.trace,
+                          this.verify,
+                          null,
+                          null,
+                          this.associatedObject);
                   nextGoal.nextAndTerm = goalToProcess.nextAndTermForNextGoal;
                 }
               }
@@ -367,7 +379,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
             this.thisConnector = theTerm;
             this.childConnectingTerm = nextClause.getArgumentAt(0);
             this.childChoicePoint =
-                this.context.makeChoicePoint(nextClause.getArgumentAt(1), this.payload);
+                this.context.makeChoicePoint(nextClause.getArgumentAt(1), this.associatedObject);
             continue;
           } else {
             if (!theTerm.unifyWith(nextClause)) {
@@ -409,10 +421,10 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
             if (arity == 1) {
               this.childChoicePoint =
-                  this.context.makeChoicePoint(structClone.getArgumentAt(0), this.payload);
+                  this.context.makeChoicePoint(structClone.getArgumentAt(0), this.associatedObject);
             } else {
               this.childChoicePoint =
-                  this.context.makeChoicePoint(structClone.getArgumentAt(1), this.payload);
+                  this.context.makeChoicePoint(structClone.getArgumentAt(1), this.associatedObject);
             }
           } else {
             final Term functor = struct.getFunctor();
@@ -463,9 +475,16 @@ public final class JProlChoicePoint implements Comparator<Term> {
                   if (arity == 2 && functorTextLength == 1) {
                     if (getInternalObject() == null) {
                       final JProlChoicePoint leftSubbranch =
-                          new JProlChoicePoint(this.rootChoicePoint, struct.getArgumentAt(0),
-                              this.context, this.trace, this.verify, null, null,
-                              this.payload);
+                          new JProlChoicePoint(
+                              this.rootChoicePoint,
+                              struct.getArgumentAt(0),
+                              this.context,
+                              this.trace,
+                              this.verify,
+                              null,
+                              null,
+                              this.associatedObject
+                          );
                       leftSubbranch.nextAndTerm = this.nextAndTerm;
                       this.setInternalObject(leftSubbranch);
                     } else {

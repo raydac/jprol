@@ -47,34 +47,24 @@ public final class TermList extends TermStruct {
   private static final int INDEX_TAIL = 1;
 
   private TermList() {
-    this(EMPTY_ARRAY, null, SourcePosition.UNKNOWN);
+    this(EMPTY_ARRAY, SourcePosition.UNKNOWN);
   }
 
-  TermList(final Object payload, final SourcePosition sourcePosition) {
-    this(EMPTY_ARRAY, payload, sourcePosition);
+  TermList(final SourcePosition sourcePosition) {
+    this(EMPTY_ARRAY, sourcePosition);
   }
 
   TermList(final Term term, final SourcePosition sourcePosition) {
-    this(new Term[] {requireNonNull(term), NULL_LIST}, null, sourcePosition);
-  }
-
-  TermList(final Term term, final Object payload, final SourcePosition sourcePosition) {
-    this(new Term[] {requireNonNull(term), NULL_LIST}, payload, sourcePosition);
+    this(new Term[] {requireNonNull(term), NULL_LIST}, sourcePosition);
   }
 
   TermList(final Term head, final Term tail, final SourcePosition sourcePosition) {
-    this(new Term[] {requireNonNull(head), requireNonNull(tail)}, null, sourcePosition);
+    this(new Term[] {requireNonNull(head), requireNonNull(tail)}, sourcePosition);
   }
 
-  TermList(final Term head, final Term tail, final Object payload,
-           final SourcePosition sourcePosition) {
-    this(new Term[] {requireNonNull(head), requireNonNull(tail)}, payload, sourcePosition);
-  }
-
-  private TermList(final Term[] elements, final Object payload,
+  private TermList(final Term[] elements,
                    final SourcePosition sourcePosition) {
-    super(Terms.LIST_FUNCTOR, elements.length == 0 ? EMPTY_ARRAY : elements, payload,
-        sourcePosition);
+    super(Terms.LIST_FUNCTOR, elements.length == 0 ? EMPTY_ARRAY : elements, sourcePosition);
   }
 
   public static TermList listOf(final Term... elements) {
@@ -85,22 +75,18 @@ public final class TermList extends TermStruct {
     return asList(elements, SourcePosition.UNKNOWN);
   }
 
-  public static TermList asList(final List<Term> elements, final SourcePosition sourcePosition) {
-    return asList(elements, null, sourcePosition);
-  }
-
-  public static TermList asList(final List<Term> elements, final Object payload,
+  public static TermList asList(final List<Term> elements,
                                 final SourcePosition sourcePosition) {
     if (elements.isEmpty()) {
-      return Terms.newList(payload, sourcePosition);
+      return Terms.newList(sourcePosition);
     } else if (elements.size() == 1) {
-      return Terms.newList(elements.get(0), NULL_LIST, payload, sourcePosition);
+      return Terms.newList(elements.get(0), NULL_LIST, sourcePosition);
     } else {
-      final TermList result = newList(elements.get(0), payload);
+      final TermList result = newList(elements.get(0));
       TermList next = result;
       final int length = elements.size();
       for (int i = 1; i < length; i++) {
-        next = createOrAppendToList(next, elements.get(i), payload);
+        next = createOrAppendToList(next, elements.get(i));
       }
       return result;
     }
@@ -335,8 +321,8 @@ public final class TermList extends TermStruct {
     if (this.isNullList()) {
       return NULL_LIST;
     } else {
-      return Terms.newList(this.getHead().makeClone(variables), this.getTail().makeClone(variables),
-          this.payload);
+      return Terms.newList(this.getHead().makeClone(variables),
+          this.getTail().makeClone(variables));
     }
   }
 

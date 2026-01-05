@@ -26,19 +26,11 @@ public final class TermLong extends NumericTerm {
   private final long value;
 
   TermLong(final String name, final SourcePosition sourcePosition) {
-    this(name, null, sourcePosition);
-  }
-
-  TermLong(final String name, final Object payload, final SourcePosition sourcePosition) {
-    this(Long.parseLong(name), payload, sourcePosition);
+    this(Long.parseLong(name), sourcePosition);
   }
 
   TermLong(final long value, final SourcePosition sourcePosition) {
-    this(value, null, sourcePosition);
-  }
-
-  TermLong(final long value, final Object payload, final SourcePosition sourcePosition) {
-    super("", payload, sourcePosition);
+    super("", sourcePosition);
     this.value = value;
   }
 
@@ -140,7 +132,7 @@ public final class TermLong extends NumericTerm {
 
   @Override
   public NumericTerm neg() {
-    return newLong(-this.value, this.payload);
+    return newLong(-this.value);
   }
 
   @Override
@@ -153,17 +145,17 @@ public final class TermLong extends NumericTerm {
     if (this.value >= 0L) {
       return this;
     }
-    return newLong(Math.abs(this.value), this.payload);
+    return newLong(Math.abs(this.value));
   }
 
   @Override
   public NumericTerm sign() {
-    int sign = 0;
+    long sign = 0L;
     if (this.value < 0L) {
-      sign = -1;
+      sign = -1L;
     } else if (this.value > 0L) {
-      sign = 1;
+      sign = 1L;
     }
-    return newLong(sign, this.payload);
+    return newLong(sign);
   }
 }

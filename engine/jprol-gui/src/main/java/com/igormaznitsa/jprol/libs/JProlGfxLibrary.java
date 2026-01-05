@@ -288,8 +288,13 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     }
   }
 
-  private void doMouseAction(final int x, final int y, final String button, final int clicks,
-                             final String actionId) {
+  private void doMouseAction(
+      final int x,
+      final int y,
+      final String button,
+      final int clicks,
+      final String actionId
+  ) {
     final List<JProlMouseAction> actions = this.registeredMouseActions.get(actionId);
     if (actions != null) {
       actions.forEach(action -> action.execute(x, y, button, clicks, actionId));
@@ -500,7 +505,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         new JProlAction(timerName, (TermStruct) action, goal.getContext());
 
     final Timer timer = new Timer(delayMs, e ->
-        newTimerAction.execute(timerName)
+        newTimerAction.execute(timerName, goal.getAssociatedObject())
     );
 
     final TimerActionRecord prev =
@@ -532,7 +537,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
     final List<JProlMouseAction> list = this.registeredMouseActions.computeIfAbsent(actionType,
         name -> new CopyOnWriteArrayList<>());
-    list.add(new JProlMouseAction((TermStruct) callable, goal.getContext()));
+    list.add(
+        new JProlMouseAction((TermStruct) callable, goal.getAssociatedObject(), goal.getContext()));
   }
 
   @JProlPredicate(determined = true, signature = "bindaction/1", validate = {
@@ -601,7 +607,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       }
 
       foundItem.addActionListener((ActionEvent e) -> {
-        if (registeredAction.execute(menuItemName)) {
+        if (registeredAction.execute(menuItemName, goal.getAssociatedObject())) {
           menuBar.revalidate();
         } else {
           registeredActions.remove(registeredAction.menuText);
@@ -1341,8 +1347,11 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   private static class JProlMouseAction {
     private final TermStruct action;
     private final JProlContext context;
+    private final Object choicePointAssociatedObject;
 
-    JProlMouseAction(final TermStruct action, final JProlContext context) {
+    JProlMouseAction(final TermStruct action, final Object choicePointAssociatedObject,
+                     final JProlContext context) {
+      this.choicePointAssociatedObject = choicePointAssociatedObject;
       this.action = requireNonNull(action);
       this.context = requireNonNull(context);
       if (action.getArity() != 5) {
@@ -1350,20 +1359,25 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       }
     }
 
-    boolean execute(final int x, final int y, final String button, final int clicksOrWheel,
-                    final String actionId) {
+    boolean execute(
+        final int x,
+        final int y,
+        final String button,
+        final int clicksOrWheel,
+        final String actionId) {
       if (this.context.isDisposed()) {
         return false;
       }
 
       final TermStruct clone = (TermStruct) this.action.makeClone();
       final TermStruct args = Terms.newStruct(clone.getFunctor(),
-          new Term[] {Terms.newLong(x), Terms.newLong(y), Terms.newAtom(button),
-              Terms.newLong(clicksOrWheel),
-              Terms.newAtom(actionId)});
+          Terms.newLong(x), Terms.newLong(y), Terms.newAtom(button),
+          Terms.newLong(clicksOrWheel),
+          Terms.newAtom(actionId));
       if (clone.unifyWith(args)) {
         try {
-          this.context.asyncProveAll(clone, this.context.isShareKnowledgeBaseWithAsyncTasks());
+          this.context.asyncProveAll(clone, this.choicePointAssociatedObject,
+              this.context.isShareKnowledgeBaseWithAsyncTasks());
           return true;
         } catch (Throwable thr) {
           LOGGER.log(Level.SEVERE, "Can't execute registered mouse action " + actionId, thr);
@@ -1386,7 +1400,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       this.context = requireNonNull(context);
     }
 
-    boolean execute(final String id) {
+    boolean execute(final String id, final Object choicePointAssociatedObject) {
       if (this.context.isDisposed()) {
         return false;
       }
@@ -1395,7 +1409,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         final TermStruct args = Terms.newStruct(clone.getFunctor(), new Term[] {Terms.newAtom(id)});
 
         if (clone.unifyWith(args)) {
-          this.context.asyncProveAll(clone, this.context.isShareKnowledgeBaseWithAsyncTasks());
+          this.context.asyncProveAll(clone, choicePointAssociatedObject,
+              this.context.isShareKnowledgeBaseWithAsyncTasks());
           return true;
         }
       } catch (Throwable thr) {

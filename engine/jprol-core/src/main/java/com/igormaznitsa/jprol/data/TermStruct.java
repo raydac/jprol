@@ -43,30 +43,21 @@ public class TermStruct extends CompoundTerm {
   private PredicateInvoker predicateProcessor;
 
   TermStruct(final Term functor, final SourcePosition sourcePosition) {
-    this(functor, EMPTY_ARRAY, null, sourcePosition, PredicateInvoker.NULL_INVOKER);
-  }
-
-  TermStruct(final Term functor, final Object payload, final SourcePosition sourcePosition) {
-    this(functor, EMPTY_ARRAY, payload, sourcePosition, PredicateInvoker.NULL_INVOKER);
+    this(functor, EMPTY_ARRAY, sourcePosition, PredicateInvoker.NULL_INVOKER);
   }
 
   TermStruct(final String functor, final Term[] arguments, final SourcePosition sourcePosition) {
-    this(new Term(functor, sourcePosition), arguments, null, sourcePosition,
+    this(new Term(functor, sourcePosition), arguments, sourcePosition,
         PredicateInvoker.NULL_INVOKER);
   }
 
   TermStruct(final Term functor, final Term[] arguments, final SourcePosition sourcePosition) {
-    this(functor, arguments, null, sourcePosition, PredicateInvoker.NULL_INVOKER);
+    this(functor, arguments, sourcePosition, PredicateInvoker.NULL_INVOKER);
   }
 
-  TermStruct(final Term functor, final Term[] arguments, final Object payload,
-             final SourcePosition sourcePosition) {
-    this(functor, arguments, payload, sourcePosition, PredicateInvoker.NULL_INVOKER);
-  }
-
-  TermStruct(final Term functor, final Term[] arguments, final Object payload,
-             final SourcePosition sourcePosition, final PredicateInvoker predicateInvoker) {
-    super(functor.getText(), payload, sourcePosition);
+  TermStruct(final Term functor, final Term[] arguments, final SourcePosition sourcePosition,
+             final PredicateInvoker predicateInvoker) {
+    super(functor.getText(), sourcePosition);
     this.functor = functor;
     this.arguments = arguments == null ? EMPTY_ARRAY : arguments;
     this.structureSignature = functor.getText() + '/' + getArity();
@@ -581,7 +572,7 @@ public class TermStruct extends CompoundTerm {
         targetElements[i] = element.makeClone(variables);
       }
       result = Terms.newStruct(this.getFunctor(), targetElements, this.getPredicateProcessor(),
-          this.payload, this.getSourcePosition());
+          this.getSourcePosition());
     }
     return result;
   }
@@ -598,7 +589,7 @@ public class TermStruct extends CompoundTerm {
     }
     if (changed) {
       return Terms.newStruct(this.getFunctor(), newTerms, this.getPredicateProcessor(),
-          this.payload, this.getSourcePosition());
+          this.getSourcePosition());
     } else {
       return this;
     }

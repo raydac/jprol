@@ -36,26 +36,24 @@ import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.utils.ProlUtils.escapeSrc;
 import static java.util.Objects.requireNonNull;
 
-import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
+import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.utils.lazy.LazyMap;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public class Term {
 
-  protected final Object payload;
   private final String text;
   private final SourcePosition sourcePosition;
 
-  Term(final String text, final SourcePosition sourcePosition) {
-    this(text, null, sourcePosition);
-  }
-
-  Term(final String text, final Object payload, final SourcePosition sourcePosition) {
+  Term(
+      final String text,
+      final SourcePosition sourcePosition
+  ) {
     this.text = requireNonNull(text);
-    this.payload = payload;
     this.sourcePosition = requireNonNull(sourcePosition);
   }
 
@@ -80,15 +78,26 @@ public class Term {
   }
 
   /**
-   * Get payload object associated with the term.
+   * Find payload for specified context.
    *
-   * @param <T> type of expected payload object
-   * @return the payload object saved in the term, can be null
+   * @param context target context associated with payload
+   * @param <T>     type of expected payload object
+   * @return the payload object associated with the term in the context
    * @since 3.0.0
    */
-  @SuppressWarnings("unchecked")
-  public <T> T getPayload() {
-    return (T) this.payload;
+  public <T> Optional<T> findPayload(final JProlContext context) {
+    if (context == null) {
+      return Optional.empty();
+    }
+    return context.findPayload(this);
+  }
+
+  public Term setPayload(final JProlContext context, final Object value) {
+    if (context != null) {
+      context.setPayload(this, value);
+    }
+    return this;
+
   }
 
   /**
@@ -271,11 +280,6 @@ public class Term {
       break;
       case ATOM: {
         result = other.getClass() == Term.class && getText().equals(other.getText());
-        if (result && this.payload != other.payload) {
-          throw new ProlCriticalError(
-              "Detected different payload in same named atomic terms: " + this.payload + " != " +
-                  other.payload);
-        }
       }
       break;
       case STRUCT: {
@@ -347,6 +351,7 @@ public class Term {
 
   /**
    * Get cloned version of the term.
+   *
    * @return a cloned version.
    */
   public Term makeClone() {
