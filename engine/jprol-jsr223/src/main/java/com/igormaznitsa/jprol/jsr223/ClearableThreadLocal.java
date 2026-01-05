@@ -2,20 +2,48 @@ package com.igormaznitsa.jprol.jsr223;
 
 import static java.util.Objects.requireNonNull;
 
+import java.lang.ref.WeakReference;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
-public class ClearableThreadLocal<T> {
+public class ClearableThreadLocal<T> implements CanGC {
 
-  final Map<Long, T> threadMap = new ConcurrentHashMap<>();
+  final Map<Long, Map.Entry<WeakReference<Thread>, T>> threadMap = new ConcurrentHashMap<>();
 
   private final Supplier<T> supplier;
+  private final Consumer<T> removeAction;
 
-  public ClearableThreadLocal(Supplier<T> supplier) {
+  public ClearableThreadLocal(final Supplier<T> supplier, final Consumer<T> removeAction) {
     this.supplier = Objects.requireNonNull(supplier);
+    this.removeAction = removeAction;
+  }
+
+  @Override
+  public void gc() {
+    final List<Long> collected = this.threadMap.entrySet().stream()
+        .filter(x -> {
+          final Thread thread = x.getValue().getKey().get();
+          return thread == null || thread.getState() == Thread.State.TERMINATED;
+        })
+        .map(Map.Entry::getKey)
+        .collect(Collectors.toList());
+    collected.forEach(x -> {
+      var removed = this.threadMap.remove(x);
+      if (removed != null) {
+        if (this.removeAction != null) {
+          try {
+            this.removeAction.accept(removed.getValue());
+          } catch (Exception ex) {
+            // ignore
+          }
+        }
+      }
+    });
   }
 
   protected Long getCurrentThreadId() {
@@ -23,32 +51,41 @@ public class ClearableThreadLocal<T> {
   }
 
   public T set(final T value) {
-    return this.threadMap.put(this.getCurrentThreadId(), requireNonNull(value));
+    var result = this.threadMap.put(this.getCurrentThreadId(),
+        Map.entry(new WeakReference<>(Thread.currentThread()), requireNonNull(value)));
+    return result == null ? null : result.getValue();
   }
 
   public T remove() {
-    return this.threadMap.remove(this.getCurrentThreadId());
+    var result = this.threadMap.remove(this.getCurrentThreadId());
+    return result == null ? null : result.getValue();
   }
 
   public T get() {
-    return this.threadMap.computeIfAbsent(this.getCurrentThreadId(), x -> this.supplier.get());
+    final Map.Entry<WeakReference<Thread>, T> result =
+        this.threadMap.computeIfAbsent(this.getCurrentThreadId(),
+            x -> Map.entry(new WeakReference<>(Thread.currentThread()), this.supplier.get()));
+    return result.getValue();
   }
 
   public T find() {
-    return this.threadMap.get(this.getCurrentThreadId());
+    var result = this.threadMap.get(this.getCurrentThreadId());
+    return result == null ? null : result.getValue();
   }
 
-  public void removeAll(final Consumer<T> action) {
-    if (action != null) {
-      this.threadMap.forEach((key, value) -> {
+  public void removeAll() {
+    Map<Long, Map.Entry<WeakReference<Thread>, T>> copy =
+        this.removeAction == null ? Map.of() : Map.copyOf(this.threadMap);
+    this.threadMap.clear();
+    if (this.removeAction != null) {
+      copy.forEach((key, pair) -> {
         try {
-          action.accept(value);
+          this.removeAction.accept(pair.getValue());
         } catch (Exception ex) {
           // ignore
         }
       });
     }
-    this.threadMap.clear();
   }
 
   public int size() {

@@ -190,6 +190,9 @@ public class SimpleJsr223Test {
     end.await();
     assertEquals(threads, completionCounter.get());
     assertEquals(0, errorCounter.get());
+    ((JProlScriptEngine) engine).gc();
+    assertEquals(1, ((JProlScriptEngine) engine).size(),
+        "Expected only thread alive in engine stores");
   }
 
   @Test
@@ -220,8 +223,8 @@ public class SimpleJsr223Test {
         } catch (InterruptedException ex) {
           Thread.currentThread().interrupt();
         } catch (Throwable ex) {
+          ex.printStackTrace();
           errorCounter.incrementAndGet();
-          System.err.println("Error: " + ex.getMessage());
         } finally {
           completionCounter.incrementAndGet();
           end.countDown();

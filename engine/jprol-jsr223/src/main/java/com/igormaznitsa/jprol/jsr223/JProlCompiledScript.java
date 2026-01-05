@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 import javax.script.CompiledScript;
 import javax.script.Invocable;
 import javax.script.ScriptContext;
@@ -25,23 +24,24 @@ import javax.script.ScriptException;
 
 /**
  * Allows to compile a script for further usage. Allows to decrease overheads and increase call speed.
+ * As precompiled query it keeps only the first found script query marked '?-'.
  *
  * @since 3.0.0
  */
 public class JProlCompiledScript extends CompiledScript
-    implements Invocable, AutoCloseable, JProlScriptEngineProvider {
+    implements Disposable, CanGC, Invocable, AutoCloseable, JProlScriptEngineProvider {
 
   private final JProlScriptEngine engine;
-  private final List<Term> queryList;
+  private final Term query;
   private final String scriptSources;
   private final JProlContext compiledProlContext;
 
-  private final AtomicBoolean closed = new AtomicBoolean();
+  private final AtomicBoolean disposed = new AtomicBoolean();
   private final ReentrantLock evalLock = new ReentrantLock();
 
   JProlCompiledScript(
       final JProlScriptEngine engine,
-      String script) throws ScriptException {
+      final String script) throws ScriptException {
     this.engine = engine;
     this.scriptSources = script;
 
@@ -51,15 +51,17 @@ public class JProlCompiledScript extends CompiledScript
 
       final List<Term> parsed =
           JProlScriptEngine.parseWholeScript(script, this.compiledProlContext);
-      this.queryList = parsed.stream().map(JProlScriptEngine.QUERY_PREDICATE_FILTER)
+      this.query = parsed.stream().map(JProlScriptEngine.QUERY_PREDICATE_FILTER)
           .filter(Objects::nonNull)
-          .collect(Collectors.toList());
+          .findFirst()
+          .orElse(null);
 
-      script = JProlScriptEngine.joinSources(parsed, JProlScriptEngine.NOT_QUERY_PREDICATE_FILTER,
-          Integer.MAX_VALUE,
-          Map.of());
+      final String scriptWithoutQuery =
+          JProlScriptEngine.joinSources(parsed, JProlScriptEngine.NOT_QUERY_PREDICATE_FILTER,
+              Integer.MAX_VALUE,
+              Map.of());
 
-      this.compiledProlContext.consult(new StringReader(script));
+      this.compiledProlContext.consult(new StringReader(scriptWithoutQuery));
     } catch (PrologParserException e) {
       if (e.hasValidPosition()) {
         throw new ScriptException(
@@ -73,50 +75,69 @@ public class JProlCompiledScript extends CompiledScript
     }
   }
 
-  private void assertNotClosed() {
-    if (this.closed.get()) {
+  private void assertNotDisposed() {
+    if (this.disposed.get()) {
       throw new IllegalStateException("Closed context");
     }
   }
 
   public JProlContext getCompiledContext() {
-    this.assertNotClosed();
+    this.assertNotDisposed();
     return this.compiledProlContext;
   }
 
-  public List<Term> getQueryList() {
-    this.assertNotClosed();
-    return this.queryList;
+  /**
+   * Query found in pre-compiled source, can be null np query.
+   *
+   * @return first script query or null
+   */
+  public Term getQuery() {
+    this.assertNotDisposed();
+    return this.query;
   }
 
+  /**
+   * Get script sources for the compilation.
+   *
+   * @return sources of the script as String
+   */
   public String getScriptSources() {
-    this.assertNotClosed();
+    this.assertNotDisposed();
     return this.scriptSources;
   }
 
+  /**
+   * Prove compiled query once.
+   *
+   * @param context target context
+   * @return {@link Boolean#TRUE} if proved, {@link Boolean#FALSE} otherwise
+   * @throws ScriptException if any internal error
+   */
   @Override
   public Object eval(final ScriptContext context) throws ScriptException {
-    this.assertNotClosed();
+    this.assertNotDisposed();
+
+    if (this.query == null) {
+      throw new IllegalStateException(
+          "There is not any pre-compiled query because it was not provided in source script");
+    }
+
     this.evalLock.lock();
     try {
       try {
-        Object lastResult = null;
-
         final Map<String, Term> bindings = JProlScriptEngine.extractVarsFromBindings(context, null);
-        for (final Term q : this.queryList) {
-          Term preparedQuery = q.makeClone();
-          if (!bindings.isEmpty()) {
-            for (final Map.Entry<String, Term> t : bindings.entrySet()) {
-              preparedQuery = preparedQuery.replaceVar(t.getKey(), t.getValue());
-            }
+        Term preparedQuery = this.query.makeClone();
+        if (!bindings.isEmpty()) {
+          for (final Map.Entry<String, Term> t : bindings.entrySet()) {
+            preparedQuery = preparedQuery.replaceVar(t.getKey(), t.getValue());
           }
-          lastResult =
-              this.engine.executeQuery(preparedQuery, this.compiledProlContext, context.getBindings(
-                  ENGINE_SCOPE));
         }
-        return lastResult == null ? Boolean.FALSE : lastResult;
+        Object result =
+            this.engine.proveQueryOnce(preparedQuery, this.compiledProlContext, context.getBindings(
+                ENGINE_SCOPE));
+        return result == null ? Boolean.FALSE : Boolean.TRUE;
       } catch (Exception e) {
-        throw new ScriptException("Error evaluating compiled script: " + e.getMessage());
+        throw new ScriptException(e);
       }
     } finally {
       this.evalLock.unlock();
@@ -125,13 +146,13 @@ public class JProlCompiledScript extends CompiledScript
 
   @Override
   public ScriptEngine getEngine() {
-    this.assertNotClosed();
+    this.assertNotDisposed();
     return this.engine;
   }
 
   @Override
   public Object invokeMethod(final Object thisObject, final String name, final Object... args) {
-    this.assertNotClosed();
+    this.assertNotDisposed();
     if (thisObject instanceof JProlScriptEngineProvider) {
       final JProlScriptEngine thisEngine =
           ((JProlScriptEngineProvider) thisObject).getJProlScriptEngine();
@@ -142,7 +163,7 @@ public class JProlCompiledScript extends CompiledScript
           terms[i] = java2term(args[i]);
         }
         final Term term = Terms.newStruct(name, terms, SourcePosition.UNKNOWN);
-        return thisEngine.executeQuery(term, this.compiledProlContext,
+        return thisEngine.proveQueryOnce(term, this.compiledProlContext,
             thisEngine.getBindings(ENGINE_SCOPE));
       } finally {
         this.evalLock.unlock();
@@ -171,7 +192,7 @@ public class JProlCompiledScript extends CompiledScript
   @SuppressWarnings("unchecked")
   @Override
   public <T> T getInterface(final Object thisObject, final Class<T> targetClass) {
-    this.assertNotClosed();
+    this.assertNotDisposed();
 
     if (thisObject instanceof JProlScriptEngineProvider) {
       if (targetClass == null) {
@@ -204,9 +225,27 @@ public class JProlCompiledScript extends CompiledScript
   }
 
   @Override
-  public void close() {
-    if (this.closed.compareAndSet(false, true)) {
+  public boolean isDisposed() {
+    return this.disposed.get();
+  }
+
+  @Override
+  public void dispose() {
+    if (this.disposed.compareAndSet(false, true)) {
       this.compiledProlContext.dispose();
+    }
+  }
+
+  @Override
+  public void close() {
+    this.dispose();
+  }
+
+  @Override
+  public void gc() {
+    this.assertNotDisposed();
+    if (!this.engine.isDisposed()) {
+      this.engine.gc();
     }
   }
 }

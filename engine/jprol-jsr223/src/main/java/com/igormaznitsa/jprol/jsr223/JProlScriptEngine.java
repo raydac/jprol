@@ -52,7 +52,7 @@ import javax.script.SimpleBindings;
 /**
  * JProl JSR 223 script engine implementation.
  * Allows execution of Prolog code through the standard Java Scripting API.
- * <b>It has MULTIHREADED level, threads not isolated</b>
+ * <b>It has MULTITHREADED level, threads not isolated</b>
  * <p>
  * Supports custom libraries via ScriptContext attributes:
  * - "jprol.libraries" - list of {@link com.igormaznitsa.jprol.libs.AbstractJProlLibrary} instances to be loaded during new {@link JProlContext} create or reinit
@@ -66,7 +66,8 @@ import javax.script.SimpleBindings;
  * @since 3.0.0
  */
 public class JProlScriptEngine
-    implements ScriptEngine, Compilable, Invocable, JProlScriptEngineProvider, AutoCloseable {
+    implements Disposable, CanGC, ScriptEngine, Compilable, Invocable, JProlScriptEngineProvider,
+    AutoCloseable {
 
   static final IoResourceProvider CONSOLE_IO_PROVIDER = new IoResourceProvider() {
     @Override
@@ -109,7 +110,7 @@ public class JProlScriptEngine
     return t;
   };
   private final JProlScriptEngineFactory factory;
-  private final AtomicBoolean closed = new AtomicBoolean();
+  private final AtomicBoolean disposed = new AtomicBoolean();
   private final AtomicReference<JProlScriptEngineContext> engineContext = new AtomicReference<>();
 
   JProlScriptEngine(final JProlScriptEngineFactory factory) {
@@ -211,7 +212,7 @@ public class JProlScriptEngine
   }
 
   private void assertNotClosed() {
-    if (this.closed.get()) {
+    if (this.disposed.get()) {
       throw new IllegalStateException("Already closed");
     }
   }
@@ -270,16 +271,40 @@ public class JProlScriptEngine
   @Override
   public void setContext(final ScriptContext context) {
     this.assertNotClosed();
-    this.engineContext.set(asJProlContext(requireNonNull(context)));
+    final JProlScriptEngineContext prev =
+        this.engineContext.getAndSet(asJProlContext(requireNonNull(context)));
+    if (prev != null) {
+      prev.gc();
+    }
   }
 
+  /**
+   * Find '?-' query goal in script and prove it once, place results into engine scoped bindings.
+   *
+   * @param script  prolog script
+   * @param context target context
+   * @return {@link Boolean#TRUE} if proved, {@link Boolean#FALSE} otherwise
+   * @throws ScriptException if any internal error
+   */
   @Override
   public Object eval(final String script, final ScriptContext context) throws ScriptException {
     return this.eval(new StringReader(script), context, null);
   }
 
-  public Object eval(final Reader script, final ScriptContext context,
-                     final Bindings customEngineBindings) throws ScriptException {
+  /**
+   * Find '?-' query goal in script and prove it once, place results into target bindings if presented or into engine scoped bindings.
+   *
+   * @param script               prolog script
+   * @param context              target context
+   * @param customEngineBindings target bindings
+   * @return {@link Boolean#TRUE} if proved, {@link Boolean#FALSE} otherwise
+   * @throws ScriptException if any internal error
+   */
+  public Object eval(
+      final Reader script,
+      final ScriptContext context,
+      final Bindings customEngineBindings
+  ) throws ScriptException {
     this.assertNotClosed();
 
     if (script == null) {
@@ -301,21 +326,11 @@ public class JProlScriptEngine
       if (queryString.isBlank()) {
         return Boolean.TRUE;
       }
-      return this.executeQuery(queryString, context,
+      return this.proveQueryOnce(queryString, context,
           customEngineBindings == null ? context.getBindings(ScriptContext.ENGINE_SCOPE) :
               customEngineBindings);
     } catch (Exception e) {
-      if (e instanceof PrologParserException) {
-        final PrologParserException pe = (PrologParserException) e;
-        if (pe.hasValidPosition()) {
-          throw new ScriptException(
-              "Error parsing Prolog script: " + e);
-        } else {
-          throw new ScriptException(
-              "Error parsing Prolog script: " + e);
-        }
-      }
-      throw new ScriptException("Error executing Prolog script: " + e);
+      throw new ScriptException(e);
     }
   }
 
@@ -364,6 +379,13 @@ public class JProlScriptEngine
     }
   }
 
+  /**
+   * Prove query and return all resulted variables as list.
+   *
+   * @param queryString query, must not contain '?-'
+   * @return list of variables for proved variants, can't be null
+   * @throws ScriptException if any error during execution
+   */
   public List<Map<String, Object>> query(final String queryString) throws ScriptException {
     this.assertNotClosed();
     final List<Map<String, Object>> results = new ArrayList<>();
@@ -386,6 +408,12 @@ public class JProlScriptEngine
     return results;
   }
 
+  /**
+   * Make consult for engine context.
+   *
+   * @param source sources
+   * @throws ScriptException if any error
+   */
   public void consult(final String source) throws ScriptException {
     this.assertNotClosed();
     try {
@@ -420,11 +448,9 @@ public class JProlScriptEngine
     }
   }
 
-  Object executeQuery(final String queryString, final ScriptContext context,
-                      final Bindings bindings) {
+  private Object commonProveQueryOnce(final Bindings bindings,
+                                      final JProlChoicePoint goal) {
     this.assertNotClosed();
-    final JProlContext prolContext = asJProlContext(context).findOrMakeJProlContext();
-    final JProlChoicePoint goal = prolContext.makeChoicePoint(queryString);
     final Term result = goal.prove();
     if (result != null) {
       final Map<String, Object> groundedVars = extractGroundedVariables(goal);
@@ -436,35 +462,24 @@ public class JProlScriptEngine
     return Boolean.FALSE;
   }
 
-  Object executeQuery(final Term queryTerm, final ScriptContext context, final Bindings bindings) {
-    this.assertNotClosed();
+  Object proveQueryOnce(final String queryString, final ScriptContext context,
+                        final Bindings bindings) {
+    assertNotClosed();
     final JProlContext prolContext = asJProlContext(context).findOrMakeJProlContext();
-    final JProlChoicePoint goal = prolContext.makeChoicePoint(queryTerm);
-    final Term result = goal.prove();
-    if (result != null) {
-      final Map<String, Object> groundedVars = extractGroundedVariables(goal);
-      if (bindings != null) {
-        bindings.putAll(groundedVars);
-      }
-      return Boolean.TRUE;
-    }
-    return Boolean.FALSE;
+    return this.commonProveQueryOnce(bindings, prolContext.makeChoicePoint(queryString));
   }
 
-  Object executeQuery(final Term queryTerm, final JProlContext prolContext,
-                      final Bindings bindings) {
-    this.assertNotClosed();
-    final JProlChoicePoint choicePoint = prolContext.makeChoicePoint(queryTerm);
-    final Term result = choicePoint.prove();
-    if (result == null) {
-      return Boolean.FALSE;
-    } else {
-      final Map<String, Object> groundedVars = extractGroundedVariables(choicePoint);
-      if (bindings != null) {
-        bindings.putAll(groundedVars);
-      }
-      return Boolean.TRUE;
-    }
+  Object proveQueryOnce(final Term queryTerm, final ScriptContext context,
+                        final Bindings bindings) {
+    assertNotClosed();
+    final JProlContext prolContext = asJProlContext(context).findOrMakeJProlContext();
+    return this.proveQueryOnce(queryTerm, prolContext, bindings);
+  }
+
+  Object proveQueryOnce(final Term queryTerm, final JProlContext prolContext,
+                        final Bindings bindings) {
+    assertNotClosed();
+    return this.commonProveQueryOnce(bindings, prolContext.makeChoicePoint(queryTerm));
   }
 
   @Override
@@ -473,6 +488,14 @@ public class JProlScriptEngine
     return this.invokeFunction(name, args);
   }
 
+  /**
+   * It will prove once a goal to simulate function call
+   *
+   * @param name of target predicate
+   * @param args arguments of predicate to prove
+   * @return {@link Boolean#TRUE} if proven, {@link Boolean#FALSE} otherwise
+   * @throws ScriptException if any internal error
+   */
   @Override
   public Object invokeFunction(final String name, final Object... args)
       throws ScriptException {
@@ -485,18 +508,33 @@ public class JProlScriptEngine
       }
       final Term term = Terms.newStruct(name, terms, SourcePosition.UNKNOWN);
       final JProlScriptEngineContext scriptEngineContext = this.engineContext.get();
-      return this.executeQuery(term, scriptEngineContext,
+      return this.proveQueryOnce(term, scriptEngineContext,
           scriptEngineContext.getBindings(ScriptContext.ENGINE_SCOPE));
     } catch (Exception ex) {
       throw new ScriptException(ex);
     }
   }
 
+  /**
+   * Find internal object with specified interface.
+   *
+   * @param targetClass The <code>Class</code> object of the interface to return.
+   * @param <T>         type of needed object
+   * @return found object or null
+   */
   @Override
   public <T> T getInterface(final Class<T> targetClass) {
     return this.getInterface(this, targetClass);
   }
 
+  /**
+   * Find internal object with specified interface.
+   *
+   * @param thisObject  target object to find internal object implementing target class
+   * @param targetClass The <code>Class</code> object of the interface to return.
+   * @param <T>         type of needed object
+   * @return found object or null
+   */
   @SuppressWarnings("unchecked")
   @Override
   public <T> T getInterface(final Object thisObject, final Class<T> targetClass) {
@@ -540,20 +578,46 @@ public class JProlScriptEngine
     }
   }
 
+  @Override
+  public boolean isDisposed() {
+    return this.disposed.get();
+  }
+
+  @Override
+  public void dispose() {
+    this.dispose(true);
+  }
+
+  /**
+   * Dispose the object, remove internal state.
+   *
+   * @param disposeContext if true then engine context also will be disposed
+   */
   public void dispose(final boolean disposeContext) {
-    if (this.closed.compareAndSet(false, true)) {
+    if (this.disposed.compareAndSet(false, true)) {
       final JProlScriptEngineContext context = this.engineContext.getAndSet(null);
-      if (context != null && disposeContext) {
-        context.dispose();
+      if (context != null) {
+        if (disposeContext) {
+          context.dispose();
+        } else {
+          context.gc();
+        }
       }
     }
   }
 
   @Override
   public void close() {
-    this.dispose(true);
+    this.dispose();
   }
 
+  /**
+   * Set prolog system flag state.
+   *
+   * @param name  name of flag
+   * @param value new value of flag
+   * @see JProlSystemFlag
+   */
   public void setFlag(final String name, final Object value) {
     this.assertNotClosed();
     final JProlSystemFlag flag = JProlSystemFlag.find(newAtom(name))
@@ -562,9 +626,24 @@ public class JProlScriptEngine
     prolContext.setSystemFlag(flag, java2term(value));
   }
 
+  /**
+   * Approximate number of items presented in internal script engine state.
+   *
+   * @return 0 if no state and size if presented
+   * @see JProlScriptEngineContext#size()
+   */
   public int size() {
     this.assertNotClosed();
     final JProlScriptEngineContext context = this.engineContext.get();
     return context == null ? 0 : context.size();
+  }
+
+  @Override
+  public void gc() {
+    this.assertNotClosed();
+    final JProlScriptEngineContext context = this.engineContext.get();
+    if (context != null) {
+      context.gc();
+    }
   }
 }

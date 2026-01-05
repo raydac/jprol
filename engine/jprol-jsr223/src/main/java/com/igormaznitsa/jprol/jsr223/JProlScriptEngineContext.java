@@ -36,7 +36,7 @@ import javax.script.SimpleBindings;
  *
  * @since 3.0.0
  */
-public class JProlScriptEngineContext implements ScriptContext, JProlBindingsConstants {
+public class JProlScriptEngineContext implements CanGC, ScriptContext, JProlBindingsConstants {
 
   static final List<AbstractJProlLibrary> BOOTSTRAP_LIBRARIES =
       List.of(
@@ -53,9 +53,9 @@ public class JProlScriptEngineContext implements ScriptContext, JProlBindingsCon
   private final JProlScriptEngineFactory factory;
 
   private final ClearableThreadLocal<Bindings> engineBindings =
-      new ClearableThreadLocal<>(() -> new SimpleBindings(new ConcurrentHashMap<>()));
+      new ClearableThreadLocal<>(() -> new SimpleBindings(new ConcurrentHashMap<>()), Map::clear);
   private final ClearableThreadLocal<JProlContext> jprolContext =
-      new ClearableThreadLocal<>(this::newInitedJProlContext);
+      new ClearableThreadLocal<>(this::newInitedJProlContext, JProlContext::dispose);
 
   private final AtomicReference<Bindings> globalBindingsRef = new AtomicReference<>();
   private final AtomicReference<KnowledgeBase> prolKnowledgeBase = new AtomicReference<>();
@@ -97,14 +97,14 @@ public class JProlScriptEngineContext implements ScriptContext, JProlBindingsCon
     }
   }
 
-  public JProlContext findOrMakeJProlContext() {
-    this.assertNotClosed();
-    return this.jprolContext.get();
-  }
-
   public JProlContext findJProlContext() {
     this.assertNotClosed();
     return this.jprolContext.find();
+  }
+
+  public JProlContext findOrMakeJProlContext() {
+    this.assertNotClosed();
+    return this.jprolContext.get();
   }
 
   /**
@@ -123,6 +123,13 @@ public class JProlScriptEngineContext implements ScriptContext, JProlBindingsCon
     if (currentBindings != null) {
       currentBindings.clear();
     }
+  }
+
+  @Override
+  public void gc() {
+    this.assertNotClosed();
+    this.jprolContext.gc();
+    this.engineBindings.gc();
   }
 
   public KnowledgeBase getKnowledgeBase() {
@@ -326,8 +333,8 @@ public class JProlScriptEngineContext implements ScriptContext, JProlBindingsCon
 
   public void dispose() {
     if (this.disposed.compareAndSet(false, true)) {
-      this.engineBindings.removeAll(Map::clear);
-      this.jprolContext.removeAll(JProlContext::dispose);
+      this.engineBindings.removeAll();
+      this.jprolContext.removeAll();
       this.writer.set(null);
       this.writerErr.set(null);
       this.reader.set(null);
@@ -351,6 +358,10 @@ public class JProlScriptEngineContext implements ScriptContext, JProlBindingsCon
    */
   public int size() {
     this.assertNotClosed();
+
+    this.jprolContext.gc();
+    this.engineBindings.gc();
+
     return this.jprolContext.size() + this.engineBindings.size();
   }
 }
