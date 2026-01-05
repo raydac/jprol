@@ -36,6 +36,7 @@ import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.utils.ProlUtils.escapeSrc;
 import static java.util.Objects.requireNonNull;
 
+import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.utils.lazy.LazyMap;
 import java.util.Collections;
@@ -270,6 +271,11 @@ public class Term {
       break;
       case ATOM: {
         result = other.getClass() == Term.class && getText().equals(other.getText());
+        if (result && this.payload != other.payload) {
+          throw new ProlCriticalError(
+              "Detected different payload in same named atomic terms: " + this.payload + " != " +
+                  other.payload);
+        }
       }
       break;
       case STRUCT: {

@@ -18,6 +18,8 @@ package com.igormaznitsa.jprol.data;
 
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 
+import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
+
 public abstract class NumericTerm extends Term {
 
   NumericTerm(final String text, final Object payload, final SourcePosition sourcePosition) {
@@ -76,7 +78,14 @@ public abstract class NumericTerm extends Term {
     switch (other.getTermType()) {
       case ATOM: {
         if (other.getClass() == this.getClass()) {
-          return this.compare((NumericTerm) other) == 0;
+          final boolean result = this.compare((NumericTerm) other) == 0;
+          if (this.payload != other.payload) {
+            throw new ProlCriticalError(
+                "Detected different payload in same valued numeric terms: " + this.payload +
+                    " != " +
+                    other.payload);
+          }
+          return result;
         } else {
           return false;
         }
