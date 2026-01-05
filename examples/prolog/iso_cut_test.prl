@@ -1,0 +1,114 @@
+% Prolog Cut (!) Test
+
+% Test predicates
+basic(1).
+basic(2).
+basic(3).
+
+cut_first(X) :- basic(X), !.
+
+cut_after(X) :- basic(X), X > 1, !.
+
+no_cut(X) :- basic(X).
+
+% Nested cuts
+outer(X, Y) :- basic(X), !, inner(Y).
+inner(a).
+inner(b).
+
+% Cut in conditional
+max(X, Y, X) :- X >= Y, !.
+max(_, Y, Y).
+
+% Cut with failure
+fail_after_cut(X) :- basic(X), !, fail.
+
+% Cut in recursive predicate
+sum_until(N, N, N) :- !.
+sum_until(N, Acc, Sum) :- 
+    N > 0, !, 
+    N1 is N - 1, 
+    Acc1 is Acc + N, 
+    sum_until(N1, Acc1, Sum).
+sum_until(_, Acc, Acc).
+
+% Cut vs negation
+with_cut(X) :- basic(X), X = 2, !.
+with_negation(X) :- basic(X), \+ X = 2.
+
+% Cut prevents backtracking within its clause
+parent(X) :- child(X).
+child(1) :- !.
+child(2).
+child(3).
+
+% If-then-else simulation
+if_then_else(X, Y, Z) :- X, !, Y.
+if_then_else(_, _, Z) :- Z.
+
+% Test runner
+run_all_tests :-
+    write('=== CUT TEST SUITE ==='), nl,
+    test_basic_cut,
+    test_cut_after_condition,
+    test_no_backtrack_to_choice_point,
+    test_nested_cuts,
+    test_cut_in_conditional,
+    test_cut_with_failure,
+    test_cut_in_recursion,
+    test_cut_vs_negation,
+    test_cut_doesnt_affect_parent,
+    test_if_then_else,
+    write('=== COMPLETE ==='), nl.
+
+% Individual tests
+test_basic_cut :-
+    findall(X, cut_first(X), L1), findall(X, no_cut(X), L2),
+    format('1. Basic cut: ~w vs ~w ', [L1, L2]),
+    (L1 = [1], L2 = [1,2,3] -> write('[PASS]') ; write('[FAIL]')), nl.
+
+test_cut_after_condition :-
+    findall(X, cut_after(X), L),
+    format('2. Cut after condition: ~w ', [L]),
+    (L = [2] -> write('[PASS]') ; write('[FAIL]')), nl.
+
+test_no_backtrack_to_choice_point :-
+    findall(X-Y, outer(X,Y), L),
+    format('3. No backtrack before cut: ~w ', [L]),
+    (L = [1-a, 1-b] -> write('[PASS]') ; write('[FAIL]')), nl.
+
+test_nested_cuts :-
+    findall(Y, outer(_, Y), L),
+    format('4. Nested cuts: ~w ', [L]),
+    (L = [a, b] -> write('[PASS]') ; write('[FAIL]')), nl.
+
+test_cut_in_conditional :-
+    max(5, 3, R1), max(2, 7, R2), max(4, 4, R3),
+    format('5. max/3: ~w,~w,~w ', [R1, R2, R3]),
+    (R1=5, R2=7, R3=4 -> write('[PASS]') ; write('[FAIL]')), nl.
+
+test_cut_with_failure :-
+    format('6. Cut+fail: ', []),
+    (\+ fail_after_cut(_) -> write('[PASS]') ; write('[FAIL]')), nl.
+
+test_cut_in_recursion :-
+    sum_until(5, 0, S),
+    format('7. Cut in recursion: ~w ', [S]),
+    (S = 15 -> write('[PASS]') ; write('[FAIL]')), nl.
+
+test_cut_vs_negation :-
+    findall(X, with_cut(X), L1), findall(X, with_negation(X), L2),
+    format('8. Cut vs negation: ~w vs ~w ', [L1, L2]),
+    (L1 = [2], L2 = [1,3] -> write('[PASS]') ; write('[FAIL]')), nl.
+
+test_cut_doesnt_affect_parent :-
+    findall(X, parent(X), L),
+    format('9. Cut stops siblings: ~w ', [L]),
+    (L = [1] -> write('[PASS]') ; write('[FAIL]')), nl.
+
+test_if_then_else :-
+    if_then_else(1=1, R1=then, R1=else), if_then_else(1=2, R2=then, R2=else),
+    format('10. If-then-else: ~w,~w ', [R1, R2]),
+    (R1=then, R2=else -> write('[PASS]') ; write('[FAIL]')), nl.
+
+?- run_all_tests.
