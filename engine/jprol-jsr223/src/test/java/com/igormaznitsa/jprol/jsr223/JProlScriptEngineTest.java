@@ -61,7 +61,7 @@ public class JProlScriptEngineTest {
 
     // Test hello_world/0 predicate
     engine.consult("test :- hello_world.");
-    List<Map<String, Object>> results = engine.query("test.");
+    List<Map<String, Object>> results = engine.proveAll("test.");
 
     assertNotNull(results, "Results should not be null");
     assertFalse(results.isEmpty(), "Should have at least one solution");
@@ -69,7 +69,7 @@ public class JProlScriptEngineTest {
     System.out.println("✓ hello_world/0 predicate works correctly");
 
     // Test greet/1 predicate
-    results = engine.query("greet('Alice').");
+    results = engine.proveAll("greet('Alice').");
     assertFalse(results.isEmpty(), "greet/1 should succeed");
 
     System.out.println("✓ greet/1 predicate works correctly");
@@ -88,34 +88,34 @@ public class JProlScriptEngineTest {
     );
 
     // Test square/2
-    List<Map<String, Object>> results = engine.query("square(5, X).");
+    List<Map<String, Object>> results = engine.proveAll("square(5, X).");
     assertFalse(results.isEmpty(), "square/2 should return result");
     assertEquals(25L, results.get(0).get("X"), "5^2 should be 25");
     System.out.println("✓ square(5, X) => X = " + results.get(0).get("X"));
 
     // Test cube/2
-    results = engine.query("cube(3, X).");
+    results = engine.proveAll("cube(3, X).");
     assertFalse(results.isEmpty(), "cube/2 should return result");
     assertEquals(27L, results.get(0).get("X"), "3^3 should be 27");
     System.out.println("✓ cube(3, X) => X = " + results.get(0).get("X"));
 
     // Test factorial_custom/2
-    results = engine.query("factorial_custom(5, X).");
+    results = engine.proveAll("factorial_custom(5, X).");
     assertFalse(results.isEmpty(), "factorial_custom/2 should return result");
     assertEquals(120L, results.get(0).get("X"), "5! should be 120");
     System.out.println("✓ factorial_custom(5, X) => X = " + results.get(0).get("X"));
 
     // Test is_even/1
-    results = engine.query("is_even(4).");
+    results = engine.proveAll("is_even(4).");
     assertFalse(results.isEmpty(), "is_even(4) should succeed");
     System.out.println("✓ is_even(4) succeeded");
 
-    results = engine.query("is_even(3).");
+    results = engine.proveAll("is_even(3).");
     assertTrue(results.isEmpty(), "is_even(3) should fail");
     System.out.println("✓ is_even(3) failed as expected");
 
     // Test is_odd/1
-    results = engine.query("is_odd(3).");
+    results = engine.proveAll("is_odd(3).");
     assertFalse(results.isEmpty(), "is_odd(3) should succeed");
     System.out.println("✓ is_odd(3) succeeded");
 
@@ -134,31 +134,31 @@ public class JProlScriptEngineTest {
     );
 
     // Test str_upper/2
-    List<Map<String, Object>> results = engine.query("str_upper('hello', X).");
+    List<Map<String, Object>> results = engine.proveAll("str_upper('hello', X).");
     assertFalse(results.isEmpty(), "str_upper/2 should return result");
     assertEquals("HELLO", results.get(0).get("X"), "Should convert to uppercase");
     System.out.println("✓ str_upper('hello', X) => X = " + results.get(0).get("X"));
 
     // Test str_lower/2
-    results = engine.query("str_lower('WORLD', X).");
+    results = engine.proveAll("str_lower('WORLD', X).");
     assertFalse(results.isEmpty(), "str_lower/2 should return result");
     assertEquals("world", results.get(0).get("X"), "Should convert to lowercase");
     System.out.println("✓ str_lower('WORLD', X) => X = " + results.get(0).get("X"));
 
     // Test str_length/2
-    results = engine.query("str_length('prolog', X).");
+    results = engine.proveAll("str_length('prolog', X).");
     assertFalse(results.isEmpty(), "str_length/2 should return result");
     assertEquals(6L, results.get(0).get("X"), "'prolog' has 6 characters");
     System.out.println("✓ str_length('prolog', X) => X = " + results.get(0).get("X"));
 
     // Test str_reverse/2
-    results = engine.query("str_reverse('abc', X).");
+    results = engine.proveAll("str_reverse('abc', X).");
     assertFalse(results.isEmpty(), "str_reverse/2 should return result");
     assertEquals("cba", results.get(0).get("X"), "Should reverse string");
     System.out.println("✓ str_reverse('abc', X) => X = " + results.get(0).get("X"));
 
     // Test str_concat_custom/3
-    results = engine.query("str_concat_custom('Hello', 'World', X).");
+    results = engine.proveAll("str_concat_custom('Hello', 'World', X).");
     assertFalse(results.isEmpty(), "str_concat_custom/3 should return result");
     assertEquals("HelloWorld", results.get(0).get("X"), "Should concatenate strings");
     System.out.println(
@@ -186,7 +186,7 @@ public class JProlScriptEngineTest {
             "  str_upper(S, SU)."
     );
 
-    List<Map<String, Object>> results = engine.query("process(5, 'test', X, Y).");
+    List<Map<String, Object>> results = engine.proveAll("process(5, 'test', X, Y).");
     assertFalse(results.isEmpty(), "Combined query should succeed");
 
     Map<String, Object> solution = results.get(0);
@@ -237,7 +237,7 @@ public class JProlScriptEngineTest {
     JProlScriptEngine engine = (JProlScriptEngine) factory.getScriptEngine();
 
     // Initially, custom predicates should not be available
-    assertThrows(ScriptException.class, () -> engine.query("square(5, X)."),
+    assertThrows(ScriptException.class, () -> engine.proveAll("square(5, X)."),
         "square/2 should not be available initially");
 
     System.out.println("✓ Custom predicate not available before adding library");
@@ -248,7 +248,7 @@ public class JProlScriptEngineTest {
     engine.reinitJProlContext();
 
     // Now it should work
-    List<Map<String, Object>> results = engine.query("square(5, X).");
+    List<Map<String, Object>> results = engine.proveAll("square(5, X).");
     assertFalse(results.isEmpty(), "square/2 should now be available");
     assertEquals(25L, results.get(0).get("X"), "Square of 5 should be 25");
 
@@ -269,7 +269,7 @@ public class JProlScriptEngineTest {
     );
 
     // Test current_timestamp/1
-    List<Map<String, Object>> results = engine.query("current_timestamp(X).");
+    List<Map<String, Object>> results = engine.proveAll("current_timestamp(X).");
     assertFalse(results.isEmpty(), "current_timestamp/1 should return result");
 
     Object timestamp = results.get(0).get("X");
@@ -280,7 +280,7 @@ public class JProlScriptEngineTest {
     System.out.println("✓ current_timestamp(X) => X = " + timestamp);
 
     // Test current_date/3
-    results = engine.query("current_date(Y, M, D).");
+    results = engine.proveAll("current_date(Y, M, D).");
     assertFalse(results.isEmpty(), "current_date/3 should return result");
 
     Map<String, Object> solution = results.get(0);
@@ -313,7 +313,7 @@ public class JProlScriptEngineTest {
     );
 
     // Test list_unique/2
-    List<Map<String, Object>> results = engine.query("list_unique([1,2,2,3,3,3], X).");
+    List<Map<String, Object>> results = engine.proveAll("list_unique([1,2,2,3,3,3], X).");
     assertFalse(results.isEmpty(), "list_unique/2 should return result");
 
     Object uniqueList = results.get(0).get("X");
@@ -327,7 +327,7 @@ public class JProlScriptEngineTest {
     System.out.println("✓ list_unique([1,2,2,3,3,3], X) => X = " + uniqueList);
 
     // Test list_sum_custom/2
-    results = engine.query("list_sum_custom([1,2,3,4,5], X).");
+    results = engine.proveAll("list_sum_custom([1,2,3,4,5], X).");
     assertFalse(results.isEmpty(), "list_sum_custom/2 should return result");
     assertEquals(15L, results.get(0).get("X"), "Sum of [1,2,3,4,5] should be 15");
 
@@ -356,7 +356,7 @@ public class JProlScriptEngineTest {
             "  str_concat_custom('Sum squared: ', SumSq, Desc)."
     );
 
-    List<Map<String, Object>> results = engine.query("process_numbers([1,2,3,4], S, D).");
+    List<Map<String, Object>> results = engine.proveAll("process_numbers([1,2,3,4], S, D).");
     assertFalse(results.isEmpty(), "Complex query should succeed");
 
     Map<String, Object> solution = results.get(0);

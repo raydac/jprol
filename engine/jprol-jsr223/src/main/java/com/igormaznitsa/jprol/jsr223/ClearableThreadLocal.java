@@ -33,7 +33,7 @@ public class ClearableThreadLocal<T> implements CanGC {
         .map(Map.Entry::getKey)
         .collect(Collectors.toList());
     collected.forEach(x -> {
-      var removed = this.threadMap.remove(x);
+      final Map.Entry<WeakReference<Thread>, T> removed = this.threadMap.remove(x);
       if (removed != null) {
         if (this.removeAction != null) {
           try {
@@ -51,13 +51,21 @@ public class ClearableThreadLocal<T> implements CanGC {
   }
 
   public T set(final T value) {
-    var result = this.threadMap.put(this.getCurrentThreadId(),
+    final Map.Entry<WeakReference<Thread>, T> result = this.threadMap.put(this.getCurrentThreadId(),
         Map.entry(new WeakReference<>(Thread.currentThread()), requireNonNull(value)));
     return result == null ? null : result.getValue();
   }
 
   public T remove() {
-    var result = this.threadMap.remove(this.getCurrentThreadId());
+    final Map.Entry<WeakReference<Thread>, T> result =
+        this.threadMap.remove(this.getCurrentThreadId());
+    if (result != null && this.removeAction != null) {
+      try {
+        this.removeAction.accept(result.getValue());
+      } catch (Exception ex) {
+        // ignore
+      }
+    }
     return result == null ? null : result.getValue();
   }
 
@@ -69,7 +77,8 @@ public class ClearableThreadLocal<T> implements CanGC {
   }
 
   public T find() {
-    var result = this.threadMap.get(this.getCurrentThreadId());
+    final Map.Entry<WeakReference<Thread>, T> result =
+        this.threadMap.get(this.getCurrentThreadId());
     return result == null ? null : result.getValue();
   }
 

@@ -23,7 +23,6 @@ import com.igormaznitsa.jprol.logic.JProlTreeBuilder;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
 import com.igormaznitsa.jprol.utils.lazy.LazyMap;
 import com.igormaznitsa.prologparser.ParserContext;
-import com.igormaznitsa.prologparser.exceptions.PrologParserException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -380,27 +379,39 @@ public class JProlScriptEngine
   }
 
   /**
-   * Prove query and return all resulted variables as list.
+   * Prove goal until it fails and collect all results as a list.
    *
-   * @param queryString query, must not contain '?-'
-   * @return list of variables for proved variants, can't be null
-   * @throws ScriptException if any error during execution
+   * @param queryGoal a query to be proven, must not be null
+   * @return list of all results collected during prove
+   * @throws ScriptException thrown if any problem
    */
-  public List<Map<String, Object>> query(final String queryString) throws ScriptException {
+  public List<Map<String, Object>> proveAll(final Term queryGoal) throws ScriptException {
+    this.assertNotClosed();
+    final JProlContext prolContext = this.engineContext.get().findOrMakeJProlContext();
+    return this.findAllResults(prolContext.makeChoicePoint(queryGoal));
+  }
+
+
+  /**
+   * Prove a query goal by raw string (without '?-') until it fails and collect all results as a list.
+   *
+   * @param queryGoal a query to be proven, must not be null
+   * @return list of all results collected during prove
+   * @throws ScriptException thrown if any problem
+   */
+  public List<Map<String, Object>> proveAll(final String queryGoal) throws ScriptException {
+    this.assertNotClosed();
+    final JProlContext prolContext = this.engineContext.get().findOrMakeJProlContext();
+    return this.findAllResults(prolContext.makeChoicePoint(queryGoal));
+  }
+
+  private List<Map<String, Object>> findAllResults(final JProlChoicePoint goalCp)
+      throws ScriptException {
     this.assertNotClosed();
     final List<Map<String, Object>> results = new ArrayList<>();
-    final JProlContext prolContext = this.engineContext.get().findOrMakeJProlContext();
     try {
-      final JProlChoicePoint goal = prolContext.makeChoicePoint(queryString);
-      while (goal.prove() != null) {
-        results.add(extractGroundedVariables(goal));
-      }
-    } catch (PrologParserException e) {
-      if (e.hasValidPosition()) {
-        throw new ScriptException(
-            "Error parsing query: " + e.getMessage() + " " + e.getLine() + ':' + e.getPos());
-      } else {
-        throw new ScriptException(e);
+      while (goalCp.prove() != null) {
+        results.add(extractGroundedVariables(goalCp));
       }
     } catch (Exception e) {
       throw new ScriptException(e);
