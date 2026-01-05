@@ -22,6 +22,11 @@ import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.it.AbstractJProlTest;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
+import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.Writer;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -227,6 +232,65 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
     consultAndCheckVar("max(X,Y,Z):-(X=<Y->Z=Y;Z=X).", "max(1,2,Z).", "Z", "2");
     consultAndCheckVar("max(X,Y,Z):-(X=<Y->Z=Y;Z=X).", "max(2,1,Z).", "Z", "2");
+
+    final StringWriter writer = new StringWriter();
+    final JProlContext context = makeTestContext(new IoResourceProvider() {
+      @Override
+      public Reader findReader(JProlContext context, String readerId) {
+        throw new UnsupportedOperationException();
+      }
+
+      @Override
+      public Writer findWriter(JProlContext context, String writerId, boolean append) {
+        return writer;
+      }
+    });
+    context.consult(new StringReader(
+        "a(1). b(10). b(11). c(100). c(101). "
+            + "mt(C) :- "
+            + "test1(C) -> exec1(C);"
+            + "test2(C) -> exec2(C);"
+            + "else(C)."
+            + "test1(C) :- member(t1,C),  !,format(\"test1: succ\\n\")."
+            + "test1(C) :- \\+member(t1,C),!,format(\"test1: fail\\n\"),false."
+            + "test2(C) :- member(t2,C),  !,format(\"test2: succ\\n\")."
+            + "test2(C) :- \\+member(t2,C),!,format(\"test2: fail\\n\"),false."
+            + "exec1(C) :- member(e1,C),  !,format(\"exec1: succ\\n\")."
+            + "exec1(C) :- \\+member(e1,C),!,format(\"exec1: fail\\n\"),false."
+            + "exec2(C) :- member(e2,C),  !,format(\"exec2: succ\\n\")."
+            + "exec2(C) :- \\+member(e2,C),!,format(\"exec2: fail\\n\"),false."
+            + "else(C)  :- member(el,C),  !,format(\"else: succ\\n\")."
+            + "else(C)  :- \\+member(el,C),!,format(\"else: fail\\n\"),false."));
+
+    JProlChoicePoint cp = context.makeChoicePoint("mt([e1,e2,el]).");
+    assertNotNull(cp.prove());
+    assertNull(cp.prove());
+
+    assertEquals("test1: fail\ntest2: fail\nelse: succ\n", writer.toString());
+    writer.getBuffer().setLength(0);
+
+    cp = context.makeChoicePoint("mt([t2,e1,e2,el]).");
+    assertNotNull(cp.prove());
+    assertNull(cp.prove());
+    assertEquals("test1: fail\ntest2: succ\nexec2: succ\n", writer.toString());
+    writer.getBuffer().setLength(0);
+
+    cp = context.makeChoicePoint("mt([t1,e1,e2,el]).");
+    assertNotNull(cp.prove());
+    assertNull(cp.prove());
+    assertEquals("test1: succ\nexec1: succ\n", writer.toString());
+
+    cp = context.makeChoicePoint("a(X) -> b(Y).");
+    assertNotNull(cp.prove());
+    assertEquals(1, cp.findVar("X").orElseThrow().tryGround().toNumber().intValue());
+    assertEquals(10, cp.findVar("Y").orElseThrow().tryGround().toNumber().intValue());
+
+    assertNotNull(cp.prove());
+    assertEquals(1, cp.findVar("X").orElseThrow().tryGround().toNumber().intValue());
+    assertEquals(11, cp.findVar("Y").orElseThrow().tryGround().toNumber().intValue());
+
+    assertNull(cp.prove());
+
   }
 
   @Test
