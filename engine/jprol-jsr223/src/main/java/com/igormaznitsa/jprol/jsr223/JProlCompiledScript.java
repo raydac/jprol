@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.ReentrantLock;
 import javax.script.CompiledScript;
 import javax.script.Invocable;
 import javax.script.ScriptContext;
@@ -37,7 +36,6 @@ public class JProlCompiledScript extends CompiledScript
   private final JProlContext compiledProlContext;
 
   private final AtomicBoolean disposed = new AtomicBoolean();
-  private final ReentrantLock evalLock = new ReentrantLock();
 
   JProlCompiledScript(
       final JProlScriptEngine engine,
@@ -122,25 +120,20 @@ public class JProlCompiledScript extends CompiledScript
           "There is not any pre-compiled query because it was not provided in source script");
     }
 
-    this.evalLock.lock();
     try {
-      try {
-        final Map<String, Term> bindings = JProlScriptEngine.extractVarsFromBindings(context, null);
-        Term preparedQuery = this.query.makeClone();
-        if (!bindings.isEmpty()) {
-          for (final Map.Entry<String, Term> t : bindings.entrySet()) {
-            preparedQuery = preparedQuery.replaceVar(t.getKey(), t.getValue());
-          }
+      final Map<String, Term> bindings = JProlScriptEngine.extractVarsFromBindings(context, null);
+      Term preparedQuery = this.query.makeClone();
+      if (!bindings.isEmpty()) {
+        for (final Map.Entry<String, Term> t : bindings.entrySet()) {
+          preparedQuery = preparedQuery.replaceVar(t.getKey(), t.getValue());
         }
-        Object result =
-            this.engine.proveQueryOnce(preparedQuery, this.compiledProlContext, context.getBindings(
-                ENGINE_SCOPE));
-        return result == null ? Boolean.FALSE : Boolean.TRUE;
-      } catch (Exception e) {
-        throw new ScriptException(e);
       }
-    } finally {
-      this.evalLock.unlock();
+      Object result =
+          this.engine.proveQueryOnce(preparedQuery, this.compiledProlContext, context.getBindings(
+              ENGINE_SCOPE));
+      return result == null ? Boolean.FALSE : Boolean.TRUE;
+    } catch (Exception e) {
+      throw new ScriptException(e);
     }
   }
 
@@ -156,18 +149,13 @@ public class JProlCompiledScript extends CompiledScript
     if (thisObject instanceof JProlScriptEngineProvider) {
       final JProlScriptEngine thisEngine =
           ((JProlScriptEngineProvider) thisObject).getJProlScriptEngine();
-      this.evalLock.lock();
-      try {
-        final Term[] terms = new Term[args.length];
-        for (int i = 0; i < args.length; i++) {
-          terms[i] = java2term(args[i]);
-        }
-        final Term term = Terms.newStruct(name, terms, SourcePosition.UNKNOWN);
-        return thisEngine.proveQueryOnce(term, this.compiledProlContext,
-            thisEngine.getBindings(ENGINE_SCOPE));
-      } finally {
-        this.evalLock.unlock();
+      final Term[] terms = new Term[args.length];
+      for (int i = 0; i < args.length; i++) {
+        terms[i] = java2term(args[i]);
       }
+      final Term term = Terms.newStruct(name, terms, SourcePosition.UNKNOWN);
+      return thisEngine.proveQueryOnce(term, this.compiledProlContext,
+          thisEngine.getBindings(ENGINE_SCOPE));
     } else {
       throw new IllegalArgumentException(
           "Expected " + JProlScriptEngineProvider.class.getCanonicalName() + " instance");
