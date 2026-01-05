@@ -176,7 +176,7 @@ public final class Terms {
                                      final List<Term> elements,
                                      final SourcePosition sourcePosition
   ) {
-    return new TermStruct(functor, elements.toArray(Term[]::new), sourcePosition);
+    return new TermStruct(functor, elements.toArray(EMPTY_ARRAY), sourcePosition);
   }
 
   public static TermStruct newStruct(final Term functor,
