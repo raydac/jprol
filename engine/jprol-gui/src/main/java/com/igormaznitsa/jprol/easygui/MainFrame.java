@@ -47,6 +47,7 @@ import com.igormaznitsa.jprol.logic.QueryInteractor;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
 import com.igormaznitsa.jprol.trace.JProlContextListener;
 import com.igormaznitsa.jprol.trace.TraceEvent;
+import com.igormaznitsa.jprol.utils.DefaultKeyValueTermStore;
 import com.igormaznitsa.jprol.utils.ProlUtils;
 import com.igormaznitsa.prologparser.exceptions.PrologParserException;
 import java.awt.BorderLayout;
@@ -1270,11 +1271,12 @@ public final class MainFrame extends javax.swing.JFrame
 
       try {
         context = new JProlContext(
-            "prol-script",
+            "jprol-script",
             currentFolder,
-            k -> new ConcurrentInMemoryKnowledgeBase("prol-script-knowledge-base"),
+            k -> new ConcurrentInMemoryKnowledgeBase("jprol-script-knowledge-base"),
             () -> Executors.newCachedThreadPool(
-                r -> new Thread(r, "jprol-asyncthread-" + System.identityHashCode(r)))
+                r -> new Thread(r, "jprol-asyncthread-" + System.identityHashCode(r))),
+            new DefaultKeyValueTermStore("jprol-global-variables")
         ) {
           @Override
           protected boolean isDisposeExecutorOnHalt(JProlContext source) {

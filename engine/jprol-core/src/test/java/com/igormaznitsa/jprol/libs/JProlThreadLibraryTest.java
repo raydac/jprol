@@ -12,7 +12,9 @@ import com.igormaznitsa.jprol.exceptions.ProlAbortExecutionException;
 import com.igormaznitsa.jprol.it.AbstractJProlTest;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
+import com.igormaznitsa.jprol.logic.KeyValueTermStore;
 import com.igormaznitsa.jprol.trace.JProlContextListener;
+import com.igormaznitsa.jprol.utils.DefaultKeyValueTermStore;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -20,13 +22,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
-@SuppressWarnings("EmptyMethod")
 class JProlThreadLibraryTest extends AbstractJProlTest {
 
   private static final Object CP_ASSOCIATED = new Object();
 
-  private JProlContext prepareAsyncContext(final AsyncTestCounters counters) {
-    final JProlContext context = makeAsyncTestContext();
+  private JProlContext prepareAsyncContext(final AsyncTestCounters counters,
+                                           final KeyValueTermStore store) {
+    final JProlContext context = makeAsyncTestContext(store);
     context.addLibrary(new TestLib());
     context.addContextListener(new JProlContextListener() {
       @Override
@@ -55,7 +57,7 @@ class JProlThreadLibraryTest extends AbstractJProlTest {
   void testAsyncWaitasync() throws Exception {
     final long start = System.currentTimeMillis();
     final AsyncTestCounters counters = new AsyncTestCounters();
-    try (final JProlContext context = prepareAsyncContext(counters)) {
+    try (final JProlContext context = prepareAsyncContext(counters, null)) {
       context.addLibrary(new JProlThreadLibrary());
       assertNotNull(
           context.makeChoicePoint("async(testAsync),waitasync.", CP_ASSOCIATED).prove());
@@ -71,17 +73,22 @@ class JProlThreadLibraryTest extends AbstractJProlTest {
   void testAsyncPauseAbortWaitasync() throws Exception {
     final long start = System.currentTimeMillis();
     final AsyncTestCounters counters = new AsyncTestCounters();
-    try (final JProlContext context = prepareAsyncContext(counters)) {
-      context.consult("hello:-pause(2_000),abort.");
+    final KeyValueTermStore termStore = new DefaultKeyValueTermStore("test");
+
+    try (final JProlContext context = prepareAsyncContext(counters, termStore)) {
+      context.consult(
+          "hello:-pause(2_000),nb_setval('hello', 'World'),nb_getval('hello', 'World'),nb_delete('hello'),nb_setval('hello22', 'World'),abort.");
       context.addLibrary(new JProlThreadLibrary());
       assertNotNull(
-          context.makeChoicePoint("async(hello),waitasync(10_000).", CP_ASSOCIATED).prove());
+          context.makeChoicePoint("nb_setval('hello666', 'World'),async(hello),waitasync(10_000).",
+              CP_ASSOCIATED).prove());
       context.waitAllAsyncTasks(null);
     }
     assertTrue(System.currentTimeMillis() - start >= 2000L);
     assertEquals(1, counters.startCounter.get());
     assertEquals(1, counters.abortCounter.get());
     assertTrue(counters.errors.isEmpty());
+    assertTrue(termStore.isEmpty());
   }
 
   public static final class TestLib extends AbstractJProlLibrary {

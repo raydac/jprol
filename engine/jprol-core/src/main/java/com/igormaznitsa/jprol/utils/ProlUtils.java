@@ -30,6 +30,7 @@ import com.igormaznitsa.jprol.data.TermLong;
 import com.igormaznitsa.jprol.data.TermOperator;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.Terms;
+import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -364,6 +365,15 @@ public final class ProlUtils {
       result.append(s);
     }
     return result.toString();
+  }
+
+  public static String makeContextAwareGlobalValuePrefix(final JProlContext context) {
+    return context.getName() + ":::";
+  }
+
+  public static String makeContextAwareGlobalValueName(final JProlContext context,
+                                                       final String name) {
+    return makeContextAwareGlobalValuePrefix(context) + name;
   }
 
   public static String repeat(final char c, final int counter) {

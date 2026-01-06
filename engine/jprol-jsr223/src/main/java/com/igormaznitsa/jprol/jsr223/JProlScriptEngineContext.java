@@ -13,6 +13,7 @@ import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.JProlSystemFlag;
+import com.igormaznitsa.jprol.logic.KeyValueTermStore;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -167,6 +168,9 @@ public class JProlScriptEngineContext implements CanGC, ScriptContext, JProlBind
     final JProlGuardPredicate guardPredicate =
         foundPredicateAllow == null ? (a, b, c) -> true : foundPredicateAllow;
 
+    final KeyValueTermStore globalVariableStore =
+        (KeyValueTermStore) this.getAttribute(JPROL_VARIABLES_STORE);
+
     final Supplier<ExecutorService> executorServiceSupplier;
     if (executorService == null) {
       executorServiceSupplier = ForkJoinPool::commonPool;
@@ -179,6 +183,7 @@ public class JProlScriptEngineContext implements CanGC, ScriptContext, JProlBind
         new File(System.getProperty("user.home")),
         x -> this.findKnowledgeBase(),
         executorServiceSupplier,
+        globalVariableStore,
         prolLibraries.toArray(AbstractJProlLibrary[]::new)
     ) {
       @Override

@@ -34,6 +34,7 @@ import com.igormaznitsa.jprol.libs.JProlIoLibrary;
 import com.igormaznitsa.jprol.libs.JProlThreadLibrary;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
+import com.igormaznitsa.jprol.logic.KeyValueTermStore;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
 import java.io.BufferedReader;
 import java.io.File;
@@ -72,9 +73,10 @@ public abstract class AbstractJProlTest {
     }, ioProviders);
   }
 
-  public JProlContext makeAsyncTestContext(final IoResourceProvider... ioProviders) {
+  public JProlContext makeAsyncTestContext(final KeyValueTermStore keyValueTermStore,
+                                           final IoResourceProvider... ioProviders) {
     return this.makeTestContext(a -> {
-    }, ConcurrentInMemoryKnowledgeBase::new, ioProviders);
+    }, ConcurrentInMemoryKnowledgeBase::new, keyValueTermStore, ioProviders);
   }
 
   public JProlContext makeTestContext(final String consult,
@@ -90,14 +92,29 @@ public abstract class AbstractJProlTest {
     return this.makeTestContext(contextPostprocessor, InMemoryKnowledgeBase::new, ioProviders);
   }
 
+  public JProlContext makeTestContext(Consumer<JProlContext> contextPostprocessor,
+                                      KeyValueTermStore store,
+                                      final IoResourceProvider... ioProviders) {
+    return this.makeTestContext(contextPostprocessor, InMemoryKnowledgeBase::new, store,
+        ioProviders);
+  }
+
   public JProlContext makeTestContext(final Consumer<JProlContext> contextPostprocessor,
                                       final Function<String, KnowledgeBase> knowledgeBaseSupplier,
+                                      final IoResourceProvider... ioProviders) {
+    return this.makeTestContext(contextPostprocessor, knowledgeBaseSupplier, null, ioProviders);
+  }
+
+  public JProlContext makeTestContext(final Consumer<JProlContext> contextPostprocessor,
+                                      final Function<String, KnowledgeBase> knowledgeBaseSupplier,
+                                      final KeyValueTermStore store,
                                       final IoResourceProvider... ioProviders) {
     final JProlContext context = new JProlContext(
         "test-context",
         new File("."),
         knowledgeBaseSupplier,
         () -> Executors.newFixedThreadPool(3),
+        store,
         new JProlCoreLibrary(),
         new JProlCoreGuardedLibrary(),
         new JProlIoLibrary(),

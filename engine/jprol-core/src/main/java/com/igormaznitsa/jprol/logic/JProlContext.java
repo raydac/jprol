@@ -136,6 +136,7 @@ public class JProlContext implements AutoCloseable {
   private final ReentrantLock asyncLocker = new ReentrantLock();
   private final Condition asyncCounterCondition = asyncLocker.newCondition();
   private final Map<Term, Object> payloads;
+  private final KeyValueTermStore globalVariablesStore;
 
   private final ParserContext parserContext = new ParserContext() {
     @Override
@@ -166,18 +167,68 @@ public class JProlContext implements AutoCloseable {
   private boolean shareKnowledgeBaseWithAsyncTasks;
   private UndefinedPredicateBehavior undefinedPredicateBehaviour;
 
+  /**
+   * Create instance.
+   *
+   * @param name          name of the context, must not be null
+   * @param currentFolder current file folder for IO  operations
+   * @param libs          libraries to be added into context
+   */
   public JProlContext(
       final String name,
       final File currentFolder,
       final AbstractJProlLibrary... libs
   ) {
-    this(name, currentFolder, ConcurrentInMemoryKnowledgeBase::new, libs);
+    this(name, currentFolder, ConcurrentInMemoryKnowledgeBase::new, null, libs);
   }
 
+  /**
+   * Create instance.
+   *
+   * @param name                 name of the context, must not be null
+   * @param currentFolder        current file folder for IO  operations
+   * @param globalVariablesStore global variable store, it is some key value store shared between root and child contexts and allows keep global values, but can't share variables between async tasks. Can be null.
+   * @param libs                 libraries to be added into context
+   */
+  public JProlContext(
+      final String name,
+      final File currentFolder,
+      final KeyValueTermStore globalVariablesStore,
+      final AbstractJProlLibrary... libs
+  ) {
+    this(name, currentFolder, ConcurrentInMemoryKnowledgeBase::new, globalVariablesStore, libs);
+  }
+
+  /**
+   * Create instance.
+   *
+   * @param name                  name of the context, must not be null
+   * @param currentFolder         current file folder for IO  operations
+   * @param knowledgeBaseSupplier function gets context name and supplies instance of knowledge base, must not be null
+   * @param libs                  libraries to be added into context
+   */
   public JProlContext(
       final String name,
       final File currentFolder,
       final Function<String, KnowledgeBase> knowledgeBaseSupplier,
+      final AbstractJProlLibrary... libs
+  ) {
+    this(name, currentFolder, knowledgeBaseSupplier, null, libs);
+  }
+
+  /**
+   * Create instance.
+   * @param name name of the context, must not be null
+   * @param currentFolder current file folder for IO  operations
+   * @param knowledgeBaseSupplier function gets context name and supplies instance of knowledge base, must not be null
+   * @param globalVariablesStore global variable store, it is some key value store shared between root and child contexts and allows keep global values, but can't share variables between async tasks. Can be null.
+   * @param libs libraries to be added into context
+   */
+  public JProlContext(
+      final String name,
+      final File currentFolder,
+      final Function<String, KnowledgeBase> knowledgeBaseSupplier,
+      final KeyValueTermStore globalVariablesStore,
       final AbstractJProlLibrary... libs
   ) {
     this(
@@ -185,15 +236,26 @@ public class JProlContext implements AutoCloseable {
         currentFolder,
         knowledgeBaseSupplier,
         ForkJoinPool::commonPool,
+        globalVariablesStore,
         libs
     );
   }
 
+  /**
+   * Create instance.
+   * @param name name of the context, must not be null
+   * @param currentFolder current file folder for IO  operations
+   * @param knowledgeBaseSupplier function gets context name and supplies instance of knowledge base, must not be null
+   * @param executorServiceSupplier supplier of executor service for async tasks, must not be null
+   * @param globalVariablesStore global variable store, it is some key value store shared between root and child contexts and allows keep global values, but can't share variables between async tasks. Can be null.
+   * @param libs libraries to be added into context
+   */
   public JProlContext(
       final String name,
       final File currentFolder,
       final Function<String, KnowledgeBase> knowledgeBaseSupplier,
       final Supplier<ExecutorService> executorServiceSupplier,
+      final KeyValueTermStore globalVariablesStore,
       final AbstractJProlLibrary... libs
   ) {
     this(
@@ -208,20 +270,33 @@ public class JProlContext implements AutoCloseable {
         emptySet(),
         emptyMap(),
         new ConcurrentHashMap<>(),
+        globalVariablesStore,
         libs
     );
   }
 
+  /**
+   * Create instance.
+   * @param name name of the context, must not be null
+   * @param libs libraries to be added into context
+   */
   public JProlContext(final String name, final AbstractJProlLibrary... libs) {
     this(name, ConcurrentInMemoryKnowledgeBase::new, libs);
   }
 
+  /**
+   * Create instance.
+   * @param name name of the context, must not be null
+   * @param knowledgeBaseSupplier function gets context name and supplies instance of knowledge base, must not be null
+   * @param libs libraries to be added into context
+   */
   public JProlContext(final String name,
                       final Function<String, KnowledgeBase> knowledgeBaseSupplier,
                       final AbstractJProlLibrary... libs) {
     this(name, new File(System.getProperty("user.home")), knowledgeBaseSupplier, libs);
   }
 
+  // for internal use to make clone of context
   private JProlContext(
       final JProlContext parentContext,
       final String contextId,
@@ -234,9 +309,11 @@ public class JProlContext implements AutoCloseable {
       final Set<String> dynamicSignatures,
       final Map<String, Map<JProlTriggerType, List<JProlContextTrigger>>> triggers,
       final Map<String, JProlNamedLock> namedLocks,
+      final KeyValueTermStore globalVariablesStore,
       final AbstractJProlLibrary... additionalLibraries
   ) {
     this.payloads = parentContext == null ? new ConcurrentHashMap<>() : parentContext.payloads;
+    this.globalVariablesStore = globalVariablesStore;
     this.namedLocks = namedLocks;
     this.parentContext = parentContext;
     this.contextId = requireNonNull(contextId, "Context Id is null");
@@ -593,6 +670,13 @@ public class JProlContext implements AutoCloseable {
     }
   }
 
+  private static void clearContextGlobalVariables(final JProlContext context) {
+    final String contextGlobalVariablePrefix = ProlUtils.makeContextAwareGlobalValuePrefix(context);
+    context.getGlobalVariablesStore().ifPresent(x -> {
+      x.removeif((s, t) -> s.startsWith(contextGlobalVariablePrefix));
+    });
+  }
+
   private void onAsyncTaskCompleted(
       final long id,
       final JProlContext copyContext,
@@ -644,7 +728,7 @@ public class JProlContext implements AutoCloseable {
     this.assertConcurrentKnowledgeBase();
 
     final long taskId = TASK_COUNTER.incrementAndGet();
-    final JProlContext contextCopy = this.makeCopy(shareKnowledgeBase, false);
+    final JProlContext contextCopy = this.copyInstance(shareKnowledgeBase, false);
     final JProlContextListener rootContextListener = new JProlContextListener() {
       @Override
       public void onContextDispose(final JProlContext source) {
@@ -721,7 +805,7 @@ public class JProlContext implements AutoCloseable {
 
     final long taskId = TASK_COUNTER.incrementAndGet();
 
-    final JProlContext contextCopy = this.makeCopy(shareKnowledgeBase, false);
+    final JProlContext contextCopy = this.copyInstance(shareKnowledgeBase, false);
     final JProlContextListener rootContextListener = new JProlContextListener() {
       @Override
       public void onContextDispose(final JProlContext source) {
@@ -1094,6 +1178,8 @@ public class JProlContext implements AutoCloseable {
       });
       this.libraries.clear();
       this.contextListeners.clear();
+
+      clearContextGlobalVariables(this);
 
       if (this.isRootContext()) {
         this.payloads.clear();
@@ -1471,14 +1557,17 @@ public class JProlContext implements AutoCloseable {
   }
 
   /**
-   * Make full context copy.
+   * Make context copy.
    *
    * @param shareKnowledgeBase   if true then share the knowledge base with the new instance, make copy otherwise.
    * @param copyContextListeners make copy of context listeners
    * @return copy of the current context state
+   * @since 3.0.0
    */
-  public JProlContext makeCopy(final boolean shareKnowledgeBase,
-                               final boolean copyContextListeners) {
+  public JProlContext copyInstance(
+      final boolean shareKnowledgeBase,
+      final boolean copyContextListeners
+  ) {
     return new JProlContext(
         this,
         this.contextId + "::copy" + System.nanoTime(),
@@ -1490,7 +1579,8 @@ public class JProlContext implements AutoCloseable {
         this.ioProviders,
         this.dynamicSignatures,
         this.triggers,
-        this.namedLocks
+        this.namedLocks,
+        this.globalVariablesStore
     );
   }
 
@@ -1530,6 +1620,16 @@ public class JProlContext implements AutoCloseable {
       result = result.getParentContext();
     }
     return result;
+  }
+
+  /**
+   * Get the global variables store. Child contexts use the root store.
+   *
+   * @return internal name-term store if it was provided during context create
+   * @since 3.0.0
+   */
+  public Optional<KeyValueTermStore> getGlobalVariablesStore() {
+    return Optional.ofNullable(this.globalVariablesStore);
   }
 
   private static final class JProlNamedLock {

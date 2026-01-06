@@ -36,5 +36,10 @@ public interface JProlBindingsConstants {
    */
   String JPROL_CONTEXT_FLAGS = "jprol.context.flags";
 
-
+  /**
+   * Instance of global variables store to be used in created contexts.
+   *
+   * @see com.igormaznitsa.jprol.logic.KeyValueTermStore
+   */
+  String JPROL_VARIABLES_STORE = "jprol.context.variables.store";
 }

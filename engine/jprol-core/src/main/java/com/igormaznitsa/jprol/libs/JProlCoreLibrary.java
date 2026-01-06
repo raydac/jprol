@@ -32,6 +32,7 @@ import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.utils.ProlAssertions.assertCharacterCode;
 import static com.igormaznitsa.jprol.utils.ProlAssertions.assertInteger;
 import static com.igormaznitsa.jprol.utils.ProlUtils.createOrAppendToList;
+import static com.igormaznitsa.jprol.utils.ProlUtils.makeContextAwareGlobalValueName;
 import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.FX;
 import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.FY;
 import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.XFX;
@@ -56,13 +57,16 @@ import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlCustomErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlKnowledgeBaseException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlRepresentationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
+import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.JProlTreeBuilder;
+import com.igormaznitsa.jprol.logic.KeyValueTermStore;
 import com.igormaznitsa.jprol.logic.triggers.JProlContextTriggerGoalCaller;
 import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
@@ -2140,6 +2144,41 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       arg = newStruct(arg);
     }
     throw new ProlCustomErrorException(arg, predicate);
+  }
+
+  private static KeyValueTermStore findNamedTermGlobalStore(final JProlContext context,
+                                                            final TermStruct predicate) {
+    return context.getGlobalVariablesStore()
+        .orElseThrow(() -> new ProlCriticalError(
+            "Attempt to find global variables store but it is not provided for context: " +
+                context.getName()));
+  }
+
+  @JProlPredicate(determined = true, signature = "nb_setval/2", validate = "+name, +term", reference = "Associate the term with the atom name or replace the currently associated value with value in global variables store. Critical error raises if global variables store is not provided for context.")
+  public static void predicateNBSETVAL2(final JProlChoicePoint goal, final TermStruct predicate) {
+    final String name = predicate.getArgumentAt(0).tryGround().getText();
+    final Term value = predicate.getArgumentAt(1);
+    final String globalValueName = makeContextAwareGlobalValueName(goal.getContext(), name);
+    findNamedTermGlobalStore(goal.getContext(), predicate).setValue(globalValueName, value);
+  }
+
+  @JProlPredicate(determined = true, signature = "nb_getval/2", validate = "+name, ?term", reference = "Get the value from context named term global store associated with the global variable name and unify it with value. Raises existence_error(variable, Name) if the variable does not exist. Critical error raises if global variables store is not provided for context.")
+  public static boolean predicateNBGETVAL2(final JProlChoicePoint goal,
+                                           final TermStruct predicate) {
+    final String name = predicate.getArgumentAt(0).tryGround().getText();
+    final Term value = predicate.getArgumentAt(1).tryGround();
+    final String globalValueName = makeContextAwareGlobalValueName(goal.getContext(), name);
+    final Term stored =
+        findNamedTermGlobalStore(goal.getContext(), predicate).findValue(globalValueName)
+            .orElseThrow(() -> new ProlExistenceErrorException("variable", name, predicate));
+    return value.unifyWith(stored.makeClone());
+  }
+
+  @JProlPredicate(determined = true, signature = "nb_delete/1", validate = "+name", reference = "Delete the named global variable in the context NbStore. Succeeds also if the named variable does not exist. Critical error raises if global variables store is not provided for context.")
+  public static void predicateNBDELETE1(final JProlChoicePoint goal, final TermStruct predicate) {
+    final String name = predicate.getArgumentAt(0).tryGround().getText();
+    final String globalValueName = makeContextAwareGlobalValueName(goal.getContext(), name);
+    findNamedTermGlobalStore(goal.getContext(), predicate).remove(globalValueName);
   }
 
   @JProlPredicate(determined = true, signature = "pause/1", validate = {
