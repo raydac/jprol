@@ -1,5 +1,7 @@
 3.0.0 (SNAPSHOT)
 
+    - Added way to provide global variables storager and predicates `nb_setvar/2`,`nb_getvar/2` and `nb_delete/1`.
+    - Provided way to provide payload and associated objects for terms and choice points.
     - Guarded predicates moved from core library to JProlCoreGuardedLibrary.
     - Added `format/1`,`format/2` and `format/3` into JProlIoLibrary.
     - Internal random generator switched to SecureRandom.
