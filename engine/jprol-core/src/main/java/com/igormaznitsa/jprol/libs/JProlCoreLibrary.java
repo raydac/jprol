@@ -2143,7 +2143,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "pause/1", validate = {
-      "+number"}, reference = "Pauses execution of the current thread for the specified time in milliseconds.")
+      "+integer"}, reference = "Pauses execution of the current thread for the specified time in milliseconds.")
   public static void predicatePAUSE(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term term = predicate.getArgumentAt(0).tryGround();
 

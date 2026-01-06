@@ -25,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.exceptions.ProlException;
+import com.igormaznitsa.jprol.kbase.KnowledgeBase;
+import com.igormaznitsa.jprol.kbase.inmemory.ConcurrentInMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.kbase.inmemory.InMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.libs.JProlCoreGuardedLibrary;
 import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
@@ -34,6 +36,7 @@ import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -41,7 +44,9 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public abstract class AbstractJProlTest {
 
@@ -67,6 +72,11 @@ public abstract class AbstractJProlTest {
     }, ioProviders);
   }
 
+  public JProlContext makeAsyncTestContext(final IoResourceProvider... ioProviders) {
+    return this.makeTestContext(a -> {
+    }, ConcurrentInMemoryKnowledgeBase::new, ioProviders);
+  }
+
   public JProlContext makeTestContext(final String consult,
                                       final IoResourceProvider... ioProviders) {
     final JProlContext context = this.makeTestContext(a -> {
@@ -77,9 +87,17 @@ public abstract class AbstractJProlTest {
 
   public JProlContext makeTestContext(Consumer<JProlContext> contextPostprocessor,
                                       final IoResourceProvider... ioProviders) {
+    return this.makeTestContext(contextPostprocessor, InMemoryKnowledgeBase::new, ioProviders);
+  }
+
+  public JProlContext makeTestContext(final Consumer<JProlContext> contextPostprocessor,
+                                      final Function<String, KnowledgeBase> knowledgeBaseSupplier,
+                                      final IoResourceProvider... ioProviders) {
     final JProlContext context = new JProlContext(
         "test-context",
-        InMemoryKnowledgeBase::new,
+        new File("."),
+        knowledgeBaseSupplier,
+        () -> Executors.newFixedThreadPool(3),
         new JProlCoreLibrary(),
         new JProlCoreGuardedLibrary(),
         new JProlIoLibrary(),

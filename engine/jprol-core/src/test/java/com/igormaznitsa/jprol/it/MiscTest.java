@@ -17,6 +17,7 @@
 package com.igormaznitsa.jprol.it;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -69,6 +70,7 @@ class MiscTest extends AbstractJProlTest {
     final Term goalResult = goal.prove();
     assertNotNull(goalResult);
     final TermList result = goal.findVar("Y").orElseThrow().tryGround();
+    assertFalse(Terms.newAtom("lalala").findPayload(context).isPresent());
     assertSame(testPayload, result.getHead().tryGround().findPayload(context).orElseThrow());
   }
 

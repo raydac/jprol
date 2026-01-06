@@ -12,6 +12,7 @@ import com.igormaznitsa.jprol.exceptions.ProlForkExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -127,11 +128,26 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
   public static void predicateWAITASYNC0(final JProlChoicePoint choicePoint,
                                          final TermStruct predicate) {
     try {
-      choicePoint.getContext().waitAllAsyncTasks();
-    } catch (Exception ex) {
-      // ignore
+      if (!choicePoint.getContext().waitAllAsyncTasks(Duration.ofHours(Integer.MAX_VALUE))) {
+        throw new ProlForkExecutionException("Timeout", predicate, null);
+      }
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
+      throw new ProlForkExecutionException("Execution interrupted", predicate, null);
     }
-    if (Thread.currentThread().isInterrupted()) {
+  }
+
+  @JProlPredicate(guarded = true, determined = true, signature = "waitasync/1", validate = "+integer", reference = "Timed (in milliseconds) blocking waiting until all daemon threads (started with either fork/1 or async/1) of the context will be done.")
+  public static void predicateWAITASYNC1(final JProlChoicePoint choicePoint,
+                                         final TermStruct predicate) {
+    final long milliseconds =
+        Math.max(0L, predicate.getArgumentAt(0).tryGround().toNumber().longValue());
+    try {
+      if (!choicePoint.getContext().waitAllAsyncTasks(Duration.ofMillis(milliseconds))) {
+        throw new ProlForkExecutionException("Timeout", predicate, null);
+      }
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
       throw new ProlForkExecutionException("Execution interrupted", predicate, null);
     }
   }
