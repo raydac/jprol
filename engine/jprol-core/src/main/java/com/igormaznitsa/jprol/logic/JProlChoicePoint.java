@@ -26,6 +26,7 @@ import static java.util.stream.Collectors.toMap;
 
 import com.igormaznitsa.jprol.data.CompoundTerm;
 import com.igormaznitsa.jprol.data.NumericTerm;
+import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermDouble;
 import com.igormaznitsa.jprol.data.TermStruct;
@@ -229,7 +230,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
    */
   public Term prove() {
     if (this.context.isDisposed()) {
-      throw new ProlHaltExecutionException("Context disposed", 0);
+      throw new ProlHaltExecutionException("Context disposed", 0, SourcePosition.UNKNOWN);
     }
     return this.proveNext((s, t) -> this.context.notifyAboutUndefinedPredicate(this, s, t));
   }
@@ -244,7 +245,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
     while (loop) {
       if (this.context.isDisposed()) {
-        throw new ProlChoicePointInterruptedException("context disposed", this);
+        throw new ProlChoicePointInterruptedException("detected context dispose during prove",
+            this);
       }
 
       JProlChoicePoint goalToProcess = this.rootChoicePoint.parentChoicePoint;

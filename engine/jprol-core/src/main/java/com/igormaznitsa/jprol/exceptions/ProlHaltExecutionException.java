@@ -16,26 +16,24 @@
 
 package com.igormaznitsa.jprol.exceptions;
 
-public class ProlHaltExecutionException extends ProlInterruptException {
+import com.igormaznitsa.jprol.data.SourcePosition;
 
-  private final long status;
-
+/**
+ * Strong version of abort, it will stop work of root context.
+ *
+ * @since 3.0.0
+ */
+public class ProlHaltExecutionException extends ProlAbortExecutionException {
   public ProlHaltExecutionException() {
-    super("Execution halted.", null);
-    this.status = 0L;
+    super("Halted", 0L, null);
   }
 
-  public ProlHaltExecutionException(final long status) {
-    super("Execution halted.", null);
-    this.status = status;
+  public ProlHaltExecutionException(long status) {
+    super("Halted", status, null);
   }
 
-  public ProlHaltExecutionException(final String cause, final long status) {
-    super(cause, null);
-    this.status = status;
-  }
-
-  public long getStatus() {
-    return this.status;
+  public ProlHaltExecutionException(final String cause, final long status,
+                                    final SourcePosition sourcePosition) {
+    super(cause, status, sourcePosition);
   }
 }

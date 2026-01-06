@@ -22,7 +22,6 @@ import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
-import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.JProlSystemFlag;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
@@ -110,7 +109,7 @@ public class JProlCoreGuardedLibrary extends AbstractJProlLibrary {
   )
   public static void predicateAbort(final JProlChoicePoint goal, final TermStruct predicate) {
     if (predicate.getArity() == 0) {
-      throw new ProlAbortExecutionException("Aborted", 0L);
+      throw new ProlAbortExecutionException("Aborted", 0L, predicate.getSourcePosition());
     } else {
       final Term arg = predicate.getArgumentAt(0).tryGround();
       String abortMessage = null;
@@ -121,7 +120,7 @@ public class JProlCoreGuardedLibrary extends AbstractJProlLibrary {
         abortMessage = arg.getText();
       }
       throw new ProlAbortExecutionException(Objects.requireNonNullElse(abortMessage, "Aborted"),
-          abortStatus);
+          abortStatus, predicate.getSourcePosition());
     }
   }
 
@@ -134,22 +133,17 @@ public class JProlCoreGuardedLibrary extends AbstractJProlLibrary {
       reference = "Dispose the root JProl context."
   )
   public static void predicateHalt(final JProlChoicePoint goal, final TermStruct predicate) {
-    JProlContext rootContext = goal.getContext();
-    while (!rootContext.isRootContext()) {
-      rootContext = rootContext.getParentContext();
-    }
-
     if (predicate.getArity() == 0) {
-      rootContext.dispose();
-      throw new ProlHaltExecutionException("Halt called in code", 0L);
+      throw new ProlHaltExecutionException("Halt called in code", 0L,
+          predicate.getSourcePosition());
     } else {
       final Term arg = predicate.getArgumentAt(0).tryGround();
       long abortStatus = 0;
       if (arg instanceof NumericTerm) {
         abortStatus = arg.toNumber().longValue();
       }
-      rootContext.dispose();
-      throw new ProlHaltExecutionException("Halt called in code", abortStatus);
+      throw new ProlHaltExecutionException("Halt called in code", abortStatus,
+          predicate.getSourcePosition());
     }
   }
 

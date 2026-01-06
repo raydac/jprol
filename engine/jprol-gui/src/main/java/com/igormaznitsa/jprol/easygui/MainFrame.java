@@ -1185,9 +1185,7 @@ public final class MainFrame extends javax.swing.JFrame
     final JProlContext context = this.currentContext.getAndSet(null);
     if (context != null) {
       this.menuViewKnowledgeBase.setEnabled(false);
-      if (!context.isDisposed()) {
-        context.dispose(true);
-      }
+      context.dispose(true);
     }
   }
 
@@ -1276,8 +1274,18 @@ public final class MainFrame extends javax.swing.JFrame
             currentFolder,
             k -> new ConcurrentInMemoryKnowledgeBase("prol-script-knowledge-base"),
             () -> Executors.newCachedThreadPool(
-                r -> new Thread(r, "jprol-thread-" + System.identityHashCode(r)))
-        ).addIoResourceProvider(this);
+                r -> new Thread(r, "jprol-asyncthread-" + System.identityHashCode(r)))
+        ) {
+          @Override
+          protected boolean isDisposeExecutorOnHalt(JProlContext source) {
+            return true;
+          }
+
+          @Override
+          protected boolean isDisposeExecutorOnClose() {
+            return true;
+          }
+        }.addIoResourceProvider(this);
         if (setCurrentContext(context)) {
           context.addContextListener(this);
           if (this.startedInTracing.get()) {

@@ -80,6 +80,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.Writer;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -404,16 +405,38 @@ public class JProlContext implements AutoCloseable {
   /**
    * Method called for uncaught exception to not lost it.
    *
-   * @param source exception context, must not be null
+   * @param source exception source context, must not be null
    * @param error  caught error, must not be null
    * @since 3.0.0
    */
   protected void onUncaughtException(final JProlContext source, final Throwable error) {
+    final JProlContext root = this.findRootContext();
     if (this.isRootContext()) {
       error.printStackTrace();
     } else {
-      this.parentContext.onUncaughtException(source, error);
+      root.onUncaughtException(this, error);
     }
+  }
+
+  /**
+   * Get flag that executor must be disposed on halt. By default returns false;
+   *
+   * @param source source context which make call, can't be null
+   * @return true if executor should be disposed, false otherwise
+   * @since 3.0.0
+   */
+  protected boolean isDisposeExecutorOnHalt(final JProlContext source) {
+    return false;
+  }
+
+  /**
+   * Get flag to dispose executor on close. False by default.
+   *
+   * @return true if executor must be disposed, false otherwise
+   * @since 3.0.0
+   */
+  protected boolean isDisposeExecutorOnClose() {
+    return false;
   }
 
   private void registerLibraries() {
@@ -653,6 +676,11 @@ public class JProlContext implements AutoCloseable {
           return Terms.newLong(proved);
         } catch (Throwable ex) {
           error = ex;
+
+          if (ex instanceof ProlHaltExecutionException) {
+            this.notifyHalt();
+          }
+
           if (!(ex instanceof CompletionException)
               || !(ex.getCause() instanceof ProlInterruptException)) {
             throw new ProlForkExecutionException("Error during async/1", goal,
@@ -715,6 +743,11 @@ public class JProlContext implements AutoCloseable {
           asyncGoal.resetLogicalAlternativesFlag();
           return result;
         } catch (Throwable ex) {
+
+          if (ex instanceof ProlHaltExecutionException) {
+            this.notifyHalt();
+          }
+
           error = ex;
           if (!(ex instanceof CompletionException) ||
               !(ex.getCause() instanceof ProlInterruptException)) {
@@ -885,7 +918,7 @@ public class JProlContext implements AutoCloseable {
             return buffer.toString();
           })
           .collect(Collectors.joining("\n"));
-      this.consult(new StringReader(resourceText), null);
+      this.consult(resourceText, null);
     }
 
     return true;
@@ -1001,7 +1034,7 @@ public class JProlContext implements AutoCloseable {
     this.dispose(false);
   }
 
-  public void dispose(final boolean shutdownExecutor) {
+  public void dispose(final boolean disposeExecutor) {
     if (this.disposed.compareAndSet(false, true)) {
       this.contextListeners.forEach(listener -> {
         try {
@@ -1024,8 +1057,8 @@ public class JProlContext implements AutoCloseable {
         this.namedLocks.clear();
       }
 
-      if (this.isRootContext() && shutdownExecutor) {
-        this.asyncTaskExecutorService.shutdownNow();
+      if (this.isRootContext() && disposeExecutor) {
+        this.asyncTaskExecutorService.shutdown();
       }
       this.signalAllConditions();
       this.waitStartedTasksCompletion(Duration.ofSeconds(15));
@@ -1064,6 +1097,25 @@ public class JProlContext implements AutoCloseable {
 
       if (this.isRootContext()) {
         this.payloads.clear();
+
+        // must be in the end because this thread also can be executed in the executor.
+        if (disposeExecutor) {
+          this.asyncTaskExecutorService.shutdownNow();
+          this.signalAllConditions();
+          try {
+            Method methodClose = null;
+            try {
+              methodClose = this.asyncTaskExecutorService.getClass().getMethod("close");
+            } catch (NoSuchMethodException ex) {
+              // ignore
+            }
+            if (methodClose != null) {
+              methodClose.invoke(this.asyncTaskExecutorService);
+            }
+          } catch (Throwable ex) {
+            this.onUncaughtException(this, ex);
+          }
+        }
       }
     }
   }
@@ -1273,6 +1325,10 @@ public class JProlContext implements AutoCloseable {
         (signature, struct) -> this.knowledgeBase.retractZ(this, struct), false);
   }
 
+  public void consult(final String script, final QueryInteractor queryInteractor) {
+    this.consult(new StringReader(script), queryInteractor);
+  }
+
   public void consult(final Reader source, final QueryInteractor queryInteractor) {
     try (final JProlTreeBuilder treeBuilder = new JProlTreeBuilder(this, source, false)) {
       do {
@@ -1330,7 +1386,8 @@ public class JProlContext implements AutoCloseable {
                             .onQuerySuccess(this, query, variableMap,
                                 solutionCounter.incrementAndGet());
                         if (!doFindNextSolution) {
-                          throw new ProlHaltExecutionException("search halted or stopped", 1);
+                          throw new ProlHaltExecutionException("search halted or stopped", 1,
+                              sourcePosition);
                         }
                       } else {
                         queryInteractor.onQueryFail(this, query, solutionCounter.get());
@@ -1443,7 +1500,36 @@ public class JProlContext implements AutoCloseable {
 
   @Override
   public void close() {
-    this.dispose();
+    this.dispose(this.isDisposeExecutorOnClose());
+  }
+
+  /**
+   * Send asynchronous signal tp halt root context.
+   */
+  public void notifyHalt() {
+    final JProlContext rootContext = this.findRootContext();
+    if (!rootContext.isDisposed()) {
+      new Thread(() -> {
+        if (!rootContext.isDisposed()) {
+          rootContext.dispose(rootContext.isDisposeExecutorOnHalt(this));
+        }
+      }, "halt-jprol-context-" + System.identityHashCode(rootContext)).start();
+    }
+  }
+
+
+  /**
+   * Find the root context for the context, if it is the root then it will be returned as the result.
+   *
+   * @return the root context, must not be null
+   * @since 3.0.0
+   */
+  public JProlContext findRootContext() {
+    JProlContext result = this;
+    while (!result.isRootContext()) {
+      result = result.getParentContext();
+    }
+    return result;
   }
 
   private static final class JProlNamedLock {
