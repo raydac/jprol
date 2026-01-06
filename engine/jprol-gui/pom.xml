@@ -622,7 +622,7 @@
                         <artifactId>exec-maven-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>permissions-in-appimage-folder-apprun</id>
+                                <id>permissions-in-appimage-folder-apprun-gui</id>
                                 <phase>install</phase>
                                 <goals>
                                     <goal>exec</goal>
