@@ -88,6 +88,8 @@ class JProlThreadLibraryTest extends AbstractJProlTest {
     assertEquals(1, counters.startCounter.get());
     assertEquals(1, counters.abortCounter.get());
     assertTrue(counters.errors.isEmpty());
+
+    Thread.sleep(100);
     assertTrue(termStore.isEmpty());
   }
 

@@ -218,11 +218,12 @@ public class JProlContext implements AutoCloseable {
 
   /**
    * Create instance.
-   * @param name name of the context, must not be null
-   * @param currentFolder current file folder for IO  operations
+   *
+   * @param name                  name of the context, must not be null
+   * @param currentFolder         current file folder for IO  operations
    * @param knowledgeBaseSupplier function gets context name and supplies instance of knowledge base, must not be null
-   * @param globalVariablesStore global variable store, it is some key value store shared between root and child contexts and allows keep global values, but can't share variables between async tasks. Can be null.
-   * @param libs libraries to be added into context
+   * @param globalVariablesStore  global variable store, it is some key value store shared between root and child contexts and allows keep global values, but can't share variables between async tasks. Can be null.
+   * @param libs                  libraries to be added into context
    */
   public JProlContext(
       final String name,
@@ -243,12 +244,13 @@ public class JProlContext implements AutoCloseable {
 
   /**
    * Create instance.
-   * @param name name of the context, must not be null
-   * @param currentFolder current file folder for IO  operations
-   * @param knowledgeBaseSupplier function gets context name and supplies instance of knowledge base, must not be null
+   *
+   * @param name                    name of the context, must not be null
+   * @param currentFolder           current file folder for IO  operations
+   * @param knowledgeBaseSupplier   function gets context name and supplies instance of knowledge base, must not be null
    * @param executorServiceSupplier supplier of executor service for async tasks, must not be null
-   * @param globalVariablesStore global variable store, it is some key value store shared between root and child contexts and allows keep global values, but can't share variables between async tasks. Can be null.
-   * @param libs libraries to be added into context
+   * @param globalVariablesStore    global variable store, it is some key value store shared between root and child contexts and allows keep global values, but can't share variables between async tasks. Can be null.
+   * @param libs                    libraries to be added into context
    */
   public JProlContext(
       final String name,
@@ -277,6 +279,7 @@ public class JProlContext implements AutoCloseable {
 
   /**
    * Create instance.
+   *
    * @param name name of the context, must not be null
    * @param libs libraries to be added into context
    */
@@ -286,9 +289,10 @@ public class JProlContext implements AutoCloseable {
 
   /**
    * Create instance.
-   * @param name name of the context, must not be null
+   *
+   * @param name                  name of the context, must not be null
    * @param knowledgeBaseSupplier function gets context name and supplies instance of knowledge base, must not be null
-   * @param libs libraries to be added into context
+   * @param libs                  libraries to be added into context
    */
   public JProlContext(final String name,
                       final Function<String, KnowledgeBase> knowledgeBaseSupplier,
@@ -346,6 +350,14 @@ public class JProlContext implements AutoCloseable {
     asList(additionalLibraries).forEach(this::addLibrary);
 
     this.registerLibraries();
+  }
+
+  private static void clearContextGlobalVariables(final JProlContext context) {
+    final String contextGlobalVariablePrefix = ProlUtils.makeContextAwareGlobalValuePrefix(context);
+    final KeyValueTermStore store = context.globalVariablesStore;
+    if (store != null) {
+      store.removeif((s, t) -> s.startsWith(contextGlobalVariablePrefix));
+    }
   }
 
   /**
@@ -668,13 +680,6 @@ public class JProlContext implements AutoCloseable {
     } finally {
       this.asyncLocker.unlock();
     }
-  }
-
-  private static void clearContextGlobalVariables(final JProlContext context) {
-    final String contextGlobalVariablePrefix = ProlUtils.makeContextAwareGlobalValuePrefix(context);
-    context.getGlobalVariablesStore().ifPresent(x -> {
-      x.removeif((s, t) -> s.startsWith(contextGlobalVariablePrefix));
-    });
   }
 
   private void onAsyncTaskCompleted(
@@ -1120,88 +1125,90 @@ public class JProlContext implements AutoCloseable {
 
   public void dispose(final boolean disposeExecutor) {
     if (this.disposed.compareAndSet(false, true)) {
-      this.contextListeners.forEach(listener -> {
-        try {
-          listener.onContextDispose(this);
-        } catch (Exception ex) {
-          this.onUncaughtException(this, ex);
-        }
-      });
-
-      this.startedAsyncTasks.values().forEach(x -> x.cancel(true));
-
-      if (this.isRootContext()) {
-        this.namedLocks.forEach((key, value) -> {
+      try {
+        this.contextListeners.forEach(listener -> {
           try {
-            value.release();
+            listener.onContextDispose(this);
           } catch (Exception ex) {
             this.onUncaughtException(this, ex);
           }
         });
-        this.namedLocks.clear();
-      }
 
-      if (this.isRootContext() && disposeExecutor) {
-        this.asyncTaskExecutorService.shutdown();
-      }
-      this.signalAllConditions();
-      this.waitStartedTasksCompletion(Duration.ofSeconds(15));
-      this.startedAsyncTasks.clear();
+        this.startedAsyncTasks.values().forEach(x -> x.cancel(true));
 
-      this.triggers.values().stream()
-          .flatMap(x -> x.values().stream())
-          .flatMap(Collection::stream)
-          .distinct()
-          .forEach(x -> {
+        if (this.isRootContext()) {
+          this.namedLocks.forEach((key, value) -> {
             try {
-              x.onContextDispose(this);
+              value.release();
             } catch (Exception ex) {
               this.onUncaughtException(this, ex);
             }
           });
-      this.triggers.clear();
-
-      this.libraries.forEach(library -> {
-        try {
-          library.onContextDispose(this);
-        } catch (Exception ex) {
-          // do nothing
-        } finally {
-          if (this.parentContext == null) {
-            try {
-              library.release();
-            } catch (Exception ex) {
-              // do nothing
-            }
-          }
+          this.namedLocks.clear();
         }
-      });
-      this.libraries.clear();
-      this.contextListeners.clear();
 
-      clearContextGlobalVariables(this);
+        if (this.isRootContext() && disposeExecutor) {
+          this.asyncTaskExecutorService.shutdown();
+        }
+        this.signalAllConditions();
+        this.waitStartedTasksCompletion(Duration.ofSeconds(15));
+        this.startedAsyncTasks.clear();
 
-      if (this.isRootContext()) {
-        this.payloads.clear();
+        this.triggers.values().stream()
+            .flatMap(x -> x.values().stream())
+            .flatMap(Collection::stream)
+            .distinct()
+            .forEach(x -> {
+              try {
+                x.onContextDispose(this);
+              } catch (Exception ex) {
+                this.onUncaughtException(this, ex);
+              }
+            });
+        this.triggers.clear();
 
-        // must be in the end because this thread also can be executed in the executor.
-        if (disposeExecutor) {
-          this.asyncTaskExecutorService.shutdownNow();
-          this.signalAllConditions();
+        this.libraries.forEach(library -> {
           try {
-            Method methodClose = null;
+            library.onContextDispose(this);
+          } catch (Exception ex) {
+            // do nothing
+          } finally {
+            if (this.parentContext == null) {
+              try {
+                library.release();
+              } catch (Exception ex) {
+                // do nothing
+              }
+            }
+          }
+        });
+        this.libraries.clear();
+        this.contextListeners.clear();
+
+        if (this.isRootContext()) {
+          this.payloads.clear();
+
+          // must be in the end because this thread also can be executed in the executor.
+          if (disposeExecutor) {
+            this.asyncTaskExecutorService.shutdownNow();
+            this.signalAllConditions();
             try {
-              methodClose = this.asyncTaskExecutorService.getClass().getMethod("close");
-            } catch (NoSuchMethodException ex) {
-              // ignore
+              Method methodClose = null;
+              try {
+                methodClose = this.asyncTaskExecutorService.getClass().getMethod("close");
+              } catch (NoSuchMethodException ex) {
+                // ignore
+              }
+              if (methodClose != null) {
+                methodClose.invoke(this.asyncTaskExecutorService);
+              }
+            } catch (Throwable ex) {
+              this.onUncaughtException(this, ex);
             }
-            if (methodClose != null) {
-              methodClose.invoke(this.asyncTaskExecutorService);
-            }
-          } catch (Throwable ex) {
-            this.onUncaughtException(this, ex);
           }
         }
+      } finally {
+        clearContextGlobalVariables(this);
       }
     }
   }
