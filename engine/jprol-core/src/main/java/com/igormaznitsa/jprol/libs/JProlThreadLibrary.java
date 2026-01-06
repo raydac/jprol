@@ -128,8 +128,8 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
   public static void predicateWAITASYNC0(final JProlChoicePoint choicePoint,
                                          final TermStruct predicate) {
     try {
-      if (!choicePoint.getContext().waitAllAsyncTasks(Duration.ofHours(Integer.MAX_VALUE))) {
-        throw new ProlForkExecutionException("Timeout", predicate, null);
+      if (!choicePoint.getContext().waitAllAsyncTasks(null)) {
+        throw new ProlForkExecutionException("Timeout or interrupted", predicate, null);
       }
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
@@ -144,7 +144,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
         Math.max(0L, predicate.getArgumentAt(0).tryGround().toNumber().longValue());
     try {
       if (!choicePoint.getContext().waitAllAsyncTasks(Duration.ofMillis(milliseconds))) {
-        throw new ProlForkExecutionException("Timeout", predicate, null);
+        throw new ProlForkExecutionException("Timeout or interrupted", predicate, null);
       }
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();

@@ -76,7 +76,7 @@ class JProlThreadLibraryTest extends AbstractJProlTest {
       context.addLibrary(new JProlThreadLibrary());
       assertNotNull(
           context.makeChoicePoint("async(hello),waitasync(10_000).", CP_ASSOCIATED).prove());
-      context.waitAllAsyncTasks(Duration.ofSeconds(5));
+      context.waitAllAsyncTasks(null);
     }
     assertTrue(System.currentTimeMillis() - start >= 2000L);
     assertEquals(1, counters.startCounter.get());

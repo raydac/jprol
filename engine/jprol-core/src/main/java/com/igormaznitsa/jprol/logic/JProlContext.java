@@ -528,7 +528,7 @@ public class JProlContext implements AutoCloseable {
   /**
    * Wait for specified time for all async task completed.
    *
-   * @param time time to wait, can't be null
+   * @param time time to wait, can be null for unlimited wait
    * @return true if everything ok and all task completed, false if not completed during time
    * @throws InterruptedException if wait id interrupted
    * @since 3.0.0
@@ -537,14 +537,19 @@ public class JProlContext implements AutoCloseable {
     this.assertNotDisposed();
     this.asyncLocker.lock();
     try {
-      final long maxTime = System.currentTimeMillis() + time.toMillis();
+      final long maxTime =
+          time == null ? Long.MAX_VALUE : System.currentTimeMillis() + time.toMillis();
       while (!this.startedAsyncTasks.isEmpty() && !Thread.currentThread().isInterrupted()) {
         if (System.currentTimeMillis() >= maxTime) {
           break;
         }
         try {
-          this.asyncCounterCondition.await(Math.max(maxTime - System.currentTimeMillis(), 0L),
-              TimeUnit.MILLISECONDS);
+          if (time == null) {
+            this.asyncCounterCondition.await();
+          } else {
+            this.asyncCounterCondition.await(Math.max(maxTime - System.currentTimeMillis(), 0L),
+                TimeUnit.MILLISECONDS);
+          }
         } catch (InterruptedException ex) {
           Thread.currentThread().interrupt();
           throw ex;
