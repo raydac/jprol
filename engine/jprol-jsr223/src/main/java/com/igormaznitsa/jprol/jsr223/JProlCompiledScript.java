@@ -236,4 +236,9 @@ public class JProlCompiledScript extends CompiledScript
       this.engine.gc();
     }
   }
+
+  @Deprecated
+  protected void finalize() {
+    this.dispose();
+  }
 }

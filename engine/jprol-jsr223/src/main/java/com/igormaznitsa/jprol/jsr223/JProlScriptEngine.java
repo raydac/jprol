@@ -63,6 +63,7 @@ import javax.script.SimpleBindings;
  * - "jprol.global.critical.predicate.guard" - can be provided as a {@link JProlGuardPredicate} to disable execution of predicates marked in library as critical ones
  *
  * @since 3.0.0
+ * @see JProlBindingsConstants
  */
 public class JProlScriptEngine
     implements Disposable, CanGC, ScriptEngine, Compilable, Invocable, JProlScriptEngineProvider,
@@ -656,5 +657,10 @@ public class JProlScriptEngine
     if (context != null) {
       context.gc();
     }
+  }
+
+  @Deprecated
+  protected void finalize() {
+    this.dispose();
   }
 }

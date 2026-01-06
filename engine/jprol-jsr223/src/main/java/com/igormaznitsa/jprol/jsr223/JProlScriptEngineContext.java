@@ -37,7 +37,8 @@ import javax.script.SimpleBindings;
  *
  * @since 3.0.0
  */
-public class JProlScriptEngineContext implements CanGC, ScriptContext, JProlBindingsConstants {
+public class JProlScriptEngineContext
+    implements Disposable, CanGC, ScriptContext, JProlBindingsConstants {
 
   static final List<AbstractJProlLibrary> BOOTSTRAP_LIBRARIES =
       List.of(
@@ -55,11 +56,10 @@ public class JProlScriptEngineContext implements CanGC, ScriptContext, JProlBind
 
   private final ClearableThreadLocal<Bindings> engineBindings =
       new ClearableThreadLocal<>(() -> new SimpleBindings(new ConcurrentHashMap<>()), Map::clear);
-  private final ClearableThreadLocal<JProlContext> jprolContext =
-      new ClearableThreadLocal<>(this::newInitedJProlContext, JProlContext::dispose);
-
   private final AtomicReference<Bindings> globalBindingsRef = new AtomicReference<>();
   private final AtomicReference<KnowledgeBase> prolKnowledgeBase = new AtomicReference<>();
+  private final ClearableThreadLocal<JProlContext> jprolContext =
+      new ClearableThreadLocal<>(this::newInitedJProlContext, JProlContext::dispose);
 
   JProlScriptEngineContext(final JProlScriptEngineFactory factory) {
     this(factory, factory.getFactoryGlobalBindings());
@@ -87,10 +87,6 @@ public class JProlScriptEngineContext implements CanGC, ScriptContext, JProlBind
         "jprol-script-engine-context-" + System.identityHashCode(this)));
   }
 
-  public JProlScriptEngineFactory getFactory() {
-    return this.factory;
-  }
-
   private static void checkName(final String name) {
     requireNonNull(name);
     if (name.isEmpty()) {
@@ -98,13 +94,17 @@ public class JProlScriptEngineContext implements CanGC, ScriptContext, JProlBind
     }
   }
 
+  public JProlScriptEngineFactory getFactory() {
+    return this.factory;
+  }
+
   public JProlContext findJProlContext() {
-    this.assertNotClosed();
+    this.assertNotDisposed();
     return this.jprolContext.find();
   }
 
   public JProlContext findOrMakeJProlContext() {
-    this.assertNotClosed();
+    this.assertNotDisposed();
     return this.jprolContext.get();
   }
 
@@ -114,7 +114,7 @@ public class JProlScriptEngineContext implements CanGC, ScriptContext, JProlBind
    * @param disposeProlContext if true then existing JProl context will be disposed
    */
   public void clear(final boolean disposeProlContext) {
-    this.assertNotClosed();
+    this.assertNotDisposed();
 
     final JProlContext context = this.jprolContext.remove();
     if (context != null && disposeProlContext) {
@@ -128,13 +128,13 @@ public class JProlScriptEngineContext implements CanGC, ScriptContext, JProlBind
 
   @Override
   public void gc() {
-    this.assertNotClosed();
+    this.assertNotDisposed();
     this.jprolContext.gc();
     this.engineBindings.gc();
   }
 
   public KnowledgeBase getKnowledgeBase() {
-    this.assertNotClosed();
+    this.assertNotDisposed();
     return this.jprolContext.get().getKnowledgeBase();
   }
 
@@ -215,7 +215,11 @@ public class JProlScriptEngineContext implements CanGC, ScriptContext, JProlBind
     return result;
   }
 
-  private void assertNotClosed() {
+  protected void finalize() {
+    this.dispose();
+  }
+
+  private void assertNotDisposed() {
     if (this.disposed.get()) {
       throw new IllegalStateException("Already closed context");
     }
@@ -223,7 +227,7 @@ public class JProlScriptEngineContext implements CanGC, ScriptContext, JProlBind
 
   @Override
   public void setBindings(final Bindings bindings, final int scope) {
-    this.assertNotClosed();
+    this.assertNotDisposed();
     switch (scope) {
       case ENGINE_SCOPE: {
         this.engineBindings.set(bindings);
@@ -240,7 +244,7 @@ public class JProlScriptEngineContext implements CanGC, ScriptContext, JProlBind
 
   @Override
   public Bindings getBindings(final int scope) {
-    this.assertNotClosed();
+    this.assertNotDisposed();
     switch (scope) {
       case ENGINE_SCOPE:
         return this.engineBindings.get();
@@ -297,37 +301,37 @@ public class JProlScriptEngineContext implements CanGC, ScriptContext, JProlBind
 
   @Override
   public Writer getWriter() {
-    this.assertNotClosed();
+    this.assertNotDisposed();
     return this.writer.get();
   }
 
   @Override
   public void setWriter(final Writer writer) {
-    this.assertNotClosed();
+    this.assertNotDisposed();
     this.writer.set(writer);
   }
 
   @Override
   public Writer getErrorWriter() {
-    this.assertNotClosed();
+    this.assertNotDisposed();
     return this.writerErr.get();
   }
 
   @Override
   public void setErrorWriter(final Writer writer) {
-    this.assertNotClosed();
+    this.assertNotDisposed();
     this.writerErr.set(writer);
   }
 
   @Override
   public Reader getReader() {
-    this.assertNotClosed();
+    this.assertNotDisposed();
     return this.reader.get();
   }
 
   @Override
   public void setReader(final Reader reader) {
-    this.assertNotClosed();
+    this.assertNotDisposed();
     this.reader.set(reader);
   }
 
@@ -336,6 +340,12 @@ public class JProlScriptEngineContext implements CanGC, ScriptContext, JProlBind
     return SCOPES;
   }
 
+  @Override
+  public boolean isDisposed() {
+    return this.disposed.get();
+  }
+
+  @Override
   public void dispose() {
     if (this.disposed.compareAndSet(false, true)) {
       this.engineBindings.removeAll();
@@ -348,7 +358,7 @@ public class JProlScriptEngineContext implements CanGC, ScriptContext, JProlBind
   }
 
   public void reinitJProlContext() {
-    this.assertNotClosed();
+    this.assertNotDisposed();
     final JProlContext current = this.jprolContext.remove();
     if (current != null) {
       current.dispose();
@@ -362,7 +372,7 @@ public class JProlScriptEngineContext implements CanGC, ScriptContext, JProlBind
    * @return number of instances in internal stores
    */
   public int size() {
-    this.assertNotClosed();
+    this.assertNotDisposed();
 
     this.jprolContext.gc();
     this.engineBindings.gc();
