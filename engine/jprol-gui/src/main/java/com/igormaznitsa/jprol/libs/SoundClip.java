@@ -2,9 +2,8 @@ package com.igormaznitsa.jprol.libs;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
@@ -16,7 +15,8 @@ public final class SoundClip implements AutoCloseable {
 
   private final AtomicBoolean playing = new AtomicBoolean();
   private final Clip clip;
-  private final Lock lock = new ReentrantLock();
+  private final Semaphore lock = new Semaphore(1);
+  private final AtomicBoolean closed = new AtomicBoolean();
 
   public SoundClip(final byte[] resourceData) {
     try {
@@ -36,58 +36,94 @@ public final class SoundClip implements AutoCloseable {
 
   @Override
   public void close() {
-    this.lock.lock();
+    if (this.closed.get()) {
+      return;
+    }
+    this.lock.acquireUninterruptibly();
     try {
-      this.stop();
-      this.clip.close();
+      if (this.closed.compareAndSet(false, true)) {
+        if (this.playing.compareAndSet(true, false)
+            && this.clip.isActive()) {
+          this.clip.stop();
+        }
+      }
     } finally {
-      this.lock.unlock();
+      try {
+        this.clip.close();
+      } finally {
+        this.lock.release();
+      }
     }
   }
 
   public SoundClip play() {
-    this.lock.lock();
+    if (this.closed.get()) {
+      throw new IllegalStateException("Closed");
+    }
+    this.lock.acquireUninterruptibly();
     try {
-      this.stop();
-      if (this.playing.compareAndSet(false, true)) {
-        this.clip.setFramePosition(0);
-        this.clip.start();
+      if (!this.closed.get()) {
+        if (this.playing.compareAndSet(true, false)
+            && this.clip.isActive()) {
+          this.clip.stop();
+        }
+        if (this.playing.compareAndSet(false, true)) {
+          this.clip.setFramePosition(0);
+          this.clip.start();
+        }
       }
       return this;
     } finally {
-      this.lock.unlock();
+      this.lock.release();
     }
   }
 
   public SoundClip play(final int loops) {
-    this.lock.lock();
+    if (this.closed.get()) {
+      throw new IllegalStateException("Closed");
+    }
+    this.lock.acquireUninterruptibly();
     try {
-      this.stop();
-      if (this.playing.compareAndSet(false, true)) {
-        this.clip.setFramePosition(0);
-        this.clip.setLoopPoints(0, -1);
-        this.clip.loop(loops);
+      if (!this.closed.get()) {
+        if (this.playing.compareAndSet(true, false)
+            && this.clip.isActive()) {
+          this.clip.stop();
+        }
+        if (this.playing.compareAndSet(false, true)) {
+          this.clip.setFramePosition(0);
+          this.clip.setLoopPoints(0, -1);
+          this.clip.loop(loops);
+        }
       }
       return this;
     } finally {
-      this.lock.unlock();
+      this.lock.release();
+      ;
     }
   }
 
   public SoundClip stop() {
-    this.lock.lock();
+    if (this.closed.get()) {
+      throw new IllegalStateException("Closed");
+    }
+    this.lock.acquireUninterruptibly();
     try {
-      if (this.playing.compareAndSet(true, false)
-          && this.clip.isActive()) {
-        this.clip.stop();
+      if (!this.closed.get()) {
+        if (this.playing.compareAndSet(true, false)
+            && this.clip.isActive()) {
+          this.clip.stop();
+        }
       }
       return this;
     } finally {
-      this.lock.unlock();
+      this.lock.release();
     }
   }
 
   public boolean isPlaying() {
+    if (this.closed.get()) {
+      return false;
+    }
     return this.playing.get();
   }
 }

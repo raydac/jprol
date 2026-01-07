@@ -21,7 +21,6 @@ import static com.igormaznitsa.jprol.data.TermType.STRUCT;
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.logic.PredicateInvoker.NULL_INVOKER;
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
@@ -137,6 +136,8 @@ public class JProlContext implements AutoCloseable {
   private final Condition asyncCounterCondition = asyncLocker.newCondition();
   private final Map<Term, Object> payloads;
   private final KeyValueTermStore globalVariablesStore;
+
+  private static final JProlBootstrapLibrary BOOTSTRAP_LIBRARY = new JProlBootstrapLibrary();
 
   private final ParserContext parserContext = new ParserContext() {
     @Override
@@ -273,7 +274,7 @@ public class JProlContext implements AutoCloseable {
         emptyMap(),
         new ConcurrentHashMap<>(),
         globalVariablesStore,
-        libs
+        Arrays.asList(libs)
     );
   }
 
@@ -314,7 +315,7 @@ public class JProlContext implements AutoCloseable {
       final Map<String, Map<JProlTriggerType, List<JProlContextTrigger>>> triggers,
       final Map<String, JProlNamedLock> namedLocks,
       final KeyValueTermStore globalVariablesStore,
-      final AbstractJProlLibrary... additionalLibraries
+      final List<AbstractJProlLibrary> addLibraries
   ) {
     this.payloads = parentContext == null ? new ConcurrentHashMap<>() : parentContext.payloads;
     this.globalVariablesStore = globalVariablesStore;
@@ -345,9 +346,14 @@ public class JProlContext implements AutoCloseable {
     this.ioProviders.addAll(ioProviders);
     this.dynamicSignatures.addAll(dynamicSignatures);
 
-    this.libraries.add(new JProlBootstrapLibrary());
+    // we should not duplicate data in knowledge base through library consult if the base is shared with parent
+    final boolean fullLibraryProcessingNeeded =
+        this.parentContext == null || this.parentContext.knowledgeBase != this.knowledgeBase;
 
-    asList(additionalLibraries).forEach(this::addLibrary);
+    this.addLibrary(BOOTSTRAP_LIBRARY, fullLibraryProcessingNeeded);
+    addLibraries.stream()
+        .filter(x -> x.getClass() != BOOTSTRAP_LIBRARY.getClass())
+        .forEach(x -> this.addLibrary(x, fullLibraryProcessingNeeded));
 
     this.registerLibraries();
   }
@@ -529,7 +535,13 @@ public class JProlContext implements AutoCloseable {
   }
 
   private void registerLibraries() {
-    this.libraries.forEach(x -> x.onRegisteredInContext(this));
+    this.libraries.forEach(x -> {
+      try {
+        x.onRegisteredInContext(this);
+      } catch (Throwable ex) {
+        this.onUncaughtException(this, ex);
+      }
+    });
   }
 
   public boolean isShareKnowledgeBaseWithAsyncTasks() {
@@ -906,62 +918,115 @@ public class JProlContext implements AutoCloseable {
     }
   }
 
+  /**
+   * Add and register a library in context, the library will be fully processed and all internal library consult completed.
+   *
+   * @param library library to be added, must not be null
+   * @return true if added, false otherwise
+   * @throws NullPointerException if library object is null
+   */
   public boolean addLibrary(final AbstractJProlLibrary library) {
+    return this.addLibrary(library, true);
+  }
+
+  /**
+   * Add library into context. If library class already presented then library will be ignored.
+   *
+   * @param library        library to be added, must not be null
+   * @param fullProcessing if true then make fully search of consult annotations in library and process them, if false then library just added into internal store
+   * @return true if successfully added, false if library class already presented in internal store
+   * @throws NullPointerException if library object is null
+   * @since 3.0.0
+   */
+  public boolean addLibrary(final AbstractJProlLibrary library, final boolean fullProcessing) {
     assertNotDisposed();
     if (library == null) {
-      throw new IllegalArgumentException("Library must not be null");
+      throw new NullPointerException("Library is null");
     }
-    if (this.libraries.contains(library)) {
+
+    if (this.libraries.stream().anyMatch(x -> x.getClass() == library.getClass())) {
       return false;
     }
 
     this.libraries.add(0, library);
-
-    final JProlConsultText consultText = library.getClass().getAnnotation(JProlConsultText.class);
-    if (consultText != null) {
-      final String text = String.join("\n", consultText.value());
-      if (!text.isEmpty()) {
-        this.consult(new StringReader(text), null);
+    if (fullProcessing) {
+      final JProlConsultText consultText = library.getClass().getAnnotation(JProlConsultText.class);
+      if (consultText != null) {
+        final String text = String.join("\n", consultText.value());
+        if (!text.isEmpty()) {
+          this.consult(new StringReader(text), null);
+        }
       }
-    }
 
-    final JProlConsultFile consultFile = library.getClass().getAnnotation(JProlConsultFile.class);
-    if (consultFile != null) {
-      final String resourceText = Arrays.stream(consultFile.value())
-          .filter(x -> !(x == null || x.trim().isEmpty()))
-          .map(File::new)
-          .map(x -> {
-            try {
-              return ProlUtils.readAsUtf8(x);
-            } catch (IOException ex) {
-              throw new RuntimeIOException("Can't read file: " + x, ex);
-            }
-          })
-          .collect(Collectors.joining("\n"));
-      this.consult(new StringReader(resourceText), null);
-    }
+      final JProlConsultFile consultFile = library.getClass().getAnnotation(JProlConsultFile.class);
+      if (consultFile != null) {
+        final String resourceText = Arrays.stream(consultFile.value())
+            .filter(x -> !(x == null || x.trim().isEmpty()))
+            .map(File::new)
+            .map(x -> {
+              try {
+                return ProlUtils.readAsUtf8(x);
+              } catch (IOException ex) {
+                throw new RuntimeIOException("Can't read file: " + x, ex);
+              }
+            })
+            .collect(Collectors.joining("\n"));
+        this.consult(new StringReader(resourceText), null);
+      }
 
-    final JProlConsultUrl consultUrls =
-        library.getClass().getAnnotation(JProlConsultUrl.class);
-    if (consultUrls != null) {
-      final String resourceText = Arrays.stream(consultUrls.value())
-          .filter(x -> !(x == null || x.trim().isEmpty()))
-          .map(x -> {
-            final URL resourceUrl;
-            try {
-              resourceUrl = URI.create(x).toURL();
-            } catch (MalformedURLException ex) {
-              throw new IllegalArgumentException("Malformed URL: " + x, ex);
-            }
-            return resourceUrl;
-          })
-          .map(x -> {
-            final StringBuilder buffer = new StringBuilder();
-            URLConnection connection;
-            try {
-              connection = x.openConnection();
-              try (final Reader reader = new InputStreamReader(connection.getInputStream(),
-                  StandardCharsets.UTF_8)) {
+      final JProlConsultUrl consultUrls =
+          library.getClass().getAnnotation(JProlConsultUrl.class);
+      if (consultUrls != null) {
+        final String resourceText = Arrays.stream(consultUrls.value())
+            .filter(x -> !(x == null || x.trim().isEmpty()))
+            .map(x -> {
+              final URL resourceUrl;
+              try {
+                resourceUrl = URI.create(x).toURL();
+              } catch (MalformedURLException ex) {
+                throw new IllegalArgumentException("Malformed URL: " + x, ex);
+              }
+              return resourceUrl;
+            })
+            .map(x -> {
+              final StringBuilder buffer = new StringBuilder();
+              URLConnection connection;
+              try {
+                connection = x.openConnection();
+                try (final Reader reader = new InputStreamReader(connection.getInputStream(),
+                    StandardCharsets.UTF_8)) {
+                  while (!this.isDisposed()) {
+                    final int value = reader.read();
+                    if (value < 0) {
+                      break;
+                    }
+                    buffer.append((char) value);
+                  }
+                }
+              } catch (IOException ex) {
+                throw new RuntimeIOException("Can't read resource for IO error", ex);
+              }
+              return buffer.toString();
+            })
+            .collect(Collectors.joining("\n"));
+        this.consult(new StringReader(resourceText), null);
+      }
+
+      final JProlConsultResource consultResource =
+          library.getClass().getAnnotation(JProlConsultResource.class);
+      if (consultResource != null) {
+        final String resourceText = Arrays.stream(consultResource.value())
+            .filter(x -> !(x == null || x.trim().isEmpty()))
+            .map(x -> {
+              final InputStream stream = library.getClass().getResourceAsStream(x);
+              if (stream == null) {
+                throw new NullPointerException("Can't find resource: " + x);
+              }
+              return stream;
+            })
+            .map(x -> {
+              final StringBuilder buffer = new StringBuilder();
+              try (final Reader reader = new InputStreamReader(x, StandardCharsets.UTF_8)) {
                 while (!this.isDisposed()) {
                   final int value = reader.read();
                   if (value < 0) {
@@ -969,45 +1034,14 @@ public class JProlContext implements AutoCloseable {
                   }
                   buffer.append((char) value);
                 }
+              } catch (IOException ex) {
+                throw new RuntimeIOException("Can't read resource for IO error", ex);
               }
-            } catch (IOException ex) {
-              throw new RuntimeIOException("Can't read resource for IO error", ex);
-            }
-            return buffer.toString();
-          })
-          .collect(Collectors.joining("\n"));
-      this.consult(new StringReader(resourceText), null);
-    }
-
-    final JProlConsultResource consultResource =
-        library.getClass().getAnnotation(JProlConsultResource.class);
-    if (consultResource != null) {
-      final String resourceText = Arrays.stream(consultResource.value())
-          .filter(x -> !(x == null || x.trim().isEmpty()))
-          .map(x -> {
-            final InputStream stream = library.getClass().getResourceAsStream(x);
-            if (stream == null) {
-              throw new NullPointerException("Can't find resource: " + x);
-            }
-            return stream;
-          })
-          .map(x -> {
-            final StringBuilder buffer = new StringBuilder();
-            try (final Reader reader = new InputStreamReader(x, StandardCharsets.UTF_8)) {
-              while (!this.isDisposed()) {
-                final int value = reader.read();
-                if (value < 0) {
-                  break;
-                }
-                buffer.append((char) value);
-              }
-            } catch (IOException ex) {
-              throw new RuntimeIOException("Can't read resource for IO error", ex);
-            }
-            return buffer.toString();
-          })
-          .collect(Collectors.joining("\n"));
-      this.consult(resourceText, null);
+              return buffer.toString();
+            })
+            .collect(Collectors.joining("\n"));
+        this.consult(resourceText, null);
+      }
     }
 
     return true;
@@ -1075,7 +1109,6 @@ public class JProlContext implements AutoCloseable {
 
   public TermOperator findSystemOperatorForNameAndAssociativity(final String name,
                                                                 final OpAssoc associativity) {
-    this.assertNotDisposed();
     return this.libraries.stream()
         .map(lib -> lib.findSystemOperatorForName(name))
         .filter(Objects::nonNull)
@@ -1170,14 +1203,14 @@ public class JProlContext implements AutoCloseable {
         this.libraries.forEach(library -> {
           try {
             library.onContextDispose(this);
-          } catch (Exception ex) {
-            // do nothing
+          } catch (Throwable ex) {
+            this.onUncaughtException(this, ex);
           } finally {
-            if (this.parentContext == null) {
+            if (this.isRootContext()) {
               try {
                 library.release();
-              } catch (Exception ex) {
-                // do nothing
+              } catch (Throwable ex) {
+                this.onUncaughtException(this, ex);
               }
             }
           }
@@ -1479,7 +1512,7 @@ public class JProlContext implements AutoCloseable {
                             .onQuerySuccess(this, query, variableMap,
                                 solutionCounter.incrementAndGet());
                         if (!doFindNextSolution) {
-                          throw new ProlHaltExecutionException("search halted or stopped", 1,
+                          throw new ProlHaltExecutionException("proving has been halted", 1,
                               sourcePosition);
                         }
                       } else {
@@ -1587,7 +1620,8 @@ public class JProlContext implements AutoCloseable {
         this.dynamicSignatures,
         this.triggers,
         this.namedLocks,
-        this.globalVariablesStore
+        this.globalVariablesStore,
+        this.libraries
     );
   }
 

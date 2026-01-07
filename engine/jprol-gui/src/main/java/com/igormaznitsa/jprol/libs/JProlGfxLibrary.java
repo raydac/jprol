@@ -65,10 +65,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -110,8 +109,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   private final AtomicReference<Color> penColor = new AtomicReference<>();
   private final AtomicReference<Color> brushColor = new AtomicReference<>();
   private final AtomicReference<SourceDataLine> soundDataLine = new AtomicReference<>();
-  private final Lock soundAccessLocker = new ReentrantLock();
-  private final Lock gfxBufferAccessLocker = new ReentrantLock();
+  private final Semaphore soundAccessLocker = new Semaphore(1);
+  private final Semaphore gfxBufferAccessLocker = new Semaphore(1);
   private File lastSavedImage = null;
   private BufferedImage bufferedImage;
   private Graphics bufferGraphics;
@@ -436,7 +435,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final int x = termArgX.toNumber().intValue();
     final int y = termArgY.toNumber().intValue();
 
-    this.gfxBufferAccessLocker.lock();
+    this.gfxBufferAccessLocker.acquireUninterruptibly();
     try {
       if (this.bufferedImage != null) {
         this.bufferGraphics.setColor(this.penColor.get());
@@ -446,7 +445,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       this.lastPlotPointX.set(x);
       this.lastPlotPointY.set(y);
 
-      this.gfxBufferAccessLocker.unlock();
+      this.gfxBufferAccessLocker.release();
     }
     this.repaintLabel();
   }
@@ -463,13 +462,17 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   }
 
   private void stopAllTimersAndRemoveThem() {
-    this.registeredTimerActions.values().forEach(r -> r.timer.stop());
-    this.registeredTimerActions.clear();
+    try {
+      this.registeredTimerActions.values().forEach(r -> r.timer.stop());
+      this.registeredTimerActions.clear();
+    } catch (Throwable ex) {
+      ex.printStackTrace();
+    }
   }
 
   @JProlPredicate(determined = true, signature = "bindtimer/0", reference = "Remove all registered timers")
   public void predicateBINDTIMER0(final JProlChoicePoint goal, final TermStruct predicate) {
-    this.stopAllTimersAndRemoveThem();
+    safeSwingCall(this::stopAllTimersAndRemoveThem);
   }
 
   @JProlPredicate(determined = true, signature = "bindtimer/1", validate = {
@@ -479,7 +482,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final String timerName = timerId.forWrite();
     final TimerActionRecord record = this.registeredTimerActions.remove(timerName);
     if (record != null) {
-      record.timer.stop();
+      safeSwingCall(record.timer::stop);
     }
   }
 
@@ -636,14 +639,14 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final int w = term2.toNumber().intValue();
     final int h = term3.toNumber().intValue();
 
-    this.gfxBufferAccessLocker.lock();
+    this.gfxBufferAccessLocker.acquireUninterruptibly();
     try {
       if (this.bufferGraphics != null) {
         this.bufferGraphics.setColor(penColor.get());
         this.bufferGraphics.drawRect(x, y, w, h);
       }
     } finally {
-      this.gfxBufferAccessLocker.unlock();
+      this.gfxBufferAccessLocker.release();
     }
     this.repaintLabel();
   }
@@ -684,7 +687,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final int x2 = targxx.toNumber().intValue();
     final int y2 = targyy.toNumber().intValue();
 
-    this.gfxBufferAccessLocker.lock();
+    this.gfxBufferAccessLocker.acquireUninterruptibly();
     try {
       if (bufferedImage != null) {
         bufferGraphics.setColor(penColor.get());
@@ -694,7 +697,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       this.lastPlotPointX.set(x2);
       this.lastPlotPointY.set(y2);
 
-      this.gfxBufferAccessLocker.unlock();
+      this.gfxBufferAccessLocker.release();
     }
     this.repaintLabel();
   }
@@ -707,7 +710,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
     final int x = targetX.toNumber().intValue();
     final int y = targetY.toNumber().intValue();
-    this.gfxBufferAccessLocker.lock();
+    this.gfxBufferAccessLocker.acquireUninterruptibly();
     try {
       if (this.bufferedImage != null) {
         this.bufferGraphics.setColor(this.penColor.get());
@@ -717,7 +720,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       this.lastPlotPointX.set(x);
       this.lastPlotPointY.set(y);
 
-      this.gfxBufferAccessLocker.unlock();
+      this.gfxBufferAccessLocker.release();
     }
     this.repaintLabel();
   }
@@ -735,14 +738,14 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final int w = termW.toNumber().intValue();
     final int h = termH.toNumber().intValue();
 
-    this.gfxBufferAccessLocker.lock();
+    this.gfxBufferAccessLocker.acquireUninterruptibly();
     try {
       if (this.bufferedImage != null) {
         this.bufferGraphics.setColor(penColor.get());
         this.bufferGraphics.drawOval(x, y, w, h);
       }
     } finally {
-      this.gfxBufferAccessLocker.unlock();
+      this.gfxBufferAccessLocker.release();
     }
     this.repaintLabel();
   }
@@ -760,28 +763,28 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final int w = termW.toNumber().intValue();
     final int h = termH.toNumber().intValue();
 
-    this.gfxBufferAccessLocker.lock();
+    this.gfxBufferAccessLocker.acquireUninterruptibly();
     try {
       if (bufferedImage != null) {
         bufferGraphics.setColor(brushColor.get());
         bufferGraphics.fillOval(x, y, w, h);
       }
     } finally {
-      this.gfxBufferAccessLocker.unlock();
+      this.gfxBufferAccessLocker.release();
     }
     this.repaintLabel();
   }
 
   @JProlPredicate(determined = true, signature = "fillscreen/0", reference = "Fill all screen by the brush color.")
   public void predicateFILLSCREEN(final JProlChoicePoint goal, final TermStruct predicate) {
-    this.gfxBufferAccessLocker.lock();
+    this.gfxBufferAccessLocker.acquireUninterruptibly();
     try {
       if (bufferedImage != null) {
         bufferGraphics.setColor(brushColor.get());
         bufferGraphics.fillRect(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight());
       }
     } finally {
-      this.gfxBufferAccessLocker.unlock();
+      this.gfxBufferAccessLocker.release();
     }
     this.repaintLabel();
   }
@@ -880,7 +883,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
     final int frequency = 44100;
 
-    this.soundAccessLocker.lock();
+    this.soundAccessLocker.acquireUninterruptibly();
     try {
       SourceDataLine sourceDataLine = this.soundDataLine.get();
       if (sourceDataLine == null) {
@@ -925,7 +928,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         LOGGER.log(Level.SEVERE, "Error during PLAY_SOUND/2", ex);
       }
     } finally {
-      this.soundAccessLocker.unlock();
+      this.soundAccessLocker.release();
     }
   }
 
@@ -940,14 +943,14 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     if (sprite == null) {
       return false;
     } else {
-      this.gfxBufferAccessLocker.lock();
+      this.gfxBufferAccessLocker.acquireUninterruptibly();
       try {
         if (this.bufferedImage != null) {
           this.bufferGraphics.drawImage(sprite, x.toNumber().intValue(), y.toNumber().intValue(),
               null);
         }
       } finally {
-        this.gfxBufferAccessLocker.unlock();
+        this.gfxBufferAccessLocker.release();
       }
       this.repaintLabel();
       return true;
@@ -1111,26 +1114,34 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   }
 
   private void clearResources() {
-    this.registeredTimerActions.values().forEach(x -> {
-      try {
-        x.timer.stop();
-      } catch (Exception ex) {
-        // DO NOTHING
-      }
+    safeSwingCall(() -> {
+      this.registeredTimerActions.values().forEach(x -> {
+        try {
+          x.timer.stop();
+        } catch (Exception ex) {
+          ex.printStackTrace();
+        }
+      });
+      this.registeredTimerActions.clear();
     });
-    this.registeredTimerActions.clear();
 
     this.registeredActions.clear();
     this.registeredMouseActions.clear();
+    this.imageSpriteMap.clear();
 
     try {
-      this.imageSpriteMap.clear();
       final SourceDataLine sourceDataLine = this.soundDataLine.getAndSet(null);
       if (sourceDataLine != null) {
         try {
           sourceDataLine.stop();
         } catch (Exception ex) {
-          // do nothing
+          ex.printStackTrace();
+        } finally {
+          try {
+            sourceDataLine.close();
+          } catch (Exception ex) {
+            ex.printStackTrace();
+          }
         }
       }
     } finally {
@@ -1138,7 +1149,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         try {
           soundClip.close();
         } catch (Exception ex) {
-          // ignore
+          ex.printStackTrace();
         }
       });
       this.soundClipMap.clear();
@@ -1147,6 +1158,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
   @Override
   public void release() {
+    this.gfxBufferAccessLocker.release();
+    this.soundAccessLocker.release();
     try {
       this.clearResources();
     } finally {
@@ -1158,31 +1171,40 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   protected void onCallContextDispose(final JProlContext context,
                                       final Map<String, Object> contextNamedObjects) {
     super.onCallContextDispose(context, contextNamedObjects);
-    this.clearResources();
-
-    final JFrame frame = this.graphicFrame.getAndSet(null);
-    this.safeSwingCall(() -> {
-      this.gfxBufferAccessLocker.lock();
+    if (context.isRootContext()) {
       try {
-        try {
-          if (this.bufferGraphics != null) {
-            this.bufferGraphics.dispose();
-          }
-        } finally {
-          this.bufferGraphics = null;
-          this.bufferedImage = null;
-          if (frame != null) {
+        this.clearResources();
+
+        final JFrame frame = this.graphicFrame.getAndSet(null);
+        this.safeSwingCall(() -> {
+          this.gfxBufferAccessLocker.acquireUninterruptibly();
+          try {
             try {
-              frame.dispose();
-            } catch (Exception ex) {
-              // do nothing
+              if (this.bufferGraphics != null) {
+                this.bufferGraphics.dispose();
+              }
+            } finally {
+              this.bufferGraphics = null;
+              this.bufferedImage = null;
+              if (frame != null) {
+                try {
+                  frame.dispose();
+                } catch (Exception ex) {
+                  // do nothing
+                }
+              }
             }
+          } finally {
+            this.gfxBufferAccessLocker.release();
+            this.soundAccessLocker.release();
           }
-        }
+        });
+      } catch (Throwable ex) {
+        ex.printStackTrace();
       } finally {
-        this.gfxBufferAccessLocker.unlock();
+        this.gfxBufferAccessLocker.release();
       }
-    });
+    }
   }
 
   /**
@@ -1202,7 +1224,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final BufferedImage newImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     final Graphics gfx = newImage.getGraphics();
 
-    this.gfxBufferAccessLocker.lock();
+    this.gfxBufferAccessLocker.acquireUninterruptibly();
     try {
       this.bufferedImage = newImage;
       if (this.bufferGraphics != null) {
@@ -1210,7 +1232,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       }
       this.bufferGraphics = gfx;
     } finally {
-      this.gfxBufferAccessLocker.unlock();
+      this.gfxBufferAccessLocker.release();
     }
 
     safeSwingSynchroCall(() -> {
@@ -1220,11 +1242,11 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         gfx.setColor(this.brushColor.get());
         gfx.fillRect(0, 0, width, height);
 
-        this.gfxBufferAccessLocker.lock();
+        this.gfxBufferAccessLocker.acquireUninterruptibly();
         try {
           theLabel.setIcon(new ImageIcon(this.bufferedImage));
         } finally {
-          this.gfxBufferAccessLocker.unlock();
+          this.gfxBufferAccessLocker.release();
         }
         theLabel.invalidate();
 

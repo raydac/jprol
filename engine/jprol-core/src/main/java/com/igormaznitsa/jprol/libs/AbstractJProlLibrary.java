@@ -360,10 +360,7 @@ public abstract class AbstractJProlLibrary {
   }
 
   public final void onContextDispose(final JProlContext context) {
-    if (context.isRootContext()) {
-      // make disposing notification only for root context
-      this.onCallContextDispose(context, this.contextNamedObjects.remove(context));
-    }
+    this.onCallContextDispose(context, this.contextNamedObjects.remove(context));
   }
 
   protected void onCallContextDispose(final JProlContext context,
@@ -375,8 +372,8 @@ public abstract class AbstractJProlLibrary {
           .forEach(x -> {
             try {
               x.close();
-            } catch (Exception ex) {
-              // ignore
+            } catch (Throwable ex) {
+              ex.printStackTrace();
             }
           });
     }

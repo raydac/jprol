@@ -31,7 +31,7 @@ import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 @JProlOperator(priority = 1200, type = FX, name = ":-")
 @JProlOperator(priority = 1200, type = XFX, name = ":-")
 @JProlOperator(priority = 500, type = FX, name = "not")
-public class JProlBootstrapLibrary extends AbstractJProlLibrary {
+public final class JProlBootstrapLibrary extends AbstractJProlLibrary {
 
   public JProlBootstrapLibrary() {
     super("jprol-bootstrap-lib");
