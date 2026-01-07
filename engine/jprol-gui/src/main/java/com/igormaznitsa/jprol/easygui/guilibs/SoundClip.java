@@ -43,12 +43,15 @@ public final class SoundClip implements AutoCloseable {
     try {
       if (this.closed.compareAndSet(false, true)) {
         try {
-          if (this.playing.compareAndSet(true, false)
-              && this.clip.isActive()) {
-            this.clip.drain();
-            this.clip.stop();
+          try {
+            if (this.playing.compareAndSet(true, false)
+                && this.clip.isActive()) {
+              this.clip.stop();
+              this.clip.flush();
+            }
+          } finally {
+            this.clip.close();
           }
-          this.clip.close();
         } finally {
           try {
             this.audioStream.close();
@@ -94,8 +97,8 @@ public final class SoundClip implements AutoCloseable {
       if (!this.closed.get()) {
         if (this.playing.compareAndSet(true, false)
             && this.clip.isActive()) {
-          this.clip.flush();
           this.clip.stop();
+          this.clip.flush();
         }
         if (this.playing.compareAndSet(false, true)) {
           this.clip.setFramePosition(0);
@@ -119,8 +122,7 @@ public final class SoundClip implements AutoCloseable {
         if (this.playing.compareAndSet(true, false)
             && this.clip.isActive()) {
           this.clip.stop();
-          this.clip.flush();
-          this.clip.close();
+          this.clip.setFramePosition(0);
         }
       }
       return this;

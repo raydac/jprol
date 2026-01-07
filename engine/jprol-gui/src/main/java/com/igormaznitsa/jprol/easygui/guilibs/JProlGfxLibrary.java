@@ -1134,6 +1134,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       final SourceDataLine sourceDataLine = this.soundDataLine.getAndSet(null);
       if (sourceDataLine != null) {
         try {
+          sourceDataLine.drain();
           sourceDataLine.stop();
           sourceDataLine.flush();
         } catch (Exception ex) {

@@ -1185,8 +1185,11 @@ public final class MainFrame extends javax.swing.JFrame
   private void releaseContext() {
     final JProlContext context = this.currentContext.getAndSet(null);
     if (context != null) {
-      this.menuViewKnowledgeBase.setEnabled(false);
-      context.dispose(true);
+      try {
+        context.dispose(true);
+      } finally {
+        this.menuViewKnowledgeBase.setEnabled(false);
+      }
     }
   }
 
@@ -1482,11 +1485,13 @@ public final class MainFrame extends javax.swing.JFrame
           context.dispose(true);
         }
         final Thread executingThread = this.currentExecutedScriptThread.get();
-        try {
-          executingThread.interrupt();
-          executingThread.join();
-        } catch (InterruptedException thr) {
-          Thread.currentThread().interrupt();
+        if (executingThread != null) {
+          try {
+            executingThread.interrupt();
+            executingThread.join();
+          } catch (InterruptedException thr) {
+            Thread.currentThread().interrupt();
+          }
         }
       } else {
         return;
