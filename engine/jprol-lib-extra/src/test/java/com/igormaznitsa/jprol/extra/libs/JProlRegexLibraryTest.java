@@ -1,4 +1,4 @@
-package com.igormaznitsa.jprol.libs;
+package com.igormaznitsa.jprol.extra.libs;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -12,6 +12,7 @@ import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
+import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;

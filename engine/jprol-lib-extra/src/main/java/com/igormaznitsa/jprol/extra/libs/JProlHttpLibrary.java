@@ -1,4 +1,4 @@
-package com.igormaznitsa.jprol.libs;
+package com.igormaznitsa.jprol.extra.libs;
 
 import static com.igormaznitsa.jprol.utils.ProlAssertions.assertList;
 import static java.net.HttpURLConnection.HTTP_OK;
@@ -17,6 +17,7 @@ import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.exceptions.RuntimeIOException;
+import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 import java.io.IOException;

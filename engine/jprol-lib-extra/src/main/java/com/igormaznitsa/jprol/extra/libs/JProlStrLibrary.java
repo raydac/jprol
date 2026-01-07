@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.igormaznitsa.jprol.libs;
+package com.igormaznitsa.jprol.extra.libs;
 
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.data.TermType.LIST;
@@ -32,6 +32,7 @@ import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
+import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import java.util.IllegalFormatException;
 

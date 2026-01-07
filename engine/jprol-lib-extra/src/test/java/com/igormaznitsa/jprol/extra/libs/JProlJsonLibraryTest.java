@@ -1,4 +1,4 @@
-package com.igormaznitsa.jprol.libs;
+package com.igormaznitsa.jprol.extra.libs;
 
 import static com.igormaznitsa.jprol.utils.ProlUtils.escapeSrc;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
+import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import org.junit.jupiter.api.Assertions;

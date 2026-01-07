@@ -1,4 +1,4 @@
-package com.igormaznitsa.jprol.libs;
+package com.igormaznitsa.jprol.extra.libs;
 
 import com.igormaznitsa.jprol.annotations.JProlOperator;
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
@@ -13,6 +13,7 @@ import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
+import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 import java.util.ArrayList;

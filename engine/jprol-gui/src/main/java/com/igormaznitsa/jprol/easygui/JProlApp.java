@@ -1,4 +1,4 @@
-/*
+package com.igormaznitsa.jprol.easygui;/*
  * Copyright 2014 Igor Maznitsa (http://www.igormaznitsa.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import com.igormaznitsa.jprol.easygui.MainFrame;
 import com.igormaznitsa.jprol.easygui.tokenizer.JProlTokenMaker;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsEnvironment;

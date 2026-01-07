@@ -1,4 +1,4 @@
-package com.igormaznitsa.jprol.libs;
+package com.igormaznitsa.jprol.easygui.guilibs;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

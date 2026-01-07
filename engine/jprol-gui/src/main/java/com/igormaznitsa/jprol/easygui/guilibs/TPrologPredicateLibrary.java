@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.igormaznitsa.jprol.libs;
+package com.igormaznitsa.jprol.easygui.guilibs;
 
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 
@@ -25,6 +25,7 @@ import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.easygui.MainFrame;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.kbase.inmemory.AbstractInMemoryKnowledgeBase;
+import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.utils.ProlUtils;
 import java.io.CharArrayWriter;

@@ -16,7 +16,7 @@
         <app.name>jprol-gui-${project.version}</app.name>
         <jre.provider>BELLSOFT</jre.provider>
         <jre.version>25.0.1+13</jre.version>
-        <start-class>JProlApp</start-class>
+        <start-class>com.igormaznitsa.jprol.easygui.JProlApp</start-class>
     </properties>
 
     <dependencies>
@@ -63,7 +63,7 @@
                                     <string>msa</string>
                                 </CFBundleURLTypes>
                                 <JVMVersion>11+</JVMVersion>
-                                <JVMMainClassName>JProlApp</JVMMainClassName>
+                                <JVMMainClassName>com.igormaznitsa.jprol.easygui.JProlApp</JVMMainClassName>
                             </plist>
                             <dmg>
                                 <generate>true</generate>
@@ -273,7 +273,7 @@
                             <outfile>${project.build.directory}/${app.name}.exe</outfile>
                             <downloadUrl>https://bell-sw.com/pages/downloads</downloadUrl>
                             <classPath>
-                                <mainClass>JProlApp</mainClass>
+                                <mainClass>com.igormaznitsa.jprol.easygui.JProlApp</mainClass>
                                 <preCp>anything</preCp>
                             </classPath>
                             <icon>
@@ -743,7 +743,7 @@
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>JProlApp</mainClass>
+                                    <mainClass>com.igormaznitsa.jprol.easygui.JProlApp</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
@@ -756,13 +756,10 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>JProlApp</mainClass>
+                            <mainClass>com.igormaznitsa.jprol.easygui.JProlApp</mainClass>
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                             <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                         </manifest>
-                        <manifestEntries>
-                            <Automatic-Module-Name>igormaznitsa.jprol.gui</Automatic-Module-Name>
-                        </manifestEntries>
                     </archive>
                 </configuration>
             </plugin>
