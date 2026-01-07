@@ -18,6 +18,7 @@ package com.igormaznitsa.jprol.trace;
 
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.exceptions.ProlAbortExecutionException;
+import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import java.util.concurrent.CompletableFuture;
@@ -37,9 +38,10 @@ public interface JProlContextListener {
 
   /**
    * Get trace events from choice points if trace mode is on
-   * @param source source context
+   *
+   * @param source      source context
    * @param choicePoint source choice point
-   * @param event event
+   * @param event       event
    */
   default void onChoicePointTraceEvent(JProlContext source, JProlChoicePoint choicePoint,
                                        TraceEvent event) {
@@ -47,8 +49,9 @@ public interface JProlContextListener {
 
   /**
    * Get notification about some undefined predicate meet
-   * @param source source context
-   * @param choicePoint source choice point
+   *
+   * @param source                      source context
+   * @param choicePoint                 source choice point
    * @param undefinedPredicateSignature signature of undefined predicate like 'abort/1'
    */
   default void onUndefinedPredicateWarning(JProlContext source, JProlChoicePoint choicePoint,
@@ -92,6 +95,27 @@ public interface JProlContextListener {
   default void onAsyncUncaughtTaskException(JProlContext source, JProlContext taskContext,
                                             final long taskId,
                                             Throwable error) {
+
+  }
+
+  /**
+   * Notification about adding of a library into context.
+   *
+   * @param context source context, must not be null
+   * @param library library, must not be null
+   * @since 3.0.0
+   */
+  default void onLibraryAdded(JProlContext context, AbstractJProlLibrary library) {
+  }
+
+  /**
+   * Notification about remove of a library from context.
+   *
+   * @param context source context, must not be null
+   * @param library library, must not be null
+   * @since 3.0.0
+   */
+  default void onLibraryRemoved(JProlContext context, AbstractJProlLibrary library) {
 
   }
 }

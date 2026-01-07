@@ -236,16 +236,6 @@ public abstract class AbstractJProlLibrary {
     return allLibraryPredicates;
   }
 
-  @SuppressWarnings("EmptyMethod")
-  public void onRegisteredInContext(final JProlContext context) {
-
-  }
-
-  @SuppressWarnings("EmptyMethod")
-  public void onLibraryRemove(final JProlContext context) {
-
-  }
-
   public CloseableIterator<TermOperator> makeOperatorIterator() {
     return new OperatorIterator(this.systemOperators.values().iterator());
   }

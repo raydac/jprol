@@ -354,8 +354,6 @@ public class JProlContext implements AutoCloseable {
     addLibraries.stream()
         .filter(x -> x.getClass() != BOOTSTRAP_LIBRARY.getClass())
         .forEach(x -> this.addLibrary(x, fullLibraryProcessingNeeded));
-
-    this.registerLibraries();
   }
 
   private static void clearContextGlobalVariables(final JProlContext context) {
@@ -532,16 +530,6 @@ public class JProlContext implements AutoCloseable {
    */
   protected boolean isDisposeExecutorOnClose() {
     return false;
-  }
-
-  private void registerLibraries() {
-    this.libraries.forEach(x -> {
-      try {
-        x.onRegisteredInContext(this);
-      } catch (Throwable ex) {
-        this.onUncaughtException(this, ex);
-      }
-    });
   }
 
   public boolean isShareKnowledgeBaseWithAsyncTasks() {
@@ -1044,6 +1032,14 @@ public class JProlContext implements AutoCloseable {
       }
     }
 
+    this.contextListeners.forEach(y -> {
+      try {
+        y.onLibraryAdded(this, library);
+      } catch (Exception ex) {
+        this.onUncaughtException(this, ex);
+      }
+    });
+
     return true;
   }
 
@@ -1057,9 +1053,9 @@ public class JProlContext implements AutoCloseable {
     if (library == null) {
       throw new IllegalArgumentException("Library must not be null");
     }
-    final boolean result = libraries.remove(library);
+    final boolean result = this.libraries.remove(library);
     if (result) {
-      library.onLibraryRemove(this);
+      this.contextListeners.forEach(x -> x.onLibraryRemoved(this, library));
     }
     return result;
   }
@@ -1215,7 +1211,17 @@ public class JProlContext implements AutoCloseable {
             }
           }
         });
+        final List<AbstractJProlLibrary> copyOfLibraries = List.copyOf(this.libraries);
         this.libraries.clear();
+        if (!copyOfLibraries.isEmpty() && !this.contextListeners.isEmpty()) {
+          this.contextListeners.forEach(x -> copyOfLibraries.forEach(y -> {
+            try {
+              x.onLibraryRemoved(this, y);
+            } catch (Exception ex) {
+              this.onUncaughtException(this, ex);
+            }
+          }));
+        }
         this.contextListeners.clear();
 
         if (this.isRootContext()) {
