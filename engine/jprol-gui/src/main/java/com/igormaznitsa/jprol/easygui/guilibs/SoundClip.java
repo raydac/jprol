@@ -17,12 +17,12 @@ public final class SoundClip implements AutoCloseable {
   private final Clip clip;
   private final Semaphore lock = new Semaphore(1);
   private final AtomicBoolean closed = new AtomicBoolean();
+  private final AudioInputStream audioStream;
 
   public SoundClip(final byte[] resourceData) {
     try {
       this.clip = AudioSystem.getClip();
-      final AudioInputStream audioStream =
-          AudioSystem.getAudioInputStream(new ByteArrayInputStream(resourceData));
+      this.audioStream = AudioSystem.getAudioInputStream(new ByteArrayInputStream(resourceData));
       this.clip.addLineListener(event -> {
         if (event.getType() == LineEvent.Type.STOP) {
           playing.set(false);
@@ -42,17 +42,23 @@ public final class SoundClip implements AutoCloseable {
     this.lock.acquireUninterruptibly();
     try {
       if (this.closed.compareAndSet(false, true)) {
-        if (this.playing.compareAndSet(true, false)
-            && this.clip.isActive()) {
-          this.clip.stop();
+        try {
+          if (this.playing.compareAndSet(true, false)
+              && this.clip.isActive()) {
+            this.clip.drain();
+            this.clip.stop();
+          }
+          this.clip.close();
+        } finally {
+          try {
+            this.audioStream.close();
+          } catch (Exception ex) {
+            // ignore
+          }
         }
       }
     } finally {
-      try {
-        this.clip.close();
-      } finally {
-        this.lock.release();
-      }
+      this.lock.release();
     }
   }
 
@@ -66,6 +72,7 @@ public final class SoundClip implements AutoCloseable {
         if (this.playing.compareAndSet(true, false)
             && this.clip.isActive()) {
           this.clip.stop();
+          this.clip.flush();
         }
         if (this.playing.compareAndSet(false, true)) {
           this.clip.setFramePosition(0);
@@ -87,6 +94,7 @@ public final class SoundClip implements AutoCloseable {
       if (!this.closed.get()) {
         if (this.playing.compareAndSet(true, false)
             && this.clip.isActive()) {
+          this.clip.flush();
           this.clip.stop();
         }
         if (this.playing.compareAndSet(false, true)) {
@@ -98,7 +106,6 @@ public final class SoundClip implements AutoCloseable {
       return this;
     } finally {
       this.lock.release();
-      ;
     }
   }
 
@@ -112,6 +119,8 @@ public final class SoundClip implements AutoCloseable {
         if (this.playing.compareAndSet(true, false)
             && this.clip.isActive()) {
           this.clip.stop();
+          this.clip.flush();
+          this.clip.close();
         }
       }
       return this;

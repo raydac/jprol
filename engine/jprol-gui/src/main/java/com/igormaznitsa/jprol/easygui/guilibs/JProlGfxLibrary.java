@@ -1135,6 +1135,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       if (sourceDataLine != null) {
         try {
           sourceDataLine.stop();
+          sourceDataLine.flush();
         } catch (Exception ex) {
           ex.printStackTrace();
         } finally {
@@ -1146,14 +1147,17 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
         }
       }
     } finally {
-      this.soundClipMap.values().forEach(soundClip -> {
-        try {
-          soundClip.close();
-        } catch (Exception ex) {
-          ex.printStackTrace();
-        }
-      });
-      this.soundClipMap.clear();
+      try {
+        this.soundClipMap.values().forEach(soundClip -> {
+          try {
+            soundClip.close();
+          } catch (Exception ex) {
+            ex.printStackTrace();
+          }
+        });
+      } finally {
+        this.soundClipMap.clear();
+      }
     }
   }
 
