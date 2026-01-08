@@ -21,11 +21,12 @@ __3.0.0 (2025-01-08)__
 
 - Added way to provide global variables storager and predicates `nb_setvar/2`,`nb_getvar/2` and `nb_delete/1`.
 - Provided way to provide payload and associated objects for terms and choice points.
+- Restored local cut `!!/0` to cut only current local predicate alternative chain.
 - Guarded predicates moved from core library to JProlCoreGuardedLibrary.
 - Added `format/1`,`format/2` and `format/3` into JProlIoLibrary.
 - Internal random generator switched to SecureRandom.
 - Updated embedded JDK to 25.0.1+13.
-- Refactored API, renamed methods, some contants moved between classes, restored support of payload in terms.
+- Refactored API, renamed methods, some contants moved between classes, restored associated payload objects with terms.
 - Internal optimizations to decrease memory footstep.
 - Added support for Java Scripting API (JSR 223) as module `jprol-jsr223`.
 - Library predicates `dispose/0` and `dispose/1` replaced by more safe variant `abort/0` and `abort/1`.
@@ -54,17 +55,17 @@ The engine communicates with Java methods marked by special annotationas and hav
 For instance, below I show how implemented the `<</2` predicate of the core JProl library. As you can see, the method is just marked by `@JProlPredicate` annotation. It is imp[ossible just mark any method but only methods with special signature and arguments `JProlChoicePoint` and `TermStruct` because they provided during a call.
 
 ```Java
-  @JProlPredicate(evaluable = true, signature = "<</2", validate = {
-      "+evaluable,+evaluable"}, reference = "Bitwise left shift")
-  public static Term predicateSHIFTL2(final JProlChoicePoint goal, final TermStruct predicate) {
-    final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
-    final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
+@JProlPredicate(evaluable = true, signature = "<</2", validate = {
+    "+evaluable,+evaluable"}, reference = "Bitwise left shift")
+public static Term predicateSHIFTL2(final JProlChoicePoint goal, final TermStruct predicate) {
+  final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
+  final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
 
-    final long value = left.toNumber().longValue();
-    final long shift = right.toNumber().longValue();
+  final long value = left.toNumber().longValue();
+  final long shift = right.toNumber().longValue();
 
-    return Terms.newLong(value << shift);
-  }
+  return Terms.newLong(value << shift);
+}
 ```
 
 ## Call the Engine from Java
@@ -72,25 +73,25 @@ For instance, below I show how implemented the `<</2` predicate of the core JPro
 Sample below shows how it is easy to inject a prolog based Eight Queens puzzle resolver into Java and get all solutions.
 
 ```Java
-    JProlContext context = new JProlContext(
-        "test-context",
-        new JProlCoreLibrary()
-    );
-    context.consult(
-        "solution([]). "
-            + "solution([X/Y|Others]):-solution(Others),inlist(Y,[1,2,3,4,5,6,7,8]),notattack(X/Y,Others)."
-            + "notattack(_,[]). notattack(X/Y,[X1/Y1 | Others]) :- Y=\\=Y1, Y1-Y=\\=X1-X, Y1-Y=\\=X-X1, notattack(X/Y,Others)."
-            + "inlist(Item,[Item|Rest])."
-            + "inlist(Item,[First|Rest]):-inlist(Item,Rest). template([1/Y1,2/Y2,3/Y3,4/Y4,5/Y5,6/Y6,7/Y7,8/Y8]).");
+JProlContext context = new JProlContext(
+    "test-context",
+    new JProlCoreLibrary()
+);
+context.consult(
+    "solution([]). "
+    + "solution([X/Y|Others]):-solution(Others),inlist(Y,[1,2,3,4,5,6,7,8]),notattack(X/Y,Others)."
+    + "notattack(_,[]). notattack(X/Y,[X1/Y1 | Others]) :- Y=\\=Y1, Y1-Y=\\=X1-X, Y1-Y=\\=X-X1, notattack(X/Y,Others)."
+    + "inlist(Item,[Item|Rest])."
+    + "inlist(Item,[First|Rest]):-inlist(Item,Rest). template([1/Y1,2/Y2,3/Y3,4/Y4,5/Y5,6/Y6,7/Y7,8/Y8]).");
 
-    JProlChoicePoint goal = context.makeChoicePoint(
-        "solution([1/Y1,2/Y2,3/Y3,4/Y4,5/Y5,6/Y6,7/Y7,8/Y8]), Res=[Y1,Y2,Y3,Y4,Y5,Y6,Y7,Y8].");
+JProlChoicePoint goal = context.makeChoicePoint(
+    "solution([1/Y1,2/Y2,3/Y3,4/Y4,5/Y5,6/Y6,7/Y7,8/Y8]), Res=[Y1,Y2,Y3,Y4,Y5,Y6,Y7,Y8].");
 
-    Term result;
-    while((result = goal.prove()) != null) {
-      TermList solution  = (TermList) goal.findVar("Res").get().getValue();
-      System.out.println(solution.toSrcString());
-    }
+Term result;
+while((result = goal.prove()) != null) {
+    TermList solution  = (TermList) goal.findVar("Res").get().getValue();
+    System.out.println(solution.toSrcString());
+}
 ```
 
 ### Flags
