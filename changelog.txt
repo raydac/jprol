@@ -1,3 +1,6 @@
+3.0.1 (SNAPSHOT)
+    -
+
 3.0.0 (2025-01-08)
 
     - Added way to provide global variables storager and predicates `nb_setvar/2`,`nb_getvar/2` and `nb_delete/1`.
