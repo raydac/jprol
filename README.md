@@ -1,6 +1,6 @@
 ![JPROL logo](art/github_logo.png)   
 [![License Apache 12](https://img.shields.io/badge/license-Apache%20License%202.0-green.svg)](http://www.apache.org/licenses/LICENSE-2.0)
-[![Maven central](https://maven-badges.herokuapp.com/maven-central/com.igormaznitsa/jprol-core/badge.svg)](http://search.maven.org/#artifactdetails|com.igormaznitsa|jprol-core|2.2.1|jar)
+[![Maven central](https://maven-badges.herokuapp.com/maven-central/com.igormaznitsa/jprol-core/badge.svg)](http://search.maven.org/#artifactdetails|com.igormaznitsa|jprol-core|3.0.0|jar)
 [![Java 11+](https://img.shields.io/badge/java-11%2b-green.svg)](https://bell-sw.com/pages/downloads/#jdk-21-lts)
 
 [![Arthur's acres sanctuary donation](art/arthur_sanctuary_banner.png)](https://www.arthursacresanimalsanctuary.org/donate)
@@ -15,6 +15,24 @@ Initially the engine was a mono-block with embedded GUI part, but later it rewor
 ![GUIEditor](https://github.com/raydac/jprol/blob/master/jprolguieditor.png)   
 
 
+# Changelog
+
+3.0.0 (2025-01-08)
+
+    - Added way to provide global variables storager and predicates `nb_setvar/2`,`nb_getvar/2` and `nb_delete/1`.
+    - Provided way to provide payload and associated objects for terms and choice points.
+    - Guarded predicates moved from core library to JProlCoreGuardedLibrary.
+    - Added `format/1`,`format/2` and `format/3` into JProlIoLibrary.
+    - Internal random generator switched to SecureRandom.
+    - Updated embedded JDK to 25.0.1+13.
+    - Refactored API, renamed methods, some contants moved between classes, restored support of payload in terms.
+    - Internal optimizations to decrease memory footstep.
+    - Added support for Java Scripting API (JSR 223) as module `jprol-jsr223`.
+    - Library predicates `dispose/0` and `dispose/1` replaced by more safe variant `abort/0` and `abort/1`.
+    - Bugfixing.
+
+[changelog](changelog.txt)
+
 # The engine
 
 The engine is published in [the maven central](https://search.maven.org/artifact/com.igormaznitsa/jprol-core/2.2.0/jar) and can be used in maven projects as a dependency. It supports JDK 11+ and also I keep it compatible with Android API.   
@@ -23,7 +41,7 @@ The engine is published in [the maven central](https://search.maven.org/artifact
 <dependency>
     <groupId>com.igormaznitsa</groupId>
     <artifactId>jprol-core</artifactId>
-    <version>2.2.1</version>
+    <version>3.0.0</version>
 </dependency>
 ```   
 
@@ -54,22 +72,25 @@ public static Term predicateSHIFTL2(final JProlChoicePoint goal, final TermStruc
 Sample below shows how it is easy to inject a prolog based Eight Queens puzzle resolver into Java and get all solutions.
 
 ```Java
-JProlContext context = new JProlContext(
-    "test-context",
-    new JProlCoreLibrary()
-);
-context.consult(new StringReader(
-    "solution([]). solution([X/Y|Others]):-solution(Others),member(Y,[1,2,3,4,5,6,7,8]),notattack(X/Y,Others). notattack(_,[]). notattack(X/Y,[X1/Y1 | Others]):- Y=\\=Y1, Y1-Y=\\=X1-X, Y1-Y=\\=X-X1, notattack(X/Y,Others). member(Item,[Item|Rest]). member(Item,[First|Rest]):-member(Item,Rest). template([1/Y1,2/Y2,3/Y3,4/Y4,5/Y5,6/Y6,7/Y7,8/Y8])."));
+    JProlContext context = new JProlContext(
+        "test-context",
+        new JProlCoreLibrary()
+    );
+    context.consult(
+        "solution([]). "
+            + "solution([X/Y|Others]):-solution(Others),inlist(Y,[1,2,3,4,5,6,7,8]),notattack(X/Y,Others)."
+            + "notattack(_,[]). notattack(X/Y,[X1/Y1 | Others]) :- Y=\\=Y1, Y1-Y=\\=X1-X, Y1-Y=\\=X-X1, notattack(X/Y,Others)."
+            + "inlist(Item,[Item|Rest])."
+            + "inlist(Item,[First|Rest]):-inlist(Item,Rest). template([1/Y1,2/Y2,3/Y3,4/Y4,5/Y5,6/Y6,7/Y7,8/Y8]).");
 
-JProlChoicePoint goal = new JProlChoicePoint(
-    "solution([1/Y1,2/Y2,3/Y3,4/Y4,5/Y5,6/Y6,7/Y7,8/Y8]),Res = [Y1,Y2,Y3,Y4,Y5,Y6,Y7,Y8].",
-    context);
+    JProlChoicePoint goal = context.makeChoicePoint(
+        "solution([1/Y1,2/Y2,3/Y3,4/Y4,5/Y5,6/Y6,7/Y7,8/Y8]), Res=[Y1,Y2,Y3,Y4,Y5,Y6,Y7,Y8].");
 
-Term result;
-while((result = goal.prove()) != null) {
-    TermList solution  = (TermList) goal.findVar("Res").get().getValue();
-    System.out.println(solution.toSrcString());
-}
+    Term result;
+    while((result = goal.prove()) != null) {
+      TermList solution  = (TermList) goal.findVar("Res").get().getValue();
+      System.out.println(solution.toSrcString());
+    }
 ```
 
 ### Flags
@@ -100,7 +121,7 @@ The bootstrap library of the engine has two predicates `set_prolog_flag/2` and `
 
 Prolog is a declarative language and it is well for multi-threading. I have added pair predicates to span new threads (`fork/1` and `async/1`), also the engine provides special predicate `waitasync/0` to make inter-process synchronization to wait completion of all spawned threads. The `waitasync/0` predicate can be used only from the main thread (the root goal). Also there is support for locks. You can create critical sections with `lock/1`, `unlock/1` and `trylock/1` predicates. Take a look at the prolog program below, it draws 3000000 color dots through three threads.
 ```Prolog
-threadRed(P) :- for(_, 0, P), rnd(500, X), rnd(400, Y), lock(gfx), pencolor(red), dot(X, Y), unlock(gfx), fail.
+    threadRed(P) :- for(_, 0, P), rnd(500, X), rnd(400, Y), lock(gfx), pencolor(red), dot(X, Y), unlock(gfx), fail.
     threadGreen(P) :- for(_, 0, P), rnd(500,X), rnd(400, Y), lock(gfx), pencolor(green), dot(X, Y), unlock(gfx), fail.
     threadBlue(P) :- for(_, 0, P), rnd(500, X), rnd(400, Y), lock(gfx), pencolor(blue), dot(X,Y), unlock(gfx), fail.
 
