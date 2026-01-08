@@ -54,17 +54,17 @@ The engine communicates with Java methods marked by special annotationas and hav
 For instance, below I show how implemented the `<</2` predicate of the core JProl library. As you can see, the method is just marked by `@JProlPredicate` annotation. It is imp[ossible just mark any method but only methods with special signature and arguments `JProlChoicePoint` and `TermStruct` because they provided during a call.
 
 ```Java
-@JProlPredicate(evaluable = true, signature = "<</2", args = {
-  "+evaluable,+evaluable"}, reference = "Bitwise left shift")
-public static Term predicateSHIFTL2(final JProlChoicePoint goal, final TermStruct predicate) {
-  final NumericTerm left = calculatEvaluable(goal, predicate.getElement(0).findNonVarOrSame());
-  final NumericTerm right = calculatEvaluable(goal, predicate.getElement(1).findNonVarOrSame());
+  @JProlPredicate(evaluable = true, signature = "<</2", validate = {
+      "+evaluable,+evaluable"}, reference = "Bitwise left shift")
+  public static Term predicateSHIFTL2(final JProlChoicePoint goal, final TermStruct predicate) {
+    final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
+    final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
 
-  final long value = left.toNumber().longValue();
-  final long shift = right.toNumber().longValue();
+    final long value = left.toNumber().longValue();
+    final long shift = right.toNumber().longValue();
 
-  return Terms.newLong(value << shift);
-}
+    return Terms.newLong(value << shift);
+  }
 ```
 
 ## Call the Engine from Java
