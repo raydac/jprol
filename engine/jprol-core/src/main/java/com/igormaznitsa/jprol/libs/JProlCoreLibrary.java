@@ -735,7 +735,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @JProlPredicate(evaluable = true, signature = "///2", validate = {
+  @JProlPredicate(evaluable = true, signature = "///2", synonyms = "div/2", validate = {
       "+evaluable,+evaluable"}, reference = "Integer division.")
   public static Term predicateIDIV2(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
