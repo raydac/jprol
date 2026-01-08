@@ -17,19 +17,19 @@ Initially the engine was a mono-block with embedded GUI part, but later it rewor
 
 # Changelog
 
-3.0.0 (2025-01-08)
+__3.0.0 (2025-01-08)__
 
-    - Added way to provide global variables storager and predicates `nb_setvar/2`,`nb_getvar/2` and `nb_delete/1`.
-    - Provided way to provide payload and associated objects for terms and choice points.
-    - Guarded predicates moved from core library to JProlCoreGuardedLibrary.
-    - Added `format/1`,`format/2` and `format/3` into JProlIoLibrary.
-    - Internal random generator switched to SecureRandom.
-    - Updated embedded JDK to 25.0.1+13.
-    - Refactored API, renamed methods, some contants moved between classes, restored support of payload in terms.
-    - Internal optimizations to decrease memory footstep.
-    - Added support for Java Scripting API (JSR 223) as module `jprol-jsr223`.
-    - Library predicates `dispose/0` and `dispose/1` replaced by more safe variant `abort/0` and `abort/1`.
-    - Bugfixing.
+- Added way to provide global variables storager and predicates `nb_setvar/2`,`nb_getvar/2` and `nb_delete/1`.
+- Provided way to provide payload and associated objects for terms and choice points.
+- Guarded predicates moved from core library to JProlCoreGuardedLibrary.
+- Added `format/1`,`format/2` and `format/3` into JProlIoLibrary.
+- Internal random generator switched to SecureRandom.
+- Updated embedded JDK to 25.0.1+13.
+- Refactored API, renamed methods, some contants moved between classes, restored support of payload in terms.
+- Internal optimizations to decrease memory footstep.
+- Added support for Java Scripting API (JSR 223) as module `jprol-jsr223`.
+- Library predicates `dispose/0` and `dispose/1` replaced by more safe variant `abort/0` and `abort/1`.
+- Bugfixing.
 
 [changelog](changelog.txt)
 
