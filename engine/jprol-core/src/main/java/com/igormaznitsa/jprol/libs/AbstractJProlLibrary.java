@@ -22,6 +22,7 @@ import static com.igormaznitsa.jprol.data.Terms.newLong;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.utils.ProlUtils.SIGNATURE_OPERATOR;
 import static java.lang.Integer.parseInt;
+import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Collections.unmodifiableSet;
 
@@ -55,7 +56,6 @@ import com.igormaznitsa.jprol.utils.lazy.LazyMap;
 import com.igormaznitsa.jprol.utils.lazy.LazySet;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +72,7 @@ public abstract class AbstractJProlLibrary {
   private final String libraryUid;
   private final Map<String, TermOperatorContainer> systemOperators;
   private final Map<String, PredicateInvoker> predicateMethodsMap;
+  private final Set<String> staticSignatures;
   private final Set<String> zeroArityPredicateNames;
 
   private final Map<JProlContext, Map<String, Object>> contextNamedObjects =
@@ -91,6 +92,10 @@ public abstract class AbstractJProlLibrary {
     this.predicateMethodsMap =
         unmodifiableMap(extractAnnotatedMethodsAsPredicates(libraryUid, zeroArityPredicates));
     this.zeroArityPredicateNames = unmodifiableSet(zeroArityPredicates);
+
+    this.staticSignatures = this.findAllJProlPredicates().stream()
+        .flatMap(x -> Stream.concat(Stream.of(x.signature()), Stream.of(x.synonyms()))).collect(
+            Collectors.toSet());
   }
 
   protected static NumericTerm calcEvaluable(final JProlChoicePoint choicePoint, final Term term) {
@@ -211,19 +216,19 @@ public abstract class AbstractJProlLibrary {
     final JProlConsultUrl consultUrl = this.getClass().getAnnotation(JProlConsultUrl.class);
 
     if (consultText != null) {
-      allLibraryPredicates.addAll(Arrays.asList(consultText.declaredPredicates()));
+      allLibraryPredicates.addAll(asList(consultText.declaredPredicates()));
     }
 
     if (consultFile != null) {
-      allLibraryPredicates.addAll(Arrays.asList(consultFile.declaredPredicates()));
+      allLibraryPredicates.addAll(asList(consultFile.declaredPredicates()));
     }
 
     if (consultResource != null) {
-      allLibraryPredicates.addAll(Arrays.asList(consultResource.declaredPredicates()));
+      allLibraryPredicates.addAll(asList(consultResource.declaredPredicates()));
     }
 
     if (consultUrl != null) {
-      allLibraryPredicates.addAll(Arrays.asList(consultUrl.declaredPredicates()));
+      allLibraryPredicates.addAll(asList(consultUrl.declaredPredicates()));
     }
 
     for (final Method method : this.getClass().getMethods()) {
@@ -288,7 +293,7 @@ public abstract class AbstractJProlLibrary {
   }
 
   public boolean hasPredicateForSignature(final String signature) {
-    return this.predicateMethodsMap.containsKey(signature);
+    return this.staticSignatures.contains(signature);
   }
 
   public PredicateInvoker findPredicateProcessor(final TermStruct predicate) {

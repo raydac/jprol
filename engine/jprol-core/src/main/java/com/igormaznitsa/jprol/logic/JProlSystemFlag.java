@@ -22,6 +22,8 @@ public enum JProlSystemFlag {
   ALLOW_VARIABLE_NAME_AS_FUNCTOR(true,
       Terms.newAtom("allow_variable_name_as_functor", SourcePosition.UNKNOWN), FALSE,
       "Allows to use variable names as functors."),
+  ALLOW_LIBRARY_SIGNATURE_CONFLICT(false, Terms.newAtom("allow_library_signarute_conflict"), FALSE,
+      "Allow definitions of predicates with same signatures which already presented in registered libraries"),
   OS(true, Terms.newAtom("os"), Terms.newAtom(System.getProperty("os.name", "unknown")),
       "OS name."),
   ARCH(true, Terms.newAtom("arch"), Terms.newAtom(System.getProperty("os.arch", "unknown")),

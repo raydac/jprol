@@ -47,6 +47,14 @@ public final class Terms {
     if (".".equals(text) && sourcePosition.isUnknown()) {
       return LIST_FUNCTOR;
     } else {
+      if (sourcePosition == SourcePosition.UNKNOWN) {
+        if ("false".equals(text)) {
+          return FALSE;
+        }
+        if ("true".equals(text)) {
+          return TRUE;
+        }
+      }
       return new Term(text, sourcePosition);
     }
   }

@@ -134,8 +134,8 @@ class ListTest extends AbstractJProlTest {
   @Test
   void testReverse() {
     final JProlContext context = makeContextAndConsult(
-        "reverse([], []). reverse([A|B], Z) :- reverse(B, Brev), append(Brev, [A], Z).");
-    final JProlChoicePoint testgoal = context.makeChoicePoint("reverse([1,2,3,4,5,6],X).");
+        "reverse_([], []). reverse_([A|B], Z) :- reverse_(B, Brev), append(Brev, [A], Z).");
+    final JProlChoicePoint testgoal = context.makeChoicePoint("reverse_([1,2,3,4,5,6],X).");
 
     assertNotNull(testgoal.prove());
     assertEquals("[6,5,4,3,2,1]", getVarAsText(testgoal, "X"));

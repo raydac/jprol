@@ -18,6 +18,8 @@ package com.igormaznitsa.jprol.logic;
 
 import static com.igormaznitsa.jprol.data.SourcePosition.UNKNOWN;
 import static com.igormaznitsa.jprol.data.TermType.STRUCT;
+import static com.igormaznitsa.jprol.data.Terms.FALSE;
+import static com.igormaznitsa.jprol.data.Terms.TRUE;
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.logic.PredicateInvoker.NULL_INVOKER;
@@ -918,11 +920,13 @@ public class JProlContext implements AutoCloseable {
 
     this.libraries.add(0, library);
     if (fullProcessing) {
+      final StringBuilder consultBuffer = new StringBuilder();
+
       final JProlConsultText consultText = library.getClass().getAnnotation(JProlConsultText.class);
       if (consultText != null) {
         final String text = String.join("\n", consultText.value());
         if (!text.isEmpty()) {
-          this.consult(new StringReader(text), null);
+          consultBuffer.append(text);
         }
       }
 
@@ -939,7 +943,7 @@ public class JProlContext implements AutoCloseable {
               }
             })
             .collect(Collectors.joining("\n"));
-        this.consult(new StringReader(resourceText), null);
+        consultBuffer.append(resourceText);
       }
 
       final JProlConsultUrl consultUrls =
@@ -977,7 +981,7 @@ public class JProlContext implements AutoCloseable {
               return buffer.toString();
             })
             .collect(Collectors.joining("\n"));
-        this.consult(new StringReader(resourceText), null);
+        consultBuffer.append(resourceText);
       }
 
       final JProlConsultResource consultResource =
@@ -1008,7 +1012,11 @@ public class JProlContext implements AutoCloseable {
               return buffer.toString();
             })
             .collect(Collectors.joining("\n"));
-        this.consult(resourceText, null);
+        consultBuffer.append(resourceText);
+      }
+
+      if (consultBuffer.length() > 0) {
+        this.consult(new StringReader(consultBuffer.toString()), null, false);
       }
     }
 
@@ -1341,14 +1349,25 @@ public class JProlContext implements AutoCloseable {
       if (signature == null) {
         throw new NullPointerException();
       }
-      if (this.hasPredicateAtLibraryForSignature(signature)) {
-        throw new ProlPermissionErrorException("modify", "static_procedure",
-            "Signature '" + signature + "'is statically presented in a registered library",
-            newAtom(signature, Objects.requireNonNullElse(sourcePosition, UNKNOWN)));
-      }
+      this.assertSignatureNotStaticallyPresented(signature, sourcePosition);
     }
 
     this.dynamicSignatures.addAll(signatures);
+  }
+
+  protected void assertSignatureNotStaticallyPresented(final String signature,
+                                                       final SourcePosition sourcePosition) {
+    if (this.getSystemFlag(JProlSystemFlag.ALLOW_LIBRARY_SIGNATURE_CONFLICT) == FALSE) {
+      if (this.hasPredicateAtLibraryForSignature(signature)) {
+        final String libraryName =
+            this.libraries.stream().filter(x -> x.hasPredicateForSignature(signature)).findFirst()
+                .map(x -> x.getLibraryUid() + " (" + x.getClass().getCanonicalName() + ')')
+                .orElse("<UNKNOWN>");
+        throw new ProlPermissionErrorException("modify", "static_procedure",
+            "Signature '" + signature + "'is statically defined in " + libraryName + " library",
+            newAtom(signature, Objects.requireNonNullElse(sourcePosition, UNKNOWN)));
+      }
+    }
   }
 
   public void clearDynamicSignatures() {
@@ -1385,6 +1404,8 @@ public class JProlContext implements AutoCloseable {
       signature = termStruct.isClause() ?
           termStruct.getArgumentAt(0).getSignature() : termStruct.getSignature();
     }
+
+    this.assertSignatureNotStaticallyPresented(signature, term.getSourcePosition());
 
     if (this.dynamicSignatures.contains(signature)) {
       operationResult = processingFunction.apply(signature, termStruct);
@@ -1442,6 +1463,14 @@ public class JProlContext implements AutoCloseable {
   }
 
   public void consult(final Reader source, final QueryInteractor queryInteractor) {
+    this.consult(source, queryInteractor, true);
+  }
+
+  protected void consult(
+      final Reader source,
+      final QueryInteractor queryInteractor,
+      final boolean checkLibraryConflicts
+  ) {
     try (final JProlTreeBuilder treeBuilder = new JProlTreeBuilder(this, source, false)) {
       do {
         final Term nextItem = treeBuilder.readPhraseAndMakeTree();
@@ -1454,6 +1483,9 @@ public class JProlContext implements AutoCloseable {
         try {
           switch (nextItem.getTermType()) {
             case ATOM: {
+              if (checkLibraryConflicts) {
+                this.assertSignatureNotStaticallyPresented(nextItem.getSignature(), sourcePosition);
+              }
               this.knowledgeBase.assertZ(this, newStruct(nextItem));
             }
             break;
@@ -1470,6 +1502,11 @@ public class JProlContext implements AutoCloseable {
                   switch (type) {
                     case XFX: {
                       // new rule
+                      final Term head = struct.getArgumentAt(0);
+                      if (checkLibraryConflicts) {
+                        this.assertSignatureNotStaticallyPresented(head.getSignature(),
+                            head.getSourcePosition());
+                      }
                       this.knowledgeBase.assertZ(this, struct);
                     }
                     break;
@@ -1508,9 +1545,17 @@ public class JProlContext implements AutoCloseable {
                     } while (doFindNextSolution);
                   }
                 } else {
+                  if (checkLibraryConflicts) {
+                    assertSignatureNotStaticallyPresented(struct.getSignature(),
+                        struct.getSourcePosition());
+                  }
                   this.knowledgeBase.assertZ(this, struct);
                 }
               } else {
+                if (checkLibraryConflicts) {
+                  assertSignatureNotStaticallyPresented(struct.getSignature(),
+                      struct.getSourcePosition());
+                }
                 this.knowledgeBase.assertZ(this, struct);
               }
             }
@@ -1628,9 +1673,8 @@ public class JProlContext implements AutoCloseable {
       @Override
       public int getFlags() {
         int flags = 0;
-        if (parseBoolean(
-            JProlContext.this.getSystemFlag(JProlSystemFlag.ALLOW_VARIABLE_NAME_AS_FUNCTOR)
-                .getText().trim())) {
+        if (JProlContext.this.getSystemFlag(JProlSystemFlag.ALLOW_VARIABLE_NAME_AS_FUNCTOR) ==
+            TRUE) {
           flags = ParserContext.FLAG_VAR_AS_FUNCTOR;
         }
         return flags

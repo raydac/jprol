@@ -19,7 +19,7 @@ class JProlBootstrapLibraryTest extends AbstractJProlTest {
 
   @Test
   void testEvaluablePredicateProcessorNotCalled() {
-    final JProlChoicePoint point = prepareGoal("round(abc).", "round(X).");
+    final JProlChoicePoint point = prepareGoal("round_(abc).", "round_(X).");
     assertNotNull(point.prove());
     assertEquals("abc", point.findVar("X").get().tryGround().getText());
   }
