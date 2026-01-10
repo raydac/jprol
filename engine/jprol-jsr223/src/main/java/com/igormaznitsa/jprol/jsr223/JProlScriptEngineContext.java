@@ -128,9 +128,10 @@ public class JProlScriptEngineContext
 
   @Override
   public void gc() {
-    this.assertNotDisposed();
-    this.jprolContext.gc();
-    this.engineBindings.gc();
+    if (!this.disposed.get()) {
+      this.jprolContext.gc();
+      this.engineBindings.gc();
+    }
   }
 
   public KnowledgeBase getKnowledgeBase() {

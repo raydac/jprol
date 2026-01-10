@@ -14,10 +14,13 @@ public class JProlTreeBuilder implements AutoCloseable {
   private final JProlContext context;
   private final PrologParser parser;
 
-  public JProlTreeBuilder(final JProlContext context, final Reader reader,
-                          final boolean closeReader) {
+  public JProlTreeBuilder(
+      final JProlContext context,
+      final Reader reader,
+      final boolean closeReader
+  ) {
     this.context = context;
-    this.parser = new GenericPrologParser(reader, this.context.getParserContext()) {
+    this.parser = new GenericPrologParser(reader, this.context.makeParserContext()) {
       @Override
       protected boolean isCloseReader() {
         return closeReader;

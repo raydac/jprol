@@ -198,7 +198,7 @@ public class JProlCompiledScript extends CompiledScript
         if (targetClass.isAssignableFrom(JProlContext.class)) {
           result = (T) prolContext;
         } else if (targetClass.isAssignableFrom(ParserContext.class)) {
-          result = (T) prolContext.getParserContext();
+          result = (T) prolContext.makeParserContext();
         } else if (targetClass.isAssignableFrom(KnowledgeBase.class)) {
           result = (T) prolContext.getKnowledgeBase();
         } else {
@@ -231,8 +231,7 @@ public class JProlCompiledScript extends CompiledScript
 
   @Override
   public void gc() {
-    this.assertNotDisposed();
-    if (!this.engine.isDisposed()) {
+    if (!this.disposed.get()) {
       this.engine.gc();
     }
   }

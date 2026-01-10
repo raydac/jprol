@@ -21,6 +21,7 @@ import static com.igormaznitsa.jprol.data.TermType.STRUCT;
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.logic.PredicateInvoker.NULL_INVOKER;
+import static java.lang.Boolean.parseBoolean;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
@@ -139,27 +140,6 @@ public class JProlContext implements AutoCloseable {
 
   private static final JProlBootstrapLibrary BOOTSTRAP_LIBRARY = new JProlBootstrapLibrary();
 
-  private final ParserContext parserContext = new ParserContext() {
-    @Override
-    public boolean hasOpStartsWith(final PrologParser prologParser, final String s) {
-      return JProlContext.this.knowledgeBase.hasOperatorStartsWith(JProlContext.this, s);
-    }
-
-    @Override
-    public OpContainer findOpForName(final PrologParser prologParser, final String s) {
-      final TermOperatorContainer container =
-          JProlContext.this.knowledgeBase.findOperatorForName(JProlContext.this, s);
-      return container == null ? null : container.asOpContainer();
-    }
-
-    @Override
-    public int getFlags() {
-      return ParserContext.FLAG_ZERO_STRUCT
-          | ParserContext.FLAG_ZERO_QUOTATION_CHARCODE
-          | ParserContext.FLAG_ZERO_QUOTATION_ALLOWS_WHITESPACE_CHAR
-          | ParserContext.FLAG_BLOCK_COMMENTS;
-    }
-  };
   private final List<IoResourceProvider> ioProviders = new CopyOnWriteArrayList<>();
   private final File currentFolder;
   private final JProlContext parentContext;
@@ -577,10 +557,10 @@ public class JProlContext implements AutoCloseable {
 
   private void onSystemFlagsUpdated() {
     this.shareKnowledgeBaseWithAsyncTasks =
-        Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.SHARE_KNOWLEDGE_BASE).getText());
+        parseBoolean(this.systemFlags.get(JProlSystemFlag.SHARE_KNOWLEDGE_BASE).getText());
     this.verify =
-        Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.VERIFY).getText());
-    this.trace = Boolean.parseBoolean(this.systemFlags.get(JProlSystemFlag.TRACE).getText());
+        parseBoolean(this.systemFlags.get(JProlSystemFlag.VERIFY).getText());
+    this.trace = parseBoolean(this.systemFlags.get(JProlSystemFlag.TRACE).getText());
     this.undefinedPredicateBehaviour = UndefinedPredicateBehavior
         .find(this.systemFlags.get(JProlSystemFlag.UNKNOWN).getText())
         .orElseThrow(() -> new ProlDomainErrorException(
@@ -1631,8 +1611,35 @@ public class JProlContext implements AutoCloseable {
     );
   }
 
-  public ParserContext getParserContext() {
-    return this.parserContext;
+  public ParserContext makeParserContext() {
+    return new ParserContext() {
+      @Override
+      public boolean hasOpStartsWith(final PrologParser prologParser, final String s) {
+        return JProlContext.this.knowledgeBase.hasOperatorStartsWith(JProlContext.this, s);
+      }
+
+      @Override
+      public OpContainer findOpForName(final PrologParser prologParser, final String s) {
+        final TermOperatorContainer container =
+            JProlContext.this.knowledgeBase.findOperatorForName(JProlContext.this, s);
+        return container == null ? null : container.asOpContainer();
+      }
+
+      @Override
+      public int getFlags() {
+        int flags = 0;
+        if (parseBoolean(
+            JProlContext.this.getSystemFlag(JProlSystemFlag.ALLOW_VARIABLE_NAME_AS_FUNCTOR)
+                .getText().trim())) {
+          flags = ParserContext.FLAG_VAR_AS_FUNCTOR;
+        }
+        return flags
+            | ParserContext.FLAG_ZERO_STRUCT
+            | ParserContext.FLAG_ZERO_QUOTATION_CHARCODE
+            | ParserContext.FLAG_ZERO_QUOTATION_ALLOWS_WHITESPACE_CHAR
+            | ParserContext.FLAG_BLOCK_COMMENTS;
+      }
+    };
   }
 
   @Override

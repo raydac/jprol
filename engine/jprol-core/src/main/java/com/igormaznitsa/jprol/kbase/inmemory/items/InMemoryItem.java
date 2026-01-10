@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 public abstract class InMemoryItem {
   protected final TermStruct clause;
   protected final Term head;
+  protected final boolean headGrounded;
   protected final boolean bodyPresented;
 
   InMemoryItem(final TermStruct clause) {
@@ -24,6 +25,7 @@ public abstract class InMemoryItem {
       this.bodyPresented = false;
       this.head = clause;
     }
+    this.headGrounded = this.head.isGround();
   }
 
   public static InMemoryItem fromClause(final TermStruct clause) {
@@ -67,11 +69,11 @@ public abstract class InMemoryItem {
   }
 
   public boolean isFact() {
-    return !this.bodyPresented && this.head.isGround();
+    return !this.bodyPresented && this.headGrounded;
   }
 
   public boolean isRule() {
-    return this.bodyPresented || !this.head.isGround();
+    return this.bodyPresented || !this.headGrounded;
   }
 
 }

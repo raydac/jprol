@@ -576,7 +576,7 @@ public class JProlScriptEngine
         if (prolContext != null && targetClass.isAssignableFrom(JProlContext.class)) {
           result = (T) prolContext;
         } else if (prolContext != null && targetClass.isAssignableFrom(ParserContext.class)) {
-          result = (T) prolContext.getParserContext();
+          result = (T) prolContext.makeParserContext();
         } else if (prolContext != null && targetClass.isAssignableFrom(KnowledgeBase.class)) {
           result = (T) prolContext.getKnowledgeBase();
         } else {
@@ -652,10 +652,11 @@ public class JProlScriptEngine
 
   @Override
   public void gc() {
-    this.assertNotClosed();
-    final JProlScriptEngineContext context = this.engineContext.get();
-    if (context != null) {
-      context.gc();
+    if (!this.disposed.get()) {
+      final JProlScriptEngineContext context = this.engineContext.get();
+      if (context != null) {
+        context.gc();
+      }
     }
   }
 

@@ -244,7 +244,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
     if (list == null) {
       unknownPredicateConsumer.accept(uid, template);
     }
-    return new InMemoryClauseIterator(type, list == null ? Collections.emptyList() : list,
+    return new InMemoryClauseIterator(type, list == null ? List.of() : list,
         template);
   }
 

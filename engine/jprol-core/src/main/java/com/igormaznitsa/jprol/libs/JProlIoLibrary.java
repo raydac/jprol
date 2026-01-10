@@ -353,7 +353,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
 
     if (current.isPresent()) {
       final PrologParser parser =
-          new GenericPrologParser(current.get(), goal.getContext().getParserContext());
+          new GenericPrologParser(current.get(), goal.getContext().makeParserContext());
       PrologTerm nextTerm;
       try {
         nextTerm = parser.next();
