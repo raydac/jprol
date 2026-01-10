@@ -100,7 +100,6 @@ The bootstrap library of the engine has two predicates `set_prolog_flag/2` and `
 
 - Flags:
     - __address_bit__ (read only) address size of the hosting machine. Typically 32 or 64.
-    - __allow_variable_name_as_functor__ (read only)
     - __os.name__ (read only) the host OS name
     - __os.arch__ (read only) the host OS architecture
     - __bounded__ (read only) if true, integer representation is bound by min_integer and max_integer
@@ -135,6 +134,40 @@ For demo I have written a small GUI application. It is a version of Conway's Lif
 
 ![Conway's life with JProl](/art/jprol-example-life.png)   
 
+## Support of Java Scripting API (JSR-223)
+
+Since 3.0.0 added support of Java Scripting API as seaparated module `jprol-jsr223`. 
+```xml
+<dependency>
+    <groupId>com.igormaznitsa</groupId>
+    <artifactId>jprol-jsr223</artifactId>
+    <version>3.0.0</version>
+</dependency>
+```
+
+Simple use case to show how to use.
+
+
+``` java
+ScriptEngine engine = new ScriptEngineManager().getEngineByName("jprol");
+engine.eval("mul(A,B,Y) :- Y is A * B.");
+Bindings bindings = new SimpleBindings();
+bindings.put("X", a);
+bindings.put("Y", b);
+boolean proven = (boolean)this.engine.eval("?-mul(X,Y,Z).", bindings);
+if (proven) return (Long)bindings.get("Z");
+```
+
+Call of a function in Scripting API can look as shown below
+```java
+ScriptEngine engine = new ScriptEngineManager().getEngineByMimeType("application/jprol");
+engine.consult("divide(A,B,C) :- C is A div B.");
+
+TermVar result = Terms.newVar("Result");
+if ((boolean) engine.invokeFunction("divide", a, b, result)) {
+    return (long) JProlScriptEngineUtils.term2java(result);
+}
+```
 
 # The GUI editor
 
