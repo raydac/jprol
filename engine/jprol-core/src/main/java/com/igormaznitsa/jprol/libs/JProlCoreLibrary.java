@@ -30,6 +30,7 @@ import static com.igormaznitsa.jprol.data.Terms.newList;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.utils.ProlAssertions.assertCharacterCode;
+import static com.igormaznitsa.jprol.utils.ProlAssertions.assertInteger;
 import static com.igormaznitsa.jprol.utils.ProlUtils.createOrAppendToList;
 import static com.igormaznitsa.jprol.utils.ProlUtils.makeContextAwareGlobalValueName;
 import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.FX;
@@ -368,6 +369,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
 
+    if (goal.isVerify()) {
+      assertInteger(left);
+      assertInteger(right);
+    }
+
     return newLong(left.toNumber().longValue() ^ right.toNumber().longValue(), UNKNOWN);
   }
 
@@ -375,6 +381,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       "+evaluable"}, reference = "Bitwise 'not'")
   public static Term predicateBITWISENOT1(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm arg = calcEvaluable(goal, predicate.getArgumentAt(0));
+
+    if (goal.isVerify()) {
+      assertInteger(arg);
+    }
+
     return newLong(~arg.toNumber().longValue(), UNKNOWN);
   }
 
@@ -383,6 +394,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static Term predicateBITWISEOR2(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0));
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1));
+
+    if (goal.isVerify()) {
+      ProlAssertions.assertInteger(left);
+      ProlAssertions.assertInteger(right);
+    }
 
     return newLong(left.toNumber().longValue() | right.toNumber().longValue(), UNKNOWN);
   }
@@ -393,6 +409,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
 
+    if (goal.isVerify()) {
+      assertInteger(left);
+      assertInteger(right);
+    }
+
     return newLong(left.toNumber().longValue() & right.toNumber().longValue(), UNKNOWN);
   }
 
@@ -401,6 +422,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static Term predicateMOD2(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
+
+    if (goal.isVerify()) {
+      assertInteger(left);
+      assertInteger(right);
+    }
 
     final long rightNum = right.toNumber().longValue();
     if (rightNum == 0L) {
@@ -414,6 +440,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static Term predicateREM2(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
+
+    if (goal.isVerify()) {
+      assertInteger(left);
+      assertInteger(right);
+    }
 
     final long leftNum = left.toNumber().longValue();
     final long rightNum = right.toNumber().longValue();
@@ -711,6 +742,11 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static Term predicateIDIV2(final JProlChoicePoint goal, final TermStruct predicate) {
     final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
     final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
+
+    if (goal.isVerify()) {
+      assertInteger(left);
+      assertInteger(right);
+    }
 
     try {
       return left.div(right);
@@ -1172,6 +1208,17 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     Term left = predicate.getArgumentAt(0).tryGround();
     final Term right = predicate.getArgumentAt(1).tryGround();
 
+    if (goal.isVerify()) {
+      if (left.getTermType() == VAR) {
+        ProlAssertions.assertCharCodeList(right);
+      } else {
+        ProlAssertions.assertNumber(left);
+        if (right.getTermType() != VAR) {
+          ProlAssertions.assertCharCodeList(right);
+        }
+      }
+    }
+
     if (left.getTermType() == ATOM && right.getTermType() == VAR) {
       return ProlUtils.toCharCodeList(left).unifyWith(right);
     }
@@ -1367,7 +1414,6 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return false;
   }
 
-
   @JProlPredicate(
       determined = true,
       signature = "number_chars/2",
@@ -1378,6 +1424,17 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
     Term left = predicate.getArgumentAt(0).tryGround();
     final Term right = predicate.getArgumentAt(1).tryGround();
+
+    if (goal.isVerify()) {
+      if (left.getTermType() == VAR) {
+        ProlAssertions.assertCharList(right);
+      } else {
+        ProlAssertions.assertNumber(left);
+        if (right.getTermType() != VAR) {
+          ProlAssertions.assertCharList(right);
+        }
+      }
+    }
 
     final boolean result;
     if (right.getTermType() == LIST) {
@@ -1408,6 +1465,14 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       builder.append('.');
 
       final String text = builder.toString();
+      if (goal.isVerify()) {
+        for (int i = 0; i < text.length(); i++) {
+          final char chr = text.charAt(i);
+          if (Character.isISOControl(chr) || Character.isWhitespace(chr)) {
+            throw new ProlCustomErrorException(Terms.newAtom("syntax_error", UNKNOWN), right);
+          }
+        }
+      }
 
       final Term term;
       try (final JProlTreeBuilder treeBuilder = new JProlTreeBuilder(goal.getContext(),
