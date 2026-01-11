@@ -19,7 +19,6 @@ package com.igormaznitsa.jprol.logic;
 import static com.igormaznitsa.jprol.data.SourcePosition.UNKNOWN;
 import static com.igormaznitsa.jprol.data.TermType.STRUCT;
 import static com.igormaznitsa.jprol.data.Terms.FALSE;
-import static com.igormaznitsa.jprol.data.Terms.TRUE;
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.logic.PredicateInvoker.NULL_INVOKER;
@@ -121,13 +120,13 @@ public class JProlContext implements AutoCloseable {
 
   protected static final String QUERY = "?-";
   private static final AtomicLong TASK_COUNTER = new AtomicLong();
+  private static final JProlBootstrapLibrary BOOTSTRAP_LIBRARY = new JProlBootstrapLibrary();
   private final String contextId;
   private final Map<String, Map<JProlTriggerType, List<JProlContextTrigger>>> triggers =
       new LazySynchronizedMap<>();
   private final Map<String, JProlNamedLock> namedLocks;
   private final Map<Long, CompletableFuture<Term>> startedAsyncTasks =
       new LazySynchronizedMap<>();
-
   private final List<AbstractJProlLibrary> libraries = new CopyOnWriteArrayList<>();
   private final AtomicBoolean disposed = new AtomicBoolean(false);
   private final KnowledgeBase knowledgeBase;
@@ -139,9 +138,6 @@ public class JProlContext implements AutoCloseable {
   private final Condition asyncCounterCondition = asyncLocker.newCondition();
   private final Map<Term, Object> payloads;
   private final KeyValueTermStore globalVariablesStore;
-
-  private static final JProlBootstrapLibrary BOOTSTRAP_LIBRARY = new JProlBootstrapLibrary();
-
   private final List<IoResourceProvider> ioProviders = new CopyOnWriteArrayList<>();
   private final File currentFolder;
   private final JProlContext parentContext;
@@ -1672,13 +1668,7 @@ public class JProlContext implements AutoCloseable {
 
       @Override
       public int getFlags() {
-        int flags = 0;
-        if (JProlContext.this.getSystemFlag(JProlSystemFlag.ALLOW_VARIABLE_NAME_AS_FUNCTOR) ==
-            TRUE) {
-          flags = ParserContext.FLAG_VAR_AS_FUNCTOR;
-        }
-        return flags
-            | ParserContext.FLAG_ZERO_STRUCT
+        return ParserContext.FLAG_ZERO_STRUCT
             | ParserContext.FLAG_ZERO_QUOTATION_CHARCODE
             | ParserContext.FLAG_ZERO_QUOTATION_ALLOWS_WHITESPACE_CHAR
             | ParserContext.FLAG_BLOCK_COMMENTS;

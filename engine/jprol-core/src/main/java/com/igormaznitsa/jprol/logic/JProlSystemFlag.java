@@ -19,9 +19,6 @@ import java.util.Optional;
 public enum JProlSystemFlag {
   ADDRESS_BITS(true, Terms.newAtom("address_bits", SourcePosition.UNKNOWN),
       Terms.newLong(ProlUtils.getJvmBitness(), SourcePosition.UNKNOWN), "Bitness of the Java VM."),
-  ALLOW_VARIABLE_NAME_AS_FUNCTOR(true,
-      Terms.newAtom("allow_variable_name_as_functor", SourcePosition.UNKNOWN), FALSE,
-      "Allows to use variable names as functors."),
   ALLOW_LIBRARY_SIGNATURE_CONFLICT(false, Terms.newAtom("allow_library_signarute_conflict"), FALSE,
       "Allow definitions of predicates with same signatures which already presented in registered libraries"),
   OS(true, Terms.newAtom("os"), Terms.newAtom(System.getProperty("os.name", "unknown")),
