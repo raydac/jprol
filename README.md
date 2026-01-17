@@ -17,7 +17,7 @@ Initially the engine was a mono-block with embedded GUI part, but later it rewor
 
 # Changelog
 
-__3.0.0 (2025-01-08)__
+__3.0.0 (2026-01-08)__
 
 - Added way to provide global variables storager and predicates `nb_setvar/2`,`nb_getvar/2` and `nb_delete/1`.
 - Provided way to provide payload and associated objects for terms and choice points.
@@ -36,7 +36,7 @@ __3.0.0 (2025-01-08)__
 
 # The engine
 
-The engine is published in [the maven central](https://search.maven.org/artifact/com.igormaznitsa/jprol-core/2.2.0/jar) and can be used in maven projects as a dependency. It supports JDK 11+ and also I keep it compatible with Android API.   
+The engine is published in [the maven central](https://search.maven.org/artifact/com.igormaznitsa/jprol-core/3.0.0/jar) and can be used in maven projects as a dependency. It supports JDK 11+ and also I keep it compatible with Android API.   
 
 ```xml
 <dependency>
