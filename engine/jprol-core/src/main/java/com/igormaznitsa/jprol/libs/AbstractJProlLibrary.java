@@ -282,11 +282,9 @@ public abstract class AbstractJProlLibrary {
         .map(key -> {
           final int index = key.lastIndexOf('/');
           return newStruct(SIGNATURE_OPERATOR,
-              new Term[] {
-                  newAtom(key.substring(0, index), predicateIndicator.getSourcePosition()),
-                  newLong(parseInt(key.substring(index + 1)),
-                      predicateIndicator.getSourcePosition())
-              });
+              newAtom(key.substring(0, index), predicateIndicator.getSourcePosition()),
+              newLong(parseInt(key.substring(index + 1)),
+                  predicateIndicator.getSourcePosition()));
         })
         .filter(predicateIndicator::isUnifiableWith)
         .collect(Collectors.toList());

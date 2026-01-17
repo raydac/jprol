@@ -39,6 +39,9 @@ public final class AutoArgumentValidator {
     return result;
   }
 
+  private static final ModificatorArgument[] EMPTY_MODIFICATOR_ARGUMENT_ARRAY =
+      new ModificatorArgument[0];
+
   public static Predicate<TermStruct> makeFor(
       final int arity,
       final List<List<ModificatorArgument>> allArguments,
@@ -78,7 +81,7 @@ public final class AutoArgumentValidator {
       if (assertMode) {
         if (filtered.size() == 1) {
           final ModificatorArgument[] rowArray =
-              filtered.get(0).toArray(new ModificatorArgument[filtered.get(0).size()]);
+              filtered.get(0).toArray(EMPTY_MODIFICATOR_ARGUMENT_ARRAY);
           result = result.or(s -> {
             for (int i = 0; i < rowArray.length; i++) {
               final ProlException exception = rowArray[i].findException(s.getArgumentAt(i));

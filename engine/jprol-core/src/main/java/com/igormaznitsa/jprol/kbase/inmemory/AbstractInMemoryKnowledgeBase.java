@@ -66,20 +66,20 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
       final AbstractInMemoryKnowledgeBase base,
       final Supplier<Map<String, TermOperatorContainer>> operatorTableSupplier,
       final Supplier<Map<String, List<InMemoryItem>>> predicateTableSupplier,
-      final Supplier<List<InMemoryItem>> itermListSupplier) {
+      final Supplier<List<InMemoryItem>> itemListSupplier) {
     this.knowledgeBaseId = requireNonNull(baseId, "Knowledge base id must not be null");
 
     this.operatorTable = operatorTableSupplier.get();
     this.predicateTable = predicateTableSupplier.get();
-    this.itemListSupplier = itermListSupplier;
+    this.itemListSupplier = itemListSupplier;
     this.unmodifablePredicateTable = Collections.unmodifiableMap(this.predicateTable);
 
     if (base != null) {
       for (final Entry<String, TermOperatorContainer> item : base.operatorTable.entrySet()) {
-        operatorTable.put(item.getKey(), (TermOperatorContainer) item.getValue().makeClone());
+        this.operatorTable.put(item.getKey(), (TermOperatorContainer) item.getValue().makeClone());
       }
       base.predicateTable.forEach((key, value) -> {
-        final List<InMemoryItem> list = itermListSupplier.get();
+        final List<InMemoryItem> list = this.itemListSupplier.get();
         list.addAll(value);
         this.predicateTable.put(key, list);
       });
@@ -153,7 +153,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
     TermOperatorContainer result;
 
     if (systemOperator == null) {
-      result = operatorTable.get(name);
+      result = this.operatorTable.get(name);
     } else {
       result = systemOperator;
     }
@@ -255,10 +255,8 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
         .map(key -> {
           final int index = key.lastIndexOf('/');
           return newStruct(ProlUtils.SIGNATURE_OPERATOR,
-              new Term[] {
-                  Terms.newAtom(key.substring(0, index)),
-                  Terms.newLong(parseInt(key.substring(index + 1)))
-              });
+              Terms.newAtom(key.substring(0, index)),
+              Terms.newLong(parseInt(key.substring(index + 1))));
         })
         .filter(indicator::isUnifiableWith)
         .collect(Collectors.toList()).iterator(), () -> {
