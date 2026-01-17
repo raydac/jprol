@@ -374,7 +374,10 @@ public final class JProlChoicePoint implements Comparator<Term> {
           if (!goalTermForEqu
               .unifyWith(nextClause.isClause() ? nextClause.getArgumentAt(0) : nextClause)) {
             throw new ProlCriticalError(
-                "Unexpectedly can't unify term with provided by knowledge base!");
+                String.format(
+                    "Unexpectedly can't unify term with provided by knowledge base: goalTermForEqu=%s <-> nextClause=%s",
+                    goalTermForEqu.toSrcString(),
+                    nextClause.toSrcString()));
           }
 
           if (nextClause.isClause()) {
