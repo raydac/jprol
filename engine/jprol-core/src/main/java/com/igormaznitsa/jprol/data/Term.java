@@ -151,12 +151,14 @@ public class Term {
         target = ((TermVar) target).getValue();
         return target == null || this.isUnifiableWith(target);
       }
+      case OPERATOR:
       case ATOM: {
-        return target.getClass() == Term.class && getText().equals(target.getText());
+        return this.getText().equals(target.getText());
       }
       case STRUCT: {
         final TermStruct thatStruct = (TermStruct) target;
-        return thatStruct.getArity() == 0 && getText().equals(thatStruct.getFunctor().getText());
+        return thatStruct.getArity() == 0 &&
+            this.getText().equals(thatStruct.getFunctor().getText());
       }
       default:
         return false;
@@ -278,8 +280,9 @@ public class Term {
         }
       }
       break;
+      case OPERATOR:
       case ATOM: {
-        result = other.getClass() == Term.class && getText().equals(other.getText());
+        result = this.getText().equals(other.getText());
       }
       break;
       case STRUCT: {

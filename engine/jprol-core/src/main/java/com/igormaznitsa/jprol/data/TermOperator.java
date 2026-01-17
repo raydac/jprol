@@ -137,7 +137,7 @@ public final class TermOperator extends Term {
     switch (atom.getTermType()) {
       case OPERATOR:
       case ATOM: {
-        result = getText().equals(atom.getText());
+        result = this.getText().equals(atom.getText());
       }
       break;
       case VAR: {

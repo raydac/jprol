@@ -2,6 +2,7 @@ package com.igormaznitsa.jprol.data;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 import org.junit.jupiter.api.Test;
@@ -22,10 +23,14 @@ class TermTest {
 
   @Test
   void testEqualsContract_TermOperator() {
-    final Term one1 = Terms.newAtom("one");
-    final TermOperator op1 = new TermOperator(1000, OpAssoc.FX, "one", SourcePosition.UNKNOWN);
-    assertEquals(one1.hashCode(), op1.hashCode());
-    assertEquals(op1, one1);
-    assertEquals(one1, op1);
+    final Term term = Terms.newAtom("one");
+    final TermOperator operator = new TermOperator(1000, OpAssoc.FX, "one", SourcePosition.UNKNOWN);
+    assertEquals(term.hashCode(), operator.hashCode());
+    assertEquals(operator, term);
+    assertEquals(term, operator);
+    assertTrue(operator.isUnifiableWith(term));
+    assertTrue(operator.unifyWith(term));
+    assertTrue(term.unifyWith(operator));
+    assertTrue(term.isUnifiableWith(operator));
   }
 }
