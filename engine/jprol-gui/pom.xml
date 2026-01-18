@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.igormaznitsa</groupId>
         <artifactId>jprol</artifactId>
-        <version>3.0.1</version>
+        <version>3.0.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>jprol-gui</artifactId>
@@ -283,11 +283,11 @@
                                 <mutexName>jprolgui</mutexName>
                             </singleInstance>
                             <versionInfo>
-                                <fileVersion>3.0.1.0</fileVersion>
+                                <fileVersion>3.0.2.0</fileVersion>
                                 <txtFileVersion>${project.version}</txtFileVersion>
                                 <fileDescription>JProl GUI editor</fileDescription>
                                 <copyright>2010-2026 Igor Maznitsa</copyright>
-                                <productVersion>3.0.1.0</productVersion>
+                                <productVersion>3.0.2.0</productVersion>
                                 <txtProductVersion>${project.version}</txtProductVersion>
                                 <productName>${project.name}</productName>
                                 <companyName>igormaznitsa.com</companyName>
