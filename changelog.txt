@@ -1,4 +1,4 @@
-3.0.1 (2026-SNAPSHOT)
+3.0.1 (2026-01-18)
     - Minor improvements.
     - Fixed unification between atoms and operators.
     - Added check for conflict between library predicates and dynamic predicates, can be turned off by `allow_library_signarute_conflict` system flag.

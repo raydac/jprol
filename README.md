@@ -1,6 +1,6 @@
 ![JPROL logo](art/github_logo.png)   
 [![License Apache 12](https://img.shields.io/badge/license-Apache%20License%202.0-green.svg)](http://www.apache.org/licenses/LICENSE-2.0)
-[![Maven central](https://maven-badges.herokuapp.com/maven-central/com.igormaznitsa/jprol-core/badge.svg)](http://search.maven.org/#artifactdetails|com.igormaznitsa|jprol-core|3.0.0|jar)
+[![Maven central](https://img.shields.io/badge/Maven%20central-3.0.1-green.svg)](http://search.maven.org/#artifactdetails|com.igormaznitsa|jprol-core|3.0.1|jar)
 [![Java 11+](https://img.shields.io/badge/java-11%2b-green.svg)](https://bell-sw.com/pages/downloads/#jdk-21-lts)
 
 [![Arthur's acres sanctuary donation](art/arthur_sanctuary_banner.png)](https://www.arthursacresanimalsanctuary.org/donate)
@@ -16,6 +16,12 @@ Initially the engine was a mono-block with embedded GUI part, but later it rewor
 
 
 # Changelog
+
+__3.0.1 (2026-01-18)__
+
+- Minor improvements.
+- Fixed unification between atoms and operators.
+- Added check for conflict between library predicates and dynamic predicates, can be turned off by `allow_library_signarute_conflict` system flag.
 
 __3.0.0 (2026-01-08)__
 
@@ -36,13 +42,13 @@ __3.0.0 (2026-01-08)__
 
 # The engine
 
-The engine is published in [the maven central](https://search.maven.org/artifact/com.igormaznitsa/jprol-core/3.0.0/jar) and can be used in maven projects as a dependency. It supports JDK 11+ and also I keep it compatible with Android API.   
+The engine is published in [the maven central](https://search.maven.org/artifact/com.igormaznitsa/jprol-core/3.0.1/jar) and can be used in maven projects as a dependency. It supports JDK 11+ and also I keep it compatible with Android API.   
 
 ```xml
 <dependency>
     <groupId>com.igormaznitsa</groupId>
     <artifactId>jprol-core</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
 </dependency>
 ```   
 
@@ -141,7 +147,7 @@ Since 3.0.0 added support of Java Scripting API as seaparated module `jprol-jsr2
 <dependency>
     <groupId>com.igormaznitsa</groupId>
     <artifactId>jprol-jsr223</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
 </dependency>
 ```
 
