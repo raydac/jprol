@@ -134,37 +134,6 @@ public class Term {
     return ATOM;
   }
 
-  /**
-   * Works like unify but don't change internal state of terms and can be used for check unify possibility.
-   *
-   * @param target target term to be checked, must not be null
-   * @return true if it can be unified with the target term, false otherwise
-   * @see #unifyWith(Term)
-   */
-  public boolean isUnifiableWith(Term target) {
-    if (this == target) {
-      return true;
-    }
-
-    switch (target.getTermType()) {
-      case VAR: {
-        target = ((TermVar) target).getValue();
-        return target == null || this.isUnifiableWith(target);
-      }
-      case OPERATOR:
-      case ATOM: {
-        return this.getText().equals(target.getText());
-      }
-      case STRUCT: {
-        final TermStruct thatStruct = (TermStruct) target;
-        return thatStruct.getArity() == 0 &&
-            this.getText().equals(thatStruct.getFunctor().getText());
-      }
-      default:
-        return false;
-    }
-  }
-
   public Map<String, TermVar> findAllNamedVariables() {
     return Collections.emptyMap();
   }
@@ -253,6 +222,43 @@ public class Term {
 
   public String forWrite() {
     return this.getText();
+  }
+
+  /**
+   * Works like unify but don't change internal state of terms and can be used for check unify possibility.
+   *
+   * @param target target term to be checked, must not be null
+   * @return true if it can be unified with the target term, false otherwise
+   * @see #unifyWith(Term)
+   */
+  public boolean isUnifiableWith(Term target) {
+    if (this == target) {
+      return true;
+    }
+
+    final boolean result;
+    switch (target.getTermType()) {
+      case VAR: {
+        target = ((TermVar) target).getValue();
+        result = target == null || this.isUnifiableWith(target);
+      }
+      break;
+      case OPERATOR:
+      case ATOM: {
+        result = this.getText().equals(target.getText());
+      }
+      break;
+      case STRUCT: {
+        final TermStruct thatStruct = (TermStruct) target;
+        result = thatStruct.getArity() == 0 &&
+            this.getText().equals(thatStruct.getFunctor().getText());
+      }
+      break;
+      default:
+        result = false;
+        break;
+    }
+    return result;
   }
 
   /**

@@ -171,7 +171,12 @@ public final class TermOperator extends Term {
     final boolean result;
 
     switch (target.getTermType()) {
-      case OPERATOR:
+      case OPERATOR: {
+        final TermOperator thatOperator = (TermOperator) target;
+        result = this.getType() == thatOperator.getType() &&
+            this.getText().equals(thatOperator.getText());
+      }
+      break;
       case ATOM: {
         result = getText().equals(target.getText());
       }
