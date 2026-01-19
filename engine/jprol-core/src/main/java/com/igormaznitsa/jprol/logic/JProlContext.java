@@ -343,24 +343,22 @@ public class JProlContext implements AutoCloseable {
   }
 
   /**
-   * Find payload associated with a term in the context.
+   * Find payload associated with a term in the context. The term will be grounded before search.
    *
    * @param term a term for which to find payload, can be null
    * @param <T>  type of expected payload
-   * @return optional found value
+   * @return optional found value, if term is null then empty
    * @since 3.0.0
    */
   @SuppressWarnings("unchecked")
   public <T> Optional<T> findPayload(final Term term) {
     this.assertNotDisposed();
-    if (term == null) {
-      return Optional.empty();
-    }
-    return Optional.ofNullable((T) this.payloads.get(term));
+    return term == null ? Optional.empty() :
+        Optional.ofNullable((T) this.payloads.get(term.tryGround()));
   }
 
   /**
-   * Set payload associated with a term or remove if null value.
+   * Set payload associated with a term or remove if null value. The term will be grounded before save.
    *
    * @param term  target term, must not be null
    * @param value associated value, if it is null then remove value
@@ -368,10 +366,11 @@ public class JProlContext implements AutoCloseable {
    */
   public void setPayload(final Term term, final Object value) {
     this.assertNotDisposed();
+    final Term grounded = term.tryGround();
     if (value == null) {
-      this.payloads.remove(term);
+      this.payloads.remove(grounded);
     } else {
-      this.payloads.put(term, value);
+      this.payloads.put(grounded, value);
     }
   }
 
