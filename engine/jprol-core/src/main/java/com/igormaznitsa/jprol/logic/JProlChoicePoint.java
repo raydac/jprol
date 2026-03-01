@@ -57,7 +57,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
   private final boolean verify;
   private final boolean trace;
   private final Object associatedObject;
-  private boolean hasLogicalAlternatives;
+  private boolean hasAlternatives;
   private Object internalAuxiliaryObject;
   private JProlChoicePoint prevChoicePoint;
   private JProlChoicePoint parentChoicePoint;
@@ -71,45 +71,45 @@ public final class JProlChoicePoint implements Comparator<Term> {
   private boolean firstResolveCall = true;
 
   private JProlChoicePoint(
-      final JProlChoicePoint rootChoicePoint,
-      final Term goalToSolve,
       final JProlContext context,
+      final Term goal,
+      final Map<String, Term> variableMap,
+      final Object associatedObject,
+      final JProlChoicePoint rootChoicePoint,
       final boolean trace,
       final boolean verify,
-      final Map<String, Term> presetVarValues,
-      final Object internalAuxiliaryObject,
-      final Object associatedObject
+      final Object internalAuxiliaryObject
   ) {
     this.internalAuxiliaryObject = internalAuxiliaryObject;
     this.associatedObject = associatedObject;
 
-    this.hasLogicalAlternatives = true;
+    this.hasAlternatives = true;
     this.verify = verify;
     this.trace = trace;
 
     this.rootChoicePoint = rootChoicePoint == null ? this : rootChoicePoint;
-    this.goalTerm = goalToSolve.getTermType() == ATOM ? newStruct(goalToSolve) : goalToSolve;
+    this.goalTerm = goal.getTermType() == ATOM ? newStruct(goal) : goal;
     this.context = context;
 
-    final Term goal = goalToSolve.tryGround();
+    final Term grounded = goal.tryGround();
 
     if (this.verify) {
-      ProlAssertions.assertCallable(goal);
+      ProlAssertions.assertCallable(grounded);
     }
 
     if (rootChoicePoint == null) {
-      if (goal.getTermType() == ATOM) {
+      if (grounded.getTermType() == ATOM) {
         this.varSnapshot = null;
         this.variables = null;
       } else {
-        this.variables = goal.findAllNamedVariables();
-        this.varSnapshot = new VariableStateSnapshot(goal, presetVarValues);
+        this.variables = grounded.findAllNamedVariables();
+        this.varSnapshot = new VariableStateSnapshot(grounded, variableMap);
       }
       this.parentChoicePoint = this;
       this.prevChoicePoint = null;
     } else {
       this.variables = null;
-      if (goal.getTermType() == ATOM) {
+      if (grounded.getTermType() == ATOM) {
         this.varSnapshot = null;
       } else {
         this.varSnapshot = new VariableStateSnapshot(rootChoicePoint.varSnapshot);
@@ -119,17 +119,21 @@ public final class JProlChoicePoint implements Comparator<Term> {
     }
   }
 
-  JProlChoicePoint(final Term goal, final JProlContext context,
-                   final Map<String, Term> predefinedVarValues, final Object associatedObject) {
+  JProlChoicePoint(
+      final JProlContext context,
+      final Term goal,
+      final Map<String, Term> variableMap,
+      final Object associatedObject
+  ) {
     this(
-        null,
-        goal,
         context,
+        goal,
+        variableMap,
+        associatedObject,
+        null,
         context.isTrace(),
         context.isVerify(),
-        predefinedVarValues,
-        null,
-        associatedObject
+        null
     );
   }
 
@@ -138,14 +142,14 @@ public final class JProlChoicePoint implements Comparator<Term> {
    */
   private JProlChoicePoint createChildChoicePoint(final Term goal) {
     return new JProlChoicePoint(
+        this.context, goal,
+        null,
+        this.associatedObject,
         this.rootChoicePoint,
-        goal,
-        this.context,
         this.trace,
         this.verify,
-        null,
-        null,
-        this.associatedObject);
+        null
+    );
   }
 
   private void fireExitIfTrace(final JProlChoicePoint goal) {
@@ -165,7 +169,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
    * Shared cut cleanup: clear alternatives and prev chain.
    */
   private void clearAlternativesAndPrev() {
-    this.hasLogicalAlternatives = false;
+    this.hasAlternatives = false;
     this.prevChoicePoint = null;
   }
 
@@ -198,7 +202,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
   public JProlChoicePoint replaceLastGoalAtChain(final Term goal) {
     this.fireExitIfTrace(this.rootChoicePoint.parentChoicePoint);
 
-    final JProlChoicePoint newGoal = createChildChoicePoint(goal);
+    final JProlChoicePoint newGoal = this.createChildChoicePoint(goal);
     final JProlChoicePoint prevGoal = newGoal.prevChoicePoint;
     if (prevGoal != null) {
       newGoal.prevChoicePoint = prevGoal.prevChoicePoint;
@@ -263,9 +267,10 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   private Term proveNext(final BiConsumer<String, Term> unknownPredicateConsumer) {
+    final JProlChoicePoint root = this.rootChoicePoint;
+
     Term result = null;
     boolean loop = true;
-    final JProlChoicePoint root = this.rootChoicePoint;
 
     while (loop) {
       if (this.context.isDisposed()) {
@@ -277,7 +282,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
       if (goalToProcess == null) {
         break;
       }
-      if (goalToProcess.hasLogicalAlternatives) {
+
+      if (goalToProcess.hasAlternatives) {
         try {
           switch (goalToProcess.resolve(unknownPredicateConsumer)) {
             case FAIL: {
@@ -292,7 +298,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
                 result = root.goalTerm;
                 loop = false;
               } else {
-                final JProlChoicePoint nextGoal = createChildChoicePoint(goalToProcess.nextAndTerm);
+                final JProlChoicePoint nextGoal =
+                    this.createChildChoicePoint(goalToProcess.nextAndTerm);
                 nextGoal.nextAndTerm = goalToProcess.nextAndTermForNextGoal;
               }
             }
@@ -379,10 +386,11 @@ public final class JProlChoicePoint implements Comparator<Term> {
       }
 
       switch (theTerm.getTermType()) {
-        case ATOM:
+        case ATOM: {
           result = resolveAtom(theTerm);
           doLoop = false;
-          break;
+        }
+        break;
         case STRUCT: {
           final TermStruct struct = (TermStruct) theTerm;
           final int arity = struct.getArity();
@@ -446,7 +454,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                   if (arity == 2 && functorTextLength == 1) {
                     if (getInternalObject() == null) {
                       final JProlChoicePoint leftSubbranch =
-                          createChildChoicePoint(struct.getArgumentAt(0));
+                          this.createChildChoicePoint(struct.getArgumentAt(0));
                       leftSubbranch.nextAndTerm = this.nextAndTerm;
                       this.setInternalObject(leftSubbranch);
                     } else {
@@ -463,8 +471,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
             if (nonConsumed) {
               final PredicateInvoker foundProcessor = findProcessorInLibraries(struct);
-              if (foundProcessor == PredicateInvoker.NULL_INVOKER ||
-                  foundProcessor.isEvaluable()) {
+              if (foundProcessor == PredicateInvoker.NULL_INVOKER
+                  || foundProcessor.isEvaluable()) {
                 this.clauseIterator = this.context.getKnowledgeBase().iterate(
                     IteratorType.ANY,
                     struct,
@@ -485,8 +493,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
                   result = JProlChoicePointResult.SUCCESS;
                 }
 
-                if (result == JProlChoicePointResult.SUCCESS &&
-                    foundProcessor.doesChangeGoalChain()) {
+                if (result == JProlChoicePointResult.SUCCESS
+                    && foundProcessor.doesChangeGoalChain()) {
                   result = JProlChoicePointResult.STACK_CHANGED;
                 }
 
@@ -511,15 +519,15 @@ public final class JProlChoicePoint implements Comparator<Term> {
    * Reset only internal flag that the choice point has logical alternatives.
    */
   public void resetLogicalAlternativesFlag() {
-    this.hasLogicalAlternatives = false;
+    this.hasAlternatives = false;
   }
 
   public void localCut() {
-    clearAlternativesAndPrev();
+    this.clearAlternativesAndPrev();
   }
 
   public void fullCut() {
-    clearAlternativesAndPrev();
+    this.clearAlternativesAndPrev();
     this.rootChoicePoint.cutActivated = true;
     this.rootChoicePoint.clauseIterator = null;
   }
@@ -532,12 +540,13 @@ public final class JProlChoicePoint implements Comparator<Term> {
     final String text = theTerm.getText();
 
     if (this.context.hasZeroArityPredicateForName(text)) {
-      resetLogicalAlternativesFlag();
+      this.resetLogicalAlternativesFlag();
       return JProlChoicePointResult.SUCCESS;
     }
 
     this.context.notifyAboutUndefinedPredicate(this, theTerm.getSignature(), theTerm);
-    resetLogicalAlternativesFlag();
+    this.resetLogicalAlternativesFlag();
+
     return JProlChoicePointResult.FAIL;
   }
 
@@ -549,7 +558,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
   private ResolveStep processNextClause(final Term theTerm) {
     if (!this.clauseIterator.hasNext()) {
       this.clauseIterator = null;
-      resetLogicalAlternativesFlag();
+      this.resetLogicalAlternativesFlag();
       return ResolveStep.FAIL;
     }
 
@@ -593,11 +602,11 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public boolean isCompleted() {
-    return this.rootChoicePoint.parentChoicePoint == null || !this.hasLogicalAlternatives;
+    return this.rootChoicePoint.parentChoicePoint == null || !this.hasAlternatives;
   }
 
   @Override
-  public int compare(Term term1, Term term2) {
+  public int compare(final Term term1, final Term term2) {
     if (term1 == term2) {
       return 0;
     }
@@ -659,8 +668,10 @@ public final class JProlChoicePoint implements Comparator<Term> {
         }
       }
       break;
-      default:
+      default: {
         result = 1;
+      }
+      break;
     }
     return result;
   }

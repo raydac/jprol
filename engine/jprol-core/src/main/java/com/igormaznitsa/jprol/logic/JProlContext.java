@@ -469,7 +469,7 @@ public class JProlContext implements AutoCloseable {
       final Term goal,
       final Object choicePointAssociatedObject,
       final Map<String, Term> predefinedVarValues) {
-    return new JProlChoicePoint(goal, this, predefinedVarValues, choicePointAssociatedObject);
+    return new JProlChoicePoint(this, goal, predefinedVarValues, choicePointAssociatedObject);
   }
 
   /**
