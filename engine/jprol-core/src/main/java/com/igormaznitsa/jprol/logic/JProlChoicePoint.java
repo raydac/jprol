@@ -133,6 +133,42 @@ public final class JProlChoicePoint implements Comparator<Term> {
     );
   }
 
+  /**
+   * Create a child choice point for the same root (no preset vars, no internal object).
+   */
+  private JProlChoicePoint createChildChoicePoint(final Term goal) {
+    return new JProlChoicePoint(
+        this.rootChoicePoint,
+        goal,
+        this.context,
+        this.trace,
+        this.verify,
+        null,
+        null,
+        this.associatedObject);
+  }
+
+  private void fireExitIfTrace(final JProlChoicePoint goal) {
+    if (this.trace) {
+      this.context.fireTraceEvent(EXIT, goal);
+    }
+  }
+
+  private void fireFailAndExitIfTrace(final JProlChoicePoint goal) {
+    if (this.trace) {
+      this.context.fireTraceEvent(TraceEvent.FAIL, goal);
+      this.context.fireTraceEvent(EXIT, goal);
+    }
+  }
+
+  /**
+   * Shared cut cleanup: clear alternatives and prev chain.
+   */
+  private void clearAlternativesAndPrev() {
+    this.hasLogicalAlternatives = false;
+    this.prevChoicePoint = null;
+  }
+
   public boolean isTrace() {
     return this.trace;
   }
@@ -160,22 +196,9 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public JProlChoicePoint replaceLastGoalAtChain(final Term goal) {
-    if (this.trace) {
-      this.context.fireTraceEvent(EXIT, this.rootChoicePoint.parentChoicePoint);
-    }
+    this.fireExitIfTrace(this.rootChoicePoint.parentChoicePoint);
 
-    final JProlChoicePoint newGoal =
-        new JProlChoicePoint(
-            this.rootChoicePoint,
-            goal,
-            this.context,
-            this.trace,
-            this.verify,
-            null,
-            null,
-            this.associatedObject
-        );
-
+    final JProlChoicePoint newGoal = createChildChoicePoint(goal);
     final JProlChoicePoint prevGoal = newGoal.prevChoicePoint;
     if (prevGoal != null) {
       newGoal.prevChoicePoint = prevGoal.prevChoicePoint;
@@ -242,6 +265,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
   private Term proveNext(final BiConsumer<String, Term> unknownPredicateConsumer) {
     Term result = null;
     boolean loop = true;
+    final JProlChoicePoint root = this.rootChoicePoint;
 
     while (loop) {
       if (this.context.isDisposed()) {
@@ -249,59 +273,43 @@ public final class JProlChoicePoint implements Comparator<Term> {
             this);
       }
 
-      JProlChoicePoint goalToProcess = this.rootChoicePoint.parentChoicePoint;
+      JProlChoicePoint goalToProcess = root.parentChoicePoint;
       if (goalToProcess == null) {
         break;
-      } else {
-        if (goalToProcess.hasLogicalAlternatives) {
-          try {
-            switch (goalToProcess.resolve(unknownPredicateConsumer)) {
-              case FAIL: {
-                if (this.trace) {
-                  this.context.fireTraceEvent(TraceEvent.FAIL, goalToProcess);
-                  this.context.fireTraceEvent(EXIT, goalToProcess);
-                }
-                this.rootChoicePoint.parentChoicePoint = goalToProcess.prevChoicePoint;
-              }
-              break;
-              case SUCCESS: {
-                // we have to renew data about last chain goal because it can be changed during the operation
-                goalToProcess = this.rootChoicePoint.parentChoicePoint;
-
-                if (goalToProcess.nextAndTerm == null) {
-                  result = this.rootChoicePoint.goalTerm;
-                  loop = false;
-                } else {
-                  final JProlChoicePoint nextGoal =
-                      new JProlChoicePoint(
-                          this.rootChoicePoint,
-                          goalToProcess.nextAndTerm,
-                          this.context,
-                          this.trace,
-                          this.verify,
-                          null,
-                          null,
-                          this.associatedObject);
-                  nextGoal.nextAndTerm = goalToProcess.nextAndTermForNextGoal;
-                }
-              }
-              break;
-              case STACK_CHANGED: {
-              }
-              break;
-              default:
-                throw new Error("Unexpected status");
+      }
+      if (goalToProcess.hasLogicalAlternatives) {
+        try {
+          switch (goalToProcess.resolve(unknownPredicateConsumer)) {
+            case FAIL: {
+              this.fireFailAndExitIfTrace(goalToProcess);
+              root.parentChoicePoint = goalToProcess.prevChoicePoint;
             }
-          } catch (StackOverflowError ex) {
-            throw new ProlChoicePointStackOverflowException(
-                "Caught stack overflow error during prove", this);
+            break;
+            case SUCCESS: {
+              goalToProcess = root.parentChoicePoint;
+
+              if (goalToProcess.nextAndTerm == null) {
+                result = root.goalTerm;
+                loop = false;
+              } else {
+                final JProlChoicePoint nextGoal = createChildChoicePoint(goalToProcess.nextAndTerm);
+                nextGoal.nextAndTerm = goalToProcess.nextAndTermForNextGoal;
+              }
+            }
+            break;
+            case STACK_CHANGED: {
+            }
+            break;
+            default:
+              throw new Error("Unexpected status");
           }
-        } else {
-          if (this.trace) {
-            this.context.fireTraceEvent(EXIT, goalToProcess);
-          }
-          this.rootChoicePoint.parentChoicePoint = goalToProcess.prevChoicePoint;
+        } catch (StackOverflowError ex) {
+          throw new ProlChoicePointStackOverflowException(
+              "Caught stack overflow error during prove", this);
         }
+      } else {
+        this.fireExitIfTrace(goalToProcess);
+        root.parentChoicePoint = goalToProcess.prevChoicePoint;
       }
     }
 
@@ -358,80 +366,39 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
       final Term theTerm = this.goalTerm.tryGroundOrDefault(this.goalTerm);
 
-
       if (this.clauseIterator != null) {
-        // next clause
-        if (this.clauseIterator.hasNext()) {
-          final TermStruct nextClause = this.clauseIterator.next();
-
-          final Term goalTermForEqu;
-          if (((TermStruct) theTerm).isClause()) {
-            goalTermForEqu = ((TermStruct) theTerm).getArgumentAt(0).makeClone();
-          } else {
-            goalTermForEqu = theTerm.makeClone();
-          }
-
-          if (!goalTermForEqu
-              .unifyWith(nextClause.isClause() ? nextClause.getArgumentAt(0) : nextClause)) {
-            throw new ProlCriticalError(
-                String.format(
-                    "Unexpectedly can't unify term with provided by knowledge base: arg1 = %s <-> arg2 = %s",
-                    goalTermForEqu.toSrcString(),
-                    nextClause.toSrcString()));
-          }
-
-          if (nextClause.isClause()) {
-            this.thisConnector = theTerm;
-            this.childConnectingTerm = nextClause.getArgumentAt(0);
-            this.childChoicePoint =
-                this.context.makeChoicePoint(nextClause.getArgumentAt(1), this.associatedObject);
-            continue;
-          } else {
-            if (!theTerm.unifyWith(nextClause)) {
-              throw new ProlCriticalError("Impossible situation #0009824");
-            }
-            result = JProlChoicePointResult.SUCCESS;
-            break;
-          }
-        } else {
-          this.clauseIterator = null;
-          resetLogicalAlternativesFlag();
+        final ResolveStep step = this.processNextClause(theTerm);
+        if (step == ResolveStep.SUCCESS) {
+          result = JProlChoicePointResult.SUCCESS;
           break;
         }
+        if (step == ResolveStep.FAIL) {
+          break;
+        }
+        continue;
       }
 
       switch (theTerm.getTermType()) {
-        case ATOM: {
-          final String text = theTerm.getText();
-          if (this.context.hasZeroArityPredicateForName(text)) {
-            result = JProlChoicePointResult.SUCCESS;
-          } else {
-            this.context.notifyAboutUndefinedPredicate(this, theTerm.getSignature(),
-                theTerm);
-          }
-          resetLogicalAlternativesFlag();
+        case ATOM:
+          result = resolveAtom(theTerm);
           doLoop = false;
-        }
-        break;
+          break;
         case STRUCT: {
           final TermStruct struct = (TermStruct) theTerm;
           final int arity = struct.getArity();
+          final Term functor = struct.getFunctor();
 
           if (struct.isClause()) {
             final TermStruct structClone = (TermStruct) struct.makeClone();
+            final Term head = structClone.getArgumentAt(0);
 
             this.thisConnector = struct.getArgumentAt(0);
-            this.childConnectingTerm = structClone.getArgumentAt(0);
+            this.childConnectingTerm = head;
 
-            if (arity == 1) {
-              this.childChoicePoint =
-                  this.context.makeChoicePoint(structClone.getArgumentAt(0), this.associatedObject);
-            } else {
-              this.childChoicePoint =
-                  this.context.makeChoicePoint(structClone.getArgumentAt(1), this.associatedObject);
-            }
+            this.childChoicePoint = arity == 1
+                ? this.context.makeChoicePoint(head, this.associatedObject)
+                : this.context.makeChoicePoint(structClone.getArgumentAt(1), this.associatedObject);
           } else {
-            final Term functor = struct.getFunctor();
             final String functorText = functor.getText();
             boolean nonConsumed = true;
 
@@ -479,16 +446,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                   if (arity == 2 && functorTextLength == 1) {
                     if (getInternalObject() == null) {
                       final JProlChoicePoint leftSubbranch =
-                          new JProlChoicePoint(
-                              this.rootChoicePoint,
-                              struct.getArgumentAt(0),
-                              this.context,
-                              this.trace,
-                              this.verify,
-                              null,
-                              null,
-                              this.associatedObject
-                          );
+                          createChildChoicePoint(struct.getArgumentAt(0));
                       leftSubbranch.nextAndTerm = this.nextAndTerm;
                       this.setInternalObject(leftSubbranch);
                     } else {
@@ -510,8 +468,9 @@ public final class JProlChoicePoint implements Comparator<Term> {
                 this.clauseIterator = this.context.getKnowledgeBase().iterate(
                     IteratorType.ANY,
                     struct,
-                    struct.getFunctor().getTermType() == OPERATOR ?
-                        NULL_UNDEFINED_PREDICATE_CONSUMER : unknownPredicateConsumer
+                    functor.getTermType() == OPERATOR
+                        ? NULL_UNDEFINED_PREDICATE_CONSUMER
+                        : unknownPredicateConsumer
                 );
                 if (!this.clauseIterator.hasNext()) {
                   doLoop = false;
@@ -556,19 +515,72 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public void localCut() {
-    this.hasLogicalAlternatives = false;
-    this.prevChoicePoint = null;
+    clearAlternativesAndPrev();
   }
 
   public void fullCut() {
-    this.hasLogicalAlternatives = false;
+    clearAlternativesAndPrev();
     this.rootChoicePoint.cutActivated = true;
     this.rootChoicePoint.clauseIterator = null;
-    this.prevChoicePoint = null;
   }
 
   public void resetPreviousChoicePoint() {
     this.prevChoicePoint = null;
+  }
+
+  private JProlChoicePointResult resolveAtom(final Term theTerm) {
+    final String text = theTerm.getText();
+
+    if (this.context.hasZeroArityPredicateForName(text)) {
+      resetLogicalAlternativesFlag();
+      return JProlChoicePointResult.SUCCESS;
+    }
+
+    this.context.notifyAboutUndefinedPredicate(this, theTerm.getSignature(), theTerm);
+    resetLogicalAlternativesFlag();
+    return JProlChoicePointResult.FAIL;
+  }
+
+  /**
+   * Try to apply the next clause from the iterator. Sets child choice point on clause match.
+   *
+   * @return CONTINUE to loop (sub-goal set), SUCCESS when fact matched, FAIL when no more clauses
+   */
+  private ResolveStep processNextClause(final Term theTerm) {
+    if (!this.clauseIterator.hasNext()) {
+      this.clauseIterator = null;
+      resetLogicalAlternativesFlag();
+      return ResolveStep.FAIL;
+    }
+
+    final TermStruct nextClause = this.clauseIterator.next();
+    final TermStruct goalStruct = (TermStruct) theTerm;
+    final Term goalTermForEqu =
+        goalStruct.isClause() ? goalStruct.getArgumentAt(0).makeClone() : theTerm.makeClone();
+
+    if (!goalTermForEqu
+        .unifyWith(nextClause.isClause() ? nextClause.getArgumentAt(0) : nextClause)) {
+      throw new ProlCriticalError(
+          String.format(
+              "Unexpectedly can't unify term with provided by knowledge base: arg1 = %s <-> arg2 = %s",
+              goalTermForEqu.toSrcString(),
+              nextClause.toSrcString()));
+    }
+
+    if (nextClause.isClause()) {
+      this.thisConnector = theTerm;
+      this.childConnectingTerm = nextClause.getArgumentAt(0);
+      this.childChoicePoint =
+          this.context.makeChoicePoint(nextClause.getArgumentAt(1), this.associatedObject);
+      return ResolveStep.CONTINUE;
+    }
+
+    if (!theTerm.unifyWith(nextClause)) {
+      throw new ProlCriticalError("Impossible situation #0009824 (unifyWith): "
+          + theTerm.toSrcString() + " <> " + nextClause.toSrcString());
+    }
+
+    return ResolveStep.SUCCESS;
   }
 
   private PredicateInvoker findProcessorInLibraries(final TermStruct structure) {
@@ -590,36 +602,36 @@ public final class JProlChoicePoint implements Comparator<Term> {
       return 0;
     }
 
-    term1 = term1.tryGround();
-    term2 = term2.tryGround();
+    final Term g1 = term1.tryGround();
+    final Term g2 = term2.tryGround();
 
-    if (term1 == term2) {
+    if (g1 == g2) {
       return 0;
     }
 
     final int result;
-    switch (term1.getTermType()) {
+    switch (g1.getTermType()) {
       case ATOM: {
-        if (term2 instanceof CompoundTerm) {
-          if (term2.isNullList()) {
-            result = term1 instanceof NumericTerm ? -1 : 1;
+        if (g2 instanceof CompoundTerm) {
+          if (g2.isNullList()) {
+            result = g1 instanceof NumericTerm ? -1 : 1;
           } else {
             result = -1;
           }
-        } else if (term2.getTermType() == ATOM) {
-          if (term1 instanceof NumericTerm) {
-            if (term2 instanceof NumericTerm) {
-              if (term1 instanceof TermDouble || term2 instanceof TermDouble) {
+        } else if (g2.getTermType() == ATOM) {
+          if (g1 instanceof NumericTerm) {
+            if (g2 instanceof NumericTerm) {
+              if (g1 instanceof TermDouble || g2 instanceof TermDouble) {
                 result =
-                    Double.compare(term1.toNumber().doubleValue(), term2.toNumber().doubleValue());
+                    Double.compare(g1.toNumber().doubleValue(), g2.toNumber().doubleValue());
               } else {
-                result = Long.compare(term1.toNumber().longValue(), term2.toNumber().longValue());
+                result = Long.compare(g1.toNumber().longValue(), g2.toNumber().longValue());
               }
             } else {
               result = -1;
             }
           } else {
-            result = term2 instanceof NumericTerm ? 1 : term1.getText().compareTo(term2.getText());
+            result = g2 instanceof NumericTerm ? 1 : g1.getText().compareTo(g2.getText());
           }
         } else {
           result = 1;
@@ -628,11 +640,11 @@ public final class JProlChoicePoint implements Comparator<Term> {
       break;
       case LIST:
       case STRUCT: {
-        if (term2 instanceof CompoundTerm) {
-          result = this.compareStructs((TermStruct) term1, (TermStruct) term2);
+        if (g2 instanceof CompoundTerm) {
+          result = this.compareStructs((TermStruct) g1, (TermStruct) g2);
         } else {
-          if (term1.isNullList()) {
-            result = term2 instanceof NumericTerm ? 1 : -1;
+          if (g1.isNullList()) {
+            result = g2 instanceof NumericTerm ? 1 : -1;
           } else {
             result = -1;
           }
@@ -640,8 +652,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
       }
       break;
       case VAR: {
-        if (term2.getTermType() == VAR) {
-          result = term1.getText().compareTo(term2.getText());
+        if (g2.getTermType() == VAR) {
+          result = g1.getText().compareTo(g2.getText());
         } else {
           result = -1;
         }
@@ -670,5 +682,11 @@ public final class JProlChoicePoint implements Comparator<Term> {
     }
 
     return compareResult;
+  }
+
+  private enum ResolveStep {
+    CONTINUE,
+    SUCCESS,
+    FAIL
   }
 }
