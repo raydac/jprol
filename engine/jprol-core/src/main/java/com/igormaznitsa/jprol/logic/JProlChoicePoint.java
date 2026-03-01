@@ -375,7 +375,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
               .unifyWith(nextClause.isClause() ? nextClause.getArgumentAt(0) : nextClause)) {
             throw new ProlCriticalError(
                 String.format(
-                    "Unexpectedly can't unify term with provided by knowledge base: goalTermForEqu=%s <-> nextClause=%s",
+                    "Unexpectedly can't unify term with provided by knowledge base: arg1 = %s <-> arg2 = %s",
                     goalTermForEqu.toSrcString(),
                     nextClause.toSrcString()));
           }
@@ -408,7 +408,6 @@ public final class JProlChoicePoint implements Comparator<Term> {
           } else {
             this.context.notifyAboutUndefinedPredicate(this, theTerm.getSignature(),
                 theTerm);
-            result = JProlChoicePointResult.FAIL;
           }
           resetLogicalAlternativesFlag();
           doLoop = false;
@@ -517,7 +516,6 @@ public final class JProlChoicePoint implements Comparator<Term> {
                 if (!this.clauseIterator.hasNext()) {
                   doLoop = false;
                   this.resetLogicalAlternativesFlag();
-                  result = JProlChoicePointResult.FAIL;
                 }
               } else {
                 if (foundProcessor.isDetermined()) {
@@ -526,8 +524,6 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
                 if (foundProcessor.execute(this, struct)) {
                   result = JProlChoicePointResult.SUCCESS;
-                } else {
-                  result = JProlChoicePointResult.FAIL;
                 }
 
                 if (result == JProlChoicePointResult.SUCCESS &&
@@ -633,22 +629,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
       case LIST:
       case STRUCT: {
         if (term2 instanceof CompoundTerm) {
-          final TermStruct struct1 = (TermStruct) term1;
-          final TermStruct struct2 = (TermStruct) term2;
-          final int arity1 = struct1.isNullList() ? 0 : struct1.getArity();
-          final int arity2 = struct2.isNullList() ? 0 : struct2.getArity();
-
-          int compareResult = Integer.compare(arity1, arity2);
-          if (compareResult == 0) {
-            compareResult =
-                struct1.getFunctor().getText().compareTo(struct2.getFunctor().getText());
-            if (compareResult == 0) {
-              for (int i = 0; i < arity1 && compareResult == 0; i++) {
-                compareResult = this.compare(struct1.getArgumentAt(i), struct2.getArgumentAt(i));
-              }
-            }
-          }
-          result = compareResult;
+          result = this.compareStructs((TermStruct) term1, (TermStruct) term2);
         } else {
           if (term1.isNullList()) {
             result = term2 instanceof NumericTerm ? 1 : -1;
@@ -670,5 +651,24 @@ public final class JProlChoicePoint implements Comparator<Term> {
         result = 1;
     }
     return result;
+  }
+
+  private int compareStructs(final TermStruct struct1, final TermStruct struct2) {
+    final int arity1 = struct1.isNullList() ? 0 : struct1.getArity();
+    final int arity2 = struct2.isNullList() ? 0 : struct2.getArity();
+
+    int compareResult = Integer.compare(arity1, arity2);
+
+    if (compareResult == 0) {
+      compareResult =
+          struct1.getFunctor().getText().compareTo(struct2.getFunctor().getText());
+      if (compareResult == 0) {
+        for (int i = 0; i < arity1 && compareResult == 0; i++) {
+          compareResult = this.compare(struct1.getArgumentAt(i), struct2.getArgumentAt(i));
+        }
+      }
+    }
+
+    return compareResult;
   }
 }
