@@ -324,14 +324,14 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   private JProlChoicePointResult resolve(final BiConsumer<String, Term> unknownPredicateConsumer) {
-    final TraceEvent traceEvent;
-    if (this.firstResolveCall) {
-      traceEvent = TraceEvent.CALL;
-      this.firstResolveCall = false;
-    } else {
-      traceEvent = TraceEvent.REDO;
-    }
     if (this.trace) {
+      final TraceEvent traceEvent;
+      if (this.firstResolveCall) {
+        traceEvent = TraceEvent.CALL;
+        this.firstResolveCall = false;
+      } else {
+        traceEvent = TraceEvent.REDO;
+      }
       this.context.fireTraceEvent(traceEvent, this);
     }
 
