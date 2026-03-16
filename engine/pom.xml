@@ -74,7 +74,7 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>5.22.0</version>
+                <version>5.23.0</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -205,7 +205,7 @@
                     <dependency>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>extra-enforcer-rules</artifactId>
-                        <version>1.11.0</version>
+                        <version>1.12.0</version>
                     </dependency>
                 </dependencies>
             </plugin>
