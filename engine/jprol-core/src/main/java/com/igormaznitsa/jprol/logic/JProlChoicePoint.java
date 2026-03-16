@@ -285,7 +285,199 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
       if (goalToProcess.hasAlternatives) {
         try {
-          switch (goalToProcess.resolve(unknownPredicateConsumer)) {
+          if (goalToProcess.trace) {
+            final TraceEvent traceEvent;
+            if (goalToProcess.firstResolveCall) {
+              traceEvent = TraceEvent.CALL;
+              goalToProcess.firstResolveCall = false;
+            } else {
+              traceEvent = TraceEvent.REDO;
+            }
+            goalToProcess.context.fireTraceEvent(traceEvent, goalToProcess);
+          }
+
+          JProlChoicePointResult result1 = JProlChoicePointResult.FAIL;
+
+          boolean doLoop = true;
+
+          while (doLoop) {
+            if (goalToProcess.context.isDisposed()) {
+              throw new ProlChoicePointInterruptedException("context disposed", goalToProcess);
+            }
+
+            // reset variables to their initial state
+            if (goalToProcess.varSnapshot != null) {
+              goalToProcess.varSnapshot.resetToState();
+            }
+
+            if (goalToProcess.childChoicePoint != null) {
+              // solve sub-goal
+              final Term solvedTerm = goalToProcess.childChoicePoint.proveNext(
+                  unknownPredicateConsumer);
+
+              if (goalToProcess.childChoicePoint.cutActivated) {
+                goalToProcess.clauseIterator = null;
+              }
+
+              if (solvedTerm == null) {
+                goalToProcess.childChoicePoint = null;
+                if (goalToProcess.clauseIterator == null) {
+                  break;
+                }
+              } else {
+                if (!goalToProcess.thisConnector.unifyWith(goalToProcess.childConnectingTerm)) {
+                  throw new ProlCriticalError("Critical error #980234");
+                }
+                result1 = JProlChoicePointResult.SUCCESS;
+                break;
+              }
+            }
+
+            final Term theTerm = goalToProcess.goalTerm.tryGroundOrDefault(goalToProcess.goalTerm);
+
+            if (goalToProcess.clauseIterator != null) {
+              final ResolveStep step = goalToProcess.processNextClause(theTerm);
+              if (step == ResolveStep.SUCCESS) {
+                result1 = JProlChoicePointResult.SUCCESS;
+                break;
+              }
+              if (step == ResolveStep.FAIL) {
+                break;
+              }
+              continue;
+            }
+
+            switch (theTerm.getTermType()) {
+              case ATOM: {
+                result1 = goalToProcess.resolveAtom(theTerm);
+                doLoop = false;
+              }
+              break;
+              case STRUCT: {
+                final TermStruct struct = (TermStruct) theTerm;
+                final int arity = struct.getArity();
+                final Term functor = struct.getFunctor();
+
+                if (struct.isClause()) {
+                  final TermStruct structClone = (TermStruct) struct.makeClone();
+                  final Term head = structClone.getArgumentAt(0);
+
+                  goalToProcess.thisConnector = struct.getArgumentAt(0);
+                  goalToProcess.childConnectingTerm = head;
+
+                  goalToProcess.childChoicePoint = arity == 1
+                      ? goalToProcess.context.makeChoicePoint(head, goalToProcess.associatedObject)
+                      : goalToProcess.context.makeChoicePoint(structClone.getArgumentAt(1),
+                      goalToProcess.associatedObject);
+                } else {
+                  final String functorText = functor.getText();
+                  boolean nonConsumed = true;
+
+                  if (arity < 3) {
+                    final int functorTextLength = functorText.length();
+                    switch (functorText.charAt(0)) {
+                      case '!': {
+                        if (arity == 0) {
+                          switch (functorTextLength) {
+                            case 1: { // standard cut !/0
+                              goalToProcess.fullCut();
+                              nonConsumed = false;
+                              doLoop = false;
+                              result1 = JProlChoicePointResult.SUCCESS;
+                            }
+                            break;
+                            case 2: { // local cut !!/9
+                              if (functorText.charAt(1) == '!') {
+                                goalToProcess.localCut();
+                                nonConsumed = false;
+                                doLoop = false;
+                                result1 = JProlChoicePointResult.SUCCESS;
+                              }
+                            }
+                            break;
+                          }
+                        }
+                      }
+                      break;
+                      case ',': { // and ,/2
+                        if (arity == 2 && functorTextLength == 1) {
+                          final JProlChoicePoint leftSubGoal =
+                              goalToProcess.replaceLastGoalAtChain(struct.getArgumentAt(0));
+                          leftSubGoal.nextAndTerm = struct.getArgumentAt(1);
+                          leftSubGoal.nextAndTermForNextGoal = goalToProcess.nextAndTerm;
+
+                          result1 = JProlChoicePointResult.STACK_CHANGED;
+
+                          doLoop = false;
+                          nonConsumed = false;
+                        }
+                      }
+                      break;
+                      case ';': { // or  ;/2
+                        if (arity == 2 && functorTextLength == 1) {
+                          if (goalToProcess.getInternalObject() == null) {
+                            final JProlChoicePoint leftSubbranch =
+                                goalToProcess.createChildChoicePoint(struct.getArgumentAt(0));
+                            leftSubbranch.nextAndTerm = goalToProcess.nextAndTerm;
+                            goalToProcess.setInternalObject(leftSubbranch);
+                          } else {
+                            goalToProcess.replaceLastGoalAtChain(struct.getArgumentAt(1));
+                          }
+                          result1 = JProlChoicePointResult.STACK_CHANGED;
+                          nonConsumed = false;
+                          doLoop = false;
+                        }
+                      }
+                      break;
+                    }
+                  }
+
+                  if (nonConsumed) {
+                    final PredicateInvoker foundProcessor =
+                        goalToProcess.findProcessorInLibraries(struct);
+                    if (foundProcessor == PredicateInvoker.NULL_INVOKER
+                        || foundProcessor.isEvaluable()) {
+                      goalToProcess.clauseIterator =
+                          goalToProcess.context.getKnowledgeBase().iterate(
+                              IteratorType.ANY,
+                              struct,
+                              functor.getTermType() == OPERATOR
+                                  ? NULL_UNDEFINED_PREDICATE_CONSUMER
+                                  : unknownPredicateConsumer
+                          );
+                      if (!goalToProcess.clauseIterator.hasNext()) {
+                        doLoop = false;
+                        goalToProcess.resetLogicalAlternativesFlag();
+                      }
+                    } else {
+                      if (foundProcessor.isDetermined()) {
+                        goalToProcess.resetLogicalAlternativesFlag();
+                      }
+
+                      if (foundProcessor.execute(goalToProcess, struct)) {
+                        result1 = JProlChoicePointResult.SUCCESS;
+                      }
+
+                      if (result1 == JProlChoicePointResult.SUCCESS
+                          && foundProcessor.doesChangeGoalChain()) {
+                        result1 = JProlChoicePointResult.STACK_CHANGED;
+                      }
+
+                      doLoop = false;
+                    }
+                  }
+                }
+              }
+              break;
+              default: {
+                doLoop = false;
+                goalToProcess.resetLogicalAlternativesFlag();
+              }
+              break;
+            }
+          }
+
+          switch (result1) {
             case FAIL: {
               this.fireFailAndExitIfTrace(goalToProcess);
               root.parentChoicePoint = goalToProcess.prevChoicePoint;
@@ -317,198 +509,6 @@ public final class JProlChoicePoint implements Comparator<Term> {
       } else {
         this.fireExitIfTrace(goalToProcess);
         root.parentChoicePoint = goalToProcess.prevChoicePoint;
-      }
-    }
-
-    return result;
-  }
-
-  private JProlChoicePointResult resolve(final BiConsumer<String, Term> unknownPredicateConsumer) {
-    if (this.trace) {
-      final TraceEvent traceEvent;
-      if (this.firstResolveCall) {
-        traceEvent = TraceEvent.CALL;
-        this.firstResolveCall = false;
-      } else {
-        traceEvent = TraceEvent.REDO;
-      }
-      this.context.fireTraceEvent(traceEvent, this);
-    }
-
-    JProlChoicePointResult result = JProlChoicePointResult.FAIL;
-
-    boolean doLoop = true;
-
-    while (doLoop) {
-      if (this.context.isDisposed()) {
-        throw new ProlChoicePointInterruptedException("context disposed", this);
-      }
-
-      // reset variables to their initial state
-      if (this.varSnapshot != null) {
-        this.varSnapshot.resetToState();
-      }
-
-      if (this.childChoicePoint != null) {
-        // solve sub-goal
-        final Term solvedTerm = this.childChoicePoint.proveNext(unknownPredicateConsumer);
-
-        if (this.childChoicePoint.cutActivated) {
-          this.clauseIterator = null;
-        }
-
-        if (solvedTerm == null) {
-          this.childChoicePoint = null;
-          if (this.clauseIterator == null) {
-            break;
-          }
-        } else {
-          if (!this.thisConnector.unifyWith(this.childConnectingTerm)) {
-            throw new ProlCriticalError("Critical error #980234");
-          }
-          result = JProlChoicePointResult.SUCCESS;
-          break;
-        }
-      }
-
-      final Term theTerm = this.goalTerm.tryGroundOrDefault(this.goalTerm);
-
-      if (this.clauseIterator != null) {
-        final ResolveStep step = this.processNextClause(theTerm);
-        if (step == ResolveStep.SUCCESS) {
-          result = JProlChoicePointResult.SUCCESS;
-          break;
-        }
-        if (step == ResolveStep.FAIL) {
-          break;
-        }
-        continue;
-      }
-
-      switch (theTerm.getTermType()) {
-        case ATOM: {
-          result = resolveAtom(theTerm);
-          doLoop = false;
-        }
-        break;
-        case STRUCT: {
-          final TermStruct struct = (TermStruct) theTerm;
-          final int arity = struct.getArity();
-          final Term functor = struct.getFunctor();
-
-          if (struct.isClause()) {
-            final TermStruct structClone = (TermStruct) struct.makeClone();
-            final Term head = structClone.getArgumentAt(0);
-
-            this.thisConnector = struct.getArgumentAt(0);
-            this.childConnectingTerm = head;
-
-            this.childChoicePoint = arity == 1
-                ? this.context.makeChoicePoint(head, this.associatedObject)
-                : this.context.makeChoicePoint(structClone.getArgumentAt(1), this.associatedObject);
-          } else {
-            final String functorText = functor.getText();
-            boolean nonConsumed = true;
-
-            if (arity < 3) {
-              final int functorTextLength = functorText.length();
-              switch (functorText.charAt(0)) {
-                case '!': {
-                  if (arity == 0) {
-                    switch (functorTextLength) {
-                      case 1: { // standard cut !/0
-                        this.fullCut();
-                        nonConsumed = false;
-                        doLoop = false;
-                        result = JProlChoicePointResult.SUCCESS;
-                      }
-                      break;
-                      case 2: { // local cut !!/9
-                        if (functorText.charAt(1) == '!') {
-                          this.localCut();
-                          nonConsumed = false;
-                          doLoop = false;
-                          result = JProlChoicePointResult.SUCCESS;
-                        }
-                      }
-                      break;
-                    }
-                  }
-                }
-                break;
-                case ',': { // and ,/2
-                  if (arity == 2 && functorTextLength == 1) {
-                    final JProlChoicePoint leftSubGoal =
-                        replaceLastGoalAtChain(struct.getArgumentAt(0));
-                    leftSubGoal.nextAndTerm = struct.getArgumentAt(1);
-                    leftSubGoal.nextAndTermForNextGoal = this.nextAndTerm;
-
-                    result = JProlChoicePointResult.STACK_CHANGED;
-
-                    doLoop = false;
-                    nonConsumed = false;
-                  }
-                }
-                break;
-                case ';': { // or  ;/2
-                  if (arity == 2 && functorTextLength == 1) {
-                    if (getInternalObject() == null) {
-                      final JProlChoicePoint leftSubbranch =
-                          this.createChildChoicePoint(struct.getArgumentAt(0));
-                      leftSubbranch.nextAndTerm = this.nextAndTerm;
-                      this.setInternalObject(leftSubbranch);
-                    } else {
-                      this.replaceLastGoalAtChain(struct.getArgumentAt(1));
-                    }
-                    result = JProlChoicePointResult.STACK_CHANGED;
-                    nonConsumed = false;
-                    doLoop = false;
-                  }
-                }
-                break;
-              }
-            }
-
-            if (nonConsumed) {
-              final PredicateInvoker foundProcessor = this.findProcessorInLibraries(struct);
-              if (foundProcessor == PredicateInvoker.NULL_INVOKER
-                  || foundProcessor.isEvaluable()) {
-                this.clauseIterator = this.context.getKnowledgeBase().iterate(
-                    IteratorType.ANY,
-                    struct,
-                    functor.getTermType() == OPERATOR
-                        ? NULL_UNDEFINED_PREDICATE_CONSUMER
-                        : unknownPredicateConsumer
-                );
-                if (!this.clauseIterator.hasNext()) {
-                  doLoop = false;
-                  this.resetLogicalAlternativesFlag();
-                }
-              } else {
-                if (foundProcessor.isDetermined()) {
-                  this.resetLogicalAlternativesFlag();
-                }
-
-                if (foundProcessor.execute(this, struct)) {
-                  result = JProlChoicePointResult.SUCCESS;
-                }
-
-                if (result == JProlChoicePointResult.SUCCESS
-                    && foundProcessor.doesChangeGoalChain()) {
-                  result = JProlChoicePointResult.STACK_CHANGED;
-                }
-
-                doLoop = false;
-              }
-            }
-          }
-        }
-        break;
-        default: {
-          doLoop = false;
-          this.resetLogicalAlternativesFlag();
-        }
-        break;
       }
     }
 
