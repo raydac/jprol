@@ -137,6 +137,19 @@ public final class JProlChoicePoint implements Comparator<Term> {
     );
   }
 
+  private static void traceCp(JProlChoicePoint goalToProcess) {
+    if (goalToProcess.trace) {
+      final TraceEvent traceEvent;
+      if (goalToProcess.firstResolveCall) {
+        traceEvent = TraceEvent.CALL;
+        goalToProcess.firstResolveCall = false;
+      } else {
+        traceEvent = TraceEvent.REDO;
+      }
+      goalToProcess.context.fireTraceEvent(traceEvent, goalToProcess);
+    }
+  }
+
   /**
    * Create a child choice point for the same root (no preset vars, no internal object).
    */
@@ -270,9 +283,9 @@ public final class JProlChoicePoint implements Comparator<Term> {
     final JProlChoicePoint root = this.rootChoicePoint;
 
     Term result = null;
-    boolean loop = true;
+    boolean mainLoop = true;
 
-    while (loop) {
+    while (mainLoop) {
       if (this.context.isDisposed()) {
         throw new ProlChoicePointInterruptedException("detected context dispose during prove",
             this);
@@ -285,22 +298,13 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
       if (goalToProcess.hasAlternatives) {
         try {
-          if (goalToProcess.trace) {
-            final TraceEvent traceEvent;
-            if (goalToProcess.firstResolveCall) {
-              traceEvent = TraceEvent.CALL;
-              goalToProcess.firstResolveCall = false;
-            } else {
-              traceEvent = TraceEvent.REDO;
-            }
-            goalToProcess.context.fireTraceEvent(traceEvent, goalToProcess);
-          }
+          traceCp(goalToProcess);
 
           JProlChoicePointResult result1 = JProlChoicePointResult.FAIL;
 
-          boolean doLoop = true;
+          boolean internalLoop = true;
 
-          while (doLoop) {
+          while (internalLoop) {
             if (goalToProcess.context.isDisposed()) {
               throw new ProlChoicePointInterruptedException("context disposed", goalToProcess);
             }
@@ -350,7 +354,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
             switch (theTerm.getTermType()) {
               case ATOM: {
                 result1 = goalToProcess.resolveAtom(theTerm);
-                doLoop = false;
+                internalLoop = false;
               }
               break;
               case STRUCT: {
@@ -382,7 +386,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                             case 1: { // standard cut !/0
                               goalToProcess.fullCut();
                               nonConsumed = false;
-                              doLoop = false;
+                              internalLoop = false;
                               result1 = JProlChoicePointResult.SUCCESS;
                             }
                             break;
@@ -390,7 +394,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                               if (functorText.charAt(1) == '!') {
                                 goalToProcess.localCut();
                                 nonConsumed = false;
-                                doLoop = false;
+                                internalLoop = false;
                                 result1 = JProlChoicePointResult.SUCCESS;
                               }
                             }
@@ -408,7 +412,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
                           result1 = JProlChoicePointResult.STACK_CHANGED;
 
-                          doLoop = false;
+                          internalLoop = false;
                           nonConsumed = false;
                         }
                       }
@@ -425,7 +429,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                           }
                           result1 = JProlChoicePointResult.STACK_CHANGED;
                           nonConsumed = false;
-                          doLoop = false;
+                          internalLoop = false;
                         }
                       }
                       break;
@@ -446,7 +450,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                                   : unknownPredicateConsumer
                           );
                       if (!goalToProcess.clauseIterator.hasNext()) {
-                        doLoop = false;
+                        internalLoop = false;
                         goalToProcess.resetLogicalAlternativesFlag();
                       }
                     } else {
@@ -463,14 +467,14 @@ public final class JProlChoicePoint implements Comparator<Term> {
                         result1 = JProlChoicePointResult.STACK_CHANGED;
                       }
 
-                      doLoop = false;
+                      internalLoop = false;
                     }
                   }
                 }
               }
               break;
               default: {
-                doLoop = false;
+                internalLoop = false;
                 goalToProcess.resetLogicalAlternativesFlag();
               }
               break;
@@ -488,7 +492,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
               if (goalToProcess.nextAndTerm == null) {
                 result = root.goalTerm;
-                loop = false;
+                mainLoop = false;
               } else {
                 final JProlChoicePoint nextGoal =
                     this.createChildChoicePoint(goalToProcess.nextAndTerm);
