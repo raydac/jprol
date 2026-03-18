@@ -54,6 +54,10 @@ public final class JProlChoicePoint implements Comparator<Term> {
   private static final int CP_FAIL = 1;
   private static final int CP_STACK_CHANGED = 2;
 
+  private static final int RS_CONTINUE = 0;
+  private static final int RS_SUCCESS = 1;
+  private static final int RS_FAIL = 2;
+
   private final Map<String, TermVar> variables;
   private final VariableStateSnapshot varSnapshot;
   private final JProlContext context;
@@ -343,12 +347,12 @@ public final class JProlChoicePoint implements Comparator<Term> {
             final Term theTerm = goalToProcess.goalTerm.tryGroundOrDefault(goalToProcess.goalTerm);
 
             if (goalToProcess.clauseIterator != null) {
-              final ResolveStep step = goalToProcess.processNextClause(theTerm);
-              if (step == ResolveStep.SUCCESS) {
+              final int stepResult = goalToProcess.processNextClause(theTerm);
+              if (stepResult == RS_SUCCESS) {
                 cpResult = CP_SUCCESS;
                 break;
               }
-              if (step == ResolveStep.FAIL) {
+              if (stepResult == RS_FAIL) {
                 break;
               }
               continue;
@@ -562,11 +566,11 @@ public final class JProlChoicePoint implements Comparator<Term> {
    *
    * @return CONTINUE to loop (sub-goal set), SUCCESS when fact matched, FAIL when no more clauses
    */
-  private ResolveStep processNextClause(final Term theTerm) {
+  private int processNextClause(final Term theTerm) {
     if (!this.clauseIterator.hasNext()) {
       this.clauseIterator = null;
       this.resetLogicalAlternativesFlag();
-      return ResolveStep.FAIL;
+      return RS_FAIL;
     }
 
     final TermStruct nextClause = this.clauseIterator.next();
@@ -588,7 +592,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
       this.childConnectingTerm = nextClause.getArgumentAt(0);
       this.childChoicePoint =
           this.context.makeChoicePoint(nextClause.getArgumentAt(1), this.associatedObject);
-      return ResolveStep.CONTINUE;
+      return RS_CONTINUE;
     }
 
     if (!theTerm.unifyWith(nextClause)) {
@@ -596,7 +600,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
           + theTerm.toSrcString() + " <> " + nextClause.toSrcString());
     }
 
-    return ResolveStep.SUCCESS;
+    return RS_SUCCESS;
   }
 
   private PredicateInvoker findProcessorInLibraries(final TermStruct structure) {
@@ -702,9 +706,4 @@ public final class JProlChoicePoint implements Comparator<Term> {
     return compareResult;
   }
 
-  private enum ResolveStep {
-    CONTINUE,
-    SUCCESS,
-    FAIL
-  }
 }
