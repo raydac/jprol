@@ -68,9 +68,9 @@ public final class JProlChoicePoint implements Comparator<Term> {
   private final Object associatedObject;
   private boolean hasAlternatives;
   private Object internalAuxiliaryObject;
-  private JProlChoicePoint prevChoicePoint;
-  private JProlChoicePoint parentChoicePoint;
-  private JProlChoicePoint childChoicePoint;
+  private JProlChoicePoint prevCp;
+  private JProlChoicePoint parentCp;
+  private JProlChoicePoint nextCp;
   private Term childConnectingTerm;
   private Term thisConnector;
   private Term nextAndTerm;
@@ -114,8 +114,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
         this.variables = grounded.findAllNamedVariables();
         this.varSnapshot = new VariableStateSnapshot(grounded, variableMap);
       }
-      this.parentChoicePoint = this;
-      this.prevChoicePoint = null;
+      this.parentCp = this;
+      this.prevCp = null;
     } else {
       this.variables = null;
       if (grounded.getTermType() == ATOM) {
@@ -123,8 +123,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
       } else {
         this.varSnapshot = new VariableStateSnapshot(rootChoicePoint.varSnapshot);
       }
-      this.prevChoicePoint = rootChoicePoint.parentChoicePoint;
-      rootChoicePoint.parentChoicePoint = this;
+      this.prevCp = rootChoicePoint.parentCp;
+      rootChoicePoint.parentCp = this;
     }
   }
 
@@ -192,7 +192,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
    */
   private void clearAlternativesAndPrev() {
     this.hasAlternatives = false;
-    this.prevChoicePoint = null;
+    this.prevCp = null;
   }
 
   public boolean isTrace() {
@@ -222,12 +222,12 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public JProlChoicePoint replaceLastGoalAtChain(final Term goal) {
-    this.fireExitIfTrace(this.rootChoicePoint.parentChoicePoint);
+    this.fireExitIfTrace(this.rootChoicePoint.parentCp);
 
     final JProlChoicePoint newGoal = this.createChildChoicePoint(goal);
-    final JProlChoicePoint prevGoal = newGoal.prevChoicePoint;
+    final JProlChoicePoint prevGoal = newGoal.prevCp;
     if (prevGoal != null) {
-      newGoal.prevChoicePoint = prevGoal.prevChoicePoint;
+      newGoal.prevCp = prevGoal.prevCp;
       newGoal.nextAndTerm = prevGoal.nextAndTerm;
       newGoal.nextAndTermForNextGoal = prevGoal.nextAndTermForNextGoal;
     }
@@ -300,7 +300,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
             this);
       }
 
-      JProlChoicePoint goalToProcess = root.parentChoicePoint;
+      JProlChoicePoint goalToProcess = root.parentCp;
       if (goalToProcess == null) {
         break;
       }
@@ -321,17 +321,17 @@ public final class JProlChoicePoint implements Comparator<Term> {
               goalToProcess.varSnapshot.resetToState();
             }
 
-            if (goalToProcess.childChoicePoint != null) {
+            if (goalToProcess.nextCp != null) {
               // solve sub-goal
-              final Term solvedTerm = goalToProcess.childChoicePoint.proveNext(
+              final Term solvedTerm = goalToProcess.nextCp.proveNext(
                   unknownPredicateConsumer);
 
-              if (goalToProcess.childChoicePoint.cutActivated) {
+              if (goalToProcess.nextCp.cutActivated) {
                 goalToProcess.clauseIterator = null;
               }
 
               if (solvedTerm == null) {
-                goalToProcess.childChoicePoint = null;
+                goalToProcess.nextCp = null;
                 if (goalToProcess.clauseIterator == null) {
                   break;
                 }
@@ -376,7 +376,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                   goalToProcess.thisConnector = struct.getArgumentAt(0);
                   goalToProcess.childConnectingTerm = head;
 
-                  goalToProcess.childChoicePoint = arity == 1
+                  goalToProcess.nextCp = arity == 1
                       ? goalToProcess.context.makeChoicePoint(head, goalToProcess.associatedObject)
                       : goalToProcess.context.makeChoicePoint(structClone.getArgumentAt(1),
                       goalToProcess.associatedObject);
@@ -397,7 +397,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                               cpResult = CP_SUCCESS;
                             }
                             break;
-                            case 2: { // local cut !!/9
+                            case 2: { // local cut !!/0
                               if (functorText.charAt(1) == '!') {
                                 goalToProcess.localCut();
                                 nonConsumed = false;
@@ -491,11 +491,11 @@ public final class JProlChoicePoint implements Comparator<Term> {
           switch (cpResult) {
             case CP_FAIL: {
               this.fireFailAndExitIfTrace(goalToProcess);
-              root.parentChoicePoint = goalToProcess.prevChoicePoint;
+              root.parentCp = goalToProcess.prevCp;
             }
             break;
             case CP_SUCCESS: {
-              goalToProcess = root.parentChoicePoint;
+              goalToProcess = root.parentCp;
 
               if (goalToProcess.nextAndTerm == null) {
                 result = root.goalTerm;
@@ -519,7 +519,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
         }
       } else {
         this.fireExitIfTrace(goalToProcess);
-        root.parentChoicePoint = goalToProcess.prevChoicePoint;
+        root.parentCp = goalToProcess.prevCp;
       }
     }
 
@@ -544,7 +544,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public void resetPreviousChoicePoint() {
-    this.prevChoicePoint = null;
+    this.prevCp = null;
   }
 
   private int resolveAtom(final Term theTerm) {
@@ -590,7 +590,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
     if (nextClause.isClause()) {
       this.thisConnector = theTerm;
       this.childConnectingTerm = nextClause.getArgumentAt(0);
-      this.childChoicePoint =
+      this.nextCp =
           this.context.makeChoicePoint(nextClause.getArgumentAt(1), this.associatedObject);
       return RS_CONTINUE;
     }
@@ -613,7 +613,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public boolean isCompleted() {
-    return this.rootChoicePoint.parentChoicePoint == null || !this.hasAlternatives;
+    return this.rootChoicePoint.parentCp == null || !this.hasAlternatives;
   }
 
   @Override

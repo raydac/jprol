@@ -31,55 +31,53 @@ import java.util.Set;
 
 final class VariableStateSnapshot {
 
-  private final List<VariableContainer> containers;
-  private Set<Long> processedVariables;
+  private final List<VariableContainer> containerList;
 
   VariableStateSnapshot(final VariableStateSnapshot snapshot) {
-    if (snapshot.containers.isEmpty()) {
-      this.containers = List.of();
+    if (snapshot.containerList.isEmpty()) {
+      this.containerList = List.of();
       return;
     }
 
-    this.containers = new ArrayList<>();
-
-    final Iterator<VariableContainer> iterator = snapshot.containers.iterator();
+    this.containerList = new ArrayList<>(snapshot.containerList.size());
     List<VariableContainer> changed = null;
+    Set<Long> processedVariables = new LazySet<>();
 
-    this.processedVariables = new LazySet<>();
-
-    while (iterator.hasNext()) {
-      final VariableContainer container = iterator.next();
+    for (final VariableContainer container : snapshot.containerList) {
       if (container.isChanged()) {
         if (changed == null) {
           changed = new ArrayList<>();
         }
         changed.add(container);
       } else {
-        this.processedVariables.add(container.variable.getVarUid());
-        this.containers.add(container);
+        processedVariables.add(container.variable.getVarUid());
+        this.containerList.add(container);
       }
     }
 
     if (changed != null) {
       for (final VariableContainer container : changed) {
         final Long uid = container.variable.getVarUid();
-        if (!this.processedVariables.contains(uid)) {
-          this.processedVariables.add(uid);
-          this.containers.add(new VariableContainer(container.variable, null));
-          this.extractAllVariables(container.variable.getImmediateValue(), null);
+        if (!processedVariables.contains(uid)) {
+          processedVariables.add(uid);
+          this.containerList.add(new VariableContainer(container.variable, null));
+          this.extractAllVariables(processedVariables, container.variable.getImmediateValue(),
+              null);
         }
       }
     }
-    this.processedVariables = null;
   }
 
   VariableStateSnapshot(final Term source, final Map<String, Term> predefinedValues) {
-    this.containers = new ArrayList<>();
-    this.extractAllVariables(source, predefinedValues);
-    this.processedVariables = null;
+    this.containerList = new ArrayList<>();
+    this.extractAllVariables(new LazySet<>(), source, predefinedValues);
   }
 
-  private void extractAllVariables(final Term src, final Map<String, Term> predefinedValues) {
+  private void extractAllVariables(
+      final Set<Long> processedVariables,
+      final Term src,
+      final Map<String, Term> predefinedValues
+  ) {
     if (src == null) {
       return;
     }
@@ -87,8 +85,8 @@ final class VariableStateSnapshot {
       case LIST: {
         final TermList list = (TermList) src;
         if (!list.isNullList()) {
-          this.extractAllVariables(list.getHead(), predefinedValues);
-          this.extractAllVariables(list.getTail(), predefinedValues);
+          this.extractAllVariables(processedVariables, list.getHead(), predefinedValues);
+          this.extractAllVariables(processedVariables, list.getTail(), predefinedValues);
         }
       }
       break;
@@ -96,22 +94,19 @@ final class VariableStateSnapshot {
         final TermStruct struct = (TermStruct) src;
         final Term[] elements = struct.getArguments();
         for (final Term element : elements) {
-          this.extractAllVariables(element, predefinedValues);
+          this.extractAllVariables(processedVariables, element, predefinedValues);
         }
       }
       break;
       case VAR: {
-        if (this.processedVariables == null) {
-          this.processedVariables = new LazySet<>();
-        }
         final TermVar var = (TermVar) src;
         final Long uid = var.getVarUid();
-        if (!this.processedVariables.contains(uid)) {
-          this.processedVariables.add(uid);
-          this.containers.add(new VariableContainer(var, predefinedValues));
+        if (!processedVariables.contains(uid)) {
+          processedVariables.add(uid);
+          this.containerList.add(new VariableContainer(var, predefinedValues));
           final Term value = var.getImmediateValue();
           if (value != null) {
-            this.extractAllVariables(value, predefinedValues);
+            this.extractAllVariables(processedVariables, value, predefinedValues);
           }
         }
       }
@@ -120,7 +115,7 @@ final class VariableStateSnapshot {
   }
 
   void resetToState() {
-    this.containers.forEach(VariableContainer::resetToSample);
+    this.containerList.forEach(VariableContainer::resetToSample);
   }
 
   @Override
@@ -128,7 +123,7 @@ final class VariableStateSnapshot {
     final StringBuilder buffer = new StringBuilder();
     buffer.append(super.toString());
     buffer.append('[');
-    final Iterator<VariableContainer> iterator = this.containers.iterator();
+    final Iterator<VariableContainer> iterator = this.containerList.iterator();
     boolean notFirst = false;
     while (iterator.hasNext()) {
       final VariableContainer variableContainer = iterator.next();
