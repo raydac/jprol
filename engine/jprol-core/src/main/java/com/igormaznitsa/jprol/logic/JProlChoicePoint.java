@@ -49,6 +49,11 @@ public final class JProlChoicePoint implements Comparator<Term> {
   private static final BiConsumer<String, Term> NULL_UNDEFINED_PREDICATE_CONSUMER =
       (signature, term) -> {
       };
+
+  private static final int CP_SUCCESS = 0;
+  private static final int CP_FAIL = 1;
+  private static final int CP_STACK_CHANGED = 2;
+
   private final Map<String, TermVar> variables;
   private final VariableStateSnapshot varSnapshot;
   private final JProlContext context;
@@ -299,9 +304,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
       if (goalToProcess.hasAlternatives) {
         try {
           traceCp(goalToProcess);
-
-          JProlChoicePointResult result1 = JProlChoicePointResult.FAIL;
-
+          int cpResult = CP_FAIL;
           boolean internalLoop = true;
 
           while (internalLoop) {
@@ -332,7 +335,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                 if (!goalToProcess.thisConnector.unifyWith(goalToProcess.childConnectingTerm)) {
                   throw new ProlCriticalError("Critical error #980234");
                 }
-                result1 = JProlChoicePointResult.SUCCESS;
+                cpResult = CP_SUCCESS;
                 break;
               }
             }
@@ -342,7 +345,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
             if (goalToProcess.clauseIterator != null) {
               final ResolveStep step = goalToProcess.processNextClause(theTerm);
               if (step == ResolveStep.SUCCESS) {
-                result1 = JProlChoicePointResult.SUCCESS;
+                cpResult = CP_SUCCESS;
                 break;
               }
               if (step == ResolveStep.FAIL) {
@@ -353,7 +356,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
             switch (theTerm.getTermType()) {
               case ATOM: {
-                result1 = goalToProcess.resolveAtom(theTerm);
+                cpResult = goalToProcess.resolveAtom(theTerm);
                 internalLoop = false;
               }
               break;
@@ -387,7 +390,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                               goalToProcess.fullCut();
                               nonConsumed = false;
                               internalLoop = false;
-                              result1 = JProlChoicePointResult.SUCCESS;
+                              cpResult = CP_SUCCESS;
                             }
                             break;
                             case 2: { // local cut !!/9
@@ -395,7 +398,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                                 goalToProcess.localCut();
                                 nonConsumed = false;
                                 internalLoop = false;
-                                result1 = JProlChoicePointResult.SUCCESS;
+                                cpResult = CP_SUCCESS;
                               }
                             }
                             break;
@@ -410,7 +413,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                           leftSubGoal.nextAndTerm = struct.getArgumentAt(1);
                           leftSubGoal.nextAndTermForNextGoal = goalToProcess.nextAndTerm;
 
-                          result1 = JProlChoicePointResult.STACK_CHANGED;
+                          cpResult = CP_STACK_CHANGED;
 
                           internalLoop = false;
                           nonConsumed = false;
@@ -427,7 +430,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                           } else {
                             goalToProcess.replaceLastGoalAtChain(struct.getArgumentAt(1));
                           }
-                          result1 = JProlChoicePointResult.STACK_CHANGED;
+                          cpResult = CP_STACK_CHANGED;
                           nonConsumed = false;
                           internalLoop = false;
                         }
@@ -459,12 +462,12 @@ public final class JProlChoicePoint implements Comparator<Term> {
                       }
 
                       if (foundProcessor.execute(goalToProcess, struct)) {
-                        result1 = JProlChoicePointResult.SUCCESS;
+                        cpResult = CP_SUCCESS;
                       }
 
-                      if (result1 == JProlChoicePointResult.SUCCESS
+                      if (cpResult == CP_SUCCESS
                           && foundProcessor.doesChangeGoalChain()) {
-                        result1 = JProlChoicePointResult.STACK_CHANGED;
+                        cpResult = CP_STACK_CHANGED;
                       }
 
                       internalLoop = false;
@@ -481,13 +484,13 @@ public final class JProlChoicePoint implements Comparator<Term> {
             }
           }
 
-          switch (result1) {
-            case FAIL: {
+          switch (cpResult) {
+            case CP_FAIL: {
               this.fireFailAndExitIfTrace(goalToProcess);
               root.parentChoicePoint = goalToProcess.prevChoicePoint;
             }
             break;
-            case SUCCESS: {
+            case CP_SUCCESS: {
               goalToProcess = root.parentChoicePoint;
 
               if (goalToProcess.nextAndTerm == null) {
@@ -500,7 +503,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
               }
             }
             break;
-            case STACK_CHANGED: {
+            case CP_STACK_CHANGED: {
             }
             break;
             default:
@@ -540,18 +543,18 @@ public final class JProlChoicePoint implements Comparator<Term> {
     this.prevChoicePoint = null;
   }
 
-  private JProlChoicePointResult resolveAtom(final Term theTerm) {
+  private int resolveAtom(final Term theTerm) {
     final String text = theTerm.getText();
 
     if (this.context.hasZeroArityPredicateForName(text)) {
       this.resetLogicalAlternativesFlag();
-      return JProlChoicePointResult.SUCCESS;
+      return CP_SUCCESS;
     }
 
     this.context.notifyAboutUndefinedPredicate(this, theTerm.getSignature(), theTerm);
     this.resetLogicalAlternativesFlag();
 
-    return JProlChoicePointResult.FAIL;
+    return CP_FAIL;
   }
 
   /**
