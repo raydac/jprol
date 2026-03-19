@@ -1,3 +1,7 @@
+3.0.2 (SNAPSHOT)
+    - refactoring
+    - emnedded JDK updated to 26+37
+
 3.0.1 (2026-01-18)
     - Minor improvements.
     - Fixed unification between atoms and operators.
