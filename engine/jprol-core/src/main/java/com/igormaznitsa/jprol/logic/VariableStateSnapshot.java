@@ -22,8 +22,9 @@ import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermVar;
+import com.igormaznitsa.jprol.utils.lazy.LazyList;
 import com.igormaznitsa.jprol.utils.lazy.LazySet;
-import java.util.ArrayList;
+import com.igormaznitsa.jprol.utils.lazy.LinearLongSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -39,15 +40,12 @@ final class VariableStateSnapshot {
       return;
     }
 
-    final List<VariableStateContainer> containers = new ArrayList<>(snapshot.containerList.size());
-    List<VariableStateContainer> changed = null;
-    Set<Long> processedVariables = new LazySet<>();
+    final List<VariableStateContainer> containers = new LazyList<>();
+    List<VariableStateContainer> changed = new LazyList<>();
+    Set<Long> processedVariables = new LinearLongSet();
 
     for (final VariableStateContainer container : snapshot.containerList) {
       if (container.isChanged()) {
-        if (changed == null) {
-          changed = new ArrayList<>();
-        }
         changed.add(container);
       } else {
         processedVariables.add(container.variable.getVarUid());
@@ -55,7 +53,7 @@ final class VariableStateSnapshot {
       }
     }
 
-    if (changed != null) {
+    if (!changed.isEmpty()) {
       for (final VariableStateContainer container : changed) {
         final Long uid = container.variable.getVarUid();
         if (!processedVariables.contains(uid)) {
@@ -74,7 +72,7 @@ final class VariableStateSnapshot {
   }
 
   VariableStateSnapshot(final Term source, final Map<String, Term> predefinedValues) {
-    this.containerList = new ArrayList<>();
+    this.containerList = new LazyList<>();
     extractAllVariables(this.containerList, new LazySet<>(), source, predefinedValues);
   }
 
