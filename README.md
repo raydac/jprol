@@ -14,6 +14,8 @@ Initially the engine was a mono-block with embedded GUI part, but later it rewor
 
 ![GUIEditor](https://github.com/raydac/jprol/blob/master/jprolguieditor.png)   
 
+> [!CAUTION]
+> It is a Prolog interpreter rather than a compiler or a WAM-based engine. It was originally developed as an exercise in exploring and learning Prolog, so it is not particularly fast or highly optimized. However, it gets the job done, and I use it in some production-level products.
 
 # Changelog
 
