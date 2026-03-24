@@ -40,6 +40,8 @@ import com.igormaznitsa.jprol.trace.TraceEvent;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -57,7 +59,6 @@ public final class JProlChoicePoint implements Comparator<Term> {
   private static final int RS_CONTINUE = 0;
   private static final int RS_SUCCESS = 1;
   private static final int RS_FAIL = 2;
-
   private final Map<String, TermVar> variables;
   private final VariableStateSnapshot varSnapshot;
   private final JProlContext context;
@@ -281,33 +282,57 @@ public final class JProlChoicePoint implements Comparator<Term> {
     if (this.context.isDisposed()) {
       throw new ProlHaltExecutionException("Context disposed", 0, SourcePosition.UNKNOWN);
     }
-    return this.proveNext((s, t) -> this.context.notifyAboutUndefinedPredicate(this, s, t));
+    final List<ProveStackFrame> proveStack = new LinkedList<>();
+    return this.proveNext((s, t) -> this.context.notifyAboutUndefinedPredicate(this, s, t),
+        proveStack);
   }
 
   public Term proveIgnoringUnknownPredicates() {
-    return this.proveNext(NULL_UNDEFINED_PREDICATE_CONSUMER);
+    final List<ProveStackFrame> proveStack = new LinkedList<>();
+    return this.proveNext(NULL_UNDEFINED_PREDICATE_CONSUMER, proveStack);
   }
 
-  private Term proveNext(final BiConsumer<String, Term> unknownPredicateConsumer) {
-    final JProlChoicePoint root = this.rootChoicePoint;
+  private Term proveNext(final BiConsumer<String, Term> unknownPredicateConsumer,
+                         final List<ProveStackFrame> proveStack) {
+    proveStack.add(new ProveStackFrame(this));
 
-    Term result = null;
-    boolean mainLoop = true;
+    stackLoop:
+    while (!proveStack.isEmpty()) {
+      final ProveStackFrame topFrame = proveStack.get(proveStack.size() - 1);
+      final JProlChoicePoint activeSelf = topFrame.entry;
+      final JProlChoicePoint root = activeSelf.rootChoicePoint;
 
-    while (mainLoop) {
-      if (this.context.isDisposed()) {
-        throw new ProlChoicePointInterruptedException("detected context dispose during prove",
-            this);
-      }
+      Term result = null;
+      boolean mainLoop = true;
 
-      JProlChoicePoint goalToProcess = root.parentCp;
-      if (goalToProcess == null) {
-        break;
-      }
+      mainWhile:
+      while (mainLoop) {
+        if (activeSelf.context.isDisposed()) {
+          throw new ProlChoicePointInterruptedException("detected context dispose during prove",
+              activeSelf);
+        }
 
-      if (goalToProcess.hasAlternatives) {
+        JProlChoicePoint goalToProcess;
+        final boolean resumeAfterSubgoal = topFrame.subgoalOutcomePending;
+        if (resumeAfterSubgoal) {
+          goalToProcess = topFrame.pendingResumeGoal;
+        } else {
+          goalToProcess = root.parentCp;
+          if (goalToProcess == null) {
+            break mainWhile;
+          }
+        }
+
+        if (!resumeAfterSubgoal && !goalToProcess.hasAlternatives) {
+          activeSelf.fireExitIfTrace(goalToProcess);
+          root.parentCp = goalToProcess.prevCp;
+          continue mainWhile;
+        }
+
         try {
-          traceCp(goalToProcess);
+          if (!resumeAfterSubgoal) {
+            traceCp(goalToProcess);
+          }
           int cpResult = CP_FAIL;
           boolean internalLoop = true;
 
@@ -321,10 +346,12 @@ public final class JProlChoicePoint implements Comparator<Term> {
               goalToProcess.varSnapshot.resetToState();
             }
 
-            if (goalToProcess.nextCp != null) {
-              // solve sub-goal
-              final Term solvedTerm = goalToProcess.nextCp.proveNext(
-                  unknownPredicateConsumer);
+            if (topFrame.subgoalOutcomePending) {
+              goalToProcess = topFrame.pendingResumeGoal;
+              final Term solvedTerm = topFrame.pendingSubgoalResult;
+              topFrame.subgoalOutcomePending = false;
+              topFrame.pendingSubgoalResult = null;
+              topFrame.pendingResumeGoal = null;
 
               if (goalToProcess.nextCp.cutActivated) {
                 goalToProcess.clauseIterator = null;
@@ -342,9 +369,17 @@ public final class JProlChoicePoint implements Comparator<Term> {
                 cpResult = CP_SUCCESS;
                 break;
               }
+              continue;
             }
 
-            final Term theTerm = goalToProcess.goalTerm.tryGroundOrDefault(goalToProcess.goalTerm);
+            if (goalToProcess.nextCp != null) {
+              topFrame.pendingResumeGoal = goalToProcess;
+              proveStack.add(new ProveStackFrame(goalToProcess.nextCp));
+              continue stackLoop;
+            }
+
+            final Term theTerm =
+                goalToProcess.goalTerm.tryGroundOrDefault(goalToProcess.goalTerm);
 
             if (goalToProcess.clauseIterator != null) {
               final int stepResult = goalToProcess.processNextClause(theTerm);
@@ -490,7 +525,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
           switch (cpResult) {
             case CP_FAIL: {
-              this.fireFailAndExitIfTrace(goalToProcess);
+              activeSelf.fireFailAndExitIfTrace(goalToProcess);
               root.parentCp = goalToProcess.prevCp;
             }
             break;
@@ -502,7 +537,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
                 mainLoop = false;
               } else {
                 final JProlChoicePoint nextGoal =
-                    this.createChildChoicePoint(goalToProcess.nextAndTerm);
+                    activeSelf.createChildChoicePoint(goalToProcess.nextAndTerm);
                 nextGoal.nextAndTerm = goalToProcess.nextAndTermForNextGoal;
               }
             }
@@ -515,15 +550,20 @@ public final class JProlChoicePoint implements Comparator<Term> {
           }
         } catch (StackOverflowError ex) {
           throw new ProlChoicePointStackOverflowException(
-              "Caught stack overflow error during prove", this);
+              "Caught stack overflow error during prove", activeSelf);
         }
-      } else {
-        this.fireExitIfTrace(goalToProcess);
-        root.parentCp = goalToProcess.prevCp;
       }
+
+      proveStack.remove(proveStack.size() - 1);
+      if (proveStack.isEmpty()) {
+        return result;
+      }
+      final ProveStackFrame callerFrame = proveStack.get(proveStack.size() - 1);
+      callerFrame.pendingSubgoalResult = result;
+      callerFrame.subgoalOutcomePending = true;
     }
 
-    return result;
+    return null;
   }
 
   /**
@@ -704,6 +744,17 @@ public final class JProlChoicePoint implements Comparator<Term> {
     }
 
     return compareResult;
+  }
+
+  private static final class ProveStackFrame {
+    final JProlChoicePoint entry;
+    JProlChoicePoint pendingResumeGoal;
+    boolean subgoalOutcomePending;
+    Term pendingSubgoalResult;
+
+    ProveStackFrame(final JProlChoicePoint entry) {
+      this.entry = entry;
+    }
   }
 
 }
