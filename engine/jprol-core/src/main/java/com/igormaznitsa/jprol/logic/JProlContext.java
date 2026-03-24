@@ -146,6 +146,8 @@ public class JProlContext implements AutoCloseable {
   private boolean shareKnowledgeBaseWithAsyncTasks;
   private UndefinedPredicateBehavior undefinedPredicateBehaviour;
 
+  private int maxProveStackDepth = 1000_000;
+
   /**
    * Create instance.
    *
@@ -340,6 +342,10 @@ public class JProlContext implements AutoCloseable {
     if (store != null) {
       store.removeif((s, t) -> s.startsWith(contextGlobalVariablePrefix));
     }
+  }
+
+  public int getMaxProveStackDepth() {
+    return this.maxProveStackDepth;
   }
 
   /**
