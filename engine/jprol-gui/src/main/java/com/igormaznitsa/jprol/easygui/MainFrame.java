@@ -16,6 +16,9 @@
 
 package com.igormaznitsa.jprol.easygui;
 
+import static com.igormaznitsa.jprol.logic.JProlContext.VERSION_MAJOR;
+import static com.igormaznitsa.jprol.logic.JProlContext.VERSION_MINOR;
+import static com.igormaznitsa.jprol.logic.JProlContext.VERSION_PATCH;
 import static java.lang.String.format;
 import static javax.swing.Box.Filler;
 import static javax.swing.JOptionPane.showMessageDialog;
@@ -184,8 +187,7 @@ public final class MainFrame extends javax.swing.JFrame
    * The version of the IDE
    */
   private final String VERSION =
-      this.getClass().getPackage().getImplementationVersion() == null ? "<Development>"
-          : this.getClass().getPackage().getImplementationVersion();
+      String.format("%d.%d.%d", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
   private final ThreadGroup executingScripts = new ThreadGroup("ProlExecutingScripts");
   private final RecentlyOpenedFileFixedList recentFiles =
       new RecentlyOpenedFileFixedList(MAX_RECENT_FILES);
