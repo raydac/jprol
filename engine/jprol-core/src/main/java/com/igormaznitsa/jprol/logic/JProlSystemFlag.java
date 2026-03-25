@@ -7,6 +7,7 @@ import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 
+import com.igormaznitsa.jprol.data.NumericTerm;
 import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermType;
@@ -15,49 +16,67 @@ import com.igormaznitsa.jprol.utils.ProlUtils;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 public enum JProlSystemFlag {
   ADDRESS_BITS(true, Terms.newAtom("address_bits", SourcePosition.UNKNOWN),
-      Terms.newLong(ProlUtils.getJvmBitness(), SourcePosition.UNKNOWN), "Bitness of the Java VM."),
+      Terms.newLong(ProlUtils.getJvmBitness(), SourcePosition.UNKNOWN), null,
+      "Bitness of the Java VM."),
   ALLOW_LIBRARY_SIGNATURE_CONFLICT(false, Terms.newAtom("allow_library_signarute_conflict"), FALSE,
+      null,
       "Allow definitions of predicates with same signatures which already presented in registered libraries"),
   OS(true, Terms.newAtom("os"), Terms.newAtom(System.getProperty("os.name", "unknown")),
-      "OS name."),
+      null, "OS name."),
   ARCH(true, Terms.newAtom("arch"), Terms.newAtom(System.getProperty("os.arch", "unknown")),
-      "Identifier for the hardware and operating system JProl is running on."),
+      null, "Identifier for the hardware and operating system JProl is running on."),
   BOUNDED(true, Terms.newAtom("bounded"), TRUE,
-      "If true, integer representation is bound by min_integer and max_integer."),
-  TRACE(false, Terms.newAtom("trace"), FALSE, "Turn on tracing of internal calls."),
-  DIALECT(true, Terms.newAtom("dialect"), Terms.newAtom("jprol"), "Info about the dialect."),
+      null, "If true, integer representation is bound by min_integer and max_integer."),
+  TRACE(false, Terms.newAtom("trace"), FALSE, null, "Turn on tracing of internal calls."),
+  DIALECT(true, Terms.newAtom("dialect"), Terms.newAtom("jprol"), null, "Info about the dialect."),
   ENCODING(false, Terms.newAtom("encoding"), Terms.newAtom(StandardCharsets.UTF_8.name()),
-      "Text encoding charset name"),
+      null, "Text encoding charset name"),
   GC(true, Terms.newAtom("gc"), FALSE,
+      null,
       "If true (default), the garbage collector is active. Added for compatibility with another prolog systems."),
   MAX_ARITY(true, Terms.newAtom("max_arity"), Terms.newLong(Integer.MAX_VALUE),
-      "flag describing there is no maximum arity to compound terms."),
+      null, "flag describing there is no maximum arity to compound terms."),
   MAX_INTEGER(true, Terms.newAtom("max_integer"), Terms.newLong(Long.MAX_VALUE),
-      "Maximum integer value if integers are bounded."),
+      null, "Maximum integer value if integers are bounded."),
   MIN_INTEGER(true, Terms.newAtom("min_integer"), Terms.newLong(Long.MIN_VALUE),
-      "Minimum integer value if integers are bounded."),
+      null, "Minimum integer value if integers are bounded."),
   SHARE_KNOWLEDGE_BASE(false, Terms.newAtom("share_knowledge_base"), FALSE,
-      "Flags shows that knowledge base should be shared with child contexts."),
+      null, "Flags shows that knowledge base should be shared with child contexts."),
   CPU_COUNT(true, Terms.newAtom("cpu_count"),
       Terms.newLong(Runtime.getRuntime().availableProcessors()),
-      "Number of physical CPUs or cores in the system."),
+      null, "Number of physical CPUs or cores in the system."),
+  MAX_PROVE_STACK_DEPTH(false, Terms.newAtom("max_prove_stack_depth"), Terms.newLong(1_000_000L),
+      x -> {
+        final Term term = x.tryGround();
+        if (term instanceof NumericTerm) {
+          final int depth = term.toNumber().intValue();
+          return depth > 0;
+        } else {
+          return false;
+        }
+      }, "Max prove stack depth."),
   UNKNOWN(false, Terms.newAtom("unknown"), UndefinedPredicateBehavior.ERROR.getTerm(),
-      "Behavior for unknown predicate."),
+      x -> {
+        final Term term = x.tryGround();
+        return UndefinedPredicateBehavior.find(term.getText()).isPresent();
+      }, "Behavior for unknown predicate."),
   HOME(true, Terms.newAtom("home"),
       Terms.newAtom(System.getProperty("user.home", ""), SourcePosition.UNKNOWN),
-      "Path to the user home folder."),
+      null, "Path to the user home folder."),
   VERIFY(false, Terms.newAtom("verify", SourcePosition.UNKNOWN), TRUE,
+      null,
       "If true then every library predicate will be verified for its arguments by internal validator before call."),
   VERSION_DATA(true, Terms.newAtom("version_data", SourcePosition.UNKNOWN),
       newStruct(
           newAtom("jprol", SourcePosition.UNKNOWN),
           newLong(3, SourcePosition.UNKNOWN),
+          newLong(1, SourcePosition.UNKNOWN),
           newLong(0, SourcePosition.UNKNOWN),
-          newLong(0, SourcePosition.UNKNOWN),
-          NULL_LIST), "Version of the JProl engine."
+          NULL_LIST), null, "Version of the JProl engine."
   );
 
   public static final List<JProlSystemFlag> VALUES =
@@ -66,13 +85,22 @@ public enum JProlSystemFlag {
   private final Term nameTerm;
   private final Term defaultValue;
   private final boolean readOnly;
+  private final Predicate<Term> valueValidator;
 
-  JProlSystemFlag(final boolean readOnly, final Term name, final Term defaultValue,
+  JProlSystemFlag(final boolean readOnly,
+                  final Term name,
+                  final Term defaultValue,
+                  final Predicate<Term> valueValidator,
                   final String reference) {
     this.nameTerm = name;
     this.readOnly = readOnly;
     this.defaultValue = defaultValue;
     this.reference = reference;
+    this.valueValidator = valueValidator == null ? (x -> true) : valueValidator;
+  }
+
+  public Predicate<Term> getValueValidator() {
+    return this.valueValidator;
   }
 
   public static Optional<JProlSystemFlag> find(final Term term) {

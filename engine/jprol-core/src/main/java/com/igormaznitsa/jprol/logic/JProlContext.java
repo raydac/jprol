@@ -146,7 +146,7 @@ public class JProlContext implements AutoCloseable {
   private boolean shareKnowledgeBaseWithAsyncTasks;
   private UndefinedPredicateBehavior undefinedPredicateBehaviour;
 
-  private int maxProveStackDepth = 1000_000;
+  private int maxProveStackDepth;
 
   /**
    * Create instance.
@@ -553,6 +553,10 @@ public class JProlContext implements AutoCloseable {
       throw new IllegalStateException("Flag is marked as read-only: " + flag);
     } else {
       final Term value = requireNonNull(term.tryGroundOrDefault(null));
+      if (!flag.getValueValidator().test(value)) {
+        throw new IllegalArgumentException(
+            "Illegal value for system flag " + flag.asText() + " : " + value.getText());
+      }
       this.systemFlags.put(flag, value);
       this.onSystemFlagsUpdated();
     }
@@ -564,6 +568,8 @@ public class JProlContext implements AutoCloseable {
     this.verify =
         parseBoolean(this.systemFlags.get(JProlSystemFlag.VERIFY).getText());
     this.trace = parseBoolean(this.systemFlags.get(JProlSystemFlag.TRACE).getText());
+    this.maxProveStackDepth =
+        this.systemFlags.get(JProlSystemFlag.MAX_PROVE_STACK_DEPTH).toNumber().intValue();
     this.undefinedPredicateBehaviour = UndefinedPredicateBehavior
         .find(this.systemFlags.get(JProlSystemFlag.UNKNOWN).getText())
         .orElseThrow(() -> new ProlDomainErrorException(
