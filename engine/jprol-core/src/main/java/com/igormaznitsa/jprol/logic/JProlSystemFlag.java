@@ -6,6 +6,9 @@ import static com.igormaznitsa.jprol.data.Terms.TRUE;
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
+import static com.igormaznitsa.jprol.logic.JProlContext.VERSION_MAJOR;
+import static com.igormaznitsa.jprol.logic.JProlContext.VERSION_MINOR;
+import static com.igormaznitsa.jprol.logic.JProlContext.VERSION_PATCH;
 
 import com.igormaznitsa.jprol.data.NumericTerm;
 import com.igormaznitsa.jprol.data.SourcePosition;
@@ -73,9 +76,9 @@ public enum JProlSystemFlag {
   VERSION_DATA(true, Terms.newAtom("version_data", SourcePosition.UNKNOWN),
       newStruct(
           newAtom("jprol", SourcePosition.UNKNOWN),
-          newLong(3, SourcePosition.UNKNOWN),
-          newLong(1, SourcePosition.UNKNOWN),
-          newLong(0, SourcePosition.UNKNOWN),
+          newLong(VERSION_MAJOR, SourcePosition.UNKNOWN),
+          newLong(VERSION_MINOR, SourcePosition.UNKNOWN),
+          newLong(VERSION_PATCH, SourcePosition.UNKNOWN),
           NULL_LIST), null, "Version of the JProl engine."
   );
 

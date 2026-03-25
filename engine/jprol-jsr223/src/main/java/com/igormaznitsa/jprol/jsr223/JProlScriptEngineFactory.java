@@ -1,5 +1,8 @@
 package com.igormaznitsa.jprol.jsr223;
 
+import static com.igormaznitsa.jprol.logic.JProlContext.VERSION_MAJOR;
+import static com.igormaznitsa.jprol.logic.JProlContext.VERSION_MINOR;
+import static com.igormaznitsa.jprol.logic.JProlContext.VERSION_PATCH;
 import static java.lang.Double.parseDouble;
 import static java.lang.Long.parseLong;
 
@@ -21,7 +24,8 @@ import javax.script.SimpleBindings;
 public class JProlScriptEngineFactory implements ScriptEngineFactory {
 
   private static final String ENGINE_NAME = "JProl";
-  private static final String ENGINE_VERSION = "3.1.0";
+  private static final String ENGINE_VERSION =
+      "" + VERSION_MAJOR + '.' + VERSION_MINOR + '.' + VERSION_PATCH;
   private static final String LANGUAGE_NAME = "Prolog";
   private static final String LANGUAGE_VERSION = "JProl";
 
