@@ -296,7 +296,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
     stackLoop:
     while (!proveStack.isEmpty()) {
       final ProveStackFrame topFrame = proveStack.peek();
-      final JProlChoicePoint activeSelf = topFrame.entry;
+      final JProlChoicePoint activeSelf = topFrame.choicePoint;
       final JProlChoicePoint root = activeSelf.rootChoicePoint;
 
       Term result = null;
