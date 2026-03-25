@@ -559,7 +559,7 @@ public class JProlContext implements AutoCloseable {
       final Term value = requireNonNull(term.tryGroundOrDefault(null));
       if (!flag.getValueValidator().test(value)) {
         throw new IllegalArgumentException(
-            "Illegal value for system flag " + flag.asText() + " : " + value.getText());
+            "Illegal value for system flag '" + flag.asText() + "': " + value.getText());
       }
       this.systemFlags.put(flag, value);
       this.onSystemFlagsUpdated();

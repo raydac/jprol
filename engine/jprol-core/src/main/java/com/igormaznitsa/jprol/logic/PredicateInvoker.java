@@ -164,6 +164,8 @@ public final class PredicateInvoker {
       throw ex;
     } catch (IllegalAccessException ex) {
       throw new ProlException("Illegal access exception at " + predicate, ex);
+    } catch (IllegalArgumentException ex) {
+      throw new ProlArgumentValidationException("Illegal argument at " + predicate, ex);
     } catch (Throwable thr) {
       final Throwable cause = thr.getCause();
 
