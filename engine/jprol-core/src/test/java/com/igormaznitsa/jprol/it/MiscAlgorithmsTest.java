@@ -11,66 +11,78 @@ import org.junit.jupiter.api.Test;
 
 class MiscAlgorithmsTest extends AbstractJProlTest {
 
-  private void calcAkkerman(int m, int n, int a) {
-    final JProlContext context = makeContextAndConsult("akkerman(0,N,X):- X is N+1,!. "
-        + "akkerman(M,0,X):- Mn is M-1, !, akkerman(Mn,1,X). "
-        + "akkerman(M,N,X):- Mn is M-1, Nn is N-1, !, akkerman(M,Nn,Y), !, akkerman(Mn,Y,X).");
-    final String goalText = "akkerman(" + m + ',' + n + ",A).";
-    final JProlChoicePoint goal = context.makeChoicePoint(goalText);
-    final Term resultterm = goal.prove();
-    assertNotNull(resultterm);
-    final Term result = goal.findVar("A").get().getValue();
-    assertNotNull(result);
-    assertEquals(a, result.toNumber().intValue());
-    assertNull(goal.prove());
+  private void calcAckermann(int n, int m, int a) {
+    try (final JProlContext context = makeContextAndConsult(
+        "ackermann(0, M, R) :- R is M + 1."
+            + "ackermann(N, 0, R) :- N > 0, N1 is N - 1, ackermann(N1, 1, R)."
+            +
+            "ackermann(N, M, R) :- N > 0, M > 0, M1 is M - 1, ackermann(N, M1, R1), N1 is N - 1, ackermann(N1, R1, R)."
+    )) {
+      final String goalText = "ackermann(" + n + ',' + m + ",A).";
+      final JProlChoicePoint goal = context.makeChoicePoint(goalText);
+      final Term resultterm = goal.prove();
+      assertNotNull(resultterm);
+      final Term result = goal.findVar("A").get().getValue();
+      assertNotNull(result);
+      assertEquals(a, result.toNumber().intValue());
+      assertNull(goal.prove());
+    }
   }
 
   @Test
-  void testAkkerman() {
-    calcAkkerman(0, 0, 1);
-    calcAkkerman(1, 0, 2);
-    calcAkkerman(2, 0, 3);
-    calcAkkerman(3, 0, 5);
-    calcAkkerman(4, 0, 13);
+  void testAckerman() {
+    calcAckermann(0, 0, 1);
+    calcAckermann(0, 1, 2);
+    calcAckermann(0, 2, 3);
+    calcAckermann(0, 3, 4);
+    calcAckermann(0, 4, 5);
+    calcAckermann(1, 0, 2);
+    calcAckermann(1, 1, 3);
+    calcAckermann(1, 2, 4);
+    calcAckermann(1, 3, 5);
+    calcAckermann(1, 4, 6);
+    calcAckermann(2, 0, 3);
+    calcAckermann(2, 1, 5);
+    calcAckermann(2, 2, 7);
+    calcAckermann(2, 3, 9);
+    calcAckermann(3, 0, 5);
+    calcAckermann(3, 5, 253);
+    calcAckermann(3, 6, 509);
 
-    calcAkkerman(0, 1, 2);
-    calcAkkerman(1, 1, 3);
-    calcAkkerman(2, 1, 5);
-    calcAkkerman(3, 1, 13);
-
-    calcAkkerman(0, 5, 6);
-    calcAkkerman(1, 5, 7);
-    calcAkkerman(2, 5, 13);
-    calcAkkerman(3, 5, 253);
-
-    //calcAkkerman(4, 1, 65533); // too deep stack
+    //calcAckermann(4, 0, 13);
+    //calcAckermann(3, 9, 4093);
+    //calcAckermann(3, 10, 8189);
+    //calcAckermann(3, 16, 524285);
   }
 
   @Test
   void testFibonacci() {
-    final JProlContext context = makeContextAndConsult("fib(1,1):-!. fib(0,0):-!. fib(N,Result):-Npp is N-2, Np is N-1, fib(Npp,Resultpp), fib(Np,Resultp), Result is Resultpp+Resultp.");
+    try (final JProlContext context = makeContextAndConsult(
+        "fib(1,1):-!. fib(0,0):-!. fib(N,Result):-Npp is N-2, Np is N-1, fib(Npp,Resultpp), fib(Np,Resultp), Result is Resultpp+Resultp.")) {
+      final JProlChoicePoint goal = context.makeChoicePoint("fib(22,Result).");
 
-    final JProlChoicePoint goal = context.makeChoicePoint("fib(22,Result).");
-
-    assertNotNull(goal.prove());
-    assertEquals(17711L, getVarAsNumber(goal, "Result").intValue());
-    assertNull(goal.prove());
+      assertNotNull(goal.prove());
+      assertEquals(17711L, getVarAsNumber(goal, "Result").intValue());
+      assertNull(goal.prove());
+    }
   }
 
   @Test
   void testQuasiObjectMethods() {
-    final JProlContext context = makeContextAndConsult("object(rectangle(Length,Width),[(area(A):-A is Length * Width),(describe :- write('Rectangle of size'), write(Length * Width))])."
+    try (final JProlContext context = makeContextAndConsult(
+        "object(rectangle(Length,Width),[(area(A):-A is Length * Width),(describe :- write('Rectangle of size'), write(Length * Width))])."
         + "send(Object,Message):-get_methods(Object,Methods),process(Message,Methods)."
         + "get_methods(Object,Methods):-object(Object,Methods)."
         + "process(Message,[Message|_])."
         + "process(Message,[(Message :- Body)|_]):-call(Body)."
-        + "process(Message,[_|Methods]):-process(Message,Methods).");
+            + "process(Message,[_|Methods]):-process(Message,Methods).")) {
 
-    final JProlChoicePoint goal =
-        context.makeChoicePoint("Rec1=rectangle(4,3),send(Rec1,area(Area)).");
+      final JProlChoicePoint goal =
+          context.makeChoicePoint("Rec1=rectangle(4,3),send(Rec1,area(Area)).");
 
-    assertNotNull(goal.prove());
-    assertEquals(12L, getVarAsNumber(goal, "Area").longValue());
-    assertNull(goal.prove());
+      assertNotNull(goal.prove());
+      assertEquals(12L, getVarAsNumber(goal, "Area").longValue());
+      assertNull(goal.prove());
+    }
   }
 }
