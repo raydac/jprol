@@ -110,6 +110,7 @@ The bootstrap library of the engine has two predicates `set_prolog_flag/2` and `
     - __max_integer__ (read only) maximum integer value if integers are bounded
     - __min_integer__ (read only) minimum integer value if integers are bounded
     - __cpu_count__ (read only) number of physical CPUs or cores in the system
+    - __max_prove_stack_depth__ max allowed depth of stack during prove
     - __unknown__ determines the behaviour if an undefined procedure is encountered. If fail, the predicate fails silently. Allowed `error`,`fail` or `warning` by default `error`
     - __home__ (read only) notion of the user home directory
     - __verify__ extra check for callable term in choice points true/false
