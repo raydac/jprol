@@ -23,7 +23,7 @@ __3.1.0 (2026-03-26)__
 
  - added system flag `max_prove_stack_depth`, default max depth is 10000
  - refactoring of choice point to replace recursion by a custom stack
- - emnedded JDK updated to 26+37
+ - embedded JDK updated to 26+37
 
 __3.0.1 (2026-01-18)__
 
