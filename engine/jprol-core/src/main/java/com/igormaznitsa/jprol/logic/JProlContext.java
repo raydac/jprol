@@ -120,7 +120,7 @@ public class JProlContext implements AutoCloseable {
 
   public static final int VERSION_MAJOR = 3;
   public static final int VERSION_MINOR = 1;
-  public static final int VERSION_PATCH = 0;
+  public static final int VERSION_PATCH = 1;
 
   protected static final String QUERY = "?-";
   private static final AtomicLong TASK_COUNTER = new AtomicLong();
