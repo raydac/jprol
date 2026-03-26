@@ -160,13 +160,13 @@ if (proven) return (Long)bindings.get("Z");
 
 Call of a function in Scripting API can look as shown below
 ```java
-ScriptEngine engine = new ScriptEngineManager().getEngineByMimeType("application/jprol");
-engine.consult("divide(A,B,C) :- C is A div B.");
-
-TermVar result = Terms.newVar("Result");
-if ((boolean) engine.invokeFunction("divide", a, b, result)) {
-    return (long) JProlScriptEngineUtils.term2java(result);
-}
+ScriptEngine engine = new ScriptEngineManager().getEngineByName("jprol");
+engine.eval("mul(A,B,Y) :- Y is A * B.");
+Bindings bindings = new SimpleBindings();
+bindings.put("X", 5);
+bindings.put("Y", 6);
+assertTrue((boolean)engine.eval("?-mul(X,Y,Z).", bindings)); // returns TRUE if proven successfully
+assertEquals(30L, bindings.get("Z"));
 ```
 
 # The GUI editor
