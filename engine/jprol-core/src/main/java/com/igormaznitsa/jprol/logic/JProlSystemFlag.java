@@ -52,7 +52,7 @@ public enum JProlSystemFlag {
   CPU_COUNT(true, Terms.newAtom("cpu_count"),
       Terms.newLong(Runtime.getRuntime().availableProcessors()),
       null, "Number of physical CPUs or cores in the system."),
-  MAX_PROVE_STACK_DEPTH(false, Terms.newAtom("max_prove_stack_depth"), Terms.newLong(1_000L),
+  MAX_PROVE_STACK_DEPTH(false, Terms.newAtom("max_prove_stack_depth"), Terms.newLong(10_000L),
       x -> {
         final Term term = x.tryGround();
         if (term instanceof NumericTerm) {

@@ -1,6 +1,6 @@
 ![JPROL logo](art/github_logo.png)   
 [![License Apache 12](https://img.shields.io/badge/license-Apache%20License%202.0-green.svg)](http://www.apache.org/licenses/LICENSE-2.0)
-[![Maven central](https://img.shields.io/badge/Maven%20central-3.0.1-green.svg)](http://search.maven.org/#artifactdetails|com.igormaznitsa|jprol-core|3.0.1|jar)
+[![Maven central](https://img.shields.io/badge/Maven%20central-3.1.0-green.svg)](http://search.maven.org/#artifactdetails|com.igormaznitsa|jprol-core|3.1.0|jar)
 [![Java 11+](https://img.shields.io/badge/java-11%2b-green.svg)](https://bell-sw.com/pages/downloads/#jdk-21-lts)
 
 [![Arthur's acres sanctuary donation](art/arthur_sanctuary_banner.png)](https://www.arthursacresanimalsanctuary.org/donate)
@@ -19,26 +19,17 @@ Initially the engine was a mono-block with embedded GUI part, but later it rewor
 
 # Changelog
 
+__3.1.0 (2026-03-26)__
+
+ - added system flag `max_prove_stack_depth`, default max depth is 10000
+ - refactoring of choice point to replace recursion by a custom stack
+ - emnedded JDK updated to 26+37
+
 __3.0.1 (2026-01-18)__
 
 - Minor improvements.
 - Fixed unification between atoms and operators.
 - Added check for conflict between library predicates and dynamic predicates, can be turned off by `allow_library_signarute_conflict` system flag.
-
-__3.0.0 (2026-01-08)__
-
-- Added way to provide global variables storager and predicates `nb_setvar/2`,`nb_getvar/2` and `nb_delete/1`.
-- Provided way to provide payload and associated objects for terms and choice points.
-- Restored local cut `!!/0` to cut only current local predicate alternative chain.
-- Guarded predicates moved from core library to JProlCoreGuardedLibrary.
-- Added `format/1`,`format/2` and `format/3` into JProlIoLibrary.
-- Internal random generator switched to SecureRandom.
-- Updated embedded JDK to 25.0.1+13.
-- Refactored API, renamed methods, some contants moved between classes, restored associated payload objects with terms.
-- Internal optimizations to decrease memory footstep.
-- Added support for Java Scripting API (JSR 223) as module `jprol-jsr223`.
-- Library predicates `dispose/0` and `dispose/1` replaced by more safe variant `abort/0` and `abort/1`.
-- Bugfixing.
 
 [changelog](changelog.txt)
 
@@ -50,7 +41,7 @@ The engine is published in [the maven central](https://search.maven.org/artifact
 <dependency>
     <groupId>com.igormaznitsa</groupId>
     <artifactId>jprol-core</artifactId>
-    <version>3.0.1</version>
+    <version>3.1.0</version>
 </dependency>
 ```   
 
@@ -149,7 +140,7 @@ Since 3.0.0 added support of Java Scripting API as seaparated module `jprol-jsr2
 <dependency>
     <groupId>com.igormaznitsa</groupId>
     <artifactId>jprol-jsr223</artifactId>
-    <version>3.0.1</version>
+    <version>3.1.0</version>
 </dependency>
 ```
 
