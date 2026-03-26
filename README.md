@@ -147,19 +147,7 @@ Since 3.0.0 added support of Java Scripting API as seaparated module `jprol-jsr2
 
 Simple use case to show how to use.
 
-
 ``` java
-ScriptEngine engine = new ScriptEngineManager().getEngineByName("jprol");
-engine.eval("mul(A,B,Y) :- Y is A * B.");
-Bindings bindings = new SimpleBindings();
-bindings.put("X", a);
-bindings.put("Y", b);
-boolean proven = (boolean)this.engine.eval("?-mul(X,Y,Z).", bindings);
-if (proven) return (Long)bindings.get("Z");
-```
-
-Call of a function in Scripting API can look as shown below
-```java
 ScriptEngine engine = new ScriptEngineManager().getEngineByName("jprol");
 engine.eval("mul(A,B,Y) :- Y is A * B.");
 Bindings bindings = new SimpleBindings();
@@ -167,6 +155,15 @@ bindings.put("X", 5);
 bindings.put("Y", 6);
 assertTrue((boolean)engine.eval("?-mul(X,Y,Z).", bindings)); // returns TRUE if proven successfully
 assertEquals(30L, bindings.get("Z"));
+```
+
+It is possible to make a call with specific methods
+```java
+JProlScriptEngine engine = (JProlScriptEngine) new ScriptEngineManager().getEngineByMimeType("application/jprol");
+engine.consult("mul(A,B,Y) :- Y is A * B.");
+List<Map<String,Object>> results = engine.proveAll("mul(5,6,Z).");
+assertEquals(1, results.size());
+assertEquals(30L, (Long)results.get(0).get("Z"));
 ```
 
 # The GUI editor
