@@ -5,6 +5,9 @@
 
 [![Arthur's acres sanctuary donation](art/arthur_sanctuary_banner.png)](https://www.arthursacresanimalsanctuary.org/donate)
 
+> [!CAUTION]
+> It is a Prolog interpreter rather than a compiler or a WAM-based engine. It was originally developed as an exercise in exploring and learning Prolog, so it is not particularly fast or highly optimized. However, it gets the job done, and I use it in some production-level products.
+
 # Introduction
 I used to buy and collect books about computer technologies since my childhood and in 1990 I bought a book titled as "Prolog programming for Artificial Intelligence" by Ivan Bratko but didn't have enough time to read it for about 20 years. In 2009 I found some free time to read the book and was amazed by the power of the computer language. To learn it better I wrote small Java based Prolog embeddable engine and called it JProl.   
 
@@ -13,9 +16,6 @@ In 2014 [Yuki Katsura](http://iprolog.appstor.io/) made iPad version.
 Initially the engine was a mono-block with embedded GUI part, but later it reworked and split solid-module into two modules: the engine and the GUI editor.
 
 ![GUIEditor](https://github.com/raydac/jprol/blob/master/jprolguieditor.png)   
-
-> [!CAUTION]
-> It is a Prolog interpreter rather than a compiler or a WAM-based engine. It was originally developed as an exercise in exploring and learning Prolog, so it is not particularly fast or highly optimized. However, it gets the job done, and I use it in some production-level products.
 
 # Changelog
 
