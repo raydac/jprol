@@ -83,6 +83,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executors;
@@ -170,7 +171,7 @@ public final class MainFrame extends javax.swing.JFrame
       if (f.isDirectory()) {
         return true;
       }
-      return f.getName().toLowerCase().endsWith(PROL_EXTENSION);
+      return f.getName().toLowerCase(Locale.ROOT).endsWith(PROL_EXTENSION);
     }
 
     @Override
@@ -386,7 +387,7 @@ public final class MainFrame extends javax.swing.JFrame
     fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
     File result = null;
-    if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+    if (fileChooser.showDialog(this, approveButtonText) == JFileChooser.APPROVE_OPTION) {
       result = fileChooser.getSelectedFile();
     }
     return result;
@@ -450,12 +451,27 @@ public final class MainFrame extends javax.swing.JFrame
       lookAndFeelClassName = UIManager.getSystemLookAndFeelClassName();
     }
 
-    final LookAndFeelInfo feelInfo = this.lookAndFeelMap.get(lookAndFeelClassName);
+    LookAndFeelInfo feelInfo = this.lookAndFeelMap.get(lookAndFeelClassName);
+    if (feelInfo == null) {
+      final String crossPlatform = UIManager.getCrossPlatformLookAndFeelClassName();
+      if (crossPlatform != null) {
+        feelInfo = this.lookAndFeelMap.get(crossPlatform);
+      }
+      if (feelInfo == null && !this.lookAndFeelMap.isEmpty()) {
+        feelInfo = this.lookAndFeelMap.values().iterator().next();
+      }
+    }
+    if (feelInfo == null) {
+      LOGGER.log(Level.WARNING, "No installed LookAndFeel info available; skipping L&F change.");
+      return;
+    }
+    final LookAndFeelInfo resolvedFeelInfo = feelInfo;
+    final String classNameForUi = resolvedFeelInfo.getClassName();
     final JFrame thisFrame = this;
 
     for (int li = 0; li < this.menuLookAndFeel.getItemCount(); li++) {
       final JLFRadioButtonItem menuItem = (JLFRadioButtonItem) this.menuLookAndFeel.getItem(li);
-      if (menuItem.getLfClassName().equals(lookAndFeelClassName) && !menuItem.isSelected()) {
+      if (menuItem.getLfClassName().equals(classNameForUi) && !menuItem.isSelected()) {
         menuItem.setSelected(true);
         break;
       }
@@ -463,7 +479,7 @@ public final class MainFrame extends javax.swing.JFrame
 
     final Runnable runnable = () -> {
       try {
-        UIManager.setLookAndFeel(feelInfo.getClassName());
+        UIManager.setLookAndFeel(resolvedFeelInfo.getClassName());
         UIManager.put("TextPane[Enabled].backgroundPainter",
             (Painter<JComponent>) (Graphics2D g, JComponent comp, int width1, int height1) -> {
               g.setColor(comp.getBackground());
@@ -495,9 +511,9 @@ public final class MainFrame extends javax.swing.JFrame
     splitPaneMain = new JSplitPane();
     splitPaneTop = new JSplitPane();
     try {
-      dialogEditor = new DialogEditor();
+      this.dialogEditor = new DialogEditor();
     } catch (java.io.IOException e1) {
-      e1.printStackTrace();
+      throw new IllegalStateException("DialogEditor initialization failed", e1);
     }
     editorPanel = new JPanel();
     sourceEditor = new PrologSourceEditor();
@@ -929,12 +945,13 @@ public final class MainFrame extends javax.swing.JFrame
   }
 
   private void menuClearTextActionPerformed(ActionEvent evt) {
-    if (this.sourceEditor.getEditor().getDocument().getLength() > 10) {
-      if (JOptionPane.showConfirmDialog(this, "Do you really want to clean?", "Confirmation",
-          JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-        this.sourceEditor.getUndoManager().discardAllEdits();
-        this.sourceEditor.clearText();
-      }
+    if (this.sourceEditor.getEditor().getDocument().getLength() == 0) {
+      return;
+    }
+    if (JOptionPane.showConfirmDialog(this, "Do you really want to clean?", "Confirmation",
+        JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+      this.sourceEditor.getUndoManager().discardAllEdits();
+      this.sourceEditor.clearText();
     }
   }
 
@@ -1033,7 +1050,6 @@ public final class MainFrame extends javax.swing.JFrame
 
   private void menuItemLibraryInfoActionPerformed(ActionEvent evt) {
     final java.util.List<String> list = new ArrayList<>();
-    list.add(JProlCoreLibrary.class.getCanonicalName());
     list.addAll(Arrays.asList(PROL_LIBRARIES));
 
     final LibraryInfoDialog infoDialog;
@@ -1080,7 +1096,8 @@ public final class MainFrame extends javax.swing.JFrame
     final Thread executingThread = this.currentExecutedScriptThread.get();
 
     if (executingThread != null && executingThread.isAlive()) {
-      showMessageDialog(this, "Prolog program is already started!.", "Can't trace",
+      showMessageDialog(this, "Prolog program is already started!.",
+          trace ? "Can't start trace" : "Can't start script",
           JOptionPane.WARNING_MESSAGE);
     } else {
       if (!this.currentExecutedScriptThread.compareAndSet(executingThread, null)) {
@@ -1252,7 +1269,7 @@ public final class MainFrame extends javax.swing.JFrame
     ProlInterruptException haltException = null;
     PrologParserException parserException = null;
 
-    long startTime = 0;
+    long startTime = System.currentTimeMillis();
 
     final Thread executing = this.currentExecutedScriptThread.get();
 
@@ -1339,7 +1356,6 @@ public final class MainFrame extends javax.swing.JFrame
       }
 
       this.messageEditor.addInfoText("Consult with the script... ");
-      startTime = System.currentTimeMillis();
 
       try {
         context.consult(new StringReader(sourceEditor.getText()), this);
@@ -1352,7 +1368,11 @@ public final class MainFrame extends javax.swing.JFrame
         LOGGER.log(Level.WARNING, "Permission error", ex);
         this.messageEditor.addErrorText(
             "Permission error [" + ex.getMessage() + ']');
-        showMessageDialog(this, "Out of memory error detected!", "Error",
+        showMessageDialog(this,
+            ex.getMessage() == null || ex.getMessage().isEmpty()
+                ? "The script attempted an operation that is not permitted."
+                : ex.getMessage(),
+            "Permission error",
             JOptionPane.ERROR_MESSAGE);
         return;
       } catch (PrologParserException ex) {
@@ -1374,7 +1394,7 @@ public final class MainFrame extends javax.swing.JFrame
         }
 
         if (cause instanceof ProlInterruptException) {
-          haltException = (ProlInterruptException) ex.getCause();
+          haltException = (ProlInterruptException) cause;
           canceled = cause instanceof ProlChoicePointInterruptedException;
         } else if (cause instanceof InterruptedException) {
           canceled = true;
@@ -1525,7 +1545,7 @@ public final class MainFrame extends javax.swing.JFrame
 
   @Override
   public void windowActivated(final WindowEvent e) {
-    if (this.currentExecutedScriptThread != null) {
+    if (this.currentExecutedScriptThread.get() != null) {
       this.dialogEditor.requestFocus();
     } else {
       this.sourceEditor.requestFocus();
@@ -1593,7 +1613,7 @@ public final class MainFrame extends javax.swing.JFrame
 
         if (!file.exists() && fileChooser.getFileFilter().equals(PROL_FILE_FILTER)) {
           // auto extension
-          if (!file.getName().toLowerCase().endsWith(PROL_EXTENSION)) {
+          if (!file.getName().toLowerCase(Locale.ROOT).endsWith(PROL_EXTENSION)) {
             file = new File(file.getAbsolutePath() + PROL_EXTENSION);
           }
         }
@@ -1730,18 +1750,19 @@ public final class MainFrame extends javax.swing.JFrame
     }
 
     String path = e.getDescription();
-    if (path.startsWith("source://")) {
-      path = path.substring(9);
-      String[] parsed = path.split(";");
-      if (parsed.length == 2) {
-        try {
-          int line = Integer.parseInt(parsed[0].trim());
-          int pos = Integer.parseInt(parsed[1].trim());
+    if (path == null || !path.startsWith("source://")) {
+      return;
+    }
+    path = path.substring(9);
+    String[] parsed = path.split(";");
+    if (parsed.length == 2) {
+      try {
+        int line = Integer.parseInt(parsed[0].trim());
+        int pos = Integer.parseInt(parsed[1].trim());
 
-          this.sourceEditor.setCaretPosition(line, pos);
-        } catch (Exception ex) {
-          ex.printStackTrace();
-        }
+        this.sourceEditor.setCaretPosition(line, pos);
+      } catch (Exception ex) {
+        ex.printStackTrace();
       }
     }
   }
@@ -1795,6 +1816,9 @@ public final class MainFrame extends javax.swing.JFrame
     for (final String recentFile : this.recentFiles.getCollection()) {
       prefs.put("RecentFile" + recentFileIndex, recentFile);
       recentFileIndex++;
+    }
+    for (int clear = recentFileIndex; clear <= MAX_RECENT_FILES; clear++) {
+      prefs.remove("RecentFile" + clear);
     }
 
     prefs.putBoolean("maximized",

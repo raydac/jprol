@@ -19,26 +19,20 @@ public class JProlStyledDocument extends DefaultStyledDocument {
 
   public void insertBunch(final List<StyledText> list) {
     final boolean old = this.disableAutoNotification;
-    this.disableAutoNotification = false;
-    int start = this.getLength();
-    int length = 0;
     try {
+      this.setDisableAutoNotification(false);
       for (final StyledText item : list) {
         if (item == StyledText.CLEAR) {
-          start = 0;
-          length = 0;
           this.remove(0, this.getLength());
         } else {
           final String text = item.getText();
           this.insertString(this.getLength(), text, item.getAttributeSet());
-          length += text.length();
         }
       }
     } catch (BadLocationException ex) {
       //
     } finally {
       this.setDisableAutoNotification(old);
-      this.fireListeners(start, length, DocumentEvent.EventType.INSERT);
     }
   }
 
