@@ -49,10 +49,7 @@ class MiscAlgorithmsTest extends AbstractJProlTest {
     calcAckermann(3, 5, 253);
     calcAckermann(3, 6, 509);
 
-    //calcAckermann(4, 0, 13);
-    //calcAckermann(3, 9, 4093);
-    //calcAckermann(3, 10, 8189);
-    //calcAckermann(3, 16, 524285);
+//    calcAckermann(5, 0, 65533); // too deep stack
   }
 
   @Test
