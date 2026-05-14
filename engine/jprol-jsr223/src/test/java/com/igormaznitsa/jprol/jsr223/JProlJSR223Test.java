@@ -2,6 +2,7 @@ package com.igormaznitsa.jprol.jsr223;
 
 import static com.igormaznitsa.jprol.jsr223.NamedList.namedListOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -330,6 +331,15 @@ public class JProlJSR223Test {
 
     assertEquals(20L, bindings1.get("Y"));
     assertEquals(40L, bindings2.get("Y"));
+  }
+
+  @Test
+  @DisplayName("Test compiled script eval returns false when query fails")
+  void testCompiledScriptEvalReturnsFalseWhenQueryFails() throws ScriptException {
+    ScriptEngine engine = getAvailableEngine();
+    assertInstanceOf(Compilable.class, engine);
+    CompiledScript compiled = ((Compilable) engine).compile("?- false.");
+    assertFalse((boolean) compiled.eval());
   }
 
   // ==================== Error Handling Tests ====================

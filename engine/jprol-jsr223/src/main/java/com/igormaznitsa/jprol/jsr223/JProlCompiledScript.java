@@ -128,10 +128,8 @@ public class JProlCompiledScript extends CompiledScript
           preparedQuery = preparedQuery.replaceVar(t.getKey(), t.getValue());
         }
       }
-      Object result =
-          this.engine.proveQueryOnce(preparedQuery, this.compiledProlContext, context.getBindings(
-              ENGINE_SCOPE));
-      return result == null ? Boolean.FALSE : Boolean.TRUE;
+      return this.engine.proveQueryOnce(preparedQuery, this.compiledProlContext,
+          context.getBindings(ENGINE_SCOPE));
     } catch (Exception e) {
       throw new ScriptException(e);
     }
@@ -217,11 +215,13 @@ public class JProlCompiledScript extends CompiledScript
     return this.disposed.get();
   }
 
+  /**
+   * Marks this compiled handle as closed. Does not dispose the underlying {@link JProlContext}
+   * (it is shared with the creating {@link JProlScriptEngine} for the compiling thread).
+   */
   @Override
   public void dispose() {
-    if (this.disposed.compareAndSet(false, true)) {
-      this.compiledProlContext.dispose();
-    }
+    this.disposed.compareAndSet(false, true);
   }
 
   @Override

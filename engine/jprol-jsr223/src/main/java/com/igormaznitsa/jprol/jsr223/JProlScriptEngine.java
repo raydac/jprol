@@ -29,7 +29,7 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.Writer;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -74,7 +74,7 @@ public class JProlScriptEngine
     public Reader findReader(JProlContext context, String readerId) {
       Reader result = null;
       if (READER_USER.equals(readerId)) {
-        result = new InputStreamReader(System.in, Charset.defaultCharset());
+        result = new InputStreamReader(System.in, StandardCharsets.UTF_8);
       }
       return result;
     }
@@ -83,9 +83,9 @@ public class JProlScriptEngine
     public Writer findWriter(final JProlContext context, final String writerId,
                              final boolean append) {
       if (WRITER_USER.equals(writerId)) {
-        return new PrintWriter(System.out, true, Charset.defaultCharset());
+        return new PrintWriter(System.out, true, StandardCharsets.UTF_8);
       } else if (WRITER_ERR.equals(writerId)) {
-        return new PrintWriter(System.err, true, Charset.defaultCharset());
+        return new PrintWriter(System.err, true, StandardCharsets.UTF_8);
       } else {
         return null;
       }
@@ -312,7 +312,9 @@ public class JProlScriptEngine
     }
 
     try {
-      final JProlContext prolContext = this.engineContext.get().findOrMakeJProlContext();
+      final JProlContext prolContext =
+          asJProlContext(requireNonNull(context, "context must not be null"))
+              .findOrMakeJProlContext();
 
       final List<Term> parsedTerms = parseWholeScript(script, prolContext);
       final String queryString =
@@ -497,6 +499,14 @@ public class JProlScriptEngine
   @Override
   public Object invokeMethod(final Object thisObject, final String name, final Object... args)
       throws ScriptException {
+    this.assertNotClosed();
+    if (thisObject != null && thisObject != this) {
+      if (!(thisObject instanceof JProlScriptEngineProvider)
+          || ((JProlScriptEngineProvider) thisObject).getJProlScriptEngine() != this) {
+        throw new ScriptException(
+            "invokeMethod is only supported when thisObject is this engine or a JProlScriptEngineProvider for it");
+      }
+    }
     return this.invokeFunction(name, args);
   }
 

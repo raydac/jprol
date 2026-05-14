@@ -55,11 +55,8 @@ public final class JProlScriptEngineUtils {
         return false;
       }
     }
-    if (string.chars()
-        .allMatch(x -> Character.isDigit(x) || Character.isAlphabetic(x) || x == '_')) {
-      return true;
-    }
-    return true;
+    return string.chars()
+        .allMatch(x -> Character.isDigit(x) || Character.isAlphabetic(x) || x == '_');
   }
 
   /**
