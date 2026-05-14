@@ -22,8 +22,10 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
 /**
- * Allows to compile a script for further usage. Allows to decrease overheads and increase call speed.
- * As precompiled query it keeps only the first found script query marked '?-'.
+ * {@link javax.script.CompiledScript} for JProl: at compile time, non-query phrases are consulted into the
+ * {@linkplain JProlContext context} of the compiling thread; the first {@code ?- Goal.} is stored for repeated
+ * {@linkplain #eval(ScriptContext) evaluation}. Closing this object does <b>not</b> dispose that shared {@link JProlContext}
+ * (the owning {@link JProlScriptEngine} remains responsible).
  *
  * @since 3.0.0
  */
@@ -79,15 +81,18 @@ public class JProlCompiledScript extends CompiledScript
     }
   }
 
+  /**
+   * {@link JProlContext} used at compile time (the same instance the {@linkplain #getEngine() engine} used on that thread).
+   */
   public JProlContext getCompiledContext() {
     this.assertNotDisposed();
     return this.compiledProlContext;
   }
 
   /**
-   * Query found in pre-compiled source, can be null np query.
+   * Query found in pre-compiled source, or {@code null} if the script had no {@code ?-} phrase.
    *
-   * @return first script query or null
+   * @return first script query or {@code null}
    */
   public Term getQuery() {
     this.assertNotDisposed();
@@ -105,11 +110,12 @@ public class JProlCompiledScript extends CompiledScript
   }
 
   /**
-   * Prove compiled query once.
+   * Proves the compiled query once using {@code context} for variable bindings and {@link ScriptContext#ENGINE_SCOPE}
+   * for output bindings.
    *
-   * @param context target context
-   * @return {@link Boolean#TRUE} if proved, {@link Boolean#FALSE} otherwise
-   * @throws ScriptException if any internal error
+   * @param context script context (must be a {@link JProlScriptEngineContext} for binding resolution)
+   * @return {@link Boolean#TRUE} if the goal succeeds, {@link Boolean#FALSE} otherwise
+   * @throws ScriptException if evaluation fails
    */
   @Override
   public Object eval(final ScriptContext context) throws ScriptException {
@@ -135,12 +141,19 @@ public class JProlCompiledScript extends CompiledScript
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public ScriptEngine getEngine() {
     this.assertNotDisposed();
     return this.engine;
   }
 
+  /**
+   * Proves {@code name(Args...)} on the {@linkplain #getCompiledContext() compiled} {@link JProlContext};
+   * {@code thisObject} must be a {@link JProlScriptEngineProvider}.
+   */
   @Override
   public Object invokeMethod(final Object thisObject, final String name, final Object... args) {
     this.assertNotDisposed();
@@ -160,21 +173,36 @@ public class JProlCompiledScript extends CompiledScript
     }
   }
 
+  /**
+   * Delegates to {@link #invokeMethod(Object, String, Object...)} with {@code this} as {@code thisObject}.
+   */
   @Override
   public Object invokeFunction(final String name, final Object... args) {
     return this.invokeMethod(this, name, args);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public JProlScriptEngine getJProlScriptEngine() {
     return this.engine;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>For compiled scripts, supported types from {@link #getCompiledContext()} include {@link JProlContext},
+   * {@link ParserContext}, and {@link KnowledgeBase}; {@link JProlScriptEngine} is resolved from the provider.
+   */
   @Override
   public <T> T getInterface(final Class<T> targetClass) {
     return this.getInterface(this.engine, targetClass);
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>Same supported types as {@link #getInterface(Class)}; {@code thisObject} must be a {@link JProlScriptEngineProvider}.
+   */
   @SuppressWarnings("unchecked")
   @Override
   public <T> T getInterface(final Object thisObject, final Class<T> targetClass) {
@@ -210,6 +238,9 @@ public class JProlCompiledScript extends CompiledScript
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean isDisposed() {
     return this.disposed.get();
@@ -224,11 +255,19 @@ public class JProlCompiledScript extends CompiledScript
     this.disposed.compareAndSet(false, true);
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>Marks this handle closed only; does not dispose the shared {@link JProlContext}.
+   */
   @Override
   public void close() {
     this.dispose();
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>Forwards to the parent {@link JProlScriptEngine#gc()}.
+   */
   @Override
   public void gc() {
     if (!this.disposed.get()) {

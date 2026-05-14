@@ -1,7 +1,5 @@
 package com.igormaznitsa.jprol.jsr223;
 
-import com.igormaznitsa.jprol.annotations.JProlPredicate;
-
 /**
  * Constants of special attributes in Bindings for JProl JSR 223.
  *
@@ -9,10 +7,8 @@ import com.igormaznitsa.jprol.annotations.JProlPredicate;
  */
 public interface JProlBindingsConstants {
   /**
-   * Checker to allow guarded predicates which guarded flag is true.
-   *
-   * @see JProlGuardPredicate
-   * @see JProlPredicate#guarded()
+   * Predicate guard installed from {@linkplain JProlBindingsConstants#JPROL_GLOBAL_GUARD_PREDICATE global bindings} to allow or deny
+   * execution of library predicates marked as {@linkplain com.igormaznitsa.jprol.annotations.JProlPredicate#guarded() guarded}.
    */
   String JPROL_GLOBAL_GUARD_PREDICATE = "jprol.global.guard.predicate";
 

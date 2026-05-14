@@ -1,7 +1,7 @@
 package com.igormaznitsa.jprol.jsr223;
 
 /**
- * Object is disposable.
+ * Object that can release external or native resources explicitly (in addition to {@code AutoCloseable} where applicable).
  */
 public interface Disposable {
   /**

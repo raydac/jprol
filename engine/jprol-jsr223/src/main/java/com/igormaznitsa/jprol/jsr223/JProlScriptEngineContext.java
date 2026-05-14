@@ -33,7 +33,12 @@ import javax.script.ScriptContext;
 import javax.script.SimpleBindings;
 
 /**
- * JProl script engine context.
+ * {@link ScriptContext} implementation used by {@link JProlScriptEngine}. Attributes live in {@link javax.script.Bindings}
+ * for {@link ScriptContext#GLOBAL_SCOPE} and {@link ScriptContext#ENGINE_SCOPE} only.
+ * <p>
+ * A {@linkplain JProlContext JProl interpreter} is created lazily per {@linkplain Thread thread} (see {@link #findOrMakeJProlContext()});
+ * {@linkplain #gc()} can reclaim state for terminated threads. Replacing {@linkplain ScriptContext#GLOBAL_SCOPE global}
+ * bindings changes shared factory defaults seen by new contexts.
  *
  * @since 3.0.0
  */
@@ -94,15 +99,26 @@ public class JProlScriptEngineContext
     }
   }
 
+  /**
+   * Factory that created this context.
+   */
   public JProlScriptEngineFactory getFactory() {
     return this.factory;
   }
 
+  /**
+   * Returns the current thread's {@link JProlContext} if it exists, without creating one.
+   *
+   * @return context or {@code null}
+   */
   public JProlContext findJProlContext() {
     this.assertNotDisposed();
     return this.jprolContext.find();
   }
 
+  /**
+   * Returns the current thread's {@link JProlContext}, creating and initializing it on first use for this thread.
+   */
   public JProlContext findOrMakeJProlContext() {
     this.assertNotDisposed();
     return this.jprolContext.get();
@@ -126,6 +142,10 @@ public class JProlScriptEngineContext
     }
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>Runs {@linkplain ClearableThreadLocal#gc() gc} on internal thread-local stores.
+   */
   @Override
   public void gc() {
     if (!this.disposed.get()) {
@@ -134,6 +154,9 @@ public class JProlScriptEngineContext
     }
   }
 
+  /**
+   * Knowledge base of the current thread's {@link JProlContext} (created if absent).
+   */
   public KnowledgeBase getKnowledgeBase() {
     this.assertNotDisposed();
     return this.jprolContext.get().getKnowledgeBase();
@@ -341,11 +364,18 @@ public class JProlScriptEngineContext
     return SCOPES;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean isDisposed() {
     return this.disposed.get();
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>Disposes thread-local {@link JProlContext} instances, clears engine bindings, and drops I/O references.
+   */
   @Override
   public void dispose() {
     if (this.disposed.compareAndSet(false, true)) {
@@ -358,6 +388,10 @@ public class JProlScriptEngineContext
     }
   }
 
+  /**
+   * Removes and {@linkplain JProlContext#dispose() disposes} the current thread's {@link JProlContext} (if any), then
+   * ensures a fresh context exists (see {@link #findOrMakeJProlContext()}).
+   */
   public void reinitJProlContext() {
     this.assertNotDisposed();
     final JProlContext current = this.jprolContext.remove();

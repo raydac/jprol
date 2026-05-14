@@ -17,11 +17,22 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.script.ScriptContext;
 
+/**
+ * Helpers for JSR 223 integration: {@linkplain #asJProlContext(ScriptContext) cast} to {@link JProlScriptEngineContext},
+ * Prolog variable name checks, and conversions between Java values and {@link Term} for {@link JProlScriptEngine}.
+ */
 public final class JProlScriptEngineUtils {
   private JProlScriptEngineUtils() {
 
   }
 
+  /**
+   * Casts a {@link ScriptContext} to {@link JProlScriptEngineContext}.
+   *
+   * @param scriptContext context or {@code null}
+   * @return the same instance, or {@code null} if {@code scriptContext} is null
+   * @throws IllegalArgumentException if the context is not a {@link JProlScriptEngineContext}
+   */
   public static JProlScriptEngineContext asJProlContext(final ScriptContext scriptContext) {
     if (scriptContext == null) {
       return null;

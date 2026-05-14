@@ -28,14 +28,23 @@ public final class NamedList implements List<Object> {
     this.objects = List.copyOf(objects);
   }
 
+  /**
+   * Builds a named wrapper around a defensive copy of {@code objects}.
+   */
   public static NamedList namedListOf(final String name, final List<Object> objects) {
     return new NamedList(name, objects);
   }
 
+  /**
+   * Builds a named wrapper around the given elements (varargs may be passed to Prolog as a structure).
+   */
   public static NamedList namedListOf(final String name, final Object... objects) {
     return new NamedList(name, Arrays.asList(objects));
   }
 
+  /**
+   * Functor name used when converting this list to a {@link Term} (see {@link JProlScriptEngineUtils#java2term(Object)}).
+   */
   public String getName() {
     return this.name;
   }

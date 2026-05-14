@@ -21,6 +21,18 @@ import javax.script.ScriptEngineFactory;
 import javax.script.SimpleBindings;
 
 
+/**
+ * {@link ScriptEngineFactory} registered for JProl (JSR 223). Use {@link javax.script.ScriptEngineManager} to obtain engines
+ * by name ({@code jprol}), MIME type ({@code application/jprol}, etc.), or file extension ({@code pl}, …).
+ * <p>
+ * {@link #getParameter(String)} supports {@link ScriptEngine} standard keys and {@code "THREADING"} with value
+ * {@code "MULTITHREADED"} (see {@link JProlScriptEngine}).
+ * <p>
+ * Default {@linkplain #getFactoryGlobalBindings() factory global bindings} include {@link JProlCoreLibrary}; use
+ * {@link #createScriptEngine(AbstractJProlLibrary...)} to add more libraries on a new engine.
+ *
+ * @since 3.0.0
+ */
 public class JProlScriptEngineFactory implements ScriptEngineFactory {
 
   private static final String ENGINE_NAME = "JProl";
@@ -37,6 +49,9 @@ public class JProlScriptEngineFactory implements ScriptEngineFactory {
 
   private final Bindings factoryGlobalBindings = new SimpleBindings();
 
+  /**
+   * Registers default global bindings (including {@link JProlCoreLibrary} under {@value JProlScriptEngine#JPROL_LIBRARIES}).
+   */
   public JProlScriptEngineFactory() {
     this.factoryGlobalBindings.put(JProlScriptEngine.JPROL_LIBRARIES,
         List.of(new JProlCoreLibrary()));
@@ -77,6 +92,10 @@ public class JProlScriptEngineFactory implements ScriptEngineFactory {
     return LANGUAGE_VERSION;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>Also supports {@code "THREADING"} returning {@code "MULTITHREADED"}.
+   */
   @Override
   public Object getParameter(String key) {
     switch (key) {
@@ -144,16 +163,30 @@ public class JProlScriptEngineFactory implements ScriptEngineFactory {
         .collect(Collectors.joining(", ", "?- ", "."));
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>Equivalent to {@link #createScriptEngine(List)} with an empty library list (factory default libraries still apply via bindings).
+   */
   @Override
   public ScriptEngine getScriptEngine() {
     return this.createScriptEngine(List.of());
   }
 
+  /**
+   * Creates a {@link JProlScriptEngine} using this factory, optionally replacing the engine-scope
+   * {@link JProlBindingsConstants#JPROL_LIBRARIES} entry with the given libraries (non-null entries only).
+   *
+   * @param libraries extra libraries; empty varargs leaves factory default from global bindings
+   */
   public ScriptEngine createScriptEngine(final AbstractJProlLibrary... libraries) {
     return this.createScriptEngine(
         Arrays.stream(libraries).filter(Objects::nonNull).collect(Collectors.toList()));
   }
 
+  /**
+   * Creates a {@link JProlScriptEngine}; if {@code libraries} is non-null and non-empty, sets
+   * {@link JProlBindingsConstants#JPROL_LIBRARIES} in {@link ScriptContext#ENGINE_SCOPE} to a copy of the list.
+   */
   public ScriptEngine createScriptEngine(final List<AbstractJProlLibrary> libraries) {
     final JProlScriptEngine engine = new JProlScriptEngine(this);
     if (libraries != null && !libraries.isEmpty()) {
@@ -163,6 +196,10 @@ public class JProlScriptEngineFactory implements ScriptEngineFactory {
     return engine;
   }
 
+  /**
+   * Bindings shared as {@linkplain ScriptContext#GLOBAL_SCOPE global scope} default for {@link JProlScriptEngineContext}
+   * instances created by this factory (e.g. executor service, shared {@linkplain com.igormaznitsa.jprol.kbase.KnowledgeBase knowledge base}).
+   */
   public Bindings getFactoryGlobalBindings() {
     return this.factoryGlobalBindings;
   }

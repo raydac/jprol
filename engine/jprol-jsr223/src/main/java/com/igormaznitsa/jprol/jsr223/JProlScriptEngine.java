@@ -49,21 +49,28 @@ import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 
 /**
- * JProl JSR 223 script engine implementation.
- * Allows execution of Prolog code through the standard Java Scripting API.
- * <b>It has MULTITHREADED level, threads not isolated</b>
+ * JProl {@link ScriptEngine} for JSR 223 ({@code javax.script}): consult and query Prolog text from Java.
  * <p>
- * Supports custom libraries via ScriptContext attributes:
- * - "jprol.libraries" - list of {@link com.igormaznitsa.jprol.libs.AbstractJProlLibrary} instances to be loaded during new {@link JProlContext} create or reinit
- * - "jprol.context.flags" - {@link java.util.Map} of {@code String} to {@code Object} describing JProl engine flags
+ * <b>Threading:</b> {@link ScriptEngineFactory#getParameter} with key {@code "THREADING"} returns {@code "MULTITHREADED"}.
+ * {@link JProlContext} is stored per {@linkplain Thread thread} inside {@link JProlScriptEngineContext}; threads are not isolated.
  * <p>
- * It is possible define in global context listed attributes:
- * - "jprol.global.executor.service" - {@link java.util.concurrent.ExecutorService} service for async tasks
- * - "jprol.global.knowledge.base" - shared {@link KnowledgeBase} between all child engines
- * - "jprol.global.critical.predicate.guard" - can be provided as a {@link JProlGuardPredicate} to disable execution of predicates marked in library as critical ones
+ * <b>Evaluation ({@link #eval(String)}, {@link #eval(Reader, ScriptContext)}, etc.):</b> The script is parsed as a sequence of
+ * Prolog phrases. All non-query phrases are {@linkplain JProlContext#consult consulted} into the {@link JProlContext} taken from
+ * the {@link ScriptContext} passed to {@code eval} (or from {@link #getContext()} for overloads without a context argument).
+ * The first {@code ?- Goal.} form is run once (first solution only). Grounded query variables are written into the target
+ * {@link Bindings}; only binding keys that are valid Prolog variable names are mapped (see {@link JProlScriptEngineUtils#isValidPrologVariableName(String)}).
+ * If the script contains no query, {@link Boolean#TRUE} is returned.
+ * <p>
+ * <b>Bindings / attributes</b> (see {@link JProlBindingsConstants} for keys):
+ * <ul>
+ *   <li>{@value JProlBindingsConstants#JPROL_LIBRARIES} &mdash; extra {@link com.igormaznitsa.jprol.libs.AbstractJProlLibrary} instances when a context is created</li>
+ *   <li>{@value JProlBindingsConstants#JPROL_CONTEXT_FLAGS} &mdash; {@link Map}{@code <String,Object>} of JProl system flags at init</li>
+ *   <li>{@value JProlBindingsConstants#JPROL_GLOBAL_EXECUTOR_SERVICE}, {@value JProlBindingsConstants#JPROL_GLOBAL_KNOWLEDGE_BASE},
+ *       {@value JProlBindingsConstants#JPROL_GLOBAL_GUARD_PREDICATE} &mdash; optional global scope only</li>
+ * </ul>
  *
- * @since 3.0.0
  * @see JProlBindingsConstants
+ * @since 3.0.0
  */
 public class JProlScriptEngine
     implements Disposable, CanGC, ScriptEngine, Compilable, Invocable, JProlScriptEngineProvider,
@@ -113,6 +120,9 @@ public class JProlScriptEngine
   private final AtomicBoolean disposed = new AtomicBoolean();
   private final AtomicReference<JProlScriptEngineContext> engineContext = new AtomicReference<>();
 
+  /**
+   * Creates an engine bound to the given factory; initial {@link ScriptContext} is a new {@link JProlScriptEngineContext}.
+   */
   JProlScriptEngine(final JProlScriptEngineFactory factory) {
     this.factory = factory;
     final JProlScriptEngineContext newContext = new JProlScriptEngineContext(this.factory);
@@ -217,32 +227,55 @@ public class JProlScriptEngine
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public JProlScriptEngine getJProlScriptEngine() {
     return this;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>Evaluates using {@link #getContext()} as the {@link ScriptContext}.
+   */
   @Override
   public Object eval(String script) throws ScriptException {
     return this.eval(script, this.engineContext.get());
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>Evaluates using {@link #getContext()} as the {@link ScriptContext}.
+   */
   @Override
   public Object eval(final Reader reader) throws ScriptException {
     return this.eval(reader, this.engineContext.get());
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>Evaluates using {@link #getContext()}; variable bindings are taken from {@code bindings} for the query only.
+   */
   @Override
   public Object eval(final String script, final Bindings bindings) throws ScriptException {
     return this.eval(new StringReader(script), this.engineContext.get(), bindings);
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>Evaluates using {@link #getContext()}; variable bindings are taken from {@code bindings} for the query only.
+   */
   @Override
   public Object eval(final Reader reader, final Bindings bindings) throws ScriptException {
     this.assertNotClosed();
     return this.eval(reader, this.engineContext.get(), bindings);
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>Delegates to {@link ScriptContext#ENGINE_SCOPE} bindings of this engine.
+   */
   @Override
   public void put(final String key, final Object value) {
     this.assertNotClosed();
@@ -252,6 +285,10 @@ public class JProlScriptEngine
     }
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>Reads from {@link ScriptContext#ENGINE_SCOPE} bindings of this engine.
+   */
   @Override
   public Object get(final String key) {
     this.assertNotClosed();
@@ -262,12 +299,22 @@ public class JProlScriptEngine
     return null;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>Returns this engine's {@link JProlScriptEngineContext} (the concrete {@link ScriptContext} implementation).
+   */
   @Override
   public ScriptContext getContext() {
     this.assertNotClosed();
     return this.engineContext.get();
   }
 
+  /**
+   * Replaces the engine {@link ScriptContext}. The argument must be a {@link JProlScriptEngineContext}.
+   * The previous context is {@linkplain JProlScriptEngineContext#gc() gc}'d (not disposed).
+   *
+   * @throws IllegalArgumentException if {@code context} is not a {@link JProlScriptEngineContext}
+   */
   @Override
   public void setContext(final ScriptContext context) {
     this.assertNotClosed();
@@ -279,11 +326,13 @@ public class JProlScriptEngine
   }
 
   /**
-   * Find '?-' query goal in script and prove it once, place results into engine scoped bindings.
+   * Find {@code ?-} query in the script, consult the rest, prove the query once, and write grounded variables into bindings.
+   * <p>The {@code context} argument must be a {@link JProlScriptEngineContext}; its thread-local {@link JProlContext} is used
+   * for both consult and the query (see class documentation).
    *
    * @param script  prolog script
-   * @param context target context
-   * @return {@link Boolean#TRUE} if proved, {@link Boolean#FALSE} otherwise
+   * @param context target context (must be {@link JProlScriptEngineContext})
+   * @return {@link Boolean#TRUE} if proved, {@link Boolean#FALSE} otherwise; {@link Boolean#TRUE} if there is no query phrase
    * @throws ScriptException if any internal error
    */
   @Override
@@ -292,12 +341,14 @@ public class JProlScriptEngine
   }
 
   /**
-   * Find '?-' query goal in script and prove it once, place results into target bindings if presented or into engine scoped bindings.
+   * Find {@code ?-} query in the script, consult the rest, prove the query once. Variable values for the query are taken
+   * from {@code context} bindings (and optional {@code customEngineBindings} instead of engine-scope bindings for mapping).
+   * <p>{@code context} must be a {@link JProlScriptEngineContext}; consult and prove use the same thread-local {@link JProlContext}.
    *
    * @param script               prolog script
-   * @param context              target context
-   * @param customEngineBindings target bindings
-   * @return {@link Boolean#TRUE} if proved, {@link Boolean#FALSE} otherwise
+   * @param context              target context (must be {@link JProlScriptEngineContext})
+   * @param customEngineBindings if non-null, used with {@code context} for Prolog variable substitution instead of engine-scope bindings only
+   * @return {@link Boolean#TRUE} if proved, {@link Boolean#FALSE} otherwise; {@link Boolean#TRUE} if there is no query phrase
    * @throws ScriptException if any internal error
    */
   public Object eval(
@@ -336,35 +387,57 @@ public class JProlScriptEngine
     }
   }
 
+  /**
+   * Same as {@link #eval(String, ScriptContext)} but reads script from a {@link Reader}; {@code context} must be a
+   * {@link JProlScriptEngineContext}.
+   */
   @Override
   public Object eval(final Reader reader, final ScriptContext context) throws ScriptException {
     return this.eval(reader, context, null);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Bindings createBindings() {
     this.assertNotClosed();
     return new SimpleBindings();
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>Only {@link ScriptContext#GLOBAL_SCOPE} and {@link ScriptContext#ENGINE_SCOPE} are supported.
+   */
   @Override
   public void setBindings(final Bindings bindings, final int scope) {
     this.assertNotClosed();
     this.engineContext.get().setBindings(bindings, scope);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public ScriptEngineFactory getFactory() {
     this.assertNotClosed();
     return this.factory;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>Produces a {@link JProlCompiledScript} bound to the {@link JProlContext} of the compiling thread at compile time.
+   */
   @Override
   public CompiledScript compile(final String script) throws ScriptException {
     this.assertNotClosed();
     return new JProlCompiledScript(this, script);
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>Reads the reader fully into a string, then {@linkplain #compile(String) compiles} it.
+   */
   @Override
   public CompiledScript compile(final Reader reader) throws ScriptException {
     this.assertNotClosed();
@@ -437,6 +510,14 @@ public class JProlScriptEngine
     }
   }
 
+  /**
+   * Reads the current value of a JProl {@linkplain JProlSystemFlag system flag} as a Java object.
+   *
+   * @param flagName atom name of the flag (see {@link JProlSystemFlag})
+   * @return flag value converted for Java use
+   * @throws IllegalArgumentException if the name is not a known flag
+   * @throws ScriptException          on internal errors
+   */
   public Object getFlag(final String flagName) throws ScriptException {
     this.assertNotClosed();
     final JProlSystemFlag flag = JProlSystemFlag.find(newAtom(flagName))
@@ -449,6 +530,10 @@ public class JProlScriptEngine
     }
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>Only {@link ScriptContext#GLOBAL_SCOPE} and {@link ScriptContext#ENGINE_SCOPE} are supported.
+   */
   @Override
   public Bindings getBindings(final int scope) {
     this.assertNotClosed();
@@ -496,6 +581,14 @@ public class JProlScriptEngine
     return this.commonProveQueryOnce(bindings, prolContext.makeChoicePoint(queryTerm));
   }
 
+  /**
+   * {@link Invocable} bridge: proves {@code name(Args...)} once on this engine's current thread context.
+   * <p>Unlike generic JSR 223 engines, {@code invokeMethod} is only supported when {@code thisObject} is {@code null},
+   * {@code this}, or a {@link JProlScriptEngineProvider} whose {@linkplain JProlScriptEngineProvider#getJProlScriptEngine() engine}
+   * is this instance; otherwise {@link ScriptException} is thrown.
+   *
+   * @return {@link Boolean#TRUE} if the goal succeeds, {@link Boolean#FALSE} otherwise
+   */
   @Override
   public Object invokeMethod(final Object thisObject, final String name, final Object... args)
       throws ScriptException {
@@ -511,12 +604,10 @@ public class JProlScriptEngine
   }
 
   /**
-   * It will prove once a goal to simulate function call
+   * Proves {@code name(Args...)} once against the current thread's {@link JProlContext}; results are written to
+   * {@link ScriptContext#ENGINE_SCOPE} bindings.
    *
-   * @param name of target predicate
-   * @param args arguments of predicate to prove
-   * @return {@link Boolean#TRUE} if proven, {@link Boolean#FALSE} otherwise
-   * @throws ScriptException if any internal error
+   * @return {@link Boolean#TRUE} if the goal succeeds, {@link Boolean#FALSE} otherwise
    */
   @Override
   public Object invokeFunction(final String name, final Object... args)
@@ -538,11 +629,13 @@ public class JProlScriptEngine
   }
 
   /**
-   * Find internal object with specified interface.
+   * Resolves a view of the engine for the given interface type when {@code thisObject} is a {@link JProlScriptEngineProvider}.
+   * Supported types include {@link JProlScriptEngine}, {@link JProlScriptEngineContext}, {@link ScriptContext},
+   * {@link JProlContext}, {@link ParserContext}, and {@link KnowledgeBase}; otherwise returns {@code null}.
    *
-   * @param targetClass The <code>Class</code> object of the interface to return.
-   * @param <T>         type of needed object
-   * @return found object or null
+   * @param targetClass requested type
+   * @param <T>         requested type parameter
+   * @return adapter instance or {@code null}
    */
   @Override
   public <T> T getInterface(final Class<T> targetClass) {
@@ -550,12 +643,14 @@ public class JProlScriptEngine
   }
 
   /**
-   * Find internal object with specified interface.
+   * Same as {@link #getInterface(Class)} but anchored to {@code thisObject} (must be a {@link JProlScriptEngineProvider}).
    *
-   * @param thisObject  target object to find internal object implementing target class
-   * @param targetClass The <code>Class</code> object of the interface to return.
-   * @param <T>         type of needed object
-   * @return found object or null
+   * @param thisObject  provider whose engine is queried
+   * @param targetClass requested type
+   * @param <T>         requested type parameter
+   * @return adapter instance or {@code null}
+   * @throws NullPointerException     if {@code targetClass} is null
+   * @throws IllegalArgumentException if {@code thisObject} is not a {@link JProlScriptEngineProvider}
    */
   @SuppressWarnings("unchecked")
   @Override
@@ -600,11 +695,18 @@ public class JProlScriptEngine
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean isDisposed() {
     return this.disposed.get();
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>Disposes this engine and, by default, its {@link JProlScriptEngineContext}.
+   */
   @Override
   public void dispose() {
     this.dispose(true);
@@ -628,6 +730,10 @@ public class JProlScriptEngine
     }
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>Equivalent to {@link #dispose()}.
+   */
   @Override
   public void close() {
     this.dispose();
@@ -660,6 +766,10 @@ public class JProlScriptEngine
     return context == null ? 0 : context.size();
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>Runs {@linkplain JProlScriptEngineContext#gc() garbage collection} on the underlying context (stale thread locals).
+   */
   @Override
   public void gc() {
     if (!this.disposed.get()) {
