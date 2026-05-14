@@ -1,21 +1,18 @@
 package com.igormaznitsa.jprol.logic;
 
 import java.util.ArrayList;
+import java.util.List;
 
-/**
- * LIFO stack of immutable {@link ProveStackFrame}s. {@link #drop()} removes the top element.
- * Backing list grows with depth only (not with configured {@code maxDepth}).
- */
 final class ProveStack {
 
   private static final int INITIAL_CAPACITY = 32;
 
   private final int maxDepth;
-  private final ArrayList<ProveStackFrame> frames;
+  private final List<ProveStackFrame> frames;
 
   ProveStack(final int maxDepth) {
     this.maxDepth = Math.max(0, maxDepth);
-    final int cap = this.maxDepth == 0 ? 0 : Math.min(INITIAL_CAPACITY, Math.max(1, this.maxDepth));
+    final int cap = this.maxDepth == 0 ? 0 : Math.min(INITIAL_CAPACITY, this.maxDepth);
     this.frames = new ArrayList<>(cap);
   }
 
