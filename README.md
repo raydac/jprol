@@ -1,7 +1,7 @@
 ![JPROL logo](art/github_logo.png)   
 [![License Apache 12](https://img.shields.io/badge/license-Apache%20License%202.0-green.svg)](http://www.apache.org/licenses/LICENSE-2.0)
-[![Maven central](https://img.shields.io/badge/Maven%20central-3.1.0-green.svg)](http://search.maven.org/#artifactdetails|com.igormaznitsa|jprol-core|3.1.0|jar)
-[![Java 11+](https://img.shields.io/badge/java-11%2b-green.svg)](https://bell-sw.com/pages/downloads/#jdk-21-lts)
+[![Maven central](https://img.shields.io/badge/Maven%20central-3.1.1-green.svg)](http://search.maven.org/#artifactdetails|com.igormaznitsa|jprol-core|3.1.1|jar)
+[![Java 11+](https://img.shields.io/badge/java-11%2b-green.svg)](https://bell-sw.com/pages/downloads/#jdk-25-lts)
 
 [![Arthur's acres sanctuary donation](art/arthur_sanctuary_banner.png)](https://www.arthursacresanimalsanctuary.org/donate)
 
@@ -19,29 +19,29 @@ Initially the engine was a mono-block with embedded GUI part, but later it rewor
 
 # Changelog
 
+__3.1.1 (2026-05-15)__
+
+ - updated depenencies
+ - internal refactoring and bugfix
+ - embedded JDK updated to 26.0.1+10
+
 __3.1.0 (2026-03-26)__
 
  - added system flag `max_prove_stack_depth`, default max depth is 10000
  - refactoring of choice point to replace recursion by a custom stack
  - embedded JDK updated to 26+37
 
-__3.0.1 (2026-01-18)__
-
-- Minor improvements.
-- Fixed unification between atoms and operators.
-- Added check for conflict between library predicates and dynamic predicates, can be turned off by `allow_library_signarute_conflict` system flag.
-
 [changelog](changelog.txt)
 
 # The engine
 
-The engine is published in [the maven central](https://search.maven.org/artifact/com.igormaznitsa/jprol-core/3.0.1/jar) and can be used in maven projects as a dependency. It supports JDK 11+ and also I keep it compatible with Android API.   
+The engine is published in [the maven central](https://search.maven.org/artifact/com.igormaznitsa/jprol-core/3.1.1/jar) and can be used in maven projects as a dependency. It supports JDK 11+ and also I keep it compatible with Android API.   
 
 ```xml
 <dependency>
     <groupId>com.igormaznitsa</groupId>
     <artifactId>jprol-core</artifactId>
-    <version>3.1.0</version>
+    <version>3.1.1</version>
 </dependency>
 ```   
 
@@ -141,7 +141,7 @@ Since 3.0.0 added support of Java Scripting API as seaparated module `jprol-jsr2
 <dependency>
     <groupId>com.igormaznitsa</groupId>
     <artifactId>jprol-jsr223</artifactId>
-    <version>3.1.0</version>
+    <version>3.1.1</version>
 </dependency>
 ```
 
