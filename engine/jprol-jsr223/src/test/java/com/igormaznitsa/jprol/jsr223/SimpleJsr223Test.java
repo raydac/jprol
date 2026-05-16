@@ -386,18 +386,20 @@ public class SimpleJsr223Test {
     ));
 
     var b = engine.createBindings();
-    engine.eval("?-sudoku(7, 3, 6,  8, 4, 9,  1, 5, A,"
-            + "1, B, 4,  2, 7, C,  6, 8, 9,"
-            + "D, 8, 9,  1, 5, 6,  3, 4, 7,"
+    assertTrue(
+        (boolean) engine.eval("?-sudoku(7, 3, 6,  8, 4, 9,  1, 5, A,"
+                + "1, B, 4,  2, 7, C,  6, 8, 9,"
+                + "D, 8, 9,  1, 5, 6,  3, 4, 7,"
 
-            + "9, 4, E,  7, 6, F,  2, G, 5,"
-            + "3, 6, 1,  H, 2, 5,  4, 7, I,"
-            + "5, J, 2,  4, K, 8,  9, 1, 6,"
+                + "9, 4, E,  7, 6, F,  2, G, 5,"
+                + "3, 6, 1,  H, 2, 5,  4, 7, I,"
+                + "5, J, 2,  4, K, 8,  9, 1, 6,"
 
-            + "6, 2, L,  5, 8, M,  7, 9, N,"
-            + "O, 9, 7,  P, 1, 2,  5, Q, 4,"
-            + "4, R, 5,  6, S, 7,  8, 2, 3).",
-        b
+                + "6, 2, L,  5, 8, M,  7, 9, N,"
+                + "O, 9, 7,  P, 1, 2,  5, Q, 4,"
+                + "4, R, 5,  6, S, 7,  8, 2, 3).",
+            b
+        )
     );
     var arr = IntStream.range(0, 'T' - 'A').map(x -> 'A' + x)
         .map(x -> ((Long) b.get(String.valueOf((char) x))).intValue()).toArray();
