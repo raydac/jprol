@@ -1,6 +1,7 @@
 package com.igormaznitsa.jprol.jsr223;
 
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
@@ -325,4 +327,80 @@ public class SimpleJsr223Test {
     assertEquals(0, errorCounter.get());
   }
 
+  @Test
+  void testSudoku() throws Exception {
+    var engine = new ScriptEngineManager().getEngineByName("jprol");
+    assertTrue((boolean) engine.eval(
+        "num(1). num(2). num(3). num(4). num(5). num(6). num(7). num(8). num(9)."
+            + "diff(A,B,C,D,E,F,G,H,I) :-"
+            + "num(A), num(B), num(C), num(D), num(E), num(F), num(G), num(H), num(I),"
+            + "A\\=B, A\\=C, A\\=D, A\\=E, A\\=F, A\\=G, A\\=H, A\\=I,"
+            + "B\\=C, B\\=D, B\\=E, B\\=F, B\\=G, B\\=H, B\\=I,"
+            + "C\\=D, C\\=E, C\\=F, C\\=G, C\\=H, C\\=I,"
+            + "D\\=E, D\\=F, D\\=G, D\\=H, D\\=I,"
+            + "E\\=F, E\\=G, E\\=H, E\\=I,"
+            + "F\\=G, F\\=H, F\\=I,"
+            + "G\\=H, G\\=I,"
+            + "H\\=I."
+
+            + "sudoku("
+            + "A1,A2,A3,A4,A5,A6,A7,A8,A9,"
+            + "B1,B2,B3,B4,B5,B6,B7,B8,B9,"
+            + "C1,C2,C3,C4,C5,C6,C7,C8,C9,"
+            + "D1,D2,D3,D4,D5,D6,D7,D8,D9,"
+            + "E1,E2,E3,E4,E5,E6,E7,E8,E9,"
+            + "F1,F2,F3,F4,F5,F6,F7,F8,F9,"
+            + "G1,G2,G3,G4,G5,G6,G7,G8,G9,"
+            + "H1,H2,H3,H4,H5,H6,H7,H8,H9,"
+            + "I1,I2,I3,I4,I5,I6,I7,I8,I9) :-"
+
+            + "diff(A1,A2,A3,A4,A5,A6,A7,A8,A9),"
+            + "diff(B1,B2,B3,B4,B5,B6,B7,B8,B9),"
+            + "diff(C1,C2,C3,C4,C5,C6,C7,C8,C9),"
+            + "diff(D1,D2,D3,D4,D5,D6,D7,D8,D9),"
+            + "diff(E1,E2,E3,E4,E5,E6,E7,E8,E9),"
+            + "diff(F1,F2,F3,F4,F5,F6,F7,F8,F9),"
+            + "diff(G1,G2,G3,G4,G5,G6,G7,G8,G9),"
+            + "diff(H1,H2,H3,H4,H5,H6,H7,H8,H9),"
+            + "diff(I1,I2,I3,I4,I5,I6,I7,I8,I9),"
+
+            + "diff(A1,B1,C1,D1,E1,F1,G1,H1,I1),"
+            + "diff(A2,B2,C2,D2,E2,F2,G2,H2,I2),"
+            + "diff(A3,B3,C3,D3,E3,F3,G3,H3,I3),"
+            + "diff(A4,B4,C4,D4,E4,F4,G4,H4,I4),"
+            + "diff(A5,B5,C5,D5,E5,F5,G5,H5,I5),"
+            + "diff(A6,B6,C6,D6,E6,F6,G6,H6,I6),"
+            + "diff(A7,B7,C7,D7,E7,F7,G7,H7,I7),"
+            + "diff(A8,B8,C8,D8,E8,F8,G8,H8,I8),"
+            + "diff(A9,B9,C9,D9,E9,F9,G9,H9,I9),"
+
+            + "diff(A1,A2,A3,B1,B2,B3,C1,C2,C3),"
+            + "diff(A4,A5,A6,B4,B5,B6,C4,C5,C6),"
+            + "diff(A7,A8,A9,B7,B8,B9,C7,C8,C9),"
+            + "diff(D1,D2,D3,E1,E2,E3,F1,F2,F3),"
+            + "diff(D4,D5,D6,E4,E5,E6,F4,F5,F6),"
+            + "diff(D7,D8,D9,E7,E8,E9,F7,F8,F9),"
+            + "diff(G1,G2,G3,H1,H2,H3,I1,I2,I3),"
+            + "diff(G4,G5,G6,H4,H5,H6,I4,I5,I6),"
+            + "diff(G7,G8,G9,H7,H8,H9,I7,I8,I9)."
+    ));
+
+    var b = engine.createBindings();
+    engine.eval("?-sudoku(7, 3, 6,  8, 4, 9,  1, 5, A,"
+            + "1, B, 4,  2, 7, C,  6, 8, 9,"
+            + "D, 8, 9,  1, 5, 6,  3, 4, 7,"
+
+            + "9, 4, E,  7, 6, F,  2, G, 5,"
+            + "3, 6, 1,  H, 2, 5,  4, 7, I,"
+            + "5, J, 2,  4, K, 8,  9, 1, 6,"
+
+            + "6, 2, L,  5, 8, M,  7, 9, N,"
+            + "O, 9, 7,  P, 1, 2,  5, Q, 4,"
+            + "4, R, 5,  6, S, 7,  8, 2, 3).",
+        b
+    );
+    var arr = IntStream.range(0, 'T' - 'A').map(x -> 'A' + x)
+        .map(x -> ((Long) b.get(String.valueOf((char) x))).intValue()).toArray();
+    assertArrayEquals(new int[] {2, 5, 3, 2, 8, 1, 3, 9, 8, 7, 3, 3, 4, 1, 8, 3, 6, 1, 9}, arr);
+  }
 }
