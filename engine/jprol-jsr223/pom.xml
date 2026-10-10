@@ -81,7 +81,7 @@
                                     <goal>jar</goal>
                                 </goals>
                                 <configuration>
-                                    <source>8</source>
+                                    <source>11</source>
                                     <!--<failOnError>false</failOnError>-->
                                     <sourceFileExcludes>
                                         <exclude>HelpMojo.java</exclude>

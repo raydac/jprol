@@ -1,4 +1,5 @@
 :- dynamic cell/3.
+:- set_prolog_flag(verify,false).
 
 % Initial board 
 %    0 means Empty

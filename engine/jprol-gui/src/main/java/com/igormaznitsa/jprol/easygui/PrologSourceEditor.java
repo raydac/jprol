@@ -52,6 +52,7 @@ import org.fife.ui.autocomplete.AutoCompletion;
 import org.fife.ui.autocomplete.Completion;
 import org.fife.ui.autocomplete.CompletionProvider;
 import org.fife.ui.autocomplete.DefaultCompletionProvider;
+import org.fife.ui.autocomplete.DescWindowVisibility;
 import org.fife.ui.autocomplete.ShorthandCompletion;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.Theme;
@@ -108,7 +109,7 @@ public class PrologSourceEditor extends AbstractProlEditor {
         new AutoCompletion(this.makeCompletionProvider());
     autoCompletion.setAutoActivationEnabled(false);
     autoCompletion.setParameterAssistanceEnabled(false);
-    autoCompletion.setShowDescWindow(true);
+    autoCompletion.setDescWindowVisibility(DescWindowVisibility.ALWAYS);
     autoCompletion.setAutoCompleteSingleChoices(false);
     autoCompletion.install(this.editor);
 
