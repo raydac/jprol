@@ -1,4 +1,6 @@
 ## 1. Implementation Progress
+- Project version is 3.2.0-SNAPSHOT (parent, modules, Windows file/product version 3.2.0.0, notepad stub).
+- `changelog.txt` (repo root) has an unreleased 3.2.0-SNAPSHOT section.
 - Prove loop in JProlChoicePoint reuses stack frames and returns plain result codes. No per-step frame, OptionalInt, or result object.
 - Variable snapshots share their array when nothing is bound, and reset writes only variables that changed.
 - In-memory clause search skips a copy of the query, reuses ground facts, rejects impossible first arguments before full unify, and indexes predicates with 8 or more clauses by first argument.

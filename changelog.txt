@@ -1,3 +1,12 @@
+3.2.0-SNAPSHOT (unreleased)
+    - faster clause lookup and proving
+    - `lock/1` counts each acquisition by the same thread and blocks while another thread owns it
+    - `unlock/1` reports a missing locker and a locker owned by another thread
+    - disposing the root context wakes threads blocked in `lock/1`
+    - an interrupted `lock/1` fails instead of succeeding
+    - faster graphics drawing; `graphics/2` uses the real height and resizes when either side changes
+    - updated dependencies
+
 3.1.1 (2026-05-15)
     - updated depenencies
     - internal refactoring and bugfix
