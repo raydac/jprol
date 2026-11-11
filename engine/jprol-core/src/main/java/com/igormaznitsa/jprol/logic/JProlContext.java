@@ -144,12 +144,12 @@ public class JProlContext implements AutoCloseable {
   private final List<IoResourceProvider> ioProviders = new CopyOnWriteArrayList<>();
   private final File currentFolder;
   private final JProlContext parentContext;
-  private volatile boolean verify;
-  private volatile boolean trace;
-  private volatile boolean shareKnowledgeBaseWithAsyncTasks;
-  private volatile UndefinedPredicateBehavior undefinedPredicateBehaviour;
+  private boolean verify;
+  private boolean trace;
+  private boolean shareKnowledgeBaseWithAsyncTasks;
+  private UndefinedPredicateBehavior undefinedPredicateBehaviour;
 
-  private volatile int maxProveStackDepth;
+  private int maxProveStackDepth;
 
   /**
    * Create instance.

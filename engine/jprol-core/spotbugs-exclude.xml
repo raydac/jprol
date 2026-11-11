@@ -21,6 +21,15 @@
         <Class name="com.igormaznitsa.jprol.logic.JProlContext"/>
         <Bug pattern="CT_CONSTRUCTOR_THROW"/>
     </Match>
+    <!--
+      verify, trace, share-knowledge-base, unknown, and max prove depth are
+      caches of this context's own system flags. Async prove runs on a copy
+      built before the task is submitted, so these fields are not shared.
+    -->
+    <Match>
+        <Class name="com.igormaznitsa.jprol.logic.JProlContext"/>
+        <Bug pattern="AT_STALE_THREAD_WRITE_OF_PRIMITIVE"/>
+    </Match>
 
     <!--
       These accessors publish the live engine object. A copy would break
