@@ -15,7 +15,7 @@
     <properties>
         <app.name>jprol-gui-${project.version}</app.name>
         <jre.provider>BELLSOFT</jre.provider>
-        <jre.version>27+36</jre.version>
+        <jre.version>27.0.1.0.3+5</jre.version>
         <start-class>com.igormaznitsa.jprol.easygui.JProlApp</start-class>
     </properties>
 
@@ -717,7 +717,29 @@
 
     <build>
         <finalName>${app.name}</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>com/igormaznitsa/jprol/easygui/build-version.properties</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>com/igormaznitsa/jprol/easygui/build-version.properties</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <propertiesEncoding>${project.build.sourceEncoding}</propertiesEncoding>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
@@ -751,6 +773,9 @@
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>com.igormaznitsa.jprol.easygui.JProlApp</mainClass>
+                                    <manifestEntries>
+                                        <Implementation-Version>${project.version}</Implementation-Version>
+                                    </manifestEntries>
                                 </transformer>
                             </transformers>
                         </configuration>

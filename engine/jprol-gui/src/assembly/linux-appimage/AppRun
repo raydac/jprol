@@ -1,5 +1,5 @@
 #!/bin/sh
-JAVA_FLAGS="-client -Xss25M -Xmx2G"
+JAVA_FLAGS="-Xss25M -Xmx2G"
 JAVA_RUN=$APPDIR/jre/bin/java
 JAVA_LOG_CONFIG=$APPDIR/logger.properties
 $JAVA_RUN $JAVA_FLAGS $JAVA_EXTRA_GFX_FLAGS "-Djava.util.logging.config.file=$JAVA_LOG_CONFIG" -jar $APPDIR/jprol-gui*.jar $@

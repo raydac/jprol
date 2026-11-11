@@ -16,9 +16,6 @@
 
 package com.igormaznitsa.jprol.easygui;
 
-import static com.igormaznitsa.jprol.logic.JProlContext.VERSION_MAJOR;
-import static com.igormaznitsa.jprol.logic.JProlContext.VERSION_MINOR;
-import static com.igormaznitsa.jprol.logic.JProlContext.VERSION_PATCH;
 import static java.lang.String.format;
 import static javax.swing.Box.Filler;
 import static javax.swing.JOptionPane.showMessageDialog;
@@ -181,15 +178,11 @@ public final class MainFrame extends javax.swing.JFrame
     }
   };
   private static final int MAX_RECENT_FILES = 10;
+  private static final String VERSION = BuildVersion.current();
   private static final Font FONT_INDICATOR_PANEL =
       LocalFontContainer.LOCAL_NOTO_SANS_MONO.getFont().deriveFont(12.0f);
   private final AtomicReference<Thread> currentExecutedScriptThread = new AtomicReference<>();
   private final AtomicBoolean startedInTracing = new AtomicBoolean();
-  /**
-   * The version of the IDE
-   */
-  private final String VERSION =
-      String.format("%d.%d.%d", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
   private final ThreadGroup executingScripts = new ThreadGroup("ProlExecutingScripts");
   private final RecentlyOpenedFileFixedList recentFiles =
       new RecentlyOpenedFileFixedList(MAX_RECENT_FILES);
@@ -263,7 +256,7 @@ public final class MainFrame extends javax.swing.JFrame
     try {
       this.initComponents();
 
-      this.setTitle("JProl editor v" + VERSION);
+      this.setTitle("JProl editor " + VERSION);
 
       this.sourceEditor.getEditor().addCaretListener(e -> this.updateCaretPositionIndication());
       this.updateCaretPositionIndication();

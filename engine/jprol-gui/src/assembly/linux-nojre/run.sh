@@ -6,7 +6,7 @@ JAVA_HOME=$JPROL_HOME/jre
 # uncomment the line below if graphics works slowly
 # JAVA_EXTRA_GFX_FLAGS="-Dsun.java2d.opengl=true"
 
-JAVA_FLAGS="-client -Xss25M -Xmx2G"
+JAVA_FLAGS="-Xss25M -Xmx2G"
 JAVA_LOG_CONFIG=$JPROL_HOME/logger.properties
 JAVA_RUN=$JAVA_HOME/bin/java
 

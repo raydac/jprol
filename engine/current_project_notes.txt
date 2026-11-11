@@ -1,6 +1,7 @@
 ## 1. Implementation Progress
 - SpotBugs `check` is clean for the reactor. Real defects are fixed in code. Live engine and Swing objects that must be shared are listed in each module's `spotbugs-exclude.xml`.
-- Project version is 3.2.0-SNAPSHOT (parent, modules, Windows file/product version 3.2.0.0, notepad stub).
+- Project version is 3.2.0-SNAPSHOT (parent, modules, Windows file/product version 3.2.0.0).
+- GUI title and About read the Maven project version. `build-version.properties` is filtered at build time; the jar `Implementation-Version` is the fallback. Prolog `version_data` stays the hardcoded 3.1.1 flag in `JProlContext`.
 - `changelog.txt` (repo root) has an unreleased 3.2.0-SNAPSHOT section.
 - Prove loop in JProlChoicePoint reuses stack frames and returns plain result codes. No per-step frame, OptionalInt, or result object.
 - Variable snapshots share their array when nothing is bound, and reset writes only variables that changed.
@@ -13,6 +14,7 @@
 - A context is not thread-local. `async/1` proves on a copy built before the task starts. Flag caches (`verify`, `trace`, share-knowledge-base, unknown, max prove depth) stay on that instance and are not volatile.
 - First-argument indexes are cached per predicate, and a cache entry is kept only when the clause set did not change while it was built.
 - Graphics primitives repaint once per burst. dot/2 writes pixels directly. fillrectangle/4 draws on the caller thread. play_sound/2 writes the tone in chunks. graphics/2 reads the real height and resizes when either side changes.
+- GUI build version is stamped into `build-version.properties` by resource filtering. An unresolved `${...}` placeholder is ignored, then the manifest version is used.
 
 ## 2. Architecture & Technical Discoveries
 - User-clause bindings are applied on a clone first. The live goal is unified after a rule body succeeds, so a snapshot reset between those steps does not drop the body bindings.
