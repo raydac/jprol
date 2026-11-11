@@ -33,7 +33,7 @@ public class ScalableEditorPane extends JTextPane {
   private static final float SCALE_MAX = 10.0f;
   private volatile JPopupMenu popupMenu;
   private volatile EventReplacer replacer;
-  private float fontScale = 1.0f;
+  private volatile float fontScale = 1.0f;
   private Font baseFont;
 
   public ScalableEditorPane(final boolean scalable) {

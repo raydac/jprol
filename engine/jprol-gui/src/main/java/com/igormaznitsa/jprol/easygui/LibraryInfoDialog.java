@@ -103,7 +103,7 @@ public final class LibraryInfoDialog extends JDialog {
 
   public String fillTextInfoFromLibraries(final String[] libraries) throws Exception {
     final ByteArrayOutputStream output = new ByteArrayOutputStream(16384);
-    try (PrintStream out = new PrintStream(output)) {
+    try (PrintStream out = new PrintStream(output, false, StandardCharsets.UTF_8)) {
       out.println(" System flags");
       out.println("---------------------------");
       Arrays.stream(JProlSystemFlag.values()).sorted(Comparator.comparing(JProlSystemFlag::asText))

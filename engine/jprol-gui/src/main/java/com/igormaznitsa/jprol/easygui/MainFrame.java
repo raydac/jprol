@@ -79,6 +79,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.Writer;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -146,7 +147,7 @@ public final class MainFrame extends javax.swing.JFrame
     DocumentListener, HyperlinkListener, JProlContextListener {
 
   public static final AtomicReference<MainFrame> MAIN_FRAME_INSTANCE = new AtomicReference<>();
-  public static final String[] PROL_LIBRARIES = new String[] {
+  static final String[] PROL_LIBRARIES = new String[] {
       JProlCoreLibrary.class.getCanonicalName(),
       JProlCoreGuardedLibrary.class.getCanonicalName(),
       JProlThreadLibrary.class.getCanonicalName(),
@@ -198,7 +199,7 @@ public final class MainFrame extends javax.swing.JFrame
   private Map<String, LookAndFeelInfo> lookAndFeelMap;
   private File currentOpenedFile;
   private File lastOpenedFile;
-  private boolean documentHasBeenChangedFlag;
+  private volatile boolean documentHasBeenChangedFlag;
   // Variables declaration - do not modify
   private JButton buttonCloseFind;
   private JButton buttonStopExecuting;
@@ -355,11 +356,11 @@ public final class MainFrame extends javax.swing.JFrame
 
   private void setAppIcon(final Image icon) {
     try {
-      Class<?> taskbarClass = Class.forName("java.awt.Taskbar");
-      Object taskbarInstance = taskbarClass.getMethod("getTaskbar").invoke(null);
+      final Class<?> taskbarClass = Class.forName("java.awt.Taskbar");
+      final Object taskbarInstance = taskbarClass.getMethod("getTaskbar").invoke(null);
       taskbarClass.getMethod("setIconImage", Image.class).invoke(taskbarInstance, icon);
-    } catch (Exception ex) {
-      // ignore
+    } catch (ReflectiveOperationException ex) {
+      LOGGER.log(Level.FINE, "Taskbar icon is unavailable", ex);
     }
 
     this.setIconImage(icon);
@@ -1242,7 +1243,7 @@ public final class MainFrame extends javax.swing.JFrame
         notTraceable = true;
         return this.dialogEditor.getOutput();
       } else {
-        final Writer writer = new FileWriter(id, append);
+        final Writer writer = new FileWriter(id, StandardCharsets.UTF_8, append);
         successful = true;
         notTraceable = false;
 

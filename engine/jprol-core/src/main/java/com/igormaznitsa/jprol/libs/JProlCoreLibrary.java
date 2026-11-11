@@ -2217,7 +2217,6 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final Term callable = predicate.getArgumentAt(2).tryGround();
 
     final String signature = ProlUtils.indicatorAsStringOrNull(indicator);
-    final Term[] events = list.toArray(false);
 
     final Set<JProlTriggerType> types = Arrays.stream(list.toArray(false))
         .map(x -> x.getText().trim().toLowerCase(Locale.ROOT))
@@ -2246,7 +2245,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     if (bound <= 0L) {
       return 0L;
     }
-    return Math.abs(RND.nextLong()) % bound;
+    return (RND.nextLong() >>> 1) % bound;
   }
 
   @JProlPredicate(determined = true, signature = "copy_term/2", validate = {

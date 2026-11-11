@@ -264,8 +264,9 @@ public final class PrologFormatConverter {
             // Convert number to binary string
             final Term arg = args[argIndex];
             if (arg instanceof NumericTerm) {
-              long value = Math.round(arg instanceof TermLong ? arg.toNumber().longValue() :
-                  arg.toNumber().doubleValue());
+              final long value = arg instanceof TermLong
+                  ? arg.toNumber().longValue()
+                  : Math.round(arg.toNumber().doubleValue());
               converted.add(Long.toBinaryString(value));
             } else {
               converted.add(arg.forWrite());
@@ -289,9 +290,7 @@ public final class PrologFormatConverter {
           final String accumulatedNumber = numericBuffer.toString();
           if (!accumulatedNumber.isEmpty()) {
             if ("*".equals(accumulatedNumber)) {
-              final Term arg = args[argIndex++].tryGround();
-              number = arg instanceof TermLong ? arg.toNumber().longValue() :
-                  arg.toNumber().doubleValue();
+              number = args[argIndex++].tryGround().toNumber();
             } else {
               try {
                 number = Long.parseLong(accumulatedNumber);
@@ -312,8 +311,9 @@ public final class PrologFormatConverter {
               break;
               case 'R':
               case 'r': { // radix
-                javaObject = Math.round(arg instanceof TermLong ? arg.toNumber().longValue() :
-                    arg.toNumber().doubleValue());
+                javaObject = arg instanceof TermLong
+                    ? Long.valueOf(arg.toNumber().longValue())
+                    : Long.valueOf(Math.round(arg.toNumber().doubleValue()));
               }
               break;
               case 'D':
@@ -351,8 +351,7 @@ public final class PrologFormatConverter {
               }
               break;
               default: {
-                javaObject = arg instanceof TermLong ? arg.toNumber().longValue() :
-                    arg.toNumber().doubleValue();
+                javaObject = arg.toNumber();
               }
             }
           } else {

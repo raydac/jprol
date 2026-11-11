@@ -141,6 +141,8 @@ public class JProlJsonLibrary extends AbstractJProlLibrary {
           }
         }
         break;
+        default:
+          throw new IllegalStateException("Unexpected JSON string state: " + state);
       }
     }
     throw new IllegalArgumentException("Detected unclosed JSON string");

@@ -29,7 +29,7 @@ import javax.script.ScriptException;
  *
  * @since 3.0.0
  */
-public class JProlCompiledScript extends CompiledScript
+public final class JProlCompiledScript extends CompiledScript
     implements Disposable, CanGC, Invocable, AutoCloseable, JProlScriptEngineProvider {
 
   private final JProlScriptEngine engine;

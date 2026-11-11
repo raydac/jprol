@@ -9,7 +9,7 @@ import org.fife.ui.rsyntaxtextarea.TokenMap;
 public class JProlTokenMaker extends AbstractTokenMaker {
 
   public static final String MIME = "text/jprol";
-  protected final String separators = "()[]{}|,.";
+  protected static final String separators = "()[]{}|,.";
 
   private int currentTokenStart;
   private int currentTokenType;

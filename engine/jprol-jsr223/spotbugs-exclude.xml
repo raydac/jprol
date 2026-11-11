@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!--
+      ClearableThreadLocal stays open so tests can replace the thread id.
+      The constructor only rejects a null supplier.
+    -->
+    <Match>
+        <Class name="com.igormaznitsa.jprol.jsr223.ClearableThreadLocal"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+
+    <!--
+      These accessors are the script engine. Callers must receive the live
+      engine, compiled context, and factory bindings.
+    -->
+    <Match>
+        <Class name="com.igormaznitsa.jprol.jsr223.JProlCompiledScript"/>
+        <Method name="getCompiledContext"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="com.igormaznitsa.jprol.jsr223.JProlCompiledScript"/>
+        <Method name="getEngine"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="com.igormaznitsa.jprol.jsr223.JProlCompiledScript"/>
+        <Method name="getJProlScriptEngine"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="com.igormaznitsa.jprol.jsr223.JProlScriptEngineFactory"/>
+        <Method name="getFactoryGlobalBindings"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+</FindBugsFilter>

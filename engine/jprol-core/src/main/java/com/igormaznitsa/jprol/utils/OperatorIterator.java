@@ -2,15 +2,19 @@ package com.igormaznitsa.jprol.utils;
 
 import com.igormaznitsa.jprol.data.TermOperator;
 import com.igormaznitsa.jprol.data.TermOperatorContainer;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 
-public class OperatorIterator implements CloseableIterator<TermOperator> {
+public final class OperatorIterator implements CloseableIterator<TermOperator> {
   private final Iterator<TermOperatorContainer> iterator;
   private Iterator<TermOperator> operatorIterator;
 
   public OperatorIterator(final Iterator<TermOperatorContainer> iterator) {
-    this.iterator = iterator;
+    final List<TermOperatorContainer> containers = new ArrayList<>();
+    iterator.forEachRemaining(containers::add);
+    this.iterator = containers.iterator();
     if (this.iterator.hasNext()) {
       this.operatorIterator = this.iterator.next().makeList().iterator();
     }

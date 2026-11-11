@@ -36,7 +36,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @SuppressWarnings({"EmptyMethod", "unused", "checkstyle:AbbreviationAsWordInName"})
-public class JProlHttpLibrary extends AbstractJProlLibrary {
+public final class JProlHttpLibrary extends AbstractJProlLibrary {
 
   private static final Term DEFAULT_REQUEST_METHOD = Terms.newAtom("GET");
   private final Function<URL, HttpURLConnection> urlConnectionFactory;

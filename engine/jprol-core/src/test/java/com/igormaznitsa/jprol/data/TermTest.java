@@ -1,6 +1,7 @@
 package com.igormaznitsa.jprol.data;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -32,5 +33,34 @@ class TermTest {
     assertTrue(operator.unifyWith(term));
     assertTrue(term.unifyWith(operator));
     assertTrue(term.isUnifiableWith(operator));
+  }
+
+  @Test
+  void testEqualsContract_TermOperatorContainer() {
+    final TermOperator operator =
+        new TermOperator(1000, OpAssoc.FX, "one", SourcePosition.UNKNOWN);
+    final TermOperatorContainer first =
+        TermOperatorContainer.makeFor(operator, SourcePosition.UNKNOWN);
+    final TermOperatorContainer second =
+        TermOperatorContainer.makeFor(
+            new TermOperator(1000, OpAssoc.FX, "one", SourcePosition.UNKNOWN),
+            SourcePosition.UNKNOWN);
+    assertEquals(first, second);
+    assertEquals(first.hashCode(), second.hashCode());
+    assertNotEquals(first, Terms.newAtom("one"));
+    assertNotEquals(Terms.newAtom("one"), first);
+  }
+
+  @Test
+  void testVariableChainWalksPastTheFirstLink() {
+    final TermVar head = Terms.newVar("Head");
+    final TermVar middle = Terms.newVar("Middle");
+    final TermVar tail = Terms.newVar("Tail");
+    head.setImmediateValue(middle);
+    middle.setImmediateValue(tail);
+
+    assertTrue(head.isPresentedInVarChain(tail));
+    assertTrue(head.isPresentedInVarChain(Terms.newVar("Tail")));
+    assertFalse(head.isPresentedInVarChain(Terms.newVar("Other")));
   }
 }

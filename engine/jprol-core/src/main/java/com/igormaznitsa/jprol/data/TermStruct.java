@@ -74,7 +74,7 @@ public class TermStruct extends CompoundTerm {
   }
 
   public final Term[] getArguments() {
-    return this.arguments;
+    return this.arguments.clone();
   }
 
   public void setArgumentAt(final int index, final Term argument) {
@@ -498,6 +498,8 @@ public class TermStruct extends CompoundTerm {
         result = this.getArity() == 0 && this.getFunctor().getText().equals(target.getText());
       }
       break;
+      default:
+        break;
     }
     return result;
   }
@@ -512,7 +514,7 @@ public class TermStruct extends CompoundTerm {
     if (this.arguments.length == 0) {
       result = this;
     } else {
-      final Term[] elements = this.getArguments();
+      final Term[] elements = this.arguments;
       final int arity = elements.length;
       final Term[] targetElements = new Term[arity];
 
@@ -564,7 +566,7 @@ public class TermStruct extends CompoundTerm {
     if (this.getArity() == 0) {
       result = this;
     } else {
-      final Term[] elements = this.getArguments();
+      final Term[] elements = this.arguments;
       final int arity = elements.length;
       final Term[] targetElements = new Term[arity];
       for (int i = 0; i < arity; i++) {

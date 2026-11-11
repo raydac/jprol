@@ -186,8 +186,7 @@ public class OptionsDialog extends javax.swing.JDialog implements TreeSelectionL
 
   private void optionsTreeMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_optionsTreeMouseClicked
     final JTree tree = (JTree) evt.getSource();
-    int selRow = tree.getRowForLocation(evt.getX(), evt.getY());
-    final TreePath selPath = tree.getPathForLocation(evt.getX(), evt.getY());
+    final int selRow = tree.getRowForLocation(evt.getX(), evt.getY());
     if (selRow != -1) {
       if (evt.getClickCount() == 2) {
         if (buttonEditOption.isEnabled()) {

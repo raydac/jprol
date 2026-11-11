@@ -33,10 +33,10 @@ import java.util.function.Predicate;
 
 public final class PredicateInvoker {
 
-  public static final PredicateInvoker NULL_INVOKER =
-      new PredicateInvoker(null, false, true, false, false, x -> true, null, null);
   private static final MethodHandles.Lookup METHOD_LOOKUP = MethodHandles.publicLookup();
   private static final Class<?> CLASS_RESULT_VOID = void.class;
+  public static final PredicateInvoker NULL_INVOKER =
+      new PredicateInvoker(null, false, true, false, false, x -> true, null, null);
   private final String predicateSignature;
   private final MethodHandle methodHandle;
   private final AbstractJProlLibrary ownerLibrary;

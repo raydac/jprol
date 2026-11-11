@@ -23,14 +23,13 @@ import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public final class TermOperatorContainer extends SpecialTerm {
 
   private final TermOperator opFZ;
   private final TermOperator opZF;
   private final TermOperator opZFZ;
-
-  private final OpContainer opContainer;
 
   private TermOperatorContainer(
       final String text,
@@ -42,10 +41,6 @@ public final class TermOperatorContainer extends SpecialTerm {
     this.opFZ = opFZ;
     this.opZF = opZF;
     this.opZFZ = opZFZ;
-    this.opContainer = OpContainer.make(text,
-        opFZ == null ? null : opFZ.asOperator(),
-        opZF == null ? null : opZF.asOperator(),
-        opZFZ == null ? null : opZFZ.asOperator());
   }
 
   public static TermOperatorContainer makeFor(final TermOperator operator,
@@ -201,7 +196,31 @@ public final class TermOperatorContainer extends SpecialTerm {
   }
 
   public OpContainer asOpContainer() {
-    return this.opContainer;
+    return OpContainer.make(
+        this.getText(),
+        this.opFZ == null ? null : this.opFZ.asOperator(),
+        this.opZF == null ? null : this.opZF.asOperator(),
+        this.opZFZ == null ? null : this.opZFZ.asOperator());
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof TermOperatorContainer)) {
+      return false;
+    }
+    final TermOperatorContainer that = (TermOperatorContainer) obj;
+    return this.getText().equals(that.getText())
+        && Objects.equals(this.opFZ, that.opFZ)
+        && Objects.equals(this.opZF, that.opZF)
+        && Objects.equals(this.opZFZ, that.opZFZ);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.getText(), this.opFZ, this.opZF, this.opZFZ);
   }
 
   public List<TermOperator> makeList() {

@@ -21,7 +21,7 @@ import static java.util.Objects.requireNonNull;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.logic.JProlContext;
 
-public class TriggerEvent {
+public final class TriggerEvent {
 
   private final JProlContext context;
   private final Term term;

@@ -296,6 +296,8 @@ public class Term {
         result = thatStruct.getArity() == 0 && getText().equals(thatStruct.getFunctor().getText());
       }
       break;
+      default:
+        break;
     }
 
     return result;
@@ -303,20 +305,18 @@ public class Term {
 
   @Override
   public boolean equals(final Object obj) {
-    if (obj == null) {
-      return false;
-    }
-
     if (this == obj) {
       return true;
     }
-
-    if (obj.getClass() == Term.class || obj.getClass() == TermOperator.class) {
-      final Term that = (Term) obj;
-      return this.text.equals(that.text);
+    if (!(obj instanceof Term)) {
+      return false;
     }
+    final Term that = (Term) obj;
+    return (that instanceof TermOperator || that.isPlainAtom()) && this.text.equals(that.text);
+  }
 
-    return false;
+  final boolean isPlainAtom() {
+    return this.getClass() == Term.class;
   }
 
   /**

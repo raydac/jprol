@@ -8,7 +8,7 @@ import java.util.Objects;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
-public class JSR223Div implements AutoCloseable {
+public final class JSR223Div implements AutoCloseable {
 
   private static final ScriptEngineManager MANAGER = new ScriptEngineManager();
 

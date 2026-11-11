@@ -87,20 +87,19 @@ public final class TermVar extends Term {
    * @since 3.0.0
    */
   public boolean isPresentedInVarChain(final TermVar otherVar) {
+    if (this.isAnonymous() || otherVar.isAnonymous()) {
+      return false;
+    }
     TermVar current = this;
-    while (current != null) {
-      if (this.isAnonymous() || otherVar.isAnonymous()) {
+    for (int step = 0; step < LOOP_WATCHDOG; step++) {
+      final Term next = current.getImmediateValue();
+      if (!(next instanceof TermVar) || next == current) {
         return false;
       }
-      if (this.immediateValue == null || this.immediateValue.getTermType() != VAR ||
-          this.immediateValue == this) {
-        return false;
-      }
-      if (this.immediateValue == otherVar ||
-          this.immediateValue.getText().equals(otherVar.getText())) {
+      if (next == otherVar || next.getText().equals(otherVar.getText())) {
         return true;
       }
-      current = (TermVar) this.immediateValue;
+      current = (TermVar) next;
     }
     return false;
   }

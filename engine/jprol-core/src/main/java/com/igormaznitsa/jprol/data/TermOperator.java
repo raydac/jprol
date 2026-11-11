@@ -60,7 +60,7 @@ public final class TermOperator extends Term {
   }
 
   public Op asOperator() {
-    return this.op;
+    return Op.make(this.getPrecedence(), this.getType(), this.getText());
   }
 
   @Override
@@ -79,22 +79,21 @@ public final class TermOperator extends Term {
 
   @Override
   public boolean equals(final Object obj) {
-    if (obj == null) {
-      return false;
-    }
-
     if (this == obj) {
       return true;
     }
-
     if (obj instanceof TermOperator) {
-      final TermOperator that = (TermOperator) obj;
-      return this.op.equals(that.op);
-    } else if (obj instanceof Term) {
+      return this.op.equals(((TermOperator) obj).op);
+    }
+    if (obj instanceof Term && ((Term) obj).isPlainAtom()) {
       return this.getText().equals(((Term) obj).getText());
     }
-
     return false;
+  }
+
+  @Override
+  public int hashCode() {
+    return this.getText().hashCode();
   }
 
   @Override

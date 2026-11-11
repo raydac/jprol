@@ -144,12 +144,12 @@ public class JProlContext implements AutoCloseable {
   private final List<IoResourceProvider> ioProviders = new CopyOnWriteArrayList<>();
   private final File currentFolder;
   private final JProlContext parentContext;
-  private boolean verify;
-  private boolean trace;
-  private boolean shareKnowledgeBaseWithAsyncTasks;
-  private UndefinedPredicateBehavior undefinedPredicateBehaviour;
+  private volatile boolean verify;
+  private volatile boolean trace;
+  private volatile boolean shareKnowledgeBaseWithAsyncTasks;
+  private volatile UndefinedPredicateBehavior undefinedPredicateBehaviour;
 
-  private int maxProveStackDepth;
+  private volatile int maxProveStackDepth;
 
   /**
    * Create instance.
@@ -651,8 +651,10 @@ public class JProlContext implements AutoCloseable {
           if (time == null) {
             this.asyncCounterCondition.await();
           } else {
-            this.asyncCounterCondition.await(Math.max(maxTime - System.currentTimeMillis(), 0L),
-                TimeUnit.MILLISECONDS);
+            final long remaining = Math.max(maxTime - System.currentTimeMillis(), 0L);
+            if (!this.asyncCounterCondition.await(remaining, TimeUnit.MILLISECONDS)) {
+              break;
+            }
           }
         } catch (InterruptedException ex) {
           Thread.currentThread().interrupt();
@@ -1133,7 +1135,9 @@ public class JProlContext implements AutoCloseable {
         if (delay <= 0L) {
           break;
         }
-        this.asyncCounterCondition.await(delay, TimeUnit.MILLISECONDS);
+        if (!this.asyncCounterCondition.await(delay, TimeUnit.MILLISECONDS)) {
+          break;
+        }
       }
       return this.startedAsyncTasks.isEmpty();
     } catch (InterruptedException ex) {
@@ -1765,7 +1769,7 @@ public class JProlContext implements AutoCloseable {
       this.state.lock();
       try {
         if (this.owner != Thread.currentThread() || this.holds == 0) {
-          throw new IllegalMonitorStateException("Current thread does not own the locker");
+          throw new NamedLockOwnerException("Current thread does not own the locker");
         }
         this.holds--;
         if (this.holds == 0) {

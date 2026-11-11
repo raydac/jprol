@@ -9,7 +9,7 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 
-public class JSR223Multiply {
+public final class JSR223Multiply {
 
   private final ScriptEngine engine;
 

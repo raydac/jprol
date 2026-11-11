@@ -1,5 +1,6 @@
 package com.igormaznitsa.jprol.utils;
 
+import static java.util.Collections.unmodifiableMap;
 import static java.util.Objects.requireNonNull;
 
 import com.igormaznitsa.jprol.data.Term;
@@ -19,7 +20,7 @@ import java.util.function.Supplier;
  * @see JProlContext#getGlobalVariablesStore()
  * @since 3.0.0
  */
-public class DefaultKeyValueTermStore implements KeyValueTermStore {
+public final class DefaultKeyValueTermStore implements KeyValueTermStore {
 
   private final String name;
   private final Map<String, Term> store;
@@ -91,7 +92,7 @@ public class DefaultKeyValueTermStore implements KeyValueTermStore {
   }
 
   public Map<String, Term> getMap() {
-    return this.store;
+    return unmodifiableMap(this.store);
   }
 
 }

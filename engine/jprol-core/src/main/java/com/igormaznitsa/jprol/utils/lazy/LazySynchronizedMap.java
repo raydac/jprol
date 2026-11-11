@@ -12,6 +12,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * The container allows to organize a lazy map collection where the main map object will not be allocated if there is not write operations.
@@ -284,7 +285,12 @@ public class LazySynchronizedMap<K, V> implements Map<K, V> {
   public Set<Map.Entry<K, V>> entrySet() {
     this.locker.lock();
     try {
-      return this.map == null ? Set.of() : new HashSet<>(this.map.entrySet());
+      if (this.map == null) {
+        return Set.of();
+      }
+      return this.map.entrySet().stream()
+          .map(entry -> Map.entry(entry.getKey(), entry.getValue()))
+          .collect(Collectors.toCollection(HashSet::new));
     } finally {
       this.locker.unlock();
     }

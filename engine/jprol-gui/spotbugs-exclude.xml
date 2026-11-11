@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!--
+      Swing widgets, dialogs, and clipboard images are the live UI objects.
+      Dialog constructors validate and build the component tree.
+      These classes are not serialized as application state.
+    -->
+    <Match>
+        <Package name="~com\.igormaznitsa\.jprol\.easygui(\..*)?"/>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2,CT_CONSTRUCTOR_THROW,SE_BAD_FIELD,SE_BAD_FIELD_STORE"/>
+    </Match>
+</FindBugsFilter>

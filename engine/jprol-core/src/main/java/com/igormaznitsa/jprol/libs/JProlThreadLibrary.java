@@ -13,6 +13,7 @@ import com.igormaznitsa.jprol.exceptions.ProlForkExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
+import com.igormaznitsa.jprol.logic.NamedLockOwnerException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -100,7 +101,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
       choicePoint.getContext().unlockFor(term.getText());
     } catch (IllegalArgumentException ex) {
       throw new ProlExistenceErrorException("locker", "unlock", predicate, ex);
-    } catch (IllegalMonitorStateException ex) {
+    } catch (NamedLockOwnerException ex) {
       throw new ProlPermissionErrorException("locker", "unlock", predicate, ex);
     }
   }

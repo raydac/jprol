@@ -613,6 +613,8 @@ public final class ProlAssertions {
         }
       }
       break;
+      default:
+        break;
     }
     if (error) {
       return new ProlTypeErrorException("Unexpected head: " + t, t);
@@ -826,7 +828,7 @@ public final class ProlAssertions {
   public static ProlException checkIndicator(final Term t) {
     assertNonVar(t);
     int errorCode = 1;
-    if (t.getTermType() == STRUCT) {
+    if (t.getTermType() == STRUCT && t instanceof TermStruct) {
       final TermStruct struct = (TermStruct) t;
       if (struct.getArity() == 2 && "/".equals(struct.getFunctor().getText())) {
         final Term left = struct.getArgumentAt(0).tryGround();

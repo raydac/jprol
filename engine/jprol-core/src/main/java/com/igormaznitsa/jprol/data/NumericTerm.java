@@ -82,6 +82,9 @@ public abstract class NumericTerm extends Term {
         }
       }
       case VAR: {
+        if (!(other instanceof TermVar)) {
+          return false;
+        }
         final TermVar ungrounded = ((TermVar) other).findUngroundVariable();
 
         if (ungrounded == null) {

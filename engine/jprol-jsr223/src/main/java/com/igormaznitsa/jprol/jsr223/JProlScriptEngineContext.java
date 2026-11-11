@@ -19,6 +19,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -71,8 +72,10 @@ public class JProlScriptEngineContext
   }
 
   JProlScriptEngineContext(final JProlScriptEngineFactory factory, final Bindings globalBindings) {
-    this(factory, globalBindings, new InputStreamReader(System.in), new PrintWriter(System.out),
-        new PrintWriter(System.err));
+    this(factory, globalBindings,
+        new InputStreamReader(System.in, StandardCharsets.UTF_8),
+        new PrintWriter(System.out, false, StandardCharsets.UTF_8),
+        new PrintWriter(System.err, false, StandardCharsets.UTF_8));
   }
 
   JProlScriptEngineContext(

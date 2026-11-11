@@ -11,6 +11,7 @@ import com.igormaznitsa.prologparser.DefaultParserContext;
 import com.igormaznitsa.prologparser.GenericPrologParser;
 import com.igormaznitsa.prologparser.ParserContext;
 import com.igormaznitsa.prologparser.PrologParser;
+import com.igormaznitsa.prologparser.exceptions.PrologParserException;
 import com.igormaznitsa.prologparser.terms.PrologStruct;
 import com.igormaznitsa.prologparser.terms.PrologTerm;
 import com.igormaznitsa.prologparser.terms.TermType;
@@ -336,8 +337,8 @@ public class PrologSourceEditor extends AbstractProlEditor {
               this.foundSignaturesInSources.put(signature, foundStruct);
             }
           }
-        } catch (Exception ex) {
-          // do nothing in the case
+        } catch (IOException | PrologParserException ex) {
+          this.foundSignaturesInSources.clear();
         }
 
         this.foundSignaturesInSources.forEach((s, p) -> this.additionalCompletions.add(

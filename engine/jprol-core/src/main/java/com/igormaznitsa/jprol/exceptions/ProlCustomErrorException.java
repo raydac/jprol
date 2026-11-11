@@ -19,7 +19,7 @@ package com.igormaznitsa.jprol.exceptions;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 
-public class ProlCustomErrorException extends ProlAbstractCatchableException {
+public final class ProlCustomErrorException extends ProlAbstractCatchableException {
 
   private final Term error;
 

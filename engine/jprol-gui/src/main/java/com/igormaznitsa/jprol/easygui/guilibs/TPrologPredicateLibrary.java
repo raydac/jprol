@@ -50,6 +50,10 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
   private static final Logger LOGGER = Logger.getLogger(TPrologPredicateLibrary.class.getName());
   private static volatile File path = new File(System.getProperty("user.home"));
 
+  private static void rememberDirectory(final File directory) {
+    path = directory;
+  }
+
   public TPrologPredicateLibrary() {
     super("TPrologPredicateLib");
   }
@@ -166,7 +170,7 @@ public final class TPrologPredicateLibrary extends AbstractJProlLibrary {
         final String str = thePath.getText();
         final File file = new File(str);
         if (file.isDirectory()) {
-          path = file;
+          rememberDirectory(file);
           result = true;
         } else {
           Objects.requireNonNull(MainFrame.MAIN_FRAME_INSTANCE.get()).addErrorText("Can't find directory '" + file.getAbsolutePath() + '\'');

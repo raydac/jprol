@@ -112,12 +112,10 @@ public enum LocalFontContainer {
 
   public static class ResourceBasedFont extends Font {
     private final LocalFontContainer parent;
-    private final Font wrappedFont;
 
-    public ResourceBasedFont(LocalFontContainer parent, Font font) {
+    public ResourceBasedFont(final LocalFontContainer parent, final Font font) {
       super(font);
       this.parent = parent;
-      this.wrappedFont = font;
     }
 
     public LocalFontContainer getParent() {
@@ -125,25 +123,20 @@ public enum LocalFontContainer {
     }
 
     @Override
-    public boolean equals(final Object o) {
-      if (o == null) {
+    public boolean equals(final Object other) {
+      if (!(other instanceof Font)) {
         return false;
       }
-      if (this == o) {
-        return true;
+      if (other instanceof ResourceBasedFont
+          && this.parent != ((ResourceBasedFont) other).parent) {
+        return false;
       }
-      if (o instanceof ResourceBasedFont) {
-        final ResourceBasedFont that = (ResourceBasedFont) o;
-        return this.parent == ((ResourceBasedFont) o).parent
-            && Float.compare(this.wrappedFont.getSize2D(), that.getSize2D()) == 0
-            && this.wrappedFont.getStyle() == that.getStyle();
-      }
-      return false;
+      return super.equals(other);
     }
 
     @Override
     public int hashCode() {
-      return this.parent.hashCode();
+      return super.hashCode();
     }
 
     public LocalFontContainer getLocalFont() {
