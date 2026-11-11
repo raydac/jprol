@@ -4,39 +4,39 @@ import com.igormaznitsa.jprol.data.Term;
 
 final class ProveStackFrame {
 
-  final JProlChoicePoint choicePoint;
-  final JProlChoicePoint pendingResumeGoal;
-  final boolean subgoalOutcomePending;
-  final Term pendingSubgoalResult;
+  JProlChoicePoint choicePoint;
+  JProlChoicePoint pendingResumeGoal;
+  boolean subgoalOutcomePending;
+  Term pendingSubgoalResult;
 
-  private ProveStackFrame(
-      final JProlChoicePoint choicePoint,
-      final JProlChoicePoint pendingResumeGoal,
-      final boolean subgoalOutcomePending,
-      final Term pendingSubgoalResult) {
+  void prepare(final JProlChoicePoint choicePoint) {
     this.choicePoint = choicePoint;
-    this.pendingResumeGoal = pendingResumeGoal;
-    this.subgoalOutcomePending = subgoalOutcomePending;
-    this.pendingSubgoalResult = pendingSubgoalResult;
+    this.pendingResumeGoal = null;
+    this.subgoalOutcomePending = false;
+    this.pendingSubgoalResult = null;
   }
 
-  static ProveStackFrame fresh(final JProlChoicePoint choicePoint) {
-    return new ProveStackFrame(choicePoint, null, false, null);
+  void watchChild(final JProlChoicePoint resumeGoal) {
+    this.pendingResumeGoal = resumeGoal;
+    this.subgoalOutcomePending = false;
+    this.pendingSubgoalResult = null;
   }
 
-  ProveStackFrame withPendingResumeGoal(final JProlChoicePoint resumeGoal) {
-    return new ProveStackFrame(this.choicePoint, resumeGoal, false, null);
+  void acceptSubgoal(final Term result) {
+    this.subgoalOutcomePending = true;
+    this.pendingSubgoalResult = result;
   }
 
-  ProveStackFrame withSubgoalReturned(final Term result) {
-    return new ProveStackFrame(
-        this.choicePoint,
-        this.pendingResumeGoal,
-        true,
-        result);
+  void clearOutcome() {
+    this.pendingResumeGoal = null;
+    this.subgoalOutcomePending = false;
+    this.pendingSubgoalResult = null;
   }
 
-  ProveStackFrame clearedSubgoalOutcome() {
-    return new ProveStackFrame(this.choicePoint, null, false, null);
+  void release() {
+    this.choicePoint = null;
+    this.pendingResumeGoal = null;
+    this.pendingSubgoalResult = null;
+    this.subgoalOutcomePending = false;
   }
 }

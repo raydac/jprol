@@ -104,7 +104,6 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -890,7 +889,10 @@ public class JProlContext implements AutoCloseable {
   }
 
   public void unlockFor(final String lockId) {
-    this.findLockerForId(lockId, false).ifPresent(JProlNamedLock::release);
+    this.findLockerForId(lockId, false)
+        .orElseThrow(
+            () -> new IllegalArgumentException("Named locker is not presented: " + lockId))
+        .release();
   }
 
   private void assertNotDisposed() {
@@ -1167,7 +1169,7 @@ public class JProlContext implements AutoCloseable {
         if (this.isRootContext()) {
           this.namedLocks.forEach((key, value) -> {
             try {
-              value.release();
+              value.abandon();
             } catch (Exception ex) {
               this.onUncaughtException(this, ex);
             }
@@ -1736,34 +1738,71 @@ public class JProlContext implements AutoCloseable {
   }
 
   private static final class JProlNamedLock {
-    private final Semaphore semaphore = new Semaphore(1);
-    private final AtomicLong ownerThreadId = new AtomicLong(-1L);
+    private final ReentrantLock state = new ReentrantLock();
+    private final Condition available = this.state.newCondition();
+    private Thread owner;
+    private int holds;
+    private boolean abandoned;
 
     public void acquire() throws InterruptedException {
-      final long id = Thread.currentThread().getId();
-      if (ownerThreadId.get() == id) {
-        return;
+      this.state.lockInterruptibly();
+      try {
+        final Thread current = Thread.currentThread();
+        while (!this.abandoned && this.owner != null && this.owner != current) {
+          this.available.await();
+        }
+        if (this.abandoned && this.owner != current) {
+          throw new InterruptedException("Locker is abandoned");
+        }
+        this.owner = current;
+        this.holds++;
+      } finally {
+        this.state.unlock();
       }
-      this.semaphore.acquire();
-      this.ownerThreadId.set(id);
     }
 
     public void release() {
-      if (this.ownerThreadId.compareAndSet(Thread.currentThread().getId(), -1L)) {
-        this.semaphore.release();
+      this.state.lock();
+      try {
+        if (this.owner != Thread.currentThread() || this.holds == 0) {
+          throw new IllegalMonitorStateException("Current thread does not own the locker");
+        }
+        this.holds--;
+        if (this.holds == 0) {
+          this.owner = null;
+          this.available.signalAll();
+        }
+      } finally {
+        this.state.unlock();
       }
     }
 
     public boolean tryAcquire() {
-      final long id = Thread.currentThread().getId();
-      if (ownerThreadId.get() == id) {
+      this.state.lock();
+      try {
+        final Thread current = Thread.currentThread();
+        if (this.abandoned && this.owner != current) {
+          return false;
+        }
+        if (this.owner != null && this.owner != current) {
+          return false;
+        }
+        this.owner = current;
+        this.holds++;
         return true;
+      } finally {
+        this.state.unlock();
       }
-      if (this.semaphore.tryAcquire()) {
-        this.ownerThreadId.set(id);
-        return true;
+    }
+
+    public void abandon() {
+      this.state.lock();
+      try {
+        this.abandoned = true;
+        this.available.signalAll();
+      } finally {
+        this.state.unlock();
       }
-      return false;
     }
   }
 }

@@ -67,8 +67,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -112,6 +114,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
   private final AtomicReference<SourceDataLine> soundDataLine = new AtomicReference<>();
   private final Semaphore soundAccessLocker = new Semaphore(1);
   private final Semaphore gfxBufferAccessLocker = new Semaphore(1);
+  private final AtomicBoolean repaintQueued = new AtomicBoolean();
+  private final AtomicInteger publishedFrame = new AtomicInteger();
   private File lastSavedImage = null;
   private BufferedImage bufferedImage;
   private Graphics bufferGraphics;
@@ -433,22 +437,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final Term termArgX = predicate.getArgumentAt(0).tryGround();
     final Term termArgY = predicate.getArgumentAt(1).tryGround();
 
-    final int x = termArgX.toNumber().intValue();
-    final int y = termArgY.toNumber().intValue();
-
-    this.gfxBufferAccessLocker.acquireUninterruptibly();
-    try {
-      if (this.bufferedImage != null) {
-        this.bufferGraphics.setColor(this.penColor.get());
-        this.bufferGraphics.drawLine(x, y, x, y);
-      }
-    } finally {
-      this.lastPlotPointX.set(x);
-      this.lastPlotPointY.set(y);
-
-      this.gfxBufferAccessLocker.release();
-    }
-    this.repaintLabel();
+    this.drawPoint(termArgX.toNumber().intValue(), termArgY.toNumber().intValue());
   }
 
   @JProlPredicate(determined = true, signature = "bindaction/0", reference = "Remove all actions from the action menu")
@@ -640,16 +629,10 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final int w = term2.toNumber().intValue();
     final int h = term3.toNumber().intValue();
 
-    this.gfxBufferAccessLocker.acquireUninterruptibly();
-    try {
-      if (this.bufferGraphics != null) {
-        this.bufferGraphics.setColor(penColor.get());
-        this.bufferGraphics.drawRect(x, y, w, h);
-      }
-    } finally {
-      this.gfxBufferAccessLocker.release();
-    }
-    this.repaintLabel();
+    this.drawOnBuffer(graphics -> {
+      graphics.setColor(this.penColor.get());
+      graphics.drawRect(x, y, w, h);
+    });
   }
 
   @JProlPredicate(determined = true, signature = "fillrectangle/4", validate = {
@@ -665,14 +648,11 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final int argumentTargetWidth = term2.toNumber().intValue();
     final int argumentTargetHeight = term3.toNumber().intValue();
 
-    safeSwingCall(() -> {
-      if (this.bufferGraphics != null) {
-        this.bufferGraphics.setColor(brushColor.get());
-        this.bufferGraphics.fillRect(argumentTargetX, argumentTargetY, argumentTargetWidth,
-            argumentTargetHeight);
-      }
+    this.drawOnBuffer(graphics -> {
+      graphics.setColor(this.brushColor.get());
+      graphics.fillRect(argumentTargetX, argumentTargetY, argumentTargetWidth,
+          argumentTargetHeight);
     });
-    this.repaintLabel();
   }
 
   @JProlPredicate(determined = true, signature = "plot/4", validate = {
@@ -688,19 +668,13 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final int x2 = targxx.toNumber().intValue();
     final int y2 = targyy.toNumber().intValue();
 
-    this.gfxBufferAccessLocker.acquireUninterruptibly();
-    try {
-      if (bufferedImage != null) {
-        bufferGraphics.setColor(penColor.get());
-        bufferGraphics.drawLine(x1, y1, x2, y2);
-      }
-    } finally {
+    this.drawOnBuffer(graphics -> {
+      graphics.setColor(this.penColor.get());
+      graphics.drawLine(x1, y1, x2, y2);
+    }, () -> {
       this.lastPlotPointX.set(x2);
       this.lastPlotPointY.set(y2);
-
-      this.gfxBufferAccessLocker.release();
-    }
-    this.repaintLabel();
+    });
   }
 
   @JProlPredicate(determined = true, signature = "plot/2", validate = {
@@ -711,19 +685,13 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
     final int x = targetX.toNumber().intValue();
     final int y = targetY.toNumber().intValue();
-    this.gfxBufferAccessLocker.acquireUninterruptibly();
-    try {
-      if (this.bufferedImage != null) {
-        this.bufferGraphics.setColor(this.penColor.get());
-        this.bufferGraphics.drawLine(this.lastPlotPointX.get(), this.lastPlotPointY.get(), x, y);
-      }
-    } finally {
+    this.drawOnBuffer(graphics -> {
+      graphics.setColor(this.penColor.get());
+      graphics.drawLine(this.lastPlotPointX.get(), this.lastPlotPointY.get(), x, y);
+    }, () -> {
       this.lastPlotPointX.set(x);
       this.lastPlotPointY.set(y);
-
-      this.gfxBufferAccessLocker.release();
-    }
-    this.repaintLabel();
+    });
   }
 
   @JProlPredicate(determined = true, signature = "oval/4", validate = {
@@ -739,16 +707,10 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final int w = termW.toNumber().intValue();
     final int h = termH.toNumber().intValue();
 
-    this.gfxBufferAccessLocker.acquireUninterruptibly();
-    try {
-      if (this.bufferedImage != null) {
-        this.bufferGraphics.setColor(penColor.get());
-        this.bufferGraphics.drawOval(x, y, w, h);
-      }
-    } finally {
-      this.gfxBufferAccessLocker.release();
-    }
-    this.repaintLabel();
+    this.drawOnBuffer(graphics -> {
+      graphics.setColor(this.penColor.get());
+      graphics.drawOval(x, y, w, h);
+    });
   }
 
   @JProlPredicate(determined = true, signature = "filloval/4", validate = {
@@ -764,30 +726,21 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     final int w = termW.toNumber().intValue();
     final int h = termH.toNumber().intValue();
 
-    this.gfxBufferAccessLocker.acquireUninterruptibly();
-    try {
-      if (bufferedImage != null) {
-        bufferGraphics.setColor(brushColor.get());
-        bufferGraphics.fillOval(x, y, w, h);
-      }
-    } finally {
-      this.gfxBufferAccessLocker.release();
-    }
-    this.repaintLabel();
+    this.drawOnBuffer(graphics -> {
+      graphics.setColor(this.brushColor.get());
+      graphics.fillOval(x, y, w, h);
+    });
   }
 
   @JProlPredicate(determined = true, signature = "fillscreen/0", reference = "Fill all screen by the brush color.")
   public void predicateFILLSCREEN(final JProlChoicePoint goal, final TermStruct predicate) {
-    this.gfxBufferAccessLocker.acquireUninterruptibly();
-    try {
-      if (bufferedImage != null) {
-        bufferGraphics.setColor(brushColor.get());
-        bufferGraphics.fillRect(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight());
+    this.drawOnBuffer(graphics -> {
+      final BufferedImage image = this.bufferedImage;
+      if (image != null) {
+        graphics.setColor(this.brushColor.get());
+        graphics.fillRect(0, 0, image.getWidth(), image.getHeight());
       }
-    } finally {
-      this.gfxBufferAccessLocker.release();
-    }
-    this.repaintLabel();
+    });
   }
 
   @JProlPredicate(signature = "brushcolor/1", validate = {
@@ -847,10 +800,82 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     return true;
   }
 
-  private void repaintLabel() {
+  private void drawPoint(final int x, final int y) {
+    this.gfxBufferAccessLocker.acquireUninterruptibly();
+    try {
+      final BufferedImage image = this.bufferedImage;
+      if (image != null && x >= 0 && y >= 0 && x < image.getWidth() && y < image.getHeight()) {
+        image.setRGB(x, y, this.penColor.get().getRGB());
+      }
+    } finally {
+      this.lastPlotPointX.set(x);
+      this.lastPlotPointY.set(y);
+      this.gfxBufferAccessLocker.release();
+    }
+    this.requestRepaint();
+  }
+
+  private void drawOnBuffer(final Consumer<Graphics> draw) {
+    this.drawOnBuffer(draw, null);
+  }
+
+  private void drawOnBuffer(final Consumer<Graphics> draw, final Runnable afterDraw) {
+    this.gfxBufferAccessLocker.acquireUninterruptibly();
+    try {
+      final Graphics graphics = this.bufferGraphics;
+      if (graphics != null) {
+        draw.accept(graphics);
+      }
+      if (afterDraw != null) {
+        afterDraw.run();
+      }
+    } finally {
+      this.gfxBufferAccessLocker.release();
+    }
+    this.requestRepaint();
+  }
+
+  private void requestRepaint() {
+    this.publishedFrame.incrementAndGet();
+    this.scheduleRepaint();
+  }
+
+  private void scheduleRepaint() {
+    if (this.repaintQueued.compareAndSet(false, true)) {
+      SwingUtilities.invokeLater(this::flushRepaint);
+    }
+  }
+
+  private void flushRepaint() {
+    this.repaintQueued.set(false);
+    final int seen = this.publishedFrame.get();
     final JLabel theLabel = this.label.get();
     if (theLabel != null) {
       theLabel.repaint();
+    }
+    if (this.publishedFrame.get() != seen) {
+      this.scheduleRepaint();
+    }
+  }
+
+  private void writeTone(final SourceDataLine line, final int frequencyHz, final int durationMs,
+                         final JProlContext context) {
+    final int sampleRate = 44100;
+    final int iterations = Math.round(durationMs * (sampleRate / 1000.0f));
+    final double samplesPerHalfTurn = (sampleRate / (double) frequencyHz) / 2.0;
+    final byte[] chunk = new byte[4096];
+    int produced = 0;
+    while (produced < iterations && !context.isDisposed()) {
+      final int samples = Math.min(iterations - produced, chunk.length / 2);
+      for (int i = 0; i < samples; i++) {
+        final short sample =
+            (short) (Math.sin((produced + i) / samplesPerHalfTurn * Math.PI) * 32767);
+        final int offset = i * 2;
+        chunk[offset] = (byte) (sample & 0xFF);
+        chunk[offset + 1] = (byte) (sample >> 8);
+      }
+      line.write(chunk, 0, samples * 2);
+      produced += samples;
     }
   }
 
@@ -909,22 +934,11 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       }
 
       try {
-        final byte[] buf = new byte[2];
-        final int durationMs = Math.max(lengthMs.toNumber().intValue(), 0);
-        final int numberOfTimesFullSinFuncPerSec = Math.max(1, freqHz.toNumber().intValue());
-
-        final int iterations = Math.round(durationMs * 44100.0f / 1000.0f);
-
-        for (int i = 0; i < iterations && !goal.getContext().isDisposed(); i++) {
-          float numberOfSamplesToRepresentFullSin =
-              (float) frequency / numberOfTimesFullSinFuncPerSec;
-          double angle = i / (numberOfSamplesToRepresentFullSin / 2.0) * Math.PI;
-          short a = (short) (Math.sin(angle) *
-              32767);
-          buf[0] = (byte) (a & 0xFF);
-          buf[1] = (byte) (a >> 8);
-          sourceDataLine.write(buf, 0, 2);
-        }
+        this.writeTone(
+            sourceDataLine,
+            Math.max(1, freqHz.toNumber().intValue()),
+            Math.max(lengthMs.toNumber().intValue(), 0),
+            goal.getContext());
       } catch (Exception ex) {
         LOGGER.log(Level.SEVERE, "Error during PLAY_SOUND/2", ex);
       }
@@ -944,16 +958,9 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
     if (sprite == null) {
       return false;
     } else {
-      this.gfxBufferAccessLocker.acquireUninterruptibly();
-      try {
-        if (this.bufferedImage != null) {
-          this.bufferGraphics.drawImage(sprite, x.toNumber().intValue(), y.toNumber().intValue(),
-              null);
-        }
-      } finally {
-        this.gfxBufferAccessLocker.release();
-      }
-      this.repaintLabel();
+      final int spriteX = x.toNumber().intValue();
+      final int spriteY = y.toNumber().intValue();
+      this.drawOnBuffer(graphics -> graphics.drawImage(sprite, spriteX, spriteY, null));
       return true;
     }
   }
@@ -1097,7 +1104,7 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       }
 
       if (height.getTermType() == VAR) {
-        height.unifyWith(Terms.newLong(widthOrig));
+        height.unifyWith(Terms.newLong(heightOrig));
       } else {
         height2 = height.toNumber().intValue();
       }
@@ -1105,8 +1112,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       final int newW = Math.max(1, width2);
       final int newH = Math.max(1, height2);
 
-      if (widthOrig != newW && heightOrig != newH) {
-        changeResolution(width2, height2);
+      if (widthOrig != newW || heightOrig != newH) {
+        this.changeResolution(newW, newH);
       }
       activateFrame();
     });
@@ -1229,6 +1236,8 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
 
     final BufferedImage newImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     final Graphics gfx = newImage.getGraphics();
+    gfx.setColor(this.brushColor.get());
+    gfx.fillRect(0, 0, width, height);
 
     this.gfxBufferAccessLocker.acquireUninterruptibly();
     try {
@@ -1241,19 +1250,10 @@ public final class JProlGfxLibrary extends AbstractJProlLibrary
       this.gfxBufferAccessLocker.release();
     }
 
-    safeSwingSynchroCall(() -> {
+    this.safeSwingSynchroCall(() -> {
       final JLabel theLabel = this.label.get();
       if (theLabel != null) {
-
-        gfx.setColor(this.brushColor.get());
-        gfx.fillRect(0, 0, width, height);
-
-        this.gfxBufferAccessLocker.acquireUninterruptibly();
-        try {
-          theLabel.setIcon(new ImageIcon(this.bufferedImage));
-        } finally {
-          this.gfxBufferAccessLocker.release();
-        }
+        theLabel.setIcon(new ImageIcon(newImage));
         theLabel.invalidate();
 
         final JFrame frame = this.graphicFrame.get();

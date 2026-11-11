@@ -86,7 +86,7 @@ public final class PrologFormatConverter {
           case 'F':
           case 'f': {// float
             int n = 6;
-            if (!modifier.equals("*") && modifier.length() != 0) {
+            if (!modifier.equals("*") && !modifier.isEmpty()) {
               n = Integer.parseInt(modifier);
               if (n == 0) {
                 n = 1;
@@ -101,7 +101,7 @@ public final class PrologFormatConverter {
           case 'E':
           case 'e': { // exponential notation
             int n = 6;
-            if (!modifier.equals("*") && modifier.length() != 0) {
+            if (!modifier.equals("*") && !modifier.isEmpty()) {
               n = Integer.parseInt(modifier);
               if (n == 0) {
                 n = 1;
@@ -116,7 +116,7 @@ public final class PrologFormatConverter {
           case 'G':
           case 'g': {// general floating point
             int n = 6;
-            if (!modifier.equals("*") && modifier.length() != 0) {
+            if (!modifier.equals("*") && !modifier.isEmpty()) {
               n = Integer.parseInt(modifier);
               if (n == 0) {
                 n = 1;
@@ -287,7 +287,7 @@ public final class PrologFormatConverter {
         if ("adDwqscfFeEgGrRkp".indexOf(directive) != -1) {
           Number number = null;
           final String accumulatedNumber = numericBuffer.toString();
-          if (accumulatedNumber.length() != 0) {
+          if (!accumulatedNumber.isEmpty()) {
             if ("*".equals(accumulatedNumber)) {
               final Term arg = args[argIndex++].tryGround();
               number = arg instanceof TermLong ? arg.toNumber().longValue() :

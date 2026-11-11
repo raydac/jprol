@@ -520,7 +520,7 @@ public class TermStruct extends CompoundTerm {
       for (int i = 0; i < arity; i++) {
         final Term element = elements[i];
         final Term cloned = element.cloneAndReplaceVariables(variables);
-        targetElements[i] = element.cloneAndReplaceVariables(variables);
+        targetElements[i] = cloned;
         changed |= element != cloned;
       }
       if (changed) {

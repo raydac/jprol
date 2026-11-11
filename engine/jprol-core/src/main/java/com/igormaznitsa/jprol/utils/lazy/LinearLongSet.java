@@ -127,9 +127,7 @@ public final class LinearLongSet implements Set<Long> {
   private void set2array() {
     this.size = 0;
     this.longSet
-        .forEach(x -> {
-          this.array[this.size++] = x;
-        });
+        .forEach(x -> this.array[this.size++] = x);
     this.longSet = null;
   }
 

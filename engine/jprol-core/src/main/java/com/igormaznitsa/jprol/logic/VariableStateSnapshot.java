@@ -22,29 +22,40 @@ import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermVar;
-import com.igormaznitsa.jprol.utils.lazy.LazyList;
-import com.igormaznitsa.jprol.utils.lazy.LazySet;
 import com.igormaznitsa.jprol.utils.lazy.LinearLongSet;
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 final class VariableStateSnapshot {
 
-  private final List<VariableStateContainer> containerList;
+  private static final VariableStateContainer[] EMPTY = new VariableStateContainer[0];
+
+  private final VariableStateContainer[] containers;
 
   VariableStateSnapshot(final VariableStateSnapshot snapshot) {
-    if (snapshot.containerList.isEmpty()) {
-      this.containerList = List.of();
+    final VariableStateContainer[] source = snapshot.containers;
+    if (source.length == 0) {
+      this.containers = EMPTY;
       return;
     }
 
-    final List<VariableStateContainer> containers = new LazyList<>();
-    List<VariableStateContainer> changed = new LazyList<>();
-    Set<Long> processedVariables = new LinearLongSet();
+    int changedCount = 0;
+    for (final VariableStateContainer container : source) {
+      if (container.isChanged()) {
+        changedCount++;
+      }
+    }
+    if (changedCount == 0) {
+      this.containers = source;
+      return;
+    }
 
-    for (final VariableStateContainer container : snapshot.containerList) {
+    final List<VariableStateContainer> containers = new ArrayList<>(source.length);
+    final List<VariableStateContainer> changed = new ArrayList<>(changedCount);
+    final LinearLongSet processedVariables = new LinearLongSet();
+
+    for (final VariableStateContainer container : source) {
       if (container.isChanged()) {
         changed.add(container);
       } else {
@@ -53,32 +64,31 @@ final class VariableStateSnapshot {
       }
     }
 
-    if (!changed.isEmpty()) {
-      for (final VariableStateContainer container : changed) {
-        final Long uid = container.variable.getVarUid();
-        if (!processedVariables.contains(uid)) {
-          processedVariables.add(uid);
-          containers.add(new VariableStateContainer(container.variable, null));
-          extractAllVariables(
-              containers,
-              processedVariables,
-              container.variable.getImmediateValue(),
-              null);
-        }
+    for (final VariableStateContainer container : changed) {
+      final long uid = container.variable.getVarUid();
+      if (!processedVariables.contains(uid)) {
+        processedVariables.add(uid);
+        containers.add(new VariableStateContainer(container.variable, null));
+        extractAllVariables(
+            containers,
+            processedVariables,
+            container.variable.getImmediateValue(),
+            null);
       }
     }
 
-    this.containerList = containers;
+    this.containers = containers.toArray(EMPTY);
   }
 
   VariableStateSnapshot(final Term source, final Map<String, Term> predefinedValues) {
-    this.containerList = new LazyList<>();
-    extractAllVariables(this.containerList, new LazySet<>(), source, predefinedValues);
+    final List<VariableStateContainer> collected = new ArrayList<>();
+    extractAllVariables(collected, new LinearLongSet(), source, predefinedValues);
+    this.containers = collected.isEmpty() ? EMPTY : collected.toArray(EMPTY);
   }
 
   private static void extractAllVariables(
       final List<VariableStateContainer> containerList,
-      final Set<Long> processedVariables,
+      final LinearLongSet processedVariables,
       final Term src,
       final Map<String, Term> predefinedValues
   ) {
@@ -104,7 +114,7 @@ final class VariableStateSnapshot {
       break;
       case VAR: {
         final TermVar var = (TermVar) src;
-        final Long uid = var.getVarUid();
+        final long uid = var.getVarUid();
         if (!processedVariables.contains(uid)) {
           processedVariables.add(uid);
           containerList.add(new VariableStateContainer(var, predefinedValues));
@@ -115,11 +125,17 @@ final class VariableStateSnapshot {
         }
       }
       break;
+      default:
+        break;
     }
   }
 
   void resetToState() {
-    this.containerList.forEach(VariableStateContainer::reset);
+    for (final VariableStateContainer container : this.containers) {
+      if (container.isChanged()) {
+        container.reset();
+      }
+    }
   }
 
   @Override
@@ -127,11 +143,8 @@ final class VariableStateSnapshot {
     final StringBuilder buffer = new StringBuilder();
     buffer.append(super.toString());
     buffer.append('[');
-    final Iterator<VariableStateContainer> iterator = this.containerList.iterator();
     boolean notFirst = false;
-    while (iterator.hasNext()) {
-      final VariableStateContainer variableStateContainer = iterator.next();
-
+    for (final VariableStateContainer variableStateContainer : this.containers) {
       if (notFirst) {
         buffer.append(',');
       } else {

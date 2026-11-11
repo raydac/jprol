@@ -7,6 +7,7 @@ import com.igormaznitsa.jprol.annotations.JProlPredicate;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermStruct;
+import com.igormaznitsa.jprol.exceptions.ProlChoicePointInterruptedException;
 import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlForkExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
@@ -113,7 +114,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
   }
 
   @JProlPredicate(determined = true, signature = "lock/1", validate = {
-      "+atom"}, guarded = true, reference = "Lock named locker, if it is being locked already then fail else success.")
+      "+atom"}, guarded = true, reference = "Acquire a named reentrant locker, blocking while another thread owns it. The same thread may lock again and must unlock once for each acquisition.")
   public static void predicateLOCK1(final JProlChoicePoint choicePoint,
                                     final TermStruct predicate) {
     final Term term = predicate.getArgumentAt(0).tryGround();
@@ -121,6 +122,7 @@ public class JProlThreadLibrary extends AbstractJProlLibrary {
       choicePoint.getContext().lockFor(term.getText());
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
+      throw new ProlChoicePointInterruptedException("locker wait interrupted", choicePoint);
     }
   }
 

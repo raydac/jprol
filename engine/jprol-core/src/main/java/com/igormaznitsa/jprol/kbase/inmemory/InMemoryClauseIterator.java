@@ -37,7 +37,7 @@ public final class InMemoryClauseIterator implements CloseableIterator<TermStruc
       final List<InMemoryItem> list,
       final TermStruct search
   ) {
-    this(type, list, search.makeClone());
+    this(type, list.iterator(), search);
   }
 
   public InMemoryClauseIterator(
@@ -45,10 +45,18 @@ public final class InMemoryClauseIterator implements CloseableIterator<TermStruc
       final List<InMemoryItem> list,
       final Term search
   ) {
+    this(type, list.iterator(), search);
+  }
+
+  InMemoryClauseIterator(
+      final IteratorType type,
+      final Iterator<InMemoryItem> items,
+      final Term search
+  ) {
     this.search = search;
     this.type = type;
-    this.iterator = list.iterator();
-    this.next = findNext();
+    this.iterator = items;
+    this.next = this.findNext();
   }
 
   @Override
@@ -71,30 +79,27 @@ public final class InMemoryClauseIterator implements CloseableIterator<TermStruc
 
     while (this.iterator.hasNext() && result == null) {
       final InMemoryItem nextItem = this.iterator.next();
-      switch (this.type) {
-        case ANY: {
-          if (nextItem.matches(this.search)) {
-            result = nextItem;
-          }
-        }
-        break;
-        case FACTS: {
-          if (nextItem.isFact() && nextItem.matches(this.search)) {
-            result = nextItem;
-          }
-        }
-        break;
-        case RULES: {
-          if (nextItem.isRule() && nextItem.matches(this.search)) {
-            result = nextItem;
-          }
-        }
-        break;
-        default:
-          throw new Error("Unexpected type: " + this.type);
+      if (!this.accepts(nextItem)
+          || FirstArgIndex.incompatibleFirstArg(nextItem.getHead(), this.search)
+          || !nextItem.matches(this.search)) {
+        continue;
       }
+      result = nextItem;
     }
     return result;
+  }
+
+  private boolean accepts(final InMemoryItem item) {
+    switch (this.type) {
+      case ANY:
+        return true;
+      case FACTS:
+        return item.isFact();
+      case RULES:
+        return item.isRule();
+      default:
+        throw new Error("Unexpected type: " + this.type);
+    }
   }
 
   InMemoryItem nextItem() {
@@ -102,14 +107,15 @@ public final class InMemoryClauseIterator implements CloseableIterator<TermStruc
       throw new NoSuchElementException();
     }
     final InMemoryItem result = this.next;
-    this.next = findNext();
+    this.next = this.findNext();
     return result;
   }
 
   @Override
   public TermStruct next() {
     final InMemoryItem item = this.nextItem();
-    return (TermStruct) item.getClause().makeClone();
+    final TermStruct clause = item.getClause();
+    return item.isFact() ? clause : (TermStruct) clause.makeClone();
   }
 
   @Override

@@ -357,9 +357,10 @@ public final class ProlUtils {
   }
 
   public static String repeat(final String s, final int counter) {
-    if (s == null || s.length() == 0) {
+    if (s == null || s.isEmpty()) {
       return s;
     }
+    // keep for Android compatibility
     final StringBuilder result = new StringBuilder();
     for (int i = 0; i < counter; i++) {
       result.append(s);
@@ -378,6 +379,7 @@ public final class ProlUtils {
 
   public static String repeat(final char c, final int counter) {
     final StringBuilder result = new StringBuilder();
+    // keep for android compatibility
     for (int i = 0; i < counter; i++) {
       result.append(c);
     }

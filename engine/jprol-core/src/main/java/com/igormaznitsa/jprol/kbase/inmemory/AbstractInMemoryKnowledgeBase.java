@@ -47,6 +47,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -60,6 +62,8 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
   protected final Map<String, List<InMemoryItem>> predicateTable;
   protected final Map<String, List<InMemoryItem>> unmodifablePredicateTable;
   protected final Supplier<List<InMemoryItem>> itemListSupplier;
+  private final Map<String, CachedFirstArgIndex> firstArgIndexCache = new ConcurrentHashMap<>();
+  private final Map<String, AtomicInteger> clauseEpochs = new ConcurrentHashMap<>();
 
   public AbstractInMemoryKnowledgeBase(
       final String baseId,
@@ -90,6 +94,8 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
   public void clear() {
     this.operatorTable.clear();
     this.predicateTable.clear();
+    this.firstArgIndexCache.clear();
+    this.clauseEpochs.clear();
   }
 
   public void printStateAsSource(final PrintWriter writer) {
@@ -220,6 +226,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
       } else {
         list.add(InMemoryItem.fromClause(clause));
       }
+      this.clauseSetChanged(uid);
       // notify triggers if they are presented
       if (context.hasTrigger(uid, JProlTriggerType.TRIGGER_ASSERT)) {
         context.notifyTriggersForSignature(uid, clause, JProlTriggerType.TRIGGER_ASSERT);
@@ -243,9 +250,9 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
     final List<InMemoryItem> list = this.predicateTable.get(uid);
     if (list == null) {
       unknownPredicateConsumer.accept(uid, template);
+      return new InMemoryClauseIterator(type, List.of(), template);
     }
-    return new InMemoryClauseIterator(type, list == null ? List.of() : list,
-        template);
+    return new InMemoryClauseIterator(type, this.clauseSource(uid, list, template), template);
   }
 
   @Override
@@ -327,8 +334,10 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
         });
       }
       if (result && list.isEmpty()) {
-        // delete from base
         this.predicateTable.remove(signature);
+      }
+      if (result) {
+        this.clauseSetChanged(signature);
       }
     }
 
@@ -410,9 +419,9 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
       result = searchFunction.apply(list, struct);
       if (result != null) {
         if (list.isEmpty()) {
-          // delete from base
           this.predicateTable.remove(signature);
         }
+        this.clauseSetChanged(signature);
       }
     }
 
@@ -442,12 +451,72 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
     }
 
     result = this.predicateTable.remove(normalSignature) != null;
+    if (result) {
+      this.clauseSetChanged(normalSignature);
+    }
 
     if (result && context
         .hasTrigger(normalSignature, JProlTriggerType.TRIGGER_ABOLISH)) {
       context.notifyTriggersForSignature(normalSignature, null, JProlTriggerType.TRIGGER_ABOLISH);
     }
     return result;
+  }
+
+  private Iterator<InMemoryItem> clauseSource(
+      final String uid,
+      final List<InMemoryItem> list,
+      final TermStruct template) {
+    if (list.size() < FirstArgIndex.MIN_CLAUSES || !FirstArgIndex.canSelect(template)) {
+      return list.iterator();
+    }
+    return this.firstArgIndex(uid, list).select(template);
+  }
+
+  private FirstArgIndex firstArgIndex(final String uid, final List<InMemoryItem> list) {
+    final int epoch = this.epochOf(uid);
+    final CachedFirstArgIndex cached = this.firstArgIndexCache.get(uid);
+    if (cached != null
+        && cached.epoch == epoch
+        && cached.list == list
+        && cached.size == list.size()
+        && this.epochOf(uid) == epoch) {
+      return cached.index;
+    }
+    final int observedSize = list.size();
+    final FirstArgIndex built = FirstArgIndex.build(list);
+    if (this.epochOf(uid) == epoch && list.size() == observedSize) {
+      this.firstArgIndexCache.put(uid,
+          new CachedFirstArgIndex(epoch, observedSize, list, built));
+    }
+    return built;
+  }
+
+  private int epochOf(final String signature) {
+    final AtomicInteger epoch = this.clauseEpochs.get(signature);
+    return epoch == null ? 0 : epoch.get();
+  }
+
+  private void clauseSetChanged(final String signature) {
+    this.clauseEpochs.computeIfAbsent(signature, key -> new AtomicInteger()).incrementAndGet();
+    this.firstArgIndexCache.remove(signature);
+  }
+
+  private static final class CachedFirstArgIndex {
+    private final int epoch;
+    private final int size;
+    private final List<InMemoryItem> list;
+    private final FirstArgIndex index;
+
+    private CachedFirstArgIndex(
+        final int epoch,
+        final int size,
+        final List<InMemoryItem> list,
+        final FirstArgIndex index) {
+      this.epoch = epoch;
+      this.size = size;
+      this.list = list;
+      this.index = index;
+    }
   }
 
 }
