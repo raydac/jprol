@@ -1,4 +1,5 @@
 ## 1. Implementation Progress
+- `ProlContextUncaughtException` keeps the live context. SpotBugs exposure warnings for that field are excluded, same as the other engine identity accessors.
 - Dialog input is enabled and disabled on the Swing event thread. Each run has a session id, so a late disable from a finished run does not lock the next one. Declining the next solution no longer logs a halt stack trace. The dialog pane flushes at most 100 queued chunks per timer tick.
 - SpotBugs `check` is clean for the reactor. Real defects are fixed in code. Live engine and Swing objects that must be shared are listed in each module's `spotbugs-exclude.xml`.
 - Project version is 3.2.0-SNAPSHOT (parent, modules, Windows file/product version 3.2.0.0).

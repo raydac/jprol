@@ -366,7 +366,15 @@ public abstract class AbstractJProlLibrary {
             try {
               x.close();
             } catch (Throwable ex) {
-              ex.printStackTrace();
+              if (ex instanceof RuntimeException) {
+                throw (RuntimeException) ex;
+              }
+
+              if (ex instanceof Error) {
+                throw (Error) ex;
+              }
+
+              throw new RuntimeException(ex);
             }
           });
     }

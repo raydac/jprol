@@ -46,6 +46,16 @@
         <Bug pattern="EI_EXPOSE_REP2"/>
     </Match>
     <Match>
+        <Class name="com.igormaznitsa.jprol.exceptions.ProlContextUncaughtException"/>
+        <Method name="getSource"/>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Class name="com.igormaznitsa.jprol.exceptions.ProlContextUncaughtException"/>
+        <Method name="&lt;init&gt;"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+    <Match>
         <Class name="com.igormaznitsa.jprol.kbase.inmemory.items.InMemoryItem"/>
         <Method name="getClause"/>
         <Bug pattern="EI_EXPOSE_REP"/>

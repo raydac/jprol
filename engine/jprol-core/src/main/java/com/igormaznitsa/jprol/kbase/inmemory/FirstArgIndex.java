@@ -134,7 +134,7 @@ final class FirstArgIndex {
       return !left.getText().equals(right.getText());
     }
     if (leftType == STRUCT && rightType == STRUCT) {
-      return !((TermStruct) left).getSignature().equals(((TermStruct) right).getSignature());
+      return !left.getSignature().equals(right.getSignature());
     }
     return leftType != rightType;
   }
@@ -167,17 +167,17 @@ final class FirstArgIndex {
       return null;
     }
     if (formed instanceof TermLong) {
-      return orEmpty(this.longs.get(((TermLong) formed).toNumber().longValue()));
+      return orEmpty(this.longs.get(formed.toNumber().longValue()));
     }
     if (formed instanceof TermDouble) {
       return orEmpty(this.doubles.get(
-          Double.doubleToLongBits(((TermDouble) formed).toNumber().doubleValue())));
+          Double.doubleToLongBits(formed.toNumber().doubleValue())));
     }
     switch (formed.getTermType()) {
       case LIST:
         return formed.isNullList() ? this.nils : this.lists;
       case STRUCT:
-        return orEmpty(this.structs.get(((TermStruct) formed).getSignature()));
+        return orEmpty(this.structs.get(formed.getSignature()));
       case ATOM:
       case OPERATOR:
         return orEmpty(this.atoms.get(formed.getText()));
@@ -218,13 +218,13 @@ final class FirstArgIndex {
         return;
       }
       if (formed instanceof TermLong) {
-        this.addTo(this.longs, ((TermLong) formed).toNumber().longValue(), position);
+        this.addTo(this.longs, formed.toNumber().longValue(), position);
         return;
       }
       if (formed instanceof TermDouble) {
         this.addTo(
             this.doubles,
-            Double.doubleToLongBits(((TermDouble) formed).toNumber().doubleValue()),
+            Double.doubleToLongBits(formed.toNumber().doubleValue()),
             position);
         return;
       }
@@ -233,7 +233,7 @@ final class FirstArgIndex {
           (formed.isNullList() ? this.nils : this.lists).add(position);
           return;
         case STRUCT:
-          this.addTo(this.structs, ((TermStruct) formed).getSignature(), position);
+          this.addTo(this.structs, formed.getSignature(), position);
           return;
         case ATOM:
         case OPERATOR:

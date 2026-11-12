@@ -44,6 +44,7 @@ import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.exceptions.ProlAbortExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlAbstractCatchableException;
 import com.igormaznitsa.jprol.exceptions.ProlChoicePointInterruptedException;
+import com.igormaznitsa.jprol.exceptions.ProlContextUncaughtException;
 import com.igormaznitsa.jprol.exceptions.ProlDomainErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
@@ -488,11 +489,12 @@ public class JProlContext implements AutoCloseable {
    * @param source exception source context, must not be null
    * @param error  caught error, must not be null
    * @since 3.0.0
+   * @see ProlContextUncaughtException
    */
   protected void onUncaughtException(final JProlContext source, final Throwable error) {
     final JProlContext root = this.findRootContext();
     if (this.isRootContext()) {
-      error.printStackTrace();
+      throw new ProlContextUncaughtException(source, "JProl uncaught expection", error);
     } else {
       root.onUncaughtException(this, error);
     }
