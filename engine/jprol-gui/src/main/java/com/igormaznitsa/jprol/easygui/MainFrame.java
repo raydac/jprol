@@ -87,6 +87,7 @@ import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -140,7 +141,7 @@ import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 
 public final class MainFrame extends javax.swing.JFrame
-    implements QueryInteractor, IoResourceProvider, Runnable, UndoableEditListener, WindowListener,
+    implements QueryInteractor, IoResourceProvider, UndoableEditListener, WindowListener,
     DocumentListener, HyperlinkListener, JProlContextListener {
 
   public static final AtomicReference<MainFrame> MAIN_FRAME_INSTANCE = new AtomicReference<>();
@@ -182,6 +183,7 @@ public final class MainFrame extends javax.swing.JFrame
   private static final Font FONT_INDICATOR_PANEL =
       LocalFontContainer.LOCAL_NOTO_SANS_MONO.getFont().deriveFont(12.0f);
   private final AtomicReference<Thread> currentExecutedScriptThread = new AtomicReference<>();
+  private final AtomicLong dialogInputSession = new AtomicLong();
   private final AtomicBoolean startedInTracing = new AtomicBoolean();
   private final ThreadGroup executingScripts = new ThreadGroup("ProlExecutingScripts");
   private final RecentlyOpenedFileFixedList recentFiles =
@@ -1086,33 +1088,14 @@ public final class MainFrame extends javax.swing.JFrame
     }
   }
 
-  private void startExecution(final boolean trace) {
-    final Thread executingThread = this.currentExecutedScriptThread.get();
-
-    if (executingThread != null && executingThread.isAlive()) {
-      showMessageDialog(this, "Prolog program is already started!.",
-          trace ? "Can't start trace" : "Can't start script",
-          JOptionPane.WARNING_MESSAGE);
-    } else {
-      if (!this.currentExecutedScriptThread.compareAndSet(executingThread, null)) {
-        return;
-      }
-
-      final Thread newThread =
-          new Thread(this.executingScripts, this,
-              trace ? "thread-jprol-traced" : "jprol-running");
-      newThread.setDaemon(false);
-
-      if (this.currentExecutedScriptThread.compareAndSet(null, newThread)) {
-        this.startedInTracing.set(trace);
-        SwingUtilities.invokeLater(() -> {
-          clearTextAtAllWindowsExcludeSource();
-          dialogEditor.onStartNewSession();
-          showTaskControlPanel();
-          newThread.start();
-        });
-      }
+  private static ProlInterruptException findInterrupt(final Throwable error) {
+    if (error instanceof ProlInterruptException) {
+      return (ProlInterruptException) error;
     }
+    if (error.getCause() instanceof ProlInterruptException) {
+      return (ProlInterruptException) error.getCause();
+    }
+    return null;
   }
 
   private void menuTraceScriptActionPerformed(ActionEvent evt) {
@@ -1195,23 +1178,47 @@ public final class MainFrame extends javax.swing.JFrame
     }
   }
 
+  private void startExecution(final boolean trace) {
+    final Thread executingThread = this.currentExecutedScriptThread.get();
+
+    if (executingThread != null && executingThread.isAlive()) {
+      showMessageDialog(this, "Prolog program is already started!.",
+          trace ? "Can't start trace" : "Can't start script",
+          JOptionPane.WARNING_MESSAGE);
+    } else {
+      if (!this.currentExecutedScriptThread.compareAndSet(executingThread, null)) {
+        return;
+      }
+
+      final AtomicLong session = new AtomicLong();
+      final String scriptText = this.sourceEditor.getText();
+      final Thread newThread = new Thread(
+          this.executingScripts,
+          () -> this.executeScript(scriptText, session.get()),
+          trace ? "thread-jprol-traced" : "jprol-running");
+      newThread.setDaemon(false);
+
+      if (this.currentExecutedScriptThread.compareAndSet(null, newThread)) {
+        session.set(this.dialogInputSession.incrementAndGet());
+        this.startedInTracing.set(trace);
+        SwingUtilities.invokeLater(() -> {
+          this.clearTextAtAllWindowsExcludeSource();
+          this.dialogEditor.onStartNewSession();
+          this.showTaskControlPanel();
+          newThread.start();
+        });
+      }
+    }
+  }
+
   private void releaseContext() {
     final JProlContext context = this.currentContext.getAndSet(null);
     if (context != null) {
       try {
         context.dispose(true);
       } finally {
-        this.menuViewKnowledgeBase.setEnabled(false);
+        UiUtils.doInSwingThread(() -> this.menuViewKnowledgeBase.setEnabled(false));
       }
-    }
-  }
-
-  private boolean setCurrentContext(final JProlContext context) {
-    if (this.currentContext.compareAndSet(null, context)) {
-      this.menuViewKnowledgeBase.setEnabled(context != null);
-      return true;
-    } else {
-      return false;
     }
   }
 
@@ -1255,8 +1262,16 @@ public final class MainFrame extends javax.swing.JFrame
     }
   }
 
-  @Override
-  public void run() {
+  private boolean setCurrentContext(final JProlContext context) {
+    if (this.currentContext.compareAndSet(null, context)) {
+      UiUtils.doInSwingThread(() -> this.menuViewKnowledgeBase.setEnabled(context != null));
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private void executeScript(final String scriptText, final long dialogSession) {
     JProlContext context = null;
     boolean successfully = false;
     boolean canceled = false;
@@ -1268,8 +1283,7 @@ public final class MainFrame extends javax.swing.JFrame
     final Thread executing = this.currentExecutedScriptThread.get();
 
     try {
-      this.dialogEditor.setEnabled(true);
-      this.dialogEditor.requestFocus();
+      UiUtils.doInSwingThread(() -> this.enableDialogInput(dialogSession));
 
       this.messageEditor.addInfoText("Creating Context...");
 
@@ -1304,7 +1318,7 @@ public final class MainFrame extends javax.swing.JFrame
             return true;
           }
         }.addIoResourceProvider(this);
-        if (setCurrentContext(context)) {
+        if (this.setCurrentContext(context)) {
           context.addContextListener(this);
           if (this.startedInTracing.get()) {
             context.setSystemFlag(JProlSystemFlag.TRACE, Terms.TRUE);
@@ -1332,14 +1346,12 @@ public final class MainFrame extends javax.swing.JFrame
           }
           if (errorLoad) {
             context.dispose(true);
-            showMessageDialog(this, "Can't create context, for library load error",
-                "Error", JOptionPane.ERROR_MESSAGE);
+            this.showErrorDialog("Can't create context, for library load error", "Error");
             return;
           }
         } else {
           context.dispose(true);
-          showMessageDialog(this, "Can't create new context, may be started already",
-              "Error", JOptionPane.ERROR_MESSAGE);
+          this.showErrorDialog("Can't create new context, may be started already", "Error");
           return;
         }
       } catch (Throwable ex) {
@@ -1352,7 +1364,7 @@ public final class MainFrame extends javax.swing.JFrame
       this.messageEditor.addInfoText("Consult with the script... ");
 
       try {
-        context.consult(new StringReader(sourceEditor.getText()), this);
+        context.consult(new StringReader(scriptText), this);
         // wait for async threads
         context.getAsyncTaskExecutorService().shutdown();
         if (!context.getAsyncTaskExecutorService().awaitTermination(15, TimeUnit.SECONDS)) {
@@ -1362,28 +1374,24 @@ public final class MainFrame extends javax.swing.JFrame
         LOGGER.log(Level.WARNING, "Permission error", ex);
         this.messageEditor.addErrorText(
             "Permission error [" + ex.getMessage() + ']');
-        showMessageDialog(this,
+        this.showErrorDialog(
             ex.getMessage() == null || ex.getMessage().isEmpty()
                 ? "The script attempted an operation that is not permitted."
                 : ex.getMessage(),
-            "Permission error",
-            JOptionPane.ERROR_MESSAGE);
+            "Permission error");
         return;
       } catch (PrologParserException ex) {
-        LOGGER.log(Level.WARNING, "ExecutionThread.run()", ex);
         parserException = ex;
 
         final Throwable cause = findRootCause(ex);
 
         if (cause instanceof StackOverflowError) {
           this.messageEditor.addErrorText("Stack Overflow!");
-          showMessageDialog(this, "Stack overflow error detected!", "Error",
-              JOptionPane.ERROR_MESSAGE);
+          this.showErrorDialog("Stack overflow error detected!", "Error");
           return;
         } else if (cause instanceof OutOfMemoryError) {
           this.messageEditor.addErrorText("Out of Memory!");
-          showMessageDialog(this, "Out of memory error detected!", "Error",
-              JOptionPane.ERROR_MESSAGE);
+          this.showErrorDialog("Out of memory error detected!", "Error");
           return;
         }
 
@@ -1393,6 +1401,7 @@ public final class MainFrame extends javax.swing.JFrame
         } else if (cause instanceof InterruptedException) {
           canceled = true;
         } else {
+          LOGGER.log(Level.WARNING, "ExecutionThread.run()", ex);
           this.messageEditor.addText("Execution error [" + ex.getMessage() + ']',
               MessageEditor.TYPE_ERROR, "source://" + ex.getLine() + ';' + ex.getPos(),
               "line " + ex.getLine() + ":" + ex.getPos());
@@ -1401,17 +1410,11 @@ public final class MainFrame extends javax.swing.JFrame
       } catch (ThreadDeath death) {
         canceled = true;
       } catch (Throwable ex) {
-        LOGGER.log(Level.WARNING, "ExecutionThread.run()", ex);
-
-        if (ex instanceof ProlInterruptException
-            || ex.getCause() instanceof ProlInterruptException
-        ) {
-          if (ex instanceof ProlInterruptException) {
-            haltException = (ProlInterruptException) ex;
-          } else {
-            haltException = (ProlInterruptException) ex.getCause();
-          }
+        final ProlInterruptException interrupt = findInterrupt(ex);
+        if (interrupt != null) {
+          haltException = interrupt;
         } else {
+          LOGGER.log(Level.WARNING, "ExecutionThread.run()", ex);
           this.messageEditor.addErrorText(
               "Can't parse script for exception [" + ex.getMessage() + ']');
           return;
@@ -1454,7 +1457,7 @@ public final class MainFrame extends javax.swing.JFrame
           this.dialogEditor.addSystemText(
               format("%nScript execution stopped: %s%n", message));
         }
-        this.dialogEditor.setEnabled(false);
+        UiUtils.doInSwingThread(() -> this.disableDialogInput(dialogSession));
         this.currentExecutedScriptThread.compareAndSet(executing, null);
       } finally {
         try {
@@ -1464,6 +1467,28 @@ public final class MainFrame extends javax.swing.JFrame
         }
       }
     }
+  }
+
+  private void enableDialogInput(final long dialogSession) {
+    if (this.dialogInputSession.get() != dialogSession) {
+      return;
+    }
+
+    this.dialogEditor.setEnabled(true);
+    this.dialogEditor.requestFocus();
+  }
+
+  private void disableDialogInput(final long dialogSession) {
+    if (this.dialogInputSession.get() != dialogSession) {
+      return;
+    }
+
+    this.dialogEditor.setEnabled(false);
+  }
+
+  private void showErrorDialog(final String message, final String title) {
+    UiUtils.doInSwingThread(() ->
+        showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE));
   }
 
   @Override

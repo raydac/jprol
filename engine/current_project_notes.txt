@@ -1,4 +1,5 @@
 ## 1. Implementation Progress
+- Dialog input is enabled and disabled on the Swing event thread. Each run has a session id, so a late disable from a finished run does not lock the next one. Declining the next solution no longer logs a halt stack trace. The dialog pane flushes at most 100 queued chunks per timer tick.
 - SpotBugs `check` is clean for the reactor. Real defects are fixed in code. Live engine and Swing objects that must be shared are listed in each module's `spotbugs-exclude.xml`.
 - Project version is 3.2.0-SNAPSHOT (parent, modules, Windows file/product version 3.2.0.0).
 - GUI title and About read the Maven project version. `build-version.properties` is filtered at build time; the jar `Implementation-Version` is the fallback. Prolog `version_data` stays the hardcoded 3.1.1 flag in `JProlContext`.
@@ -21,6 +22,7 @@
 - `AbstractJProlTest` has `collectSolutions(consult, goal, var)` and `proveSingle(...)` helpers.
 
 ## 2. Architecture & Technical Discoveries
+- `setEditable` rebuilds the text view tree (`BasicTextUI.modelChanged`). Call it only on the event thread. The script thread posts dialog enable/disable and reads the source text before the thread starts. Message and dialog output still go through concurrent queues drained by the Swing timer.
 - User-clause bindings are applied on a clone first. The live goal is unified after a rule body succeeds, so a snapshot reset between those steps does not drop the body bindings.
 - Ground facts (InMemoryItem.isFact) can be returned as the stored term. Non-ground clauses are still copied so each attempt has fresh variables. Ground facts are safe to share across fork threads because unify binds the query, not the stored fact.
 - First-argument index is per name/arity, rebuilt after assert, retract, abolish, and clear. Clauses whose first argument is a variable stay in a wildcard bucket and are merged in source order.

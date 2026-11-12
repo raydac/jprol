@@ -274,7 +274,7 @@ public class DialogEditor extends AbstractProlEditor
         if (next == null) {
           break;
         }
-        counter--;
+        counter++;
 
         if (found == null) {
           found = new ArrayList<>();

@@ -451,17 +451,18 @@ public abstract class AbstractProlEditor extends JPanel implements TreeModel {
 
   @Override
   public void setEnabled(final boolean flag) {
-    //super.setEnabled(flag);
-    editor.setEditable(flag);
+    UiUtils.assertSwingThread();
+    this.editor.setEditable(flag);
     if (!flag) {
-      editor.transferFocus();
+      this.editor.transferFocus();
     }
   }
 
   @Override
   public void requestFocus() {
-    if (editor.isEditable()) {
-      editor.requestFocus();
+    UiUtils.assertSwingThread();
+    if (this.editor.isEditable()) {
+      this.editor.requestFocus();
     }
   }
 
