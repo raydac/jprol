@@ -33,7 +33,6 @@ import static com.igormaznitsa.jprol.utils.ProlAssertions.assertCharacterCode;
 import static com.igormaznitsa.jprol.utils.ProlAssertions.assertInteger;
 import static com.igormaznitsa.jprol.utils.ProlUtils.createOrAppendToList;
 import static com.igormaznitsa.jprol.utils.ProlUtils.makeContextAwareGlobalValueName;
-import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.FX;
 import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.FY;
 import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.XFX;
 import static com.igormaznitsa.prologparser.tokenizer.OpAssoc.XFY;
@@ -121,8 +120,8 @@ import java.util.stream.Stream;
 @JProlOperator(priority = 500, type = YFX, name = "xor")
 @JProlOperator(priority = 500, type = YFX, name = "+")
 @JProlOperator(priority = 500, type = YFX, name = "-")
-@JProlOperator(priority = 500, type = FX, name = "+")
-@JProlOperator(priority = 500, type = FX, name = "-")
+@JProlOperator(priority = 200, type = FY, name = "+")
+@JProlOperator(priority = 200, type = FY, name = "-")
 @JProlOperator(priority = 400, type = YFX, name = "*")
 @JProlOperator(priority = 400, type = YFX, name = "/")
 @JProlOperator(priority = 400, type = YFX, name = "//")
@@ -139,12 +138,9 @@ import java.util.stream.Stream;
 @JProlConsultText(
     value = "forall(Generator, Test) :- \\+ (Generator, \\+ Test). " +
         "append([], Zs, Zs). append([X|Xs], Ys, [X|Zs]) :- append(Xs, Ys, Zs). " +
-        "member(X,[X|_]). member(X,[A|Rest]):-member(X,Rest). " +
-        "between(Lower, Upper, Lower) :- Lower =< Upper. between(Lower1, Upper, X) :- Lower1 < Upper, Lower2 is Lower1 + 1, between(Lower2, Upper, X)."
+        "member(X,[X|_]). member(X,[A|Rest]):-member(X,Rest)."
     ,
     declaredPredicates = {
-        @JProlPredicate(signature = "between/3", validate = {
-            "+integer,+integer,?integer"}, reference = "between(Lower, Upper, X) is true if X is greater than or equal to Lower, and less than or equal to Upper."),
         @JProlPredicate(signature = "forall/2", validate = {
             "+callable,+callable"}, reference = "forall(Cond, Action) for all alternative bindings of Cond, Action can be proven."),
         @JProlPredicate(signature = "append/3", validate = {
@@ -428,11 +424,24 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       assertInteger(right);
     }
 
-    final long rightNum = right.toNumber().longValue();
-    if (rightNum == 0L) {
+    final long dividend = left.toNumber().longValue();
+    final long divisor = right.toNumber().longValue();
+    if (divisor == 0L) {
       throw new ProlEvaluationErrorException("zero divisor", predicate);
     }
-    return newLong(left.toNumber().longValue() % rightNum, UNKNOWN);
+    try {
+      return newLong(isoModulus(dividend, divisor), UNKNOWN);
+    } catch (final ArithmeticException ex) {
+      throw new ProlEvaluationErrorException("int_overflow", predicate);
+    }
+  }
+
+  private static long isoModulus(final long dividend, final long divisor) {
+    final long remainder = dividend % divisor;
+    if (remainder != 0L && (dividend < 0L) != (divisor < 0L)) {
+      return remainder + divisor;
+    }
+    return remainder;
   }
 
   @JProlPredicate(evaluable = true, signature = "rem/2", validate = {
@@ -824,9 +833,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         goal.getContext().makeChoicePoint(predicate.getArgumentAt(0), goal.getAssociatedObject());
     boolean result = false;
     if (leftSubbranch.prove() != null) {
-      // replace current goal by the 'then' goal
       final JProlChoicePoint thenPart = goal.replaceLastGoalAtChain(predicate.getArgumentAt(1));
-      thenPart.resetPreviousChoicePoint(); // remove all previous choice points
+      goal.retainChoicesOutsideIfThen(thenPart);
       result = true;
     } else {
       goal.resetLogicalAlternativesFlag();
@@ -924,6 +932,13 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final Term number = predicate.getArgumentAt(0).tryGround();
     final Term compound_term = predicate.getArgumentAt(1).tryGround();
     final Term element = predicate.getArgumentAt(2).tryGround();
+
+    if (number.getTermType() == VAR) {
+      throw new ProlInstantiationErrorException("Argument index is not instantiated", number);
+    }
+    if (!(number instanceof TermLong)) {
+      throw new ProlTypeErrorException("integer", number);
+    }
 
     final long index = number.toNumber().longValue();
 
@@ -1968,12 +1983,25 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     }
   }
 
-  @JProlPredicate(determined = true, signature = "length/2", validate = {
+  @JProlPredicate(signature = "length/2", validate = {
       "?list,?number"}, reference = "True if Length represents the number of elements in List. This predicate is a true relation and can be used to find the length of a list or produce a list (holding variables) of length Length.")
   public static boolean predicateLENGTH(final JProlChoicePoint goal,
                                         final TermStruct predicate) {
     final Term list = predicate.getArgumentAt(0).tryGround();
     final Term length = predicate.getArgumentAt(1).tryGround();
+
+    if (list.getTermType() == VAR && length.getTermType() == VAR) {
+      final int generated = goal.getInternalObject() instanceof Integer
+          ? (Integer) goal.getInternalObject()
+          : 0;
+      goal.setInternalObject(generated + 1);
+      TermList result = NULL_LIST;
+      for (int index = 0; index < generated; index++) {
+        result = newList(Terms.newAnonymousVar(), result);
+      }
+      return list.unifyWith(result) && length.unifyWith(newLong(generated));
+    }
+    goal.resetLogicalAlternativesFlag();
 
     if (list.getTermType() == VAR) {
       if (length.getTermType() == VAR) {
@@ -2085,7 +2113,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
           return true;
         }
       } catch (final ProlAbstractCatchableException ex) {
-        if (catcher.unifyWith(ex.getAsStruct())) {
+        catchGoal.discardBindings();
+        if (catcher.unifyWith(ex.getBall())) {
           catchGoal = goal.getContext().makeChoicePoint(solver, goal.getAssociatedObject());
           goal.setInternalObject(catchGoal);
           final Term result = catchGoal.prove();
@@ -2099,9 +2128,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
             goal.setInternalObject(catchGoal);
             return true;
           }
-        } else {
-          return false;
         }
+        throw ex;
       }
     }
   }
@@ -2138,11 +2166,9 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       throw new ProlEvaluationErrorException(predicate.getArgumentAt(0).forWrite(), predicate);
     }
 
-    // all other errors make as custom
-    //-------------------------------------
-    Term arg = predicate.getArgumentAt(0);
-    if (arg.getTermType() != STRUCT) {
-      arg = newStruct(arg);
+    final Term arg = predicate.getArgumentAt(0).tryGround();
+    if (arg.getTermType() == VAR) {
+      throw new ProlInstantiationErrorException("Ball is not instantiated", arg);
     }
     throw new ProlCustomErrorException(arg, predicate);
   }
@@ -2256,12 +2282,55 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     return in.unifyWith(out);
   }
 
+  @JProlPredicate(signature = "between/3", validate = {
+      "+integer", "+integer",
+      "?integer"}, reference = "between(Lower, Upper, X) is true if X is greater than or equal to Lower, and less than or equal to Upper.")
+  public static boolean predicateBETWEEN(final JProlChoicePoint goal, final TermStruct predicate) {
+    final Term lowerTerm = predicate.getArgumentAt(0).tryGround();
+    final Term upperTerm = predicate.getArgumentAt(1).tryGround();
+    final Term valueTerm = predicate.getArgumentAt(2).tryGround();
+    final long lower = integerArgument(lowerTerm);
+    final long upper = integerArgument(upperTerm);
+
+    if (valueTerm.getTermType() != VAR) {
+      goal.resetLogicalAlternativesFlag();
+      final long value = integerArgument(valueTerm);
+      return value >= lower && value <= upper;
+    }
+
+    final long next = goal.getInternalObject() instanceof Long
+        ? (Long) goal.getInternalObject()
+        : lower;
+    if (next > upper) {
+      goal.resetLogicalAlternativesFlag();
+      return false;
+    }
+    if (next == upper || next == Long.MAX_VALUE) {
+      goal.resetLogicalAlternativesFlag();
+    } else {
+      goal.setInternalObject(next + 1L);
+    }
+    return valueTerm.unifyWith(newLong(next));
+  }
+
+  private static long integerArgument(final Term term) {
+    if (term.getTermType() == VAR) {
+      throw new ProlInstantiationErrorException("Integer argument is not instantiated", term);
+    }
+    if (!(term instanceof TermLong)) {
+      throw new ProlTypeErrorException("integer", term);
+    }
+    return term.toNumber().longValue();
+  }
+
   @JProlPredicate(determined = true, signature = "\\+/1", validate = "+callable", reference = "\\+(Term) is true if and only if call(Term) is false.")
   public boolean predicateCannotBeProven1(final JProlChoicePoint goal,
                                           final TermStruct predicate) {
     final Term argument = predicate.getArgumentAt(0).tryGround();
     final JProlChoicePoint subGoal =
         goal.getContext().makeChoicePoint(argument, goal.getAssociatedObject());
-    return subGoal.proveIgnoringUnknownPredicates() == null;
+    final boolean proved = subGoal.proveIgnoringUnknownPredicates() != null;
+    subGoal.discardBindings();
+    return !proved;
   }
 }

@@ -54,6 +54,7 @@ import com.igormaznitsa.jprol.exceptions.ProlKnowledgeBaseException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.exceptions.RuntimeIOException;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
+import com.igormaznitsa.jprol.kbase.RetractCursor;
 import com.igormaznitsa.jprol.kbase.inmemory.ConcurrentInMemoryKnowledgeBase;
 import com.igormaznitsa.jprol.libs.AbstractJProlLibrary;
 import com.igormaznitsa.jprol.libs.JProlBootstrapLibrary;
@@ -1293,14 +1294,23 @@ public class JProlContext implements AutoCloseable {
     return map != null && map.containsKey(triggerType);
   }
 
+  private static Term procedureIndicator(final Term term) {
+    final String signature = term.getSignature();
+    final int slash = signature.lastIndexOf('/');
+    return newStruct(
+        ProlUtils.SIGNATURE_OPERATOR,
+        newAtom(signature.substring(0, slash)),
+        Terms.newLong(Long.parseLong(signature.substring(slash + 1))));
+  }
+
   public void notifyAboutUndefinedPredicate(final JProlChoicePoint choicePoint,
                                             final String signature, final Term term) {
     this.assertNotDisposed();
     switch (this.getUndefinedPredicateBehavior()) {
       case ERROR: {
         if (!this.dynamicSignatures.contains(signature)) {
-          throw new ProlExistenceErrorException("predicate",
-              "Undefined predicate: " + signature, term);
+          throw new ProlExistenceErrorException("procedure",
+              "Undefined predicate: " + signature, procedureIndicator(term));
         }
       }
       break;
@@ -1467,6 +1477,32 @@ public class JProlContext implements AutoCloseable {
     return this.doClauseInKnowledgeBase(term,
         false,
         (signature, struct) -> this.knowledgeBase.retractA(this, struct), false);
+  }
+
+  public RetractCursor openRetract(final Term term) {
+    final TermStruct clause = this.requireDynamicClause(term);
+    return this.knowledgeBase.openRetract(this, clause);
+  }
+
+  private TermStruct requireDynamicClause(final Term term) {
+    this.assertNotDisposed();
+    final TermStruct termStruct;
+    if (term.getTermType() == STRUCT) {
+      termStruct = (TermStruct) term;
+    } else {
+      ProlAssertions.assertCallable(term);
+      termStruct = newStruct(term);
+    }
+    final String signature = termStruct.isClause()
+        ? termStruct.getArgumentAt(0).getSignature()
+        : termStruct.getSignature();
+    this.assertSignatureNotStaticallyPresented(signature, term.getSourcePosition());
+    if (this.dynamicSignatures.contains(signature)) {
+      return termStruct;
+    }
+    throw new ProlPermissionErrorException("modify", "static_procedure",
+        "Allowed only for dynamic predicates " + signature,
+        newAtom(signature, term.getSourcePosition()));
   }
 
   public boolean retractZ(final Term term) {

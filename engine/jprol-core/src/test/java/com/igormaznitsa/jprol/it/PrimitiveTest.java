@@ -81,7 +81,7 @@ class PrimitiveTest extends AbstractJProlTest {
   @Test
   void testThrowCatch() {
     final JProlContext context = makeContextAndConsult("a(X):-X=999;throw(some_exception).");
-    final JProlChoicePoint goal = context.makeChoicePoint("catch(a(X),error(Err,_),Y='exc').");
+    final JProlChoicePoint goal = context.makeChoicePoint("catch(a(X),Err,Y='exc').");
 
     assertNotNull(goal.prove());
     assertEquals("999", getVarAsText(goal, "X"));
@@ -90,7 +90,7 @@ class PrimitiveTest extends AbstractJProlTest {
 
     assertNotNull(goal.prove());
     assertNull(getVarAsText(goal, "X"));
-    assertEquals("some_exception", getVarAsText(goal, "Err"));
+    assertEquals("'some_exception'", getVarAsText(goal, "Err"));
     assertEquals("'exc'", getVarAsText(goal, "Y"));
 
     assertNull(goal.prove());

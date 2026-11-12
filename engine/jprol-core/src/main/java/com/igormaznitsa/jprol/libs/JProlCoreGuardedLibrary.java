@@ -21,6 +21,7 @@ import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
+import com.igormaznitsa.jprol.kbase.RetractCursor;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlSystemFlag;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
@@ -292,8 +293,16 @@ public class JProlCoreGuardedLibrary extends AbstractJProlLibrary {
       reference = "Retract the first clause which can be unified with argument. True if there is such clause in the knowledge base."
   )
   public static boolean predicateRETRACT1(final JProlChoicePoint goal, final TermStruct predicate) {
-    final Term retracting = predicate.getArgumentAt(0).tryGround();
-    return goal.getContext().retractA(retracting);
+    RetractCursor cursor = goal.getInternalObject();
+    if (cursor == null) {
+      cursor = goal.getContext().openRetract(predicate.getArgumentAt(0).tryGround());
+      goal.setInternalObject(cursor);
+    }
+    if (cursor.retractNext()) {
+      return true;
+    }
+    goal.resetLogicalAlternativesFlag();
+    return false;
   }
 
   @JProlPredicate(

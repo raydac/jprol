@@ -79,6 +79,10 @@ public abstract class ProlAbstractCatchableException extends ProlException {
     return newStruct(ERROR_FUNCTOR, new Term[] {formal, context}, SourcePosition.UNKNOWN);
   }
 
+  public Term getBall() {
+    return this.getAsStruct();
+  }
+
   public abstract TermStruct getAsStruct();
 
   @Override

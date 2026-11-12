@@ -64,10 +64,11 @@ public final class JProlBootstrapLibrary extends AbstractJProlLibrary {
       final JProlChoicePoint choicePoint,
       final TermStruct predicate
   ) {
-    return
-        choicePoint.getContext().makeChoicePoint(predicate.getArgumentAt(0).tryGround())
-            .proveIgnoringUnknownPredicates() ==
-            null;
+    final JProlChoicePoint subGoal = choicePoint.getContext()
+        .makeChoicePoint(predicate.getArgumentAt(0).tryGround());
+    final boolean proved = subGoal.proveIgnoringUnknownPredicates() != null;
+    subGoal.discardBindings();
+    return !proved;
   }
 
   @JProlPredicate(determined = true, signature = "=/2", validate = "?term,?term", reference = "Unify X and Y terms. It is true if X and Y are unifiable.")

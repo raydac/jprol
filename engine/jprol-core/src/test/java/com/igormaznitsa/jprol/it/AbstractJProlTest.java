@@ -45,6 +45,8 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -268,6 +270,24 @@ public abstract class AbstractJProlTest {
       }
     }
     assertNull(thisGoal.prove());
+  }
+
+  protected List<String> collectSolutions(final String consult, final String goal,
+                                          final String varName) {
+    try (final JProlContext context = this.makeContextAndConsult(consult)) {
+      final JProlChoicePoint choicePoint = context.makeChoicePoint(goal);
+      final List<String> solutions = new ArrayList<>();
+      while (choicePoint.prove() != null) {
+        solutions.add(getVarAsText(choicePoint, varName));
+      }
+      return solutions;
+    }
+  }
+
+  protected String proveSingle(final String consult, final String goal, final String varName) {
+    final List<String> solutions = this.collectSolutions(consult, goal, varName);
+    assertEquals(1, solutions.size(), () -> "Expected exactly one solution but got " + solutions);
+    return solutions.get(0);
   }
 
   protected void checkOnce(String goal, boolean expectedResult) {

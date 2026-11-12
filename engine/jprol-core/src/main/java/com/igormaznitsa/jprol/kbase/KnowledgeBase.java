@@ -63,6 +63,8 @@ public interface KnowledgeBase {
 
   boolean retractZ(JProlContext context, TermStruct clause);
 
+  RetractCursor openRetract(JProlContext context, TermStruct clause);
+
   boolean abolish(JProlContext context, String signature);
 
   /**

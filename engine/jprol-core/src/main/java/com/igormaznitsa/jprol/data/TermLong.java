@@ -19,7 +19,9 @@ package com.igormaznitsa.jprol.data;
 import static com.igormaznitsa.jprol.data.Terms.newDouble;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
 
+import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
 import java.util.Objects;
+import java.util.function.LongBinaryOperator;
 
 public final class TermLong extends NumericTerm {
 
@@ -96,7 +98,7 @@ public final class TermLong extends NumericTerm {
       final double value = atom.toNumber().doubleValue();
       return newDouble((double) this.value + value);
     } else {
-      return newLong(this.value + atom.toNumber().longValue());
+      return this.exact(Math::addExact, atom.toNumber().longValue());
     }
   }
 
@@ -106,7 +108,7 @@ public final class TermLong extends NumericTerm {
       final double value = atom.toNumber().doubleValue();
       return newDouble((double) this.value - value);
     } else {
-      return newLong(this.value - atom.toNumber().longValue());
+      return this.exact(Math::subtractExact, atom.toNumber().longValue());
     }
   }
 
@@ -126,13 +128,24 @@ public final class TermLong extends NumericTerm {
       final double value = atom.toNumber().doubleValue();
       return newDouble((double) this.value * value);
     } else {
-      return newLong(this.value * atom.toNumber().longValue());
+      return this.exact(Math::multiplyExact, atom.toNumber().longValue());
     }
   }
 
   @Override
   public NumericTerm neg() {
+    if (this.value == Long.MIN_VALUE) {
+      throw new ProlEvaluationErrorException("int_overflow", this);
+    }
     return newLong(-this.value);
+  }
+
+  private NumericTerm exact(final LongBinaryOperator operation, final long right) {
+    try {
+      return newLong(operation.applyAsLong(this.value, right));
+    } catch (final ArithmeticException ex) {
+      throw new ProlEvaluationErrorException("int_overflow", this);
+    }
   }
 
   @Override

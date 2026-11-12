@@ -32,6 +32,7 @@ import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlKnowledgeBaseException;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.kbase.KnowledgeBase;
+import com.igormaznitsa.jprol.kbase.RetractCursor;
 import com.igormaznitsa.jprol.kbase.inmemory.items.InMemoryItem;
 import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.triggers.JProlTriggerType;
@@ -281,7 +282,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
       return makeCloseableIterator(Collections.emptyIterator(), () -> {
       });
     } else {
-      final Iterator<InMemoryItem> items = list.iterator();
+      final Iterator<InMemoryItem> items = new ArrayList<>(list).iterator();
       return new CloseableIterator<>() {
         @Override
         public void close() {
@@ -313,24 +314,18 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
 
   @Override
   public boolean retractAll(final JProlContext context, final TermStruct clause) {
-    TermStruct struct = clause;
-    if (struct.isClause()) {
-      // it's a clause
-      struct = struct.getArgumentAt(0);
-    }
-
     boolean result = false;
 
-    final String signature = struct.getSignature();
+    final String signature = this.clauseHead(clause).getSignature();
     final List<InMemoryItem> list = this.predicateTable.get(signature);
 
     if (list != null) {
       if (context.hasTrigger(signature, JProlTriggerType.TRIGGER_RETRACT)) {
-        result = this.internalRetractAll(list, struct, x ->
+        result = this.internalRetractAll(list, clause, x ->
             context.notifyTriggersForSignature(signature, x.getHead(),
                 JProlTriggerType.TRIGGER_RETRACT));
       } else {
-        result = this.internalRetractAll(list, struct, x -> {
+        result = this.internalRetractAll(list, clause, x -> {
         });
       }
       if (result && list.isEmpty()) {
@@ -404,40 +399,81 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
 
   private boolean makeRetract(final JProlContext context, final TermStruct clause,
                               final BiFunction<List<InMemoryItem>, TermStruct, InMemoryItem> searchFunction) {
-    TermStruct struct = clause;
-    if (struct.isClause()) {
-      final Term head = struct.getArgumentAt(0).tryGround();
-      ProlAssertions.assertStruct(head);
-      struct = (TermStruct) head;
-    }
-
-    InMemoryItem result = null;
-    final String signature = struct.getSignature();
+    final String signature = this.clauseHead(clause).getSignature();
     final List<InMemoryItem> list = this.predicateTable.get(signature);
+    final InMemoryItem result = list == null ? null : searchFunction.apply(list, clause);
 
-    if (list != null) {
-      result = searchFunction.apply(list, struct);
-      if (result != null) {
-        if (list.isEmpty()) {
-          this.predicateTable.remove(signature);
-        }
-        this.clauseSetChanged(signature);
-      }
+    if (result == null) {
+      return false;
     }
 
-    if (result != null) {
-      if (!result.getHead().unifyWith(struct)) {
-        throw new Error(
-            "Detected unexpected state when found record can't be unify with search! Contact developer: " +
-                clause);
+    if (list.isEmpty()) {
+      this.predicateTable.remove(signature);
+    }
+    this.clauseSetChanged(signature);
+    this.bindRetracted(result, clause);
+    if (context.hasTrigger(signature, JProlTriggerType.TRIGGER_RETRACT)) {
+      context.notifyTriggersForSignature(signature, result.getHead(),
+          JProlTriggerType.TRIGGER_RETRACT);
+    }
+    return true;
+  }
+
+  @Override
+  public RetractCursor openRetract(final JProlContext context, final TermStruct clause) {
+    final String signature = this.clauseHead(clause).getSignature();
+    final List<InMemoryItem> live = this.predicateTable.get(signature);
+    if (live == null || live.isEmpty()) {
+      return RetractCursor.EMPTY;
+    }
+    final InMemoryClauseIterator visible = new InMemoryClauseIterator(
+        IteratorType.ANY, new ArrayList<>(live), clause);
+    return () -> this.retractFromGeneration(context, signature, live, visible, clause);
+  }
+
+  private boolean retractFromGeneration(final JProlContext context,
+                                        final String signature,
+                                        final List<InMemoryItem> live,
+                                        final InMemoryClauseIterator visible,
+                                        final TermStruct pattern) {
+    while (visible.hasNext()) {
+      final InMemoryItem item = visible.nextItem();
+      if (!live.remove(item)) {
+        continue;
       }
+      if (live.isEmpty()) {
+        this.predicateTable.remove(signature);
+      }
+      this.clauseSetChanged(signature);
+      this.bindRetracted(item, pattern);
       if (context.hasTrigger(signature, JProlTriggerType.TRIGGER_RETRACT)) {
-        context.notifyTriggersForSignature(signature, result.getHead(),
+        context.notifyTriggersForSignature(signature, item.getHead(),
             JProlTriggerType.TRIGGER_RETRACT);
       }
       return true;
-    } else {
-      return false;
+    }
+    return false;
+  }
+
+  private TermStruct clauseHead(final TermStruct clause) {
+    if (!clause.isClause()) {
+      return clause;
+    }
+    final Term head = clause.getArgumentAt(0).tryGround();
+    ProlAssertions.assertStruct(head);
+    return (TermStruct) head;
+  }
+
+  private void bindRetracted(final InMemoryItem item, final TermStruct pattern) {
+    final Term stored = pattern.isClause()
+        ? (item.isBodyPresented()
+        ? item.getClause()
+        : newStruct(Terms.newAtom(":-"), item.getHead(), Terms.TRUE))
+        : item.getHead();
+    if (!stored.unifyWith(pattern)) {
+      throw new Error(
+          "Detected unexpected state when found record can't be unify with search! Contact developer: " +
+              pattern);
     }
   }
 
@@ -467,7 +503,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
       final List<InMemoryItem> list,
       final TermStruct template) {
     if (list.size() < FirstArgIndex.MIN_CLAUSES || !FirstArgIndex.canSelect(template)) {
-      return list.iterator();
+      return new ArrayList<>(list).iterator();
     }
     return this.firstArgIndex(uid, list).select(template);
   }

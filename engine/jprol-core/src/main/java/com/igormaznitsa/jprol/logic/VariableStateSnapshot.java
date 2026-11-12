@@ -16,6 +16,7 @@
 
 package com.igormaznitsa.jprol.logic;
 
+import static com.igormaznitsa.jprol.data.TermType.LIST;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static java.lang.System.identityHashCode;
 
@@ -96,10 +97,15 @@ final class VariableStateSnapshot {
     }
     switch (src.getTermType()) {
       case LIST: {
-        final TermList list = (TermList) src;
-        if (!list.isNullList()) {
+        TermList list = (TermList) src;
+        while (!list.isNullList()) {
           extractAllVariables(containerList, processedVariables, list.getHead(), predefinedValues);
-          extractAllVariables(containerList, processedVariables, list.getTail(), predefinedValues);
+          final Term tail = list.getTail();
+          if (tail.getTermType() != LIST) {
+            extractAllVariables(containerList, processedVariables, tail, predefinedValues);
+            break;
+          }
+          list = (TermList) tail;
         }
       }
       break;

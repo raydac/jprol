@@ -17,9 +17,9 @@
 package com.igormaznitsa.jprol.exceptions;
 
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
+import static com.igormaznitsa.jprol.data.Terms.newStruct;
 
 import com.igormaznitsa.jprol.data.Term;
-import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermStruct;
 
 public class ProlPermissionErrorException extends ProlAbstractCatchableException {
@@ -73,9 +73,10 @@ public class ProlPermissionErrorException extends ProlAbstractCatchableException
 
   @Override
   public TermStruct getAsStruct() {
-    return this.makeErrorStruct(TERM_ERROR,
-        TermList.listOf(
-            TermList.listOf(newAtom(this.operation), newAtom(permissionType), getCulprit())));
+    return this.makeErrorStruct(
+        newStruct(TERM_ERROR, newAtom(this.operation), newAtom(this.permissionType),
+            this.getCulprit()),
+        this.getCulprit());
   }
 
 }

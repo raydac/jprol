@@ -17,10 +17,11 @@
 package com.igormaznitsa.jprol.exceptions;
 
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
+import static com.igormaznitsa.jprol.data.Terms.newStruct;
 
 import com.igormaznitsa.jprol.data.Term;
-import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermStruct;
+import java.util.Locale;
 
 public class ProlEvaluationErrorException extends ProlAbstractCatchableException {
 
@@ -63,7 +64,8 @@ public class ProlEvaluationErrorException extends ProlAbstractCatchableException
 
   @Override
   public TermStruct getAsStruct() {
-    return this
-        .makeErrorStruct(TERM_ERROR, TermList.listOf(newAtom(this.error), this.getCulprit()));
+    return this.makeErrorStruct(
+        newStruct(TERM_ERROR, newAtom(this.error.replace(' ', '_').toLowerCase(Locale.ROOT))),
+        this.getCulprit());
   }
 }

@@ -18,6 +18,7 @@ package com.igormaznitsa.jprol.kbase.inmemory;
 
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
+import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.kbase.inmemory.items.InMemoryItem;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
@@ -29,6 +30,8 @@ public final class InMemoryClauseIterator implements CloseableIterator<TermStruc
 
   private final Iterator<InMemoryItem> iterator;
   private final Term search;
+  private final Term headPattern;
+  private final Term bodyPattern;
   private final IteratorType type;
   private InMemoryItem next;
 
@@ -54,9 +57,20 @@ public final class InMemoryClauseIterator implements CloseableIterator<TermStruc
       final Term search
   ) {
     this.search = search;
+    final TermStruct clause = asRule(search);
+    this.headPattern = clause == null ? search : clause.getArgumentAt(0);
+    this.bodyPattern = clause == null ? null : clause.getArgumentAt(1);
     this.type = type;
     this.iterator = items;
     this.next = this.findNext();
+  }
+
+  private static TermStruct asRule(final Term query) {
+    if (!(query instanceof TermStruct)) {
+      return null;
+    }
+    final TermStruct struct = (TermStruct) query;
+    return struct.isClause() && struct.getArity() == 2 ? struct : null;
   }
 
   @Override
@@ -80,13 +94,24 @@ public final class InMemoryClauseIterator implements CloseableIterator<TermStruc
     while (this.iterator.hasNext() && result == null) {
       final InMemoryItem nextItem = this.iterator.next();
       if (!this.accepts(nextItem)
-          || FirstArgIndex.incompatibleFirstArg(nextItem.getHead(), this.search)
-          || !nextItem.matches(this.search)) {
+          || FirstArgIndex.incompatibleFirstArg(nextItem.getHead(), this.headPattern)
+          || !nextItem.matches(this.headPattern)
+          || !this.matchesBody(nextItem)) {
         continue;
       }
       result = nextItem;
     }
     return result;
+  }
+
+  private boolean matchesBody(final InMemoryItem item) {
+    if (this.bodyPattern == null) {
+      return true;
+    }
+    final Term storedBody = item.isBodyPresented()
+        ? item.getClause().getArgumentAt(1)
+        : Terms.TRUE;
+    return storedBody.isUnifiableWith(this.bodyPattern);
   }
 
   private boolean accepts(final InMemoryItem item) {

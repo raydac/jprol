@@ -18,10 +18,12 @@ package com.igormaznitsa.jprol.exceptions;
 
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
+import java.util.IdentityHashMap;
 
 public final class ProlCustomErrorException extends ProlAbstractCatchableException {
 
   private final Term error;
+  private final Term ball;
 
   public ProlCustomErrorException(final Term error, final Term culprit) {
     super(culprit);
@@ -29,11 +31,17 @@ public final class ProlCustomErrorException extends ProlAbstractCatchableExcepti
       throw new IllegalArgumentException("Error must not be null");
     }
     this.error = error;
+    this.ball = error.cloneAndReplaceVariables(new IdentityHashMap<>());
   }
 
   @Override
   public Term getErrorTerm() {
     return this.error;
+  }
+
+  @Override
+  public Term getBall() {
+    return this.ball;
   }
 
   @Override

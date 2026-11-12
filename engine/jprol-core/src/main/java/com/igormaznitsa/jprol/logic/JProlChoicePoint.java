@@ -530,6 +530,20 @@ public final class JProlChoicePoint implements Comparator<Term> {
     this.prevCp = null;
   }
 
+  public void discardBindings() {
+    if (this.varSnapshot != null) {
+      this.varSnapshot.resetToState();
+    }
+  }
+
+  public void retainChoicesOutsideIfThen(final JProlChoicePoint thenGoal) {
+    final JProlChoicePoint disjunction = thenGoal.prevCp;
+    if (disjunction != null && disjunction.internalAuxiliaryObject == this) {
+      thenGoal.prevCp = disjunction.prevCp;
+      disjunction.hasAlternatives = false;
+    }
+  }
+
   private int tryDispatchBuiltInControl(final TermStruct struct) {
     final int arity = struct.getArity();
     if (arity >= 3) {
@@ -667,15 +681,22 @@ public final class JProlChoicePoint implements Comparator<Term> {
           return -1;
         }
 
-        final int byName = g1.getText().compareTo(g2.getText());
+        final TermVar canonicalLeft = ((TermVar) g1).findUngroundVariable();
+        final TermVar canonicalRight = ((TermVar) g2).findUngroundVariable();
+        if (canonicalLeft != null && canonicalLeft == canonicalRight) {
+          return 0;
+        }
+        final Term orderedLeft = canonicalLeft == null ? g1 : canonicalLeft;
+        final Term orderedRight = canonicalRight == null ? g2 : canonicalRight;
+        final int byName = orderedLeft.getText().compareTo(orderedRight.getText());
         if (byName != 0) {
           return byName;
         }
-        if (!g1.isAnonymous() && !g2.isAnonymous()) {
+        if (!orderedLeft.isAnonymous() && !orderedRight.isAnonymous()) {
           return 0;
         }
 
-        return DistinctVariableOrder.compare(g1, g2);
+        return DistinctVariableOrder.compare(orderedLeft, orderedRight);
       }
       default:
         return 1;

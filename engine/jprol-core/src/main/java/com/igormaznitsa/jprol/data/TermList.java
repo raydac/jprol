@@ -249,15 +249,17 @@ public final class TermList extends TermStruct {
   }
 
   public int calculateLength() {
-    if (this.isNullList()) {
-      return 0;
+    int length = 0;
+    TermList current = this;
+    while (!current.isNullList()) {
+      length++;
+      final Term tail = current.arguments[INDEX_TAIL];
+      if (tail.getTermType() != LIST) {
+        break;
+      }
+      current = (TermList) tail;
     }
-    final Term tail = this.arguments[INDEX_TAIL];
-    if (tail.getTermType() == LIST) {
-      return ((TermList) tail).calculateLength() + 1;
-    } else {
-      return 1;
-    }
+    return length;
   }
 
   @Override
@@ -555,9 +557,10 @@ public final class TermList extends TermStruct {
     if (this.getTail().isNullList()) {
       return this.getHead();
     } else {
+      final Term functor = this.getHead().tryGround();
       final int length = this.calculateLength();
       if (length == 3) {
-        if (this.getHead() == Terms.LIST_FUNCTOR) {
+        if (functor == Terms.LIST_FUNCTOR) {
           final TermList secondElement = this.getTail();
           final TermList thirdElement = secondElement.getTail();
 
@@ -569,7 +572,7 @@ public final class TermList extends TermStruct {
 
       final TermStruct result;
       if (length == 1) {
-        result = newStruct(this.getHead());
+        result = newStruct(functor);
       } else {
         Term[] elements = new Term[length - 1];
         TermList lst = this.getTail();
@@ -578,7 +581,7 @@ public final class TermList extends TermStruct {
           elements[index++] = lst.getHead();
           lst = lst.getTail();
         }
-        result = newStruct(this.getHead(), elements);
+        result = newStruct(functor, elements);
       }
       return result;
     }
