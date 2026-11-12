@@ -25,7 +25,6 @@ import static java.util.Objects.requireNonNull;
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import com.igormaznitsa.jprol.utils.ProlUtils;
-import com.igormaznitsa.jprol.utils.lazy.LazyMap;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
@@ -505,11 +504,11 @@ public class TermStruct extends CompoundTerm {
   }
 
   public Term makeClone() {
-    return this.arguments.length == 0 ? this : this.makeClone(new LazyMap<>());
+    return this.arguments.length == 0 ? this : this.makeClone(TermVar.newVariableMap());
   }
 
   @Override
-  public Term cloneAndReplaceVariables(final Map<Long, TermVar> variables) {
+  public Term cloneAndReplaceVariables(final Map<TermVar, TermVar> variables) {
     final Term result;
     if (this.arguments.length == 0) {
       result = this;
@@ -561,7 +560,7 @@ public class TermStruct extends CompoundTerm {
 
 
   @Override
-  protected Term makeClone(final Map<Long, TermVar> variables) {
+  protected Term makeClone(final Map<TermVar, TermVar> variables) {
     final Term result;
     if (this.getArity() == 0) {
       result = this;

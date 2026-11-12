@@ -243,7 +243,7 @@ public class JProlIoLibrary extends AbstractJProlLibrary {
 
     if (current != null) {
       try {
-        current.write(Character.toString((char) arg.toNumber().intValue()));
+        current.write((char) arg.toNumber().intValue());
       } catch (IOException ex) {
         throw new ProlPermissionErrorException("write", "text_output", predicate, ex);
       }

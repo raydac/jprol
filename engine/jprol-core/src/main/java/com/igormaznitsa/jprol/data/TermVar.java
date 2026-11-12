@@ -18,23 +18,22 @@ package com.igormaznitsa.jprol.data;
 
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.newVar;
+import static java.lang.System.identityHashCode;
 
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
 import com.igormaznitsa.jprol.utils.lazy.LazyMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 public final class TermVar extends Term {
 
-  private static final AtomicLong UID_GENERATOR = new AtomicLong(0);
+  private static final String ANONYMOUS_NAME = "_";
 
   /**
    * Loop counter to detect too long variable chains if someone by mistake made self-loop
    */
   private static final int LOOP_WATCHDOG = 8192;
-  private final long uid;
   private final boolean anonymous;
   private Term immediateValue;
 
@@ -45,7 +44,6 @@ public final class TermVar extends Term {
       final SourcePosition sourcePosition
   ) {
     super(name, sourcePosition);
-    this.uid = UID_GENERATOR.incrementAndGet();
     this.immediateValue = immediateValue;
     this.anonymous = anonymous;
   }
@@ -55,7 +53,11 @@ public final class TermVar extends Term {
   }
 
   TermVar(final Term immediateValue, final SourcePosition sourcePosition) {
-    this(Long.toString(UID_GENERATOR.incrementAndGet()), true, immediateValue, sourcePosition);
+    this(ANONYMOUS_NAME, true, immediateValue, sourcePosition);
+  }
+
+  static Map<TermVar, TermVar> newVariableMap() {
+    return new LazyMap<>(IdentityHashMap::new);
   }
 
   @Override
@@ -68,10 +70,6 @@ public final class TermVar extends Term {
     } else {
       return this;
     }
-  }
-
-  public long getVarUid() {
-    return this.uid;
   }
 
   @Override
@@ -108,8 +106,8 @@ public final class TermVar extends Term {
   public Term makeClone() {
     Term thisValue = this.getImmediateValue();
     if (thisValue != null) {
-      final Map<Long, TermVar> variableMap = new LazyMap<>();
-      variableMap.put(this.getVarUid(), this);
+      final Map<TermVar, TermVar> variableMap = newVariableMap();
+      variableMap.put(this, this);
       thisValue = this.makeClone(variableMap);
     }
 
@@ -134,6 +132,10 @@ public final class TermVar extends Term {
 
   @Override
   protected void arrangeVariableValues(final Map<String, TermVar> variables) {
+    if (this.isAnonymous()) {
+      return;
+    }
+
     final String name = this.getText();
     final TermVar found = variables.get(name);
     if (found == null) {
@@ -144,7 +146,7 @@ public final class TermVar extends Term {
   }
 
   @Override
-  public Term cloneAndReplaceVariables(final Map<Long, TermVar> variables) {
+  public Term cloneAndReplaceVariables(final Map<TermVar, TermVar> variables) {
     Term value = this.getValue();
     if (value == null) {
       if (this.isAnonymous()) {
@@ -155,11 +157,10 @@ public final class TermVar extends Term {
       final Term immediateValue = this.getImmediateValue();
       if (immediateValue == null) {
         final String varName = this.getText();
-        final long varId = this.getVarUid();
-        TermVar newVar = variables.get(varId);
+        TermVar newVar = variables.get(this);
         if (newVar == null) {
           newVar = newVar(varName, this.getSourcePosition());
-          variables.put(varId, newVar);
+          variables.put(this, newVar);
 
           final Term thisVal = this.getImmediateValue();
 
@@ -178,7 +179,7 @@ public final class TermVar extends Term {
   }
 
   @Override
-  protected Term makeClone(final Map<Long, TermVar> variables) {
+  protected Term makeClone(final Map<TermVar, TermVar> variables) {
     final Term result;
 
     final Term thisValue = this.getImmediateValue();
@@ -187,11 +188,10 @@ public final class TermVar extends Term {
         return new TermVar((Term) null, this.getSourcePosition());
       }
       final String varName = this.getText();
-      final long varId = this.getVarUid();
-      TermVar newVariable = variables.get(varId);
+      TermVar newVariable = variables.get(this);
       if (newVariable == null) {
         newVariable = new TermVar(varName, this.getSourcePosition());
-        variables.put(varId, newVariable);
+        variables.put(this, newVariable);
       }
       result = newVariable;
     } else {
@@ -371,13 +371,12 @@ public final class TermVar extends Term {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(this.uid);
+    return identityHashCode(this);
   }
 
   @Override
-  public boolean equals(Object obj) {
-    // every variable is unique for its uid, we can call them as a singleton so it can be equals only to itself
-    return this == obj;
+  public boolean equals(final Object other) {
+    return this == other;
   }
 
   @Override
@@ -390,7 +389,7 @@ public final class TermVar extends Term {
     final Term val = this.getValue();
     if (val == null) {
       if (this.isAnonymous()) {
-        return "_G" + this.getText();
+        return "_G" + Integer.toUnsignedString(identityHashCode(this));
       } else {
         return this.getText();
       }
@@ -431,6 +430,6 @@ public final class TermVar extends Term {
 
   @Override
   public boolean containsNamedVariable(final String name) {
-    return getText().equals(name);
+    return !this.isAnonymous() && this.getText().equals(name);
   }
 }

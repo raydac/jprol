@@ -21,6 +21,7 @@ import static com.igormaznitsa.jprol.data.TermType.OPERATOR;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.trace.TraceEvent.EXIT;
+import static java.lang.System.identityHashCode;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toMap;
 
@@ -38,10 +39,15 @@ import com.igormaznitsa.jprol.exceptions.ProlHaltExecutionException;
 import com.igormaznitsa.jprol.kbase.IteratorType;
 import com.igormaznitsa.jprol.trace.TraceEvent;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
 public final class JProlChoicePoint implements Comparator<Term> {
@@ -656,8 +662,21 @@ public final class JProlChoicePoint implements Comparator<Term> {
       case LIST:
       case STRUCT:
         return this.compareGroundedCompoundTo(g1, g2);
-      case VAR:
-        return g2.getTermType() == VAR ? g1.getText().compareTo(g2.getText()) : -1;
+      case VAR: {
+        if (g2.getTermType() != VAR) {
+          return -1;
+        }
+
+        final int byName = g1.getText().compareTo(g2.getText());
+        if (byName != 0) {
+          return byName;
+        }
+        if (!g1.isAnonymous() && !g2.isAnonymous()) {
+          return 0;
+        }
+
+        return DistinctVariableOrder.compare(g1, g2);
+      }
       default:
         return 1;
     }
@@ -756,6 +775,68 @@ public final class JProlChoicePoint implements Comparator<Term> {
     private void set(final Term result, final boolean continueMain) {
       this.result = result;
       this.continueMain = continueMain;
+    }
+  }
+
+  private static final class DistinctVariableOrder {
+
+    private static final ReferenceQueue<Term> QUEUE = new ReferenceQueue<>();
+    private static final ConcurrentHashMap<Key, Integer> IDS = new ConcurrentHashMap<>();
+    private static final AtomicInteger NEXT = new AtomicInteger(1);
+
+    private static int compare(final Term left, final Term right) {
+      final int byIdentity = Integer.compare(identityHashCode(left), identityHashCode(right));
+      return byIdentity != 0 ? byIdentity : Integer.compare(id(left), id(right));
+    }
+
+    private static int id(final Term term) {
+      expunge();
+
+      final Key key = new Key(term);
+      final Integer existing = IDS.get(key);
+      if (existing != null) {
+        return existing;
+      }
+
+      final Integer assigned = NEXT.getAndIncrement();
+      final Integer raced = IDS.putIfAbsent(key, assigned);
+      return raced == null ? assigned : raced;
+    }
+
+    private static void expunge() {
+      Reference<? extends Term> cleared;
+      while ((cleared = QUEUE.poll()) != null) {
+        IDS.remove(cleared);
+      }
+    }
+
+    private static final class Key extends WeakReference<Term> {
+
+      private final int hash;
+
+      private Key(final Term term) {
+        super(term, QUEUE);
+        this.hash = identityHashCode(term);
+      }
+
+      @Override
+      public int hashCode() {
+        return this.hash;
+      }
+
+      @Override
+      public boolean equals(final Object other) {
+        if (this == other) {
+          return true;
+        }
+        if (!(other instanceof Key)) {
+          return false;
+        }
+
+        final Term mine = this.get();
+        final Term theirs = ((Key) other).get();
+        return mine != null && mine == theirs;
+      }
     }
   }
 

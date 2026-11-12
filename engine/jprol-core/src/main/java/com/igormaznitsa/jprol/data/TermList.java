@@ -25,7 +25,6 @@ import static com.igormaznitsa.jprol.utils.ProlUtils.createOrAppendToList;
 import static java.util.Objects.requireNonNull;
 
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
-import com.igormaznitsa.jprol.utils.lazy.LazyMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -268,7 +267,7 @@ public final class TermList extends TermStruct {
 
   @Override
   public Term makeClone() {
-    return this.arguments.length == 0 ? this : this.makeClone(new LazyMap<>());
+    return this.arguments.length == 0 ? this : this.makeClone(TermVar.newVariableMap());
   }
 
   @Override
@@ -277,7 +276,7 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  public Term cloneAndReplaceVariables(final Map<Long, TermVar> variables) {
+  public Term cloneAndReplaceVariables(final Map<TermVar, TermVar> variables) {
     if (this.isNullList()) {
       return NULL_LIST;
     }
@@ -317,7 +316,7 @@ public final class TermList extends TermStruct {
   }
 
   @Override
-  protected Term makeClone(final Map<Long, TermVar> variables) {
+  protected Term makeClone(final Map<TermVar, TermVar> variables) {
     if (this.isNullList()) {
       return NULL_LIST;
     } else {

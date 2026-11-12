@@ -7,6 +7,7 @@
 - Variable snapshots share their array when nothing is bound, and reset writes only variables that changed.
 - In-memory clause search skips a copy of the query, reuses ground facts, rejects impossible first arguments before full unify, and indexes predicates with 8 or more clauses by first argument.
 - TermStruct.cloneAndReplaceVariables clones each argument once.
+- TermVar has no generated uid. Clones and snapshots tell variables apart by instance. Anonymous variables share the name "_".
 - Named lock/1 is a counted reentrant mutex. unlock/1 reports a missing locker and a locker owned by another thread (`NamedLockOwnerException`, then permission_error). Disposing the root context wakes threads blocked in lock/1.
 - `TermVar.isPresentedInVarChain` walks the immediate-value chain, bounded by `LOOP_WATCHDOG`.
 - `TermStruct.getArguments` returns a copy. Clause lookup still returns the stored clause so ground facts stay shared.
@@ -24,6 +25,8 @@
 - Integer and float values do not unify across classes, so they are indexed separately.
 - Async copies share the root named-lock map. lock/1 blocks, trylock/1 does not, and the same thread must unlock once per lock.
 - Changing one predicate does not drop another predicate's first-argument index. The cached index is a snapshot taken while that predicate's epoch stayed still.
+- Variable identity is the instance. Clone maps are identity maps. A snapshot's visited set scans up to 16 variables, then switches to an identity hash map. TermVar.equals and hashCode follow the instance.
+- `==` of distinct anonymous variables uses the identity hash. A same-hash pair falls back to a weak identity order so the result stays non-zero. Named variables with the same text still compare equal.
 
 ## 3. Technical Debt & Refactoring
 - Backtracking still restores a full variable snapshot. A trail of only the bindings made since the choice point would avoid the scan on goals with many variables.

@@ -1,5 +1,6 @@
 3.2.0-SNAPSHOT (unreleased)
-    - faster clause lookup and proving
+    - faster clause lookup, proving, and variable creation
+    - variables are identified by the instance; anonymous variables are named "_"
     - `lock/1` counts each acquisition by the same thread and blocks while another thread owns it
     - `unlock/1` reports a missing locker and a locker owned by another thread
     - disposing the root context wakes threads blocked in `lock/1`

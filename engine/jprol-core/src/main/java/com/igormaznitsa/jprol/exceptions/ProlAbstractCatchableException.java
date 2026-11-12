@@ -23,6 +23,7 @@ import com.igormaznitsa.jprol.data.SourcePosition;
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.utils.lazy.LazyMap;
+import java.util.IdentityHashMap;
 
 public abstract class ProlAbstractCatchableException extends ProlException {
 
@@ -51,7 +52,8 @@ public abstract class ProlAbstractCatchableException extends ProlException {
   ) {
     super(message, cause);
     this.culprit =
-        culprit == null ? UNDEFINED : culprit.cloneAndReplaceVariables(new LazyMap<>());
+        culprit == null ? UNDEFINED :
+            culprit.cloneAndReplaceVariables(new LazyMap<>(IdentityHashMap::new));
     if (sourcePosition == null) {
       this.sourcePosition = this.culprit.getSourcePosition();
     } else {

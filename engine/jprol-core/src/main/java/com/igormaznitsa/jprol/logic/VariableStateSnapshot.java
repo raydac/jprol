@@ -17,13 +17,14 @@
 package com.igormaznitsa.jprol.logic;
 
 import static com.igormaznitsa.jprol.data.TermType.VAR;
+import static java.lang.System.identityHashCode;
 
 import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermList;
 import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.TermVar;
-import com.igormaznitsa.jprol.utils.lazy.LinearLongSet;
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,21 +54,19 @@ final class VariableStateSnapshot {
 
     final List<VariableStateContainer> containers = new ArrayList<>(source.length);
     final List<VariableStateContainer> changed = new ArrayList<>(changedCount);
-    final LinearLongSet processedVariables = new LinearLongSet();
+    final VisitedVariables processedVariables = new VisitedVariables();
 
     for (final VariableStateContainer container : source) {
       if (container.isChanged()) {
         changed.add(container);
       } else {
-        processedVariables.add(container.variable.getVarUid());
+        processedVariables.add(container.variable);
         containers.add(container);
       }
     }
 
     for (final VariableStateContainer container : changed) {
-      final long uid = container.variable.getVarUid();
-      if (!processedVariables.contains(uid)) {
-        processedVariables.add(uid);
+      if (processedVariables.add(container.variable)) {
         containers.add(new VariableStateContainer(container.variable, null));
         extractAllVariables(
             containers,
@@ -82,13 +81,13 @@ final class VariableStateSnapshot {
 
   VariableStateSnapshot(final Term source, final Map<String, Term> predefinedValues) {
     final List<VariableStateContainer> collected = new ArrayList<>();
-    extractAllVariables(collected, new LinearLongSet(), source, predefinedValues);
+    extractAllVariables(collected, new VisitedVariables(), source, predefinedValues);
     this.containers = collected.isEmpty() ? EMPTY : collected.toArray(EMPTY);
   }
 
   private static void extractAllVariables(
       final List<VariableStateContainer> containerList,
-      final LinearLongSet processedVariables,
+      final VisitedVariables processedVariables,
       final Term src,
       final Map<String, Term> predefinedValues
   ) {
@@ -114,9 +113,7 @@ final class VariableStateSnapshot {
       break;
       case VAR: {
         final TermVar var = (TermVar) src;
-        final long uid = var.getVarUid();
-        if (!processedVariables.contains(uid)) {
-          processedVariables.add(uid);
+        if (processedVariables.add(var)) {
           containerList.add(new VariableStateContainer(var, predefinedValues));
           final Term value = var.getImmediateValue();
           if (value != null) {
@@ -158,10 +155,10 @@ final class VariableStateSnapshot {
       } else {
         if (value.getTermType() == VAR) {
           if (value.isGround()) {
-            valueTxt = value.toSrcString() + '{' + value.getVarUid() + '}' + '[' +
+            valueTxt = value.toSrcString() + '{' + identityHashCode(value) + '}' + '[' +
                 value.getValue().toString() + ']';
           } else {
-            valueTxt = value.toSrcString() + '{' + value.getVarUid() + '}';
+            valueTxt = value.toSrcString() + '{' + identityHashCode(value) + '}';
           }
         } else {
           valueTxt = value.forWrite();
@@ -169,11 +166,44 @@ final class VariableStateSnapshot {
       }
 
       buffer.append(value == null ? valueTxt : value.toSrcString()).append('{')
-          .append(value == null ? "<NULL>" : value.getVarUid()).append('}').append('=')
+          .append(value == null ? "<NULL>" : identityHashCode(value)).append('}').append('=')
           .append(valueTxt);
     }
     buffer.append(']');
     return buffer.toString();
+  }
+
+  private static final class VisitedVariables {
+
+    private static final int LINEAR_CAPACITY = 16;
+
+    private final TermVar[] linear = new TermVar[LINEAR_CAPACITY];
+    private int size;
+    private IdentityHashMap<TermVar, Boolean> overflow;
+
+    private boolean add(final TermVar variable) {
+      if (this.overflow != null) {
+        return this.overflow.put(variable, Boolean.TRUE) == null;
+      }
+
+      for (int i = 0; i < this.size; i++) {
+        if (this.linear[i] == variable) {
+          return false;
+        }
+      }
+      if (this.size == LINEAR_CAPACITY) {
+        final IdentityHashMap<TermVar, Boolean> promoted =
+            new IdentityHashMap<>(LINEAR_CAPACITY * 2);
+        for (int i = 0; i < this.size; i++) {
+          promoted.put(this.linear[i], Boolean.TRUE);
+        }
+        this.overflow = promoted;
+        return promoted.put(variable, Boolean.TRUE) == null;
+      }
+
+      this.linear[this.size++] = variable;
+      return true;
+    }
   }
 
 }
