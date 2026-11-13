@@ -23,6 +23,7 @@
 - `AbstractJProlTest` has `collectSolutions(consult, goal, var)` and `proveSingle(...)` helpers.
 
 ## 2. Architecture & Technical Discoveries
+- `jprol-core` depends on `java-prolog-parser:2.3.0` (sibling project, Unicode code-point tokenizer). Run `mvn22 install` in the parser before building jprol after parser changes.
 - `setEditable` rebuilds the text view tree (`BasicTextUI.modelChanged`). Call it only on the event thread. The script thread posts dialog enable/disable and reads the source text before the thread starts. Message and dialog output still go through concurrent queues drained by the Swing timer.
 - User-clause bindings are applied on a clone first. The live goal is unified after a rule body succeeds, so a snapshot reset between those steps does not drop the body bindings.
 - Ground facts (InMemoryItem.isFact) can be returned as the stored term. Non-ground clauses are still copied so each attempt has fresh variables. Ground facts are safe to share across fork threads because unify binds the query, not the stored fact.
