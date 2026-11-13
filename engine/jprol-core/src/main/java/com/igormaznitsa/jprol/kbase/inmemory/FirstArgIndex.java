@@ -19,12 +19,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 final class FirstArgIndex {
 
   static final int MIN_CLAUSES = 8;
 
   private static final int[] EMPTY = new int[0];
+  private static final InMemoryItem[] EMPTY_ITEMS = new InMemoryItem[0];
 
   private final InMemoryItem[] items;
   private final Map<String, int[]> atoms;
@@ -76,22 +78,38 @@ final class FirstArgIndex {
     }
   }
 
-  static boolean incompatibleFirstArg(final Term clauseHead, final Term query) {
-    if (!(clauseHead instanceof TermStruct) || !(query instanceof TermStruct)) {
+  static Term queryFirstArgForm(final Term query) {
+    if (!(query instanceof TermStruct)) {
+      return null;
+    }
+    final TermStruct queryStruct = (TermStruct) query;
+    if (queryStruct.getArity() == 0) {
+      return null;
+    }
+    final Term formed = indexForm(queryStruct.getArgumentAt(0));
+    return formed.getTermType() == VAR ? null : formed;
+  }
+
+  static boolean incompatibleWithQueryFirstArg(final Term clauseHead, final Term queryFirstArg) {
+    if (queryFirstArg == null || !(clauseHead instanceof TermStruct)) {
       return false;
     }
     final TermStruct clauseStruct = (TermStruct) clauseHead;
-    final TermStruct queryStruct = (TermStruct) query;
-    if (clauseStruct.getArity() == 0 || queryStruct.getArity() == 0) {
+    if (clauseStruct.getArity() == 0) {
       return false;
     }
-    return keysReject(
-        indexForm(clauseStruct.getArgumentAt(0)),
-        indexForm(queryStruct.getArgumentAt(0)));
+    return keysReject(indexForm(clauseStruct.getArgumentAt(0)), queryFirstArg);
+  }
+
+  static Iterator<InMemoryItem> snapshotIterator(final List<InMemoryItem> source) {
+    if (source instanceof CopyOnWriteArrayList) {
+      return source.iterator();
+    }
+    return new ArrayIterator(source.toArray(EMPTY_ITEMS));
   }
 
   static FirstArgIndex build(final List<InMemoryItem> source) {
-    final InMemoryItem[] items = source.toArray(new InMemoryItem[0]);
+    final InMemoryItem[] items = source.toArray(EMPTY_ITEMS);
     final Accumulator accumulator = new Accumulator();
     for (int i = 0; i < items.length; i++) {
       accumulator.add(items[i], i);

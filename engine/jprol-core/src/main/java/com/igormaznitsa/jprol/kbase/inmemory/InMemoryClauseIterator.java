@@ -28,6 +28,23 @@ import java.util.NoSuchElementException;
 
 public final class InMemoryClauseIterator implements CloseableIterator<TermStruct> {
 
+  static final CloseableIterator<TermStruct> EMPTY_CLAUSE_ITERATOR =
+      new CloseableIterator<>() {
+        @Override
+        public void close() {
+        }
+
+        @Override
+        public boolean hasNext() {
+          return false;
+        }
+
+        @Override
+        public TermStruct next() {
+          throw new NoSuchElementException();
+        }
+      };
+
   private final Iterator<InMemoryItem> iterator;
   private final Term search;
   private final Term headPattern;
@@ -88,20 +105,32 @@ public final class InMemoryClauseIterator implements CloseableIterator<TermStruc
   }
 
   private InMemoryItem findNext() {
-
-    InMemoryItem result = null;
-
-    while (this.iterator.hasNext() && result == null) {
-      final InMemoryItem nextItem = this.iterator.next();
-      if (!this.accepts(nextItem)
-          || FirstArgIndex.incompatibleFirstArg(nextItem.getHead(), this.headPattern)
-          || !nextItem.matches(this.headPattern)
-          || !this.matchesBody(nextItem)) {
-        continue;
-      }
-      result = nextItem;
+    if (!this.iterator.hasNext()) {
+      return null;
     }
-    return result;
+
+    final Term queryFirstArg = FirstArgIndex.queryFirstArgForm(this.headPattern);
+    if (this.type == IteratorType.ANY && this.bodyPattern == null) {
+      while (this.iterator.hasNext()) {
+        final InMemoryItem nextItem = this.iterator.next();
+        if (!FirstArgIndex.incompatibleWithQueryFirstArg(nextItem.getHead(), queryFirstArg)
+            && nextItem.matches(this.headPattern)) {
+          return nextItem;
+        }
+      }
+      return null;
+    }
+
+    while (this.iterator.hasNext()) {
+      final InMemoryItem nextItem = this.iterator.next();
+      if (this.accepts(nextItem)
+          && !FirstArgIndex.incompatibleWithQueryFirstArg(nextItem.getHead(), queryFirstArg)
+          && nextItem.matches(this.headPattern)
+          && this.matchesBody(nextItem)) {
+        return nextItem;
+      }
+    }
+    return null;
   }
 
   private boolean matchesBody(final InMemoryItem item) {

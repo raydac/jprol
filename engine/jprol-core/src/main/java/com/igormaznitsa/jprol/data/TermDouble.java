@@ -19,8 +19,6 @@ package com.igormaznitsa.jprol.data;
 import static com.igormaznitsa.jprol.data.Terms.newDouble;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
 
-import java.util.Objects;
-
 public final class TermDouble extends NumericTerm {
 
   private final double value;
@@ -35,6 +33,10 @@ public final class TermDouble extends NumericTerm {
     this.value = value;
   }
 
+  double doubleValue() {
+    return this.value;
+  }
+
   private static double parseDoubleWithCheckWhitespace(final String text) {
     int len = text.length() - 1;
     while (len >= 0) {
@@ -47,12 +49,12 @@ public final class TermDouble extends NumericTerm {
 
   @Override
   public String toString() {
-    return getText();
+    return this.getText();
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.value);
+    return Double.hashCode(this.value);
   }
 
   @Override
@@ -79,7 +81,7 @@ public final class TermDouble extends NumericTerm {
 
   @Override
   public String toSrcString() {
-    String text = getText();
+    String text = this.getText();
     if (text.indexOf('.') < 0) {
       text += ".0";
     }
@@ -93,32 +95,42 @@ public final class TermDouble extends NumericTerm {
 
   @Override
   public int compare(final NumericTerm atom) {
-    final double value = atom.toNumber().doubleValue();
-    return Double.compare(this.value, value);
+    final double right = atom.isDouble()
+        ? ((TermDouble) atom).value
+        : (double) ((TermLong) atom).longValue();
+    return Double.compare(this.value, right);
   }
 
   @Override
   public NumericTerm add(final NumericTerm atom) {
-    final double value = atom.toNumber().doubleValue();
-    return newDouble(this.value + value);
+    final double right = atom.isDouble()
+        ? ((TermDouble) atom).value
+        : (double) ((TermLong) atom).longValue();
+    return newDouble(this.value + right);
   }
 
   @Override
   public NumericTerm sub(final NumericTerm atom) {
-    final double value = atom.toNumber().doubleValue();
-    return newDouble(this.value - value);
+    final double right = atom.isDouble()
+        ? ((TermDouble) atom).value
+        : (double) ((TermLong) atom).longValue();
+    return newDouble(this.value - right);
   }
 
   @Override
   public NumericTerm div(final NumericTerm atom) {
-    final double value = atom.toNumber().doubleValue();
-    return newDouble(this.value / value);
+    final double right = atom.isDouble()
+        ? ((TermDouble) atom).value
+        : (double) ((TermLong) atom).longValue();
+    return newDouble(this.value / right);
   }
 
   @Override
   public NumericTerm mul(final NumericTerm atom) {
-    final double value = atom.toNumber().doubleValue();
-    return newDouble(this.value * value);
+    final double right = atom.isDouble()
+        ? ((TermDouble) atom).value
+        : (double) ((TermLong) atom).longValue();
+    return newDouble(this.value * right);
   }
 
   @Override
@@ -136,7 +148,7 @@ public final class TermDouble extends NumericTerm {
     if (Double.compare(this.value, 0.0d) >= 0) {
       return this;
     }
-    return newDouble(Math.abs(value));
+    return newDouble(Math.abs(this.value));
   }
 
   @Override

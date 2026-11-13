@@ -21,14 +21,11 @@ import java.util.stream.Collectors;
  */
 public enum ValidateModificator {
   UNBOUND("At call time, the argument must be unbound.",
-      "--", s -> ProlAssertions.checkUnbound(s) == null, s -> false,
+      "--", Term::isUnground, s -> false,
       ProlAssertions::checkUnbound),
   SOFT_UNBOUND(
       "Argument is an output argument. It may or may not be bound at call-time. If the argument is bound at call time, the goal behaves as if the argument were unbound, and then unified with that term after the goal succeeds.",
-      "-", s -> true, s -> {
-    final Term that = s.tryGround();
-    return that.getTermType() != TermType.VAR;
-  },
+      "-", s -> true, s -> s.tryGround().getTermType() != TermType.VAR,
       s -> null),
   GROUND(
       "At call time, the argument must be ground, i.e., the argument may not contain any variables that are still unbound.",
@@ -37,7 +34,7 @@ public enum ValidateModificator {
       ProlAssertions::checkGround),
   SOFT_GROUND(
       "At call time, the argument must be instantiated to a term satisfying some (informal) type specification. The argument need not necessarily be ground.",
-      "+", s -> ProlAssertions.checkNonVar(s) == null,
+      "+", s -> s.tryGround().getTermType() != TermType.VAR,
       s -> true,
       ProlAssertions::checkNonVar),
   MAY_UNBOUND_OR_GROUND(
@@ -48,7 +45,7 @@ public enum ValidateModificator {
   META_ARGUMENT(
       "Argument is a meta-argument, for example a term that can be called as goal. This flag implies +.",
       ":",
-      s -> ProlAssertions.checkMeta(s) == null,
+      s -> ProlAssertions.isCallableGrounded(s.tryGround()),
       s -> true,
       ProlAssertions::checkMeta),
   INSTANTIATED("Argument will not be further instantiated than it is at call-time.",

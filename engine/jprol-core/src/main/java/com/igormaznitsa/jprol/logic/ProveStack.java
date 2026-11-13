@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 final class ProveStack {
 
-  private static final int INITIAL_CAPACITY = 32;
+  private static final int INITIAL_CAPACITY = 8;
 
   private final int maxDepth;
   private ProveStackFrame[] frames;
@@ -43,6 +43,13 @@ final class ProveStack {
   void drop() {
     this.size--;
     this.frames[this.size].release();
+  }
+
+  void clear() {
+    while (this.size > 0) {
+      this.size--;
+      this.frames[this.size].release();
+    }
   }
 
   private void grow() {

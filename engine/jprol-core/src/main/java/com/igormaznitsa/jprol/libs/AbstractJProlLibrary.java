@@ -16,6 +16,7 @@
 
 package com.igormaznitsa.jprol.libs;
 
+import static com.igormaznitsa.jprol.data.TermType.STRUCT;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.newAtom;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
@@ -49,7 +50,6 @@ import com.igormaznitsa.jprol.logic.JProlContext;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import com.igormaznitsa.jprol.utils.CloseableIterator;
 import com.igormaznitsa.jprol.utils.OperatorIterator;
-import com.igormaznitsa.jprol.utils.ProlAssertions;
 import com.igormaznitsa.jprol.utils.ProlPair;
 import com.igormaznitsa.jprol.utils.ProlUtils;
 import com.igormaznitsa.jprol.utils.lazy.LazyMap;
@@ -101,34 +101,24 @@ public abstract class AbstractJProlLibrary {
   protected static NumericTerm calcEvaluable(final JProlChoicePoint choicePoint, final Term term) {
     try {
       final Term thatTerm = term.tryGround();
+      if (thatTerm instanceof NumericTerm) {
+        return (NumericTerm) thatTerm;
+      }
       if (thatTerm.getTermType() == VAR) {
         throw new ProlInstantiationErrorException("Non-instantiated var: " + term,
             choicePoint.getGoalTerm());
       }
-
-      final NumericTerm result;
-
-      switch (thatTerm.getTermType()) {
-        case ATOM: {
-          ProlAssertions.assertNumber(thatTerm);
-          result = (NumericTerm) thatTerm;
+      if (thatTerm.getTermType() == STRUCT) {
+        final TermStruct struct = (TermStruct) thatTerm;
+        final PredicateInvoker processor = struct.getPredicateProcessor();
+        if (processor.isEvaluable()) {
+          return (NumericTerm) processor.executeEvaluable(choicePoint, struct);
         }
-        break;
-        case STRUCT: {
-          final PredicateInvoker processor = ((TermStruct) thatTerm).getPredicateProcessor();
-          if (processor.isEvaluable()) {
-            result = (NumericTerm) processor.executeEvaluable(choicePoint, (TermStruct) thatTerm);
-          } else {
-            throw new ProlTypeErrorException("evaluable", "Non-evaluable item found: " + thatTerm,
-                choicePoint.getGoalTerm());
-          }
-        }
-        break;
-        default:
-          throw new ProlTypeErrorException("evaluable", "Can't evaluate item: " + term,
-              choicePoint.getGoalTerm());
+        throw new ProlTypeErrorException("evaluable", "Non-evaluable item found: " + thatTerm,
+            choicePoint.getGoalTerm());
       }
-      return result;
+      throw new ProlTypeErrorException("evaluable", "Can't evaluate item: " + term,
+          choicePoint.getGoalTerm());
     } catch (final ArithmeticException ex) {
       throw new ProlEvaluationErrorException(ex.getMessage(), "Arithmetic exception",
           choicePoint.getGoalTerm(), ex);

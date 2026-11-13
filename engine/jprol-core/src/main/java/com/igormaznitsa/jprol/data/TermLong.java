@@ -20,8 +20,6 @@ import static com.igormaznitsa.jprol.data.Terms.newDouble;
 import static com.igormaznitsa.jprol.data.Terms.newLong;
 
 import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
-import java.util.Objects;
-import java.util.function.LongBinaryOperator;
 
 public final class TermLong extends NumericTerm {
 
@@ -36,11 +34,15 @@ public final class TermLong extends NumericTerm {
     this.value = value;
   }
 
+  long longValue() {
+    return this.value;
+  }
+
   @Override
   public String toString() {
-    final String val = getText();
+    final String val = this.getText();
     if (val.isEmpty()) {
-      return Long.toString(value);
+      return Long.toString(this.value);
     } else {
       return val;
     }
@@ -48,7 +50,7 @@ public final class TermLong extends NumericTerm {
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.value);
+    return Long.hashCode(this.value);
   }
 
   @Override
@@ -86,49 +88,52 @@ public final class TermLong extends NumericTerm {
   @Override
   public int compare(final NumericTerm atom) {
     if (atom.isDouble()) {
-      final double value = atom.toNumber().doubleValue();
-      return Double.compare((double) this.value, value);
+      return Double.compare((double) this.value, ((TermDouble) atom).doubleValue());
     }
-    return Long.compare(this.value, atom.toNumber().longValue());
+    return Long.compare(this.value, ((TermLong) atom).value);
   }
 
   @Override
   public NumericTerm add(final NumericTerm atom) {
     if (atom.isDouble()) {
-      final double value = atom.toNumber().doubleValue();
-      return newDouble((double) this.value + value);
-    } else {
-      return this.exact(Math::addExact, atom.toNumber().longValue());
+      return newDouble((double) this.value + ((TermDouble) atom).doubleValue());
+    }
+    try {
+      return newLong(Math.addExact(this.value, ((TermLong) atom).value));
+    } catch (final ArithmeticException ex) {
+      throw new ProlEvaluationErrorException("int_overflow", this);
     }
   }
 
   @Override
   public NumericTerm sub(final NumericTerm atom) {
     if (atom.isDouble()) {
-      final double value = atom.toNumber().doubleValue();
-      return newDouble((double) this.value - value);
-    } else {
-      return this.exact(Math::subtractExact, atom.toNumber().longValue());
+      return newDouble((double) this.value - ((TermDouble) atom).doubleValue());
+    }
+    try {
+      return newLong(Math.subtractExact(this.value, ((TermLong) atom).value));
+    } catch (final ArithmeticException ex) {
+      throw new ProlEvaluationErrorException("int_overflow", this);
     }
   }
 
   @Override
   public NumericTerm div(final NumericTerm atom) {
     if (atom.isDouble()) {
-      final double value = atom.toNumber().doubleValue();
-      return newDouble((double) this.value / value);
-    } else {
-      return newLong(this.value / atom.toNumber().longValue());
+      return newDouble((double) this.value / ((TermDouble) atom).doubleValue());
     }
+    return newLong(this.value / ((TermLong) atom).value);
   }
 
   @Override
   public NumericTerm mul(final NumericTerm atom) {
     if (atom.isDouble()) {
-      final double value = atom.toNumber().doubleValue();
-      return newDouble((double) this.value * value);
-    } else {
-      return this.exact(Math::multiplyExact, atom.toNumber().longValue());
+      return newDouble((double) this.value * ((TermDouble) atom).doubleValue());
+    }
+    try {
+      return newLong(Math.multiplyExact(this.value, ((TermLong) atom).value));
+    } catch (final ArithmeticException ex) {
+      throw new ProlEvaluationErrorException("int_overflow", this);
     }
   }
 
@@ -138,14 +143,6 @@ public final class TermLong extends NumericTerm {
       throw new ProlEvaluationErrorException("int_overflow", this);
     }
     return newLong(-this.value);
-  }
-
-  private NumericTerm exact(final LongBinaryOperator operation, final long right) {
-    try {
-      return newLong(operation.applyAsLong(this.value, right));
-    } catch (final ArithmeticException ex) {
-      throw new ProlEvaluationErrorException("int_overflow", this);
-    }
   }
 
   @Override

@@ -5,15 +5,20 @@ import com.igormaznitsa.jprol.data.TermVar;
 import java.util.Map;
 
 final class VariableStateContainer {
+
   final TermVar variable;
   final Term sampleValue;
+
+  VariableStateContainer(final TermVar var) {
+    this.variable = var;
+    this.sampleValue = var.getImmediateValue();
+  }
 
   VariableStateContainer(
       final TermVar var,
       final Map<String, Term> predefinedValues
   ) {
     this.variable = var;
-
     if (predefinedValues == null) {
       this.sampleValue = var.getImmediateValue();
     } else {

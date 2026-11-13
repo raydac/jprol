@@ -151,6 +151,9 @@ import java.util.stream.Stream;
 public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   private static final SecureRandom RND = new SecureRandom();
+  private static final Term ORDER_LT = Terms.newAtom("<");
+  private static final Term ORDER_GT = Terms.newAtom(">");
+  private static final Term ORDER_EQ = Terms.newAtom("=");
 
   public JProlCoreLibrary() {
     super("jprol-core-lib");
@@ -173,18 +176,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
     final Term termA = predicate.getArgumentAt(1).tryGround();
     final Term termB = predicate.getArgumentAt(2).tryGround();
 
-    final Term resultOrder;
-    switch (choicePoint.compare(termA, termB)) {
-      case -1:
-        resultOrder = Terms.newAtom("<");
-        break;
-      case 1:
-        resultOrder = Terms.newAtom(">");
-        break;
-      default:
-        resultOrder = Terms.newAtom("=");
-        break;
-    }
+    final int cmp = choicePoint.compare(termA, termB);
+    final Term resultOrder = cmp < 0 ? ORDER_LT : (cmp > 0 ? ORDER_GT : ORDER_EQ);
     return order.unifyWith(resultOrder);
   }
 
@@ -318,8 +311,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       "+evaluable,+evaluable"}, reference = "Arithmetic greater than")
   public static boolean predicateARITHGREATER2(final JProlChoicePoint goal,
                                                final TermStruct predicate) {
-    final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
-    final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
+    final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0));
+    final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1));
     return left.compare(right) > 0;
   }
 
@@ -327,8 +320,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       "+evaluable,+evaluable"}, reference = "Arithmetic less than")
   public static boolean predicateARITHLESS2(final JProlChoicePoint goal,
                                             final TermStruct predicate) {
-    final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
-    final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
+    final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0));
+    final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1));
     return left.compare(right) < 0;
   }
 
@@ -336,8 +329,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       "+evaluable,+evaluable"}, reference = "Arithmetic greater than or equal to")
   public static boolean predicateARITHGREATEREQU2(final JProlChoicePoint goal,
                                                   final TermStruct predicate) {
-    final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
-    final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
+    final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0));
+    final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1));
     return left.compare(right) >= 0;
   }
 
@@ -345,8 +338,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       "+evaluable,+evaluable"}, reference = "Arithmetic less than or equal to")
   public static boolean predicateARITHLESSEQU2(final JProlChoicePoint goal,
                                                final TermStruct predicate) {
-    final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
-    final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
+    final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0));
+    final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1));
     return left.compare(right) <= 0;
   }
 
@@ -354,8 +347,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       "+evaluable,+evaluable"}, reference = "Arithmetic Not equal")
   public static boolean predicateARITHNOTEQU2(final JProlChoicePoint goal,
                                               final TermStruct predicate) {
-    final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
-    final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
+    final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0));
+    final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1));
     return left.compare(right) != 0;
   }
 
@@ -487,8 +480,8 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   @JProlPredicate(evaluable = true, signature = "+/2", validate = {
       "+evaluable,+evaluable"}, reference = "Addition")
   public static Term predicateADDTWO2(final JProlChoicePoint goal, final TermStruct predicate) {
-    final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
-    final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
+    final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0));
+    final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1));
     return left.add(right);
   }
 
@@ -703,29 +696,29 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   @JProlPredicate(evaluable = true, signature = "-/2", validate = {
       "+evaluable,+evaluable"}, reference = "Subtraction")
   public static Term predicateSUBTWO(final JProlChoicePoint goal, final TermStruct predicate) {
-    final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
-    final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
+    final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0));
+    final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1));
     return left.sub(right);
   }
 
   @JProlPredicate(evaluable = true, signature = "-/1", validate = {
       "+evaluable"}, reference = "Negation")
   public static Term predicateNeg(final JProlChoicePoint goal, final TermStruct predicate) {
-    final NumericTerm val = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
+    final NumericTerm val = calcEvaluable(goal, predicate.getArgumentAt(0));
     return val.neg();
   }
 
   @JProlPredicate(evaluable = true, signature = "+/1", validate = {
       "+evaluable"}, reference = "Not action over a number")
   public static Term predicateTheSame(final JProlChoicePoint goal, final TermStruct predicate) {
-    return calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
+    return calcEvaluable(goal, predicate.getArgumentAt(0));
   }
 
   @JProlPredicate(evaluable = true, signature = "*/2", validate = {
       "+evaluable,+evaluable"}, reference = "Multiplication")
   public static Term predicateMUL(final JProlChoicePoint goal, final TermStruct predicate) {
-    final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0).tryGround());
-    final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1).tryGround());
+    final NumericTerm left = calcEvaluable(goal, predicate.getArgumentAt(0));
+    final NumericTerm right = calcEvaluable(goal, predicate.getArgumentAt(1));
     return left.mul(right);
   }
 
@@ -2027,7 +2020,9 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
         final Term tail = asList.findLastTail().tryGround();
         if (tail.getTermType() == VAR) {
           final TermVar tailVar = (TermVar) tail;
-          if (tailVar.isPresentedInVarChain(asVar) || asVar.isPresentedInVarChain(tailVar)) {
+          if (tailVar.findUngroundVariable() == asVar.findUngroundVariable()
+              || tailVar.isPresentedInVarChain(asVar)
+              || asVar.isPresentedInVarChain(tailVar)) {
             return false;
           }
         }

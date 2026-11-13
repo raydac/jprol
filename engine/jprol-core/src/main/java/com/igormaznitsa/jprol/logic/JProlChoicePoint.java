@@ -18,6 +18,7 @@ package com.igormaznitsa.jprol.logic;
 
 import static com.igormaznitsa.jprol.data.TermType.ATOM;
 import static com.igormaznitsa.jprol.data.TermType.OPERATOR;
+import static com.igormaznitsa.jprol.data.TermType.STRUCT;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
 import static com.igormaznitsa.jprol.trace.TraceEvent.EXIT;
@@ -42,7 +43,9 @@ import com.igormaznitsa.jprol.utils.ProlAssertions;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
@@ -59,14 +62,14 @@ public final class JProlChoicePoint implements Comparator<Term> {
   private static final int CP_SUCCESS = 0;
   private static final int CP_FAIL = 1;
   private static final int CP_STACK_CHANGED = 2;
-  private static final int CP_RESULT_MASK = 3;
-  private static final int SOLVE_AGAIN = 4;
+  private static final int CP_PUSH_SUBGOAL = 3;
   private static final int NOT_CONTROL = -1;
 
-  private static final int RS_CONTINUE = 0;
+  private static final int RS_PUSH_SUBGOAL = 0;
   private static final int RS_SUCCESS = 1;
   private static final int RS_FAIL = 2;
-  private final Map<String, TermVar> variables;
+
+  private final Term rootGroundedGoal;
   private final VariableStateSnapshot varSnapshot;
   private final JProlContext context;
   private final JProlChoicePoint rootChoicePoint;
@@ -74,7 +77,13 @@ public final class JProlChoicePoint implements Comparator<Term> {
   private final boolean verify;
   private final boolean trace;
   private final Object associatedObject;
+
+  private Map<String, TermVar> variables;
+  private ProveStack reusableProveStack;
+  private BiConsumer<String, Term> notifyingUndefinedConsumer;
+  private boolean proveStackInUse;
   private boolean hasAlternatives;
+  private boolean needsSnapshotReset;
   private Object internalAuxiliaryObject;
   private JProlChoicePoint prevCp;
   private JProlChoicePoint parentCp;
@@ -95,40 +104,45 @@ public final class JProlChoicePoint implements Comparator<Term> {
       final JProlChoicePoint rootChoicePoint,
       final boolean trace,
       final boolean verify,
-      final Object internalAuxiliaryObject
+      final Object internalAuxiliaryObject,
+      final boolean internalSubGoal
   ) {
     this.internalAuxiliaryObject = internalAuxiliaryObject;
     this.associatedObject = associatedObject;
-
     this.hasAlternatives = true;
     this.verify = verify;
     this.trace = trace;
-
     this.rootChoicePoint = rootChoicePoint == null ? this : rootChoicePoint;
     this.goalTerm = goal.getTermType() == ATOM ? newStruct(goal) : goal;
     this.context = context;
 
     final Term grounded = goal.tryGround();
-
-    if (this.verify) {
+    if (this.verify && grounded.getTermType() != STRUCT) {
       ProlAssertions.assertCallable(grounded);
     }
 
     if (rootChoicePoint == null) {
-      final RootVarState rootVar = RootVarState.of(grounded, variableMap);
-      this.variables = rootVar.variables;
-      this.varSnapshot = rootVar.snapshot;
+      this.rootGroundedGoal = grounded.getTermType() == ATOM ? null : grounded;
+      this.varSnapshot = grounded.getTermType() == ATOM
+          ? null
+          : VariableStateSnapshot.ofRoot(grounded, variableMap);
+      this.needsSnapshotReset = !internalSubGoal && this.varSnapshot != null;
       this.parentCp = this;
       this.prevCp = null;
     } else {
-      this.variables = null;
-      this.varSnapshot = grounded.getTermType() == ATOM
-          ? null
-          : new VariableStateSnapshot(rootChoicePoint.varSnapshot);
-      this.prevCp = rootChoicePoint.parentCp;
+      this.rootGroundedGoal = null;
+      final JProlChoicePoint activeParent = rootChoicePoint.parentCp;
+      final VariableStateSnapshot baseSnapshot =
+          activeParent != null && activeParent.varSnapshot != null
+              ? activeParent.varSnapshot
+              : rootChoicePoint.varSnapshot;
+      this.varSnapshot = baseSnapshot == null ? null : baseSnapshot.snapshotCurrentState();
+      this.needsSnapshotReset = false;
+      this.prevCp = activeParent;
       rootChoicePoint.parentCp = this;
     }
   }
+
   JProlChoicePoint(
       final JProlContext context,
       final Term goal,
@@ -143,7 +157,8 @@ public final class JProlChoicePoint implements Comparator<Term> {
         null,
         context.isTrace(),
         context.isVerify(),
-        null
+        null,
+        false
     );
   }
 
@@ -158,20 +173,55 @@ public final class JProlChoicePoint implements Comparator<Term> {
     }
   }
 
+  private static boolean isConjunctionStruct(final Term term) {
+    if (term.getTermType() != STRUCT) {
+      return false;
+    }
+    final TermStruct struct = (TermStruct) term;
+    return struct.getArity() == 2 && ",".equals(struct.getFunctor().getText());
+  }
+
   private JProlChoicePoint createChildChoicePoint(final Term goal) {
     return new JProlChoicePoint(
-        this.context, goal,
+        this.context,
+        goal,
         null,
         this.associatedObject,
         this.rootChoicePoint,
         this.trace,
         this.verify,
-        null
+        null,
+        true
+    );
+  }
+
+  private JProlChoicePoint makeSubGoalChoicePoint(final Term subGoal) {
+    return new JProlChoicePoint(
+        this.context,
+        subGoal,
+        null,
+        this.associatedObject,
+        null,
+        this.trace,
+        this.verify,
+        null,
+        true
     );
   }
 
   private ProveStack newProveStack() {
     return new ProveStack(this.context.getMaxProveStackDepth());
+  }
+
+  private Map<String, TermVar> resolveVariablesMap() {
+    Map<String, TermVar> resolved = this.variables;
+    if (resolved == null) {
+      resolved = this.rootGroundedGoal == null
+          ? Collections.emptyMap()
+          : this.rootGroundedGoal.findAllNamedVariables();
+      this.variables = resolved;
+    }
+    return resolved;
   }
 
   private void fireExitIfTrace(final JProlChoicePoint goal) {
@@ -201,7 +251,10 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public Map<String, Term> findAllGroundedVars() {
-    return this.variables == null ? Map.of() : this.variables.entrySet()
+    final Map<String, TermVar> namedVars = this.resolveVariablesMap();
+    return namedVars.isEmpty()
+        ? new HashMap<>()
+        : namedVars.entrySet()
         .stream()
         .filter(v -> v.getValue().isGround())
         .collect(toMap(Map.Entry::getKey, e -> e.getValue().makeClone()));
@@ -209,13 +262,14 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
   @Override
   public String toString() {
-    return (this.isCompleted() ? "Completed " : "Active ") + "Goal(" + this.goalTerm.toString() +
-        ')';
+    return (this.isCompleted() ? "Completed " : "Active ") + "Goal(" + this.goalTerm.toString()
+        + ')';
   }
 
   public Optional<TermVar> findVar(final String name) {
-    return this.variables == null ? Optional.empty() :
-        Optional.ofNullable(this.variables.get(requireNonNull(name)));
+    requireNonNull(name);
+    final Map<String, TermVar> namedVars = this.resolveVariablesMap();
+    return namedVars.isEmpty() ? Optional.empty() : Optional.ofNullable(namedVars.get(name));
   }
 
   public JProlChoicePoint replaceLastGoalAtChain(final Term goal) {
@@ -234,6 +288,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
   /**
    * Get associated object.
    *
+   * @param <T> expected type of the associated object
    * @return associated object, can be null
    * @since 3.0.0
    */
@@ -245,6 +300,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
   /**
    * Get the special field value, it saves some temporary data between calls.
    *
+   * @param <T> expected type of the internal value
    * @return saved value
    */
   @SuppressWarnings("unchecked")
@@ -278,25 +334,54 @@ public final class JProlChoicePoint implements Comparator<Term> {
     if (this.context.isDisposed()) {
       throw new ProlHaltExecutionException("Context disposed", 0, SourcePosition.UNKNOWN);
     }
-    return this.proveNext((s, t) -> this.context.notifyAboutUndefinedPredicate(this, s, t),
-        this.newProveStack());
+    if (this.notifyingUndefinedConsumer == null) {
+      this.notifyingUndefinedConsumer =
+          (s, t) -> this.context.notifyAboutUndefinedPredicate(this, s, t);
+    }
+    return this.proveWithReusableStack(this.notifyingUndefinedConsumer);
   }
 
   public Term proveIgnoringUnknownPredicates() {
-    return this.proveNext(NULL_UNDEFINED_PREDICATE_CONSUMER, this.newProveStack());
+    return this.proveWithReusableStack(NULL_UNDEFINED_PREDICATE_CONSUMER);
   }
 
-  private Term proveNext(final BiConsumer<String, Term> unknownPredicateConsumer,
-                         final ProveStack proveStack) {
-    final ProveCursor cursor = new ProveCursor();
+  private Term proveWithReusableStack(final BiConsumer<String, Term> unknownPredicateConsumer) {
+    final ProveStack stack;
+    final boolean borrowedReusable;
+    if (!this.proveStackInUse) {
+      if (this.reusableProveStack == null) {
+        this.reusableProveStack = this.newProveStack();
+      }
+      this.proveStackInUse = true;
+      borrowedReusable = true;
+      stack = this.reusableProveStack;
+    } else {
+      borrowedReusable = false;
+      stack = this.newProveStack();
+    }
+
+    try {
+      return this.proveNext(unknownPredicateConsumer, stack);
+    } finally {
+      stack.clear();
+      if (borrowedReusable) {
+        this.proveStackInUse = false;
+      }
+    }
+  }
+
+  private Term proveNext(
+      final BiConsumer<String, Term> unknownPredicateConsumer,
+      final ProveStack proveStack
+  ) {
     proveStack.push(this);
 
     stackLoop:
     while (!proveStack.isEmpty()) {
-      cursor.prepare();
+      Term frameResult = null;
 
       mainWhile:
-      while (cursor.continueMain) {
+      while (true) {
         final ProveStackFrame topFrame = proveStack.peek();
         final JProlChoicePoint activeSelf = topFrame.choicePoint;
         final JProlChoicePoint root = activeSelf.rootChoicePoint;
@@ -316,12 +401,11 @@ public final class JProlChoicePoint implements Comparator<Term> {
           if (goalToProcess == null) {
             break mainWhile;
           }
-        }
-
-        if (!resumeAfterSubgoal && !goalToProcess.hasAlternatives) {
-          activeSelf.fireExitIfTrace(goalToProcess);
-          root.parentCp = goalToProcess.prevCp;
-          continue mainWhile;
+          if (!goalToProcess.hasAlternatives) {
+            activeSelf.fireExitIfTrace(goalToProcess);
+            root.parentCp = goalToProcess.prevCp;
+            continue mainWhile;
+          }
         }
 
         try {
@@ -336,8 +420,12 @@ public final class JProlChoicePoint implements Comparator<Term> {
               throw new ProlChoicePointInterruptedException("context disposed", goalToProcess);
             }
 
-            if (goalToProcess.varSnapshot != null) {
-              goalToProcess.varSnapshot.resetToState();
+            if (goalToProcess.needsSnapshotReset) {
+              if (goalToProcess.varSnapshot != null) {
+                goalToProcess.varSnapshot.resetToState();
+              }
+            } else {
+              goalToProcess.needsSnapshotReset = true;
             }
 
             final ProveStackFrame innerTop = proveStack.peek();
@@ -346,27 +434,36 @@ public final class JProlChoicePoint implements Comparator<Term> {
               final Term solvedTerm = innerTop.pendingSubgoalResult;
               innerTop.clearOutcome();
 
-              if (goalToProcess.nextCp.cutActivated) {
+              final JProlChoicePoint finishedChild = goalToProcess.nextCp;
+              if (finishedChild.cutActivated) {
                 goalToProcess.clauseIterator = null;
               }
 
               if (solvedTerm == null) {
                 goalToProcess.nextCp = null;
                 if (goalToProcess.clauseIterator == null) {
+                  goalToProcess.resetLogicalAlternativesFlag();
                   break;
                 }
-              } else {
-                if (!goalToProcess.thisConnector.unifyWith(goalToProcess.childConnectingTerm)) {
-                  throw new ProlCriticalError("Critical error #980234");
-                }
-                cpResult = CP_SUCCESS;
-                break;
+                continue;
               }
-              continue;
+
+              if (goalToProcess.thisConnector != null
+                  && !goalToProcess.thisConnector.unifyWith(goalToProcess.childConnectingTerm)) {
+                throw new ProlCriticalError("Critical error #980234");
+              }
+              if (finishedChild.isCompleted()) {
+                goalToProcess.nextCp = null;
+                if (goalToProcess.clauseIterator == null) {
+                  goalToProcess.resetLogicalAlternativesFlag();
+                }
+              }
+              cpResult = CP_SUCCESS;
+              break;
             }
 
             if (goalToProcess.nextCp != null) {
-              proveStack.peek().watchChild(goalToProcess);
+              innerTop.watchChild(goalToProcess);
               proveStack.push(goalToProcess.nextCp);
               continue stackLoop;
             }
@@ -376,14 +473,15 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
             if (goalToProcess.clauseIterator != null) {
               final int stepResult = goalToProcess.processNextClause(theTerm);
+              if (stepResult == RS_PUSH_SUBGOAL) {
+                innerTop.watchChild(goalToProcess);
+                proveStack.push(goalToProcess.nextCp);
+                continue stackLoop;
+              }
               if (stepResult == RS_SUCCESS) {
                 cpResult = CP_SUCCESS;
-                break;
               }
-              if (stepResult == RS_FAIL) {
-                break;
-              }
-              continue;
+              break;
             }
 
             switch (theTerm.getTermType()) {
@@ -396,12 +494,19 @@ public final class JProlChoicePoint implements Comparator<Term> {
                 final TermStruct struct = (TermStruct) theTerm;
                 if (struct.isClause()) {
                   goalToProcess.enqueueClauseSubgoal(struct);
-                } else {
-                  final int solved =
-                      goalToProcess.solveNonClauseStruct(struct, unknownPredicateConsumer);
-                  cpResult = solved & CP_RESULT_MASK;
-                  internalLoop = (solved & SOLVE_AGAIN) != 0;
+                  innerTop.watchChild(goalToProcess);
+                  proveStack.push(goalToProcess.nextCp);
+                  continue stackLoop;
                 }
+                final int solved =
+                    goalToProcess.solveNonClauseStruct(struct, unknownPredicateConsumer);
+                if (solved == CP_PUSH_SUBGOAL) {
+                  innerTop.watchChild(goalToProcess);
+                  proveStack.push(goalToProcess.nextCp);
+                  continue stackLoop;
+                }
+                cpResult = solved;
+                internalLoop = false;
               }
               break;
               default: {
@@ -412,7 +517,10 @@ public final class JProlChoicePoint implements Comparator<Term> {
             }
           }
 
-          this.applyCpResult(cpResult, activeSelf, root, goalToProcess, cursor);
+          if (!this.applyCpResult(cpResult, activeSelf, root, goalToProcess)) {
+            frameResult = root.goalTerm;
+            break mainWhile;
+          }
         } catch (StackOverflowError ex) {
           throw new ProlChoicePointStackOverflowException(
               "Caught stack overflow error during prove", activeSelf);
@@ -421,43 +529,71 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
       proveStack.drop();
       if (proveStack.isEmpty()) {
-        return cursor.result;
+        return frameResult;
       }
-      proveStack.peek().acceptSubgoal(cursor.result);
+      proveStack.peek().acceptSubgoal(frameResult);
     }
 
     return null;
   }
 
-  private void applyCpResult(
+  private boolean applyCpResult(
       final int cpResult,
       final JProlChoicePoint activeSelf,
       final JProlChoicePoint root,
-      final JProlChoicePoint goalToProcess,
-      final ProveCursor cursor) {
+      final JProlChoicePoint goalToProcess
+  ) {
     switch (cpResult) {
       case CP_FAIL:
         activeSelf.fireFailAndExitIfTrace(goalToProcess);
         root.parentCp = goalToProcess.prevCp;
-        cursor.set(null, true);
-        return;
+        if (root.parentCp == null && root.varSnapshot != null) {
+          root.varSnapshot.resetToState();
+        }
+        return true;
       case CP_SUCCESS: {
         final JProlChoicePoint current = root.parentCp;
-        if (current.nextAndTerm == null) {
-          cursor.set(root.goalTerm, false);
-          return;
+        final Term pendingAnd = current.nextAndTerm;
+        if (pendingAnd == null) {
+          if (!current.hasAlternatives && !activeSelf.trace) {
+            root.parentCp = current.prevCp;
+          }
+          return false;
         }
-        final JProlChoicePoint nextGoal =
-            activeSelf.createChildChoicePoint(current.nextAndTerm);
-        nextGoal.nextAndTerm = current.nextAndTermForNextGoal;
-        cursor.set(null, true);
-        return;
+        this.advanceToNextConjunct(activeSelf, current, pendingAnd);
+        return true;
       }
       case CP_STACK_CHANGED:
-        cursor.set(null, true);
-        return;
+        return true;
       default:
         throw new AssertionError("Unexpected cpResult: " + cpResult);
+    }
+  }
+
+  private void advanceToNextConjunct(
+      final JProlChoicePoint activeSelf,
+      final JProlChoicePoint current,
+      final Term pendingAnd
+  ) {
+    if (!activeSelf.trace) {
+      final Term groundedNext = pendingAnd.tryGround();
+      if (isConjunctionStruct(groundedNext)) {
+        final TermStruct conj = (TermStruct) groundedNext;
+        final JProlChoicePoint nextGoal =
+            activeSelf.createChildChoicePoint(conj.getArgumentAt(0));
+        nextGoal.nextAndTerm = conj.getArgumentAt(1);
+        nextGoal.nextAndTermForNextGoal = current.nextAndTermForNextGoal;
+        if (!current.hasAlternatives) {
+          nextGoal.prevCp = current.prevCp;
+        }
+        return;
+      }
+    }
+
+    final JProlChoicePoint nextGoal = activeSelf.createChildChoicePoint(pendingAnd);
+    nextGoal.nextAndTerm = current.nextAndTermForNextGoal;
+    if (!current.hasAlternatives && !activeSelf.trace) {
+      nextGoal.prevCp = current.prevCp;
     }
   }
 
@@ -469,13 +605,14 @@ public final class JProlChoicePoint implements Comparator<Term> {
     this.thisConnector = struct.getArgumentAt(0);
     this.childConnectingTerm = head;
     this.nextCp = arity == 1
-        ? this.context.makeChoicePoint(head, this.associatedObject)
-        : this.context.makeChoicePoint(structClone.getArgumentAt(1), this.associatedObject);
+        ? this.makeSubGoalChoicePoint(head)
+        : this.makeSubGoalChoicePoint(structClone.getArgumentAt(1));
   }
 
   private int solveNonClauseStruct(
       final TermStruct struct,
-      final BiConsumer<String, Term> unknownPredicateConsumer) {
+      final BiConsumer<String, Term> unknownPredicateConsumer
+  ) {
     final int control = this.tryDispatchBuiltInControl(struct);
     if (control != NOT_CONTROL) {
       return control;
@@ -491,22 +628,23 @@ public final class JProlChoicePoint implements Comparator<Term> {
               : unknownPredicateConsumer
       );
       if (!this.clauseIterator.hasNext()) {
+        this.clauseIterator = null;
         this.resetLogicalAlternativesFlag();
         return CP_FAIL;
       }
-      return CP_FAIL | SOLVE_AGAIN;
+      final int stepResult = this.processNextClause(struct);
+      if (stepResult == RS_PUSH_SUBGOAL) {
+        return CP_PUSH_SUBGOAL;
+      }
+      return stepResult == RS_SUCCESS ? CP_SUCCESS : CP_FAIL;
     }
     if (foundProcessor.isDetermined()) {
       this.resetLogicalAlternativesFlag();
     }
-    int cpResult = CP_FAIL;
     if (foundProcessor.execute(this, struct)) {
-      cpResult = CP_SUCCESS;
+      return foundProcessor.doesChangeGoalChain() ? CP_STACK_CHANGED : CP_SUCCESS;
     }
-    if (cpResult == CP_SUCCESS && foundProcessor.doesChangeGoalChain()) {
-      cpResult = CP_STACK_CHANGED;
-    }
-    return cpResult;
+    return CP_FAIL;
   }
 
   /**
@@ -605,43 +743,48 @@ public final class JProlChoicePoint implements Comparator<Term> {
     return CP_FAIL;
   }
 
-  /**
-   * Try to apply the next clause from the iterator. Sets child choice point on clause match.
-   *
-   * @return CONTINUE to loop (sub-goal set), SUCCESS when fact matched, FAIL when no more clauses
-   */
   private int processNextClause(final Term theTerm) {
-    if (!this.clauseIterator.hasNext()) {
-      this.clauseIterator = null;
-      this.resetLogicalAlternativesFlag();
-      return RS_FAIL;
+    while (this.clauseIterator.hasNext()) {
+      final TermStruct nextClause = this.clauseIterator.next();
+      if (!nextClause.isClause()) {
+        if (theTerm.unifyWith(nextClause)) {
+          if (!this.clauseIterator.hasNext()) {
+            this.clauseIterator = null;
+            this.resetLogicalAlternativesFlag();
+          }
+          return RS_SUCCESS;
+        }
+        this.discardBindings();
+        continue;
+      }
+
+      final Term goalStructTarget = ((TermStruct) theTerm).isClause()
+          ? ((TermStruct) theTerm).getArgumentAt(0)
+          : theTerm;
+      final Term goalTermForEqu = GoalCloner.cloneUnboundVariables(goalStructTarget);
+      final Term clauseHead = nextClause.getArgumentAt(0);
+      if (!goalTermForEqu.unifyWith(clauseHead)) {
+        continue;
+      }
+
+      if (goalTermForEqu == goalStructTarget) {
+        this.thisConnector = null;
+        this.childConnectingTerm = null;
+      } else {
+        this.thisConnector = goalStructTarget;
+        this.childConnectingTerm = clauseHead;
+      }
+
+      if (!this.clauseIterator.hasNext()) {
+        this.clauseIterator = null;
+      }
+      this.nextCp = this.makeSubGoalChoicePoint(nextClause.getArgumentAt(1));
+      return RS_PUSH_SUBGOAL;
     }
 
-    final TermStruct nextClause = this.clauseIterator.next();
-    if (!nextClause.isClause() && nextClause.isGround()) {
-      return theTerm.unifyWith(nextClause) ? RS_SUCCESS : RS_CONTINUE;
-    }
-
-    final TermStruct goalStruct = (TermStruct) theTerm;
-    final Term goalTermForEqu =
-        goalStruct.isClause() ? goalStruct.getArgumentAt(0).makeClone() : theTerm.makeClone();
-    final Term clauseHead = nextClause.isClause() ? nextClause.getArgumentAt(0) : nextClause;
-    if (!goalTermForEqu.unifyWith(clauseHead)) {
-      return RS_CONTINUE;
-    }
-
-    if (nextClause.isClause()) {
-      this.thisConnector = theTerm;
-      this.childConnectingTerm = nextClause.getArgumentAt(0);
-      this.nextCp =
-          this.context.makeChoicePoint(nextClause.getArgumentAt(1), this.associatedObject);
-      return RS_CONTINUE;
-    }
-
-    if (!theTerm.unifyWith(nextClause)) {
-      return RS_CONTINUE;
-    }
-    return RS_SUCCESS;
+    this.clauseIterator = null;
+    this.resetLogicalAlternativesFlag();
+    return RS_FAIL;
   }
 
   private PredicateInvoker findProcessorInLibraries(final TermStruct structure) {
@@ -669,7 +812,10 @@ public final class JProlChoicePoint implements Comparator<Term> {
     if (g1 == g2) {
       return 0;
     }
+    return this.compareGroundedTerms(g1, g2);
+  }
 
+  private int compareGroundedTerms(final Term g1, final Term g2) {
     switch (g1.getTermType()) {
       case ATOM:
         return this.compareGroundedAtomTo(g1, g2);
@@ -738,64 +884,53 @@ public final class JProlChoicePoint implements Comparator<Term> {
       return this.compareStructs((TermStruct) g1, (TermStruct) g2);
     }
     if (g1.isNullList()) {
-      return g2 instanceof NumericTerm ? 1 : -1;
+      return g2 instanceof NumericTerm || g2.getTermType() == VAR ? 1 : -1;
     }
-    return -1;
+    return 1;
   }
 
-  private int compareStructs(final TermStruct struct1, final TermStruct struct2) {
-    final int arity1 = struct1.isNullList() ? 0 : struct1.getArity();
-    final int arity2 = struct2.isNullList() ? 0 : struct2.getArity();
+  private int compareStructs(final TermStruct first, final TermStruct second) {
+    TermStruct struct1 = first;
+    TermStruct struct2 = second;
 
-    int compareResult = Integer.compare(arity1, arity2);
+    while (true) {
+      final int arity1 = struct1.isNullList() ? 0 : struct1.getArity();
+      final int arity2 = struct2.isNullList() ? 0 : struct2.getArity();
 
-    if (compareResult == 0) {
-      compareResult =
-          struct1.getFunctor().getText().compareTo(struct2.getFunctor().getText());
-      if (compareResult == 0) {
-        for (int i = 0; i < arity1 && compareResult == 0; i++) {
-          compareResult = this.compare(struct1.getArgumentAt(i), struct2.getArgumentAt(i));
+      int compareResult = Integer.compare(arity1, arity2);
+      if (compareResult != 0) {
+        return compareResult;
+      }
+
+      compareResult = struct1.getFunctor().getText().compareTo(struct2.getFunctor().getText());
+      if (compareResult != 0 || arity1 == 0) {
+        return compareResult;
+      }
+
+      final int lastIndex = arity1 - 1;
+      for (int i = 0; i < lastIndex; i++) {
+        compareResult = this.compare(struct1.getArgumentAt(i), struct2.getArgumentAt(i));
+        if (compareResult != 0) {
+          return compareResult;
         }
       }
-    }
 
-    return compareResult;
-  }
-
-  private static final class RootVarState {
-
-    private final Map<String, TermVar> variables;
-    private final VariableStateSnapshot snapshot;
-
-    private RootVarState(final Map<String, TermVar> variables,
-                         final VariableStateSnapshot snapshot) {
-      this.variables = variables;
-      this.snapshot = snapshot;
-    }
-
-    private static RootVarState of(final Term grounded, final Map<String, Term> variableMap) {
-      if (grounded.getTermType() == ATOM) {
-        return new RootVarState(null, null);
+      final Term lastLeft = struct1.getArgumentAt(lastIndex);
+      final Term lastRight = struct2.getArgumentAt(lastIndex);
+      if (lastLeft == lastRight) {
+        return 0;
       }
-      return new RootVarState(
-          grounded.findAllNamedVariables(),
-          new VariableStateSnapshot(grounded, variableMap));
-    }
-  }
-
-  private static final class ProveCursor {
-
-    private Term result;
-    private boolean continueMain;
-
-    private void prepare() {
-      this.result = null;
-      this.continueMain = true;
-    }
-
-    private void set(final Term result, final boolean continueMain) {
-      this.result = result;
-      this.continueMain = continueMain;
+      final Term g1 = lastLeft.tryGround();
+      final Term g2 = lastRight.tryGround();
+      if (g1 == g2) {
+        return 0;
+      }
+      if (g1 instanceof CompoundTerm && g2 instanceof CompoundTerm) {
+        struct1 = (TermStruct) g1;
+        struct2 = (TermStruct) g2;
+        continue;
+      }
+      return this.compareGroundedTerms(g1, g2);
     }
   }
 
@@ -807,10 +942,10 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
     private static int compare(final Term left, final Term right) {
       final int byIdentity = Integer.compare(identityHashCode(left), identityHashCode(right));
-      return byIdentity != 0 ? byIdentity : Integer.compare(id(left), id(right));
+      return byIdentity != 0 ? byIdentity : Integer.compare(resolveId(left), resolveId(right));
     }
 
-    private static int id(final Term term) {
+    private static int resolveId(final Term term) {
       expunge();
 
       final Key key = new Key(term);
@@ -860,5 +995,4 @@ public final class JProlChoicePoint implements Comparator<Term> {
       }
     }
   }
-
 }

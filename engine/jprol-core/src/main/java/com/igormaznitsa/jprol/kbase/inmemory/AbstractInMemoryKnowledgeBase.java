@@ -251,7 +251,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
     final List<InMemoryItem> list = this.predicateTable.get(uid);
     if (list == null) {
       unknownPredicateConsumer.accept(uid, template);
-      return new InMemoryClauseIterator(type, List.of(), template);
+      return InMemoryClauseIterator.EMPTY_CLAUSE_ITERATOR;
     }
     return new InMemoryClauseIterator(type, this.clauseSource(uid, list, template), template);
   }
@@ -427,7 +427,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
       return RetractCursor.EMPTY;
     }
     final InMemoryClauseIterator visible = new InMemoryClauseIterator(
-        IteratorType.ANY, new ArrayList<>(live), clause);
+        IteratorType.ANY, FirstArgIndex.snapshotIterator(live), clause);
     return () -> this.retractFromGeneration(context, signature, live, visible, clause);
   }
 
@@ -503,7 +503,7 @@ public abstract class AbstractInMemoryKnowledgeBase implements KnowledgeBase {
       final List<InMemoryItem> list,
       final TermStruct template) {
     if (list.size() < FirstArgIndex.MIN_CLAUSES || !FirstArgIndex.canSelect(template)) {
-      return new ArrayList<>(list).iterator();
+      return FirstArgIndex.snapshotIterator(list);
     }
     return this.firstArgIndex(uid, list).select(template);
   }

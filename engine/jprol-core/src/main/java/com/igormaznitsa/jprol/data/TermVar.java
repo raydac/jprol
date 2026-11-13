@@ -21,8 +21,6 @@ import static com.igormaznitsa.jprol.data.Terms.newVar;
 import static java.lang.System.identityHashCode;
 
 import com.igormaznitsa.jprol.exceptions.ProlInstantiationErrorException;
-import com.igormaznitsa.jprol.utils.lazy.LazyMap;
-import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -57,7 +55,7 @@ public final class TermVar extends Term {
   }
 
   static Map<TermVar, TermVar> newVariableMap() {
-    return new LazyMap<>(IdentityHashMap::new);
+    return new SmallIdentityVarMap();
   }
 
   @Override
@@ -234,42 +232,49 @@ public final class TermVar extends Term {
   public boolean setValue(final Term value) {
     if (value == this) {
       return true;
-    } else {
-      if (value.getTermType() == VAR) {
-        TermVar curVar = ((TermVar) value);
-        int watchDogLoop = LOOP_WATCHDOG;
-        while (watchDogLoop > 0) {
-          watchDogLoop--;
-          if (curVar == this) {
-            return true;
-          } else {
-            final Term nextValue = curVar.immediateValue;
-            if (nextValue != null && nextValue.getTermType() == VAR) {
-              curVar = (TermVar) nextValue;
-            } else {
-              break;
-            }
-          }
-        }
+    }
 
-        if (watchDogLoop <= 0) {
-          throw new IllegalStateException(
-              "Too deep variable chain detected, may be loop");
-        }
-      }
-
-      if (this.immediateValue == null) {
-        this.immediateValue = value;
+    TermVar selfTail = this;
+    int selfSteps = LOOP_WATCHDOG;
+    while (selfTail.immediateValue != null && selfTail.immediateValue.getTermType() == VAR) {
+      if (selfTail.immediateValue == value) {
         return true;
-      } else {
-        final Term curValue = getValue();
-        if (curValue == null) {
-          return ((TermVar) this.immediateValue).setValue(value);
-        } else {
-          return curValue.unifyWith(value);
-        }
+      }
+      selfTail = (TermVar) selfTail.immediateValue;
+      if (--selfSteps <= 0) {
+        throw new IllegalStateException("Too deep variable chain detected, may be loop");
       }
     }
+
+    if (selfTail.immediateValue != null) {
+      return selfTail.immediateValue.unifyWith(value);
+    }
+
+    if (value.getTermType() != VAR) {
+      selfTail.immediateValue = value;
+      return true;
+    }
+
+    TermVar curVar = (TermVar) value;
+    int watchDogLoop = LOOP_WATCHDOG;
+    while (watchDogLoop > 0) {
+      watchDogLoop--;
+      if (curVar == this || curVar == selfTail) {
+        return true;
+      }
+      final Term nextValue = curVar.immediateValue;
+      if (nextValue == null) {
+        selfTail.immediateValue = curVar;
+        return true;
+      }
+      if (nextValue.getTermType() != VAR) {
+        selfTail.immediateValue = nextValue;
+        return true;
+      }
+      curVar = (TermVar) nextValue;
+    }
+
+    throw new IllegalStateException("Too deep variable chain detected, may be loop");
   }
 
   @Override
@@ -300,30 +305,56 @@ public final class TermVar extends Term {
 
   @Override
   public String toSrcString() {
-    return this.getValue() == null ? (this.isAnonymous() ? "_" : this.getText()) :
-        this.getValue().toSrcString();
+    final Term val = this.getValue();
+    return val == null ? (this.isAnonymous() ? "_" : this.getText()) : val.toSrcString();
   }
 
+  @Override
   public boolean isGround() {
-    return this.immediateValue != null && this.immediateValue.isGround();
+    Term current = this.immediateValue;
+    int watchdog = LOOP_WATCHDOG;
+    while (current != null) {
+      if (current.getTermType() != VAR) {
+        return current.isGround();
+      }
+      current = ((TermVar) current).immediateValue;
+      if (--watchdog <= 0) {
+        throw new IllegalStateException("Too deep variable chain detected, may be loop");
+      }
+    }
+    return false;
   }
 
+  @Override
   public boolean isUnground() {
-    return this.immediateValue == null ||
-        (this.immediateValue.getTermType() == VAR && this.immediateValue.isUnground());
+    return this.findUngroundVariable() != null;
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public <T extends Term> T tryGround() {
-    return this.immediateValue == null ? (T) this :
-        (T) this.immediateValue.tryGroundOrDefault(this);
+    return this.immediateValue == null ? (T) this : this.tryGroundOrDefault((T) this);
   }
 
   @Override
   public <T extends Term> T tryGroundOrDefault(final T defaultValue) {
-    return this.immediateValue == null ? defaultValue :
-        this.immediateValue.tryGroundOrDefault(defaultValue);
+    Term current = this.immediateValue;
+    if (current == null) {
+      return defaultValue;
+    }
+    int watchdog = LOOP_WATCHDOG;
+    while (true) {
+      if (current.getTermType() != VAR) {
+        return current.tryGroundOrDefault(defaultValue);
+      }
+      current = ((TermVar) current).immediateValue;
+      if (current == null) {
+        return defaultValue;
+      }
+      if (--watchdog <= 0) {
+        throw new IllegalStateException("Too deep variable chain detected, may be loop");
+      }
+    }
   }
 
   @Override
@@ -361,12 +392,18 @@ public final class TermVar extends Term {
    * @return found unground variable in the variable chain or this variable, null if no ungrounded var in chain
    */
   public TermVar findUngroundVariable() {
-    if (this.immediateValue == null) {
-      return this;
-    } else {
-      return this.immediateValue.getTermType() == VAR ?
-          ((TermVar) this.immediateValue).findUngroundVariable() : null;
+    TermVar current = this;
+    for (int step = 0; step < LOOP_WATCHDOG; step++) {
+      final Term next = current.immediateValue;
+      if (next == null) {
+        return current;
+      }
+      if (next.getTermType() != VAR) {
+        return null;
+      }
+      current = (TermVar) next;
     }
+    throw new IllegalStateException("Too deep variable chain detected, may be loop");
   }
 
   @Override
@@ -402,20 +439,12 @@ public final class TermVar extends Term {
   public boolean unifyWith(final Term term) {
     if (this == term) {
       return true;
-    } else {
-      if (this.immediateValue == null && term.getTermType() != VAR) {
-        this.immediateValue = term;
-        return true;
-      }
-      final Term foundValue = this.getValue();
-      final boolean result;
-      if (foundValue == null) {
-        result = this.setValue(term);
-      } else {
-        result = foundValue.unifyWith(term);
-      }
-      return result;
     }
+    if (this.immediateValue == null && term.getTermType() != VAR) {
+      this.immediateValue = term;
+      return true;
+    }
+    return this.setValue(term);
   }
 
   @Override

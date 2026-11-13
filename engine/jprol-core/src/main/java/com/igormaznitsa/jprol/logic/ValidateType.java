@@ -1,15 +1,19 @@
 package com.igormaznitsa.jprol.logic;
 
 import com.igormaznitsa.jprol.annotations.JProlPredicate;
+import com.igormaznitsa.jprol.data.NumericTerm;
 import com.igormaznitsa.jprol.data.Term;
+import com.igormaznitsa.jprol.data.TermDouble;
+import com.igormaznitsa.jprol.data.TermLong;
+import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.exceptions.ProlException;
 import com.igormaznitsa.jprol.utils.ProlAssertions;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  * Allowed types for validating parameters.
@@ -18,53 +22,78 @@ import java.util.function.Predicate;
  * @since 3.0.0
  */
 public enum ValidateType {
-  TERM("term", s -> true, s -> null),
-  ATOM("atom", s -> ProlAssertions.checkAtom(s) == null, ProlAssertions::checkAtom),
-  FORMAT("format", s -> ProlAssertions.checkFormat(s) == null, ProlAssertions::checkFormat),
-  NAME("name", s -> ProlAssertions.checkName(s) == null, ProlAssertions::checkName),
-  ARITY("arity", s -> ProlAssertions.checkArity(s) == null, ProlAssertions::checkArity),
-  ATOMIC("atomic", s -> ProlAssertions.assertAtomic(s) == null, ProlAssertions::checkAtomic),
-  CHAR_LIST("char_list", s -> ProlAssertions.checkCharList(s) == null,
+  TERM("term", (raw, grounded) -> true, s -> null),
+  ATOM("atom", (raw, grounded) -> ProlAssertions.isAtomGrounded(grounded),
+      ProlAssertions::checkAtom),
+  FORMAT("format", (raw, grounded) -> ProlAssertions.isFormatGrounded(grounded),
+      ProlAssertions::checkFormat),
+  NAME("name", (raw, grounded) -> ProlAssertions.isNameGrounded(grounded),
+      ProlAssertions::checkName),
+  ARITY("arity", (raw, grounded) -> ProlAssertions.isArityGrounded(grounded),
+      ProlAssertions::checkArity),
+  ATOMIC("atomic", (raw, grounded) -> ProlAssertions.isAtomicGrounded(grounded),
+      ProlAssertions::checkAtomic),
+  CHAR_LIST("char_list", (raw, grounded) -> ProlAssertions.isCharListGrounded(grounded),
       ProlAssertions::checkCharList),
-  CODE_LIST("code_list", s -> ProlAssertions.checkCharCodeList(s) == null,
+  CODE_LIST("code_list", (raw, grounded) -> ProlAssertions.isCharCodeListGrounded(grounded),
       ProlAssertions::checkCharCodeList),
-  STRING("string", s -> ProlAssertions.assertString(s) == null, ProlAssertions::checkString),
-  FLOAT("float", s -> ProlAssertions.checkFloat(s) == null, ProlAssertions::checkFloat),
-  INTEGER("integer", s -> ProlAssertions.checkInteger(s) == null, ProlAssertions::checkInteger),
-  NUMBER("number", s -> ProlAssertions.checkNumber(s) == null, ProlAssertions::checkNumber),
-  GOAL("goal", s -> ProlAssertions.checkGoal(s) == null, ProlAssertions::checkGoal),
-  CALLABLE("callable", s -> ProlAssertions.checkCallable(s) == null,
+  STRING("string", (raw, grounded) -> ProlAssertions.isPrologStringGrounded(grounded),
+      ProlAssertions::checkString),
+  FLOAT("float", (raw, grounded) -> grounded instanceof TermDouble, ProlAssertions::checkFloat),
+  INTEGER("integer", (raw, grounded) -> grounded instanceof TermLong, ProlAssertions::checkInteger),
+  NUMBER("number", (raw, grounded) -> grounded instanceof NumericTerm, ProlAssertions::checkNumber),
+  GOAL("goal", (raw, grounded) -> ProlAssertions.isCallableGrounded(grounded),
+      ProlAssertions::checkGoal),
+  CALLABLE("callable", (raw, grounded) -> ProlAssertions.isCallableGrounded(grounded),
       ProlAssertions::checkCallable),
-  HEAD("head", s -> ProlAssertions.checkHead(s) == null, ProlAssertions::checkHead),
-  BODY("body", s -> ProlAssertions.checkBody(s) == null, ProlAssertions::checkBody),
-  EVALUABLE("evaluable", s -> ProlAssertions.checkEvaluable(s) == null,
+  HEAD("head", (raw, grounded) -> ProlAssertions.isHeadGrounded(grounded),
+      ProlAssertions::checkHead),
+  BODY("body", (raw, grounded) -> ProlAssertions.isCallableGrounded(grounded),
+      ProlAssertions::checkBody),
+  EVALUABLE("evaluable", (raw, grounded) -> ProlAssertions.isEvaluableGrounded(grounded),
       ProlAssertions::checkEvaluable),
-  LIST("list", s -> ProlAssertions.checkList(s) == null, ProlAssertions::checkList),
-  NONEMPTY_LIST("nonempty_list", s -> ProlAssertions.checkNonEmptyList(s) == null,
+  LIST("list", (raw, grounded) -> grounded.getTermType() == TermType.LIST,
+      ProlAssertions::checkList),
+  NONEMPTY_LIST("nonempty_list",
+      (raw, grounded) -> grounded.getTermType() == TermType.LIST && !grounded.isNullList(),
       ProlAssertions::checkNonEmptyList),
-  CHAR("char", s -> ProlAssertions.checkChar(s) == null, ProlAssertions::checkChar),
-  TRIGGER_EVENT("trigger_event", s -> ProlAssertions.checkTriggerEvent(s) == null,
+  CHAR("char",
+      (raw, grounded) -> grounded.getTermType() == TermType.ATOM &&
+          grounded.getText().length() == 1,
+      ProlAssertions::checkChar),
+  TRIGGER_EVENT("trigger_event",
+      (raw, grounded) -> ProlAssertions.isTriggerEventGrounded(grounded),
       ProlAssertions::checkTriggerEvent),
-  PREDICATE_INDICATOR("predicate_indicator", s -> ProlAssertions.checkIndicator(s) == null,
+  PREDICATE_INDICATOR("predicate_indicator", ProlAssertions::isIndicatorGrounded,
       ProlAssertions::checkIndicator),
-  OPERATOR_SPECIFIER("operator_specifier", s -> ProlAssertions.checkOperatorSpecifier(s) == null,
+  OPERATOR_SPECIFIER("operator_specifier",
+      (raw, grounded) -> ProlAssertions.isOperatorSpecifierGrounded(grounded),
       ProlAssertions::checkOperatorSpecifier),
-  IO_MODE("io_mode", s -> ProlAssertions.checkIoMode(s) == null, ProlAssertions::checkIoMode),
-  COMPOUND_TERM("compound_term", s -> ProlAssertions.checkCompound(s) == null,
+  IO_MODE("io_mode", (raw, grounded) -> ProlAssertions.isIoModeGrounded(grounded),
+      ProlAssertions::checkIoMode),
+  COMPOUND_TERM("compound_term",
+      (raw, grounded) ->
+          grounded.getTermType() == TermType.LIST || grounded.getTermType() == TermType.STRUCT,
       ProlAssertions::checkCompound),
-  COMPOUND("compound", s -> ProlAssertions.checkCompound(s) == null,
+  COMPOUND("compound",
+      (raw, grounded) ->
+          grounded.getTermType() == TermType.LIST || grounded.getTermType() == TermType.STRUCT,
       ProlAssertions::checkCompound),
-  VAR("var", s -> ProlAssertions.checkVar(s) == null, ProlAssertions::checkVar);
+  VAR("var", (raw, grounded) -> !(raw.isUnground() && raw.getTermType() != TermType.VAR),
+      ProlAssertions::checkVar);
 
   private static final List<ValidateType> VALUES = Arrays.asList(ValidateType.values());
   private final String text;
-  private final Predicate<Term> checker;
+  private final BiPredicate<Term, Term> groundedChecker;
   private final Function<Term, ProlException> exceptionFunction;
 
-  ValidateType(final String text, final Predicate<Term> checker,
-               final Function<Term, ProlException> exceptionFunction) {
+  ValidateType(
+      final String text,
+      final BiPredicate<Term, Term> groundedChecker,
+      final Function<Term, ProlException> exceptionFunction
+  ) {
     this.text = text;
-    this.checker = checker;
+    this.groundedChecker = groundedChecker;
     this.exceptionFunction = exceptionFunction;
   }
 
@@ -74,7 +103,11 @@ public enum ValidateType {
   }
 
   public boolean test(final Term term) {
-    return this.checker.test(term);
+    return this.groundedChecker.test(term, term.tryGround());
+  }
+
+  boolean testGrounded(final Term rawTerm, final Term groundedTerm) {
+    return this.groundedChecker.test(rawTerm, groundedTerm);
   }
 
   public String getText() {

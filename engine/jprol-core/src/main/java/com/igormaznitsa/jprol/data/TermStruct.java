@@ -20,46 +20,60 @@ import static com.igormaznitsa.jprol.data.TermType.OPERATOR;
 import static com.igormaznitsa.jprol.data.TermType.STRUCT;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static java.util.Collections.emptyIterator;
+import static java.util.Collections.emptyMap;
 import static java.util.Objects.requireNonNull;
 
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
 import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import com.igormaznitsa.jprol.utils.ProlUtils;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class TermStruct extends CompoundTerm {
 
   static final Term[] EMPTY_ARRAY = new Term[0];
   final Term[] arguments;
   final Term functor;
-  private final String structureSignature;
+  private String structureSignature;
   private PredicateInvoker predicateProcessor;
 
   TermStruct(final Term functor, final SourcePosition sourcePosition) {
-    this(functor, EMPTY_ARRAY, sourcePosition, PredicateInvoker.NULL_INVOKER);
+    this(functor, EMPTY_ARRAY, sourcePosition, PredicateInvoker.NULL_INVOKER, null);
   }
 
   TermStruct(final String functor, final Term[] arguments, final SourcePosition sourcePosition) {
     this(new Term(functor, sourcePosition), arguments, sourcePosition,
-        PredicateInvoker.NULL_INVOKER);
+        PredicateInvoker.NULL_INVOKER, null);
   }
 
   TermStruct(final Term functor, final Term[] arguments, final SourcePosition sourcePosition) {
-    this(functor, arguments, sourcePosition, PredicateInvoker.NULL_INVOKER);
+    this(functor, arguments, sourcePosition, PredicateInvoker.NULL_INVOKER, null);
   }
 
   TermStruct(final Term functor, final Term[] arguments, final SourcePosition sourcePosition,
              final PredicateInvoker predicateInvoker) {
+    this(functor, arguments, sourcePosition, predicateInvoker, null);
+  }
+
+  TermStruct(
+      final Term functor,
+      final Term[] arguments,
+      final SourcePosition sourcePosition,
+      final PredicateInvoker predicateInvoker,
+      final String precomputedSignature
+  ) {
     super(functor.getText(), sourcePosition);
     this.functor = functor;
     this.arguments = arguments == null ? EMPTY_ARRAY : arguments;
-    this.structureSignature = functor.getText() + '/' + getArity();
+    this.structureSignature = precomputedSignature;
     this.predicateProcessor = predicateInvoker;
   }
 
@@ -85,50 +99,79 @@ public class TermStruct extends CompoundTerm {
     return Spliterators.spliterator(this.arguments, Spliterator.SIZED);
   }
 
+  private static boolean mayHoldNamedVar(final Term term) {
+    if (term.getTermType() == VAR) {
+      return !term.isAnonymous();
+    }
+    if (term instanceof TermStruct) {
+      final TermStruct struct = (TermStruct) term;
+      return struct.arguments.length > 0 || struct.functor.getTermType() == VAR;
+    }
+    return false;
+  }
+
   @Override
   public Iterator<Term> iterator() {
     if (this.arguments.length == 0) {
       return emptyIterator();
     }
-    return new Iterator<>() {
-      int index = 0;
-
-      @Override
-      public boolean hasNext() {
-        return this.index < TermStruct.this.arguments.length;
-      }
-
-      @Override
-      public Term next() {
-        if (this.index < TermStruct.this.arguments.length) {
-          return TermStruct.this.arguments[this.index++];
-        } else {
-          throw new NoSuchElementException();
-        }
-      }
-    };
+    return new ArgumentsIterator(this.arguments);
   }
 
   @Override
   public Stream<TermVar> variables() {
-    return this.stream().flatMap(Term::variables);
+    if (this.arguments.length == 0 && this.functor.getTermType() != VAR) {
+      return Stream.empty();
+    }
+    return StreamSupport.stream(new NamedVarSpliterator(this), false);
+  }
+
+  @Override
+  public Map<String, TermVar> findAllNamedVariables() {
+    if (this.arguments.length == 0 && this.functor.getTermType() != VAR) {
+      return emptyMap();
+    }
+    Map<String, TermVar> collected = null;
+    Term[] stack = new Term[8];
+    stack[0] = this;
+    int top = 1;
+
+    while (top > 0) {
+      final Term current = stack[--top];
+      if (current.getTermType() == VAR) {
+        if (!current.isAnonymous()) {
+          if (collected == null) {
+            collected = new HashMap<>();
+          }
+          collected.put(current.getText(), (TermVar) current);
+        }
+      } else if (current instanceof TermStruct) {
+        final TermStruct struct = (TermStruct) current;
+        final Term[] args = struct.arguments;
+        final int needed = top + args.length + 1;
+        if (needed > stack.length) {
+          stack = Arrays.copyOf(stack, Math.max(stack.length << 1, needed));
+        }
+        for (int i = args.length - 1; i >= 0; i--) {
+          final Term arg = args[i];
+          if (mayHoldNamedVar(arg)) {
+            stack[top++] = arg;
+          }
+        }
+        if (struct.functor.getTermType() == VAR && !struct.functor.isAnonymous()) {
+          stack[top++] = struct.functor;
+        }
+      }
+    }
+    return collected == null ? emptyMap() : collected;
   }
 
   @Override
   public final Stream<Term> stream() {
-    switch (this.arguments.length) {
-      case 0:
-        return Stream.of(this.functor);
-      case 1:
-        return Stream.concat(Stream.of(this.functor), this.arguments[0].stream());
-      case 2:
-        return Stream.concat(Stream.of(this.functor),
-            Stream.concat(this.arguments[0].stream(), this.arguments[1].stream()));
-      default: {
-        return Stream.concat(Stream.of(this.functor),
-            Arrays.stream(this.arguments).flatMap(Term::stream));
-      }
+    if (this.arguments.length == 0) {
+      return Stream.of(this.functor);
     }
+    return StreamSupport.stream(new PreOrderTermSpliterator(this), false);
   }
 
   @SuppressWarnings("unchecked")
@@ -411,7 +454,12 @@ public class TermStruct extends CompoundTerm {
 
   @Override
   public String getSignature() {
-    return this.structureSignature;
+    String sig = this.structureSignature;
+    if (sig == null) {
+      sig = this.functor.getText() + '/' + this.getArity();
+      this.structureSignature = sig;
+    }
+    return sig;
   }
 
   @Override
@@ -525,8 +573,8 @@ public class TermStruct extends CompoundTerm {
         changed |= element != cloned;
       }
       if (changed) {
-        result = Terms.newStruct(this.getFunctor(), targetElements, this.getPredicateProcessor(),
-            this.getSourcePosition());
+        result = new TermStruct(this.functor, targetElements, this.getSourcePosition(),
+            this.predicateProcessor, this.structureSignature);
       } else {
         result = this;
       }
@@ -569,14 +617,14 @@ public class TermStruct extends CompoundTerm {
       final int arity = elements.length;
       final Term[] targetElements = new Term[arity];
       for (int i = 0; i < arity; i++) {
-        final Term element = elements[i];
-        targetElements[i] = element.makeClone(variables);
+        targetElements[i] = elements[i].makeClone(variables);
       }
-      result = Terms.newStruct(
-          this.getFunctor(),
+      result = new TermStruct(
+          this.functor,
           targetElements,
-          this.getPredicateProcessor(),
-          this.getSourcePosition()
+          this.getSourcePosition(),
+          this.predicateProcessor,
+          this.structureSignature
       );
     }
     return result;
@@ -593,8 +641,8 @@ public class TermStruct extends CompoundTerm {
       changed |= next != replaced;
     }
     if (changed) {
-      return Terms.newStruct(this.getFunctor(), newTerms, this.getPredicateProcessor(),
-          this.getSourcePosition());
+      return new TermStruct(this.functor, newTerms, this.getSourcePosition(),
+          this.predicateProcessor, this.structureSignature);
     } else {
       return this;
     }
@@ -630,5 +678,111 @@ public class TermStruct extends CompoundTerm {
   @Override
   public int hashCode() {
     return System.identityHashCode(this);
+  }
+
+  private static final class ArgumentsIterator implements Iterator<Term> {
+
+    private final Term[] arguments;
+    private int index;
+
+    private ArgumentsIterator(final Term[] arguments) {
+      this.arguments = arguments;
+    }
+
+    @Override
+    public boolean hasNext() {
+      return this.index < this.arguments.length;
+    }
+
+    @Override
+    public Term next() {
+      if (this.index < this.arguments.length) {
+        return this.arguments[this.index++];
+      }
+      throw new NoSuchElementException();
+    }
+  }
+
+  private static final class PreOrderTermSpliterator
+      extends Spliterators.AbstractSpliterator<Term> {
+
+    private Term[] stack;
+    private int top;
+
+    private PreOrderTermSpliterator(final TermStruct root) {
+      super(Long.MAX_VALUE, Spliterator.ORDERED | Spliterator.NONNULL);
+      this.stack = new Term[8];
+      this.stack[0] = root;
+      this.top = 1;
+    }
+
+    @Override
+    public boolean tryAdvance(final Consumer<? super Term> action) {
+      if (this.top == 0) {
+        return false;
+      }
+      final Term current = this.stack[--this.top];
+      if (current instanceof TermStruct) {
+        final TermStruct struct = (TermStruct) current;
+        final Term[] args = struct.arguments;
+        final int len = args.length;
+        if (len > 0) {
+          final int needed = this.top + len;
+          if (needed > this.stack.length) {
+            this.stack = Arrays.copyOf(this.stack, Math.max(this.stack.length << 1, needed));
+          }
+          for (int i = len - 1; i >= 0; i--) {
+            this.stack[this.top++] = args[i];
+          }
+        }
+        action.accept(struct.functor);
+      } else {
+        action.accept(current);
+      }
+      return true;
+    }
+  }
+
+  private static final class NamedVarSpliterator extends Spliterators.AbstractSpliterator<TermVar> {
+
+    private Term[] stack;
+    private int top;
+
+    private NamedVarSpliterator(final TermStruct root) {
+      super(Long.MAX_VALUE, Spliterator.ORDERED | Spliterator.NONNULL);
+      this.stack = new Term[8];
+      this.stack[0] = root;
+      this.top = 1;
+    }
+
+    @Override
+    public boolean tryAdvance(final Consumer<? super TermVar> action) {
+      while (this.top > 0) {
+        final Term current = this.stack[--this.top];
+        if (current.getTermType() == VAR) {
+          if (!current.isAnonymous()) {
+            action.accept((TermVar) current);
+            return true;
+          }
+        } else if (current instanceof TermStruct) {
+          final TermStruct struct = (TermStruct) current;
+          final Term[] args = struct.arguments;
+          final int needed = this.top + args.length + 1;
+          if (needed > this.stack.length) {
+            this.stack = Arrays.copyOf(this.stack, Math.max(this.stack.length << 1, needed));
+          }
+          for (int i = args.length - 1; i >= 0; i--) {
+            final Term arg = args[i];
+            if (mayHoldNamedVar(arg)) {
+              this.stack[this.top++] = arg;
+            }
+          }
+          if (struct.functor.getTermType() == VAR && !struct.functor.isAnonymous()) {
+            this.stack[this.top++] = struct.functor;
+          }
+        }
+      }
+      return false;
+    }
   }
 }

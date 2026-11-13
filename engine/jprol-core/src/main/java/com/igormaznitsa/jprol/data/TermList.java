@@ -25,6 +25,7 @@ import static com.igormaznitsa.jprol.utils.ProlUtils.createOrAppendToList;
 import static java.util.Objects.requireNonNull;
 
 import com.igormaznitsa.jprol.exceptions.ProlCriticalError;
+import com.igormaznitsa.jprol.logic.PredicateInvoker;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -63,7 +64,8 @@ public final class TermList extends TermStruct {
 
   private TermList(final Term[] elements,
                    final SourcePosition sourcePosition) {
-    super(Terms.LIST_FUNCTOR, elements.length == 0 ? EMPTY_ARRAY : elements, sourcePosition);
+    super(Terms.LIST_FUNCTOR, elements.length == 0 ? EMPTY_ARRAY : elements, sourcePosition,
+        PredicateInvoker.NULL_INVOKER, "./2");
   }
 
   public static TermList listOf(final Term... elements) {
@@ -186,42 +188,7 @@ public final class TermList extends TermStruct {
     if (this.isNullList()) {
       return Collections.emptyIterator();
     }
-    return new Iterator<Term>() {
-      Term current = TermList.this;
-
-      void findNext() {
-        if (current == null) {
-          throw new NoSuchElementException();
-        }
-        if (current.getTermType() == LIST) {
-          final TermList asList = (TermList) current;
-          current = asList.isNullList() ? null : asList.getTail();
-        } else {
-          current = null;
-        }
-      }
-
-      @Override
-      public boolean hasNext() {
-        return current != null &&
-            (current.getTermType() == LIST && !current.isNullList());
-      }
-
-      @Override
-      public Term next() {
-        final Term result = this.current;
-        this.findNext();
-        if (result.getTermType() == LIST) {
-          final TermList asList = (TermList) result;
-          if (asList.isNullList()) {
-            throw new NoSuchElementException();
-          }
-          return asList.getHead();
-        } else {
-          return result;
-        }
-      }
-    };
+    return new ListElementIterator(this);
   }
 
   @SuppressWarnings("unchecked")
@@ -283,33 +250,98 @@ public final class TermList extends TermStruct {
       return NULL_LIST;
     }
 
-    final Term head = this.getHead();
-    final Term tail = this.getTail();
+    final Term firstHead = this.getHead();
+    final Term firstTail = this.getTail();
+    final Term firstHeadClone = firstHead.cloneAndReplaceVariables(variables);
 
-    final Term headClone = head.cloneAndReplaceVariables(variables);
-    final Term tailClone = tail.cloneAndReplaceVariables(variables);
-
-    if (head == headClone && tail == tailClone) {
-      return this;
-    } else {
-      return newList(headClone, tailClone, this.getSourcePosition());
+    if (firstTail.getTermType() != LIST) {
+      final Term tailClone = firstTail.cloneAndReplaceVariables(variables);
+      return firstHead == firstHeadClone && firstTail == tailClone
+          ? this
+          : newList(firstHeadClone, tailClone, this.getSourcePosition());
     }
+
+    final TermList secondCell = (TermList) firstTail;
+    if (secondCell.isNullList()) {
+      return firstHead == firstHeadClone
+          ? this
+          : newList(firstHeadClone, NULL_LIST, this.getSourcePosition());
+    }
+
+    TermList[] spineCells = new TermList[8];
+    Term[] clonedHeads = new Term[8];
+    spineCells[0] = this;
+    clonedHeads[0] = firstHeadClone;
+    int count = 1;
+
+    TermList current = secondCell;
+    Term terminalTail;
+    while (true) {
+      if (count == spineCells.length) {
+        final int grown = spineCells.length << 1;
+        spineCells = Arrays.copyOf(spineCells, grown);
+        clonedHeads = Arrays.copyOf(clonedHeads, grown);
+      }
+      spineCells[count] = current;
+      clonedHeads[count] = current.getHead().cloneAndReplaceVariables(variables);
+      count++;
+
+      final Term nextTail = current.getTail();
+      if (nextTail.getTermType() != LIST) {
+        terminalTail = nextTail.cloneAndReplaceVariables(variables);
+        break;
+      }
+      final TermList nextList = (TermList) nextTail;
+      if (nextList.isNullList()) {
+        terminalTail = NULL_LIST;
+        break;
+      }
+      current = nextList;
+    }
+
+    Term rebuiltTail = terminalTail;
+    for (int i = count - 1; i >= 0; i--) {
+      final TermList origCell = spineCells[i];
+      final Term clonedHead = clonedHeads[i];
+      if (clonedHead == origCell.getHead() && rebuiltTail == origCell.getTail()) {
+        rebuiltTail = origCell;
+      } else {
+        rebuiltTail = newList(clonedHead, rebuiltTail, origCell.getSourcePosition());
+      }
+    }
+    return rebuiltTail;
   }
 
   @Override
   public boolean isGround() {
-    if (this.isNullList()) {
-      return true;
+    TermList current = this;
+    while (!current.isNullList()) {
+      if (!current.getHead().isGround()) {
+        return false;
+      }
+      final Term tail = current.getTail();
+      if (tail.getTermType() != LIST) {
+        return tail.isGround();
+      }
+      current = (TermList) tail;
     }
-    return this.getHead().isGround() && this.getTail().isGround();
+    return true;
   }
 
   @Override
   public boolean isUnground() {
-    if (this.isNullList()) {
-      return false;
+    TermList current = this;
+    while (!current.isNullList()) {
+      if (current.getHead().isUnground()) {
+        return true;
+      }
+      final Term tail = current.getTail();
+      if (tail.getTermType() != LIST) {
+        return tail.isUnground();
+      }
+      current = (TermList) tail;
     }
-    return this.getHead().isUnground() || this.getTail().isUnground();
+    return false;
   }
 
   @Override
@@ -321,10 +353,36 @@ public final class TermList extends TermStruct {
   protected Term makeClone(final Map<TermVar, TermVar> variables) {
     if (this.isNullList()) {
       return NULL_LIST;
-    } else {
-      return Terms.newList(this.getHead().makeClone(variables),
-          this.getTail().makeClone(variables));
     }
+    final Term firstHead = this.getHead().makeClone(variables);
+    final Term firstTail = this.getTail();
+    if (firstTail.getTermType() != LIST) {
+      return Terms.newList(firstHead, firstTail.makeClone(variables));
+    }
+    TermList tailList = (TermList) firstTail;
+    if (tailList.isNullList()) {
+      return Terms.newList(firstHead, NULL_LIST);
+    }
+
+    final TermList result = Terms.newList(firstHead, NULL_LIST);
+    TermList cursor = result;
+    while (true) {
+      final Term clonedHead = tailList.getHead().makeClone(variables);
+      final TermList cell = Terms.newList(clonedHead, NULL_LIST);
+      cursor.arguments[INDEX_TAIL] = cell;
+      cursor = cell;
+
+      final Term nextTail = tailList.getTail();
+      if (nextTail.getTermType() != LIST) {
+        cursor.arguments[INDEX_TAIL] = nextTail.makeClone(variables);
+        break;
+      }
+      tailList = (TermList) nextTail;
+      if (tailList.isNullList()) {
+        break;
+      }
+    }
+    return result;
   }
 
   @Override
@@ -431,66 +489,86 @@ public final class TermList extends TermStruct {
       return true;
     }
 
-    switch (atom.getTermType()) {
-      case LIST: {
-        TermList thatList = (TermList) atom;
-        if (this.isNullList()) {
-          return thatList.isNullList();
-        } else if (thatList.isNullList()) {
+    Term currentLeft = this;
+    Term currentRight = atom;
+    while (currentLeft != currentRight) {
+      if (currentLeft.getTermType() == LIST && currentRight.getTermType() == LIST) {
+        final TermList leftList = (TermList) currentLeft;
+        final TermList rightList = (TermList) currentRight;
+        if (leftList.isNullList()) {
+          return rightList.isNullList();
+        }
+        if (rightList.isNullList()) {
           return false;
         }
-
-        return this.getHead().unifyWith(thatList.getHead()) &&
-            this.getTail().unifyWith(thatList.getTail());
-      }
-      case VAR: {
-        final TermVar thatVariable = (TermVar) atom;
-        final Term value = thatVariable.getImmediateValue();
-        if (value == null) {
-          thatVariable.setImmediateValue(this);
-          return true;
-        } else {
+        if (!leftList.getHead().unifyWith(rightList.getHead())) {
+          return false;
+        }
+        currentLeft = leftList.getTail();
+        currentRight = rightList.getTail();
+      } else if (currentLeft == this) {
+        if (currentRight.getTermType() == VAR) {
+          final TermVar thatVariable = (TermVar) currentRight;
+          final Term value = thatVariable.getImmediateValue();
+          if (value == null) {
+            thatVariable.setImmediateValue(this);
+            return true;
+          }
           return thatVariable.unifyWith(this);
         }
+        return false;
+      } else {
+        return currentLeft.unifyWith(currentRight);
       }
     }
-    return false;
+    return true;
   }
 
   @Override
-  public boolean isUnifiableWith(Term target) {
+  public boolean isUnifiableWith(final Term target) {
     if (this == target) {
       return true;
     }
 
-    if (target.getTermType() == VAR) {
-      target = ((TermVar) target).getValue();
-    }
-
-    if (target == null) {
-      return true;
-    }
-
-    if (target.getTermType() == LIST) {
-      if (this == target) {
-        return true;
-      }
-      final TermList thisList = this;
-      final TermList thatList = (TermList) target;
-
-      if (thisList.isNullList()) {
-        return thatList.isNullList();
-      } else {
-        if (thatList.isNullList()) {
-          return false;
+    Term currentLeft = this;
+    Term currentRight = target;
+    while (currentLeft != currentRight) {
+      if (currentLeft.getTermType() == VAR) {
+        currentLeft = ((TermVar) currentLeft).getValue();
+        if (currentLeft == null) {
+          return true;
+        }
+        if (currentLeft == currentRight) {
+          return true;
         }
       }
-
-      return thisList
-          .getHead().isUnifiableWith(thatList.getHead())
-          && thisList.getTail().isUnifiableWith(thatList.getTail());
+      if (currentRight.getTermType() == VAR) {
+        currentRight = ((TermVar) currentRight).getValue();
+        if (currentRight == null) {
+          return true;
+        }
+        if (currentLeft == currentRight) {
+          return true;
+        }
+      }
+      if (currentLeft.getTermType() != LIST || currentRight.getTermType() != LIST) {
+        return currentLeft != this && currentLeft.isUnifiableWith(currentRight);
+      }
+      final TermList leftList = (TermList) currentLeft;
+      final TermList rightList = (TermList) currentRight;
+      if (leftList.isNullList()) {
+        return rightList.isNullList();
+      }
+      if (rightList.isNullList()) {
+        return false;
+      }
+      if (!leftList.getHead().isUnifiableWith(rightList.getHead())) {
+        return false;
+      }
+      currentLeft = leftList.getTail();
+      currentRight = rightList.getTail();
     }
-    return false;
+    return true;
   }
 
   @Override
@@ -603,10 +681,18 @@ public final class TermList extends TermStruct {
 
   @Override
   public boolean containsNamedVariable(final String name) {
-    if (this.isNullList()) {
-      return false;
+    TermList current = this;
+    while (!current.isNullList()) {
+      if (current.getHead().containsNamedVariable(name)) {
+        return true;
+      }
+      final Term tail = current.getTail();
+      if (tail.getTermType() != LIST) {
+        return tail.containsNamedVariable(name);
+      }
+      current = (TermList) tail;
     }
-    return this.getHead().containsNamedVariable(name) || this.getTail().containsNamedVariable(name);
+    return false;
   }
 
   public boolean doesContainOnlyCharCodes() {
@@ -637,15 +723,53 @@ public final class TermList extends TermStruct {
       }
       if (tail.getTermType() == LIST) {
         final TermList newList = (TermList) tail;
-        if (newList.isNullList()) {
-          current = null;
-        } else {
-          current = newList;
-        }
+        current = newList.isNullList() ? null : newList;
       } else {
         return false;
       }
     }
     return true;
+  }
+
+  private static final class ListElementIterator implements Iterator<Term> {
+
+    private Term current;
+
+    private ListElementIterator(final TermList start) {
+      this.current = start;
+    }
+
+    private void advance() {
+      if (this.current == null) {
+        throw new NoSuchElementException();
+      }
+      if (this.current.getTermType() == LIST) {
+        final TermList asList = (TermList) this.current;
+        this.current = asList.isNullList() ? null : asList.getTail();
+      } else {
+        this.current = null;
+      }
+    }
+
+    @Override
+    public boolean hasNext() {
+      return this.current != null
+          && this.current.getTermType() == LIST
+          && !this.current.isNullList();
+    }
+
+    @Override
+    public Term next() {
+      final Term result = this.current;
+      this.advance();
+      if (result.getTermType() == LIST) {
+        final TermList asList = (TermList) result;
+        if (asList.isNullList()) {
+          throw new NoSuchElementException();
+        }
+        return asList.getHead();
+      }
+      return result;
+    }
   }
 }

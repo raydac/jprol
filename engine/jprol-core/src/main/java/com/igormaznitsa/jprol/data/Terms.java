@@ -27,8 +27,8 @@ public final class Terms {
   public static final Term FALSE = new Term("false", SourcePosition.UNKNOWN);
   public static final Term LIST_FUNCTOR = new Term(".", SourcePosition.UNKNOWN);
 
-  private static final long MIN_CACHED = -16L;
-  private static final long MAX_CACHED = 16L;
+  private static final long MIN_CACHED = -128L;
+  private static final long MAX_CACHED = 1024L;
 
   private static final TermLong[] CACHED_LONGS = new TermLong[(int) (MAX_CACHED - MIN_CACHED + 1)];
 

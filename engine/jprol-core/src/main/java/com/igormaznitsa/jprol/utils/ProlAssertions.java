@@ -26,6 +26,170 @@ public final class ProlAssertions {
   private ProlAssertions() {
   }
 
+  public static boolean isCallableGrounded(final Term grounded) {
+    final TermType type = grounded.getTermType();
+    return type == STRUCT || (type == ATOM && !(grounded instanceof NumericTerm));
+  }
+
+  public static boolean isEvaluableGrounded(final Term grounded) {
+    if (grounded instanceof NumericTerm) {
+      return true;
+    }
+    if (grounded.getTermType() == STRUCT && grounded instanceof TermStruct) {
+      final PredicateInvoker processor = ((TermStruct) grounded).getPredicateProcessor();
+      return processor != null && processor.isEvaluable();
+    }
+    return false;
+  }
+
+  public static boolean isAtomGrounded(final Term grounded) {
+    return grounded.getTermType() == ATOM && !(grounded instanceof NumericTerm);
+  }
+
+  public static boolean isAtomicGrounded(final Term grounded) {
+    return grounded.getTermType() == ATOM || grounded.isNullList();
+  }
+
+  public static boolean isNameGrounded(final Term grounded) {
+    return grounded.isGround() && (grounded.isNullList() || !(grounded instanceof CompoundTerm));
+  }
+
+  public static boolean isArityGrounded(final Term grounded) {
+    if (!(grounded instanceof TermLong)) {
+      return false;
+    }
+    final long value = grounded.toNumber().longValue();
+    return value >= 0L && value <= Integer.MAX_VALUE;
+  }
+
+  public static boolean isPrologStringGrounded(final Term grounded) {
+    if (!(grounded instanceof TermList)) {
+      return false;
+    }
+    final TermList termList = (TermList) grounded;
+    return termList.isNullList() || termList.doesContainOnlyCharCodes();
+  }
+
+  public static boolean isFormatGrounded(final Term grounded) {
+    if (grounded.getTermType() == VAR) {
+      return false;
+    }
+    return grounded.getTermType() == LIST
+        || (grounded.getTermType() == ATOM && !(grounded instanceof NumericTerm))
+        || isPrologStringGrounded(grounded);
+  }
+
+  public static boolean isHeadGrounded(final Term grounded) {
+    switch (grounded.getTermType()) {
+      case ATOM:
+        return !(grounded instanceof NumericTerm);
+      case STRUCT:
+        return grounded instanceof TermStruct
+            && ((TermStruct) grounded).getFunctor().getTermType() == ATOM;
+      default:
+        return false;
+    }
+  }
+
+  public static boolean isCharCodeListGrounded(final Term grounded) {
+    if (!(grounded instanceof TermList)) {
+      return false;
+    }
+    TermList lst = (TermList) grounded;
+    while (!lst.isNullList()) {
+      final Term value = lst.getHead().tryGround();
+      if (!(value instanceof TermLong) || (value.toNumber().intValue() & 0xFFFF0000) != 0) {
+        return false;
+      }
+      final Term tail = lst.getTail().tryGround();
+      if (tail instanceof TermList) {
+        lst = (TermList) tail;
+      } else {
+        return tail.getTermType() == VAR;
+      }
+    }
+    return true;
+  }
+
+  public static boolean isCharListGrounded(final Term grounded) {
+    if (!(grounded instanceof TermList)) {
+      return false;
+    }
+    TermList lst = (TermList) grounded;
+    while (!lst.isNullList()) {
+      final Term value = lst.getHead().tryGround();
+      if (value.getTermType() != ATOM
+          || value instanceof NumericTerm
+          || value.getText().length() != 1) {
+        return false;
+      }
+      final Term tail = lst.getTail().tryGround();
+      if (tail instanceof TermList) {
+        lst = (TermList) tail;
+      } else {
+        return tail.getTermType() == VAR;
+      }
+    }
+    return true;
+  }
+
+  public static boolean isOperatorSpecifierGrounded(final Term grounded) {
+    return grounded.getTermType() == ATOM
+        && !(grounded instanceof NumericTerm)
+        && OpAssoc.findForName(grounded.getText()).isPresent();
+  }
+
+  public static boolean isIoModeGrounded(final Term grounded) {
+    if (grounded.getTermType() != ATOM) {
+      return false;
+    }
+    final String text = grounded.getText();
+    return "read".equals(text) || "write".equals(text) || "append".equals(text);
+  }
+
+  public static boolean isTriggerEventGrounded(final Term grounded) {
+    if (grounded.getTermType() != ATOM) {
+      return false;
+    }
+    final String value = grounded.getText();
+    return "onassert".equals(value)
+        || "onretract".equals(value)
+        || "onassertretract".equals(value);
+  }
+
+  public static boolean isIndicatorGrounded(final Term rawTerm, final Term grounded) {
+    if (grounded.getTermType() == VAR) {
+      return false;
+    }
+    if (rawTerm.getTermType() != STRUCT || !(rawTerm instanceof TermStruct)) {
+      return false;
+    }
+    final TermStruct struct = (TermStruct) rawTerm;
+    if (struct.getArity() != 2 || !"/".equals(struct.getFunctor().getText())) {
+      return false;
+    }
+    final Term left = struct.getArgumentAt(0).tryGround();
+    final Term right = struct.getArgumentAt(1).tryGround();
+    final boolean leftOk =
+        (left.getTermType() == ATOM && left.getClass() == Term.class)
+            || (left.getTermType() == STRUCT && ((TermStruct) left).getArity() == 0)
+            || (left.getTermType() == VAR && !left.isGround());
+    final boolean rightOk =
+        (right.getTermType() == ATOM && right.getClass() == TermLong.class)
+            || (right.getTermType() == VAR && !right.isGround());
+    if (!leftOk || !rightOk) {
+      return false;
+    }
+    if (right instanceof NumericTerm) {
+      if (right instanceof TermDouble) {
+        return false;
+      }
+      final long arity = right.toNumber().longValue();
+      return arity >= 0L && arity <= Integer.MAX_VALUE;
+    }
+    return true;
+  }
+
   public static ProlException checkMeta(final Term term) {
     Term that = term.tryGround();
     final boolean flag =
