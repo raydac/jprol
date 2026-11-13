@@ -599,93 +599,172 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   @JProlPredicate(signature = "sub_atom/5", validate = {
       "+atom,?integer,?integer,?integer,?term"}, reference = "Breaking atoms")
   public static boolean predicateSUBATOM(final JProlChoicePoint goal, final TermStruct predicate) {
-    class SubAtomIterator {
-      final String atom;
-      final int initialLen;
-      final String theSub;
-      int currentBefore;
-      int currentLength;
-      int currentAfter;
+    final class SubAtomIterator {
+      private final String atom;
+      private final int maxBefore;
+      private final int fixedLength;
+      private final int fixedAfter;
+      private final String fixedSub;
+      private int candBefore;
+      private int candLength;
+      private boolean exhausted;
 
-      private SubAtomIterator(final Term atom, final Term before, final Term length,
-                              final Term after, final Term sub) {
-        this.atom = atom.getText();
-        this.currentBefore = before.getTermType() == VAR ? 0 : before.toNumber().intValue();
-        this.currentLength = length.getTermType() == VAR ? 0 : length.toNumber().intValue();
-        this.currentAfter =
-            after.getTermType() == VAR ? this.atom.length() : after.toNumber().intValue();
-        this.theSub = sub.getTermType() == VAR ? null : sub.getText();
+      private SubAtomIterator(
+          final Term atomTerm,
+          final Term beforeTerm,
+          final Term lengthTerm,
+          final Term afterTerm,
+          final Term subTerm
+      ) {
+        this.atom = atomTerm.getText();
+        final int atomLen = this.atom.length();
 
-        if (length.getTermType() == VAR) {
-          this.initialLen = -1;
-        } else {
-          this.initialLen = this.currentLength;
+        if (subTerm.getTermType() != VAR
+            && (subTerm.getTermType() != ATOM || subTerm instanceof NumericTerm)) {
+          this.maxBefore = -1;
+          this.fixedLength = -1;
+          this.fixedAfter = -1;
+          this.fixedSub = null;
+          this.exhausted = true;
+          return;
         }
 
-        if (before.getTermType() == VAR && after.getTermType() != VAR) {
-          this.currentBefore = this.atom.length() - this.currentAfter - this.currentLength;
+        final long rawBefore =
+            beforeTerm.getTermType() == VAR ? -1L : beforeTerm.toNumber().longValue();
+        final long rawLength =
+            lengthTerm.getTermType() == VAR ? -1L : lengthTerm.toNumber().longValue();
+        final long rawAfter =
+            afterTerm.getTermType() == VAR ? -1L : afterTerm.toNumber().longValue();
+
+        if ((beforeTerm.getTermType() != VAR && (rawBefore < 0L || rawBefore > atomLen))
+            || (lengthTerm.getTermType() != VAR && (rawLength < 0L || rawLength > atomLen))
+            || (afterTerm.getTermType() != VAR && (rawAfter < 0L || rawAfter > atomLen))) {
+          this.maxBefore = -1;
+          this.fixedLength = -1;
+          this.fixedAfter = -1;
+          this.fixedSub = null;
+          this.exhausted = true;
+          return;
         }
 
-        if (before.getTermType() != VAR && after.getTermType() == VAR) {
-          this.currentAfter = this.atom.length() - this.currentBefore - this.currentLength;
+        this.fixedSub = subTerm.getTermType() == VAR ? null : subTerm.getText();
+        if (this.fixedSub != null
+            && (this.fixedSub.length() > atomLen
+            || (rawLength >= 0L && rawLength != this.fixedSub.length()))) {
+          this.maxBefore = -1;
+          this.fixedLength = -1;
+          this.fixedAfter = -1;
+          this.exhausted = true;
+          return;
         }
 
-        if (length.getTermType() == VAR) {
-          this.currentLength = this.atom.length() - this.currentBefore - this.currentAfter;
-        } else if (after.getTermType() == VAR) {
-          this.currentAfter = this.atom.length() - this.currentBefore - this.currentLength;
-        }
+        this.fixedLength = this.fixedSub != null ? this.fixedSub.length() : (int) rawLength;
+        this.fixedAfter = (int) rawAfter;
+        this.candBefore = rawBefore >= 0L ? (int) rawBefore : 0;
+        this.maxBefore = rawBefore >= 0L ? (int) rawBefore : atomLen;
+        this.candLength = 0;
+        this.alignToValidCandidate();
       }
 
-      boolean next(final Term before, final Term length, final Term after, final Term sub) {
-        if (this.currentBefore < 0 || this.currentAfter < 0 || this.currentLength < 0) {
-          return false;
-        }
-
-        final String currentSub =
-            this.atom.substring(this.currentBefore, this.currentBefore + this.currentLength);
-
-        final boolean result = before.unifyWith(Terms.newLong(this.currentBefore, UNKNOWN))
-            && length.unifyWith(Terms.newLong(this.currentLength, UNKNOWN))
-            && after.unifyWith(Terms.newLong(this.currentAfter, UNKNOWN))
-            && sub.unifyWith(Terms.newAtom(currentSub));
-
-        if (this.theSub == null) {
-          if (this.initialLen < 0) {
-            this.currentLength++;
-            this.currentAfter = Math.max(0, this.currentAfter - 1);
-            if (this.currentBefore + this.currentLength + this.currentAfter > this.atom.length()) {
-              this.currentBefore++;
-              this.currentLength = 0;
-              this.currentAfter = this.atom.length() - this.currentLength - this.currentBefore;
-            }
-          } else {
-            this.currentBefore++;
-            this.currentAfter = this.atom.length() - this.currentLength - this.currentBefore;
-          }
+      private void stepCursor() {
+        if (this.fixedLength >= 0) {
+          this.candBefore++;
         } else {
-          this.currentBefore = this.atom.indexOf(this.theSub, this.currentBefore + 1);
-          this.currentLength = this.theSub.length();
-          this.currentAfter = this.atom.length() - this.currentBefore - this.currentLength;
+          this.candLength++;
+          if (this.candBefore + this.candLength > this.atom.length()) {
+            this.candBefore++;
+            this.candLength = 0;
+          }
         }
+        this.alignToValidCandidate();
+      }
 
-        return result;
+      private void alignToValidCandidate() {
+        final int atomLen = this.atom.length();
+        while (this.candBefore <= this.maxBefore) {
+          if (this.fixedSub != null) {
+            final int found = this.atom.indexOf(this.fixedSub, this.candBefore);
+            if (found < 0 || found > this.maxBefore) {
+              this.exhausted = true;
+              return;
+            }
+            this.candBefore = found;
+            this.candLength = this.fixedLength;
+          } else if (this.fixedLength >= 0) {
+            if (this.candBefore + this.fixedLength > atomLen) {
+              this.exhausted = true;
+              return;
+            }
+            this.candLength = this.fixedLength;
+          } else if (this.fixedAfter >= 0) {
+            final int neededLen = atomLen - this.candBefore - this.fixedAfter;
+            if (neededLen < 0) {
+              this.exhausted = true;
+              return;
+            }
+            if (this.candLength <= neededLen) {
+              this.candLength = neededLen;
+              return;
+            }
+            this.candBefore++;
+            this.candLength = 0;
+            continue;
+          }
+
+          final int after = atomLen - this.candBefore - this.candLength;
+          if (after >= 0 && (this.fixedAfter < 0 || after == this.fixedAfter)) {
+            return;
+          }
+          this.candBefore++;
+          this.candLength = 0;
+        }
+        this.exhausted = true;
+      }
+
+      boolean next(
+          final JProlChoicePoint choicePoint,
+          final Term before,
+          final Term length,
+          final Term after,
+          final Term sub
+      ) {
+        while (!this.exhausted) {
+          final int curBefore = this.candBefore;
+          final int curLen = this.candLength;
+          final int curAfter = this.atom.length() - curBefore - curLen;
+          final String currentSub = this.atom.substring(curBefore, curBefore + curLen);
+          this.stepCursor();
+
+          if (before.unifyWith(newLong(curBefore, UNKNOWN))
+              && length.unifyWith(newLong(curLen, UNKNOWN))
+              && after.unifyWith(newLong(curAfter, UNKNOWN))
+              && sub.unifyWith(newAtom(currentSub))) {
+            if (this.exhausted) {
+              choicePoint.resetLogicalAlternativesFlag();
+            }
+            return true;
+          }
+          choicePoint.discardBindings();
+        }
+        choicePoint.resetLogicalAlternativesFlag();
+        return false;
       }
     }
 
     SubAtomIterator iterator = goal.getInternalObject();
     if (iterator == null) {
-      final Term arg1 = predicate.getArgumentAt(0).tryGround();
-      final Term arg2 = predicate.getArgumentAt(1).tryGround();
-      final Term arg3 = predicate.getArgumentAt(2).tryGround();
-      final Term arg4 = predicate.getArgumentAt(3).tryGround();
-      final Term arg5 = predicate.getArgumentAt(4).tryGround();
-
-      iterator = new SubAtomIterator(arg1, arg2, arg3, arg4, arg5);
+      iterator = new SubAtomIterator(
+          predicate.getArgumentAt(0).tryGround(),
+          predicate.getArgumentAt(1).tryGround(),
+          predicate.getArgumentAt(2).tryGround(),
+          predicate.getArgumentAt(3).tryGround(),
+          predicate.getArgumentAt(4).tryGround()
+      );
       goal.setInternalObject(iterator);
     }
 
     return iterator.next(
+        goal,
         predicate.getArgumentAt(1),
         predicate.getArgumentAt(2),
         predicate.getArgumentAt(3),
@@ -791,19 +870,35 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
   public static boolean predicateCALL(final JProlChoicePoint goal, final TermStruct predicate) {
     final Term argument = predicate.getArgumentAt(0).tryGround();
 
-    JProlChoicePoint newChoicePoint = goal.getInternalObject();
-    if (newChoicePoint == null) {
-      newChoicePoint = goal.getContext().makeChoicePoint(argument);
-      goal.setInternalObject(newChoicePoint);
-    }
-    final Term nextResult = newChoicePoint.prove();
-    boolean result = false;
+    final class CallState {
+      private final Term clonedGoal;
+      private final JProlChoicePoint choicePoint;
 
-    if (nextResult != null) {
-      result = assertUnify(argument, nextResult);
-      if (newChoicePoint.isCompleted()) {
-        goal.resetLogicalAlternativesFlag();
+      private CallState(final Term clonedGoal, final JProlChoicePoint choicePoint) {
+        this.clonedGoal = clonedGoal;
+        this.choicePoint = choicePoint;
       }
+    }
+
+    CallState state = goal.getInternalObject();
+    if (state == null) {
+      final Term clonedGoal = argument.makeClone();
+      state = new CallState(
+          clonedGoal,
+          goal.getContext().makeChoicePoint(clonedGoal, goal.getAssociatedObject())
+      );
+      goal.setInternalObject(state);
+    }
+
+    final Term nextResult = state.choicePoint.prove();
+    if (nextResult == null) {
+      goal.resetLogicalAlternativesFlag();
+      return false;
+    }
+
+    final boolean result = assertUnify(argument, state.clonedGoal.makeClone());
+    if (state.choicePoint.isCompleted()) {
+      goal.resetLogicalAlternativesFlag();
     }
     return result;
   }
@@ -1170,10 +1265,10 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
       TermList list = (TermList) right;
       while (!list.isNullList()) {
-        final Term head = list.getHead();
+        final Term head = list.getHead().tryGround();
         builder.append(head.getText());
 
-        final Term tail = list.getTail();
+        final Term tail = list.getTail().tryGround();
         if (tail.getTermType() == LIST) {
           list = (TermList) tail;
         } else {
@@ -1236,10 +1331,13 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
       TermList list = (TermList) right;
       while (!list.isNullList()) {
-        final TermLong head = list.getHead();
+        final Term head = list.getHead().tryGround();
+        if (!(head instanceof TermLong)) {
+          return false;
+        }
         builder.append((char) head.toNumber().shortValue());
 
-        final Term tail = list.getTail();
+        final Term tail = list.getTail().tryGround();
         if (tail.getTermType() == LIST) {
           list = (TermList) tail;
         } else {
@@ -1451,7 +1549,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       TermList list = (TermList) right;
       boolean add = false;
       while (!list.isNullList()) {
-        final Term head = list.getHead();
+        final Term head = list.getHead().tryGround();
 
         final char chr = head.getText().charAt(0);
         if (!add) {
@@ -1463,7 +1561,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
           builder.append(chr);
         }
 
-        final Term tail = list.getTail();
+        final Term tail = list.getTail().tryGround();
         if (tail.getTermType() == LIST) {
           list = (TermList) tail;
         } else {
@@ -1623,7 +1721,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
       TermList list = (TermList) right;
       while (!list.isNullList()) {
-        final Term head = list.getHead();
+        final Term head = list.getHead().tryGround();
 
         if (!(head instanceof TermLong)) {
           throw new ProlRepresentationErrorException("character_code", predicate);
@@ -1631,7 +1729,7 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
         builder.append((char) head.toNumber().shortValue());
 
-        final Term tail = list.getTail();
+        final Term tail = list.getTail().tryGround();
         if (tail.getTermType() == LIST) {
           list = (TermList) tail;
         } else {
@@ -1869,8 +1967,12 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
       }
 
       public void restoreVarValues(final JProlChoicePoint goal) {
-        this.vars.keySet()
-            .forEach(name -> goal.findVar(name).ifPresent(v -> v.unifyWith(this.vars.get(name))));
+        goal.getGoalTerm().variables().forEach(v -> {
+          final Term variableValue = this.vars.get(v.getText());
+          if (variableValue != null && !v.unifyWith(variableValue)) {
+            throw new Error("Unexpectedly can't unify data");
+          }
+        });
       }
 
       @Override
@@ -2071,61 +2173,88 @@ public final class JProlCoreLibrary extends AbstractJProlLibrary {
 
   @JProlPredicate(signature = "catch/3", validate = "+callable,?term,+callable", reference = "A goal catch(Goal, Catcher, Handler) is true if\n1. call(Goal) is true, or\n2. An exception is raised which throws a Ball that is caught by Catcher and Handler then succeeds ")
   public static boolean predicateCATCH(final JProlChoicePoint goal, final TermStruct predicate) {
-    JProlChoicePoint catchGoal = goal.getInternalObject();
-
     final Term catching = predicate.getArgumentAt(0).tryGround();
     final Term catcher = predicate.getArgumentAt(1).tryGround();
     final Term solver = predicate.getArgumentAt(2).tryGround();
 
-    if (catchGoal == null) {
-      catchGoal = goal.getContext().makeChoicePoint(catching);
-      goal.setInternalObject(catchGoal);
+    final class CatchState {
+      private Term clonedGoal;
+      private TermStruct recoveryPair;
+      private JProlChoicePoint activeCp;
+      private boolean handling;
+
+      private CatchState(final Term clonedGoal, final JProlChoicePoint activeCp) {
+        this.clonedGoal = clonedGoal;
+        this.activeCp = activeCp;
+      }
+
+      private void enterHandler(
+          final TermStruct recoveryPair,
+          final JProlChoicePoint handlerCp
+      ) {
+        this.clonedGoal = null;
+        this.recoveryPair = recoveryPair;
+        this.activeCp = handlerCp;
+        this.handling = true;
+      }
+
+      private boolean proveHandler(
+          final JProlChoicePoint ownerGoal,
+          final Term targetCatcher,
+          final Term targetSolver
+      ) {
+        final Term result = this.activeCp.prove();
+        if (result == null) {
+          ownerGoal.resetLogicalAlternativesFlag();
+          return false;
+        }
+        final TermStruct solvedPair = (TermStruct) this.recoveryPair.makeClone();
+        final boolean unified = assertUnify(targetCatcher, solvedPair.getArgumentAt(0))
+            && assertUnify(targetSolver, solvedPair.getArgumentAt(1));
+        if (this.activeCp.isCompleted()) {
+          ownerGoal.resetLogicalAlternativesFlag();
+        }
+        return unified;
+      }
     }
 
-    if (catchGoal.getGoalTerm() == solver) {
-      final Term result = catchGoal.prove();
+    CatchState state = goal.getInternalObject();
+    if (state == null) {
+      final Term clonedCatching = catching.makeClone();
+      state = new CatchState(
+          clonedCatching,
+          goal.getContext().makeChoicePoint(clonedCatching, goal.getAssociatedObject())
+      );
+      goal.setInternalObject(state);
+    }
 
+    if (state.handling) {
+      return state.proveHandler(goal, catcher, solver);
+    }
+
+    try {
+      final Term result = state.activeCp.prove();
       if (result == null) {
         goal.resetLogicalAlternativesFlag();
         return false;
-      } else {
-        if (catchGoal.isCompleted()) {
-          goal.resetLogicalAlternativesFlag();
-        }
-        return true;
       }
-    } else {
-
-      try {
-        final Term result = catchGoal.prove();
-        if (result == null) {
-          goal.resetLogicalAlternativesFlag();
-          return false;
-        } else {
-          if (catchGoal.isCompleted()) {
-            goal.resetLogicalAlternativesFlag();
-          }
-          return true;
-        }
-      } catch (final ProlAbstractCatchableException ex) {
-        catchGoal.discardBindings();
-        if (catcher.unifyWith(ex.getBall())) {
-          catchGoal = goal.getContext().makeChoicePoint(solver, goal.getAssociatedObject());
-          goal.setInternalObject(catchGoal);
-          final Term result = catchGoal.prove();
-          if (result == null) {
-            goal.resetLogicalAlternativesFlag();
-            return false;
-          } else {
-            if (catchGoal.isCompleted()) {
-              goal.resetLogicalAlternativesFlag();
-            }
-            goal.setInternalObject(catchGoal);
-            return true;
-          }
-        }
+      final boolean unified = assertUnify(catching, state.clonedGoal.makeClone());
+      if (state.activeCp.isCompleted()) {
+        goal.resetLogicalAlternativesFlag();
+      }
+      return unified;
+    } catch (final ProlAbstractCatchableException ex) {
+      state.activeCp.discardBindings();
+      goal.discardBindings();
+      final TermStruct recoveryPair =
+          (TermStruct) newStruct(newAtom(","), catcher, solver).makeClone();
+      if (!recoveryPair.getArgumentAt(0).unifyWith(ex.getBall().makeClone())) {
         throw ex;
       }
+      final JProlChoicePoint handlerCp = goal.getContext()
+          .makeChoicePoint(recoveryPair.getArgumentAt(1), goal.getAssociatedObject());
+      state.enterHandler(recoveryPair, handlerCp);
+      return state.proveHandler(goal, catcher, solver);
     }
   }
 

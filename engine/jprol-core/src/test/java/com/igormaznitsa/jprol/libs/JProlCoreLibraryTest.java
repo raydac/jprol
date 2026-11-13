@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.data.TermType;
 import com.igormaznitsa.jprol.data.TermVar;
 import com.igormaznitsa.jprol.exceptions.ProlAbortExecutionException;
@@ -22,11 +23,15 @@ import com.igormaznitsa.jprol.exceptions.ProlTypeErrorException;
 import com.igormaznitsa.jprol.it.AbstractJProlTest;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
+import com.igormaznitsa.jprol.logic.QueryInteractor;
 import com.igormaznitsa.jprol.logic.io.IoResourceProvider;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -318,7 +323,7 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
 
   @Test
   void testBitwiseOr2() {
-    //checkVarValues("X is 3434 \\/ 2234123.", "X", String.valueOf(3434 | 2234123));
+    this.checkVarValues("X is 3434 \\/ 2234123.", "X", String.valueOf(3434 | 2234123));
     assertProlException("X is 3434.3312 \\/ 2234123.", ProlTypeErrorException.class);
     assertProlException("X is 3434 \\/ 2234123.332.", ProlTypeErrorException.class);
     assertProlException("X is 3434.123 \\/ 2234123.332.", ProlTypeErrorException.class);
@@ -1680,6 +1685,156 @@ class JProlCoreLibraryTest extends AbstractJProlTest {
     //[number_chars(A,L), instantiation_error].
     assertProlException("number_chars(A,L).", ProlInstantiationErrorException.class);
 
+  }
+
+  @Test
+  void testCallableAndStringPredicates() {
+    this.checkOnce("callable(alpha).", true);
+    this.checkOnce("callable(node(1, 2)).", true);
+    this.checkOnce("callable((a, b)).", true);
+    this.checkOnce("callable(42).", false);
+    this.checkOnce("callable(3.14).", false);
+    this.checkOnce("callable(_).", false);
+    this.checkOnce("callable([]).", false);
+
+    this.checkOnce("string(\"hello\").", true);
+    this.checkOnce("string(['h', 'i']).", true);
+    this.checkOnce("string([]).", false);
+    this.checkOnce("string([abc, def]).", false);
+    this.checkOnce("string([1, f(2)]).", false);
+    this.checkOnce("string(hello).", false);
+    this.checkOnce("string(_).", false);
+  }
+
+  @Test
+  void testLl2rExtractsAndPairsUniquely() {
+    assertEquals(
+        "42 - 'hello'",
+        this.proveSingle(
+            "",
+            "ll2r([role=admin, index=42, body=hello, extra=99], [body=Body, index=Idx]),"
+                + " R = Idx - Body.",
+            "R"
+        )
+    );
+    assertEquals(
+        "1 - 2",
+        this.proveSingle("", "ll2r([x(1), x(2)], [x(A), x(B)]), R = A - B.", "R")
+    );
+    this.checkOnce("ll2r([x(1)], [x(_), x(_)]).", false);
+  }
+
+  @Test
+  void testStringBytesRoundTripAndCharsetValidation() {
+    assertEquals(
+        "[206,187,45,49] - 'λ-1'",
+        this.proveSingle(
+            "",
+            "string_bytes('λ-1', Bytes, 'utf-8'),"
+                + " string_bytes(Decoded, Bytes, 'UTF-8'),"
+                + " R = Bytes - Decoded.",
+            "R"
+        )
+    );
+    assertEquals(
+        "[163] - '\u00A3'",
+        this.proveSingle(
+            "",
+            "string_bytes('\u00A3', Bytes, 'ISO-8859-1'),"
+                + " string_bytes(Decoded, Bytes, 'iso-8859-1'),"
+                + " R = Bytes - Decoded.",
+            "R"
+        )
+    );
+    this.assertProlException(
+        "string_bytes('abc', _, 'NO_SUCH_CHARSET_XYZ').",
+        ProlDomainErrorException.class
+    );
+  }
+
+  @Test
+  void testAppend2AndReverse2AndMsort2Modes() {
+    assertEquals(
+        "[1,2,3,4,5]",
+        this.proveSingle("", "append([[1, 2], [], [3], [4, 5]], L).", "L")
+    );
+    assertEquals("[]", this.proveSingle("", "append([], L).", "L"));
+
+    assertEquals("[4,3,2,1]", this.proveSingle("", "reverse([1, 2, 3, 4], R).", "R"));
+    assertEquals("[1,2,3,4]", this.proveSingle("", "reverse(L, [4, 3, 2, 1]).", "L"));
+    assertEquals("[] - []", this.proveSingle("", "reverse(A, B), R = A - B.", "R"));
+    assertEquals("2 - 1", this.proveSingle("", "reverse([1, X], [2, Y]), R = X - Y.", "R"));
+    this.assertProlException("reverse(not_a_list, _).", ProlTypeErrorException.class);
+
+    assertEquals(
+        "[1,1,2,3] - true",
+        this.proveSingle(
+            "",
+            "msort([3, 1, 2, 1], S), msort([B, A], [_, _]),"
+                + " (var(A), var(B) -> V = true ; V = false), R = S - V.",
+            "R"
+        )
+    );
+    this.assertProlException("msort(_, _).", ProlInstantiationErrorException.class);
+  }
+
+  @Test
+  void testDivAndPowerSynonyms() {
+    this.checkVarValues("X is 17 div 5.", "X", "3");
+    this.checkVarValues("X is 2 ^ 10.", "X", "1024");
+  }
+
+  @Test
+  void testConversionPredicatesDereferenceVariableConstructedLists() {
+    assertEquals(
+        "'ab' - 'cd' - 57 - 42",
+        this.proveSingle(
+            "",
+            "C1 = a, T1 = [b], atom_chars(A1, [C1|T1]),"
+                + " K1 = 99, KT1 = [100], atom_codes(A2, [K1|KT1]),"
+                + " NC1 = '5', NT1 = ['7'], number_chars(N1, [NC1|NT1]),"
+                + " DC1 = 52, DT1 = [50], number_codes(N2, [DC1|DT1]),"
+                + " R = A1 - A2 - N1 - N2.",
+            "R"
+        )
+    );
+  }
+
+  @Test
+  void testConsultWithEmbeddedQueryInteractor() {
+    final List<String> solutions = new ArrayList<>();
+    try (final JProlContext context = this.makeTestContext()) {
+      context.consult(
+          "item(alpha). item(beta). item(gamma). ?- item(X).",
+          new QueryInteractor() {
+            @Override
+            public boolean isQueryAllowed(final JProlContext source, final Term query) {
+              return true;
+            }
+
+            @Override
+            public boolean onQuerySuccess(
+                final JProlContext source,
+                final Term query,
+                final Map<String, TermVar> varValues,
+                final int successCounter
+            ) {
+              solutions.add(varValues.get("X").tryGround().getText());
+              return true;
+            }
+
+            @Override
+            public void onQueryFail(
+                final JProlContext source,
+                final Term query,
+                final int successCounter
+            ) {
+              assertEquals(3, successCounter);
+            }
+          }
+      );
+    }
+    assertEquals(List.of("alpha", "beta", "gamma"), solutions);
   }
 
 }

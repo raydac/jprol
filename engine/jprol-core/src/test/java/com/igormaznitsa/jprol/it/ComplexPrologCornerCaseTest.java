@@ -12,6 +12,10 @@ import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
+import com.igormaznitsa.jprol.utils.DefaultKeyValueTermStore;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
@@ -457,5 +461,352 @@ class ComplexPrologCornerCaseTest extends AbstractJProlTest {
 
       assertNull(choicePoint.prove());
     }
+  }
+
+  @Test
+  void testCallBacktrackingPreservesInnerBoundVariablesAndIsolatesFreeVariables() {
+    assertEquals(
+        asList("11", "21", "31"),
+        this.collectSolutions(
+            "",
+            "call((X = 1, member(Y, [10, 20, 30]), Z is X + Y)).",
+            "Z"
+        )
+    );
+    assertEquals(
+        "[10,20]",
+        this.proveSingle(
+            "",
+            "G = (X = 5, member(Y, [2, 4]), Z is X * Y), findall(Z, call(G), L).",
+            "L"
+        )
+    );
+    assertEquals(
+        "f('a') - 2",
+        this.proveSingle(
+            "",
+            "call((X = f(Free), (Y = 1 ; Y = 2))), Free = a, Y == 2, R = X - Y.",
+            "R"
+        )
+    );
+    assertEquals(
+        asList("1", "9"),
+        this.collectSolutions(
+            "p(1). p(2). q(X) :- call(call((p(X), !))). q(9).",
+            "q(X).",
+            "X"
+        )
+    );
+  }
+
+  @Test
+  void testCatchMultiSolutionGoalAndMultiSolutionHandlerSemantics() {
+    assertEquals(
+        asList("6", "10", "14"),
+        this.collectSolutions(
+            "",
+            "catch((X = 2, member(Y, [3, 5, 7]), Z is X * Y), _, Z = -1).",
+            "Z"
+        )
+    );
+    assertEquals(
+        asList("a(7)", "b(7)", "c(7)"),
+        this.collectSolutions(
+            "",
+            "catch(throw(found(7)), found(V), (R = a(V) ; R = b(V) ; R = c(V))).",
+            "R"
+        )
+    );
+    assertEquals(
+        "second('bound')",
+        this.proveSingle(
+            "",
+            "catch((Y = ok ; throw(box(Free))), box(H), (R = first(H) ; R = second(H))),"
+                + " H = bound, R == second(bound).",
+            "R"
+        )
+    );
+    this.checkOnce(
+        "catch(catch(throw(err(1, 2)), err(X, X), R = inner), err(A, B), R = outer(A, B)),"
+            + " var(X), R == outer(1, 2).",
+        true
+    );
+    assertEquals(
+        asList("'boom'", "'boom'"),
+        this.collectSolutions(
+            "recover :- true. recover :- true.",
+            "catch(throw(boom), E, recover).",
+            "E"
+        )
+    );
+    assertEquals(
+        "'escalated'",
+        this.proveSingle(
+            "rethrow_atom :- throw(escalated).",
+            "catch(catch(throw(escalated), escalated, rethrow_atom), Out, true).",
+            "Out"
+        )
+    );
+  }
+
+  @Test
+  void testSubAtomSearchWithInstantiatedSubSharedVarsAndBounds() {
+    assertEquals(
+        asList("2 - 2 - 7", "9 - 2 - 0"),
+        this.collectSolutions(
+            "",
+            "sub_atom(abracadabra, B, L, A, ra), R = B - L - A.",
+            "R"
+        )
+    );
+    assertEquals(
+        asList("2 - 2 - 2", "4 - 2 - 0"),
+        this.collectSolutions(
+            "",
+            "sub_atom(banana, B, L, A, na), R = B - L - A.",
+            "R"
+        )
+    );
+    assertEquals(
+        asList("0 - 2", "1 - 2", "2 - 2"),
+        this.collectSolutions(
+            "",
+            "sub_atom(aaaa, B, L, _, aa), R = B - L.",
+            "R"
+        )
+    );
+    assertEquals(
+        asList("0 - 0 - 2", "1 - 0 - 1", "2 - 0 - 0"),
+        this.collectSolutions(
+            "",
+            "sub_atom(ab, B, L, A, ''), R = B - L - A.",
+            "R"
+        )
+    );
+    assertEquals(
+        asList("0 - 4 - ''", "1 - 2 - 'b'", "2 - 0 - 'cd'"),
+        this.collectSolutions(
+            "",
+            "sub_atom(abcd, X, X, A, S), R = X - A - S.",
+            "R"
+        )
+    );
+    this.checkOnce("sub_atom(abc, 2, 2, 0, _).", false);
+    this.checkOnce("sub_atom(abc, -1, 1, _, _).", false);
+    this.checkOnce("sub_atom(abc, 0, 5, _, _).", false);
+    this.checkOnce("sub_atom(abc, _, _, _, xyz).", false);
+  }
+
+  @Test
+  void testFullMetaCircularInterpreterWithCutIfThenElseNegationAndCatch() {
+    final String metaInterpreter =
+        "q(1). q(2). r(10). r(20)."
+            + "cut_demo(X - Y) :- q(X), !, r(Y)."
+            + "cut_demo(999)."
+            + "cond_cut(X) :- ( q(X), ! -> X > 0 ; X = -1 )."
+            + "cond_cut(77)."
+            + "risky(1, ok)."
+            + "risky(2, _) :- throw(bad_input(2))."
+            + "safe_run(N, Out) :- catch(risky(N, Out), bad_input(K), Out = recovered(K))."
+            + "user_pred(cut_demo/1). user_pred(cond_cut/1). user_pred(q/1). user_pred(r/1)."
+            + "user_pred(risky/2). user_pred(safe_run/2)."
+            + "mi_goal(true) :- !."
+            + "mi_goal((A, B)) :- !, mi_goal(A), mi_goal(B)."
+            + "mi_goal((C -> T ; E)) :- !, ( mi_goal(C) -> mi_goal(T) ; mi_goal(E) )."
+            + "mi_goal((C -> T)) :- !, ( mi_goal(C) -> mi_goal(T) )."
+            + "mi_goal((A ; B)) :- !, ( mi_goal(A) ; mi_goal(B) )."
+            + "mi_goal(\\+ A) :- !, \\+ mi_goal(A)."
+            + "mi_goal(catch(G, C, H)) :- !, catch(mi_goal(G), C, mi_goal(H))."
+            + "mi_goal(throw(B)) :- !, throw(B)."
+            + "mi_goal(G) :- functor(G, F, A), \\+ user_pred(F/A), !, call(G)."
+            + "mi_goal(G) :-"
+            + "  clause(G, Body),"
+            + "  mi_clause_body(Body, HadCut, Remainder),"
+            + "  ( HadCut == yes -> !, mi_goal(Remainder) ; true )."
+            + "mi_clause_body(!, yes, true) :- !."
+            + "mi_clause_body((A, B), HadCut, Remainder) :- !,"
+            + "  mi_clause_body(A, CutA, RemA),"
+            + "  ( CutA == yes -> HadCut = yes, Remainder = (RemA, B)"
+            + "  ; mi_clause_body(B, HadCut, Remainder)"
+            + "  )."
+            + "mi_clause_body((C -> T ; E), HadCut, Remainder) :- !,"
+            + "  ( mi_goal(C) -> mi_clause_body(T, HadCut, Remainder)"
+            + "  ; mi_clause_body(E, HadCut, Remainder)"
+            + "  )."
+            + "mi_clause_body((A ; B), HadCut, Remainder) :- !,"
+            + "  ( mi_clause_body(A, HadCut, Remainder)"
+            + "  ; mi_clause_body(B, HadCut, Remainder)"
+            + "  )."
+            + "mi_clause_body(Goal, no, true) :- mi_goal(Goal).";
+
+    assertEquals(
+        asList("1 - 10", "1 - 20"),
+        this.collectSolutions(metaInterpreter, "mi_goal(cut_demo(Z)).", "Z")
+    );
+    assertEquals(
+        asList("1", "77"),
+        this.collectSolutions(metaInterpreter, "mi_goal(cond_cut(Z)).", "Z")
+    );
+    assertEquals(
+        asList("'ok'", "recovered(2)"),
+        this.collectSolutions(
+            metaInterpreter,
+            "member(N, [1, 2]), mi_goal((safe_run(N, Z), \\+ Z == forbidden)).",
+            "Z"
+        )
+    );
+  }
+
+  @Test
+  void testFirstArgumentIndexingWithMixedTypesWildcardsAndDynamicMutations() {
+    final String indexedProgram =
+        ":- dynamic(idx/2)."
+            + "idx(X, w_head) :- var(X), !, fail."
+            + "idx(_, any_top)."
+            + "idx(alpha, atom_alpha)."
+            + "idx(alpha(), zero_arity_alpha)."
+            + "idx(42, int_pos)."
+            + "idx(-42, int_neg)."
+            + "idx(42.0, float_pos)."
+            + "idx([], nil_list)."
+            + "idx([1, 2], list_12)."
+            + "idx([1, 3], list_13)."
+            + "idx(f(a), struct_f1)."
+            + "idx(f(a, b), struct_f2)."
+            + "idx(_, any_bottom).";
+
+    assertEquals(
+        asList("'any_top'", "'atom_alpha'", "'zero_arity_alpha'", "'any_bottom'"),
+        this.collectSolutions(indexedProgram, "K = B, B = alpha, idx(K, V).", "V")
+    );
+    assertEquals(
+        asList("'any_top'", "'int_pos'", "'any_bottom'"),
+        this.collectSolutions(indexedProgram, "idx(42, V).", "V")
+    );
+    assertEquals(
+        asList("'any_top'", "'float_pos'", "'any_bottom'"),
+        this.collectSolutions(indexedProgram, "idx(42.0, V).", "V")
+    );
+    assertEquals(
+        asList("'any_top'", "'nil_list'", "'any_bottom'"),
+        this.collectSolutions(indexedProgram, "idx([], V).", "V")
+    );
+    assertEquals(
+        asList("'any_top'", "'list_12'", "'any_bottom'"),
+        this.collectSolutions(indexedProgram, "idx([1, 2], V).", "V")
+    );
+    assertEquals(
+        asList("'any_top'", "'struct_f1'", "'any_bottom'"),
+        this.collectSolutions(indexedProgram, "idx(f(a), V).", "V")
+    );
+    assertEquals(
+        asList("'any_top'", "'struct_f2'", "'any_bottom'"),
+        this.collectSolutions(indexedProgram, "idx(f(a, b), V).", "V")
+    );
+
+    assertEquals(
+        "['front_42','any_top','any_bottom','back_42']",
+        this.proveSingle(
+            indexedProgram,
+            "asserta(idx(42, front_42)), assertz(idx(42, back_42)),"
+                + " retract(idx(42, int_pos)), findall(V, idx(42, V), L).",
+            "L"
+        )
+    );
+  }
+
+  @Test
+  void testNonBacktrackableGlobalStoreSurvivesFailureAndClonesTerms() {
+    try (final JProlContext context = this.makeTestContext(
+        ctx -> {
+        },
+        new DefaultKeyValueTermStore("nb-store-test")
+    )) {
+      context.consult(new StringReader(
+          "count_hits(Total) :-"
+              + "  nb_setval(hits, 0),"
+              + "  ( between(1, 5, _),"
+              + "    nb_getval(hits, Cur),"
+              + "    Next is Cur + 1,"
+              + "    nb_setval(hits, Next),"
+              + "    fail"
+              + "  ; nb_getval(hits, Total)"
+              + "  )."
+      ));
+
+      final JProlChoicePoint countCp = context.makeChoicePoint("count_hits(Total).");
+      assertNotNull(countCp.prove());
+      assertEquals("5", getVarAsText(countCp, "Total"));
+      assertNull(countCp.prove());
+
+      final JProlChoicePoint cloneIsolationCp = context.makeChoicePoint(
+          "nb_setval(template, box(Free)),"
+              + " nb_getval(template, box(a)),"
+              + " nb_getval(template, box(Second)),"
+              + " var(Second),"
+              + " nb_delete(template)."
+      );
+      assertNotNull(cloneIsolationCp.prove());
+      assertNull(cloneIsolationCp.prove());
+
+      assertThrows(
+          ProlExistenceErrorException.class,
+          () -> context.makeChoicePoint("nb_getval(template, _).").prove()
+      );
+    }
+  }
+
+  @Test
+  void testPrologLevelTriggersOnAssertRetractAndAbolish() {
+    final String triggerProgram =
+        ":- dynamic([watched/1, audit/2])."
+            + "on_watch(Sig, Kind) :- assertz(audit(Sig, Kind)).";
+
+    assertEquals(
+        "['watched/1' - 'added','watched/1' - 'added','watched/1' - 'removed','watched/1' - 'abolished']",
+        this.proveSingle(
+            triggerProgram,
+            "addtrigger(watched/1, [assert], on_watch(_, added)),"
+                + " addtrigger(watched/1, [retract], on_watch(_, removed)),"
+                + " addtrigger(watched/1, [abolish], on_watch(_, abolished)),"
+                + " asserta(watched(1)),"
+                + " assertz(watched(2)),"
+                + " once(retract(watched(_))),"
+                + " abolish(watched/1),"
+                + " addtrigger(watched/1),"
+                + " \\+ addtrigger(watched/1),"
+                + " findall(S - K, audit(S, K), Log).",
+            "Log"
+        )
+    );
+  }
+
+  @Test
+  void testVariantStructuralEquivalencePreservesUnboundVariables() {
+    this.checkOnce("f(X, g(X, Y)) =@= f(A, g(A, B)), var(X), var(Y), var(A), var(B).", true);
+    this.checkOnce("f(X, g(X, X)) =@= f(A, g(A, B)), var(X), var(A), var(B).", false);
+    this.checkOnce("X = Y, f(X, Y) @= f(A, A).", true);
+    this.checkOnce("X = Y, f(X, Y) @= f(A, B).", false);
+  }
+
+  @Test
+  void testHigherOrderBagofAndSetofWithMultipleFreeKeysAndExistentialChains() {
+    final String staff =
+        "rec(eng, dev, alice, 5). rec(eng, dev, bob, 3). rec(eng, dev, carol, 5)."
+            + "rec(eng, qa, dave, 4). rec(ops, sre, eve, 7).";
+
+    final List<String> groups = new ArrayList<>();
+    try (final JProlContext context = this.makeContextAndConsult(staff)) {
+      final JProlChoicePoint cp = context.makeChoicePoint(
+          "setof(Years, Who^rec(Dept, Role, Who, Years), Levels), Row = Dept - Role - Levels."
+      );
+      while (cp.prove() != null) {
+        groups.add(getVarAsText(cp, "Row"));
+      }
+    }
+    assertEquals(
+        asList("'eng' - 'dev' - [3,5]", "'eng' - 'qa' - [4]", "'ops' - 'sre' - [7]"),
+        groups
+    );
   }
 }

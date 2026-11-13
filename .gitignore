@@ -5,3 +5,4 @@ dependency-reduced-pom.xml
 uber-pom.xml
 .idea/
 target/
+engine.code-workspace

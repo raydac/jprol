@@ -13,6 +13,7 @@ import com.igormaznitsa.jprol.data.TermStruct;
 import com.igormaznitsa.jprol.data.Terms;
 import com.igormaznitsa.jprol.exceptions.ProlAbortExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlExistenceErrorException;
+import com.igormaznitsa.jprol.exceptions.ProlForkExecutionException;
 import com.igormaznitsa.jprol.exceptions.ProlPermissionErrorException;
 import com.igormaznitsa.jprol.it.AbstractJProlTest;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
@@ -173,6 +174,35 @@ class JProlThreadLibraryTest extends AbstractJProlTest {
                 "fork([(findall(X,p(1),[1])), (findall(Y,p(30),[30])), (assertz(p(99)), retract(p(99)))]).")
             .prove());
       }
+    }
+  }
+
+  @Test
+  @Timeout(10)
+  void testForkFailureAndExceptionPropagationAndIforkFastFail() {
+    try (final JProlContext context = this.makeAsyncTestContext(null)) {
+      assertNotNull(context.makeChoicePoint("fork([true, (X is 2 + 2, X =:= 4)]).").prove());
+      assertFalse(context.makeChoicePoint("fork([true, fail, true]).").prove() != null);
+      assertThrows(
+          ProlForkExecutionException.class,
+          () -> context.makeChoicePoint("fork([true, (_ is 1 // 0)]).").prove()
+      );
+
+      final long startMs = System.currentTimeMillis();
+      assertFalse(context.makeChoicePoint("ifork([fail, pause(5000)]).").prove() != null);
+      assertTrue(System.currentTimeMillis() - startMs < 3000L);
+    }
+  }
+
+  @Test
+  @Timeout(10)
+  void testWaitasyncTimeoutRaisesForkExecutionException() {
+    try (final JProlContext context = this.makeAsyncTestContext(null)) {
+      assertThrows(
+          ProlForkExecutionException.class,
+          () -> context.makeChoicePoint("async(pause(3000)), waitasync(50).").prove()
+      );
+      context.cancelAllAsyncTasks();
     }
   }
 

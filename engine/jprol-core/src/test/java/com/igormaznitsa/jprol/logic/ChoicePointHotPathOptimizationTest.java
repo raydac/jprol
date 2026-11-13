@@ -273,4 +273,112 @@ class ChoicePointHotPathOptimizationTest extends AbstractJProlTest {
       assertFalse(cp.prove() != null);
     }
   }
+
+  @Test
+  void testUnifyTrialGrowthAndCrossSideTransitiveVariableAliasing() {
+    final String nonlinearTwelveVars =
+        "nl12(V1,V2,V3,V4,V5,V6,V7,V8,V9,V10,V11,V12,"
+            + "V1,V2,V3,V4,V5,V6,V7,V8,V9,V10,V11,V12, matched).";
+
+    assertEquals(
+        "'matched'",
+        this.proveSingle(
+            nonlinearTwelveVars,
+            "nl12(1,2,3,4,5,6,7,8,9,10,11,12, 1,2,3,4,5,6,7,8,9,10,11,12, R).",
+            "R"
+        )
+    );
+    this.checkOnce(
+        nonlinearTwelveVars,
+        "nl12(1,2,3,4,5,6,7,8,9,10,11,12, 1,2,3,4,5,6,7,8,9,10,11,99, _).",
+        false
+    );
+
+    final String transitiveAlias =
+        "alias_match(X, X, f(g(Y), g(a)), Y)."
+            + "alias_fail(X, X, f(g(a), g(b))).";
+    assertEquals(
+        "'a' - g('a')",
+        this.proveSingle(
+            transitiveAlias,
+            "alias_match(A, B, f(A, B), Y), A == B, R = Y - A.",
+            "R"
+        )
+    );
+    this.checkOnce(transitiveAlias, "alias_fail(A, B, f(A, B)).", false);
+  }
+
+  @Test
+  void testGoalClonerOverflowBeyondSixteenUnboundGoalVariablesWithPartialSharing() {
+    final String multiClauseNonTail =
+        "bind20([A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,A16,A17,A18,A19,A20],"
+            + " shared(const_tree(1, 2)), first) :-"
+            + "  A1 = 10, A10 = 20, A17 = 30, A20 = 40, check_tag(first)."
+            + "bind20([A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,A16,A17,A18,A19,A20],"
+            + " shared(const_tree(1, 2)), second) :-"
+            + "  A1 = 100, A18 = 200, A20 = 300, check_tag(second)."
+            + "check_tag(second).";
+
+    assertEquals(
+        "[100,200,300] - true",
+        this.proveSingle(
+            multiClauseNonTail,
+            "Vars = [X1,X2,X3,X4,X5,X6,X7,X8,X9,X10,X11,X12,X13,X14,X15,X16,X17,X18,X19,X20],"
+                + " bind20(Vars, shared(const_tree(1, 2)), second),"
+                + " (var(X10), var(X17) -> Clean = true ; Clean = leaked),"
+                + " R = [X1, X18, X20] - Clean.",
+            "R"
+        )
+    );
+  }
+
+  @Test
+  void testThreeWayMutualTailRecursionMatchesBetweenNormalAndTraceModes() {
+    final String threeWay =
+        "mod3_step(0, Acc, Acc) :- !."
+            + "mod3_step(N, Acc, Out) :-"
+            + "  Rem is N mod 3,"
+            + "  ( Rem =:= 0 -> s0(N, Acc, Out)"
+            + "  ; Rem =:= 1 -> s1(N, Acc, Out)"
+            + "  ; s2(N, Acc, Out)"
+            + "  )."
+            + "s0(N, Acc, Out) :- N1 is N - 1, Acc1 is Acc + 3, mod3_step(N1, Acc1, Out)."
+            + "s1(N, Acc, Out) :- N1 is N - 1, Acc1 is Acc + 1, mod3_step(N1, Acc1, Out)."
+            + "s2(N, Acc, Out) :- N1 is N - 1, Acc1 is Acc + 2, mod3_step(N1, Acc1, Out).";
+
+    try (final JProlContext fastCtx = this.makeContextAndConsult(threeWay)) {
+      fastCtx.setSystemFlag(JProlSystemFlag.MAX_PROVE_STACK_DEPTH, Terms.newLong(16L));
+      final JProlChoicePoint deepCp = fastCtx.makeChoicePoint("mod3_step(24000, 0, Out).");
+      assertNotNull(deepCp.prove());
+      assertEquals("48000", getVarAsText(deepCp, "Out"));
+      assertNull(deepCp.prove());
+
+      final JProlChoicePoint smallFast = fastCtx.makeChoicePoint("mod3_step(60, 0, Out).");
+      assertNotNull(smallFast.prove());
+      final String fastValue = getVarAsText(smallFast, "Out");
+
+      try (final JProlContext traceCtx = this.makeContextAndConsult(threeWay)) {
+        traceCtx.setSystemFlag(JProlSystemFlag.TRACE, Terms.TRUE);
+        final JProlChoicePoint smallTrace = traceCtx.makeChoicePoint("mod3_step(60, 0, Out).");
+        assertNotNull(smallTrace.prove());
+        assertEquals(fastValue, getVarAsText(smallTrace, "Out"));
+      }
+    }
+  }
+
+  @Test
+  void testCutCollapseInTailPositionPreservesGrandparentChoicePoints() {
+    final String program =
+        "seed(10). seed(20). seed(30)."
+            + "wrapper(X, Y) :- cut_worker(X, 3, Y)."
+            +
+            "cut_worker(Acc, N, Out) :- N > 0, !, N1 is N - 1, Acc1 is Acc + 1, cut_worker(Acc1, N1, Out)."
+            + "cut_worker(Out, _, Out)."
+            + "pipeline(R) :- seed(S), wrapper(S, W), W > 15, R is W * 2.";
+
+    assertEquals(
+        Arrays.asList("46", "66"),
+        this.collectSolutions(program, "pipeline(R).", "R")
+    );
+  }
 }
