@@ -1,6 +1,5 @@
 package com.igormaznitsa.jprol.example.life;
 
-import com.igormaznitsa.jprol.data.Term;
 import com.igormaznitsa.jprol.libs.JProlCoreLibrary;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
 import com.igormaznitsa.jprol.logic.JProlContext;
@@ -8,20 +7,34 @@ import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JToggleButton;
+import javax.swing.SwingUtilities;
 
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class MainForm extends JFrame implements LifeGameFieldRender.ClickCellListener {
 
-  private final Timer timer = new Timer("task-timer", true);
+  private static final Logger LOGGER = Logger.getLogger(MainForm.class.getName());
+  private static final int DELAY_MS_PER_SLIDER_STEP = 5;
+
+  private final ScheduledExecutorService generationExecutor =
+      Executors.newSingleThreadScheduledExecutor(task -> {
+        final Thread thread = new Thread(task, "life-generation");
+        thread.setDaemon(true);
+        return thread;
+      });
 
   private final LifeGameField lifeGameField;
   private final JToggleButton startButton;
@@ -29,7 +42,7 @@ public class MainForm extends JFrame implements LifeGameFieldRender.ClickCellLis
   private final JSlider timeSlider;
   private final LifeGameFieldRender lifeGameFieldRender;
 
-  private Optional<TimerTask> currentTimerTask = Optional.empty();
+  private Optional<ScheduledFuture<?>> currentGenerationTask = Optional.empty();
 
   public MainForm() {
     super("Conway's Life (a JProl engine use example)");
@@ -49,7 +62,7 @@ public class MainForm extends JFrame implements LifeGameFieldRender.ClickCellLis
     this.timeSlider.setPaintTrack(true);
     this.timeSlider.setPaintTicks(false);
 
-    timeSlider.addChangeListener(e -> this.startTimer());
+    this.timeSlider.addChangeListener(e -> this.startTimer());
 
     final JButton clearButton = new JButton("Clear");
     clearButton.addActionListener(x -> {
@@ -61,9 +74,9 @@ public class MainForm extends JFrame implements LifeGameFieldRender.ClickCellLis
     this.startButton = new JToggleButton("Run");
     this.startButton.addActionListener(e -> {
       if (this.startButton.isSelected()) {
-        startRun();
+        this.startRun();
       } else {
-        stopRun();
+        this.stopRun();
       }
       this.lifeGameFieldRender.repaint();
     });
@@ -76,14 +89,14 @@ public class MainForm extends JFrame implements LifeGameFieldRender.ClickCellLis
     controlPanel.add(new JLabel(" FASTER"), gbc);
 
     gbc.weightx = 10000;
-    controlPanel.add(timeSlider, gbc);
+    controlPanel.add(this.timeSlider, gbc);
 
     gbc.weightx = 1;
     controlPanel.add(new JLabel("SLOWER "), gbc);
 
 
     controlPanel.add(clearButton, gbc);
-    controlPanel.add(startButton, gbc);
+    controlPanel.add(this.startButton, gbc);
 
 
     mainPanel.add(controlPanel, BorderLayout.SOUTH);
@@ -105,68 +118,82 @@ public class MainForm extends JFrame implements LifeGameFieldRender.ClickCellLis
 
   private void startTimer() {
     if (this.startButton.isSelected()) {
-      this.currentTimerTask.ifPresent(TimerTask::cancel);
-      final int delay = this.timeSlider.getValue() * 5;
-
-      final TimerTask newTimerTask = new TimerTask() {
-        @Override
-        public void run() {
-          doIteration();
-        }
-      };
-      this.currentTimerTask = Optional.of(newTimerTask);
-      this.timer.schedule(newTimerTask, 0, delay);
+      this.cancelGenerationTask();
+      this.currentGenerationTask = Optional.of(this.generationExecutor.scheduleWithFixedDelay(
+          this::advanceGeneration, 0, (long) this.timeSlider.getValue() * DELAY_MS_PER_SLIDER_STEP,
+          TimeUnit.MILLISECONDS));
     }
+  }
+
+  private void cancelGenerationTask() {
+    this.currentGenerationTask.ifPresent(task -> task.cancel(false));
+    this.currentGenerationTask = Optional.empty();
   }
 
   private void stopRun() {
     this.startButton.setSelected(false);
-    this.currentTimerTask.ifPresent(TimerTask::cancel);
-    this.currentTimerTask = Optional.empty();
+    this.cancelGenerationTask();
   }
 
   private void startRun() {
     this.startButton.setSelected(true);
-    startTimer();
+    this.startTimer();
   }
 
-  @SuppressWarnings({"StatementWithEmptyBody", "UnusedAssignment"})
-  private void doIteration() {
-    final JProlChoicePoint choicePoint = this.prolContext.makeChoicePoint("life().");
-    Term term;
-    while ((term = choicePoint.prove()) != null) {
-      // do nothing
+  private void advanceGeneration() {
+    try {
+      this.lifeGameField.resetNextGeneration();
+      this.computeNextGeneration();
+      this.publishNextGeneration();
+    } catch (RuntimeException ex) {
+      LOGGER.log(Level.SEVERE, "Life generation failed, run is stopped", ex);
+      SwingUtilities.invokeLater(this::stopRun);
+      throw ex;
     }
-    this.lifeGameField.blinkGeneration();
-    this.lifeGameFieldRender.refreshView();
+  }
+
+  @SuppressWarnings("StatementWithEmptyBody")
+  private void computeNextGeneration() {
+    final JProlChoicePoint lifeGoal = this.prolContext.makeChoicePoint("life().");
+    while (lifeGoal.prove() != null) {
+    }
+  }
+
+  private void publishNextGeneration() {
+    try {
+      SwingUtilities.invokeAndWait(() -> {
+        if (this.startButton.isSelected()) {
+          this.lifeGameField.blinkGeneration();
+          this.lifeGameFieldRender.repaint();
+        }
+      });
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
+    } catch (InvocationTargetException ex) {
+      throw new IllegalStateException("Can't publish next generation", ex.getCause());
+    }
   }
 
   @Override
-  public void onCellClicked(LifeGameFieldRender source, int x, int y, boolean set) {
+  public void onCellClicked(final LifeGameFieldRender source, final int x, final int y,
+                            final boolean set) {
+    this.editCell(source, x, y, set);
+  }
+
+  @Override
+  public void onCellDragged(final LifeGameFieldRender source, final int x, final int y,
+                            final boolean set) {
+    this.editCell(source, x, y, set);
+  }
+
+  private void editCell(final LifeGameFieldRender source, final int x, final int y,
+                        final boolean set) {
     if (x < 0 || x >= LifeGameField.WIDTH || y < 0 || y >= LifeGameField.HEIGHT) {
       return;
     }
 
     this.stopRun();
-    final LifeGameField model = source.getModel();
-
-    model.set(x, y, set);
-
-    source.repaint();
-  }
-
-  @Override
-  public void onCellDragged(LifeGameFieldRender source, int x, int y, boolean set) {
-    if (x < 0 || x >= LifeGameField.WIDTH || y < 0 || y >= LifeGameField.HEIGHT) {
-      return;
-    }
-
-    this.stopRun();
-    final LifeGameField model = source.getModel();
-
-    model.set(x, y, set);
-
+    source.getModel().set(x, y, set);
     source.repaint();
   }
 }
-

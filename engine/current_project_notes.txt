@@ -4,7 +4,6 @@
 - SpotBugs `check` is clean for the reactor. Real defects are fixed in code. Live engine and Swing objects that must be shared are listed in each module's `spotbugs-exclude.xml`.
 - Project version is 3.2.0-SNAPSHOT (parent, modules, Windows file/product version 3.2.0.0).
 - GUI title and About read the Maven project version. `build-version.properties` is filtered at build time; the jar `Implementation-Version` is the fallback. Prolog `version_data` stays the hardcoded 3.1.1 flag in `JProlContext`.
-- No changelog file in the repo root.
 - Prove loop in JProlChoicePoint reuses stack frames and returns plain result codes. No per-step frame, OptionalInt, or result object.
 - Variable snapshots share their array when nothing is bound, and reset writes only variables that changed.
 - In-memory clause search skips a copy of the query, reuses ground facts, rejects impossible first arguments before full unify, and indexes predicates with 8 or more clauses by first argument.
@@ -16,11 +15,13 @@
 - `asOperator` and `asOpContainer` return fresh parser objects. `nextLong` uses an unsigned shift so `Long.MIN_VALUE` cannot stay negative.
 - A context is not thread-local. `async/1` proves on a copy built before the task starts. Flag caches (`verify`, `trace`, share-knowledge-base, unknown, max prove depth) stay on that instance and are not volatile.
 - First-argument indexes are cached per predicate, and a cache entry is kept only when the clause set did not change while it was built.
+- Changelog is `../changelog.txt` (jprol repo root, one level above `engine`).
 - Graphics primitives repaint once per burst. dot/2 writes pixels directly. fillrectangle/4 draws on the caller thread. play_sound/2 writes the tone in chunks. graphics/2 reads the real height and resizes when either side changes.
 - GUI build version is stamped into `build-version.properties` by resource filtering. An unresolved `${...}` placeholder is ignored, then the manifest version is used.
 - `ComplexPrologCornerCaseTest` (55 passing) covers cut scope, if-then-else, catch, solution collectors, retract, meta-interpreter, search programs, unification, copy_term, univ, arithmetic. Class-level `@Timeout(30)`.
 - `ComplexPrologKnownIssuesTest`: 15 ISO cases pass. `testDeepRecursion` stays `@Disabled` (prove stack cap, see section 5).
 - `AbstractJProlTest` has `collectSolutions(consult, goal, var)` and `proveSingle(...)` helpers.
+- Life example (`examples/java/jprol-example-life`): generations are computed on one daemon executor thread, then the swap and repaint run on the Swing event thread through `invokeAndWait`. The swap is skipped once the run is stopped. The renderer builds its image from the model in `paintComponent` and calls `Toolkit.sync()`. Mouse-to-cell mapping uses floor. `LifeGameField` guards both generation arrays with one private `ReentrantLock`, not `synchronized`.
 
 ## 2. Architecture & Technical Discoveries
 - `jprol-core` depends on `java-prolog-parser:2.3.0` (sibling project, Unicode code-point tokenizer). Run `mvn22 install` in the parser before building jprol after parser changes.
