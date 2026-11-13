@@ -95,7 +95,8 @@ class JProlIoLibraryTest extends AbstractJProlTest {
       );
       assertNotNull(cp.prove());
       assertNull(cp.prove());
-      assertEquals("header  A\npair(1,2)\nsum=42\n", sinks.get("out_main").toString());
+      assertEquals("header  A\npair(1,2)\nsum=42\n",
+          sinks.get("out_main").toString().replace("\r\n", "\n"));
     }
   }
 
