@@ -495,10 +495,7 @@ public class TermStruct extends CompoundTerm {
         if (value == null) {
           return var.setValue(this);
         } else {
-          if (value == this) {
-            return true;
-          }
-          return value.unifyWith(this);
+          return value == this || this.unifyWith(value);
         }
       }
       case ATOM: {

@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 import com.igormaznitsa.jprol.exceptions.ProlCustomErrorException;
 import com.igormaznitsa.jprol.exceptions.ProlEvaluationErrorException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class ComplexPrologKnownIssuesTest extends AbstractJProlTest {
@@ -132,7 +131,6 @@ class ComplexPrologKnownIssuesTest extends AbstractJProlTest {
             "( retract(k(_)), assertz(k(1)), fail ; findall(X, k(X), L) ).", "L")));
   }
 
-  @Disabled("Prove stack depth is capped at max_prove_stack_depth (10000 frames, about 5000 Prolog calls)")
   @Test
   void testDeepRecursion() {
     this.checkOnce(COUNTER, "count(0, 100000).", true);

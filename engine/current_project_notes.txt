@@ -4,12 +4,13 @@
 - SpotBugs `check` is clean for the reactor. Real defects are fixed in code. Live engine and Swing objects that must be shared are listed in each module's `spotbugs-exclude.xml`.
 - Project version is 3.2.0-SNAPSHOT (parent, modules, Windows file/product version 3.2.0.0).
 - GUI title and About read the Maven project version. `build-version.properties` is filtered at build time; the jar `Implementation-Version` is the fallback. Prolog `version_data` stays the hardcoded 3.1.1 flag in `JProlContext`.
-- `JProlChoicePoint` reuses its `ProveStack` across `prove()` calls, builds named-variable maps lazily on demand (`findVar`/`findAllGroundedVars`), skips redundant first-attempt snapshot resets on fresh subgoals, peels right-nested `,` conjunctions without extra wrapper choice points when `trace` is off, and unlinks deterministic choice points from `prevCp` so deeper steps inherit smaller/unchanged snapshots.
-- Non-ground facts unify directly against the live goal (rolling back via `discardBindings` on mismatch), while rule heads copy-on-write only subterms containing unbound variables (`GoalCloner`) and skip the post-body re-unification when the goal was ground.
-- `VariableStateSnapshot` updates changed entries in place via array clone when new bindings contain no variables, accesses `TermStruct` arguments without defensive array clones, and traverses deep structures/lists iteratively on tail arguments.
+- Last Call Optimization (LCO / tail-call optimization) is implemented in `JProlChoicePoint` and `ProveStack`: deterministic last-clause rule calls in tail position replace the active `ProveStack` frame in place (`RS_TAIL_CALL` / `CP_TAIL_CALL`) and unify `clauseHead.unifyWith(goalStructTarget)` in WAM direction (fresh clause variable -> existing canonical variable) so variable chains stay 1 hop; cut-committed clauses (`N > 0, !, recurse(...)`) immediately clear their caller's `clauseIterator` and collapse the parent tail frame via `ProveStack.collapseParentWithTop`, while `propagatesCutToCaller` keeps ISO cut scope isolated per clause.
+- `VariableStateSnapshot` is initialized lazily on internal choice points (`ensureVarSnapshot()`) only when nondeterministic alternatives exist, records only unbound (`immediateValue == null`) or predefined variables, and shrinks child snapshot arrays as variables become ground.
+- `JProlChoicePoint` reuses its `ProveStack` across `prove()` calls, builds named-variable maps lazily on demand (`findVar`/`findAllGroundedVars`), skips redundant first-attempt snapshot resets on fresh subgoals, peels right-nested `,` conjunctions without extra wrapper choice points when `trace` is off, preserves multi-level left-nested conjunction continuations, and unlinks deterministic choice points from `prevCp`.
+- Non-ground facts unify directly against the live goal (rolling back via `discardBindings` on mismatch when alternatives remain), while non-tail rule heads copy-on-write only subterms containing unbound variables (`GoalCloner`) and skip post-body re-unification when the goal was ground.
 - `PredicateInvoker` uses typed `invokeExact` `MethodHandle`s plus direct functional dispatchers for hot bootstrap/core predicates and evaluables; `AutoArgumentValidator` skips tautology specs (`?term`, `@term`, `-term`) and checks argument types without allocating exceptions on the fast path.
 - `SmallIdentityVarMap` backs `TermVar.newVariableMap()` with a compact linear identity pair array (promoting to `IdentityHashMap` above 16 variables). `RhsItemComplex` checks shared-variable head compatibility via non-mutating `UnifyTrial` instead of cloning both clause head and query.
-- `TermStruct` computes `structureSignature` lazily and reuses it across clones; `TermStruct.stream()`, `variables()`, and `findAllNamedVariables()` use iterative spliterators/stacks; `TermList` `makeClone`, `cloneAndReplaceVariables`, `unifyWith`, `isUnifiableWith`, `isGround`, `isUnground`, and `containsNamedVariable` walk list spines iteratively.
+- `TermStruct` computes `structureSignature` lazily and reuses it across clones; `TermStruct.stream()`, `variables()`, and `findAllNamedVariables()` use iterative spliterators/stacks; `TermList` `makeClone`, `cloneAndReplaceVariables`, `unifyWith`, `isUnifiableWith`, `isGround`, `isUnground`, and `containsNamedVariable` walk list spines iteratively and preserve left-to-right binding direction.
 - `TermLong` and `TermDouble` compare and compute with unboxed primitives; `Terms` caches `TermLong` values in `[-128, 1024]`.
 - `TermVar` has no generated uid. Clones and snapshots tell variables apart by instance. Anonymous variables share the name `"_"`. `setValue`, `tryGround`, `isGround`, and `findUngroundVariable` walk variable chains iteratively bounded by `LOOP_WATCHDOG`.
 - Named `lock/1` is a counted reentrant mutex. `unlock/1` reports a missing locker and a locker owned by another thread (`NamedLockOwnerException`, then `permission_error`). Disposing the root context wakes threads blocked in `lock/1`.
@@ -19,17 +20,18 @@
 - First-argument indexes are cached per predicate, and a cache entry is kept only when the clause set did not change while it was built.
 - Changelog is `../changelog.txt` (jprol repo root, one level above `engine`).
 - Graphics primitives repaint once per burst. `dot/2` writes pixels directly. `fillrectangle/4` draws on the caller thread. `play_sound/2` writes the tone in chunks. `graphics/2` reads the real height and resizes when either side changes.
-- `ComplexPrologCornerCaseTest` (55 passing), `ChoicePointHotPathOptimizationTest` (7 passing), `ComplexPrologKnownIssuesTest` (15 passing, `testDeepRecursion` `@Disabled`), and `JProlIsoTest` (13 tests / 377 Prolog checks) cover engine semantics and hot-path invariants.
+- `ComplexPrologCornerCaseTest` (55 passing), `ComplexPrologKnownIssuesTest` (all 16 passing including `testDeepRecursion`), `ChoicePointHotPathOptimizationTest` (11 passing), and `JProlIsoTest` (13 tests / 377 Prolog checks) cover engine semantics, LCO, and hot-path invariants.
 - Life example (`examples/java/jprol-example-life`): generations are computed on one daemon executor thread, then the swap and repaint run on the Swing event thread through `invokeAndWait`. `LifeGameField` guards both generation arrays with one private `ReentrantLock`.
-- Notes reviewed and compacted after core prove-engine hot-path optimizations.
+- Notes reviewed and updated after implementing Last Call Optimization and lazy variable snapshots.
 
 ## 2. Architecture & Technical Discoveries
 - `jprol-core` depends on `java-prolog-parser:2.3.0` (sibling project, Unicode code-point tokenizer). Run `mvn22 install` in the parser before building jprol after parser changes.
 - `setEditable` rebuilds the text view tree (`BasicTextUI.modelChanged`). Call it only on the event thread.
-- User-rule bindings are applied on a copy-on-write clone (`GoalCloner`) first; the live goal is unified after the rule body succeeds so a snapshot reset between body backtracking steps does not drop body bindings. Non-ground facts have no body, so they unify directly with the live goal and call `discardBindings()` if unification fails partway through.
+- Frame `0` on `ProveStack` is the anchor root choice point; frames `k >= 1` are rule-body subgoals isolated behind the nearest non-deterministic ancestor's `GoalCloner` boundary. Tail calls in `k >= 1` (`nextAndTerm == null`, `nextAndTermForNextGoal == null`, `prevCp == null`, `clauseIterator == null`, `!trace`) unify `clauseHead.unifyWith(goalStructTarget)` directly and replace `frames[k]` in place, detaching `propagatesCutToCaller` on the callee so callee `!` never cuts caller clauses.
+- `TermVar.getValue()` returns the terminal `TermVar` when walking a multi-hop unbound variable chain (`V1 -> V2` where `V2.immediateValue == null`), and returns `null` only when `this.immediateValue == null`; callers checking unifiability on dereferenced `getValue()` must treat `val == null || val.getTermType() == VAR` as unbound.
+- Forward unification only ever assigns `TermVar.immediateValue` when it is `null`; already-bound variables never change unless an earlier snapshot resets them, so child snapshots only need to track currently unbound (`immediateValue == null`) variables.
 - Ground facts (`InMemoryItem.isFact`) are returned as the stored term. Non-ground clauses are cloned per attempt with `SmallIdentityVarMap`.
 - First-argument index is per name/arity, rebuilt after assert, retract, abolish, and clear. Clauses whose first argument is a variable stay in a wildcard bucket and are merged in source order. Atom and zero-arity structure with the same functor text share one index bucket; integer and float values are indexed separately.
-- Child choice points derive their `VariableStateSnapshot` from the active tip (`rootChoicePoint.parentCp`) rather than always rescanning `rootChoicePoint.varSnapshot`, and deterministic choice points unlink themselves once completed so subsequent conjuncts share unchanged snapshot arrays.
 - `==` follows the canonical unbound variable first, so aliases compare equal. Distinct anonymous variables use the identity hash, then a weak identity order. Named variables with the same text compare equal.
 - `\+` and `not/1` prove the goal, then `discardBindings()`. `catch/3` does the same before unifying the frozen ball, and rethrows when the catcher does not match. `throw/1` keeps the term. Built-in balls are `error(Formal, Context)`.
 - `->` commits by skipping only the surrounding `;` choice point. Cuts in the condition stay on the condition's own root.
@@ -37,26 +39,24 @@
 - `mod/2` takes the sign of the divisor. Integer `+`, `-`, `*` raise `evaluation_error(int_overflow)` instead of wrapping. Prefix `+`/`-` are `200 fy`.
 
 ## 3. Technical Debt & Refactoring
-- Backtracking still restores a `VariableStateSnapshot` array rather than an explicit binding trail; an explicit undo trail could further reduce scan cost on goals with hundreds of simultaneously live unbound variables.
 - Non-ground rule clauses still clone the stored rule AST (`clause.makeClone()`) on each matching attempt.
 - Library predicate lookup walks the library list once until the `PredicateInvoker` is cached on that `TermStruct` instance.
 
 ## 4. Current Work In Progress
-- None. Full reactor `mvn22 verify` passes (`jprol-core`: 354 tests run, 3 skipped; SpotBugs and Android API 32 `animal-sniffer` clean across all modules).
+- None. Full reactor `mvn22 verify` passes (`jprol-core`: 358 tests run, 2 manual tests skipped; SpotBugs and Android API 32 `animal-sniffer` clean across all modules).
 
 ## 5. Known Issues & Limitations
 - First-argument index groups every non-empty list under one bucket. Matching lists still need a full unify.
 - The index is not used below 8 clauses. Those predicates only get the cheap first-argument rejection.
-- `testDeepRecursion` stays disabled. The prove loop is iterative, and `max_prove_stack_depth` is 10000 frames (about 5000 Prolog calls, two frames each). `count(0, 100000)` and a 10000-element recursive sum exceed that cap. Last-call optimization is not implemented.
+- Non-tail recursion remains bounded by `max_prove_stack_depth` (default `10000` frames) and raises `ProlChoicePointStackOverflowException` when exceeded; tail recursion (including mutual tail recursion, `-> ;` tail branches, tail recursion modulo cons, and cut-committed clauses) executes in constant `ProveStack` depth (`2–3` frames).
 
 ## 6. Open Questions & Pending Decisions
-- Whether to replace `VariableStateSnapshot` with an explicit undo trail.
+- None.
 
 ## 7. Useful References
 - `mvn22 -pl jprol-core test`
 - `mvn22 verify`
-- Run the disabled known-issue tests: `mvn22 -pl jprol-core test -Dtest=ComplexPrologKnownIssuesTest -Djunit.jupiter.conditions.deactivate='org.junit.*DisabledCondition'`
-- Hot path: `JProlChoicePoint.proveNext`, `GoalCloner`, `VariableStateSnapshot`, `PredicateInvoker`, `AutoArgumentValidator`, `InMemoryClauseIterator`, `FirstArgIndex`, `SmallIdentityVarMap`
+- Hot path: `JProlChoicePoint.proveNext`, `ProveStack`, `GoalCloner`, `VariableStateSnapshot`, `PredicateInvoker`, `AutoArgumentValidator`, `InMemoryClauseIterator`, `FirstArgIndex`, `SmallIdentityVarMap`
 
 ## 8. User Advice and Recommendations
-- Speed work must preserve the public API and keep rule-head isolation (clone-then-unify for rules so body backtracking does not clobber live goal variables).
+- Speed work must preserve the public API and keep non-tail rule-head isolation (clone-then-unify when alternatives or continuations remain).

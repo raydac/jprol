@@ -20,6 +20,14 @@ final class ProveStack {
     return this.size == 0;
   }
 
+  int size() {
+    return this.size;
+  }
+
+  ProveStackFrame frameAt(final int index) {
+    return this.frames[index];
+  }
+
   void push(final JProlChoicePoint choicePoint) {
     if (this.size >= this.maxDepth) {
       throw new StackOverflowError("Detected prove stack overflow");
@@ -34,6 +42,17 @@ final class ProveStack {
     }
     frame.prepare(choicePoint);
     this.size++;
+  }
+
+  void replaceTopChoicePoint(final JProlChoicePoint replacement) {
+    this.frames[this.size - 1].prepare(replacement);
+  }
+
+  void collapseParentWithTop(final JProlChoicePoint topChoicePoint) {
+    final int topIndex = this.size - 1;
+    this.frames[topIndex - 1].prepare(topChoicePoint);
+    this.frames[topIndex].release();
+    this.size = topIndex;
   }
 
   ProveStackFrame peek() {

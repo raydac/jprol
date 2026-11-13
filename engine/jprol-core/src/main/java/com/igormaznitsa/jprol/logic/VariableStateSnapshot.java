@@ -32,6 +32,7 @@ import java.util.Map;
 final class VariableStateSnapshot {
 
   private static final VariableStateContainer[] EMPTY = new VariableStateContainer[0];
+  private static final VariableStateSnapshot EMPTY_SNAPSHOT = new VariableStateSnapshot(EMPTY);
 
   private final VariableStateContainer[] containers;
 
@@ -49,6 +50,26 @@ final class VariableStateSnapshot {
     final List<VariableStateContainer> collected = new ArrayList<>();
     extractAllVariables(collected, new VisitedVariables(0), source, predefinedValues);
     return collected.isEmpty() ? null : new VariableStateSnapshot(collected.toArray(EMPTY));
+  }
+
+  static VariableStateSnapshot ofSubgoalTerms(
+      final Term rootGoal,
+      final Term currentGoal,
+      final Term nextAndGoal
+  ) {
+    final List<VariableStateContainer> collected = new ArrayList<>();
+    final VisitedVariables visited = new VisitedVariables(0);
+    if (rootGoal != null && rootGoal.canContainVariables()) {
+      extractAllVariables(collected, visited, rootGoal, null);
+    }
+    if (currentGoal != null && currentGoal != rootGoal && currentGoal.canContainVariables()) {
+      extractAllVariables(collected, visited, currentGoal, null);
+    }
+    if (nextAndGoal != null && nextAndGoal.canContainVariables()) {
+      extractAllVariables(collected, visited, nextAndGoal, null);
+    }
+    return collected.isEmpty() ? EMPTY_SNAPSHOT :
+        new VariableStateSnapshot(collected.toArray(EMPTY));
   }
 
   private static void extractAllVariables(
@@ -74,8 +95,15 @@ final class VariableStateSnapshot {
           if (!processedVariables.add(var)) {
             return;
           }
-          containerList.add(new VariableStateContainer(var, predefinedValues));
-          next = var.getImmediateValue();
+          final Term immediate = var.getImmediateValue();
+          if (predefinedValues != null) {
+            if (immediate == null || predefinedValues.containsKey(var.getText())) {
+              containerList.add(new VariableStateContainer(var, predefinedValues));
+            }
+          } else if (immediate == null) {
+            containerList.add(new VariableStateContainer(var));
+          }
+          next = immediate;
           break;
         }
         default:
@@ -83,6 +111,71 @@ final class VariableStateSnapshot {
       }
       current = next;
     }
+  }
+
+  VariableStateSnapshot snapshotCurrentState() {
+    final VariableStateContainer[] source = this.containers;
+    if (source.length == 0) {
+      return this;
+    }
+
+    int changedCount = 0;
+    boolean mayIntroduceVariables = false;
+    for (final VariableStateContainer container : source) {
+      if (container.isChanged()) {
+        changedCount++;
+        final Term immediate = container.variable.getImmediateValue();
+        if (immediate == null || immediate.canContainVariables()) {
+          mayIntroduceVariables = true;
+        }
+      }
+    }
+    if (changedCount == 0) {
+      return this;
+    }
+
+    if (!mayIntroduceVariables) {
+      final int remaining = source.length - changedCount;
+      if (remaining == 0) {
+        return EMPTY_SNAPSHOT;
+      }
+      final VariableStateContainer[] shrunk = new VariableStateContainer[remaining];
+      int out = 0;
+      for (final VariableStateContainer container : source) {
+        if (!container.isChanged()) {
+          shrunk[out++] = container;
+        }
+      }
+      return new VariableStateSnapshot(shrunk);
+    }
+
+    final List<VariableStateContainer> updatedList = new ArrayList<>(source.length);
+    final List<VariableStateContainer> changed = new ArrayList<>(changedCount);
+    final VisitedVariables processedVariables = new VisitedVariables(source.length);
+
+    for (final VariableStateContainer container : source) {
+      if (container.isChanged()) {
+        changed.add(container);
+      } else {
+        processedVariables.add(container.variable);
+        updatedList.add(container);
+      }
+    }
+
+    for (final VariableStateContainer container : changed) {
+      if (processedVariables.add(container.variable)) {
+        final Term immediate = container.variable.getImmediateValue();
+        if (immediate == null) {
+          updatedList.add(new VariableStateContainer(container.variable));
+        } else {
+          extractAllVariables(updatedList, processedVariables, immediate, null);
+        }
+      }
+    }
+
+    return updatedList.isEmpty()
+        ? EMPTY_SNAPSHOT
+        : new VariableStateSnapshot(updatedList.toArray(EMPTY));
   }
 
   private static Term extractFromList(
@@ -118,65 +211,6 @@ final class VariableStateSnapshot {
           containerList, processedVariables, struct.getArgumentAt(i), predefinedValues);
     }
     return struct.getArgumentAt(arity - 1);
-  }
-
-  VariableStateSnapshot snapshotCurrentState() {
-    final VariableStateContainer[] source = this.containers;
-    if (source.length == 0) {
-      return this;
-    }
-
-    int changedCount = 0;
-    boolean mayIntroduceVariables = false;
-    for (final VariableStateContainer container : source) {
-      if (container.isChanged()) {
-        changedCount++;
-        final Term immediate = container.variable.getImmediateValue();
-        if (immediate != null && immediate.canContainVariables()) {
-          mayIntroduceVariables = true;
-        }
-      }
-    }
-    if (changedCount == 0) {
-      return this;
-    }
-
-    if (!mayIntroduceVariables) {
-      final VariableStateContainer[] updated = source.clone();
-      for (int i = 0; i < updated.length; i++) {
-        final VariableStateContainer container = updated[i];
-        if (container.isChanged()) {
-          updated[i] = new VariableStateContainer(container.variable);
-        }
-      }
-      return new VariableStateSnapshot(updated);
-    }
-
-    final List<VariableStateContainer> updatedList = new ArrayList<>(source.length + changedCount);
-    final List<VariableStateContainer> changed = new ArrayList<>(changedCount);
-    final VisitedVariables processedVariables = new VisitedVariables(source.length);
-
-    for (final VariableStateContainer container : source) {
-      if (container.isChanged()) {
-        changed.add(container);
-      } else {
-        processedVariables.add(container.variable);
-        updatedList.add(container);
-      }
-    }
-
-    for (final VariableStateContainer container : changed) {
-      if (processedVariables.add(container.variable)) {
-        updatedList.add(new VariableStateContainer(container.variable));
-        extractAllVariables(
-            updatedList,
-            processedVariables,
-            container.variable.getImmediateValue(),
-            null);
-      }
-    }
-
-    return new VariableStateSnapshot(updatedList.toArray(EMPTY));
   }
 
   void resetToState() {

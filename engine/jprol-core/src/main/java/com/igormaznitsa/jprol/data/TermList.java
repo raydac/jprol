@@ -509,12 +509,17 @@ public final class TermList extends TermStruct {
       } else if (currentLeft == this) {
         if (currentRight.getTermType() == VAR) {
           final TermVar thatVariable = (TermVar) currentRight;
-          final Term value = thatVariable.getImmediateValue();
+          final Term value = thatVariable.getValue();
           if (value == null) {
             thatVariable.setImmediateValue(this);
             return true;
           }
-          return thatVariable.unifyWith(this);
+          if (value.getTermType() == VAR) {
+            ((TermVar) value).setImmediateValue(this);
+            return true;
+          }
+          currentRight = value;
+          continue;
         }
         return false;
       } else {
@@ -535,7 +540,7 @@ public final class TermList extends TermStruct {
     while (currentLeft != currentRight) {
       if (currentLeft.getTermType() == VAR) {
         currentLeft = ((TermVar) currentLeft).getValue();
-        if (currentLeft == null) {
+        if (currentLeft == null || currentLeft.getTermType() == VAR) {
           return true;
         }
         if (currentLeft == currentRight) {
@@ -544,7 +549,7 @@ public final class TermList extends TermStruct {
       }
       if (currentRight.getTermType() == VAR) {
         currentRight = ((TermVar) currentRight).getValue();
-        if (currentRight == null) {
+        if (currentRight == null || currentRight.getTermType() == VAR) {
           return true;
         }
         if (currentLeft == currentRight) {

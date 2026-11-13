@@ -1,6 +1,7 @@
 package com.igormaznitsa.jprol.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -140,7 +141,7 @@ class ChoicePointHotPathOptimizationTest extends AbstractJProlTest {
   }
 
   @Test
-  void testReusableProveStackSupportsNestedFindallAndMaxDepth() {
+  void testReusableProveStackSupportsNestedFindallAndNonTailMaxDepth() {
     assertEquals(
         "[[1,2],[2,3],[3,4]]",
         this.proveSingle(
@@ -149,9 +150,9 @@ class ChoicePointHotPathOptimizationTest extends AbstractJProlTest {
                 + " All = [[2,3],[3,4],[4,5]], R = [[1,2],[2,3],[3,4]].",
             "R"));
 
-    try (final JProlContext context = this.makeContextAndConsult("inf :- inf.")) {
+    try (final JProlContext context = this.makeContextAndConsult("non_tail :- non_tail, true.")) {
       context.setSystemFlag(JProlSystemFlag.MAX_PROVE_STACK_DEPTH, Terms.newLong(32L));
-      final JProlChoicePoint cp = context.makeChoicePoint("inf.");
+      final JProlChoicePoint cp = context.makeChoicePoint("non_tail.");
       assertThrows(ProlChoicePointStackOverflowException.class, cp::prove);
     }
   }
@@ -164,5 +165,112 @@ class ChoicePointHotPathOptimizationTest extends AbstractJProlTest {
         Terms.newStruct(Terms.newAtom("leaf"), Terms.newVar("B")));
     final String joined = term.stream().map(Term::toSrcString).collect(Collectors.joining(","));
     assertEquals("'root','.',A,'.',1,'.','leaf',B", joined);
+  }
+
+  @Test
+  void testTailRecursionRunsInConstantProveStackDepth() {
+    final String program =
+        "count(N, N) :- !. count(I, N) :- I1 is I + 1, count(I1, N)."
+            + "range(H, H, [H]) :- !. range(L, H, [L|T]) :- L1 is L + 1, range(L1, H, T)."
+            + "sum([], A, A). sum([H|T], A, S) :- A1 is A + H, sum(T, A1, S)."
+            +
+            "countdown(N, Acc, R) :- N > 0, !, N1 is N - 1, Acc1 is Acc + N, countdown(N1, Acc1, R)."
+            + "countdown(_, Acc, Acc)."
+            + "ev(0) :- !. ev(N) :- N > 0, M is N - 1, od(M)."
+            + "od(N) :- N > 0, M is N - 1, ev(M)."
+            +
+            "branch_loop(N, Acc, R) :- (N > 0 -> N1 is N - 1, Acc1 is Acc + 1, branch_loop(N1, Acc1, R) ; R = Acc)."
+            + "wrap(0, f(done)) :- !. wrap(N, f(Y)) :- N1 is N - 1, wrap(N1, f(Y)).";
+
+    try (final JProlContext context = this.makeContextAndConsult(program)) {
+      context.setSystemFlag(JProlSystemFlag.MAX_PROVE_STACK_DEPTH, Terms.newLong(16L));
+
+      assertNotNull(context.makeChoicePoint("count(0, 50000).").prove());
+
+      final JProlChoicePoint rangeSum =
+          context.makeChoicePoint("range(1, 20000, L), sum(L, 0, S).");
+      assertNotNull(rangeSum.prove());
+      assertEquals("200010000", getVarAsText(rangeSum, "S"));
+
+      final JProlChoicePoint countdown = context.makeChoicePoint("countdown(20000, 0, R).");
+      assertNotNull(countdown.prove());
+      assertEquals("200010000", getVarAsText(countdown, "R"));
+      assertNull(countdown.prove());
+
+      assertNotNull(context.makeChoicePoint("ev(30000).").prove());
+      assertNull(context.makeChoicePoint("od(30000).").prove());
+
+      final JProlChoicePoint branch = context.makeChoicePoint("branch_loop(30000, 0, R).");
+      assertNotNull(branch.prove());
+      assertEquals("30000", getVarAsText(branch, "R"));
+
+      final JProlChoicePoint wrapped = context.makeChoicePoint("wrap(20000, f(Out)).");
+      assertNotNull(wrapped.prove());
+      assertEquals("'done'", getVarAsText(wrapped, "Out"));
+    }
+  }
+
+  @Test
+  void testTailRecursiveBacktrackingGeneratorInConstantStackDepth() {
+    final String generator =
+        "gen_from(N, Max, N) :- N =< Max."
+            + "gen_from(N, Max, X) :- N < Max, N1 is N + 1, gen_from(N1, Max, X).";
+
+    try (final JProlContext context = this.makeContextAndConsult(generator)) {
+      context.setSystemFlag(JProlSystemFlag.MAX_PROVE_STACK_DEPTH, Terms.newLong(16L));
+      final JProlChoicePoint cp =
+          context.makeChoicePoint("findall(X, gen_from(1, 12000, X), L), length(L, Len).");
+      assertNotNull(cp.prove());
+      assertEquals("12000", getVarAsText(cp, "Len"));
+    }
+  }
+
+  @Test
+  void testCutScopePreservedAcrossTailReplacedFrames() {
+    assertEquals(
+        Arrays.asList("1", "99", "2"),
+        this.collectSolutions(
+            "outer(X) :- mid(X). outer(2). mid(X) :- !, leaf(X). leaf(1). leaf(99).",
+            "outer(X).",
+            "X"));
+
+    assertEquals(
+        Arrays.asList("1", "2"),
+        this.collectSolutions(
+            "outer(X) :- mid(X). outer(2). mid(X) :- !, leaf(X). mid(88). leaf(1).",
+            "outer(X).",
+            "X"));
+
+    assertEquals(
+        Arrays.asList("1", "2"),
+        this.collectSolutions(
+            "outer(X) :- mid(X). outer(2). mid(X) :- leaf(X). leaf(1) :- !. leaf(99).",
+            "outer(X).",
+            "X"));
+
+    assertEquals(
+        Collections.singletonList("1"),
+        this.collectSolutions(
+            "outer(X) :- !, mid(X). outer(2). mid(X) :- leaf(X). leaf(1).",
+            "outer(X).",
+            "X"));
+
+    assertEquals(
+        Arrays.asList("7", "777"),
+        this.collectSolutions(
+            "src(1). src(2). tail_mul(Y, R) :- R is Y * 7. outer(X) :- src(Y), !!, tail_mul(Y, X). outer(777).",
+            "outer(X).",
+            "X"));
+  }
+
+  @Test
+  void testDeeplyLeftNestedConjunctionsPreserveAllContinuations() {
+    try (final JProlContext context = this.makeTestContext()) {
+      final JProlChoicePoint cp = context.makeChoicePoint(
+          "(((A = 1, (B = 2, C = 3)), (D = 4, E = 5)), F is A + B + C + D + E).");
+      assertNotNull(cp.prove());
+      assertEquals("15", getVarAsText(cp, "F"));
+      assertFalse(cp.prove() != null);
+    }
   }
 }
