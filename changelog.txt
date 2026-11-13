@@ -1,4 +1,5 @@
-3.2.0-SNAPSHOT (unreleased)
+4.0.0-SNAPSHOT (unreleased)
+    - tail-call optimization for tail-recursive rules without growing the prove stack
     - faster clause lookup, proving, and variable creation
     - variables are identified by the instance; anonymous variables are named "_"
     - `lock/1` counts each acquisition by the same thread and blocks while another thread owns it
