@@ -1,0 +1,123 @@
+% Machine-oriented ISO Prolog test suite: term ordering and comparison operators
+% Adapted from examples/prolog/iso_order_test2.prl
+
+:- dynamic(iso_test_total/1).
+:- dynamic(iso_test_passed/1).
+:- dynamic(iso_test_failure/1).
+
+init_iso_test_state :-
+    retractall(iso_test_total(_)),
+    retractall(iso_test_passed(_)),
+    retractall(iso_test_failure(_)),
+    assertz(iso_test_total(0)),
+    assertz(iso_test_passed(0)).
+
+check_goal(Name, Goal, Expected) :-
+    retract(iso_test_total(Total)),
+    NextTotal is Total + 1,
+    assertz(iso_test_total(NextTotal)),
+    catch(
+        (\+ \+ call(Goal) -> Actual = true ; Actual = false),
+        Error,
+        Actual = error(Error)
+    ),
+    (   Actual == Expected
+    ->  retract(iso_test_passed(Passed)),
+        NextPassed is Passed + 1,
+        assertz(iso_test_passed(NextPassed))
+    ;   assertz(iso_test_failure(failed(Name, Expected, Actual)))
+    ).
+
+collect_iso_test_result(Total, Passed, Failures) :-
+    iso_test_total(Total),
+    iso_test_passed(Passed),
+    findall(Failure, iso_test_failure(Failure), Failures),
+    retractall(iso_test_total(_)),
+    retractall(iso_test_passed(_)),
+    retractall(iso_test_failure(_)).
+
+test_term_ordering :-
+    check_goal(number_not_lt_var, (1 @< _X1), false),
+    check_goal(var_lt_number, (_Y @< 42), true),
+    check_goal(number_lt_atom, (42 @< atom), true),
+    check_goal(atom_lt_compound, (atom @< f(1)), true),
+
+    check_goal(neg5_lt_0, (-5 @< 0), true),
+    check_goal(zero_lt_pi, (0 @< 3.14), true),
+    check_goal(pi_lt_100, (3.14 @< 100), true),
+    check_goal(neg1_5_lt_neg1, (-1.5 @< -1), true),
+
+    check_goal(a_lt_b, (a @< b), true),
+    check_goal(b_lt_z, (b @< z), true),
+    check_goal(abc_lt_abd, (abc @< abd), true),
+    check_goal(atom1_lt_atom2, (atom1 @< atom2), true),
+
+    check_goal(functor_f_lt_g, (f(1) @< g(1)), true),
+    check_goal(arg_f1_lt_f2, (f(1) @< f(2)), true),
+    check_goal(arity_f1_lt_f12, (f(1) @< f(1, 2)), true),
+    check_goal(second_arg_fab_lt_fac, (f(a, b) @< f(a, c)), true),
+    check_goal(third_arg_f123_lt_f124, (f(1, 2, 3) @< f(1, 2, 4)), true),
+
+    check_goal(nested_fg1_lt_fg2, (f(g(1), 2) @< f(g(2), 1)), true),
+    check_goal(list_123_lt_124, ([1, 2, 3] @< [1, 2, 4]), true),
+    check_goal(list_1_lt_12, ([1] @< [1, 2]), true),
+    check_goal(deep_fgh1_lt_fgh2, (f(g(h(1))) @< f(g(h(2)))), true),
+
+    check_goal(mixed_var_lt_0, (_V @< 0), true),
+    check_goal(mixed_0_lt_a, (0 @< a), true),
+    check_goal(mixed_a_lt_f, (a @< f(_)), true),
+    check_goal(mixed_f1_lt_fa, (f(1) @< f(a)), true),
+
+    check_goal(eq_42, (42 @= 42), true),
+    check_goal(eq_atom, (atom @= atom), true),
+    check_goal(eq_compound, (f(1, 2) @= f(1, 2)), true),
+    check_goal(eq_list, ([a, b, c] @= [a, b, c]), true),
+
+    check_goal(gt_100_1, (100 @> 1), true),
+    check_goal(gt_z_a, (z @> a), true),
+    check_goal(gt_f2_f1, (f(2) @> f(1)), true),
+    check_goal(gt_list2_list1, ([2] @> [1]), true),
+
+    check_goal(le_1_1, (1 @=< 1), true),
+    check_goal(le_1_2, (1 @=< 2), true),
+    check_goal(le_a_a, (a @=< a), true),
+    check_goal(le_f1_f2, (f(1) @=< f(2)), true),
+
+    check_goal(ge_2_1, (2 @>= 1), true),
+    check_goal(ge_2_2, (2 @>= 2), true),
+    check_goal(ge_b_a, (b @>= a), true),
+    check_goal(ge_f2_f1, (f(2) @>= f(1)), true),
+
+    check_goal(empty_list_lt_nonempty, ([] @< [_]), true),
+    check_goal(zero_arity_lt_arity1, (f() @< f(1)), true),
+
+    check_goal(neg_2_lt_1, (2 @< 1), false),
+    check_goal(neg_b_lt_a, (b @< a), false),
+    check_goal(neg_f2_lt_f1, (f(2) @< f(1)), false),
+    check_goal(neg_atom_lt_1, (atom @< 1), false),
+    check_goal(neg_1_lt_var, (1 @< _X2), false),
+
+    check_goal(list_mixed_struct, ([1, a, f(1)] @< [1, a, f(2)]), true),
+    check_goal(list_mixed_atom, ([1, a] @< [1, b]), true),
+    check_goal(list_structs, ([f(1), g(2)] @< [f(1), g(3)]), true),
+
+    check_goal(quoted_hello_world, ('hello' @< 'world'), true),
+    check_goal(quoted_abc_abcd, ('abc' @< 'abcd'), true),
+
+    check_goal(arity_1_2, (test(1) @< test(1, 2)), true),
+    check_goal(arity_2_3, (test(1, 2) @< test(1, 2, 3)), true),
+    check_goal(pair_lt_triple, (pair(1, 2) @< triple(1, 2, 3)), true),
+
+    check_goal(functor_aaa_lt_bbb, (aaa(1) @< bbb(1)), true),
+    check_goal(nested_list_depth3, ([[[1]]] @< [[[2]]]), true).
+
+run_tests(Total, Passed, Failures) :-
+    init_iso_test_state,
+    test_term_ordering,
+    collect_iso_test_result(Total, Passed, Failures).
+
+run_tests :-
+    run_tests(Total, Passed, Failures),
+    Total > 0,
+    Total =:= Passed,
+    Failures == [].

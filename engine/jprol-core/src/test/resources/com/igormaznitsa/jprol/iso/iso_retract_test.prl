@@ -1,0 +1,379 @@
+% Machine-oriented ISO Prolog test suite: retract/1, retractall/1, asserta/1, assertz/1
+% Adapted from examples/prolog/iso_retract_test.prl
+
+:- dynamic(iso_test_total/1).
+:- dynamic(iso_test_passed/1).
+:- dynamic(iso_test_failure/1).
+
+:- dynamic(fact/1).
+:- dynamic(rule/2).
+:- dynamic(multi/1).
+:- dynamic(ordered/1).
+:- dynamic(person/2).
+:- dynamic(student/1).
+:- dynamic(edge/2).
+:- dynamic(data/3).
+:- dynamic(temp/1).
+
+init_iso_test_state :-
+    retractall(iso_test_total(_)),
+    retractall(iso_test_passed(_)),
+    retractall(iso_test_failure(_)),
+    assertz(iso_test_total(0)),
+    assertz(iso_test_passed(0)).
+
+check_goal(Name, Goal, Expected) :-
+    retract(iso_test_total(Total)),
+    NextTotal is Total + 1,
+    assertz(iso_test_total(NextTotal)),
+    catch(
+        (\+ \+ call(Goal) -> Actual = true ; Actual = false),
+        Error,
+        Actual = error(Error)
+    ),
+    (   Actual == Expected
+    ->  retract(iso_test_passed(Passed)),
+        NextPassed is Passed + 1,
+        assertz(iso_test_passed(NextPassed))
+    ;   assertz(iso_test_failure(failed(Name, Expected, Actual)))
+    ).
+
+collect_iso_test_result(Total, Passed, Failures) :-
+    iso_test_total(Total),
+    iso_test_passed(Passed),
+    findall(Failure, iso_test_failure(Failure), Failures),
+    retractall(iso_test_total(_)),
+    retractall(iso_test_passed(_)),
+    retractall(iso_test_failure(_)).
+
+count_solutions(Goal, Count) :-
+    findall(1, Goal, List),
+    length(List, Count).
+
+cleanup_all :-
+    retractall(fact(_)),
+    retractall(rule(_, _)),
+    retractall(multi(_)),
+    retractall(ordered(_)),
+    retractall(person(_, _)),
+    retractall(student(_)),
+    retractall(edge(_, _)),
+    retractall(data(_, _, _)),
+    retractall(temp(_)).
+
+test_retract :-
+    cleanup_all,
+    assertz(fact(x)),
+    check_goal('retract single fact', retract(fact(x)), true),
+    check_goal('fact removed after retract', \+ fact(x), true),
+
+    cleanup_all,
+    check_goal('retract non-existent fails', retract(fact(nonexistent)), false),
+
+    cleanup_all,
+    assertz(fact(a)),
+    assertz(fact(b)),
+    check_goal('retract with var unifies', (retract(fact(X)), X == a), true),
+    check_goal('second fact still exists', fact(b), true),
+
+    cleanup_all,
+    assertz(multi(1)),
+    assertz(multi(2)),
+    assertz(multi(3)),
+    check_goal('retract first of multiple', retract(multi(1)), true),
+    check_goal('others remain', (multi(2), multi(3)), true),
+    check_goal('first gone', \+ multi(1), true),
+
+    cleanup_all,
+    assertz(multi(a)),
+    assertz(multi(b)),
+    assertz(multi(c)),
+    check_goal('retract removes all on backtrack', (retract(multi(_)), fail ; \+ multi(_)), true),
+
+    cleanup_all,
+    assertz(multi(a)),
+    assertz(multi(b)),
+    assertz(multi(c)),
+    check_goal('retract counts correctly with findall', count_solutions(retract(multi(_)), 3), true),
+
+    cleanup_all,
+    assertz(person(john, 30)),
+    assertz(person(jane, 25)),
+    check_goal('retract compound', retract(person(john, 30)), true),
+    check_goal('specific compound gone', \+ person(john, 30), true),
+    check_goal('other compound remains', person(jane, 25), true),
+
+    cleanup_all,
+    assertz(person(bob, 40)),
+    assertz(person(alice, 35)),
+    check_goal('retract partial match', retract(person(bob, _)), true),
+    check_goal('partial match removed', \+ person(bob, _), true),
+    check_goal('other remains', person(alice, 35), true),
+
+    cleanup_all,
+    assertz((rule(X, Y) :- X > Y)),
+    check_goal('retract rule with body', retract((rule(A, B) :- A > B)), true),
+    check_goal('rule removed', \+ clause(rule(_, _), _), true),
+
+    cleanup_all,
+    assertz((rule(a, b) :- true)),
+    assertz(rule(c, d)),
+    check_goal('retract without body matches any', retract(rule(a, b)), true),
+    check_goal('fact still remains', rule(c, d), true).
+
+test_retractall :-
+    cleanup_all,
+    assertz(fact(1)),
+    assertz(fact(2)),
+    assertz(fact(3)),
+    check_goal('retractall multiple facts', retractall(fact(_)), true),
+    check_goal('all facts removed', \+ fact(_), true),
+
+    cleanup_all,
+    check_goal('retractall non-existent succeeds', retractall(fact(nonexistent)), true),
+
+    cleanup_all,
+    check_goal('retractall on empty succeeds', retractall(fact(_)), true),
+
+    cleanup_all,
+    assertz(data(a, 1, x)),
+    assertz(data(a, 2, y)),
+    assertz(data(b, 1, z)),
+    assertz(data(b, 2, w)),
+    check_goal('retractall specific pattern', retractall(data(a, _, _)), true),
+    check_goal('pattern removed', \+ data(a, _, _), true),
+    check_goal('others remain', (data(b, 1, z), data(b, 2, w)), true),
+
+    cleanup_all,
+    assertz(fact(a)),
+    assertz(fact(b)),
+    assertz(fact(a)),
+    assertz(fact(c)),
+    assertz(fact(a)),
+    check_goal('retractall ground term', retractall(fact(a)), true),
+    check_goal('all matching removed', \+ fact(a), true),
+    check_goal('non-matching remain', (fact(b), fact(c)), true),
+
+    cleanup_all,
+    assertz(temp(1)),
+    assertz(temp(2)),
+    assertz(temp(3)),
+    check_goal('retractall no backtrack solutions', count_solutions(retractall(temp(_)), 1), true),
+    check_goal('all removed at once', \+ temp(_), true),
+
+    cleanup_all,
+    assertz(edge(a, b)),
+    assertz(edge(b, c)),
+    assertz(edge(a, c)),
+    assertz(edge(c, d)),
+    check_goal('retractall from node', retractall(edge(a, _)), true),
+    check_goal('edges from a gone', \+ edge(a, _), true),
+    check_goal('count remaining edges', count_solutions(edge(_, _), 2), true),
+
+    cleanup_all,
+    assertz((rule(X, Y) :- X > Y)),
+    assertz(rule(a, b)),
+    assertz((rule(X, Y) :- X < Y)),
+    check_goal('retractall removes all clauses', retractall(rule(_, _)), true),
+    check_goal('all rules removed', \+ clause(rule(_, _), _), true),
+
+    cleanup_all,
+    assertz(data(f(a), g(b), 1)),
+    assertz(data(f(a), g(c), 2)),
+    assertz(data(f(b), g(b), 3)),
+    check_goal('retractall complex pattern', retractall(data(f(a), _, _)), true),
+    check_goal('complex pattern removed', \+ data(f(a), _, _), true),
+    check_goal('other complex remains', data(f(b), g(b), 3), true).
+
+test_asserta :-
+    cleanup_all,
+    assertz(ordered(3)),
+    assertz(ordered(2)),
+    asserta(ordered(1)),
+    check_goal('asserta adds first', (ordered(X), !, X == 1), true),
+
+    cleanup_all,
+    assertz(ordered(c)),
+    asserta(ordered(b)),
+    asserta(ordered(a)),
+    check_goal('asserta order check', (findall(X1, ordered(X1), L), L == [a, b, c]), true),
+
+    cleanup_all,
+    assertz(person(bob, 30)),
+    asserta(person(alice, 25)),
+    check_goal('asserta compound first', (person(Name1, _), !, Name1 == alice), true),
+
+    cleanup_all,
+    asserta((rule(X, Y) :- X > Y)),
+    asserta((rule(X, Y) :- X < Y)),
+    check_goal('asserta rules order', (clause(rule(A1, B1), Body1), !, Body1 == (A1 < B1)), true),
+
+    cleanup_all,
+    asserta(ordered(1)),
+    asserta(ordered(2)),
+    asserta(ordered(3)),
+    check_goal('multiple assertas reverse order', (findall(X2, ordered(X2), L2), L2 == [3, 2, 1]), true),
+
+    cleanup_all,
+    asserta(fact(x)),
+    check_goal('asserta simple fact', fact(x), true),
+
+    cleanup_all,
+    asserta(temp(first)),
+    check_goal('asserta to empty', temp(first), true).
+
+test_assertz :-
+    cleanup_all,
+    asserta(ordered(1)),
+    assertz(ordered(2)),
+    assertz(ordered(3)),
+    check_goal('assertz order check', (findall(X, ordered(X), L), L == [1, 2, 3]), true),
+
+    cleanup_all,
+    assertz(person(john, 30)),
+    assertz(person(jane, 25)),
+    check_goal('assertz preserves order', (findall(N1, person(N1, _), L1), L1 == [john, jane]), true),
+
+    cleanup_all,
+    assertz((rule(X, Y) :- X > Y)),
+    assertz((rule(X, Y) :- X < Y)),
+    check_goal('assertz rules order', (clause(rule(A, B), Body), !, Body == (A > B)), true),
+
+    cleanup_all,
+    assertz(ordered(3)),
+    asserta(ordered(1)),
+    assertz(ordered(4)),
+    asserta(ordered(0)),
+    assertz(ordered(5)),
+    check_goal('mixed assert order', (findall(X2, ordered(X2), L2), L2 == [0, 1, 3, 4, 5]), true),
+
+    cleanup_all,
+    assertz(temp(last)),
+    check_goal('assertz to empty', temp(last), true),
+
+    cleanup_all,
+    assertz(fact(a)),
+    assertz(fact(a)),
+    assertz(fact(a)),
+    check_goal('assertz duplicates', count_solutions(fact(a), 3), true).
+
+test_corner_cases :-
+    cleanup_all,
+    check_goal('retract from empty fails', retract(fact(_)), false),
+    check_goal('retractall on empty corner succeeds', retractall(fact(_)), true),
+
+    cleanup_all,
+    assertz(temp(1)),
+    assertz(temp(2)),
+    assertz(temp(3)),
+    check_goal(
+        'findall captures state',
+        (findall(X, temp(X), L1),
+         retract(temp(2)),
+         findall(Y, temp(Y), L2),
+         L1 == [1, 2, 3], L2 == [1, 3]),
+        true
+    ),
+
+    cleanup_all,
+    assertz(data(a, b, c)),
+    assertz(data(d, e, f)),
+    check_goal('retractall with fresh vars', retractall(data(_, _, _)), true),
+    check_goal('all data gone', \+ data(_, _, _), true),
+
+    cleanup_all,
+    assertz(fact(f(a, b))),
+    assertz(fact(f(c, d))),
+    check_goal('retract with unification', (retract(fact(f(X, Y))), X == a, Y == b), true),
+    check_goal('second remains', fact(f(c, d)), true),
+
+    cleanup_all,
+    assertz(fact(a)),
+    assertz(fact(a)),
+    assertz(fact(a)),
+    check_goal('count duplicates', count_solutions(fact(a), 3), true),
+    retract(fact(a)),
+    check_goal('retract one duplicate', count_solutions(fact(a), 2), true),
+    retractall(fact(a)),
+    check_goal('retractall removes all duplicates', \+ fact(a), true),
+
+    cleanup_all,
+    assertz(fact([a, [b, [c]]])),
+    check_goal('retract nested', retract(fact([a, [b, [c]]])), true),
+    check_goal('nested removed', \+ fact([a, [b, [c]]]), true),
+
+    cleanup_all,
+    assertz(temp(1)),
+    assertz(temp(2)),
+    assertz(temp(3)),
+    check_goal('retract with cut stops backtrack', (retract(temp(_)), !), true),
+    check_goal('only one retracted with cut', count_solutions(temp(_), 2), true),
+
+    cleanup_all,
+    assertz(fact(_X11)),
+    check_goal('assert with unbound var', (fact(Y11), var(Y11)), true),
+
+    cleanup_all,
+    assertz(fact(_X22)),
+    assertz(fact(a)),
+    check_goal('retract unbound', (retract(fact(Y22)), var(Y22)), true),
+    check_goal('ground fact remains', fact(a), true).
+
+test_interactions :-
+    cleanup_all,
+    assertz(fact(a)),
+    retract(fact(a)),
+    assertz(fact(a)),
+    check_goal('retract then assert', fact(a), true),
+
+    cleanup_all,
+    assertz(fact(1)),
+    assertz(fact(2)),
+    retractall(fact(_)),
+    assertz(fact(3)),
+    check_goal('after retractall only new', (findall(X, fact(X), L), L == [3]), true),
+
+    cleanup_all,
+    assertz(ordered(2)),
+    asserta(ordered(1)),
+    assertz(ordered(3)),
+    check_goal('mixed assert types', (findall(X1, ordered(X1), L1), L1 == [1, 2, 3]), true),
+
+    cleanup_all,
+    assertz(fact(a)),
+    assertz(fact(b)),
+    retractall(fact(_)),
+    retractall(fact(_)),
+    check_goal('multiple retractalls idempotent', \+ fact(_), true),
+
+    cleanup_all,
+    assertz(data(1, a, x)),
+    assertz(data(2, b, y)),
+    assertz(data(3, c, z)),
+    retract(data(2, _, _)),
+    assertz(data(4, d, w)),
+    check_goal('assert after partial retract', (findall(X2, data(X2, _, _), L2), L2 == [1, 3, 4]), true),
+
+    cleanup_all,
+    assertz(temp(1)),
+    asserta(temp(0)),
+    retract(temp(1)),
+    assertz(temp(2)),
+    check_goal('complex interleaving', (findall(X3, temp(X3), L3), L3 == [0, 2]), true).
+
+run_tests(Total, Passed, Failures) :-
+    init_iso_test_state,
+    test_retract,
+    test_retractall,
+    test_asserta,
+    test_assertz,
+    test_corner_cases,
+    test_interactions,
+    cleanup_all,
+    collect_iso_test_result(Total, Passed, Failures).
+
+run_tests :-
+    run_tests(Total, Passed, Failures),
+    Total > 0,
+    Total =:= Passed,
+    Failures == [].

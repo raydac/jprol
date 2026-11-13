@@ -20,6 +20,7 @@
 - GUI build version is stamped into `build-version.properties` by resource filtering. An unresolved `${...}` placeholder is ignored, then the manifest version is used.
 - `ComplexPrologCornerCaseTest` (55 passing) covers cut scope, if-then-else, catch, solution collectors, retract, meta-interpreter, search programs, unification, copy_term, univ, arithmetic. Class-level `@Timeout(30)`.
 - `ComplexPrologKnownIssuesTest`: 15 ISO cases pass. `testDeepRecursion` stays `@Disabled` (prove stack cap, see section 5).
+- `JProlIsoTest` (`com.igormaznitsa.jprol.iso`) runs 12 machine-oriented Prolog test resource scripts (`src/test/resources/com/igormaznitsa/jprol/iso/iso_*.prl`, adapted from `../examples/prolog/iso_*.prl`) via `run_tests(Total, Passed, Failures)` and `run_tests/0` (377 Prolog checks total across arithmetic, `atom_number/2`, cut, solution collectors, `length/2`, list ops, term ordering, `retract`/`assert`, syntax/operators, family/algorithms, and `==`/`=@=`).
 - `AbstractJProlTest` has `collectSolutions(consult, goal, var)` and `proveSingle(...)` helpers.
 - Life example (`examples/java/jprol-example-life`): generations are computed on one daemon executor thread, then the swap and repaint run on the Swing event thread through `invokeAndWait`. The swap is skipped once the run is stopped. The renderer builds its image from the model in `paintComponent` and calls `Toolkit.sync()`. Mouse-to-cell mapping uses floor. `LifeGameField` guards both generation arrays with one private `ReentrantLock`, not `synchronized`.
 
@@ -45,9 +46,10 @@
 - Backtracking still restores a full variable snapshot. A trail of only the bindings made since the choice point would avoid the scan on goals with many variables.
 - Rules still clone the goal and the clause on every attempt.
 - Library predicate lookup walks the library list until the processor is cached on that structure instance.
+- `TermStruct.stream()` chains `Stream.concat` recursively on 2-arg structs (including `TermList` spines), making `.variables()` quadratic on long lists when exposed at the root goal; `TermList.cloneAndReplaceVariables` and `makeClone` are also recursive along the list spine.
 
 ## 4. Current Work In Progress
-- None. Core tests pass (334 run, 3 skipped: 2 old plus `testDeepRecursion`).
+- None. Core tests pass (347 run, 3 skipped: 2 old plus `testDeepRecursion`).
 
 ## 5. Known Issues & Limitations
 - First-argument index groups every non-empty list under one bucket. Matching lists still need a full unify.

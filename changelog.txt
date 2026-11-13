@@ -6,6 +6,7 @@
     - disposing the root context wakes threads blocked in `lock/1`
     - an interrupted `lock/1` fails instead of succeeding
     - faster graphics drawing; `graphics/2` uses the real height and resizes when either side changes
+    - Life example redraws every generation without mouse movement and edits the cell under the cursor
     - updated dependencies
 
 3.1.1 (2026-05-15)

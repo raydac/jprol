@@ -1,0 +1,161 @@
+% Machine-oriented ISO Prolog test suite: cut (!)
+% Adapted from examples/prolog/iso_cut_test.prl
+
+:- dynamic(iso_test_total/1).
+:- dynamic(iso_test_passed/1).
+:- dynamic(iso_test_failure/1).
+
+init_iso_test_state :-
+    retractall(iso_test_total(_)),
+    retractall(iso_test_passed(_)),
+    retractall(iso_test_failure(_)),
+    assertz(iso_test_total(0)),
+    assertz(iso_test_passed(0)).
+
+check_goal(Name, Goal, Expected) :-
+    retract(iso_test_total(Total)),
+    NextTotal is Total + 1,
+    assertz(iso_test_total(NextTotal)),
+    catch(
+        (\+ \+ call(Goal) -> Actual = true ; Actual = false),
+        Error,
+        Actual = error(Error)
+    ),
+    (   Actual == Expected
+    ->  retract(iso_test_passed(Passed)),
+        NextPassed is Passed + 1,
+        assertz(iso_test_passed(NextPassed))
+    ;   assertz(iso_test_failure(failed(Name, Expected, Actual)))
+    ).
+
+collect_iso_test_result(Total, Passed, Failures) :-
+    iso_test_total(Total),
+    iso_test_passed(Passed),
+    findall(Failure, iso_test_failure(Failure), Failures),
+    retractall(iso_test_total(_)),
+    retractall(iso_test_passed(_)),
+    retractall(iso_test_failure(_)).
+
+basic(1).
+basic(2).
+basic(3).
+
+cut_first(X) :- basic(X), !.
+
+cut_after(X) :- basic(X), X > 1, !.
+
+no_cut(X) :- basic(X).
+
+outer(X, Y) :- basic(X), !, inner(Y).
+inner(a).
+inner(b).
+
+max(X, Y, X) :- X >= Y, !.
+max(_, Y, Y).
+
+fail_after_cut(X) :- basic(X), !, fail.
+
+sum_until(N, N, N) :- !.
+sum_until(N, Acc, Sum) :-
+    N > 0, !,
+    N1 is N - 1,
+    Acc1 is Acc + N,
+    sum_until(N1, Acc1, Sum).
+sum_until(_, Acc, Acc).
+
+with_cut(X) :- basic(X), X = 2, !.
+with_negation(X) :- basic(X), \+ X = 2.
+
+parent(X) :- child(X).
+child(1) :- !.
+child(2).
+child(3).
+
+if_then_else(X, Y, _) :- X, !, Y.
+if_then_else(_, _, Z) :- Z.
+
+test_basic_cut :-
+    check_goal(
+        basic_cut,
+        (findall(X, cut_first(X), L1), findall(X, no_cut(X), L2), L1 == [1], L2 == [1, 2, 3]),
+        true
+    ).
+
+test_cut_after_condition :-
+    check_goal(
+        cut_after_condition,
+        (findall(X, cut_after(X), L), L == [2]),
+        true
+    ).
+
+test_no_backtrack_to_choice_point :-
+    check_goal(
+        no_backtrack_to_choice_point,
+        (findall(X-Y, outer(X, Y), L), L == [1-a, 1-b]),
+        true
+    ).
+
+test_nested_cuts :-
+    check_goal(
+        nested_cuts,
+        (findall(Y, outer(_, Y), L), L == [a, b]),
+        true
+    ).
+
+test_cut_in_conditional :-
+    check_goal(
+        cut_in_conditional,
+        (max(5, 3, R1), max(2, 7, R2), max(4, 4, R3), R1 == 5, R2 == 7, R3 == 4),
+        true
+    ).
+
+test_cut_with_failure :-
+    check_goal(cut_with_failure, fail_after_cut(_), false).
+
+test_cut_in_recursion :-
+    check_goal(
+        cut_in_recursion,
+        (sum_until(5, 0, S), S == 15),
+        true
+    ).
+
+test_cut_vs_negation :-
+    check_goal(
+        cut_vs_negation,
+        (findall(X, with_cut(X), L1), findall(X, with_negation(X), L2), L1 == [2], L2 == [1, 3]),
+        true
+    ).
+
+test_cut_doesnt_affect_parent :-
+    check_goal(
+        cut_doesnt_affect_parent,
+        (findall(X, parent(X), L), L == [1]),
+        true
+    ).
+
+test_if_then_else :-
+    check_goal(
+        if_then_else,
+        (if_then_else(1 = 1, R1 = then, R1 = else), if_then_else(1 = 2, R2 = then, R2 = else), R1 == then, R2 == else),
+        true
+    ).
+
+run_tests(Total, Passed, Failures) :-
+    init_iso_test_state,
+    test_basic_cut,
+    test_cut_after_condition,
+    test_no_backtrack_to_choice_point,
+    test_nested_cuts,
+    test_cut_in_conditional,
+    test_cut_with_failure,
+    test_cut_in_recursion,
+    test_cut_vs_negation,
+    test_cut_doesnt_affect_parent,
+    test_if_then_else,
+    collect_iso_test_result(Total, Passed, Failures).
+
+run_tests :-
+    run_tests(Total, Passed, Failures),
+    Total > 0,
+    Total =:= Passed,
+    Failures == [].

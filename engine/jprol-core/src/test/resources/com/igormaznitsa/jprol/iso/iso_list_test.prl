@@ -1,0 +1,98 @@
+% Machine-oriented ISO Prolog test suite: list operations
+% Adapted from examples/prolog/iso_list_test.prl
+
+:- dynamic(iso_test_total/1).
+:- dynamic(iso_test_passed/1).
+:- dynamic(iso_test_failure/1).
+
+init_iso_test_state :-
+    retractall(iso_test_total(_)),
+    retractall(iso_test_passed(_)),
+    retractall(iso_test_failure(_)),
+    assertz(iso_test_total(0)),
+    assertz(iso_test_passed(0)).
+
+check_goal(Name, Goal, Expected) :-
+    retract(iso_test_total(Total)),
+    NextTotal is Total + 1,
+    assertz(iso_test_total(NextTotal)),
+    catch(
+        (\+ \+ call(Goal) -> Actual = true ; Actual = false),
+        Error,
+        Actual = error(Error)
+    ),
+    (   Actual == Expected
+    ->  retract(iso_test_passed(Passed)),
+        NextPassed is Passed + 1,
+        assertz(iso_test_passed(NextPassed))
+    ;   assertz(iso_test_failure(failed(Name, Expected, Actual)))
+    ).
+
+collect_iso_test_result(Total, Passed, Failures) :-
+    iso_test_total(Total),
+    iso_test_passed(Passed),
+    findall(Failure, iso_test_failure(Failure), Failures),
+    retractall(iso_test_total(_)),
+    retractall(iso_test_passed(_)),
+    retractall(iso_test_failure(_)).
+
+sublist(Sub, List) :-
+    append(_, L, List),
+    append(Sub, _, L).
+
+test_empty_list :-
+    check_goal(empty_list, ([] = []), true).
+
+test_head_tail :-
+    check_goal(head_tail_extraction, ([H|T] = [1, 2, 3], H == 1, T == [2, 3]), true).
+
+test_membership :-
+    check_goal(membership_present, member(2, [1, 2, 3]), true),
+    check_goal(membership_absent, member(4, [1, 2, 3]), false).
+
+test_concatenation :-
+    check_goal(concatenation_normal, append([1, 2], [3, 4], [1, 2, 3, 4]), true),
+    check_goal(concatenation_empty, append([], [1, 2], [1, 2]), true).
+
+test_length :-
+    check_goal(length_normal, length([1, 2, 3], 3), true),
+    check_goal(length_empty, length([], 0), true).
+
+test_reverse :-
+    check_goal(reverse_normal, reverse([1, 2, 3], [3, 2, 1]), true),
+    check_goal(reverse_empty, reverse([], []), true).
+
+test_sublist :-
+    check_goal(sublist_present, sublist([2, 3], [1, 2, 3, 4]), true),
+    check_goal(sublist_absent, sublist([3, 5], [1, 2, 3, 4]), false).
+
+test_sorting :-
+    check_goal(sorting_normal, msort([3, 1, 2], [1, 2, 3]), true),
+    check_goal(sorting_empty, msort([], []), true).
+
+test_nested_lists :-
+    check_goal(nested_list_present, member([2, 3], [[1], [2, 3], [4, 5]]), true),
+    check_goal(nested_list_absent, member([6], [[1], [2, 3], [4, 5]]), false).
+
+test_non_list :-
+    check_goal(non_list_argument, member(1, not_a_list), false).
+
+run_tests(Total, Passed, Failures) :-
+    init_iso_test_state,
+    test_empty_list,
+    test_head_tail,
+    test_membership,
+    test_concatenation,
+    test_length,
+    test_reverse,
+    test_sublist,
+    test_sorting,
+    test_nested_lists,
+    test_non_list,
+    collect_iso_test_result(Total, Passed, Failures).
+
+run_tests :-
+    run_tests(Total, Passed, Failures),
+    Total > 0,
+    Total =:= Passed,
+    Failures == [].

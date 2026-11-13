@@ -1,0 +1,118 @@
+% Machine-oriented ISO Prolog test suite: arithmetic and bitwise operators
+% Adapted from examples/prolog/iso_arith_test.prl
+
+:- dynamic(iso_test_total/1).
+:- dynamic(iso_test_passed/1).
+:- dynamic(iso_test_failure/1).
+
+init_iso_test_state :-
+    retractall(iso_test_total(_)),
+    retractall(iso_test_passed(_)),
+    retractall(iso_test_failure(_)),
+    assertz(iso_test_total(0)),
+    assertz(iso_test_passed(0)).
+
+check_goal(Name, Goal, Expected) :-
+    retract(iso_test_total(Total)),
+    NextTotal is Total + 1,
+    assertz(iso_test_total(NextTotal)),
+    catch(
+        (\+ \+ call(Goal) -> Actual = true ; Actual = false),
+        Error,
+        Actual = error(Error)
+    ),
+    (   Actual == Expected
+    ->  retract(iso_test_passed(Passed)),
+        NextPassed is Passed + 1,
+        assertz(iso_test_passed(NextPassed))
+    ;   assertz(iso_test_failure(failed(Name, Expected, Actual)))
+    ).
+
+collect_iso_test_result(Total, Passed, Failures) :-
+    iso_test_total(Total),
+    iso_test_passed(Passed),
+    findall(Failure, iso_test_failure(Failure), Failures),
+    retractall(iso_test_total(_)),
+    retractall(iso_test_passed(_)),
+    retractall(iso_test_failure(_)).
+
+float_equals(A, B) :-
+    abs(A - B) < 1e-10.
+
+test_addition :-
+    check_goal(test_addition, (X is 2 + 3, X =:= 5), true).
+
+test_subtraction :-
+    check_goal(test_subtraction, (X is 7 - 4, X =:= 3), true).
+
+test_multiplication :-
+    check_goal(test_multiplication, (X is 6 * 7, X =:= 42), true).
+
+test_division :-
+    check_goal(test_division, (X is 9 / 3, X =:= 3.0), true).
+
+test_integer_division :-
+    check_goal(test_integer_division, (X is 9 // 4, X =:= 2), true).
+
+test_modulus :-
+    check_goal(test_modulus, (X is 9 mod 4, X =:= 1), true).
+
+test_power :-
+    check_goal(test_power, (X is 2 ** 3, X =:= 8), true).
+
+test_float_addition :-
+    check_goal(test_float_addition, (X is 1.1 + 2.2, float_equals(X, 3.3)), true).
+
+test_float_subtraction :-
+    check_goal(test_float_subtraction, (X is 5.5 - 2.2, float_equals(X, 3.3)), true).
+
+test_float_multiplication :-
+    check_goal(test_float_multiplication, (X is 1.5 * 2.0, float_equals(X, 3.0)), true).
+
+test_float_division :-
+    check_goal(test_float_division, (X is 7.5 / 2.5, float_equals(X, 3.0)), true).
+
+test_float_power :-
+    check_goal(test_float_power, (X is 2.0 ** 0.5, float_equals(X, sqrt(2))), true).
+
+test_float_precision :-
+    check_goal(test_float_precision, (X is 0.1 + 0.2, float_equals(X, 0.3)), true).
+
+test_bitwise_and :-
+    check_goal(test_bitwise_and, (X is 0b1101 /\ 0b1011, X =:= 0b1001), true).
+
+test_bitwise_or :-
+    check_goal(test_bitwise_or, (X is 0b1101 \/ 0b1011, X =:= 0b1111), true).
+
+test_bitwise_xor :-
+    check_goal(test_bitwise_xor, (X is 0b1101 xor 0b1011, X =:= 0b0110), true).
+
+test_bitwise_not :-
+    check_goal(test_bitwise_not, (X is \ 0b1101 /\ 0xFFFF, X =:= 0b1111111111110010), true).
+
+run_tests(Total, Passed, Failures) :-
+    init_iso_test_state,
+    test_addition,
+    test_subtraction,
+    test_multiplication,
+    test_division,
+    test_integer_division,
+    test_modulus,
+    test_power,
+    test_float_addition,
+    test_float_subtraction,
+    test_float_multiplication,
+    test_float_division,
+    test_float_power,
+    test_float_precision,
+    test_bitwise_and,
+    test_bitwise_or,
+    test_bitwise_xor,
+    test_bitwise_not,
+    collect_iso_test_result(Total, Passed, Failures).
+
+run_tests :-
+    run_tests(Total, Passed, Failures),
+    Total > 0,
+    Total =:= Passed,
+    Failures == [].

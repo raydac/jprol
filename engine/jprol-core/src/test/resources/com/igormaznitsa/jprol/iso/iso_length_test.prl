@@ -1,0 +1,119 @@
+% Machine-oriented ISO Prolog test suite: length/2
+% Adapted from examples/prolog/iso_length_test.prl
+
+:- set_prolog_flag(verify, false).
+
+:- dynamic(iso_test_total/1).
+:- dynamic(iso_test_passed/1).
+:- dynamic(iso_test_failure/1).
+
+init_iso_test_state :-
+    retractall(iso_test_total(_)),
+    retractall(iso_test_passed(_)),
+    retractall(iso_test_failure(_)),
+    assertz(iso_test_total(0)),
+    assertz(iso_test_passed(0)).
+
+check_goal(Name, Goal, Expected) :-
+    retract(iso_test_total(Total)),
+    NextTotal is Total + 1,
+    assertz(iso_test_total(NextTotal)),
+    catch(
+        (\+ \+ call(Goal) -> Actual = true ; Actual = false),
+        Error,
+        Actual = error(Error)
+    ),
+    (   Actual == Expected
+    ->  retract(iso_test_passed(Passed)),
+        NextPassed is Passed + 1,
+        assertz(iso_test_passed(NextPassed))
+    ;   assertz(iso_test_failure(failed(Name, Expected, Actual)))
+    ).
+
+collect_iso_test_result(Total, Passed, Failures) :-
+    iso_test_total(Total),
+    iso_test_passed(Passed),
+    findall(Failure, iso_test_failure(Failure), Failures),
+    retractall(iso_test_total(_)),
+    retractall(iso_test_passed(_)),
+    retractall(iso_test_failure(_)).
+
+test_empty_list :-
+    check_goal(test_empty_list, length([], 0), true).
+
+test_singleton_list :-
+    check_goal(test_singleton_list, length([a], 1), true).
+
+test_small_list :-
+    check_goal(test_small_list, length([a, b, c], 3), true).
+
+test_mixed_elements :-
+    check_goal(test_mixed_elements, length([a, 42, foo(bar)], 3), true).
+
+test_variable_list :-
+    check_goal(test_variable_list, (length(List, 4), List = [_A, _B, _C, _D]), true).
+
+test_partially_instantiated_length :-
+    check_goal(test_partially_instantiated_length, (List = [a, _], length(List, 2)), true).
+
+large_list_goal :-
+    length(List, 1000),
+    length(FilledList, 1000),
+    append(List, [], FilledList).
+
+test_large_list :-
+    check_goal(test_large_list, large_list_goal, true).
+
+test_variable_length :-
+    check_goal(test_variable_length, (List = [a, b, c], length(List, Length), Length == 3), true).
+
+test_incorrect_length :-
+    check_goal(test_incorrect_length, length([a, b, c], 4), false).
+
+test_non_list_input :-
+    check_goal(test_non_list_input, length(foo, 3), false).
+
+test_negative_length :-
+    check_goal(test_negative_length, length([a, b], -1), false).
+
+test_infinite_list :-
+    check_goal(test_infinite_list, (length([_|Tail], 1000), Tail = Tail), false).
+
+test_ground_check :-
+    check_goal(test_ground_check, (length(X, 3), X = [1, 2, 3]), true).
+
+test_backtracking :-
+    check_goal(
+        test_backtracking,
+        (findall(L, (member(L, [[a, b, c], [a, b, d]]), length(L, 3)), Results),
+         Results == [[a, b, c], [a, b, d]]),
+        true
+    ).
+
+test_corner_case :-
+    check_goal(test_corner_case, (X = Tail, length([1, 2, 3|Tail], X)), false).
+
+run_tests(Total, Passed, Failures) :-
+    init_iso_test_state,
+    test_empty_list,
+    test_singleton_list,
+    test_small_list,
+    test_mixed_elements,
+    test_variable_list,
+    test_partially_instantiated_length,
+    test_large_list,
+    test_variable_length,
+    test_incorrect_length,
+    test_non_list_input,
+    test_negative_length,
+    test_infinite_list,
+    test_ground_check,
+    test_backtracking,
+    test_corner_case,
+    collect_iso_test_result(Total, Passed, Failures).
+
+run_tests :-
+    run_tests(Total, Passed, Failures),
+    Total > 0,
+    Total =:= Passed,
+    Failures == [].

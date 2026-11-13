@@ -1,0 +1,167 @@
+% Machine-oriented ISO Prolog test suite: syntax and operators
+% Adapted from examples/prolog/iso_test.prl
+
+:- dynamic(iso_test_total/1).
+:- dynamic(iso_test_passed/1).
+:- dynamic(iso_test_failure/1).
+:- dynamic(temp/1).
+
+init_iso_test_state :-
+    retractall(iso_test_total(_)),
+    retractall(iso_test_passed(_)),
+    retractall(iso_test_failure(_)),
+    assertz(iso_test_total(0)),
+    assertz(iso_test_passed(0)).
+
+check_goal(Name, Goal, Expected) :-
+    retract(iso_test_total(Total)),
+    NextTotal is Total + 1,
+    assertz(iso_test_total(NextTotal)),
+    catch(
+        (\+ \+ call(Goal) -> Actual = true ; Actual = false),
+        Error,
+        Actual = error(Error)
+    ),
+    (   Actual == Expected
+    ->  retract(iso_test_passed(Passed)),
+        NextPassed is Passed + 1,
+        assertz(iso_test_passed(NextPassed))
+    ;   assertz(iso_test_failure(failed(Name, Expected, Actual)))
+    ).
+
+collect_iso_test_result(Total, Passed, Failures) :-
+    iso_test_total(Total),
+    iso_test_passed(Passed),
+    findall(Failure, iso_test_failure(Failure), Failures),
+    retractall(iso_test_total(_)),
+    retractall(iso_test_passed(_)),
+    retractall(iso_test_failure(_)).
+
+test_arithmetic :-
+    check_goal(
+        test_arithmetic,
+        (X is 3 + 4 * 2 - 5 / 2 + 2 ^ 3,
+         Y is -X,
+         Z is abs(Y),
+         X =:= 17,
+         Y =:= -17,
+         Z =:= 17),
+        true
+    ).
+
+test_comparison :-
+    check_goal(
+        test_comparison,
+        (5 =:= 5, 5 =\= 4, 5 < 10, 10 > 5, 5 =< 5, 10 >= 5),
+        true
+    ).
+
+test_term_comparison :-
+    check_goal(
+        test_term_comparison,
+        (a @< b, b @> a, a @=< a, b @>= a),
+        true
+    ).
+
+test_unification :-
+    check_goal(
+        test_unification,
+        (X = Y, \+ (X \= Y)),
+        true
+    ).
+
+test_control :-
+    check_goal(
+        test_control,
+        ((true -> B1 = true_branch ; B1 = false_branch),
+         (fail ; B2 = alternative),
+         (true ; fail),
+         B1 == true_branch,
+         B2 == alternative),
+        true
+    ).
+
+test_logical :-
+    check_goal(
+        test_logical,
+        (true, \+ false, (true, true), (true ; false)),
+        true
+    ).
+
+test_bitwise :-
+    check_goal(
+        test_bitwise,
+        (X is 5 /\ 3, Y is 5 \/ 3, Z is \ 5,
+         X =:= 1, Y =:= 7, Z =:= -6),
+        true
+    ).
+
+test_lists :-
+    check_goal(
+        test_lists,
+        ([H|T] = [1, 2, 3],
+         append([1, 2], [3, 4], L),
+         member(2, [1, 2, 3]),
+         H == 1,
+         T == [2, 3],
+         L == [1, 2, 3, 4]),
+        true
+    ).
+
+test_misc :-
+    check_goal(
+        test_misc,
+        (var(_X), nonvar(1), atomic(atom), compound(f(a, b))),
+        true
+    ).
+
+test_clauses :-
+    check_goal(
+        test_clauses,
+        ((A = 5, B = 10 -> Result is A + B ; Result is 0),
+         Result =:= 15),
+        true
+    ).
+
+test_dynamic :-
+    check_goal(
+        test_dynamic,
+        (retractall(temp(_)),
+         assertz(temp(10)),
+         retract(temp(10)),
+         \+ temp(_)),
+        true
+    ).
+
+test_call :-
+    check_goal(
+        test_call,
+        (Goal = (Tag = called),
+         call(Goal),
+         once(member(X, [1, 2, 3])),
+         Tag == called,
+         X == 1),
+        true
+    ).
+
+run_tests(Total, Passed, Failures) :-
+    init_iso_test_state,
+    test_arithmetic,
+    test_comparison,
+    test_term_comparison,
+    test_unification,
+    test_control,
+    test_logical,
+    test_bitwise,
+    test_lists,
+    test_misc,
+    test_clauses,
+    test_dynamic,
+    test_call,
+    collect_iso_test_result(Total, Passed, Failures).
+
+run_tests :-
+    run_tests(Total, Passed, Failures),
+    Total > 0,
+    Total =:= Passed,
+    Failures == [].

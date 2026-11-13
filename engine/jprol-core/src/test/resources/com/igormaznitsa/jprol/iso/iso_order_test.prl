@@ -1,0 +1,166 @@
+% Machine-oriented ISO Prolog test suite: term standard order and [] classification
+% Adapted from examples/prolog/iso_order_test.prl
+
+:- dynamic(iso_test_total/1).
+:- dynamic(iso_test_passed/1).
+:- dynamic(iso_test_failure/1).
+
+init_iso_test_state :-
+    retractall(iso_test_total(_)),
+    retractall(iso_test_passed(_)),
+    retractall(iso_test_failure(_)),
+    assertz(iso_test_total(0)),
+    assertz(iso_test_passed(0)).
+
+check_goal(Name, Goal, Expected) :-
+    retract(iso_test_total(Total)),
+    NextTotal is Total + 1,
+    assertz(iso_test_total(NextTotal)),
+    catch(
+        (\+ \+ call(Goal) -> Actual = true ; Actual = false),
+        Error,
+        Actual = error(Error)
+    ),
+    (   Actual == Expected
+    ->  retract(iso_test_passed(Passed)),
+        NextPassed is Passed + 1,
+        assertz(iso_test_passed(NextPassed))
+    ;   assertz(iso_test_failure(failed(Name, Expected, Actual)))
+    ).
+
+collect_iso_test_result(Total, Passed, Failures) :-
+    iso_test_total(Total),
+    iso_test_passed(Passed),
+    findall(Failure, iso_test_failure(Failure), Failures),
+    retractall(iso_test_total(_)),
+    retractall(iso_test_passed(_)),
+    retractall(iso_test_failure(_)).
+
+run_goal_list(_, _, []).
+run_goal_list(Section, Index, [Goal|Rest]) :-
+    check_goal(case(Section, Index, Goal), Goal, true),
+    NextIndex is Index + 1,
+    run_goal_list(Section, NextIndex, Rest).
+
+test_section(Section, Goals) :-
+    run_goal_list(Section, 1, Goals).
+
+run_tests(Total, Passed, Failures) :-
+    init_iso_test_state,
+
+    test_section(basic_classification, [
+        atomic([]),
+        \+ atom([]),
+        \+ compound([]),
+        atom(a),
+        atomic(a),
+        number(1),
+        \+ atomic(_X0)
+    ]),
+
+    test_section(variable_ordering, [
+        _X1 @< 0,
+        _X2 @< a,
+        _X3 @< [],
+        _X4 @< f(a),
+        _X5 @< [a]
+    ]),
+
+    test_section(number_ordering, [
+        -1 @< 0,
+        0 @< 1,
+        1 @< 1.5,
+        2 @> 1
+    ]),
+
+    test_section(atom_ordering, [
+        a @< b,
+        a @< aa,
+        'A' @< a,
+        '[]' @< a,
+        foo @> bar
+    ]),
+
+    test_section(empty_list_vs_atoms, [
+        [] @< a,
+        [] @< '[]',
+        [] @< foo,
+        \+ (a @< [])
+    ]),
+
+    test_section(empty_list_vs_numbers, [
+        0 @< [],
+        -1 @< [],
+        \+ ([] @< 0)
+    ]),
+
+    test_section(empty_list_vs_compound, [
+        [] @< f(a),
+        [] @< g,
+        [] @< '.'(a, []),
+        \+ (f(a) @< [])
+    ]),
+
+    test_section(list_ordering_basic, [
+        [] @< [a],
+        [] @< [[]],
+        [a] @< [b],
+        [a] @< [a, b],
+        [a, b] @< [a, c],
+        [a, b] @> [a]
+    ]),
+
+    test_section(empty_list_inside_lists, [
+        [[]] @< [[a]],
+        [[]] @< [[[]]],
+        [[a], []] @> [[a]]
+    ]),
+
+    test_section(improper_lists, [
+        [a|b] @> [a],
+        [a] @< [a|b],
+        [a|b] @< [b|a],
+        [a|b] @< [a|c]
+    ]),
+
+    test_section(functor_and_arity, [
+        f(a) @< f(a, b),
+        f(a) @< g(a),
+        f(a, b) @> f(a),
+        '.'(a, []) @< '.'(b, [])
+    ]),
+
+    test_section(compound_vs_atom, [
+        a @< f(a),
+        foo @< [a],
+        bar @< g(a, b)
+    ]),
+
+    test_section(deep_terms, [
+        f(g(a)) @< f(g(b)),
+        f(g(a)) @< f(h(a)),
+        f(g(a, b)) @> f(g(a)),
+        [a, [b, [c]]] @< [a, [b, [d]]]
+    ]),
+
+    test_section(mixed_structures, [
+        [a, f(a)] @< [a, g(a)],
+        [a, 1] @< [a, a],
+        [a, []] @< [a, [a]],
+        f([a]) @< f([b])
+    ]),
+
+    test_section(compare_consistency, [
+        compare(<, [], [a]),
+        compare(>, [a], []),
+        compare(=, a, a),
+        compare(<, a, f(a))
+    ]),
+
+    collect_iso_test_result(Total, Passed, Failures).
+
+run_tests :-
+    run_tests(Total, Passed, Failures),
+    Total > 0,
+    Total =:= Passed,
+    Failures == [].

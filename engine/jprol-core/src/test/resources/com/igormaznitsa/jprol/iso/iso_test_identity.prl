@@ -1,0 +1,158 @@
+% Machine-oriented ISO Prolog test suite: ==/2 and =@=/2
+% Adapted from examples/prolog/iso_test_identity.prl
+
+:- dynamic(iso_test_total/1).
+:- dynamic(iso_test_passed/1).
+:- dynamic(iso_test_failure/1).
+
+init_iso_test_state :-
+    retractall(iso_test_total(_)),
+    retractall(iso_test_passed(_)),
+    retractall(iso_test_failure(_)),
+    assertz(iso_test_total(0)),
+    assertz(iso_test_passed(0)).
+
+check_goal(Name, Goal, Expected) :-
+    retract(iso_test_total(Total)),
+    NextTotal is Total + 1,
+    assertz(iso_test_total(NextTotal)),
+    catch(
+        (\+ \+ call(Goal) -> Actual = true ; Actual = false),
+        Error,
+        Actual = error(Error)
+    ),
+    (   Actual == Expected
+    ->  retract(iso_test_passed(Passed)),
+        NextPassed is Passed + 1,
+        assertz(iso_test_passed(NextPassed))
+    ;   assertz(iso_test_failure(failed(Name, Expected, Actual)))
+    ).
+
+collect_iso_test_result(Total, Passed, Failures) :-
+    iso_test_total(Total),
+    iso_test_passed(Passed),
+    findall(Failure, iso_test_failure(Failure), Failures),
+    retractall(iso_test_total(_)),
+    retractall(iso_test_passed(_)),
+    retractall(iso_test_failure(_)).
+
+test_strict_equality :-
+    check_goal('atom == atom', a == a, true),
+    check_goal('different atoms', a == b, false),
+    check_goal('integer == integer', 42 == 42, true),
+    check_goal('different integers', 42 == 43, false),
+    check_goal('float == float', 3.14 == 3.14, true),
+    check_goal('different floats', 3.14 == 3.15, false),
+
+    check_goal('unbound var == same var', (X1 == X1), true),
+    check_goal('different unbound vars', (X2 == Y2), false),
+    check_goal('bound var == bound var same value', (X3 = 5, Y3 = 5, X3 == Y3), true),
+    check_goal('var bound to atom', (X4 = a, X4 == a), true),
+    check_goal('var bound then compared', (X5 = a, Y5 = X5, Y5 == X5), true),
+
+    check_goal('integer vs float same value', 1 == 1.0, false),
+
+    check_goal('empty list == []', [] == [], true),
+    check_goal('string vs atom', "abc" == abc, false),
+
+    check_goal('identical compound terms', f(a, b) == f(a, b), true),
+    check_goal('different functors', f(a) == g(a), false),
+    check_goal('different arity', f(a) == f(a, b), false),
+    check_goal('different arguments', f(a, b) == f(a, c), false),
+    check_goal('nested compounds', f(g(a)) == f(g(a)), true),
+
+    check_goal('identical lists', [1, 2, 3] == [1, 2, 3], true),
+    check_goal('different lists', [1, 2, 3] == [1, 2, 4], false),
+    check_goal('nested lists', [[1, 2], [3, 4]] == [[1, 2], [3, 4]], true),
+
+    check_goal('compound with unbound vars', f(X6, X6) == f(Y6, Y6), false),
+    check_goal('compound same var twice', (X7 = a, f(X7, X7) == f(a, a)), true),
+    check_goal('partially instantiated', f(X8, a) == f(Y8, a), false).
+
+test_structural_equality :-
+    check_goal('atom =@= atom', a =@= a, true),
+    check_goal('different atoms variant', a =@= b, false),
+    check_goal('integer =@= integer', 42 =@= 42, true),
+    check_goal('float =@= float', 3.14 =@= 3.14, true),
+
+    check_goal('unbound var =@= same var', (X1 =@= X1), true),
+    check_goal('different unbound vars variant', (X2 =@= Y2), true),
+    check_goal('f(X,X) =@= f(Y,Y)', f(X3, X3) =@= f(Y3, Y3), true),
+    check_goal('f(X,Y) =@= f(A,B)', f(X4, Y4) =@= f(A4, B4), true),
+    check_goal('f(X,X) =@= f(Y,Z)', f(X5, X5) =@= f(Y5, Z5), false),
+    check_goal('f(X,Y) =@= f(A,A)', f(X6, Y6) =@= f(A6, A6), false),
+
+    check_goal('bound vars same value variant', (X7 = 5, Y7 = 5, X7 =@= Y7), true),
+    check_goal('bound to different values', (X8 = 5, Y8 = 6, X8 =@= Y8), false),
+
+    check_goal('integer vs float variant', 1 =@= 1.0, false),
+
+    check_goal('g(X,a,X) =@= g(Y,a,Y)', g(X9, a, X9) =@= g(Y9, a, Y9), true),
+    check_goal('g(X,a,Y) =@= g(Z,a,W)', g(XA, a, YA) =@= g(ZA, a, WA), true),
+    check_goal('h(X,X,Y) =@= h(A,A,B)', h(XB, XB, YB) =@= h(AB, AB, BB), true),
+    check_goal('h(X,Y,X) =@= h(A,A,B)', h(XC, YC, XC) =@= h(AC, AC, BC), false),
+
+    check_goal('[X,Y] =@= [A,B]', [XD, YD] =@= [AD, BD], true),
+    check_goal('[X,X] =@= [Y,Y]', [XE, XE] =@= [YE, YE], true),
+    check_goal('[X,X] =@= [Y,Z]', [XF, XF] =@= [YF, ZF], false),
+    check_goal('[X|Y] =@= [A|B]', [X10|Y10] =@= [A10|B10], true),
+    check_goal('[X|X] =@= [Y|Y]', [X11|X11] =@= [Y11|Y11], true),
+
+    check_goal('nested variant', f(g(X12, Y12), h(X12)) =@= f(g(A12, B12), h(A12)), true),
+    check_goal('nested non-variant', f(g(X13, X13), h(X13)) =@= f(g(A13, B13), h(A13)), false),
+
+    check_goal('mixed bound/unbound', (X14 = a, f(X14, Y14) =@= f(a, Z14)), true),
+    check_goal('all bound same', (X15 = a, Y15 = b, f(X15, Y15) =@= f(a, b)), true).
+
+test_corner_cases :-
+    check_goal('empty atoms', '' == '', true),
+    check_goal('empty atoms variant', '' =@= '', true),
+    check_goal('empty list identity', [] == [], true),
+    check_goal('empty list variant', [] =@= [], true),
+
+    check_goal('deeply nested ==', f(f(f(a))) == f(f(f(a))), true),
+    check_goal('deeply nested =@=', f(f(f(X1))) =@= f(f(f(Y1))), true),
+
+    check_goal('large integer ==', 999999999999 == 999999999999, true),
+    check_goal('large integer =@=', 999999999999 =@= 999999999999, true),
+
+    check_goal('shared var structure ==', (f(X2, X2, g(X2)) == f(Y2, Y2, g(Y2))), false),
+    check_goal('shared var structure =@=', (f(X3, X3, g(X3)) =@= f(Y3, Y3, g(Y3))), true),
+    check_goal('partial sharing ==', (f(X4, Y4, X4) == f(A4, B4, A4)), false),
+    check_goal('partial sharing =@=', (f(X5, Y5, X5) =@= f(A5, B5, A5)), true),
+
+    check_goal('self vs different var ==', (X6 == Y6), false),
+    check_goal('self vs different var =@=', (X7 =@= Y7), true),
+
+    check_goal('mixed types ==', f(1, a, 3.14) == f(1, a, 3.14), true),
+    check_goal('mixed types =@=', f(1, a, 3.14) =@= f(1, a, 3.14), true),
+    check_goal('mixed with vars =@=', f(1, X8, 3.14) =@= f(1, Y8, 3.14), true).
+
+test_properties :-
+    check_goal('== reflexive constant', a == a, true),
+    check_goal('=@= reflexive constant', a =@= a, true),
+    check_goal('== reflexive var', (X1 == X1), true),
+    check_goal('=@= reflexive var', (X2 =@= X2), true),
+
+    check_goal('== symmetric', ((a == b) = (b == a)), false),
+    check_goal('=@= symmetric', ((a =@= b) = (b =@= a)), false),
+
+    check_goal('== not unifying', (X3 = a, Y3 = a, X3 == Y3), true),
+
+    check_goal('consistent renaming 1', f(X4, Y4, X4) =@= f(A4, B4, A4), true),
+    check_goal('consistent renaming 2', f(X5, Y5, Z5) =@= f(A5, B5, C5), true),
+    check_goal('inconsistent renaming', f(X6, Y6, X6, Y6) =@= f(A6, B6, C6, D6), false).
+
+run_tests(Total, Passed, Failures) :-
+    init_iso_test_state,
+    test_strict_equality,
+    test_structural_equality,
+    test_corner_cases,
+    test_properties,
+    collect_iso_test_result(Total, Passed, Failures).
+
+run_tests :-
+    run_tests(Total, Passed, Failures),
+    Total > 0,
+    Total =:= Passed,
+    Failures == [].
