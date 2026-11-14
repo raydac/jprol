@@ -19,7 +19,7 @@ Initially the engine was a mono-block with embedded GUI part, but later it rewor
 
 # Changelog
 
-__4.0.0 (14-nov-2026)__
+__4.0.0 (2926-11-14)__
  - tail-call optimization for tail-recursive rules without growing the prove stack
  - faster clause lookup, proving, and variable creation
  - variables are identified by the instance; anonymous variables are named "_"
