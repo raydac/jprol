@@ -1,6 +1,6 @@
 ![JPROL logo](art/github_logo.png)   
 [![License Apache 12](https://img.shields.io/badge/license-Apache%20License%202.0-green.svg)](http://www.apache.org/licenses/LICENSE-2.0)
-[![Maven central](https://img.shields.io/badge/Maven%20central-3.1.1-green.svg)](http://search.maven.org/#artifactdetails|com.igormaznitsa|jprol-core|3.1.1|jar)
+[![Maven central](https://img.shields.io/badge/Maven%20central-4.0.0-green.svg)](http://search.maven.org/#artifactdetails|com.igormaznitsa|jprol-core|4.0.0|jar)
 [![Java 11+](https://img.shields.io/badge/java-11%2b-green.svg)](https://bell-sw.com/pages/downloads/#jdk-25-lts)
 
 [![Arthur's acres sanctuary donation](art/arthur_sanctuary_banner.png)](https://www.arthursacresanimalsanctuary.org/donate)
@@ -19,29 +19,36 @@ Initially the engine was a mono-block with embedded GUI part, but later it rewor
 
 # Changelog
 
+__4.0.0 (14-nov-2026)__
+ - tail-call optimization for tail-recursive rules without growing the prove stack
+ - faster clause lookup, proving, and variable creation
+ - variables are identified by the instance; anonymous variables are named "_"
+ - `lock/1` counts each acquisition by the same thread and blocks while another thread owns it
+ - `unlock/1` reports a missing locker and a locker owned by another thread
+ - disposing the root context wakes threads blocked in `lock/1`
+ - an interrupted `lock/1` fails instead of succeeding
+ - faster graphics drawing; `graphics/2` uses the real height and resizes when either side changes
+ - Life example redraws every generation without mouse movement and edits the cell under the cursor
+ - updated dependencies
+
 __3.1.1 (2026-05-15)__
 
  - updated depenencies
  - internal refactoring and bugfix
  - embedded JDK updated to 26.0.1+10
 
-__3.1.0 (2026-03-26)__
-
- - added system flag `max_prove_stack_depth`, default max depth is 10000
- - refactoring of choice point to replace recursion by a custom stack
- - embedded JDK updated to 26+37
 
 [changelog](changelog.txt)
 
 # The engine
 
-The engine is published in [the maven central](https://search.maven.org/artifact/com.igormaznitsa/jprol-core/3.1.1/jar) and can be used in maven projects as a dependency. It supports JDK 11+ and also I keep it compatible with Android API.   
+The engine is published in [the maven central](https://search.maven.org/artifact/com.igormaznitsa/jprol-core/4.0.0/jar) and can be used in maven projects as a dependency. It supports JDK 11+ and also I keep it compatible with Android API.   
 
 ```xml
 <dependency>
     <groupId>com.igormaznitsa</groupId>
     <artifactId>jprol-core</artifactId>
-    <version>3.1.1</version>
+    <version>4.0.0</version>
 </dependency>
 ```   
 

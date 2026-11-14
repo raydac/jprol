@@ -1,4 +1,4 @@
-4.0.0-SNAPSHOT (unreleased)
+4.0.0 (14-nov-2026)
     - tail-call optimization for tail-recursive rules without growing the prove stack
     - faster clause lookup, proving, and variable creation
     - variables are identified by the instance; anonymous variables are named "_"
