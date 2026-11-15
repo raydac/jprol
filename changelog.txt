@@ -1,4 +1,5 @@
 4.0.1-SNAPSHOT
+    - trace reports call, exit, redo, and failure, and the trace window shows grounded variables
     - `length/2` counts elements of a list whose tail is already bound
     - a quoted predicate name such as `'foo'/2` is accepted as `foo/2`
     - a predicate indicator stored in a variable passes argument validation

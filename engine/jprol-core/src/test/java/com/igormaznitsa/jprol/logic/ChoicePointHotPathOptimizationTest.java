@@ -26,22 +26,26 @@ import org.junit.jupiter.api.Timeout;
 @Timeout(20)
 class ChoicePointHotPathOptimizationTest extends AbstractJProlTest {
 
+  private static JProlContextListener traceListener(final List<String> events) {
+    return new JProlContextListener() {
+      @Override
+      public void onChoicePointTraceEvent(
+          final JProlContext source,
+          final JProlChoicePoint choicePoint,
+          final TraceEvent event
+      ) {
+        events.add(event.name() + ':' + choicePoint.forTrace());
+      }
+    };
+  }
+
   @Test
   void testTraceEventsWithConjunctionsAndBacktracking() {
     final List<String> events = new ArrayList<>();
     try (final JProlContext context = this.makeContextAndConsult(
         "step(1). step(2). pair(X, Y) :- step(X), step(Y), X < Y.")) {
       context.setSystemFlag(JProlSystemFlag.TRACE, Terms.TRUE);
-      context.addContextListener(new JProlContextListener() {
-        @Override
-        public void onChoicePointTraceEvent(
-            final JProlContext source,
-            final JProlChoicePoint choicePoint,
-            final TraceEvent event
-        ) {
-          events.add(event.name() + ':' + choicePoint.getGoalTerm().getText());
-        }
-      });
+      context.addContextListener(traceListener(events));
 
       final JProlChoicePoint cp = context.makeChoicePoint("pair(A, B).");
       assertNotNull(cp.prove());
@@ -49,10 +53,71 @@ class ChoicePointHotPathOptimizationTest extends AbstractJProlTest {
       assertEquals("2", getVarAsText(cp, "B"));
       assertNull(cp.prove());
 
-      assertTrue(events.contains("CALL:pair"));
-      assertTrue(events.contains("CALL:step"));
-      assertTrue(events.contains("EXIT:step"));
-      assertTrue(events.contains("FAIL:<"));
+      assertEquals(
+          Arrays.asList(
+              "CALL:pair(A,B)",
+              "CALL:step(X)",
+              "EXIT:step(1)  [X = 1]",
+              "CALL:step(Y)  [X = 1]",
+              "EXIT:step(1)  [X = 1, Y = 1]",
+              "CALL:1 < 1  [X = 1, Y = 1]",
+              "FAIL:1 < 1  [X = 1, Y = 1]",
+              "REDO:step(1)  [X = 1, Y = 1]",
+              "EXIT:step(2)  [X = 1, Y = 2]",
+              "CALL:1 < 2  [X = 1, Y = 2]",
+              "EXIT:1 < 2  [X = 1, Y = 2]",
+              "EXIT:pair(1,2)  [A = 1, B = 2]",
+              "REDO:pair(1,2)  [A = 1, B = 2]",
+              "FAIL:1 < 2  [X = 1, Y = 2]",
+              "FAIL:step(2)  [X = 1, Y = 2]",
+              "REDO:step(1)  [X = 1, Y = 2]",
+              "EXIT:step(2)  [X = 2]",
+              "CALL:step(Y)  [X = 2]",
+              "EXIT:step(1)  [X = 2, Y = 1]",
+              "CALL:2 < 1  [X = 2, Y = 1]",
+              "FAIL:2 < 1  [X = 2, Y = 1]",
+              "REDO:step(1)  [X = 2, Y = 1]",
+              "EXIT:step(2)  [X = 2, Y = 2]",
+              "CALL:2 < 2  [X = 2, Y = 2]",
+              "FAIL:2 < 2  [X = 2, Y = 2]",
+              "FAIL:step(2)  [X = 2, Y = 2]",
+              "FAIL:step(2)  [X = 2, Y = 2]",
+              "FAIL:pair(A,B)"
+          ),
+          events);
+    }
+  }
+
+  @Test
+  void testDisabledTraceDoesNotNotifyAndKeepsTheCapturedFlag() {
+    final List<String> events = new ArrayList<>();
+    try (final JProlContext context = this.makeContextAndConsult(
+        "fact(1). fact(2). goal(X) :- fact(X).")) {
+      context.addContextListener(traceListener(events));
+
+      final JProlChoicePoint silent = context.makeChoicePoint("goal(A).");
+      assertFalse(silent.isTrace());
+      assertNotNull(silent.prove());
+      assertEquals("1", getVarAsText(silent, "A"));
+      assertTrue(events.isEmpty());
+
+      context.setSystemFlag(JProlSystemFlag.TRACE, Terms.TRUE);
+      assertNotNull(silent.prove());
+      assertEquals("2", getVarAsText(silent, "A"));
+      assertNull(silent.prove());
+      assertTrue(events.isEmpty());
+
+      final JProlChoicePoint traced = context.makeChoicePoint("goal(A).");
+      assertTrue(traced.isTrace());
+      assertNotNull(traced.prove());
+      assertEquals(
+          Arrays.asList(
+              "CALL:goal(A)",
+              "CALL:fact(X)",
+              "EXIT:fact(1)  [X = 1]",
+              "EXIT:goal(1)  [A = 1]"
+          ),
+          events);
     }
   }
 

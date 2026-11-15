@@ -21,9 +21,13 @@ import static com.igormaznitsa.jprol.data.TermType.OPERATOR;
 import static com.igormaznitsa.jprol.data.TermType.STRUCT;
 import static com.igormaznitsa.jprol.data.TermType.VAR;
 import static com.igormaznitsa.jprol.data.Terms.newStruct;
+import static com.igormaznitsa.jprol.trace.TraceEvent.CALL;
 import static com.igormaznitsa.jprol.trace.TraceEvent.EXIT;
+import static com.igormaznitsa.jprol.trace.TraceEvent.FAIL;
+import static com.igormaznitsa.jprol.trace.TraceEvent.REDO;
 import static java.lang.System.identityHashCode;
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 
 import com.igormaznitsa.jprol.data.CompoundTerm;
@@ -164,15 +168,39 @@ public final class JProlChoicePoint implements Comparator<Term> {
     );
   }
 
-  private static void traceCp(final JProlChoicePoint goalToProcess) {
-    if (goalToProcess.trace) {
-      final TraceEvent traceEvent =
-          goalToProcess.firstResolveCall ? TraceEvent.CALL : TraceEvent.REDO;
-      if (goalToProcess.firstResolveCall) {
-        goalToProcess.firstResolveCall = false;
-      }
-      goalToProcess.context.fireTraceEvent(traceEvent, goalToProcess);
+  private static void traceCallOrRedo(final JProlChoicePoint goal) {
+    if (isTraceControlConnective(goal.goalTerm)) {
+      return;
     }
+    final TraceEvent event = goal.firstResolveCall ? CALL : REDO;
+    goal.firstResolveCall = false;
+    goal.context.fireTraceEvent(event, goal);
+  }
+
+  private static void traceExit(final JProlChoicePoint goal) {
+    if (isTraceControlConnective(goal.goalTerm)) {
+      return;
+    }
+    goal.context.fireTraceEvent(EXIT, goal);
+  }
+
+  private static void traceFail(final JProlChoicePoint goal) {
+    if (isTraceControlConnective(goal.goalTerm)) {
+      return;
+    }
+    goal.context.fireTraceEvent(FAIL, goal);
+  }
+
+  private static boolean isTraceControlConnective(final Term term) {
+    if (term.getTermType() != STRUCT) {
+      return false;
+    }
+    final TermStruct struct = (TermStruct) term;
+    if (struct.getArity() != 2) {
+      return false;
+    }
+    final String name = struct.getFunctor().getText();
+    return ",".equals(name) || ";".equals(name);
   }
 
   private static boolean isConjunctionStruct(final Term term) {
@@ -339,19 +367,6 @@ public final class JProlChoicePoint implements Comparator<Term> {
     return resolved;
   }
 
-  private void fireExitIfTrace(final JProlChoicePoint goal) {
-    if (this.trace) {
-      this.context.fireTraceEvent(EXIT, goal);
-    }
-  }
-
-  private void fireFailAndExitIfTrace(final JProlChoicePoint goal) {
-    if (this.trace) {
-      this.context.fireTraceEvent(TraceEvent.FAIL, goal);
-      this.context.fireTraceEvent(EXIT, goal);
-    }
-  }
-
   private void clearAlternativesAndPrev() {
     this.hasAlternatives = false;
     this.prevCp = null;
@@ -366,13 +381,29 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public Map<String, Term> findAllGroundedVars() {
+    if (this != this.rootChoicePoint) {
+      return this.rootChoicePoint.findAllGroundedVars();
+    }
     final Map<String, TermVar> namedVars = this.resolveVariablesMap();
     return namedVars.isEmpty()
         ? new HashMap<>()
         : namedVars.entrySet()
         .stream()
-        .filter(v -> v.getValue().isGround())
-        .collect(toMap(Map.Entry::getKey, e -> e.getValue().makeClone()));
+        .filter(entry -> entry.getValue().isGround())
+        .collect(toMap(Map.Entry::getKey, entry -> entry.getValue().makeClone()));
+  }
+
+  public String forTrace() {
+    final String goalText = this.goalTerm.forWrite();
+    final Map<String, Term> grounded = this.findAllGroundedVars();
+    if (grounded.isEmpty()) {
+      return goalText;
+    }
+    final String bindings = grounded.entrySet().stream()
+        .sorted(Map.Entry.comparingByKey())
+        .map(entry -> entry.getKey() + " = " + entry.getValue().forWrite())
+        .collect(joining(", "));
+    return goalText + "  [" + bindings + ']';
   }
 
   @Override
@@ -388,8 +419,6 @@ public final class JProlChoicePoint implements Comparator<Term> {
   }
 
   public JProlChoicePoint replaceLastGoalAtChain(final Term goal) {
-    this.fireExitIfTrace(this.rootChoicePoint.parentCp);
-
     final JProlChoicePoint newGoal = this.createChildChoicePoint(goal);
     final JProlChoicePoint prevGoal = newGoal.prevCp;
     if (prevGoal != null) {
@@ -517,15 +546,17 @@ public final class JProlChoicePoint implements Comparator<Term> {
             break mainWhile;
           }
           if (!goalToProcess.hasAlternatives) {
-            activeSelf.fireExitIfTrace(goalToProcess);
+            if (goalToProcess.trace) {
+              traceFail(goalToProcess);
+            }
             root.parentCp = goalToProcess.prevCp;
             continue mainWhile;
           }
         }
 
         try {
-          if (!resumeAfterSubgoal) {
-            traceCp(goalToProcess);
+          if (!resumeAfterSubgoal && goalToProcess.trace) {
+            traceCallOrRedo(goalToProcess);
           }
           int cpResult = CP_FAIL;
           boolean internalLoop = true;
@@ -682,13 +713,18 @@ public final class JProlChoicePoint implements Comparator<Term> {
   ) {
     switch (cpResult) {
       case CP_FAIL:
-        activeSelf.fireFailAndExitIfTrace(goalToProcess);
+        if (goalToProcess.trace) {
+          traceFail(goalToProcess);
+        }
         root.parentCp = goalToProcess.prevCp;
         if (root.parentCp == null && root.varSnapshot != null) {
           root.varSnapshot.resetToState();
         }
         return true;
       case CP_SUCCESS: {
+        if (goalToProcess.trace) {
+          traceExit(goalToProcess);
+        }
         final JProlChoicePoint current = root.parentCp;
         final Term pendingAnd = current.nextAndTerm;
         if (pendingAnd == null) {

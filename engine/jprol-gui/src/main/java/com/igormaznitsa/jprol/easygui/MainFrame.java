@@ -400,18 +400,19 @@ public final class MainFrame extends javax.swing.JFrame
   @Override
   public void onChoicePointTraceEvent(final JProlContext source, final JProlChoicePoint choicePoint,
                                       final TraceEvent event) {
+    final String text = choicePoint.forTrace();
     switch (event) {
       case CALL:
-        this.traceEditor.addCallText(choicePoint.getGoalTerm().forWrite());
+        this.traceEditor.addCallText(text);
         break;
       case REDO:
-        this.traceEditor.addRedoText(choicePoint.getGoalTerm().forWrite());
+        this.traceEditor.addRedoText(text);
         break;
       case FAIL:
-        this.traceEditor.addFailText(choicePoint.getGoalTerm().forWrite());
+        this.traceEditor.addFailText(text);
         break;
       case EXIT:
-        this.traceEditor.addExitText(choicePoint.getGoalTerm().forWrite());
+        this.traceEditor.addExitText(text);
         break;
     }
   }
