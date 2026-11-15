@@ -420,13 +420,18 @@ public final class JProlChoicePoint implements Comparator<Term> {
 
   public JProlChoicePoint replaceLastGoalAtChain(final Term goal) {
     final JProlChoicePoint newGoal = this.createChildChoicePoint(goal);
-    final JProlChoicePoint prevGoal = newGoal.prevCp;
-    if (prevGoal != null) {
-      newGoal.prevCp = prevGoal.prevCp;
-      newGoal.nextAndTerm = prevGoal.nextAndTerm;
-      newGoal.nextAndTermForNextGoal = prevGoal.nextAndTermForNextGoal;
-    }
+    this.takePlaceOfPreviousGoal(newGoal);
     return newGoal;
+  }
+
+  private void takePlaceOfPreviousGoal(final JProlChoicePoint newGoal) {
+    final JProlChoicePoint replaced = newGoal.prevCp;
+    if (replaced == null) {
+      return;
+    }
+    newGoal.prevCp = replaced.prevCp;
+    newGoal.nextAndTerm = replaced.nextAndTerm;
+    newGoal.nextAndTermForNextGoal = replaced.nextAndTermForNextGoal;
   }
 
   /**
@@ -913,7 +918,7 @@ public final class JProlChoicePoint implements Comparator<Term> {
       leftSubbranch.nextAndTerm = this.nextAndTerm;
       this.setInternalObject(leftSubbranch);
     } else {
-      this.replaceLastGoalAtChain(struct.getArgumentAt(1));
+      this.takePlaceOfPreviousGoal(this.createChildChoicePoint(struct.getArgumentAt(1)));
     }
     return CP_STACK_CHANGED;
   }
