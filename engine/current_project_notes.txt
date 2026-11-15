@@ -47,6 +47,7 @@
 - Library predicate lookup walks the library list once until the `PredicateInvoker` is cached on that `TermStruct` instance.
 
 ## 4. Current Work In Progress
+- Public interfaces in `com.igormaznitsa.jprol` now document purpose, call pattern, result, and thrown failures: `KnowledgeBase`, `RetractCursor`, `JProlContextListener`, `KeyValueTermStore`, `JProlContextTrigger`, `QueryInteractor`, `IoResourceProvider`, `CloseableIterator`, `ConvertibleToTerm`.
 - Trace is a boolean captured when a choice point is created. While it is off, the prove loop only reads that flag: no listener calls and no trace text. Ports are call, exit on success, redo on another attempt, and fail without a paired exit. Comma and semicolon goals are not ports. `forTrace()` appends grounded named variables; the GUI trace pane uses that text.
 - Next development is `4.0.1-SNAPSHOT`. `LogicalTasksTest` covers nine pure Prolog problems, including KQ vs K mate in two, the Cassini propulsion diagnosis from Luger section 8.3, and a 100000-step mutual tail relay under a prove-stack limit of 16. Expected answers were fixed before the runs.
 
