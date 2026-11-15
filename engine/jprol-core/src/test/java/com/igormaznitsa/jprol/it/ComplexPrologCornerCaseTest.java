@@ -376,6 +376,10 @@ class ComplexPrologCornerCaseTest extends AbstractJProlTest {
   @Test
   void testUnivRoundTrip() {
     assertEquals("foo('a','b')", this.proveSingle("", "T =.. [foo, a, b].", "T"));
+    assertEquals("foo('a','b','c')",
+        this.proveSingle("", "Args = [b, c], T =.. [foo, a | Args].", "T"));
+    assertEquals("4",
+        this.proveSingle("", "Tail = [3, 4], L = [1, 2 | Tail], length(L, N).", "N"));
     assertEquals("['foo','a','b']", this.proveSingle("", "foo(a, b) =.. L.", "L"));
     assertEquals("['abc']", this.proveSingle("", "abc =.. L.", "L"));
     assertEquals("[1]", this.proveSingle("", "1 =.. L.", "L"));

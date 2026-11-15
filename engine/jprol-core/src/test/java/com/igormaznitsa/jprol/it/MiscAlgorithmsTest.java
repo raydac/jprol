@@ -494,7 +494,7 @@ class MiscAlgorithmsTest extends AbstractJProlTest {
         )
     );
     assertEquals(
-        "cos('x' ** 2) * 2 * 'x'",
+        "cos('x' ** 2) * (2 * 'x')",
         this.proveSingle(
             SYMBOLIC_DIFF_PROGRAM,
             "deriv(sin(x ** 2), x, Raw), simplify_fix(Raw, Simp).",

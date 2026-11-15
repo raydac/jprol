@@ -3,6 +3,7 @@ package com.igormaznitsa.jprol.data;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.igormaznitsa.prologparser.tokenizer.OpAssoc;
@@ -62,5 +63,30 @@ class TermTest {
     assertTrue(head.isPresentedInVarChain(tail));
     assertTrue(head.isPresentedInVarChain(Terms.newVar("Tail")));
     assertFalse(head.isPresentedInVarChain(Terms.newVar("Other")));
+  }
+
+  @Test
+  void testSmallIdentityVarMapPromotesPastSixteenEntries() {
+    final SmallIdentityVarMap map = new SmallIdentityVarMap();
+    final TermVar[] keys = new TermVar[24];
+    final TermVar[] values = new TermVar[24];
+
+    for (int i = 0; i < keys.length; i++) {
+      keys[i] = Terms.newVar("K" + i);
+      values[i] = Terms.newVar("V" + i);
+      assertNull(map.put(keys[i], values[i]));
+    }
+    assertEquals(24, map.size());
+    for (int i = 0; i < keys.length; i++) {
+      assertTrue(map.containsKey(keys[i]));
+      assertEquals(values[i], map.get(keys[i]));
+    }
+
+    final TermVar replacement = Terms.newVar("Replaced");
+    assertEquals(values[5], map.put(keys[5], replacement));
+    assertEquals(replacement, map.get(keys[5]));
+
+    map.clear();
+    assertTrue(map.isEmpty());
   }
 }

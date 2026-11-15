@@ -20,9 +20,10 @@
 - First-argument indexes are cached per predicate, and a cache entry is kept only when the clause set did not change while it was built.
 - Changelog is `../changelog.txt` (jprol repo root, one level above `engine`).
 - Graphics primitives repaint once per burst. `dot/2` writes pixels directly. `fillrectangle/4` draws on the caller thread. `play_sound/2` writes the tone in chunks. `graphics/2` reads the real height and resizes when either side changes.
-- `ComplexPrologCornerCaseTest` (55 passing), `ComplexPrologKnownIssuesTest` (all 16 passing including `testDeepRecursion`), `ChoicePointHotPathOptimizationTest` (11 passing), and `JProlIsoTest` (13 tests / 377 Prolog checks) cover engine semantics, LCO, and hot-path invariants.
+- `ComplexPrologCornerCaseTest` (64 passing), `MiscAlgorithmsTest` (12 passing), `ComplexPrologKnownIssuesTest` (16 passing including `testDeepRecursion`), `ChoicePointHotPathOptimizationTest` (15 passing), and `JProlIsoTest` (13 tests / 377 Prolog checks) cover engine semantics, complex algorithms (Dijkstra, open-list BFS, Red-Black trees, DPLL SAT, symbolic differentiation, Hindley-Milner type inference, memoized DP, recursive-descent parsing, DAG topological sort), LCO, and hot-path invariants.
+- Fixed `call/1`, `catch/3`, `sub_atom/5`, `setof/3` variable restoration, `atom_chars/2`/`atom_codes/2`/`number_chars/2`/`number_codes/2` bound-variable list dereferencing, `TermVar.getPrecedence()` operator formatting, `TermList.calculateLength()` bound-tail walking, `TermLong` `Long.MIN_VALUE` overflow in `abs()`/`div()`, and `ProlUtils.normalizeSignature` for single-quoted signatures.
 - Life example (`examples/java/jprol-example-life`): generations are computed on one daemon executor thread, then the swap and repaint run on the Swing event thread through `invokeAndWait`. `LifeGameField` guards both generation arrays with one private `ReentrantLock`.
-- Notes reviewed and updated after implementing Last Call Optimization and lazy variable snapshots.
+- Notes reviewed and updated after enriching `jprol-core` unit tests (`402` tests passing).
 
 ## 2. Architecture & Technical Discoveries
 - `jprol-core` depends on `java-prolog-parser:2.3.0` (sibling project, Unicode code-point tokenizer). Run `mvn22 install` in the parser before building jprol after parser changes.
@@ -43,7 +44,7 @@
 - Library predicate lookup walks the library list once until the `PredicateInvoker` is cached on that `TermStruct` instance.
 
 ## 4. Current Work In Progress
-- Next development is `4.0.1-SNAPSHOT` after the 4.0.0 release.
+- Next development is `4.0.1-SNAPSHOT`. `length/2` follows a bound list tail. `normalizeSignature("'foo'/2")` is `foo/2`. The derivative of `sin(x**2)` prints as `cos('x' ** 2) * (2 * 'x')`; the unparenthesized expectation was a different term.
 
 ## 5. Known Issues & Limitations
 - First-argument index groups every non-empty list under one bucket. Matching lists still need a full unify.

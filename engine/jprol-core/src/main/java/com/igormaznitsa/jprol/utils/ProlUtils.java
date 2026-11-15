@@ -333,7 +333,7 @@ public final class ProlUtils {
         sig = null;
       } else {
         final String arity = sig.substring(lastIndex + 1).trim();
-        String name = sig.substring(0, lastIndex - 1).trim();
+        String name = sig.substring(0, lastIndex).trim();
         if (!name.isEmpty() && name.charAt(name.length() - 1) == '\'') {
           name = name.substring(0, name.length() - 1);
           sig = name + '/' + arity;

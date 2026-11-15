@@ -220,7 +220,7 @@ public final class TermList extends TermStruct {
     TermList current = this;
     while (!current.isNullList()) {
       length++;
-      final Term tail = current.arguments[INDEX_TAIL];
+      final Term tail = current.getTail();
       if (tail.getTermType() != LIST) {
         break;
       }
@@ -660,7 +660,7 @@ public final class TermList extends TermStruct {
         Term[] elements = new Term[length - 1];
         TermList lst = this.getTail();
         int index = 0;
-        while (lst != NULL_LIST) {
+        while (!lst.isNullList()) {
           elements[index++] = lst.getHead();
           lst = lst.getTail();
         }
