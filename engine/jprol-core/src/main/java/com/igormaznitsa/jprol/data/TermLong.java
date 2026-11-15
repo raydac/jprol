@@ -122,7 +122,11 @@ public final class TermLong extends NumericTerm {
     if (atom.isDouble()) {
       return newDouble((double) this.value / ((TermDouble) atom).doubleValue());
     }
-    return newLong(this.value / ((TermLong) atom).value);
+    final long divisor = ((TermLong) atom).value;
+    if (this.value == Long.MIN_VALUE && divisor == -1L) {
+      throw new ProlEvaluationErrorException("int_overflow", this);
+    }
+    return newLong(this.value / divisor);
   }
 
   @Override
@@ -155,7 +159,10 @@ public final class TermLong extends NumericTerm {
     if (this.value >= 0L) {
       return this;
     }
-    return newLong(Math.abs(this.value));
+    if (this.value == Long.MIN_VALUE) {
+      throw new ProlEvaluationErrorException("int_overflow", this);
+    }
+    return newLong(-this.value);
   }
 
   @Override

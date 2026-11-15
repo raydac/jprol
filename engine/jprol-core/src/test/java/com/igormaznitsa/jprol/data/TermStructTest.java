@@ -2,6 +2,7 @@ package com.igormaznitsa.jprol.data;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 import com.igormaznitsa.jprol.it.AbstractJProlTest;
 import com.igormaznitsa.jprol.logic.JProlChoicePoint;
@@ -29,5 +30,38 @@ class TermStructTest extends AbstractJProlTest {
       assertEquals("ABC", result.tryGround().getText());
       assertEquals(payload, result.tryGround().findPayload(context).orElseThrow());
     }
+  }
+
+  @Test
+  void testOperatorSourceFormattingRespectsPrecedenceThroughBoundVariables() {
+    assertEquals(
+        "(1 + 2) * 4",
+        this.proveSingle("", "A = 1 + 2, T = A * 4.", "T")
+    );
+    assertEquals(
+        "4 * (2 * 3)",
+        this.proveSingle("", "B = 2 * 3, T = 4 * B.", "T")
+    );
+    assertEquals(
+        "1 - (2 - 3)",
+        this.proveSingle("", "B = 2 - 3, T = 1 - B.", "T")
+    );
+    assertEquals(
+        "1 - 2 - 3",
+        this.proveSingle("", "A = 1 - 2, T = A - 3.", "T")
+    );
+  }
+
+  @Test
+  void testDefensiveCopyOfArgumentsArray() {
+    final TermStruct struct = Terms.newStruct(
+        Terms.newAtom("pair"),
+        Terms.newLong(1L),
+        Terms.newLong(2L)
+    );
+    final Term[] argsCopy = struct.getArguments();
+    assertNotSame(argsCopy, struct.getArguments());
+    argsCopy[0] = Terms.newLong(999L);
+    assertEquals("pair(1,2)", struct.toSrcString());
   }
 }

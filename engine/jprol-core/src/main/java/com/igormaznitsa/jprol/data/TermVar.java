@@ -75,6 +75,12 @@ public final class TermVar extends Term {
     return VAR;
   }
 
+  @Override
+  public int getPrecedence() {
+    final Term grounded = this.tryGround();
+    return grounded.getTermType() == VAR ? 0 : grounded.getPrecedence();
+  }
+
   /**
    * Check that a variable presented in variable chain.
    *
