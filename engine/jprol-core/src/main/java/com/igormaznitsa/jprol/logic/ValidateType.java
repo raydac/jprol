@@ -58,8 +58,9 @@ public enum ValidateType {
       (raw, grounded) -> grounded.getTermType() == TermType.LIST && !grounded.isNullList(),
       ProlAssertions::checkNonEmptyList),
   CHAR("char",
-      (raw, grounded) -> grounded.getTermType() == TermType.ATOM &&
-          grounded.getText().length() == 1,
+      (raw, grounded) -> grounded.getTermType() == TermType.ATOM
+          && !(grounded instanceof NumericTerm)
+          && grounded.getText().length() == 1,
       ProlAssertions::checkChar),
   TRIGGER_EVENT("trigger_event",
       (raw, grounded) -> ProlAssertions.isTriggerEventGrounded(grounded),

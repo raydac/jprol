@@ -1,6 +1,8 @@
 4.0.1-SNAPSHOT
     - `length/2` counts elements of a list whose tail is already bound
     - a quoted predicate name such as `'foo'/2` is accepted as `foo/2`
+    - a predicate indicator stored in a variable passes argument validation
+    - a number is rejected where a single character is required
 
 4.0.0 (14-nov-2026)
     - tail-call optimization for tail-recursive rules without growing the prove stack

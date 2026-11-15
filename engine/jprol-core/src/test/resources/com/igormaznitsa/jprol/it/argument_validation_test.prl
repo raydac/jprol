@@ -1,0 +1,64 @@
+% Library-predicate argument checks. The flag is set before run_tests/1 is
+% built: a choice point keeps the verify value it was created with.
+
+:- set_prolog_flag(verify, true).
+:- dynamic(validation_failure/1).
+
+sample(ok).
+
+expect_success(Name, Goal) :-
+    (   catch(call(Goal), _, fail)
+    ->  true
+    ;   assertz(validation_failure(Name))
+    ).
+
+expect_error(Name, Goal, Pattern) :-
+    (   catch((call(Goal), fail), Ball, Ball = Pattern)
+    ->  true
+    ;   assertz(validation_failure(Name))
+    ).
+
+run_tests(Failures) :-
+    retractall(validation_failure(_)),
+    expect_success(length_exact, length([a, b, c], 3)),
+    expect_success(length_binds, (length([a, b, c], Len), Len == 3)),
+    expect_success(length_generates, (length(List, 2), List = [_, _])),
+    expect_success(compare_less, compare(<, a, b)),
+    expect_success(compare_binds, (compare(Order, b, a), Order == '>')),
+    expect_success(functor_reads, functor(f(a, b), f, 2)),
+    expect_success(functor_builds, (functor(Term, foo, 1), functor(Term, foo, 1))),
+    expect_success(atom_length_ok, atom_length(hello, 5)),
+    expect_success(for_range, findall(X, for(X, 1, 3), [1, 2, 3])),
+    expect_success(chars_from_atom, atom_chars(ab, [a, b])),
+    expect_success(chars_from_list, (atom_chars(Atom, [a, b]), Atom == ab)),
+    expect_success(code_from_char, char_code(a, 97)),
+    expect_success(char_from_code, (char_code(Char, 98), Char == b)),
+    expect_success(codes_round_trip, (
+        atom_codes(ab, Codes),
+        atom_codes(Again, Codes),
+        Again == ab
+    )),
+    expect_success(number_chars_round_trip, (
+        number_chars(12, Digits),
+        number_chars(Parsed, Digits),
+        Parsed == 12
+    )),
+    expect_success(random_element, rnd([only], only)),
+    expect_success(concat_atoms, atom_concat(ab, cd, abcd)),
+    expect_success(extract_pairs, (
+        ll2r([role = admin, index = 42], [index = Idx, role = Role]),
+        Idx == 42,
+        Role == admin
+    )),
+    expect_success(indicator_in_variable, (PI = sample/1, current_predicate(PI))),
+    expect_error(length_rejects_atom, length(foo, 3), error(type_error(list, foo), _)),
+    expect_error(compare_rejects_number, compare(1, a, b), error(type_error(atom, 1), _)),
+    expect_error(functor_rejects_negative_arity, functor(_, foo, -1), error(domain_error(integer, -1), _)),
+    expect_error(atom_length_rejects_variable, atom_length(V, _), error(instantiation_error, _)),
+    expect_error(for_rejects_atom, for(_, a, 3), error(type_error(integer, a), _)),
+    expect_error(for_rejects_unbound_bound, for(_, 1, _), error(instantiation_error, _)),
+    expect_error(concat_rejects_number, atom_concat(1, a, _), error(type_error(atom, 1), _)),
+    expect_error(indicator_rejects_number, current_predicate(4), error(type_error(predicate_indicator, 4), _)),
+    expect_error(pairs_reject_atom, ll2r(foo, [a]), error(type_error(list, foo), _)),
+    expect_error(number_chars_rejects_atom, number_chars(foo, _), error(type_error(number, foo), _)),
+    findall(Failure, validation_failure(Failure), Failures).

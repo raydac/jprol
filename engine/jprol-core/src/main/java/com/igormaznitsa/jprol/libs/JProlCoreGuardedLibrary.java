@@ -341,8 +341,7 @@ public class JProlCoreGuardedLibrary extends AbstractJProlLibrary {
     final Set<String> indicators = new LazySet<>();
 
     final Consumer<Term> termConsumer = x -> {
-      ProlAssertions.assertIndicator(x);
-      final TermStruct struct = (TermStruct) x;
+      final TermStruct struct = ProlAssertions.assertIndicator(x);
       final String name = struct.getArgumentAt(0).getText();
       final String arity = struct.getArgumentAt(1).getText();
       indicators.add(name + '/' + arity);

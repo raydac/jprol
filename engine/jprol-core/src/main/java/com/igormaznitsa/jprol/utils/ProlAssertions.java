@@ -158,13 +158,11 @@ public final class ProlAssertions {
   }
 
   public static boolean isIndicatorGrounded(final Term rawTerm, final Term grounded) {
-    if (grounded.getTermType() == VAR) {
+    final Term indicator = grounded instanceof TermStruct ? grounded : rawTerm;
+    if (!(indicator instanceof TermStruct)) {
       return false;
     }
-    if (rawTerm.getTermType() != STRUCT || !(rawTerm instanceof TermStruct)) {
-      return false;
-    }
-    final TermStruct struct = (TermStruct) rawTerm;
+    final TermStruct struct = (TermStruct) indicator;
     if (struct.getArity() != 2 || !"/".equals(struct.getFunctor().getText())) {
       return false;
     }
@@ -515,7 +513,7 @@ public final class ProlAssertions {
         that.getTermType() == TermType.STRUCT) {
       return null;
     } else {
-      throw new ProlTypeErrorException("body", "Expected body term: " + that, that);
+      return new ProlTypeErrorException("body", "Expected body term: " + that, that);
     }
   }
 
@@ -567,7 +565,9 @@ public final class ProlAssertions {
 
   public static ProlException checkChar(final Term term) {
     final Term t = term.tryGround();
-    boolean error = t.getTermType() != TermType.ATOM || t.getText().length() != 1;
+    final boolean error = t.getTermType() != TermType.ATOM
+        || t instanceof NumericTerm
+        || t.getText().length() != 1;
     if (error) {
       return new ProlTypeErrorException("'character' expected, found an atom: " + t, t);
     }
@@ -990,10 +990,14 @@ public final class ProlAssertions {
   }
 
   public static ProlException checkIndicator(final Term t) {
-    assertNonVar(t);
+    final ProlException unbound = checkNonVar(t);
+    if (unbound != null) {
+      return unbound;
+    }
+    final Term resolved = t.tryGround();
     int errorCode = 1;
-    if (t.getTermType() == STRUCT && t instanceof TermStruct) {
-      final TermStruct struct = (TermStruct) t;
+    if (resolved.getTermType() == STRUCT && resolved instanceof TermStruct) {
+      final TermStruct struct = (TermStruct) resolved;
       if (struct.getArity() == 2 && "/".equals(struct.getFunctor().getText())) {
         final Term left = struct.getArgumentAt(0).tryGround();
         final Term right = struct.getArgumentAt(1).tryGround();
