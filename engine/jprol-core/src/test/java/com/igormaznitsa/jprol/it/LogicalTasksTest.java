@@ -310,6 +310,95 @@ class LogicalTasksTest extends AbstractJProlTest {
           + "  \\+ b_king(2, 6, 3, 7, 1, 8, _, _, _, _)."
           + "corner_mate :- mated(2, 6, 3, 7, 1, 8).";
 
+  private static final String CASSINI_PROGRAM =
+      "source(fuel_tank). source(ox_tank)."
+          + "connected(fuel_tank, fuel_pyro, fuel_split)."
+          + "connected(fuel_split, fuel_latch, fuel_in)."
+          + "connected(fuel_split, fuel_pyro_backup, fuel_in)."
+          + "connected(ox_tank, ox_pyro, ox_split)."
+          + "connected(ox_split, ox_latch, ox_in)."
+          + "connected(ox_split, ox_pyro_backup, ox_in)."
+          +
+          "nominal(fuel_pyro, open). nominal(fuel_latch, open). nominal(fuel_pyro_backup, closed)."
+          + "nominal(ox_pyro, open). nominal(ox_latch, open). nominal(ox_pyro_backup, closed)."
+          + "valve(fuel_pyro). valve(fuel_latch). valve(fuel_pyro_backup)."
+          + "valve(ox_pyro). valve(ox_latch). valve(ox_pyro_backup)."
+          + "pressure(fuel_split, high). pressure(fuel_in, low)."
+          + "pressure(ox_split, high). pressure(ox_in, high)."
+          + "pressurized(Node, _, _) :- source(Node)."
+          + "pressurized(Y, Faults, Opens) :-"
+          + "  connected(X, V, Y),"
+          + "  flowing(V, Faults, Opens),"
+          + "  pressurized(X, Faults, Opens)."
+          + "flowing(V, Faults, Opens) :-"
+          + "  \\+ member(stuck(V, closed), Faults),"
+          + "  (member(stuck(V, open), Faults) ; commanded_open(V, Opens))."
+          + "commanded_open(V, Opens) :- member(V, Opens)."
+          + "commanded_open(V, _) :- nominal(V, open)."
+          + "thrust(Faults, Opens) :-"
+          + "  pressurized(fuel_in, Faults, Opens),"
+          + "  pressurized(ox_in, Faults, Opens),"
+          + "  \\+ member(engine, Faults)."
+          + "hypothesis(stuck(V, closed)) :- valve(V), nominal(V, open)."
+          + "hypothesis(engine)."
+          + "faults(stuck(V, S), [stuck(V, S)])."
+          + "faults(engine, [engine])."
+          + "explains(H) :- hypothesis(H), faults(H, Faults), \\+ thrust(Faults, [])."
+          + "agrees(Faults, Opens) :-"
+          + "  \\+ (pressure(N, high), \\+ pressurized(N, Faults, Opens)),"
+          + "  \\+ (pressure(N, low), pressurized(N, Faults, Opens)),"
+          + "  \\+ thrust(Faults, Opens)."
+          + "isolated(H) :- explains(H), faults(H, Faults), agrees(Faults, [])."
+          + "move(fire(V)) :- nominal(V, closed)."
+          + "move(select(backup))."
+          + "achieves(fire(V), Faults) :- thrust(Faults, [V])."
+          + "achieves(select(backup), Faults) :-"
+          + "  pressurized(fuel_in, Faults, []),"
+          + "  pressurized(ox_in, Faults, [])."
+          + "restored(Action) :-"
+          + "  isolated(H), faults(H, Faults), move(Action), achieves(Action, Faults)."
+          + "conflict :- thrust([], []), \\+ agrees([], [])."
+          + "cassini(R) :-"
+          + "  conflict,"
+          + "  findall(H, explains(H), C0), sort(C0, Candidates),"
+          + "  findall(H, isolated(H), I0), sort(I0, Isolated),"
+          + "  findall(A, restored(A), A0), sort(A0, Actions),"
+          + "  R = scenario(Candidates, Isolated, Actions).";
+
+  private static final String RELAY_PROGRAM =
+      "day(0, Lamp, Ledger, Lamp-Ledger) :- !."
+          + "day(N, Lamp, Ledger, Out) :-"
+          + "  N > 0, !,"
+          + "  turn_day(Lamp, Ledger, Lamp1, Ledger1),"
+          + "  N1 is N - 1,"
+          + "  night(N1, Lamp1, Ledger1, Out)."
+          + "night(0, Lamp, Ledger, Lamp-Ledger) :- !."
+          + "night(N, Lamp, Ledger, Out) :-"
+          + "  N > 0, !,"
+          + "  turn_night(Lamp, Ledger, Lamp1, Ledger1),"
+          + "  N1 is N - 1,"
+          + "  day(N1, Lamp1, Ledger1, Out)."
+          + "turn_day(Lamp, Ledger, Lamp1, Ledger1) :-"
+          + "  0 =:= Ledger mod 3, !,"
+          + "  Lamp1 is (Lamp + Ledger) mod 9973,"
+          + "  Ledger1 is (Ledger + 5) mod 9967."
+          + "turn_day(Lamp, Ledger, Lamp1, Ledger1) :-"
+          + "  Lamp1 is (Lamp + 2) mod 9973,"
+          + "  Ledger1 is (Ledger * 2 + 1) mod 9967."
+          + "turn_night(Lamp, Ledger, Lamp1, Ledger1) :-"
+          + "  0 =:= Lamp mod 5, !,"
+          + "  Lamp1 is (Lamp + 7) mod 9973,"
+          + "  Ledger1 is (Ledger + Lamp) mod 9967."
+          + "turn_night(Lamp, Ledger, Lamp1, Ledger1) :-"
+          + "  Lamp1 is (Lamp + Ledger) mod 9973,"
+          + "  Ledger1 = Ledger."
+          + "relay(R) :-"
+          + "  day(1, 1, 1, One),"
+          + "  day(2, 1, 1, Two),"
+          + "  set_prolog_flag(max_prove_stack_depth, 16),"
+          + "  day(100000, 1, 1, Long),"
+          + "  R = relay(One, Two, Long).";
+
   @Test
   void testWolfGoatCabbageCrossings() {
     assertEquals(
@@ -405,5 +494,31 @@ class LogicalTasksTest extends AbstractJProlTest {
     this.checkOnce(QUEEN_ENDGAME_PROGRAM, "immediate_mate.", false);
     this.checkOnce(QUEEN_ENDGAME_PROGRAM, "corner_stalemate.", true);
     this.checkOnce(QUEEN_ENDGAME_PROGRAM, "corner_mate.", false);
+  }
+
+  @Test
+  void testCassiniIsolatesTheStuckFuelLatch() {
+    assertEquals(
+        "scenario(['engine',stuck('fuel_latch','closed'),stuck('fuel_pyro','closed'),"
+            + "stuck('ox_latch','closed'),stuck('ox_pyro','closed')],"
+            + "[stuck('fuel_latch','closed')],[fire('fuel_pyro_backup')])",
+        this.proveSingle(CASSINI_PROGRAM, "cassini(R).", "R")
+    );
+    this.checkOnce(CASSINI_PROGRAM, "agrees([], []).", false);
+    this.checkOnce(CASSINI_PROGRAM, "restored(select(backup)).", false);
+    this.checkOnce(CASSINI_PROGRAM, "restored(fire(ox_pyro_backup)).", false);
+    this.checkOnce(
+        CASSINI_PROGRAM,
+        "thrust([stuck(fuel_latch, closed)], [fuel_pyro_backup]).",
+        true
+    );
+  }
+
+  @Test
+  void testMutualTailRelayCrossesAHundredThousandHandoffs() {
+    assertEquals(
+        "relay(3 - 3,6 - 3,5699 - 3635)",
+        this.proveSingle(RELAY_PROGRAM, "relay(R).", "R")
+    );
   }
 }
